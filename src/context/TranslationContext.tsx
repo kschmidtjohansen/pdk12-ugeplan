@@ -51,10 +51,14 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (typeof translation === 'string') {
       // Replace parameters
       if (params) {
-        return Object.entries(params).reduce((str, entry) => {
-          const [param, value] = entry;
-          return str.replace(`{${param}}`, String(value));
-        }, translation);
+        let result = translation;
+        // Iterate over each parameter key and replace it in the string
+        for (const paramKey in params) {
+          const value = params[paramKey];
+          const placeholder = `{${paramKey}}`;
+          result = result.replace(new RegExp(placeholder, 'g'), String(value));
+        }
+        return result;
       }
       return translation;
     }
