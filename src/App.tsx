@@ -12,6 +12,7 @@ import PlannerPage from "./pages/PlannerPage";
 import EmployeesPage from "./pages/EmployeesPage";
 import CarsPage from "./pages/CarsPage";
 import VacationPage from "./pages/VacationPage";
+import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/Layout/MainLayout";
 
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/employees" element={<EmployeesPage />} />
               <Route path="/cars" element={<CarsPage />} />
               <Route path="/vacation" element={<VacationPage />} />
+              <Route path="/admin" element={<AdminPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </MainLayout>

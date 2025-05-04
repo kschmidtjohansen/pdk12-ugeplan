@@ -7,11 +7,11 @@ import {
   Users, 
   Car, 
   LogIn, 
-  User,
   Clock,
   Calendar,
   Menu,
-  X
+  X,
+  Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,7 @@ interface NavigationItem {
   path: string;
   name: string;
   icon: React.ReactNode;
+  adminOnly?: boolean;
 }
 
 const TopNavbar: React.FC = () => {
@@ -60,6 +61,7 @@ const TopNavbar: React.FC = () => {
     { path: '/employees', name: 'Employees', icon: <Users className="h-5 w-5" /> },
     { path: '/cars', name: 'Cars', icon: <Car className="h-5 w-5" /> },
     { path: '/vacation', name: 'Vacation', icon: <Calendar className="h-5 w-5" /> },
+    { path: '/admin', name: 'Admin', icon: <Settings className="h-5 w-5" />, adminOnly: true },
   ];
 
   // Get user initials for avatar
@@ -75,6 +77,11 @@ const TopNavbar: React.FC = () => {
   if (!isAuthenticated) {
     return null;
   }
+
+  // Filter items based on user role
+  const filteredNavItems = navigationItems.filter(
+    item => !item.adminOnly || user?.role === 'administrator'
+  );
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-10 bg-white shadow-md navbar-height">
@@ -92,7 +99,7 @@ const TopNavbar: React.FC = () => {
             
             {/* Desktop Navigation */}
             <div className="hidden md:ml-6 md:flex md:space-x-4">
-              {navigationItems.map((item) => (
+              {filteredNavItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
@@ -160,7 +167,7 @@ const TopNavbar: React.FC = () => {
       {mobileMenuOpen && (
         <div className="md:hidden bg-white">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            {navigationItems.map((item) => (
+            {filteredNavItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}

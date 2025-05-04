@@ -63,7 +63,8 @@
 
 /* Responsive spacing classes */
 .page-container {
-  @apply px-4 py-16 md:px-6 md:py-6 lg:px-8;
+  @apply px-4 py-16 md:px-6 lg:px-8;
+  margin-top: 64px; /* Adding top margin to account for fixed navbar */
 }
 
 .navbar-height {
@@ -74,3 +75,4 @@
 .profile-avatar {
   @apply flex items-center justify-center bg-polygon-blue text-white rounded-full;
 }
+
