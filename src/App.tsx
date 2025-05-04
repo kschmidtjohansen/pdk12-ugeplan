@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { TranslationProvider } from "./context/TranslationContext";
+import { NotificationProvider } from "./context/NotificationContext";
 
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -23,24 +24,26 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TranslationProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <MainLayout>
-              <Routes>
-                <Route path="/" element={<LoginPage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/planner" element={<PlannerPage />} />
-                <Route path="/employees" element={<EmployeesPage />} />
-                <Route path="/cars" element={<CarsPage />} />
-                <Route path="/vacation" element={<VacationPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </MainLayout>
-          </BrowserRouter>
-        </TooltipProvider>
+        <NotificationProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <MainLayout>
+                <Routes>
+                  <Route path="/" element={<LoginPage />} />
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/planner" element={<PlannerPage />} />
+                  <Route path="/employees" element={<EmployeesPage />} />
+                  <Route path="/cars" element={<CarsPage />} />
+                  <Route path="/vacation" element={<VacationPage />} />
+                  <Route path="/admin" element={<AdminPage />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </MainLayout>
+            </BrowserRouter>
+          </TooltipProvider>
+        </NotificationProvider>
       </TranslationProvider>
     </AuthProvider>
   </QueryClientProvider>

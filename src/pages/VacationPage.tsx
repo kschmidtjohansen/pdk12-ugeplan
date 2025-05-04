@@ -1,7 +1,10 @@
+
 import React, { useState } from 'react';
 import { addDays, format } from 'date-fns';
 import PageHeader from '../components/Layout/PageHeader';
 import { useAuth, usePermissions } from '../context/AuthContext';
+import { useTranslation } from '../context/TranslationContext';
+import { useNotifications } from '../context/NotificationContext';
 import { 
   Card, 
   CardContent, 
@@ -90,6 +93,8 @@ const VacationPage: React.FC = () => {
   const { user } = useAuth();
   const { isAdmin } = usePermissions();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const { addNotification } = useNotifications();
   const [vacations, setVacations] = useState(initialVacations);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [date, setDate] = useState<DateRange>({
@@ -113,8 +118,8 @@ const VacationPage: React.FC = () => {
     
     if (!date.from || !date.to) {
       toast({
-        title: "Missing dates",
-        description: "Please select both start and end dates",
+        title: t("vacation.missingDates"),
+        description: t("vacation.selectBothDates"),
         variant: "destructive",
       });
       return;
@@ -134,9 +139,26 @@ const VacationPage: React.FC = () => {
     setVacations([...vacations, newVacation]);
     
     toast({
-      title: "Vacation request submitted",
-      description: "Your request has been sent for approval.",
+      title: t("vacation.requestSubmitted"),
+      description: t("vacation.requestSent"),
     });
+
+    // Generate notification for administrators
+    if (user?.role !== 'administrator') {
+      const formattedStartDate = format(date.from, 'dd/MM/yyyy');
+      const formattedEndDate = format(date.to, 'dd/MM/yyyy');
+      
+      addNotification({
+        type: 'vacation',
+        title: t("notifications.newVacationRequest"),
+        message: t("notifications.newVacationRequestMsg", {
+          name: user?.name,
+          from: formattedStartDate,
+          to: formattedEndDate
+        }),
+        link: '/vacation'
+      });
+    }
     
     setDialogOpen(false);
   };
@@ -171,9 +193,14 @@ const VacationPage: React.FC = () => {
     
     toast({
       title: actionVacation.status === 'rejected' 
-        ? "Vacation request rejected" 
-        : "Vacation request approved",
-      description: `${actionVacation.employeeName}'s request has been ${actionVacation.status === 'rejected' ? 'rejected' : 'approved'}.`,
+        ? t("vacation.requestRejected")
+        : t("vacation.requestApproved"),
+      description: t(
+        actionVacation.status === 'rejected' 
+          ? "vacation.requestRejectedMsg"
+          : "vacation.requestApprovedMsg",
+        { name: actionVacation.employeeName }
+      ),
     });
     
     setNoteDialogOpen(false);
@@ -189,30 +216,30 @@ const VacationPage: React.FC = () => {
   return (
     <>
       <PageHeader 
-        title="Vacation"
-        description="Apply for and manage vacation time"
+        title={t("navigation.vacation")}
+        description={t("vacation.pageDescription")}
       >
         <Button 
           onClick={handleCreateNew}
           className="bg-polygon-red hover:bg-polygon-darkred"
         >
-          <Plus className="mr-2 h-4 w-4" /> Apply for Vacation
+          <Plus className="mr-2 h-4 w-4" /> {t("vacation.applyForVacation")}
         </Button>
       </PageHeader>
 
       <div className="space-y-6">
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-4 w-full max-w-md">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="approved">Approved</TabsTrigger>
-            <TabsTrigger value="mine">My Requests</TabsTrigger>
+            <TabsTrigger value="all">{t("vacation.tabs.all")}</TabsTrigger>
+            <TabsTrigger value="pending">{t("vacation.tabs.pending")}</TabsTrigger>
+            <TabsTrigger value="approved">{t("vacation.tabs.approved")}</TabsTrigger>
+            <TabsTrigger value="mine">{t("vacation.tabs.mine")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-6">
             {filteredVacations.length === 0 ? (
               <Card className="text-center p-8">
-                <p className="text-muted-foreground">No vacation requests found</p>
+                <p className="text-muted-foreground">{t("vacation.noRequests")}</p>
               </Card>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -237,30 +264,30 @@ const VacationPage: React.FC = () => {
                           vacation.status === 'rejected' && "bg-red-100 text-red-800",
                           vacation.status === 'pending' && "bg-amber-100 text-amber-800"
                         )}>
-                          {vacation.status.charAt(0).toUpperCase() + vacation.status.slice(1)}
+                          {t(`vacation.status.${vacation.status}`)}
                         </span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-4">
                       <dl className="space-y-3 text-sm">
                         <div className="flex flex-col">
-                          <dt className="font-medium text-gray-500">Date Range</dt>
+                          <dt className="font-medium text-gray-500">{t("vacation.dateRange")}</dt>
                           <dd>
                             {format(vacation.startDate, 'PPP')} - {format(vacation.endDate, 'PPP')}
                           </dd>
                         </div>
                         <div className="flex flex-col">
-                          <dt className="font-medium text-gray-500">Reason</dt>
+                          <dt className="font-medium text-gray-500">{t("vacation.reason")}</dt>
                           <dd>{vacation.reason}</dd>
                         </div>
                         {vacation.notes && (
                           <div className="flex flex-col">
-                            <dt className="font-medium text-gray-500">Notes</dt>
+                            <dt className="font-medium text-gray-500">{t("vacation.notes")}</dt>
                             <dd>{vacation.notes}</dd>
                           </div>
                         )}
                         <div className="flex flex-col">
-                          <dt className="font-medium text-gray-500">Requested on</dt>
+                          <dt className="font-medium text-gray-500">{t("vacation.requestedOn")}</dt>
                           <dd>{format(vacation.createdAt, 'PPP')}</dd>
                         </div>
                       </dl>
@@ -274,7 +301,7 @@ const VacationPage: React.FC = () => {
                           onClick={() => handleRejectClick(vacation)}
                         >
                           <X className="mr-1 h-4 w-4" />
-                          Reject
+                          {t("vacation.reject")}
                         </Button>
                         <Button 
                           size="sm" 
@@ -282,7 +309,7 @@ const VacationPage: React.FC = () => {
                           onClick={() => handleApproveClick(vacation)}
                         >
                           <Check className="mr-1 h-4 w-4" />
-                          Approve
+                          {t("vacation.approve")}
                         </Button>
                       </CardFooter>
                     )}
@@ -298,15 +325,15 @@ const VacationPage: React.FC = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Apply for Vacation</DialogTitle>
+            <DialogTitle>{t("vacation.applyForVacation")}</DialogTitle>
             <DialogDescription>
-              Select your vacation dates and provide a reason.
+              {t("vacation.selectDatesAndReason")}
             </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>Date Range</Label>
+              <Label>{t("vacation.dateRange")}</Label>
               <div className="flex flex-col">
                 <Popover>
                   <PopoverTrigger asChild>
@@ -328,7 +355,7 @@ const VacationPage: React.FC = () => {
                           format(date.from, "LLL dd, y")
                         )
                       ) : (
-                        <span>Select vacation dates</span>
+                        <span>{t("vacation.selectVacationDates")}</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -348,12 +375,12 @@ const VacationPage: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="reason">Reason</Label>
+              <Label htmlFor="reason">{t("vacation.reason")}</Label>
               <Textarea
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Brief reason for your vacation request"
+                placeholder={t("vacation.reasonPlaceholder")}
                 required
               />
             </div>
@@ -364,13 +391,13 @@ const VacationPage: React.FC = () => {
                 variant="outline" 
                 onClick={() => setDialogOpen(false)}
               >
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button 
                 type="submit"
                 className="bg-polygon-red hover:bg-polygon-darkred"
               >
-                Submit Request
+                {t("vacation.submitRequest")}
               </Button>
             </DialogFooter>
           </form>
@@ -383,20 +410,22 @@ const VacationPage: React.FC = () => {
           <DialogHeader>
             <DialogTitle>
               {actionVacation?.status === 'rejected' 
-                ? 'Reject Vacation Request' 
-                : 'Approve Vacation Request'}
+                ? t("vacation.rejectRequest")
+                : t("vacation.approveRequest")}
             </DialogTitle>
             <DialogDescription>
               {actionVacation?.status === 'rejected' 
-                ? 'Please provide a reason for rejecting this request.' 
-                : 'You can add an optional note to this approval.'}
+                ? t("vacation.rejectReasonDesc")
+                : t("vacation.approveNoteDesc")}
             </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={handleAction} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="note">
-                {actionVacation?.status === 'rejected' ? 'Reason for rejection' : 'Note (optional)'}
+                {actionVacation?.status === 'rejected' 
+                  ? t("vacation.rejectionReason")
+                  : t("vacation.noteOptional")}
               </Label>
               <Textarea
                 id="note"
@@ -404,8 +433,8 @@ const VacationPage: React.FC = () => {
                 onChange={(e) => setNote(e.target.value)}
                 placeholder={
                   actionVacation?.status === 'rejected'
-                    ? "Explain why this request is being rejected"
-                    : "Add any additional notes to this approval"
+                    ? t("vacation.rejectionReasonPlaceholder")
+                    : t("vacation.approveNotePlaceholder")
                 }
                 required={actionVacation?.status === 'rejected'}
               />
@@ -417,7 +446,7 @@ const VacationPage: React.FC = () => {
                 variant="outline" 
                 onClick={() => setNoteDialogOpen(false)}
               >
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button 
                 type="submit"
@@ -426,7 +455,9 @@ const VacationPage: React.FC = () => {
                   : "bg-green-600 hover:bg-green-700"
                 }
               >
-                {actionVacation?.status === 'rejected' ? 'Reject Request' : 'Approve Request'}
+                {actionVacation?.status === 'rejected' 
+                  ? t("vacation.rejectRequestBtn")
+                  : t("vacation.approveRequestBtn")}
               </Button>
             </DialogFooter>
           </form>

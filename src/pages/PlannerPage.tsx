@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import PageHeader from '../components/Layout/PageHeader';
 import { usePermissions } from '../context/AuthContext';
+import { useTranslation } from '../context/TranslationContext';
+import { useNotifications } from '../context/NotificationContext';
 import { 
   Card, 
   CardContent, 
@@ -28,41 +31,43 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Edit, Clock } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Mock data
 const initialAssignments = [
   {
     id: '1',
-    title: 'Water damage inspection',
-    description: 'Complete inspection of water damage in basement area.',
+    title: 'Vandskade inspektion',
+    description: 'Komplet inspektion af vandskade i kælderområdet.',
     date: '2025-05-06',
     fromTime: '09:00',
     toTime: '11:00',
     location: 'Aarhus Central',
     car: 'Van 1',
-    employee: 'John Doe',
+    employees: ['John Doe'],
   },
   {
     id: '2',
-    title: 'Fire damage restoration',
-    description: 'Initial assessment of fire damage in apartment.',
+    title: 'Brandskade restaurering',
+    description: 'Første vurdering af brandskade i lejlighed.',
     date: '2025-05-07',
     fromTime: '13:00',
     toTime: '16:00',
-    location: 'Copenhagen South',
+    location: 'København Syd',
     car: 'Truck 3',
-    employee: 'Jane Smith',
+    employees: ['Jane Smith'],
   },
   {
     id: '3',
-    title: 'Mold assessment',
-    description: 'Inspect and assess mold damage in kitchen walls.',
+    title: 'Skimmelsvamp vurdering',
+    description: 'Inspicer og vurder skimmelsvamp skade på køkkenvægge.',
     date: '2025-05-09',
     fromTime: '10:00',
     toTime: '12:30',
-    location: 'Odense East',
+    location: 'Odense Øst',
     car: 'Van 2',
-    employee: 'Mike Johnson',
+    employees: ['Mike Johnson', 'Anna Williams'],
   },
 ];
 
@@ -90,7 +95,7 @@ interface Assignment {
   toTime: string;
   location: string;
   car: string;
-  employee: string;
+  employees: string[]; // Changed from single employee to array of employees
 }
 
 // Type for grouped assignments
@@ -122,11 +127,13 @@ const groupByDate = (assignments: Assignment[]) => {
 
 const PlannerPage: React.FC = () => {
   const { canCreate, canEdit } = usePermissions();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [assignments, setAssignments] = useState<Assignment[]>(initialAssignments);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
-  const [formData, setFormData] = useState<Assignment>({
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+  const [formData, setFormData] = useState<Omit<Assignment, 'employees'> & { employees: string[] }>({
     id: '',
     title: '',
     description: '',
@@ -135,7 +142,7 @@ const PlannerPage: React.FC = () => {
     toTime: '',
     location: '',
     car: '',
-    employee: '',
+    employees: [],
   });
 
   const currentWeek = getCurrentWeek();
@@ -152,13 +159,15 @@ const PlannerPage: React.FC = () => {
       toTime: '',
       location: '',
       car: '',
-      employee: '',
+      employees: [],
     });
+    setSelectedEmployees([]);
     setDialogOpen(true);
   };
 
   const handleEdit = (assignment: Assignment) => {
     setCurrentAssignment(assignment);
+    setSelectedEmployees(assignment.employees || []);
     setFormData({
       id: assignment.id,
       title: assignment.title,
@@ -168,7 +177,7 @@ const PlannerPage: React.FC = () => {
       toTime: assignment.toTime,
       location: assignment.location,
       car: assignment.car,
-      employee: assignment.employee,
+      employees: assignment.employees || [],
     });
     setDialogOpen(true);
   };
@@ -188,6 +197,16 @@ const PlannerPage: React.FC = () => {
     }));
   };
 
+  const handleEmployeeToggle = (employeeName: string) => {
+    setSelectedEmployees((prev) => {
+      if (prev.includes(employeeName)) {
+        return prev.filter(name => name !== employeeName);
+      } else {
+        return [...prev, employeeName];
+      }
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -195,23 +214,26 @@ const PlannerPage: React.FC = () => {
       // Update existing
       setAssignments(
         assignments.map((a) =>
-          a.id === currentAssignment.id ? { ...a, ...formData } : a
+          a.id === currentAssignment.id 
+            ? { ...formData, employees: selectedEmployees } 
+            : a
         )
       );
       toast({
-        title: "Assignment updated",
-        description: `${formData.title} has been updated.`,
+        title: t("planner.assignmentUpdated"),
+        description: t("planner.assignmentUpdatedMsg", { title: formData.title }),
       });
     } else {
       // Create new
       const newAssignment = {
         ...formData,
         id: Date.now().toString(),
+        employees: selectedEmployees,
       };
       setAssignments([...assignments, newAssignment]);
       toast({
-        title: "Assignment created",
-        description: `${formData.title} has been added to the schedule.`,
+        title: t("planner.assignmentCreated"),
+        description: t("planner.assignmentCreatedMsg", { title: formData.title }),
       });
     }
     
@@ -221,15 +243,15 @@ const PlannerPage: React.FC = () => {
   return (
     <>
       <PageHeader 
-        title="Weekly Planner"
-        description={`Week ${currentWeek} Schedule and Assignments`}
+        title={t("navigation.planner")}
+        description={t("planner.weekDescription", { week: currentWeek })}
       >
         {canCreate && (
           <Button 
             onClick={handleCreateNew}
             className="bg-polygon-red hover:bg-polygon-darkred"
           >
-            <Plus className="mr-2 h-4 w-4" /> New Assignment
+            <Plus className="mr-2 h-4 w-4" /> {t("planner.newAssignment")}
           </Button>
         )}
       </PageHeader>
@@ -237,10 +259,10 @@ const PlannerPage: React.FC = () => {
       <div className="grid gap-6">
         {Object.keys(groupedAssignments).length === 0 ? (
           <Card className="text-center p-8">
-            <p className="text-muted-foreground mb-4">No assignments scheduled</p>
+            <p className="text-muted-foreground mb-4">{t("planner.noAssignments")}</p>
             {canCreate && (
               <Button onClick={handleCreateNew} className="bg-polygon-red hover:bg-polygon-darkred">
-                <Plus className="mr-2 h-4 w-4" /> Create First Assignment
+                <Plus className="mr-2 h-4 w-4" /> {t("planner.createFirstAssignment")}
               </Button>
             )}
           </Card>
@@ -251,7 +273,7 @@ const PlannerPage: React.FC = () => {
               <Card key={date}>
                 <CardHeader className="pb-3">
                   <CardTitle>
-                    {new Date(date).toLocaleDateString('en-GB', {
+                    {new Date(date).toLocaleDateString('da-DK', {
                       weekday: 'long',
                       month: 'long',
                       day: 'numeric',
@@ -296,7 +318,16 @@ const PlannerPage: React.FC = () => {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                             </svg>
-                            <span>{assignment.employee}</span>
+                            <div className="flex flex-wrap gap-1">
+                              {assignment.employees.map((employee, index) => (
+                                <div key={index}>
+                                  <Badge variant="outline" className="bg-gray-100">
+                                    {employee}
+                                  </Badge>
+                                  {index < assignment.employees.length - 1 && ', '}
+                                </div>
+                              ))}
+                            </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <svg className="h-4 w-4 text-polygon-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -319,18 +350,18 @@ const PlannerPage: React.FC = () => {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {currentAssignment ? 'Edit Assignment' : 'New Assignment'}
+              {currentAssignment ? t("planner.editAssignment") : t("planner.newAssignment")}
             </DialogTitle>
             <DialogDescription>
               {currentAssignment
-                ? 'Update the details for this assignment.'
-                : 'Add a new assignment to the weekly schedule.'}
+                ? t("planner.updateDetails")
+                : t("planner.addAssignment")}
             </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Assignment Title</Label>
+              <Label htmlFor="title">{t("planner.assignmentTitle")}</Label>
               <Input
                 id="title"
                 name="title"
@@ -341,7 +372,7 @@ const PlannerPage: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t("planner.description")}</Label>
               <Textarea
                 id="description"
                 name="description"
@@ -353,7 +384,7 @@ const PlannerPage: React.FC = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
+                <Label htmlFor="date">{t("planner.date")}</Label>
                 <Input
                   id="date"
                   name="date"
@@ -365,7 +396,7 @@ const PlannerPage: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">{t("planner.location")}</Label>
                 <Input
                   id="location"
                   name="location"
@@ -378,7 +409,7 @@ const PlannerPage: React.FC = () => {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="fromTime">From</Label>
+                <Label htmlFor="fromTime">{t("planner.from")}</Label>
                 <Input
                   id="fromTime"
                   name="fromTime"
@@ -390,7 +421,7 @@ const PlannerPage: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="toTime">To</Label>
+                <Label htmlFor="toTime">{t("planner.to")}</Label>
                 <Input
                   id="toTime"
                   name="toTime"
@@ -403,14 +434,14 @@ const PlannerPage: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="car">Car</Label>
+              <Label htmlFor="car">{t("planner.car")}</Label>
               <Select
                 value={formData.car}
                 onValueChange={(value) => handleSelectChange('car', value)}
                 required
               >
                 <SelectTrigger id="car">
-                  <SelectValue placeholder="Select a car" />
+                  <SelectValue placeholder={t("planner.selectCar")} />
                 </SelectTrigger>
                 <SelectContent>
                   {MOCK_CARS.map((car) => (
@@ -423,23 +454,27 @@ const PlannerPage: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="employee">Employee</Label>
-              <Select
-                value={formData.employee}
-                onValueChange={(value) => handleSelectChange('employee', value)}
-                required
-              >
-                <SelectTrigger id="employee">
-                  <SelectValue placeholder="Select an employee" />
-                </SelectTrigger>
-                <SelectContent>
-                  {MOCK_EMPLOYEES.map((employee) => (
-                    <SelectItem key={employee.id} value={employee.name}>
+              <Label htmlFor="employees">{t("planner.employees")}</Label>
+              <div className="border rounded-md p-3 space-y-2">
+                {MOCK_EMPLOYEES.map((employee) => (
+                  <div key={employee.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`employee-${employee.id}`}
+                      checked={selectedEmployees.includes(employee.name)}
+                      onCheckedChange={() => handleEmployeeToggle(employee.name)}
+                    />
+                    <label
+                      htmlFor={`employee-${employee.id}`}
+                      className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
                       {employee.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    </label>
+                  </div>
+                ))}
+              </div>
+              {selectedEmployees.length === 0 && (
+                <p className="text-sm text-red-500">{t("planner.selectAtLeastOneEmployee")}</p>
+              )}
             </div>
             
             <DialogFooter>
@@ -448,13 +483,14 @@ const PlannerPage: React.FC = () => {
                 variant="outline" 
                 onClick={() => setDialogOpen(false)}
               >
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button 
                 type="submit"
                 className="bg-polygon-red hover:bg-polygon-darkred"
+                disabled={selectedEmployees.length === 0}
               >
-                {currentAssignment ? 'Save Changes' : 'Create Assignment'}
+                {currentAssignment ? t("planner.saveChanges") : t("planner.createAssignment")}
               </Button>
             </DialogFooter>
           </form>

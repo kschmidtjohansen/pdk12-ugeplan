@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { languageNames } from '../../translations';
 import { 
   Search, 
@@ -13,12 +14,16 @@ import {
   Calendar,
   Menu,
   X,
-  Settings
+  Settings,
+  Bell,
+  Check
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +33,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuFooter
 } from "@/components/ui/dropdown-menu";
 
 // Type definitions for navigation items
@@ -42,6 +48,13 @@ interface NavigationItem {
 const TopNavbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { t, currentLanguage, setLanguage } = useTranslation();
+  const { 
+    notifications, 
+    unreadCount, 
+    markAsRead, 
+    markAllAsRead,
+    clearNotification
+  } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -54,6 +67,13 @@ const TopNavbar: React.FC = () => {
       description: t('login.success')
     });
     navigate('/');
+  };
+
+  const handleNotificationClick = (notification) => {
+    markAsRead(notification.id);
+    if (notification.link) {
+      navigate(notification.link);
+    }
   };
 
   // Don't show navbar for login page
@@ -88,6 +108,8 @@ const TopNavbar: React.FC = () => {
   const filteredNavItems = navigationItems.filter(
     item => !item.adminOnly || user?.role === 'administrator'
   );
+
+  const isAdmin = user?.role === 'administrator';
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-10 bg-white shadow-md navbar-height">
@@ -138,6 +160,90 @@ const TopNavbar: React.FC = () => {
                 )}
               </button>
             </div>
+            
+            {/* Notifications - Desktop */}
+            {isAdmin && (
+              <div className="hidden md:flex md:items-center md:ml-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative">
+                      <Bell className="h-5 w-5" />
+                      {unreadCount > 0 && (
+                        <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-polygon-red text-white">
+                          {unreadCount}
+                        </Badge>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-80">
+                    <DropdownMenuLabel className="flex items-center justify-between">
+                      <span>{t('notifications.title')}</span>
+                      {unreadCount > 0 && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={markAllAsRead}
+                          className="text-xs h-7"
+                        >
+                          <Check className="mr-1 h-3 w-3" />
+                          {t('notifications.markAllAsRead')}
+                        </Button>
+                      )}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    
+                    <div className="max-h-80 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="p-4 text-center text-muted-foreground">
+                          {t('notifications.noNotifications')}
+                        </div>
+                      ) : (
+                        notifications.map((notification) => (
+                          <DropdownMenuItem 
+                            key={notification.id} 
+                            className={cn(
+                              "flex flex-col items-start p-3 cursor-pointer gap-1",
+                              !notification.read && "bg-muted"
+                            )}
+                            onClick={() => handleNotificationClick(notification)}
+                          >
+                            <div className="flex justify-between w-full">
+                              <span className="font-medium">{notification.title}</span>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-5 w-5" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  clearNotification(notification.id);
+                                }}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <span className="text-sm">{notification.message}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {format(notification.date, 'PPpp')}
+                            </span>
+                          </DropdownMenuItem>
+                        ))
+                      )}
+                    </div>
+                    
+                    {notifications.length > 0 && (
+                      <DropdownMenuFooter className="text-center">
+                        <Link 
+                          to="/vacation" 
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          {t('notifications.viewAll')}
+                        </Link>
+                      </DropdownMenuFooter>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
             
             {/* User dropdown */}
             <div className="hidden md:ml-4 md:flex md:items-center">
@@ -205,6 +311,48 @@ const TopNavbar: React.FC = () => {
                 {item.name}
               </Link>
             ))}
+            
+            {/* Notifications - Mobile */}
+            {isAdmin && notifications.length > 0 && (
+              <div className="px-3 py-2">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-500 flex items-center">
+                    <Bell className="mr-2 h-4 w-4" />
+                    {t('notifications.title')}
+                    {unreadCount > 0 && (
+                      <Badge className="ml-2 bg-polygon-red text-white">
+                        {unreadCount}
+                      </Badge>
+                    )}
+                  </span>
+                </div>
+                {notifications.slice(0, 3).map((notification) => (
+                  <div 
+                    key={notification.id}
+                    className={cn(
+                      "p-2 text-sm rounded-md mb-1 cursor-pointer",
+                      !notification.read && "bg-muted"
+                    )}
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleNotificationClick(notification);
+                    }}
+                  >
+                    <div className="font-medium">{notification.title}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {format(notification.date, 'PPp')}
+                    </div>
+                  </div>
+                ))}
+                <Link 
+                  to="/vacation"
+                  className="block text-xs text-blue-600 hover:underline mt-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {t('notifications.viewAll')}
+                </Link>
+              </div>
+            )}
             
             {/* Mobile user info and logout */}
             <div className="border-t border-gray-200 pt-4 pb-3">
