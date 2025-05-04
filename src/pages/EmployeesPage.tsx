@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import PageHeader from '../components/Layout/PageHeader';
 import { usePermissions } from '../context/AuthContext';
@@ -5,10 +6,20 @@ import { useTranslation } from '../context/TranslationContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit, Mail, Phone } from 'lucide-react';
+import { Plus, Edit, Mail, Phone, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -42,6 +53,7 @@ const initialEmployees = [{
   jobTitle: 'Junior Technician',
   role: 'servicemedarbejder'
 }];
+
 const USER_ROLES = [{
   value: 'administrator',
   label: 'Administrator'
@@ -52,19 +64,14 @@ const USER_ROLES = [{
   value: 'servicemedarbejder',
   label: 'Servicemedarbejder'
 }];
+
 const EmployeesPage: React.FC = () => {
-  const {
-    isAdmin,
-    canEdit
-  } = usePermissions();
-  const {
-    toast
-  } = useToast();
-  const {
-    t
-  } = useTranslation();
+  const { isAdmin } = usePermissions();
+  const { toast } = useToast();
+  const { t } = useTranslation();
   const [employees, setEmployees] = useState(initialEmployees);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -73,6 +80,7 @@ const EmployeesPage: React.FC = () => {
     jobTitle: '',
     role: ''
   });
+
   const handleCreateNew = () => {
     setCurrentEmployee(null);
     setFormData({
@@ -84,6 +92,7 @@ const EmployeesPage: React.FC = () => {
     });
     setDialogOpen(true);
   };
+
   const handleEdit = employee => {
     setCurrentEmployee(employee);
     setFormData({
@@ -95,22 +104,38 @@ const EmployeesPage: React.FC = () => {
     });
     setDialogOpen(true);
   };
+  
+  const handleDelete = employee => {
+    setCurrentEmployee(employee);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (currentEmployee) {
+      setEmployees(employees.filter(e => e.id !== currentEmployee.id));
+      toast({
+        title: t("employees.employeeDeleted"),
+        description: t("employees.employeeDeletedMsg", { name: currentEmployee.name })
+      });
+      setDeleteDialogOpen(false);
+    }
+  };
+
   const handleInputChange = e => {
-    const {
-      name,
-      value
-    } = e.target;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
   };
+
   const handleSelectChange = value => {
     setFormData(prev => ({
       ...prev,
       role: value
     }));
   };
+
   const handleSubmit = e => {
     e.preventDefault();
     if (currentEmployee) {
@@ -141,6 +166,7 @@ const EmployeesPage: React.FC = () => {
     }
     setDialogOpen(false);
   };
+
   return <>
       <PageHeader title={t("employees.title")} description={t("employees.description")}>
         {isAdmin && <Button onClick={handleCreateNew} className="bg-polygon-blue">
@@ -157,7 +183,7 @@ const EmployeesPage: React.FC = () => {
                 <TableHead>{t("employees.contactInfo")}</TableHead>
                 <TableHead>{t("employees.jobTitle")}</TableHead>
                 <TableHead>{t("employees.role")}</TableHead>
-                {canEdit && <TableHead className="w-[100px]">{t("common.actions")}</TableHead>}
+                {isAdmin && <TableHead className="w-[100px]">{t("common.actions")}</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -181,11 +207,17 @@ const EmployeesPage: React.FC = () => {
                       {USER_ROLES.find(role => role.value === employee.role)?.label}
                     </span>
                   </TableCell>
-                  {canEdit && <TableCell>
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(employee)} className="h-8 w-8 p-0">
-                        <span className="sr-only">{t("common.edit")}</span>
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                  {isAdmin && <TableCell>
+                      <div className="flex space-x-2">
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(employee)} className="h-8 w-8 p-0">
+                          <span className="sr-only">{t("common.edit")}</span>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(employee)} className="h-8 w-8 p-0 text-destructive">
+                          <span className="sr-only">{t("common.delete")}</span>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>}
                 </TableRow>)}
             </TableBody>
@@ -193,6 +225,7 @@ const EmployeesPage: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Employee Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -243,13 +276,32 @@ const EmployeesPage: React.FC = () => {
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                 {t("common.cancel")}
               </Button>
-              <Button type="submit" className="bg-polygon-purple hover:bg-polygon-darkpurple">
+              <Button type="submit" className="bg-polygon-blue hover:bg-polygon-darkblue">
                 {currentEmployee ? t("common.save") : t("common.add")}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("employees.deleteConfirm")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {currentEmployee && t("employees.deleteWarning", { name: currentEmployee.name })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+              {t("common.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>;
 };
+
 export default EmployeesPage;

@@ -25,11 +25,11 @@ export default {
 					darkblue: "#0095cc",
 					gray: "#4a4a4a",
 					lightgray: "#f5f5f5",
-					purple: "#9b87f5",    // Primary purple
-					darkpurple: "#7E69AB", // Secondary purple
-					tertiary: "#6E59A5",  // Tertiary purple
-					darkest: "#1A1F2C",   // Dark purple
-					light: "#D6BCFA",     // Light purple
+					purple: "#00aeef",    // Changed to blue
+					darkpurple: "#0095cc", // Changed to darkblue
+					tertiary: "#0080b3",  // Darker blue
+					darkest: "#1A1F2C",   // Dark blue
+					light: "#b3e7fa",     // Light blue
 					neutral: "#8E9196",   // Neutral gray
 				},
 				border: 'hsl(var(--border))',

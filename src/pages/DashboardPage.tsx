@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Users, Car, Clock } from 'lucide-react';
 
 // Mock data
-const currentAssignments = [{
+const allAssignments = [{
   id: '1',
   titleKey: 'dashboard.assignments.waterDamage',
   date: '2025-05-06',
@@ -44,15 +45,16 @@ const getCurrentWeek = () => {
   const weekNum = Math.ceil(((now.getTime() - onejan.getTime()) / 86400000 + onejan.getDay() + 1) / 7);
   return weekNum;
 };
+
 const DashboardPage: React.FC = () => {
-  const {
-    user
-  } = useAuth();
-  const {
-    t,
-    currentLanguage
-  } = useTranslation();
+  const { user } = useAuth();
+  const { t, currentLanguage } = useTranslation();
   const currentWeek = getCurrentWeek();
+
+  // Get only the assignments for the current user
+  const currentAssignments = allAssignments.filter(assignment => {
+    return user && assignment.employee === user.name;
+  });
 
   // Format the date based on the current language
   const getFormattedDate = () => {
@@ -73,7 +75,7 @@ const DashboardPage: React.FC = () => {
       link: '/planner'
     }, {
       title: t('dashboard.quickAccess.vacation.title'),
-      icon: <Calendar className="h-10 w-10 color-#00aeef" />,
+      icon: <Calendar className="h-10 w-10 text-polygon-blue" />,
       description: t('dashboard.quickAccess.vacation.description'),
       link: '/vacation'
     }];
@@ -94,6 +96,7 @@ const DashboardPage: React.FC = () => {
     }
     return baseItems;
   };
+  
   return <>
       <PageHeader title={t('dashboard.welcome', {
       name: user?.name
@@ -104,9 +107,9 @@ const DashboardPage: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {getQuickAccessItems().map((item, index) => <Link key={index} to={item.link} className="block">
-            <Card className="h-full hover:border-polygon-red transition-all duration-200">
+            <Card className="h-full hover:border-polygon-blue transition-all duration-200">
               <CardHeader className="pb-2">
-                <div className="text-polygon-red">{item.icon}</div>
+                <div className="text-polygon-blue">{item.icon}</div>
                 <CardTitle className="mt-2">{item.title}</CardTitle>
               </CardHeader>
               <CardContent className="pb-2">
@@ -119,9 +122,11 @@ const DashboardPage: React.FC = () => {
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
-            <span>{t('dashboard.weekAssignments', {
-              week: currentWeek
-            })}</span>
+            <span>
+              {currentAssignments.length > 0 
+                ? t('dashboard.myAssignments', { week: currentWeek })
+                : t('dashboard.weekAssignments', { week: currentWeek })}
+            </span>
             <Button variant="outline" size="sm" asChild>
               <Link to="/planner">{t('dashboard.viewAll')}</Link>
             </Button>
@@ -131,7 +136,7 @@ const DashboardPage: React.FC = () => {
           {currentAssignments.length === 0 ? <p className="text-center py-8 text-muted-foreground">
               {t('dashboard.noAssignments')}
             </p> : <div className="grid gap-4">
-              {currentAssignments.map(assignment => <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-red transition-colors">
+              {currentAssignments.map(assignment => <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
                   <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
                     <h3 className="font-medium">{t(assignment.titleKey)}</h3>
                     <span className="text-sm bg-gray-100 px-2 py-1 rounded-md">
@@ -159,7 +164,7 @@ const DashboardPage: React.FC = () => {
             </div>}
         </CardContent>
         <CardFooter className="flex justify-center border-t pt-4">
-          <Button asChild className="bg-polygon-red hover:bg-polygon-darkred">
+          <Button asChild className="bg-polygon-blue hover:bg-polygon-darkblue">
             <Link to="/planner">
               <Clock className="mr-2 h-4 w-4" />
               {t('dashboard.manageAssignments')}
@@ -169,4 +174,5 @@ const DashboardPage: React.FC = () => {
       </Card>
     </>;
 };
+
 export default DashboardPage;

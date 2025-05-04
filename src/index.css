@@ -14,24 +14,24 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
 
-    --primary: 260 80% 74%;  /* Using purple now */
+    --primary: 196 100% 47%;  /* Using Polygon blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 262 41% 54%; /* Using secondary purple */
+    --secondary: 196 100% 40%; /* Using darker blue */
     --secondary-foreground: 0 0% 100%;
 
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
     --accent: 0 0% 96%;
-    --accent-foreground: 260 80% 74%;
+    --accent-foreground: 196 100% 47%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 260 80% 74%;
+    --ring: 196 100% 47%;
 
     --radius: 0.5rem;
   }
@@ -49,7 +49,7 @@
 
 /* Custom styles for Polygon application */
 .polygon-gradient {
-  background: linear-gradient(to right, #9b87f5, #7E69AB);
+  background: linear-gradient(to right, #00aeef, #0095cc);
 }
 
 .polygon-logo {
@@ -73,7 +73,7 @@
 
 /* Avatar styles */
 .profile-avatar {
-  @apply flex items-center justify-center bg-polygon-purple text-white rounded-full;
+  @apply flex items-center justify-center bg-polygon-blue text-white rounded-full;
 }
 
 /* Define Polygon colors */
@@ -87,43 +87,43 @@
   }
   
   .bg-polygon-purple {
-    background-color: #9b87f5;
+    background-color: #00aeef;
   }
   
   .text-polygon-purple {
-    color: #9b87f5;
+    color: #00aeef;
   }
   
   .bg-polygon-darkpurple {
-    background-color: #7E69AB;
+    background-color: #0095cc;
   }
   
   .text-polygon-darkpurple {
-    color: #7E69AB;
+    color: #0095cc;
   }
   
   .hover\:bg-polygon-darkpurple:hover {
-    background-color: #6E59A5;
+    background-color: #0095cc;
   }
   
   .bg-polygon-red {
-    background-color: #e31937;
+    background-color: #00aeef;
   }
   
   .text-polygon-red {
-    color: #e31937;
+    color: #00aeef;
   }
   
   .hover\:bg-polygon-darkred:hover {
-    background-color: #c41731;
+    background-color: #0095cc;
   }
   
   .border-polygon-red {
-    border-color: #e31937;
+    border-color: #00aeef;
   }
   
   .border-polygon-purple {
-    border-color: #9b87f5;
+    border-color: #00aeef;
   }
   
   .bg-polygon-lightgray {
