@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CarData } from './types';
+import { useTranslation } from '@/context/TranslationContext';
 
 interface CarsListProps {
   cars: CarData[];
@@ -30,6 +31,8 @@ const CarsList: React.FC<CarsListProps> = ({
   onEdit,
   onDelete
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <div className="grid gap-4">
       {/* Mobile view - card based display */}
@@ -50,7 +53,7 @@ const CarsList: React.FC<CarsListProps> = ({
                       onClick={() => onEdit(car)}
                       className="h-8 w-8 p-0"
                     >
-                      <span className="sr-only">Edit</span>
+                      <span className="sr-only">{t('common.edit')}</span>
                       <Edit className="h-4 w-4" />
                     </Button>
                     {isAdmin && (
@@ -60,7 +63,7 @@ const CarsList: React.FC<CarsListProps> = ({
                         onClick={() => onDelete(car)}
                         className="h-8 w-8 p-0 text-destructive"
                       >
-                        <span className="sr-only">Delete</span>
+                        <span className="sr-only">{t('common.delete')}</span>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
@@ -69,16 +72,16 @@ const CarsList: React.FC<CarsListProps> = ({
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Car Number:</p>
+                  <p className="text-muted-foreground">{t('cars.carNumber')}:</p>
                   <p>{car.carNumber}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Number Plate:</p>
+                  <p className="text-muted-foreground">{t('cars.numberPlate')}:</p>
                   <p>{car.numberPlate}</p>
                 </div>
                 {canViewFuelCardCode && (
                   <div className="col-span-2">
-                    <p className="text-muted-foreground">Fuel Card Code:</p>
+                    <p className="text-muted-foreground">{t('cars.fuelCardCode')}:</p>
                     <code className="bg-gray-100 p-1 rounded">{car.fuelCardCode}</code>
                   </div>
                 )}
@@ -95,11 +98,11 @@ const CarsList: React.FC<CarsListProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Car Number</TableHead>
-                  <TableHead>Number Plate</TableHead>
-                  {canViewFuelCardCode && <TableHead>Fuel Card Code</TableHead>}
-                  {canEdit && <TableHead className="w-[100px]">Actions</TableHead>}
+                  <TableHead>{t('cars.vehicleName')}</TableHead>
+                  <TableHead>{t('cars.carNumber')}</TableHead>
+                  <TableHead>{t('cars.numberPlate')}</TableHead>
+                  {canViewFuelCardCode && <TableHead>{t('cars.fuelCardCode')}</TableHead>}
+                  {canEdit && <TableHead className="w-[100px]">{t('common.actions')}</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -127,7 +130,7 @@ const CarsList: React.FC<CarsListProps> = ({
                             onClick={() => onEdit(car)}
                             className="h-8 w-8 p-0"
                           >
-                            <span className="sr-only">Edit</span>
+                            <span className="sr-only">{t('common.edit')}</span>
                             <Edit className="h-4 w-4" />
                           </Button>
                           {isAdmin && (
@@ -137,7 +140,7 @@ const CarsList: React.FC<CarsListProps> = ({
                               onClick={() => onDelete(car)}
                               className="h-8 w-8 p-0 text-destructive"
                             >
-                              <span className="sr-only">Delete</span>
+                              <span className="sr-only">{t('common.delete')}</span>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}

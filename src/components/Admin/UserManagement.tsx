@@ -48,6 +48,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User, UserRole } from '@/context/AuthContext';
+import { useTranslation } from '@/context/TranslationContext';
 
 // Mock users for display
 const mockUsers: User[] = [
@@ -83,14 +84,9 @@ const mockUsers: User[] = [
   },
 ];
 
-const USER_ROLES = [
-  { value: 'administrator', label: 'Administrator' },
-  { value: 'skadeleder', label: 'Skadeleder' },
-  { value: 'servicemedarbejder', label: 'Servicemedarbejder' },
-];
-
 const UserManagement: React.FC = () => {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [users, setUsers] = useState<User[]>(mockUsers);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -100,6 +96,21 @@ const UserManagement: React.FC = () => {
     email: '',
     role: 'servicemedarbejder' as UserRole,
   });
+
+  // Helper function to get role label
+  const getRoleLabel = (role: UserRole): string => {
+    return t(`admin.roles.${role}`);
+  };
+
+  // Helper function to get initials from name
+  const getInitials = (name: string): string => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
   const handleCreateUser = () => {
     setCurrentUser(null);
@@ -130,8 +141,8 @@ const UserManagement: React.FC = () => {
     if (currentUser) {
       setUsers(users.filter(user => user.id !== currentUser.id));
       toast({
-        title: "User deleted",
-        description: `${currentUser.name}'s account has been removed.`,
+        title: t('admin.userManagement.userDeleted'),
+        description: t('admin.userManagement.userDeletedMsg', { name: currentUser.name }),
       });
       setDeleteDialogOpen(false);
     }
@@ -163,8 +174,8 @@ const UserManagement: React.FC = () => {
         )
       );
       toast({
-        title: "User updated",
-        description: `${formData.name}'s information has been updated.`,
+        title: t('admin.userManagement.userUpdated'),
+        description: t('admin.userManagement.userUpdateMsg', { name: formData.name }),
       });
     } else {
       // Create new
@@ -174,22 +185,15 @@ const UserManagement: React.FC = () => {
       };
       setUsers([...users, newUser]);
       toast({
-        title: "User added",
-        description: `${formData.name} has been added as a ${USER_ROLES.find(r => r.value === formData.role)?.label}.`,
+        title: t('admin.userManagement.userAdded'),
+        description: t('admin.userManagement.userAddedMsg', {
+          name: formData.name, 
+          role: getRoleLabel(formData.role)
+        }),
       });
     }
     
     setUserDialogOpen(false);
-  };
-
-  // Helper function to get initials from name
-  const getInitials = (name: string): string => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
   };
 
   return (
@@ -198,14 +202,14 @@ const UserManagement: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>Manage system users and their permissions</CardDescription>
+              <CardTitle>{t('admin.userManagement.title')}</CardTitle>
+              <CardDescription>{t('admin.userManagement.description')}</CardDescription>
             </div>
             <Button 
               onClick={handleCreateUser}
               className="bg-polygon-blue hover:bg-polygon-darkblue"
             >
-              Add User
+              {t('admin.userManagement.addUser')}
             </Button>
           </div>
         </CardHeader>
@@ -213,10 +217,10 @@ const UserManagement: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
+                <TableHead>{t('admin.userManagement.name')}</TableHead>
+                <TableHead>{t('admin.userManagement.email')}</TableHead>
+                <TableHead>{t('admin.userManagement.role')}</TableHead>
+                <TableHead className="w-[100px]">{t('admin.userManagement.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -239,7 +243,7 @@ const UserManagement: React.FC = () => {
                           ? 'bg-green-100 text-green-800 hover:bg-green-100'
                           : 'bg-gray-100 text-gray-800 hover:bg-gray-100'
                       }`}>
-                      {USER_ROLES.find(role => role.value === user.role)?.label}
+                      {getRoleLabel(user.role)}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -250,7 +254,7 @@ const UserManagement: React.FC = () => {
                         onClick={() => handleEditUser(user)}
                         className="h-8 w-8 p-0"
                       >
-                        <span className="sr-only">Edit</span>
+                        <span className="sr-only">{t('common.edit')}</span>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button
@@ -260,7 +264,7 @@ const UserManagement: React.FC = () => {
                         className="h-8 w-8 p-0 text-destructive"
                         disabled={user.id === '1'} // Prevent deleting main admin
                       >
-                        <span className="sr-only">Delete</span>
+                        <span className="sr-only">{t('common.delete')}</span>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -277,18 +281,18 @@ const UserManagement: React.FC = () => {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {currentUser ? 'Edit User' : 'Add New User'}
+              {currentUser ? t('admin.userManagement.editUser') : t('admin.userManagement.addNewUser')}
             </DialogTitle>
             <DialogDescription>
               {currentUser
-                ? 'Update user information and permissions.'
-                : 'Create a new user account.'}
+                ? t('admin.userManagement.updateInfo')
+                : t('admin.userManagement.createAccount')}
             </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={handleSubmitUser} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name">{t('admin.userManagement.fullName')}</Label>
               <Input
                 id="name"
                 name="name"
@@ -299,7 +303,7 @@ const UserManagement: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('common.email')}</Label>
               <Input
                 id="email"
                 name="email"
@@ -311,21 +315,25 @@ const UserManagement: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
+              <Label htmlFor="role">{t('admin.userManagement.role')}</Label>
               <Select
                 value={formData.role}
                 onValueChange={handleRoleChange}
                 required
               >
                 <SelectTrigger id="role">
-                  <SelectValue placeholder="Select a role" />
+                  <SelectValue placeholder={t('admin.userManagement.selectRole')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {USER_ROLES.map((role) => (
-                    <SelectItem key={role.value} value={role.value}>
-                      {role.label}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="administrator">
+                    {t('admin.roles.administrator')}
+                  </SelectItem>
+                  <SelectItem value="skadeleder">
+                    {t('admin.roles.skadeleder')}
+                  </SelectItem>
+                  <SelectItem value="servicemedarbejder">
+                    {t('admin.roles.servicemedarbejder')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -336,13 +344,13 @@ const UserManagement: React.FC = () => {
                 variant="outline" 
                 onClick={() => setUserDialogOpen(false)}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button 
                 type="submit"
                 className="bg-polygon-blue hover:bg-polygon-darkblue"
               >
-                {currentUser ? 'Save Changes' : 'Add User'}
+                {currentUser ? t('common.save') : t('common.add')}
               </Button>
             </DialogFooter>
           </form>
@@ -353,23 +361,22 @@ const UserManagement: React.FC = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.userManagement.deleteConfirm')}</AlertDialogTitle>
             <AlertDialogDescription>
               {currentUser && (
                 <>
-                  You are about to delete <strong>{currentUser.name}</strong>'s account.
-                  This action cannot be undone.
+                  {t('admin.userManagement.deleteWarning', { name: <strong>{currentUser.name}</strong> })}
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmDeleteUser}
               className="bg-destructive hover:bg-destructive/90"
             >
-              Delete
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

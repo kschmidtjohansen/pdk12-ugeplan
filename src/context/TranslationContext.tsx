@@ -14,7 +14,8 @@ interface TranslationContextType {
 const TranslationContext = createContext<TranslationContextType | undefined>(undefined);
 
 export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
+  // Changed default language to Danish
+  const [currentLanguage, setCurrentLanguage] = useState<Language>('da');
   
   // Load saved language preference on mount
   useEffect(() => {

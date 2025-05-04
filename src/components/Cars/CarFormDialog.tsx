@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CarFormData } from './types';
+import { useTranslation } from '@/context/TranslationContext';
 
 interface CarFormDialogProps {
   open: boolean;
@@ -32,23 +33,25 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
   isEditing,
   canViewFuelCardCode
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? 'Edit Vehicle' : 'Add New Vehicle'}
+            {isEditing ? t('cars.editVehicle') : t('cars.addNewVehicle')}
           </DialogTitle>
           <DialogDescription>
             {isEditing
-              ? 'Update the vehicle information.'
-              : 'Add a new vehicle to the department fleet.'}
+              ? t('cars.updateVehicleInfo')
+              : t('cars.addNewVehicleDesc')}
           </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Vehicle Name</Label>
+            <Label htmlFor="name">{t('cars.vehicleName')}</Label>
             <Input
               id="name"
               name="name"
@@ -59,7 +62,7 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="carNumber">Car Number</Label>
+            <Label htmlFor="carNumber">{t('cars.carNumber')}</Label>
             <Input
               id="carNumber"
               name="carNumber"
@@ -70,7 +73,7 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="numberPlate">Number Plate</Label>
+            <Label htmlFor="numberPlate">{t('cars.numberPlate')}</Label>
             <Input
               id="numberPlate"
               name="numberPlate"
@@ -82,7 +85,7 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
           
           {canViewFuelCardCode && (
             <div className="space-y-2">
-              <Label htmlFor="fuelCardCode">Fuel Card Code</Label>
+              <Label htmlFor="fuelCardCode">{t('cars.fuelCardCode')}</Label>
               <Input
                 id="fuelCardCode"
                 name="fuelCardCode"
@@ -99,13 +102,13 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
               variant="outline" 
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button 
               type="submit"
               className="bg-polygon-blue hover:bg-polygon-darkblue"
             >
-              {isEditing ? 'Save Changes' : 'Add Vehicle'}
+              {isEditing ? t('common.save') : t('common.add')}
             </Button>
           </DialogFooter>
         </form>

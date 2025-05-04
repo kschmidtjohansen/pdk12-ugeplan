@@ -12,7 +12,7 @@ import { Calendar, Users, Car, Clock } from 'lucide-react';
 const currentAssignments = [
   {
     id: '1',
-    title: 'Water damage inspection',
+    titleKey: 'dashboard.assignments.waterDamage',
     date: '2025-05-06',
     fromTime: '09:00',
     toTime: '11:00',
@@ -22,7 +22,7 @@ const currentAssignments = [
   },
   {
     id: '2',
-    title: 'Fire damage restoration',
+    titleKey: 'dashboard.assignments.fireDamage',
     date: '2025-05-07',
     fromTime: '13:00',
     toTime: '16:00',
@@ -32,7 +32,7 @@ const currentAssignments = [
   },
   {
     id: '3',
-    title: 'Mold assessment',
+    titleKey: 'dashboard.assignments.mold',
     date: '2025-05-09',
     fromTime: '10:00',
     toTime: '12:30',
@@ -153,7 +153,7 @@ const DashboardPage: React.FC = () => {
                   className="border rounded-md p-4 bg-white hover:border-polygon-red transition-colors"
                 >
                   <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
-                    <h3 className="font-medium">{assignment.title}</h3>
+                    <h3 className="font-medium">{t(assignment.titleKey)}</h3>
                     <span className="text-sm bg-gray-100 px-2 py-1 rounded-md">
                       {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
                     </span>

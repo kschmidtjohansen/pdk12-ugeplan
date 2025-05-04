@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { CarData } from './types';
+import { useTranslation } from '@/context/TranslationContext';
 
 interface DeleteConfirmDialogProps {
   open: boolean;
@@ -25,27 +26,28 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
   currentCar,
   onConfirmDelete
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>{t('deleteConfirm.title')}</AlertDialogTitle>
           <AlertDialogDescription>
             {currentCar && (
               <>
-                You are about to delete <strong>{currentCar.name}</strong> from your vehicle fleet.
-                This action cannot be undone.
+                {t('deleteConfirm.carWarning', { name: <strong>{currentCar.name}</strong> })}
               </>
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t('deleteConfirm.cancel')}</AlertDialogCancel>
           <AlertDialogAction 
             onClick={onConfirmDelete}
             className="bg-destructive hover:bg-destructive/90"
           >
-            Delete
+            {t('deleteConfirm.delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

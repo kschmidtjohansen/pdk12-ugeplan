@@ -5,6 +5,7 @@ import { usePermissions } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useTranslation } from '@/context/TranslationContext';
 
 // Import refactored components
 import CarsList from '@/components/Cars/CarsList';
@@ -47,6 +48,7 @@ const initialCars: CarData[] = [
 const CarsPage: React.FC = () => {
   const { canEdit, canViewFuelCardCode, isAdmin } = usePermissions();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [cars, setCars] = useState<CarData[]>(initialCars);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
@@ -89,8 +91,8 @@ const CarsPage: React.FC = () => {
     if (currentCar) {
       setCars(cars.filter(car => car.id !== currentCar.id));
       toast({
-        title: "Vehicle deleted",
-        description: `${currentCar.name} has been removed from the fleet.`,
+        title: t('cars.vehicleDeleted'),
+        description: t('cars.vehicleDeletedMsg', { name: currentCar.name }),
       });
       setDeleteDialogOpen(false);
     }
@@ -115,8 +117,8 @@ const CarsPage: React.FC = () => {
         )
       );
       toast({
-        title: "Vehicle updated",
-        description: `${formData.name}'s information has been updated.`,
+        title: t('cars.vehicleUpdated'),
+        description: t('cars.vehicleUpdatedMsg', { name: formData.name }),
       });
     } else {
       // Create new
@@ -126,8 +128,8 @@ const CarsPage: React.FC = () => {
       };
       setCars([...cars, newCar]);
       toast({
-        title: "Vehicle added",
-        description: `${formData.name} has been added to the fleet.`,
+        title: t('cars.vehicleAdded'),
+        description: t('cars.vehicleAddedMsg', { name: formData.name }),
       });
     }
     
@@ -137,15 +139,15 @@ const CarsPage: React.FC = () => {
   return (
     <>
       <PageHeader 
-        title="Cars"
-        description="Department vehicles and their details"
+        title={t('cars.title')}
+        description={t('cars.description')}
       >
         {isAdmin && (
           <Button 
             onClick={handleCreateNew}
             className="bg-polygon-blue hover:bg-polygon-darkblue"
           >
-            <Plus className="mr-2 h-4 w-4" /> Add Vehicle
+            <Plus className="mr-2 h-4 w-4" /> {t('cars.addVehicle')}
           </Button>
         )}
       </PageHeader>
