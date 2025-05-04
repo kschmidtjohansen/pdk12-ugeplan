@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -32,8 +31,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuFooter
+  DropdownMenuRadioItem
 } from "@/components/ui/dropdown-menu";
 
 // Type definitions for navigation items
@@ -231,14 +229,14 @@ const TopNavbar: React.FC = () => {
                     </div>
                     
                     {notifications.length > 0 && (
-                      <DropdownMenuFooter className="text-center">
+                      <div className="px-2 py-1.5 text-center">
                         <Link 
                           to="/vacation" 
                           className="text-sm text-blue-600 hover:underline"
                         >
                           {t('notifications.viewAll')}
                         </Link>
-                      </DropdownMenuFooter>
+                      </div>
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
