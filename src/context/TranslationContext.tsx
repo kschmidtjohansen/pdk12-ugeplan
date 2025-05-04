@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import translations from '../translations';
 
 // Available languages
 export type Language = 'en' | 'da';
@@ -31,11 +32,12 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
   
   // Translation function
   const t = (key: string, params?: Record<string, any>) => {
-    const translations = require(`../translations/${currentLanguage}`).default;
+    // Use the imported translations object instead of require
+    const translationSet = translations[currentLanguage];
     
     // Split key by dots to access nested properties
     const keyParts = key.split('.');
-    let translation = translations;
+    let translation = translationSet;
     
     for (const part of keyParts) {
       if (translation && typeof translation === 'object' && part in translation) {
