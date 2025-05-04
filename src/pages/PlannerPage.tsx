@@ -5,7 +5,7 @@ import { useTranslation } from '../context/TranslationContext';
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from '@/components/ui/use-toast';
 import { Assignment, getCurrentWeek, groupByDate } from '../types/assignment';
-import { Vacation } from '../types/vacation';
+import { Vacation, VacationStatus } from '../types/vacation';
 
 // Import custom components
 import PlannerHeader from '../components/Planner/PlannerHeader';
@@ -65,7 +65,7 @@ const MOCK_CARS = [
 ];
 
 // Mock vacations for employee availability feature
-const MOCK_VACATIONS = [
+const MOCK_VACATIONS: Vacation[] = [
   {
     id: '1',
     employeeId: '1',
@@ -73,7 +73,7 @@ const MOCK_VACATIONS = [
     startDate: new Date('2025-05-10'),
     endDate: new Date('2025-05-15'),
     reason: 'Annual leave',
-    status: 'approved',
+    status: 'approved' as VacationStatus,
     createdAt: new Date('2025-04-01'),
   },
   {
@@ -83,7 +83,7 @@ const MOCK_VACATIONS = [
     startDate: new Date('2025-05-06'),  // On vacation during the first assignment
     endDate: new Date('2025-05-13'),
     reason: 'Family vacation',
-    status: 'approved',
+    status: 'approved' as VacationStatus,
     createdAt: new Date('2025-04-15'),
   },
 ];
