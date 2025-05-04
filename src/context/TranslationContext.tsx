@@ -37,7 +37,7 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
     
     // Split key by dots to access nested properties
     const keyParts = key.split('.');
-    let translation = translationSet;
+    let translation: any = translationSet;
     
     for (const part of keyParts) {
       if (translation && typeof translation === 'object' && part in translation) {
@@ -54,9 +54,11 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
         let result = translation;
         // Iterate over each parameter key and replace it in the string
         for (const paramKey in params) {
-          const value = params[paramKey];
-          const placeholder = `{${paramKey}}`;
-          result = result.replace(new RegExp(placeholder, 'g'), String(value));
+          if (Object.prototype.hasOwnProperty.call(params, paramKey)) {
+            const value = params[paramKey];
+            const placeholder = `{${paramKey}}`;
+            result = result.replace(new RegExp(placeholder, 'g'), String(value));
+          }
         }
         return result;
       }
