@@ -39,22 +39,9 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { DateRange } from 'react-day-picker';
+import { Vacation, VacationStatus } from '../types/vacation';
 
 // Mock data
-type VacationStatus = 'pending' | 'approved' | 'rejected';
-
-interface Vacation {
-  id: string;
-  employeeId: string;
-  employeeName: string;
-  startDate: Date;
-  endDate: Date;
-  reason: string;
-  status: VacationStatus;
-  createdAt: Date;
-  notes?: string;
-}
-
 const initialVacations: Vacation[] = [
   {
     id: '1',
@@ -91,7 +78,7 @@ const initialVacations: Vacation[] = [
 
 const VacationPage: React.FC = () => {
   const { user } = useAuth();
-  const { isAdmin } = usePermissions();
+  const { canApproveVacation, canViewAllVacations, isServicemedarbejder } = usePermissions();
   const { toast } = useToast();
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
@@ -102,7 +89,7 @@ const VacationPage: React.FC = () => {
     to: undefined,
   });
   const [reason, setReason] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState(isServicemedarbejder ? 'mine' : 'all');
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [actionVacation, setActionVacation] = useState<Vacation | null>(null);
   const [note, setNote] = useState('');
@@ -213,6 +200,26 @@ const VacationPage: React.FC = () => {
     return true;
   });
 
+  // For service employees, only show the "mine" tab
+  const getAvailableTabs = () => {
+    if (isServicemedarbejder) {
+      return (
+        <TabsList className="grid grid-cols-1 w-full max-w-md">
+          <TabsTrigger value="mine">{t("vacation.tabs.mine")}</TabsTrigger>
+        </TabsList>
+      );
+    }
+    
+    return (
+      <TabsList className="grid grid-cols-4 w-full max-w-md">
+        <TabsTrigger value="all">{t("vacation.tabs.all")}</TabsTrigger>
+        <TabsTrigger value="pending">{t("vacation.tabs.pending")}</TabsTrigger>
+        <TabsTrigger value="approved">{t("vacation.tabs.approved")}</TabsTrigger>
+        <TabsTrigger value="mine">{t("vacation.tabs.mine")}</TabsTrigger>
+      </TabsList>
+    );
+  };
+
   return (
     <>
       <PageHeader 
@@ -221,20 +228,15 @@ const VacationPage: React.FC = () => {
       >
         <Button 
           onClick={handleCreateNew}
-          className="bg-polygon-red hover:bg-polygon-darkred"
+          className="bg-polygon-purple hover:bg-polygon-darkpurple"
         >
           <Plus className="mr-2 h-4 w-4" /> {t("vacation.applyForVacation")}
         </Button>
       </PageHeader>
 
       <div className="space-y-6">
-        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 w-full max-w-md">
-            <TabsTrigger value="all">{t("vacation.tabs.all")}</TabsTrigger>
-            <TabsTrigger value="pending">{t("vacation.tabs.pending")}</TabsTrigger>
-            <TabsTrigger value="approved">{t("vacation.tabs.approved")}</TabsTrigger>
-            <TabsTrigger value="mine">{t("vacation.tabs.mine")}</TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue={isServicemedarbejder ? 'mine' : 'all'} value={activeTab} onValueChange={setActiveTab}>
+          {getAvailableTabs()}
 
           <TabsContent value={activeTab} className="mt-6">
             {filteredVacations.length === 0 ? (
@@ -292,7 +294,8 @@ const VacationPage: React.FC = () => {
                         </div>
                       </dl>
                     </CardContent>
-                    {isAdmin && vacation.status === 'pending' && (
+                    {/* Only admins can approve/reject */}
+                    {canApproveVacation && vacation.status === 'pending' && (
                       <CardFooter className="flex justify-between border-t pt-4 pb-4">
                         <Button
                           variant="outline" 
@@ -395,7 +398,7 @@ const VacationPage: React.FC = () => {
               </Button>
               <Button 
                 type="submit"
-                className="bg-polygon-red hover:bg-polygon-darkred"
+                className="bg-polygon-purple hover:bg-polygon-darkpurple"
               >
                 {t("vacation.submitRequest")}
               </Button>

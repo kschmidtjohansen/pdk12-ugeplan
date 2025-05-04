@@ -14,24 +14,24 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
 
-    --primary: 195 100% 47%;
+    --primary: 260 80% 74%;  /* Using purple now */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 29%;
+    --secondary: 262 41% 54%; /* Using secondary purple */
     --secondary-foreground: 0 0% 100%;
 
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
     --accent: 0 0% 96%;
-    --accent-foreground: 195 100% 47%;
+    --accent-foreground: 260 80% 74%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 195 100% 47%;
+    --ring: 260 80% 74%;
 
     --radius: 0.5rem;
   }
@@ -49,7 +49,7 @@
 
 /* Custom styles for Polygon application */
 .polygon-gradient {
-  background: linear-gradient(to right, #00aeef, #0095cc);
+  background: linear-gradient(to right, #9b87f5, #7E69AB);
 }
 
 .polygon-logo {
@@ -73,7 +73,7 @@
 
 /* Avatar styles */
 .profile-avatar {
-  @apply flex items-center justify-center bg-polygon-blue text-white rounded-full;
+  @apply flex items-center justify-center bg-polygon-purple text-white rounded-full;
 }
 
 /* Define Polygon colors */
@@ -84,6 +84,26 @@
   
   .text-polygon-blue {
     color: #00aeef;
+  }
+  
+  .bg-polygon-purple {
+    background-color: #9b87f5;
+  }
+  
+  .text-polygon-purple {
+    color: #9b87f5;
+  }
+  
+  .bg-polygon-darkpurple {
+    background-color: #7E69AB;
+  }
+  
+  .text-polygon-darkpurple {
+    color: #7E69AB;
+  }
+  
+  .hover\:bg-polygon-darkpurple:hover {
+    background-color: #6E59A5;
   }
   
   .bg-polygon-red {
@@ -100,6 +120,10 @@
   
   .border-polygon-red {
     border-color: #e31937;
+  }
+  
+  .border-polygon-purple {
+    border-color: #9b87f5;
   }
   
   .bg-polygon-lightgray {

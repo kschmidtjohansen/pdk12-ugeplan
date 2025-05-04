@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import PageHeader from '../components/Layout/PageHeader';
 import { usePermissions } from '../context/AuthContext';
+import { useTranslation } from '../context/TranslationContext';
 import { 
   Card, 
   CardContent, 
@@ -24,7 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit, Mail, Phone, User } from 'lucide-react';
+import { Plus, Edit, Mail, Phone } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import {
   Table,
@@ -80,6 +81,7 @@ const USER_ROLES = [
 const EmployeesPage: React.FC = () => {
   const { isAdmin, canEdit } = usePermissions();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [employees, setEmployees] = useState(initialEmployees);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState(null);
@@ -141,8 +143,8 @@ const EmployeesPage: React.FC = () => {
         )
       );
       toast({
-        title: "Employee updated",
-        description: `${formData.name}'s information has been updated.`,
+        title: t("employees.employeeUpdated"),
+        description: t("employees.employeeUpdatedMsg", { name: formData.name }),
       });
     } else {
       // Create new
@@ -152,8 +154,8 @@ const EmployeesPage: React.FC = () => {
       };
       setEmployees([...employees, newEmployee]);
       toast({
-        title: "Employee added",
-        description: `${formData.name} has been added to the department.`,
+        title: t("employees.employeeAdded"),
+        description: t("employees.employeeAddedMsg", { name: formData.name }),
       });
     }
     
@@ -163,15 +165,15 @@ const EmployeesPage: React.FC = () => {
   return (
     <>
       <PageHeader 
-        title="Employees"
-        description="Department employees and their roles"
+        title={t("employees.title")}
+        description={t("employees.description")}
       >
         {isAdmin && (
           <Button 
             onClick={handleCreateNew}
-            className="bg-polygon-red hover:bg-polygon-darkred"
+            className="bg-polygon-purple hover:bg-polygon-darkpurple"
           >
-            <Plus className="mr-2 h-4 w-4" /> Add Employee
+            <Plus className="mr-2 h-4 w-4" /> {t("employees.addEmployee")}
           </Button>
         )}
       </PageHeader>
@@ -181,11 +183,11 @@ const EmployeesPage: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Contact Information</TableHead>
-                <TableHead>Job Title</TableHead>
-                <TableHead>Role</TableHead>
-                {canEdit && <TableHead className="w-[100px]">Actions</TableHead>}
+                <TableHead>{t("employees.name")}</TableHead>
+                <TableHead>{t("employees.contactInfo")}</TableHead>
+                <TableHead>{t("employees.jobTitle")}</TableHead>
+                <TableHead>{t("employees.role")}</TableHead>
+                {canEdit && <TableHead className="w-[100px]">{t("common.actions")}</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -224,7 +226,7 @@ const EmployeesPage: React.FC = () => {
                         onClick={() => handleEdit(employee)}
                         className="h-8 w-8 p-0"
                       >
-                        <span className="sr-only">Edit</span>
+                        <span className="sr-only">{t("common.edit")}</span>
                         <Edit className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -240,18 +242,18 @@ const EmployeesPage: React.FC = () => {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {currentEmployee ? 'Edit Employee' : 'Add New Employee'}
+              {currentEmployee ? t("employees.editEmployee") : t("employees.addNewEmployee")}
             </DialogTitle>
             <DialogDescription>
               {currentEmployee
-                ? 'Update the employee information.'
-                : 'Add a new employee to the department.'}
+                ? t("employees.updateInfo")
+                : t("employees.createAccount")}
             </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name">{t("employees.fullName")}</Label>
               <Input
                 id="name"
                 name="name"
@@ -262,7 +264,7 @@ const EmployeesPage: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("common.email")}</Label>
               <Input
                 id="email"
                 name="email"
@@ -274,7 +276,7 @@ const EmployeesPage: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">{t("employees.phone")}</Label>
               <Input
                 id="phone"
                 name="phone"
@@ -285,7 +287,7 @@ const EmployeesPage: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="jobTitle">Job Title</Label>
+              <Label htmlFor="jobTitle">{t("employees.jobTitle")}</Label>
               <Input
                 id="jobTitle"
                 name="jobTitle"
@@ -296,14 +298,14 @@ const EmployeesPage: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="role">User Role</Label>
+              <Label htmlFor="role">{t("employees.role")}</Label>
               <Select
                 value={formData.role}
                 onValueChange={handleSelectChange}
                 required
               >
                 <SelectTrigger id="role">
-                  <SelectValue placeholder="Select a role" />
+                  <SelectValue placeholder={t("admin.roles.selectRole")} />
                 </SelectTrigger>
                 <SelectContent>
                   {USER_ROLES.map((role) => (
@@ -321,13 +323,13 @@ const EmployeesPage: React.FC = () => {
                 variant="outline" 
                 onClick={() => setDialogOpen(false)}
               >
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button 
                 type="submit"
-                className="bg-polygon-red hover:bg-polygon-darkred"
+                className="bg-polygon-purple hover:bg-polygon-darkpurple"
               >
-                {currentEmployee ? 'Save Changes' : 'Add Employee'}
+                {currentEmployee ? t("common.save") : t("common.add")}
               </Button>
             </DialogFooter>
           </form>

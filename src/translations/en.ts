@@ -1,4 +1,3 @@
-
 const translations = {
   common: {
     login: 'Login',
@@ -75,13 +74,13 @@ const translations = {
     location: 'Location'
   },
   planner: {
-    weekDescription: 'Week {week} Schedule and Assignments',
+    weekDescription: 'Week {week} Plan and Tasks',
     newAssignment: 'New Assignment',
     editAssignment: 'Edit Assignment',
     createFirstAssignment: 'Create First Assignment',
-    noAssignments: 'No assignments scheduled',
-    updateDetails: 'Update the details for this assignment.',
-    addAssignment: 'Add a new assignment to the weekly schedule.',
+    noAssignments: 'No assignments planned',
+    updateDetails: 'Update details for this assignment',
+    addAssignment: 'Add a new assignment to the weekly plan',
     assignmentTitle: 'Assignment Title',
     description: 'Description',
     date: 'Date',
@@ -98,7 +97,8 @@ const translations = {
     assignmentUpdated: 'Assignment updated',
     assignmentCreated: 'Assignment created',
     assignmentUpdatedMsg: '{title} has been updated.',
-    assignmentCreatedMsg: '{title} has been added to the schedule.'
+    assignmentCreatedMsg: '{title} has been added to the plan.',
+    onVacation: 'On Vacation'
   },
   vacation: {
     pageDescription: 'Apply for and manage vacation time',
@@ -224,6 +224,27 @@ const translations = {
     carWarning: 'You are about to delete {name} from your vehicle fleet. This action cannot be undone.',
     cancel: 'Cancel',
     delete: 'Delete'
+  },
+  employees: {
+    title: 'Employees',
+    description: 'Department employees and their roles',
+    addEmployee: 'Add Employee',
+    name: 'Name',
+    email: 'Email',
+    phone: 'Phone',
+    jobTitle: 'Job Title',
+    role: 'Role',
+    actions: 'Actions',
+    contactInfo: 'Contact Information',
+    editEmployee: 'Edit Employee',
+    addNewEmployee: 'Add New Employee',
+    updateInfo: 'Update employee information.',
+    createAccount: 'Add a new employee to the department.',
+    fullName: 'Full Name',
+    employeeUpdated: 'Employee updated',
+    employeeAdded: 'Employee added',
+    employeeUpdatedMsg: '{name}\'s information has been updated.',
+    employeeAddedMsg: '{name} has been added to the department.'
   }
 };
 

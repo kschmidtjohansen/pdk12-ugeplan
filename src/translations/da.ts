@@ -1,4 +1,3 @@
-
 const translations = {
   common: {
     login: 'Log ind',
@@ -224,6 +223,27 @@ const translations = {
     carWarning: 'Du er ved at slette {name} fra din køretøjsflåde. Denne handling kan ikke fortrydes.',
     cancel: 'Annuller',
     delete: 'Slet'
+  },
+  employees: {
+    title: 'Medarbejdere',
+    description: 'Afdelingens medarbejdere og deres roller',
+    addEmployee: 'Tilføj Medarbejder',
+    name: 'Navn',
+    email: 'Email',
+    phone: 'Telefon',
+    jobTitle: 'Stillingsbetegnelse',
+    role: 'Rolle',
+    actions: 'Handlinger',
+    contactInfo: 'Kontaktoplysninger',
+    editEmployee: 'Rediger Medarbejder',
+    addNewEmployee: 'Tilføj Ny Medarbejder',
+    updateInfo: 'Opdater medarbejderoplysninger.',
+    createAccount: 'Tilføj en ny medarbejder til afdelingen.',
+    fullName: 'Fulde Navn',
+    employeeUpdated: 'Medarbejder opdateret',
+    employeeAdded: 'Medarbejder tilføjet',
+    employeeUpdatedMsg: '{name}\'s oplysninger er blevet opdateret.',
+    employeeAddedMsg: '{name} er blevet tilføjet til afdelingen.'
   }
 };
 

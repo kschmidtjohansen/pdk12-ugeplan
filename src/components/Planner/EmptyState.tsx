@@ -1,0 +1,28 @@
+
+import React from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { useTranslation } from '@/context/TranslationContext';
+
+interface EmptyStateProps {
+  canCreate: boolean;
+  onCreateNew: () => void;
+}
+
+const EmptyState: React.FC<EmptyStateProps> = ({ canCreate, onCreateNew }) => {
+  const { t } = useTranslation();
+  
+  return (
+    <Card className="text-center p-8">
+      <p className="text-muted-foreground mb-4">{t("planner.noAssignments")}</p>
+      {canCreate && (
+        <Button onClick={onCreateNew} className="bg-polygon-purple hover:bg-polygon-darkpurple">
+          <Plus className="mr-2 h-4 w-4" /> {t("planner.createFirstAssignment")}
+        </Button>
+      )}
+    </Card>
+  );
+};
+
+export default EmptyState;

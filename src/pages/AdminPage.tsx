@@ -12,6 +12,7 @@ const AdminPage: React.FC = () => {
   const { isAdmin } = usePermissions();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = React.useState("metrics");
 
   // Redirect if not an admin
   React.useEffect(() => {
@@ -20,6 +21,18 @@ const AdminPage: React.FC = () => {
     }
   }, [isAdmin, navigate]);
 
+  const handleUsersClick = () => {
+    setActiveTab("users");
+  };
+
+  const handleVehiclesClick = () => {
+    navigate('/cars');
+  };
+
+  const handleVacationClick = () => {
+    navigate('/vacation');
+  };
+
   return (
     <>
       <PageHeader
@@ -27,13 +40,17 @@ const AdminPage: React.FC = () => {
         description={t('admin.description')}
       />
 
-      <Tabs defaultValue="metrics" className="mb-8">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
         <TabsList>
           <TabsTrigger value="metrics">{t('admin.tabs.metrics')}</TabsTrigger>
           <TabsTrigger value="users">{t('admin.tabs.users')}</TabsTrigger>
         </TabsList>
         <TabsContent value="metrics" className="mt-6">
-          <SystemMetrics />
+          <SystemMetrics 
+            onUsersClick={handleUsersClick}
+            onVehiclesClick={handleVehiclesClick}
+            onVacationClick={handleVacationClick}
+          />
         </TabsContent>
         <TabsContent value="users" className="mt-6">
           <UserManagement />
