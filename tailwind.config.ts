@@ -21,8 +21,8 @@ export default {
 		extend: {
 			colors: {
 				polygon: {
-					red: "#e30613",
-					darkred: "#c90000",
+					blue: "#00aeef",
+					darkblue: "#0095cc",
 					gray: "#4a4a4a",
 					lightgray: "#f5f5f5",
 				},

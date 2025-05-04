@@ -16,11 +16,11 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   children,
 }) => {
   return (
-    <div className={cn("mb-8 flex flex-col md:flex-row md:items-center md:justify-between", className)}>
+    <div className={cn("mb-6 flex flex-col md:flex-row md:items-center md:justify-between", className)}>
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{title}</h1>
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">{title}</h1>
         {description && (
-          <p className="mt-1 text-gray-500">{description}</p>
+          <p className="mt-1 text-sm md:text-base text-gray-500">{description}</p>
         )}
       </div>
       {children && (
