@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { addDays, format } from 'date-fns';
 import PageHeader from '../components/Layout/PageHeader';
@@ -36,6 +35,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { DateRange } from 'react-day-picker';
 
 // Mock data
 type VacationStatus = 'pending' | 'approved' | 'rejected';
@@ -92,10 +92,7 @@ const VacationPage: React.FC = () => {
   const { toast } = useToast();
   const [vacations, setVacations] = useState(initialVacations);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [date, setDate] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
+  const [date, setDate] = useState<DateRange>({
     from: undefined,
     to: undefined,
   });

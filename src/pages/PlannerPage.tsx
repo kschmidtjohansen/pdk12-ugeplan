@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import PageHeader from '../components/Layout/PageHeader';
 import { usePermissions } from '../context/AuthContext';
@@ -81,6 +80,24 @@ const MOCK_CARS = [
   { id: '4', name: 'Sedan 1' },
 ];
 
+// Type definition for assignments
+interface Assignment {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  fromTime: string;
+  toTime: string;
+  location: string;
+  car: string;
+  employee: string;
+}
+
+// Type for grouped assignments
+interface GroupedAssignments {
+  [key: string]: Assignment[];
+}
+
 // Get current week number
 const getCurrentWeek = () => {
   const now = new Date();
@@ -92,7 +109,7 @@ const getCurrentWeek = () => {
 };
 
 // Group assignments by date
-const groupByDate = (assignments) => {
+const groupByDate = (assignments: Assignment[]) => {
   return assignments.reduce((groups, assignment) => {
     const date = assignment.date;
     if (!groups[date]) {
@@ -106,10 +123,11 @@ const groupByDate = (assignments) => {
 const PlannerPage: React.FC = () => {
   const { canCreate, canEdit } = usePermissions();
   const { toast } = useToast();
-  const [assignments, setAssignments] = useState(initialAssignments);
+  const [assignments, setAssignments] = useState<Assignment[]>(initialAssignments);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentAssignment, setCurrentAssignment] = useState(null);
-  const [formData, setFormData] = useState({
+  const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
+  const [formData, setFormData] = useState<Assignment>({
+    id: '',
     title: '',
     description: '',
     date: '',
@@ -121,11 +139,12 @@ const PlannerPage: React.FC = () => {
   });
 
   const currentWeek = getCurrentWeek();
-  const groupedAssignments = groupByDate(assignments);
+  const groupedAssignments: GroupedAssignments = groupByDate(assignments);
   
   const handleCreateNew = () => {
     setCurrentAssignment(null);
     setFormData({
+      id: '',
       title: '',
       description: '',
       date: '',
@@ -138,9 +157,10 @@ const PlannerPage: React.FC = () => {
     setDialogOpen(true);
   };
 
-  const handleEdit = (assignment) => {
+  const handleEdit = (assignment: Assignment) => {
     setCurrentAssignment(assignment);
     setFormData({
+      id: assignment.id,
       title: assignment.title,
       description: assignment.description,
       date: assignment.date,
@@ -273,7 +293,8 @@ const PlannerPage: React.FC = () => {
                           </div>
                           <div className="flex items-center gap-2">
                             <svg className="h-4 w-4 text-polygon-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                             </svg>
                             <span>{assignment.employee}</span>
                           </div>
