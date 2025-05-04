@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from '../context/TranslationContext';
 import PageHeader from '../components/Layout/PageHeader';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,21 +54,32 @@ const getCurrentWeek = () => {
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const { t, currentLanguage } = useTranslation();
   const currentWeek = getCurrentWeek();
+
+  // Format the date based on the current language
+  const getFormattedDate = () => {
+    return new Date().toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
 
   // Quick access items based on user role
   const getQuickAccessItems = () => {
     const baseItems = [
       { 
-        title: 'Weekly Planner', 
+        title: t('dashboard.quickAccess.planner.title'), 
         icon: <Clock className="h-10 w-10" />,
-        description: 'View and manage weekly assignments',
+        description: t('dashboard.quickAccess.planner.description'),
         link: '/planner'
       },
       { 
-        title: 'Vacation', 
+        title: t('dashboard.quickAccess.vacation.title'), 
         icon: <Calendar className="h-10 w-10" />,
-        description: 'Apply for or manage vacation time',
+        description: t('dashboard.quickAccess.vacation.description'),
         link: '/vacation'
       },
     ];
@@ -76,15 +88,15 @@ const DashboardPage: React.FC = () => {
     if (user?.role === 'administrator' || user?.role === 'skadeleder') {
       baseItems.push(
         { 
-          title: 'Employees', 
+          title: t('dashboard.quickAccess.employees.title'), 
           icon: <Users className="h-10 w-10" />,
-          description: 'Manage department employees',
+          description: t('dashboard.quickAccess.employees.description'),
           link: '/employees'
         },
         { 
-          title: 'Cars', 
+          title: t('dashboard.quickAccess.cars.title'), 
           icon: <Car className="h-10 w-10" />,
-          description: 'View and manage department vehicles',
+          description: t('dashboard.quickAccess.cars.description'),
           link: '/cars'
         }
       );
@@ -96,13 +108,11 @@ const DashboardPage: React.FC = () => {
   return (
     <>
       <PageHeader 
-        title={`Welcome, ${user?.name}`}
-        description={`Today is ${new Date().toLocaleDateString('en-GB', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        })}`}
+        title={t('dashboard.welcome', { name: user?.name })}
+        description={t('dashboard.today', { 
+          date: getFormattedDate(), 
+          week: currentWeek 
+        })}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -124,16 +134,16 @@ const DashboardPage: React.FC = () => {
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
-            <span>Week {currentWeek} Assignments</span>
+            <span>{t('dashboard.weekAssignments', { week: currentWeek })}</span>
             <Button variant="outline" size="sm" asChild>
-              <Link to="/planner">View All</Link>
+              <Link to="/planner">{t('dashboard.viewAll')}</Link>
             </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {currentAssignments.length === 0 ? (
             <p className="text-center py-8 text-muted-foreground">
-              No assignments for this week
+              {t('dashboard.noAssignments')}
             </p>
           ) : (
             <div className="grid gap-4">
@@ -145,13 +155,13 @@ const DashboardPage: React.FC = () => {
                   <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
                     <h3 className="font-medium">{assignment.title}</h3>
                     <span className="text-sm bg-gray-100 px-2 py-1 rounded-md">
-                      {new Date(assignment.date).toLocaleDateString('en-GB')}
+                      {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
                     </span>
                   </div>
                   <div className="text-sm text-gray-500 flex flex-col gap-1">
                     <div className="flex items-start gap-2">
                       <Clock className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                      <span>{assignment.fromTime} - {assignment.toTime}</span>
+                      <span>{t('dashboard.assignmentTime', { fromTime: assignment.fromTime, toTime: assignment.toTime })}</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <Users className="h-4 w-4 flex-shrink-0 mt-0.5" />
@@ -171,7 +181,7 @@ const DashboardPage: React.FC = () => {
           <Button asChild className="bg-polygon-red hover:bg-polygon-darkred">
             <Link to="/planner">
               <Clock className="mr-2 h-4 w-4" />
-              Manage Assignments
+              {t('dashboard.manageAssignments')}
             </Link>
           </Button>
         </CardFooter>

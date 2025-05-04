@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from '../../context/TranslationContext';
+import { languageNames } from '../../translations';
 import { 
   Search, 
   Users, 
@@ -24,6 +26,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 
 // Type definitions for navigation items
@@ -32,10 +36,12 @@ interface NavigationItem {
   name: string;
   icon: React.ReactNode;
   adminOnly?: boolean;
+  translationKey: string;
 }
 
 const TopNavbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
+  const { t, currentLanguage, setLanguage } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -44,8 +50,8 @@ const TopNavbar: React.FC = () => {
   const handleLogout = () => {
     logout();
     toast({
-      title: "Logged out successfully",
-      description: "You have been logged out of your account."
+      title: t('common.success'),
+      description: t('login.success')
     });
     navigate('/');
   };
@@ -56,12 +62,12 @@ const TopNavbar: React.FC = () => {
   }
 
   const navigationItems: NavigationItem[] = [
-    { path: '/dashboard', name: 'Dashboard', icon: <Search className="h-5 w-5" /> },
-    { path: '/planner', name: 'Weekly Planner', icon: <Clock className="h-5 w-5" /> },
-    { path: '/employees', name: 'Employees', icon: <Users className="h-5 w-5" /> },
-    { path: '/cars', name: 'Cars', icon: <Car className="h-5 w-5" /> },
-    { path: '/vacation', name: 'Vacation', icon: <Calendar className="h-5 w-5" /> },
-    { path: '/admin', name: 'Admin', icon: <Settings className="h-5 w-5" />, adminOnly: true },
+    { path: '/dashboard', name: t('navigation.dashboard'), translationKey: 'navigation.dashboard', icon: <Search className="h-5 w-5" /> },
+    { path: '/planner', name: t('navigation.planner'), translationKey: 'navigation.planner', icon: <Clock className="h-5 w-5" /> },
+    { path: '/employees', name: t('navigation.employees'), translationKey: 'navigation.employees', icon: <Users className="h-5 w-5" /> },
+    { path: '/cars', name: t('navigation.cars'), translationKey: 'navigation.cars', icon: <Car className="h-5 w-5" /> },
+    { path: '/vacation', name: t('navigation.vacation'), translationKey: 'navigation.vacation', icon: <Calendar className="h-5 w-5" /> },
+    { path: '/admin', name: t('navigation.admin'), translationKey: 'navigation.admin', icon: <Settings className="h-5 w-5" />, adminOnly: true },
   ];
 
   // Get user initials for avatar
@@ -91,7 +97,7 @@ const TopNavbar: React.FC = () => {
           <div className="flex items-center">
             <Link to="/dashboard" className="flex-shrink-0 flex items-center">
               <img 
-                src="https://www.polygongroup.com/contentassets/b818881348e84bee9795695eb87c9516/polygon_pos_rgb.png" 
+                src="/lovable-uploads/logo-polygon.png" 
                 alt="Polygon Logo" 
                 className="polygon-logo"
               />
@@ -152,9 +158,25 @@ const TopNavbar: React.FC = () => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  
+                  {/* Language Selector */}
+                  <DropdownMenuLabel>{t('common.language')}</DropdownMenuLabel>
+                  <DropdownMenuRadioGroup value={currentLanguage} onValueChange={(val) => setLanguage(val as 'en' | 'da')}>
+                    {Object.entries(languageNames).map(([code, name]) => (
+                      <DropdownMenuRadioItem 
+                        key={code} 
+                        value={code}
+                        className="cursor-pointer"
+                      >
+                        {name}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                  
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                     <LogIn className="mr-2 h-4 w-4 rotate-180" />
-                    <span>Log out</span>
+                    <span>{t('common.logout')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -199,13 +221,31 @@ const TopNavbar: React.FC = () => {
                 </div>
               </div>
               <div className="mt-3 space-y-1 px-2">
+                {/* Language Switcher in Mobile Menu */}
+                <div className="px-3 py-2">
+                  <span className="block text-sm font-medium text-gray-500 mb-2">{t('common.language')}</span>
+                  <div className="flex space-x-2">
+                    {Object.entries(languageNames).map(([code, name]) => (
+                      <Button
+                        key={code}
+                        variant={currentLanguage === code ? "default" : "outline"}
+                        size="sm"
+                        className="text-sm"
+                        onClick={() => setLanguage(code as 'en' | 'da')}
+                      >
+                        {name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                
                 <Button 
                   variant="ghost" 
                   className="w-full text-gray-700 justify-start"
                   onClick={handleLogout}
                 >
                   <LogIn className="mr-3 h-5 w-5 rotate-180" /> 
-                  Logout
+                  {t('common.logout')}
                 </Button>
               </div>
             </div>

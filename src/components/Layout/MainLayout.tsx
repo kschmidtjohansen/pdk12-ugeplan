@@ -2,12 +2,14 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from '../../context/TranslationContext';
 import { LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import TopNavbar from './TopNavbar';
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -20,10 +22,10 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-polygon-lightgray">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p className="mb-4">You need to log in to access this page.</p>
+          <h1 className="text-2xl font-bold mb-4">{t('accessDenied.title')}</h1>
+          <p className="mb-4">{t('accessDenied.message')}</p>
           <Button onClick={() => navigate('/')}>
-            <LogIn className="mr-2 h-4 w-4" /> Login
+            <LogIn className="mr-2 h-4 w-4" /> {t('common.login')}
           </Button>
         </div>
       </div>

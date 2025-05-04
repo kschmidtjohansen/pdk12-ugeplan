@@ -76,3 +76,33 @@
   @apply flex items-center justify-center bg-polygon-blue text-white rounded-full;
 }
 
+/* Define Polygon colors */
+@layer utilities {
+  .bg-polygon-blue {
+    background-color: #00aeef;
+  }
+  
+  .text-polygon-blue {
+    color: #00aeef;
+  }
+  
+  .bg-polygon-red {
+    background-color: #e31937;
+  }
+  
+  .text-polygon-red {
+    color: #e31937;
+  }
+  
+  .hover\:bg-polygon-darkred:hover {
+    background-color: #c41731;
+  }
+  
+  .border-polygon-red {
+    border-color: #e31937;
+  }
+  
+  .bg-polygon-lightgray {
+    background-color: #f5f5f5;
+  }
+}
