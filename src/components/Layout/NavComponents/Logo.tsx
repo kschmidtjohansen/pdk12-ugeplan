@@ -6,7 +6,7 @@ const Logo: React.FC = () => {
   return (
     <Link to="/dashboard" className="flex-shrink-0 flex items-center">
       <img 
-        src="/lovable-uploads/logo-polygon.png" 
+        src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" 
         alt="Polygon Logo" 
         className="polygon-logo"
       />
