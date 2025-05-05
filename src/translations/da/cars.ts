@@ -16,7 +16,8 @@ const cars = {
   vehicleDeleted: 'Køretøj slettet',
   vehicleUpdatedMsg: '{name}\'s oplysninger er blevet opdateret.',
   vehicleAddedMsg: '{name} er blevet tilføjet til afdelingen.',
-  vehicleDeletedMsg: '{name} er blevet fjernet fra afdelingen.'
+  vehicleDeletedMsg: '{name} er blevet fjernet fra afdelingen.',
+  hasTrailerHitch: 'Har anhængertræk'
 };
 
 export default cars;

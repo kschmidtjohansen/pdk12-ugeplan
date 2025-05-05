@@ -21,10 +21,10 @@ const MOCK_EMPLOYEES: Employee[] = [
 ];
 
 const MOCK_CARS = [
-  { id: '1', name: 'Van 1' },
-  { id: '2', name: 'Van 2' },
-  { id: '3', name: 'Truck 3' },
-  { id: '4', name: 'Sedan 1' },
+  { id: '1', name: 'Van 1', hasTrailerHitch: true },
+  { id: '2', name: 'Van 2', hasTrailerHitch: false },
+  { id: '3', name: 'Truck 3', hasTrailerHitch: true },
+  { id: '4', name: 'Sedan 1', hasTrailerHitch: false },
 ];
 
 // Mock vacations for employee availability feature
@@ -59,7 +59,8 @@ const PlannerPage: React.FC = () => {
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const [vacations] = useState<Vacation[]>(MOCK_VACATIONS);
   
-  const currentWeek = getCurrentWeek();
+  const initialWeek = getCurrentWeek();
+  const [selectedWeek, setSelectedWeek] = useState<number>(initialWeek);
   
   const handleCreateNew = () => {
     setCurrentAssignment(null);
@@ -90,12 +91,22 @@ const PlannerPage: React.FC = () => {
     }
   };
 
+  const handlePreviousWeek = () => {
+    setSelectedWeek(prevWeek => prevWeek > 1 ? prevWeek - 1 : 52);
+  };
+
+  const handleNextWeek = () => {
+    setSelectedWeek(prevWeek => prevWeek < 52 ? prevWeek + 1 : 1);
+  };
+
   return (
     <div className="w-full max-w-full h-full flex flex-col">
       <PlannerHeader 
-        currentWeek={currentWeek}
+        currentWeek={selectedWeek}
         canCreate={canCreate}
         onCreateNew={handleCreateNew}
+        onPreviousWeek={handlePreviousWeek}
+        onNextWeek={handleNextWeek}
       />
 
       <div className="w-full flex-grow mt-6">

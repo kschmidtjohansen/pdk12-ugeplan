@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { CarFormData } from './types';
 import { useTranslation } from '@/context/TranslationContext';
 
@@ -19,6 +20,7 @@ interface CarFormDialogProps {
   onOpenChange: (open: boolean) => void;
   formData: CarFormData;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onCheckboxChange?: (field: string, checked: boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
   isEditing: boolean;
   canViewFuelCardCode: boolean;
@@ -29,6 +31,7 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
   onOpenChange,
   formData,
   onInputChange,
+  onCheckboxChange,
   onSubmit,
   isEditing,
   canViewFuelCardCode
@@ -95,6 +98,15 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
               />
             </div>
           )}
+          
+          <div className="flex items-center space-x-2 mt-4">
+            <Checkbox 
+              id="hasTrailerHitch"
+              checked={formData.hasTrailerHitch || false} 
+              onCheckedChange={(checked) => onCheckboxChange && onCheckboxChange('hasTrailerHitch', checked === true)}
+            />
+            <Label htmlFor="hasTrailerHitch">{t('cars.hasTrailerHitch')}</Label>
+          </div>
           
           <DialogFooter>
             <Button 

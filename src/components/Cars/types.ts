@@ -5,6 +5,7 @@ export interface CarData {
   carNumber: string;
   numberPlate: string;
   fuelCardCode: string;
+  hasTrailerHitch?: boolean;
 }
 
 export type CarFormData = Omit<CarData, 'id'>;

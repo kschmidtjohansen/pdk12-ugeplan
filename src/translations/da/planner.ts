@@ -26,7 +26,10 @@ const planner = {
   assignmentCreatedMsg: '{title} er blevet tilføjet til planen.',
   assignmentDeleted: 'Opgave slettet',
   assignmentDeletedMsg: 'Opgaven er blevet fjernet fra planen.',
-  onVacation: 'Har fri'
+  onVacation: 'Har fri',
+  previousWeek: 'Forrige Uge',
+  nextWeek: 'Næste Uge',
+  hasTrailerHitch: 'Har anhængertræk'
 };
 
 export default planner;

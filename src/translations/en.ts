@@ -1,3 +1,4 @@
+
 const translations = {
   common: {
     login: 'Login',
@@ -98,7 +99,12 @@ const translations = {
     assignmentCreated: 'Assignment created',
     assignmentUpdatedMsg: '{title} has been updated.',
     assignmentCreatedMsg: '{title} has been added to the plan.',
-    onVacation: 'On Vacation'
+    assignmentDeleted: 'Assignment deleted',
+    assignmentDeletedMsg: 'The assignment has been removed from the plan.',
+    onVacation: 'On Vacation',
+    previousWeek: 'Previous Week',
+    nextWeek: 'Next Week',
+    hasTrailerHitch: 'Has Trailer Hitch'
   },
   vacation: {
     pageDescription: 'Apply for and manage vacation time',
@@ -217,7 +223,8 @@ const translations = {
     vehicleDeleted: 'Vehicle deleted',
     vehicleUpdatedMsg: '{name}\'s information has been updated.',
     vehicleAddedMsg: '{name} has been added to the fleet.',
-    vehicleDeletedMsg: '{name} has been removed from the fleet.'
+    vehicleDeletedMsg: '{name} has been removed from the fleet.',
+    hasTrailerHitch: 'Has Trailer Hitch'
   },
   deleteConfirm: {
     title: 'Are you absolutely sure?',
