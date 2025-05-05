@@ -183,7 +183,8 @@ const VacationPage: React.FC = () => {
         <TabsTrigger value="mine">{t("vacation.tabs.mine")}</TabsTrigger>
       </TabsList>;
   };
-  return <>
+  return (
+    <>
       <PageHeader title={t("navigation.vacation")} description={t("vacation.pageDescription")}>
         <Button onClick={handleCreateNew} className="bg-polygon-blue">
           <Plus className="mr-2 h-4 w-4" /> {t("vacation.applyForVacation")}
@@ -311,20 +312,36 @@ const VacationPage: React.FC = () => {
               <Label htmlFor="note">
                 {actionVacation?.status === 'rejected' ? t("vacation.rejectionReason") : t("vacation.noteOptional")}
               </Label>
-              <Textarea id="note" value={note} onChange={e => setNote(e.target.value)} placeholder={actionVacation?.status === 'rejected' ? t("vacation.rejectionReasonPlaceholder") : t("vacation.approveNotePlaceholder")} required={actionVacation?.status === 'rejected'} />
+              <Textarea 
+                id="note" 
+                value={note} 
+                onChange={e => setNote(e.target.value)}
+                placeholder={actionVacation?.status === 'rejected' 
+                  ? t("vacation.rejectionReasonPlaceholder") 
+                  : t("vacation.approveNotePlaceholder")
+                } 
+              />
             </div>
             
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setNoteDialogOpen(false)}>
                 {t("common.cancel")}
               </Button>
-              <Button type="submit" className={actionVacation?.status === 'rejected' ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}>
+              <Button 
+                type="submit" 
+                className={actionVacation?.status === 'rejected' 
+                  ? "bg-red-600 hover:bg-red-700" 
+                  : "bg-green-600 hover:bg-green-700"
+                }
+              >
                 {actionVacation?.status === 'rejected' ? t("vacation.rejectRequestBtn") : t("vacation.approveRequestBtn")}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-    </>;
+    </>
+  );
 };
+
 export default VacationPage;

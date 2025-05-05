@@ -21,15 +21,15 @@ const translations = {
   },
   login: {
     title: 'Log ind',
-    description: 'Indtast dine oplysninger for at få adgang til planlæggeren',
+    description: 'Indtast dine oplysninger for at få adgang til ugeplanen',
     emailPlaceholder: 'din.email@polygon.com',
     passwordPlaceholder: '••••••••',
     button: 'Log ind',
     buttonLoading: 'Logger ind...',
     failed: 'Ugyldig email eller adgangskode. Prøv igen.',
     success: 'Login succesfuldt',
-    welcomeMessage: 'Velkommen til Polygon Ugeplanner',
-    internalSystem: 'Internt Planlægningssystem',
+    welcomeMessage: 'Velkommen til Polygon Ugeplan',
+    internalSystem: 'Afdeling 12 - Trekantsområdet',
     testCredentials: 'Til test, brug følgende oplysninger:'
   },
   navigation: {
@@ -74,7 +74,7 @@ const translations = {
     location: 'Lokation'
   },
   planner: {
-    weekDescription: 'Uge {week} Plan og Opgaver',
+    weekDescription: 'Uge {week} - Opgaver',
     newAssignment: 'Ny Opgave',
     editAssignment: 'Rediger Opgave',
     createFirstAssignment: 'Opret Første Opgave',
@@ -242,8 +242,12 @@ const translations = {
     fullName: 'Fulde Navn',
     employeeUpdated: 'Medarbejder opdateret',
     employeeAdded: 'Medarbejder tilføjet',
+    employeeDeleted: 'Medarbejder slettet',
     employeeUpdatedMsg: '{name}\'s oplysninger er blevet opdateret.',
-    employeeAddedMsg: '{name} er blevet tilføjet til afdelingen.'
+    employeeAddedMsg: '{name} er blevet tilføjet til afdelingen.',
+    employeeDeletedMsg: '{name}\'s konto er blevet fjernet.',
+    deleteConfirm: 'Er du sikker?',
+    deleteWarning: 'Du er ved at slette {name}\'s konto. Denne handling kan ikke fortrydes.'
   }
 };
 

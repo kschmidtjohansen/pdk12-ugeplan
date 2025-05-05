@@ -3,25 +3,16 @@ import React, { useState } from 'react';
 import PageHeader from '../components/Layout/PageHeader';
 import { usePermissions } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
-import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Dialog } from "@/components/ui/dialog";
+import { AlertDialog } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Plus, Edit, Mail, Phone, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Plus } from 'lucide-react';
+
+// Import custom components
+import EmployeesList, { Employee } from '../components/Employees/EmployeesList';
+import EmployeeFormDialog from '../components/Employees/EmployeeFormDialog';
+import EmployeeDeleteDialog from '../components/Employees/EmployeeDeleteDialog';
 
 // Mock data
 const initialEmployees = [{
@@ -54,17 +45,6 @@ const initialEmployees = [{
   role: 'servicemedarbejder'
 }];
 
-const USER_ROLES = [{
-  value: 'administrator',
-  label: 'Administrator'
-}, {
-  value: 'skadeleder',
-  label: 'Skadeleder'
-}, {
-  value: 'servicemedarbejder',
-  label: 'Servicemedarbejder'
-}];
-
 const EmployeesPage: React.FC = () => {
   const { isAdmin } = usePermissions();
   const { toast } = useToast();
@@ -72,7 +52,7 @@ const EmployeesPage: React.FC = () => {
   const [employees, setEmployees] = useState(initialEmployees);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [currentEmployee, setCurrentEmployee] = useState(null);
+  const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -93,7 +73,7 @@ const EmployeesPage: React.FC = () => {
     setDialogOpen(true);
   };
 
-  const handleEdit = employee => {
+  const handleEdit = (employee: Employee) => {
     setCurrentEmployee(employee);
     setFormData({
       name: employee.name,
@@ -105,7 +85,7 @@ const EmployeesPage: React.FC = () => {
     setDialogOpen(true);
   };
   
-  const handleDelete = employee => {
+  const handleDelete = (employee: Employee) => {
     setCurrentEmployee(employee);
     setDeleteDialogOpen(true);
   };
@@ -121,7 +101,7 @@ const EmployeesPage: React.FC = () => {
     }
   };
 
-  const handleInputChange = e => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -129,14 +109,14 @@ const EmployeesPage: React.FC = () => {
     }));
   };
 
-  const handleSelectChange = value => {
+  const handleSelectChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
       role: value
     }));
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (currentEmployee) {
       // Update existing
@@ -167,141 +147,43 @@ const EmployeesPage: React.FC = () => {
     setDialogOpen(false);
   };
 
-  return <>
+  return (
+    <>
       <PageHeader title={t("employees.title")} description={t("employees.description")}>
-        {isAdmin && <Button onClick={handleCreateNew} className="bg-polygon-blue">
+        {isAdmin && (
+          <Button onClick={handleCreateNew} className="bg-polygon-blue hover:bg-polygon-darkblue">
             <Plus className="mr-2 h-4 w-4" /> {t("employees.addEmployee")}
-          </Button>}
+          </Button>
+        )}
       </PageHeader>
 
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("employees.name")}</TableHead>
-                <TableHead>{t("employees.contactInfo")}</TableHead>
-                <TableHead>{t("employees.jobTitle")}</TableHead>
-                <TableHead>{t("employees.role")}</TableHead>
-                {isAdmin && <TableHead className="w-[100px]">{t("common.actions")}</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {employees.map(employee => <TableRow key={employee.id}>
-                  <TableCell className="font-medium">{employee.name}</TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center text-sm">
-                        <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
-                        {employee.email}
-                      </div>
-                      <div className="flex items-center text-sm">
-                        <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                        {employee.phone}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{employee.jobTitle}</TableCell>
-                  <TableCell>
-                    <span className={`inline-flex rounded-md px-2 py-1 text-xs font-medium ${employee.role === 'administrator' ? 'bg-blue-100 text-blue-800' : employee.role === 'skadeleder' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                      {USER_ROLES.find(role => role.value === employee.role)?.label}
-                    </span>
-                  </TableCell>
-                  {isAdmin && <TableCell>
-                      <div className="flex space-x-2">
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(employee)} className="h-8 w-8 p-0">
-                          <span className="sr-only">{t("common.edit")}</span>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(employee)} className="h-8 w-8 p-0 text-destructive">
-                          <span className="sr-only">{t("common.delete")}</span>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>}
-                </TableRow>)}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <EmployeesList 
+        employees={employees} 
+        onEdit={handleEdit} 
+        onDelete={handleDelete}
+      />
 
       {/* Employee Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {currentEmployee ? t("employees.editEmployee") : t("employees.addNewEmployee")}
-            </DialogTitle>
-            <DialogDescription>
-              {currentEmployee ? t("employees.updateInfo") : t("employees.createAccount")}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">{t("employees.fullName")}</Label>
-              <Input id="name" name="name" value={formData.name} onChange={handleInputChange} required />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">{t("common.email")}</Label>
-              <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} required />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="phone">{t("employees.phone")}</Label>
-              <Input id="phone" name="phone" value={formData.phone} onChange={handleInputChange} required />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="jobTitle">{t("employees.jobTitle")}</Label>
-              <Input id="jobTitle" name="jobTitle" value={formData.jobTitle} onChange={handleInputChange} required />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="role">{t("employees.role")}</Label>
-              <Select value={formData.role} onValueChange={handleSelectChange} required>
-                <SelectTrigger id="role">
-                  <SelectValue placeholder={t("admin.roles.selectRole")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {USER_ROLES.map(role => <SelectItem key={role.value} value={role.value}>
-                      {role.label}
-                    </SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                {t("common.cancel")}
-              </Button>
-              <Button type="submit" className="bg-polygon-blue hover:bg-polygon-darkblue">
-                {currentEmployee ? t("common.save") : t("common.add")}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
+        <EmployeeFormDialog
+          currentEmployee={currentEmployee}
+          formData={formData}
+          handleInputChange={handleInputChange}
+          handleSelectChange={handleSelectChange}
+          handleSubmit={handleSubmit}
+          onClose={() => setDialogOpen(false)}
+        />
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("employees.deleteConfirm")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {currentEmployee && t("employees.deleteWarning", { name: currentEmployee.name })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
-              {t("common.delete")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+        <EmployeeDeleteDialog
+          employee={currentEmployee}
+          onConfirmDelete={confirmDelete}
+        />
       </AlertDialog>
-    </>;
+    </>
+  );
 };
 
 export default EmployeesPage;
