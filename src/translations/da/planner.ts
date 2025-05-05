@@ -23,7 +23,10 @@ const planner = {
   assignmentUpdated: 'Opgave opdateret',
   assignmentCreated: 'Opgave oprettet',
   assignmentUpdatedMsg: '{title} er blevet opdateret.',
-  assignmentCreatedMsg: '{title} er blevet tilføjet til planen.'
+  assignmentCreatedMsg: '{title} er blevet tilføjet til planen.',
+  assignmentDeleted: 'Opgave slettet',
+  assignmentDeletedMsg: 'Opgaven er blevet fjernet fra planen.',
+  onVacation: 'På ferie'
 };
 
 export default planner;

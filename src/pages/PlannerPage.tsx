@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -212,14 +213,14 @@ const PlannerPage: React.FC = () => {
   };
 
   return (
-    <>
+    <div className="w-full h-full">
       <PlannerHeader 
         currentWeek={currentWeek}
         canCreate={canCreate}
         onCreateNew={handleCreateNew}
       />
 
-      <div className="grid gap-6">
+      <div className="grid gap-6 w-full mt-6">
         {assignments.length === 0 ? (
           <EmptyState onCreateNew={handleCreateNew} canCreate={canCreate} />
         ) : (
@@ -247,7 +248,7 @@ const PlannerPage: React.FC = () => {
           onClose={() => setDialogOpen(false)}
         />
       </Dialog>
-    </>
+    </div>
   );
 };
 

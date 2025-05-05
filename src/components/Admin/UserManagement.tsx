@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { User as UserIcon, Edit, Trash2, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -9,47 +8,17 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Dialog } from '@/components/ui/dialog';
+import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { StatusBadge } from '@/components/ui/status-badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User, UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
+
+// Import refactored components
+import UserTable from './UserTable';
+import UserFormDialog from './UserFormDialog';
+import UserDeleteDialog from './UserDeleteDialog';
 
 // Mock users for display with extended properties
 const mockUsers: (User & Partial<Employee>)[] = [
@@ -231,195 +200,34 @@ const UserManagement: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('admin.userManagement.name')}</TableHead>
-                <TableHead>{t('admin.userManagement.email')}</TableHead>
-                <TableHead>{t('admin.userManagement.role')}</TableHead>
-                <TableHead className="w-[100px]">{t('admin.userManagement.actions')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8 profile-avatar">
-                        <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                      </Avatar>
-                      <span className="font-medium">{user.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <StatusBadge variant={
-                      user.role === 'administrator' 
-                        ? 'info' 
-                        : user.role === 'skadeleder'
-                          ? 'success'
-                          : 'default'
-                      }>
-                      {getRoleLabel(user.role)}
-                    </StatusBadge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditUser(user)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <span className="sr-only">{t('common.edit')}</span>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteUser(user)}
-                        className="h-8 w-8 p-0 text-destructive"
-                        disabled={user.id === '1'} // Prevent deleting main admin
-                      >
-                        <span className="sr-only">{t('common.delete')}</span>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <UserTable 
+            users={users}
+            onEditUser={handleEditUser}
+            onDeleteUser={handleDeleteUser}
+            getRoleLabel={getRoleLabel}
+            getInitials={getInitials}
+          />
         </CardContent>
       </Card>
 
       {/* User Add/Edit Dialog */}
       <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {currentUser ? t('admin.userManagement.editUser') : t('admin.userManagement.addNewUser')}
-            </DialogTitle>
-            <DialogDescription>
-              {currentUser
-                ? t('admin.userManagement.updateInfo')
-                : t('admin.userManagement.createAccount')}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <form onSubmit={handleSubmitUser} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">{t('admin.userManagement.fullName')}</Label>
-              <Input
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">{t('common.email')}</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="phone">{t('employees.phone')}</Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="jobTitle">{t('employees.jobTitle')}</Label>
-              <Input
-                id="jobTitle"
-                name="jobTitle"
-                value={formData.jobTitle}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="role">{t('admin.userManagement.role')}</Label>
-              <Select
-                value={formData.role}
-                onValueChange={handleRoleChange}
-                required
-              >
-                <SelectTrigger id="role">
-                  <SelectValue placeholder={t('admin.userManagement.selectRole')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="administrator">
-                    {t('admin.roles.administrator')}
-                  </SelectItem>
-                  <SelectItem value="skadeleder">
-                    {t('admin.roles.skadeleder')}
-                  </SelectItem>
-                  <SelectItem value="servicemedarbejder">
-                    {t('admin.roles.servicemedarbejder')}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setUserDialogOpen(false)}
-              >
-                {t('common.cancel')}
-              </Button>
-              <Button 
-                type="submit"
-                className="bg-polygon-blue hover:bg-polygon-darkblue"
-              >
-                {currentUser ? t('common.save') : t('common.add')}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
+        <UserFormDialog 
+          currentUser={currentUser}
+          formData={formData}
+          handleInputChange={handleInputChange}
+          handleRoleChange={handleRoleChange}
+          handleSubmit={handleSubmitUser}
+          onClose={() => setUserDialogOpen(false)}
+        />
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('admin.userManagement.deleteConfirm')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {currentUser && (
-                <>
-                  {t('admin.userManagement.deleteWarning', { name: <strong>{currentUser.name}</strong> })}
-                </>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmDeleteUser}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              {t('common.delete')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+        <UserDeleteDialog 
+          currentUser={currentUser}
+          onConfirmDelete={confirmDeleteUser}
+        />
       </AlertDialog>
     </>
   );
