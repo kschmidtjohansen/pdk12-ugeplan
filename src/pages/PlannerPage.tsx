@@ -3,23 +3,21 @@ import React, { useState } from 'react';
 import { usePermissions } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import { Assignment, getCurrentWeek } from '../types/assignment';
-import { Vacation, VacationStatus } from '../types/vacation';
+import { Vacation } from '../types/vacation';
 import { Employee } from '../types/employee';
-import { UserRole } from '@/context/AuthContext';
+import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 
 // Import custom components
 import PlannerHeader from '../components/Planner/PlannerHeader';
-import EmptyState from '../components/Planner/EmptyState';
 import AssignmentList from '../components/Planner/AssignmentList';
 import AssignmentDialogManager from '../components/Planner/AssignmentDialogManager';
-import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 
 // Mock data
 const MOCK_EMPLOYEES: Employee[] = [
-  { id: '1', name: 'John Doe', email: 'john.doe@polygon.com', phone: '+45 12 34 56 78', jobTitle: 'Senior Technician', role: 'skadeleder' as UserRole },
-  { id: '2', name: 'Jane Smith', email: 'jane.smith@polygon.com', phone: '+45 23 45 67 89', jobTitle: 'Technician', role: 'servicemedarbejder' as UserRole },
-  { id: '3', name: 'Mike Johnson', email: 'mike.johnson@polygon.com', phone: '+45 34 56 78 90', jobTitle: 'Project Manager', role: 'administrator' as UserRole },
-  { id: '4', name: 'Anna Williams', email: 'anna.williams@polygon.com', phone: '+45 45 67 89 01', jobTitle: 'Junior Technician', role: 'servicemedarbejder' as UserRole },
+  { id: '1', name: 'John Doe', email: 'john.doe@polygon.com', phone: '+45 12 34 56 78', jobTitle: 'Senior Technician', role: 'skadeleder' },
+  { id: '2', name: 'Jane Smith', email: 'jane.smith@polygon.com', phone: '+45 23 45 67 89', jobTitle: 'Technician', role: 'servicemedarbejder' },
+  { id: '3', name: 'Mike Johnson', email: 'mike.johnson@polygon.com', phone: '+45 34 56 78 90', jobTitle: 'Project Manager', role: 'administrator' },
+  { id: '4', name: 'Anna Williams', email: 'anna.williams@polygon.com', phone: '+45 45 67 89 01', jobTitle: 'Junior Technician', role: 'servicemedarbejder' },
 ];
 
 const MOCK_CARS = [
@@ -38,7 +36,7 @@ const MOCK_VACATIONS: Vacation[] = [
     startDate: new Date('2025-05-10'),
     endDate: new Date('2025-05-15'),
     reason: 'Annual leave',
-    status: 'approved' as VacationStatus,
+    status: 'approved',
     createdAt: new Date('2025-04-01'),
   },
   {
@@ -48,7 +46,7 @@ const MOCK_VACATIONS: Vacation[] = [
     startDate: new Date('2025-05-06'),  // On vacation during the first assignment
     endDate: new Date('2025-05-13'),
     reason: 'Family vacation',
-    status: 'approved' as VacationStatus,
+    status: 'approved',
     createdAt: new Date('2025-04-15'),
   },
 ];
@@ -101,16 +99,12 @@ const PlannerPage: React.FC = () => {
       />
 
       <div className="w-full flex-grow mt-6">
-        {assignments.length === 0 ? (
-          <EmptyState onCreateNew={handleCreateNew} canCreate={canCreate} />
-        ) : (
-          <AssignmentList 
-            assignments={assignments}
-            onEditAssignment={handleEdit}
-            onDeleteAssignment={deleteAssignment}
-            onCreateAssignment={handleCreateNew}
-          />
-        )}
+        <AssignmentList 
+          assignments={assignments}
+          onEditAssignment={handleEdit}
+          onDeleteAssignment={deleteAssignment}
+          onCreateAssignment={handleCreateNew}
+        />
       </div>
 
       <AssignmentDialogManager

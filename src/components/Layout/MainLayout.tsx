@@ -36,8 +36,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <div className="flex flex-col min-h-screen w-full bg-polygon-lightgray">
       <TopNavbar />
       
-      {/* Main Content */}
-      <main className="flex-1 page-container w-full">
+      {/* Main Content - Adjusted to ensure full width */}
+      <main className="flex-1 page-container w-full max-w-full">
         {children}
       </main>
     </div>
