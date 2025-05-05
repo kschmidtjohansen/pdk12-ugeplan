@@ -1,22 +1,21 @@
 import React, { useState } from 'react';
-import { addDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import PageHeader from '../components/Layout/PageHeader';
 import { useAuth, usePermissions } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import { useNotifications } from '../context/NotificationContext';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from '@/components/ui/calendar';
-import { Calendar as CalendarIcon, Plus, Check, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { cn } from '@/lib/utils';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { DateRange } from 'react-day-picker';
-import { Vacation, VacationStatus } from '../types/vacation';
+import { Vacation } from '../types/vacation';
+
+// Import refactored vacation components
+import VacationTabs from '../components/Vacation/VacationTabs';
+import VacationList from '../components/Vacation/VacationList';
+import VacationFormDialog from '../components/Vacation/VacationFormDialog';
+import VacationActionDialog from '../components/Vacation/VacationActionDialog';
 
 // Mock data
 const initialVacations: Vacation[] = [{
@@ -48,24 +47,14 @@ const initialVacations: Vacation[] = [{
   createdAt: new Date('2025-04-20'),
   notes: 'Too many people already on vacation during this period'
 }];
+
 const VacationPage: React.FC = () => {
-  const {
-    user
-  } = useAuth();
-  const {
-    canApproveVacation,
-    canViewAllVacations,
-    isServicemedarbejder
-  } = usePermissions();
-  const {
-    toast
-  } = useToast();
-  const {
-    t
-  } = useTranslation();
-  const {
-    addNotification
-  } = useNotifications();
+  const { user } = useAuth();
+  const { canApproveVacation, canViewAllVacations, isServicemedarbejder } = usePermissions();
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const { addNotification } = useNotifications();
+  
   const [vacations, setVacations] = useState(initialVacations);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [date, setDate] = useState<DateRange>({
@@ -77,6 +66,7 @@ const VacationPage: React.FC = () => {
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [actionVacation, setActionVacation] = useState<Vacation | null>(null);
   const [note, setNote] = useState('');
+
   const handleCreateNew = () => {
     setDate({
       from: undefined,
@@ -85,6 +75,7 @@ const VacationPage: React.FC = () => {
     setReason('');
     setDialogOpen(true);
   };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!date.from || !date.to) {
@@ -95,6 +86,7 @@ const VacationPage: React.FC = () => {
       });
       return;
     }
+    
     const newVacation: Vacation = {
       id: Date.now().toString(),
       employeeId: user?.id || '',
@@ -105,6 +97,7 @@ const VacationPage: React.FC = () => {
       status: 'pending',
       createdAt: new Date()
     };
+    
     setVacations([...vacations, newVacation]);
     toast({
       title: t("vacation.requestSubmitted"),
@@ -126,13 +119,16 @@ const VacationPage: React.FC = () => {
         link: '/vacation'
       });
     }
+    
     setDialogOpen(false);
   };
+
   const handleApproveClick = (vacation: Vacation) => {
     setActionVacation(vacation);
     setNote('');
     setNoteDialogOpen(true);
   };
+
   const handleRejectClick = (vacation: Vacation) => {
     setActionVacation({
       ...vacation,
@@ -141,9 +137,11 @@ const VacationPage: React.FC = () => {
     setNote('');
     setNoteDialogOpen(true);
   };
+
   const handleAction = (e: React.FormEvent) => {
     e.preventDefault();
     if (!actionVacation) return;
+    
     setVacations(vacations.map(v => {
       if (v.id === actionVacation.id) {
         return {
@@ -154,14 +152,22 @@ const VacationPage: React.FC = () => {
       }
       return v;
     }));
+    
     toast({
-      title: actionVacation.status === 'rejected' ? t("vacation.requestRejected") : t("vacation.requestApproved"),
-      description: t(actionVacation.status === 'rejected' ? "vacation.requestRejectedMsg" : "vacation.requestApprovedMsg", {
-        name: actionVacation.employeeName
-      })
+      title: actionVacation.status === 'rejected' ? 
+        t("vacation.requestRejected") : 
+        t("vacation.requestApproved"),
+      description: t(
+        actionVacation.status === 'rejected' ? 
+          "vacation.requestRejectedMsg" : 
+          "vacation.requestApprovedMsg", 
+        { name: actionVacation.employeeName }
+      )
     });
+    
     setNoteDialogOpen(false);
   };
+
   const filteredVacations = vacations.filter(v => {
     if (activeTab === 'approved') return v.status === 'approved';
     if (activeTab === 'pending') return v.status === 'pending';
@@ -169,177 +175,59 @@ const VacationPage: React.FC = () => {
     return true;
   });
 
-  // For service employees, only show the "mine" tab
-  const getAvailableTabs = () => {
-    if (isServicemedarbejder) {
-      return <TabsList className="grid grid-cols-1 w-full max-w-md">
-          <TabsTrigger value="mine">{t("vacation.tabs.mine")}</TabsTrigger>
-        </TabsList>;
-    }
-    return <TabsList className="grid grid-cols-4 w-full max-w-md">
-        <TabsTrigger value="all">{t("vacation.tabs.all")}</TabsTrigger>
-        <TabsTrigger value="pending">{t("vacation.tabs.pending")}</TabsTrigger>
-        <TabsTrigger value="approved">{t("vacation.tabs.approved")}</TabsTrigger>
-        <TabsTrigger value="mine">{t("vacation.tabs.mine")}</TabsTrigger>
-      </TabsList>;
-  };
   return (
     <>
-      <PageHeader title={t("navigation.vacation")} description={t("vacation.pageDescription")}>
+      <PageHeader 
+        title={t("navigation.vacation")} 
+        description={t("vacation.pageDescription")}
+      >
         <Button onClick={handleCreateNew} className="bg-polygon-blue">
           <Plus className="mr-2 h-4 w-4" /> {t("vacation.applyForVacation")}
         </Button>
       </PageHeader>
 
       <div className="space-y-6">
-        <Tabs defaultValue={isServicemedarbejder ? 'mine' : 'all'} value={activeTab} onValueChange={setActiveTab}>
-          {getAvailableTabs()}
+        <Tabs 
+          defaultValue={isServicemedarbejder ? 'mine' : 'all'} 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+        >
+          <VacationTabs 
+            isServicemedarbejder={isServicemedarbejder} 
+            activeTab={activeTab} 
+          />
 
           <TabsContent value={activeTab} className="mt-6">
-            {filteredVacations.length === 0 ? <Card className="text-center p-8">
-                <p className="text-muted-foreground">{t("vacation.noRequests")}</p>
-              </Card> : <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredVacations.map(vacation => <Card key={vacation.id} className={cn("overflow-hidden", vacation.status === 'approved' && "border-green-500", vacation.status === 'rejected' && "border-polygon-red", vacation.status === 'pending' && "border-amber-500")}>
-                    <CardHeader className={cn("pb-3", vacation.status === 'approved' && "bg-green-50", vacation.status === 'rejected' && "bg-red-50", vacation.status === 'pending' && "bg-amber-50")}>
-                      <CardTitle className="flex justify-between items-start">
-                        <span>{vacation.employeeName}</span>
-                        <span className={cn("text-xs font-medium px-2 py-1 rounded-full", vacation.status === 'approved' && "bg-green-100 text-green-800", vacation.status === 'rejected' && "bg-red-100 text-red-800", vacation.status === 'pending' && "bg-amber-100 text-amber-800")}>
-                          {t(`vacation.status.${vacation.status}`)}
-                        </span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <dl className="space-y-3 text-sm">
-                        <div className="flex flex-col">
-                          <dt className="font-medium text-gray-500">{t("vacation.dateRange")}</dt>
-                          <dd>
-                            {format(vacation.startDate, 'PPP')} - {format(vacation.endDate, 'PPP')}
-                          </dd>
-                        </div>
-                        <div className="flex flex-col">
-                          <dt className="font-medium text-gray-500">{t("vacation.reason")}</dt>
-                          <dd>{vacation.reason}</dd>
-                        </div>
-                        {vacation.notes && <div className="flex flex-col">
-                            <dt className="font-medium text-gray-500">{t("vacation.notes")}</dt>
-                            <dd>{vacation.notes}</dd>
-                          </div>}
-                        <div className="flex flex-col">
-                          <dt className="font-medium text-gray-500">{t("vacation.requestedOn")}</dt>
-                          <dd>{format(vacation.createdAt, 'PPP')}</dd>
-                        </div>
-                      </dl>
-                    </CardContent>
-                    {/* Only admins can approve/reject */}
-                    {canApproveVacation && vacation.status === 'pending' && <CardFooter className="flex justify-between border-t pt-4 pb-4">
-                        <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleRejectClick(vacation)}>
-                          <X className="mr-1 h-4 w-4" />
-                          {t("vacation.reject")}
-                        </Button>
-                        <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleApproveClick(vacation)}>
-                          <Check className="mr-1 h-4 w-4" />
-                          {t("vacation.approve")}
-                        </Button>
-                      </CardFooter>}
-                  </Card>)}
-              </div>}
+            <VacationList
+              vacations={filteredVacations}
+              canApproveVacation={canApproveVacation}
+              onApprove={handleApproveClick}
+              onReject={handleRejectClick}
+            />
           </TabsContent>
         </Tabs>
       </div>
 
       {/* Apply for vacation dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("vacation.applyForVacation")}</DialogTitle>
-            <DialogDescription>
-              {t("vacation.selectDatesAndReason")}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t("vacation.dateRange")}</Label>
-              <div className="flex flex-col">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !date.from && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date.from ? date.to ? <>
-                            {format(date.from, "LLL dd, y")} -{" "}
-                            {format(date.to, "LLL dd, y")}
-                          </> : format(date.from, "LLL dd, y") : <span>{t("vacation.selectVacationDates")}</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="range" selected={date} onSelect={setDate} initialFocus numberOfMonths={2} disabled={date => date < addDays(new Date(), 1)} className={cn("p-3 pointer-events-auto")} />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="reason">{t("vacation.reason")}</Label>
-              <Textarea id="reason" value={reason} onChange={e => setReason(e.target.value)} placeholder={t("vacation.reasonPlaceholder")} required />
-            </div>
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                {t("common.cancel")}
-              </Button>
-              <Button type="submit" className="bg-polygon-purple hover:bg-polygon-darkpurple">
-                {t("vacation.submitRequest")}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <VacationFormDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        date={date}
+        setDate={setDate}
+        reason={reason}
+        setReason={setReason}
+        onSubmit={handleSubmit}
+      />
 
       {/* Approve/Reject note dialog */}
-      <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {actionVacation?.status === 'rejected' ? t("vacation.rejectRequest") : t("vacation.approveRequest")}
-            </DialogTitle>
-            <DialogDescription>
-              {actionVacation?.status === 'rejected' ? t("vacation.rejectReasonDesc") : t("vacation.approveNoteDesc")}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <form onSubmit={handleAction} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="note">
-                {actionVacation?.status === 'rejected' ? t("vacation.rejectionReason") : t("vacation.noteOptional")}
-              </Label>
-              <Textarea 
-                id="note" 
-                value={note} 
-                onChange={e => setNote(e.target.value)}
-                placeholder={actionVacation?.status === 'rejected' 
-                  ? t("vacation.rejectionReasonPlaceholder") 
-                  : t("vacation.approveNotePlaceholder")
-                } 
-              />
-            </div>
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setNoteDialogOpen(false)}>
-                {t("common.cancel")}
-              </Button>
-              <Button 
-                type="submit" 
-                className={actionVacation?.status === 'rejected' 
-                  ? "bg-red-600 hover:bg-red-700" 
-                  : "bg-green-600 hover:bg-green-700"
-                }
-              >
-                {actionVacation?.status === 'rejected' ? t("vacation.rejectRequestBtn") : t("vacation.approveRequestBtn")}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <VacationActionDialog
+        open={noteDialogOpen}
+        onOpenChange={setNoteDialogOpen}
+        vacation={actionVacation}
+        note={note}
+        setNote={setNote}
+        onAction={handleAction}
+      />
     </>
   );
 };

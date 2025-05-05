@@ -45,7 +45,7 @@ const CarsList: React.FC<CarsListProps> = ({
                   <Car className="h-4 w-4 mr-2 text-polygon-blue" />
                   <h3 className="font-medium">{car.name}</h3>
                 </div>
-                {canEdit && (
+                {isAdmin && (
                   <div className="flex space-x-2">
                     <Button
                       variant="ghost"
@@ -56,17 +56,15 @@ const CarsList: React.FC<CarsListProps> = ({
                       <span className="sr-only">{t('common.edit')}</span>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    {isAdmin && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onDelete(car)}
-                        className="h-8 w-8 p-0 text-destructive"
-                      >
-                        <span className="sr-only">{t('common.delete')}</span>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDelete(car)}
+                      className="h-8 w-8 p-0 text-destructive"
+                    >
+                      <span className="sr-only">{t('common.delete')}</span>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 )}
               </div>
@@ -102,7 +100,7 @@ const CarsList: React.FC<CarsListProps> = ({
                   <TableHead>{t('cars.carNumber')}</TableHead>
                   <TableHead>{t('cars.numberPlate')}</TableHead>
                   {canViewFuelCardCode && <TableHead>{t('cars.fuelCardCode')}</TableHead>}
-                  {canEdit && <TableHead className="w-[100px]">{t('common.actions')}</TableHead>}
+                  {isAdmin && <TableHead className="w-[100px]">{t('common.actions')}</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -121,7 +119,7 @@ const CarsList: React.FC<CarsListProps> = ({
                         <code className="bg-gray-100 p-1 rounded">{car.fuelCardCode}</code>
                       </TableCell>
                     )}
-                    {canEdit && (
+                    {isAdmin && (
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button
@@ -133,17 +131,15 @@ const CarsList: React.FC<CarsListProps> = ({
                             <span className="sr-only">{t('common.edit')}</span>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          {isAdmin && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onDelete(car)}
-                              className="h-8 w-8 p-0 text-destructive"
-                            >
-                              <span className="sr-only">{t('common.delete')}</span>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onDelete(car)}
+                            className="h-8 w-8 p-0 text-destructive"
+                          >
+                            <span className="sr-only">{t('common.delete')}</span>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     )}

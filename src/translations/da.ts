@@ -22,7 +22,7 @@ const translations = {
   login: {
     title: 'Log ind',
     description: 'Indtast dine oplysninger for at få adgang til ugeplanen',
-    emailPlaceholder: 'din.email@polygon.com',
+    emailPlaceholder: 'din.email@polygongroup.com',
     passwordPlaceholder: '••••••••',
     button: 'Log ind',
     buttonLoading: 'Logger ind...',
@@ -34,7 +34,7 @@ const translations = {
   },
   navigation: {
     dashboard: 'Dashboard',
-    planner: 'Ugeplanlægger',
+    planner: 'Ugeplan',
     employees: 'Medarbejdere',
     cars: 'Biler',
     vacation: 'Ferie',
@@ -45,7 +45,7 @@ const translations = {
     today: 'I dag er {date}, Uge {week}',
     quickAccess: {
       planner: {
-        title: 'Ugeplanlægger',
+        title: 'Ugeplan',
         description: 'Se og administrer ugentlige opgaver'
       },
       vacation: {
@@ -61,7 +61,7 @@ const translations = {
         description: 'Se og administrer afdelingens køretøjer'
       }
     },
-    weekAssignments: 'Uge {week} Opgaver',
+    weekAssignments: 'Opgaver - Uge {week}',
     viewAll: 'Se alle',
     noAssignments: 'Ingen opgaver for denne uge',
     assignmentTime: '{fromTime} - {toTime}',
@@ -106,7 +106,7 @@ const translations = {
       all: 'Alle',
       pending: 'Afventer',
       approved: 'Godkendt',
-      mine: 'Mine Anmodninger'
+      mine: 'Mine Ansøgninger'
     },
     noRequests: 'Ingen ferieanmodninger fundet',
     status: {

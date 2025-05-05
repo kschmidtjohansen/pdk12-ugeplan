@@ -46,7 +46,7 @@ const initialCars: CarData[] = [
 ];
 
 const CarsPage: React.FC = () => {
-  const { canEdit, canViewFuelCardCode, isAdmin } = usePermissions();
+  const { canViewFuelCardCode, isAdmin } = usePermissions();
   const { toast } = useToast();
   const { t } = useTranslation();
   const [cars, setCars] = useState<CarData[]>(initialCars);
@@ -72,6 +72,9 @@ const CarsPage: React.FC = () => {
   };
 
   const handleEdit = (car: CarData) => {
+    // Only administrators can edit cars
+    if (!isAdmin) return;
+    
     setCurrentCar(car);
     setFormData({
       name: car.name,
@@ -83,6 +86,9 @@ const CarsPage: React.FC = () => {
   };
 
   const handleDelete = (car: CarData) => {
+    // Only administrators can delete cars
+    if (!isAdmin) return;
+    
     setCurrentCar(car);
     setDeleteDialogOpen(true);
   };
@@ -154,7 +160,7 @@ const CarsPage: React.FC = () => {
 
       <CarsList 
         cars={cars} 
-        canEdit={canEdit} 
+        canEdit={false} // Now only admins can edit, controlled in the component
         canViewFuelCardCode={canViewFuelCardCode} 
         isAdmin={isAdmin}
         onEdit={handleEdit}
