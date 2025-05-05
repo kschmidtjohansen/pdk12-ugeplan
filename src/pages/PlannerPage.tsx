@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -213,14 +212,14 @@ const PlannerPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full max-w-full h-full flex flex-col">
       <PlannerHeader 
         currentWeek={currentWeek}
         canCreate={canCreate}
         onCreateNew={handleCreateNew}
       />
 
-      <div className="grid gap-6 w-full mt-6">
+      <div className="w-full flex-grow mt-6">
         {assignments.length === 0 ? (
           <EmptyState onCreateNew={handleCreateNew} canCreate={canCreate} />
         ) : (

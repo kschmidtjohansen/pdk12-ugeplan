@@ -67,13 +67,13 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   }
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="w-full space-y-6">
       {sortedDates.map((dateKey) => {
         const isExpanded = expandedDays[dateKey] !== false; // Default to expanded
         const dayAssignments = groupedAssignments[dateKey];
         
         return (
-          <div key={dateKey} className="space-y-3 w-full">
+          <div key={dateKey} className="w-full space-y-3">
             <div 
               className="flex items-center cursor-pointer" 
               onClick={() => toggleDayExpansion(dateKey)}
@@ -87,7 +87,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
             </div>
             
             {isExpanded && (
-              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 w-full">
+              <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {dayAssignments.map((assignment) => (
                   <AssignmentCard
                     key={assignment.id}
