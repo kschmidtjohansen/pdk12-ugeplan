@@ -43,7 +43,7 @@ const translations = {
   },
   dashboard: {
     welcome: 'Welcome, {name}',
-    today: 'Today is {date}, Week {week}',
+    today: 'Today is {date}, We are in week {week}',
     quickAccess: {
       planner: {
         title: 'Weekly Planner',
@@ -62,7 +62,7 @@ const translations = {
         description: 'View and manage department vehicles'
       }
     },
-    weekAssignments: 'Week {week} Assignments',
+    weekAssignments: 'Your assignments - Week {week}',
     viewAll: 'View All',
     noAssignments: 'No assignments for this week',
     assignmentTime: '{fromTime} - {toTime}',

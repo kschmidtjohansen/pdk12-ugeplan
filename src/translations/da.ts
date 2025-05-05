@@ -61,7 +61,7 @@ const translations = {
         description: 'Se og administrer afdelingens køretøjer'
       }
     },
-    weekAssignments: 'Opgaver - Uge {week}',
+    weekAssignments: 'Dine opgaver - Uge {week}',
     viewAll: 'Se alle',
     noAssignments: 'Ingen opgaver for denne uge',
     assignmentTime: '{fromTime} - {toTime}',
