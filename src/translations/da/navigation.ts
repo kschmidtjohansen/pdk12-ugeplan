@@ -4,7 +4,7 @@ const navigation = {
   planner: 'Ugeplan',
   employees: 'Medarbejdere',
   cars: 'Biler',
-  vacation: 'Ferie',
+  vacation: 'Fridage',
   admin: 'Admin'
 };
 

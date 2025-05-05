@@ -4,8 +4,8 @@ const notifications = {
   markAllAsRead: 'Marker alle som læst',
   noNotifications: 'Ingen notifikationer',
   viewAll: 'Se alle',
-  newVacationRequest: 'Ny ferieansøgning',
-  newVacationRequestMsg: '{name} har ansøgt om ferie fra {from} til {to}'
+  newVacationRequest: 'Ny ansøgninger om fridage',
+  newVacationRequestMsg: '{name} har ansøgt om fri fra {from} til {to}'
 };
 
 export default notifications;
