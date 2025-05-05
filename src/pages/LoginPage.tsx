@@ -45,7 +45,7 @@ const LoginPage: React.FC = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img 
-            src="/lovable-uploads/logo-polygon.png" 
+            src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" 
             alt="Polygon Logo" 
             className="mx-auto mb-6 h-16"
           />
@@ -87,7 +87,7 @@ const LoginPage: React.FC = () => {
             </CardContent>
             <CardFooter>
               <Button 
-                className="w-full bg-polygon-red hover:bg-polygon-darkred" 
+                className="w-full bg-polygon-blue hover:bg-polygon-darkblue" 
                 type="submit" 
                 disabled={isLoading}
               >
