@@ -45,55 +45,68 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User, UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
+import { Employee } from '@/types/employee';
 
-// Mock users for display
-const mockUsers: User[] = [
+// Mock users for display with extended properties
+const mockUsers: (User & Partial<Employee>)[] = [
   {
     id: "1",
     name: "Admin User",
     email: "admin@polygon.com",
     role: "administrator",
+    phone: "+45 12 34 56 78",
+    jobTitle: "System Administrator"
   },
   {
     id: "2",
     name: "Skadeleder User",
     email: "skadeleder@polygon.com",
     role: "skadeleder",
+    phone: "+45 23 45 67 89",
+    jobTitle: "Team Leader"
   },
   {
     id: "3",
     name: "Service User",
     email: "service@polygon.com",
     role: "servicemedarbejder",
+    phone: "+45 34 56 78 90",
+    jobTitle: "Field Technician"
   },
   {
     id: "4",
     name: "John Doe",
     email: "john.doe@polygon.com",
     role: "servicemedarbejder",
+    phone: "+45 45 67 89 01",
+    jobTitle: "Junior Technician"
   },
   {
     id: "5",
     name: "Jane Smith",
     email: "jane.smith@polygon.com",
     role: "skadeleder",
+    phone: "+45 56 78 90 12",
+    jobTitle: "Senior Team Leader"
   },
 ];
 
 const UserManagement: React.FC = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<(User & Partial<Employee>)[]>(mockUsers);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<(User & Partial<Employee>) | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
+    jobTitle: '',
     role: 'servicemedarbejder' as UserRole,
   });
 
@@ -117,22 +130,26 @@ const UserManagement: React.FC = () => {
     setFormData({
       name: '',
       email: '',
+      phone: '',
+      jobTitle: '',
       role: 'servicemedarbejder',
     });
     setUserDialogOpen(true);
   };
 
-  const handleEditUser = (user: User) => {
+  const handleEditUser = (user: User & Partial<Employee>) => {
     setCurrentUser(user);
     setFormData({
       name: user.name,
       email: user.email,
+      phone: user.phone || '',
+      jobTitle: user.jobTitle || '',
       role: user.role,
     });
     setUserDialogOpen(true);
   };
 
-  const handleDeleteUser = (user: User) => {
+  const handleDeleteUser = (user: User & Partial<Employee>) => {
     setCurrentUser(user);
     setDeleteDialogOpen(true);
   };
@@ -236,15 +253,15 @@ const UserManagement: React.FC = () => {
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
-                    <Badge className={`${
+                    <StatusBadge variant={
                       user.role === 'administrator' 
-                        ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' 
+                        ? 'info' 
                         : user.role === 'skadeleder'
-                          ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                          : 'bg-gray-100 text-gray-800 hover:bg-gray-100'
-                      }`}>
+                          ? 'success'
+                          : 'default'
+                      }>
                       {getRoleLabel(user.role)}
-                    </Badge>
+                    </StatusBadge>
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
@@ -309,6 +326,29 @@ const UserManagement: React.FC = () => {
                 name="email"
                 type="email"
                 value={formData.email}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="phone">{t('employees.phone')}</Label>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="jobTitle">{t('employees.jobTitle')}</Label>
+              <Input
+                id="jobTitle"
+                name="jobTitle"
+                value={formData.jobTitle}
                 onChange={handleInputChange}
                 required
               />

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -163,14 +162,6 @@ const DashboardPage: React.FC = () => {
                 </div>)}
             </div>}
         </CardContent>
-        <CardFooter className="flex justify-center border-t pt-4">
-          <Button asChild className="bg-polygon-blue hover:bg-polygon-darkblue">
-            <Link to="/planner">
-              <Clock className="mr-2 h-4 w-4" />
-              {t('dashboard.manageAssignments')}
-            </Link>
-          </Button>
-        </CardFooter>
       </Card>
     </>;
 };

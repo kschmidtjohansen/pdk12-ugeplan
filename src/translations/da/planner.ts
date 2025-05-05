@@ -1,0 +1,29 @@
+
+const planner = {
+  weekDescription: 'Uge {week} - Opgaver',
+  newAssignment: 'Ny Opgave',
+  editAssignment: 'Rediger Opgave',
+  createFirstAssignment: 'Opret Første Opgave',
+  noAssignments: 'Ingen opgaver planlagt',
+  updateDetails: 'Opdater detaljer for denne opgave',
+  addAssignment: 'Tilføj en ny opgave til ugeplanen',
+  assignmentTitle: 'Opgavetitel',
+  description: 'Beskrivelse',
+  date: 'Dato',
+  from: 'Fra',
+  to: 'Til',
+  location: 'Lokation',
+  car: 'Bil',
+  employees: 'Medarbejdere',
+  selectCar: 'Vælg en bil',
+  selectEmployee: 'Vælg en medarbejder',
+  selectAtLeastOneEmployee: 'Vælg mindst én medarbejder',
+  saveChanges: 'Gem Ændringer',
+  createAssignment: 'Opret Opgave',
+  assignmentUpdated: 'Opgave opdateret',
+  assignmentCreated: 'Opgave oprettet',
+  assignmentUpdatedMsg: '{title} er blevet opdateret.',
+  assignmentCreatedMsg: '{title} er blevet tilføjet til planen.'
+};
+
+export default planner;

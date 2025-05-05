@@ -5,6 +5,7 @@ import { useTranslation } from '../../context/TranslationContext';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
 import { Edit, Mail, Phone, Trash2 } from 'lucide-react';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { Employee } from './EmployeesList';
 
 interface USER_ROLES_TYPE {
@@ -33,6 +34,18 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, o
   const { isAdmin } = usePermissions();
   const { t } = useTranslation();
 
+  // Get role variant for status badge
+  const getRoleVariant = (role: string) => {
+    switch (role) {
+      case 'administrator': 
+        return 'info';
+      case 'skadeleder': 
+        return 'success';
+      default: 
+        return 'default';
+    }
+  };
+
   return (
     <TableRow>
       <TableCell className="font-medium">{employee.name}</TableCell>
@@ -50,15 +63,9 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, o
       </TableCell>
       <TableCell>{employee.jobTitle}</TableCell>
       <TableCell>
-        <span className={`inline-flex rounded-md px-2 py-1 text-xs font-medium ${
-          employee.role === 'administrator' 
-            ? 'bg-blue-100 text-blue-800' 
-            : employee.role === 'skadeleder' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-gray-100 text-gray-800'
-        }`}>
+        <StatusBadge variant={getRoleVariant(employee.role)}>
           {USER_ROLES.find(role => role.value === employee.role)?.label}
-        </span>
+        </StatusBadge>
       </TableCell>
       {isAdmin && (
         <TableCell>

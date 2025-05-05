@@ -1,6 +1,6 @@
 
 import enTranslations from './en';
-import daTranslations from './da';
+import daTranslations from './da/index';
 import { Language } from '../context/TranslationContext';
 
 export const translations = {

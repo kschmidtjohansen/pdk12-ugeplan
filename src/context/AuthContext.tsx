@@ -10,6 +10,8 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  phone?: string;
+  jobTitle?: string;
 }
 
 // Auth context interface
@@ -31,18 +33,24 @@ const MOCK_USERS: User[] = [
     name: "Admin User",
     email: "admin@polygon.com",
     role: "administrator",
+    phone: "+45 12 34 56 78",
+    jobTitle: "System Administrator"
   },
   {
     id: "2",
     name: "Skadeleder User",
     email: "skadeleder@polygon.com",
     role: "skadeleder",
+    phone: "+45 23 45 67 89",
+    jobTitle: "Team Leader"
   },
   {
     id: "3",
     name: "Service User",
     email: "service@polygon.com",
     role: "servicemedarbejder",
+    phone: "+45 34 56 78 90",
+    jobTitle: "Field Technician"
   },
 ];
 

@@ -50,6 +50,7 @@ const VacationActionDialog: React.FC<VacationActionDialogProps> = ({
           <div className="space-y-2">
             <Label htmlFor="note">
               {isRejection ? t("vacation.rejectionReason") : t("vacation.noteOptional")}
+              {!isRejection && <span className="text-sm text-muted-foreground ml-1">({t("common.optional")})</span>}
             </Label>
             <Textarea 
               id="note" 
@@ -59,6 +60,7 @@ const VacationActionDialog: React.FC<VacationActionDialogProps> = ({
                 ? t("vacation.rejectionReasonPlaceholder") 
                 : t("vacation.approveNotePlaceholder")
               } 
+              required={false}
             />
           </div>
           
