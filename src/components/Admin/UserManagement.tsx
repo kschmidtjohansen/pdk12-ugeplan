@@ -24,7 +24,7 @@ import UserDeleteDialog from './UserDeleteDialog';
 const mockUsers: (User & Partial<Employee>)[] = [
   {
     id: "1",
-    name: "Admin User",
+    name: "Administrator",
     email: "admin@polygongroup.com",
     role: "administrator",
     phone: "+45 12 34 56 78",
