@@ -25,42 +25,42 @@ const mockUsers: (User & Partial<Employee>)[] = [
   {
     id: "1",
     name: "Admin User",
-    email: "admin@polygon.com",
+    email: "admin@polygongroup.com",
     role: "administrator",
     phone: "+45 12 34 56 78",
-    jobTitle: "System Administrator"
+    jobTitle: "Driftansvarlig"
   },
   {
     id: "2",
-    name: "Skadeleder User",
-    email: "skadeleder@polygon.com",
+    name: "Skadeleder",
+    email: "skadeleder@polygongroup.com",
     role: "skadeleder",
     phone: "+45 23 45 67 89",
-    jobTitle: "Team Leader"
+    jobTitle: "Skadeleder"
   },
   {
     id: "3",
-    name: "Service User",
-    email: "service@polygon.com",
+    name: "Servicemedarbejder",
+    email: "service@polygongroup.com",
     role: "servicemedarbejder",
     phone: "+45 34 56 78 90",
-    jobTitle: "Field Technician"
+    jobTitle: "Servicemedarbejder"
   },
   {
     id: "4",
     name: "John Doe",
-    email: "john.doe@polygon.com",
+    email: "john.doe@polygongroup.com",
     role: "servicemedarbejder",
     phone: "+45 45 67 89 01",
-    jobTitle: "Junior Technician"
+    jobTitle: "Servicemedarbejde"
   },
   {
     id: "5",
     name: "Jane Smith",
-    email: "jane.smith@polygon.com",
+    email: "jane.smith@polygongroup.com",
     role: "skadeleder",
     phone: "+45 56 78 90 12",
-    jobTitle: "Senior Team Leader"
+    jobTitle: "Fugttekniker"
   },
 ];
 
