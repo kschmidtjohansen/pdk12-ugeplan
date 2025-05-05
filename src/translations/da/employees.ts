@@ -6,7 +6,7 @@ const employees = {
   name: 'Navn',
   email: 'Email',
   phone: 'Telefon',
-  jobTitle: 'Stillingsbetegnelse',
+  jobTitle: 'Stilling',
   role: 'Rolle',
   actions: 'Handlinger',
   contactInfo: 'Kontaktoplysninger',

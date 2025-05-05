@@ -9,7 +9,7 @@ const dashboard = {
     },
     vacation: {
       title: 'Ferie',
-      description: 'Ansøg om eller administrer ferietid'
+      description: 'Ansøg om eller administrer fridage'
     },
     employees: {
       title: 'Medarbejdere',

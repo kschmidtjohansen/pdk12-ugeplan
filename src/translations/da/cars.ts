@@ -6,17 +6,17 @@ const cars = {
   vehicleName: 'Køretøjsnavn',
   carNumber: 'Bilnummer',
   numberPlate: 'Nummerplade',
-  fuelCardCode: 'Brændstofkortkode',
+  fuelCardCode: 'Tankkort kode',
   editVehicle: 'Rediger Køretøj',
   addNewVehicle: 'Tilføj Nyt Køretøj',
   updateVehicleInfo: 'Opdater køretøjsoplysninger.',
-  addNewVehicleDesc: 'Tilføj et nyt køretøj til afdelingens flåde.',
+  addNewVehicleDesc: 'Tilføj et nyt køretøj til afdelingen.',
   vehicleUpdated: 'Køretøj opdateret',
   vehicleAdded: 'Køretøj tilføjet',
   vehicleDeleted: 'Køretøj slettet',
   vehicleUpdatedMsg: '{name}\'s oplysninger er blevet opdateret.',
-  vehicleAddedMsg: '{name} er blevet tilføjet til flåden.',
-  vehicleDeletedMsg: '{name} er blevet fjernet fra flåden.'
+  vehicleAddedMsg: '{name} er blevet tilføjet til afdelingen.',
+  vehicleDeletedMsg: '{name} er blevet fjernet fra afdelingen.'
 };
 
 export default cars;

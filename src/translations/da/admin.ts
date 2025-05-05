@@ -3,7 +3,7 @@ const admin = {
   title: 'Admin Dashboard',
   description: 'System administration og indstillinger',
   tabs: {
-    metrics: 'System Metrikker',
+    metrics: 'Metrikker',
     users: 'Brugeradministration'
   },
   systemMetrics: {
