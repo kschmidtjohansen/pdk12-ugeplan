@@ -5,6 +5,8 @@ import { Dialog } from "@/components/ui/dialog";
 import { useToast } from '@/components/ui/use-toast';
 import { Assignment, getCurrentWeek, groupByDate } from '../types/assignment';
 import { Vacation, VacationStatus } from '../types/vacation';
+import { Employee } from '../types/employee';
+import { UserRole } from '@/context/AuthContext';
 
 // Import custom components
 import PlannerHeader from '../components/Planner/PlannerHeader';
@@ -49,11 +51,12 @@ const initialAssignments = [
   },
 ];
 
-const MOCK_EMPLOYEES = [
-  { id: '1', name: 'John Doe', email: 'john.doe@polygon.com', phone: '+45 12 34 56 78', jobTitle: 'Senior Technician', role: 'skadeleder' },
-  { id: '2', name: 'Jane Smith', email: 'jane.smith@polygon.com', phone: '+45 23 45 67 89', jobTitle: 'Technician', role: 'servicemedarbejder' },
-  { id: '3', name: 'Mike Johnson', email: 'mike.johnson@polygon.com', phone: '+45 34 56 78 90', jobTitle: 'Project Manager', role: 'administrator' },
-  { id: '4', name: 'Anna Williams', email: 'anna.williams@polygon.com', phone: '+45 45 67 89 01', jobTitle: 'Junior Technician', role: 'servicemedarbejder' },
+// Fix the mock employees to use proper UserRole types
+const MOCK_EMPLOYEES: Employee[] = [
+  { id: '1', name: 'John Doe', email: 'john.doe@polygon.com', phone: '+45 12 34 56 78', jobTitle: 'Senior Technician', role: 'skadeleder' as UserRole },
+  { id: '2', name: 'Jane Smith', email: 'jane.smith@polygon.com', phone: '+45 23 45 67 89', jobTitle: 'Technician', role: 'servicemedarbejder' as UserRole },
+  { id: '3', name: 'Mike Johnson', email: 'mike.johnson@polygon.com', phone: '+45 34 56 78 90', jobTitle: 'Project Manager', role: 'administrator' as UserRole },
+  { id: '4', name: 'Anna Williams', email: 'anna.williams@polygon.com', phone: '+45 45 67 89 01', jobTitle: 'Junior Technician', role: 'servicemedarbejder' as UserRole },
 ];
 
 const MOCK_CARS = [
