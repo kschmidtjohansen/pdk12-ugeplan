@@ -1,7 +1,7 @@
 
 const dashboard = {
   welcome: 'Velkommen, {name}',
-  today: 'I dag er {date}, Uge {week}',
+  today: 'I dag er det {date}, vi er i Uge {week}',
   quickAccess: {
     planner: {
       title: 'Ugeplan',
