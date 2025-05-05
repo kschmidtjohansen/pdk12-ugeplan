@@ -6,11 +6,14 @@ import { Plus } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 
 interface EmptyStateProps {
-  canCreate: boolean;
   onCreateNew: () => void;
+  canCreate?: boolean;
 }
 
-const EmptyState: React.FC<EmptyStateProps> = ({ canCreate, onCreateNew }) => {
+const EmptyState: React.FC<EmptyStateProps> = ({ 
+  onCreateNew,
+  canCreate = true
+}) => {
   const { t } = useTranslation();
   
   return (

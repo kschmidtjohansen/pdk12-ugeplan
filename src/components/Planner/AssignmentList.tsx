@@ -63,7 +63,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   };
 
   if (assignments.length === 0) {
-    return <EmptyState onCreateFirst={onCreateAssignment} />;
+    return <EmptyState onCreateNew={onCreateAssignment} />;
   }
 
   return (

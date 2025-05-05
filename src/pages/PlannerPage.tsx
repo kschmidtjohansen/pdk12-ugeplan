@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -201,6 +200,14 @@ const PlannerPage: React.FC = () => {
     setDialogOpen(false);
   };
 
+  const handleDelete = (assignmentId: string) => {
+    setAssignments(assignments.filter(a => a.id !== assignmentId));
+    toast({
+      title: t("planner.assignmentDeleted"),
+      description: t("planner.assignmentDeletedMsg"),
+    });
+  };
+
   return (
     <>
       <PlannerHeader 
@@ -210,13 +217,14 @@ const PlannerPage: React.FC = () => {
       />
 
       <div className="grid gap-6">
-        {Object.keys(groupedAssignments).length === 0 ? (
-          <EmptyState canCreate={canCreate} onCreateNew={handleCreateNew} />
+        {assignments.length === 0 ? (
+          <EmptyState onCreateNew={handleCreateNew} canCreate={canCreate} />
         ) : (
           <AssignmentList 
-            groupedAssignments={groupedAssignments} 
-            canEdit={canEdit} 
+            assignments={assignments}
             onEditAssignment={handleEdit}
+            onDeleteAssignment={handleDelete}
+            onCreateAssignment={handleCreateNew}
           />
         )}
       </div>
