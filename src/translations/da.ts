@@ -37,20 +37,20 @@ const translations = {
     planner: 'Ugeplan',
     employees: 'Medarbejdere',
     cars: 'Biler',
-    vacation: 'Ferie',
+    vacation: 'Fridage',
     admin: 'Admin'
   },
   dashboard: {
     welcome: 'Velkommen, {name}',
-    today: 'I dag er {date}, Uge {week}',
+    today: 'I dag er det {date}. Vi er i Uge {week}',
     quickAccess: {
       planner: {
         title: 'Ugeplan',
         description: 'Se og administrer ugentlige opgaver'
       },
       vacation: {
-        title: 'Ferie',
-        description: 'Ansøg om eller administrer ferietid'
+        title: 'Fridage',
+        description: 'Ansøg om eller administrer fridage'
       },
       employees: {
         title: 'Medarbejdere',

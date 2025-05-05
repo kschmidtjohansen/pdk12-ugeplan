@@ -22,7 +22,7 @@ const translations = {
   login: {
     title: 'Login',
     description: 'Enter your credentials to access the planner',
-    emailPlaceholder: 'your.email@polygon.com',
+    emailPlaceholder: 'your.email@polygongroup.com',
     passwordPlaceholder: '••••••••',
     button: 'Log in',
     buttonLoading: 'Logging in...',
