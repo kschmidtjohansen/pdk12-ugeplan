@@ -30,24 +30,24 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const MOCK_USERS: User[] = [
   {
     id: "1",
-    name: "Admin User",
-    email: "admin@polygon.com",
+    name: "Admin",
+    email: "admin@polygongroup.com",
     role: "administrator",
     phone: "+45 12 34 56 78",
     jobTitle: "System Administrator"
   },
   {
     id: "2",
-    name: "Skadeleder User",
-    email: "skadeleder@polygon.com",
+    name: "Skadeleder",
+    email: "skadeleder@polygongroup.com",
     role: "skadeleder",
     phone: "+45 23 45 67 89",
     jobTitle: "Team Leader"
   },
   {
     id: "3",
-    name: "Service User",
-    email: "service@polygon.com",
+    name: "Servicemedarbejder",
+    email: "service@polygongroup.com",
     role: "servicemedarbejder",
     phone: "+45 34 56 78 90",
     jobTitle: "Field Technician"

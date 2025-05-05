@@ -100,9 +100,9 @@ const LoginPage: React.FC = () => {
         <div className="mt-6 text-center text-sm text-gray-500">
           <p>{t('login.testCredentials')}</p>
           <ul className="mt-2 space-y-1">
-            <li>Admin: admin@polygon.com / password</li>
-            <li>Skadeleder: skadeleder@polygon.com / password</li>
-            <li>Service: service@polygon.com / password</li>
+            <li>Admin: admin@polygongroup.com / password</li>
+            <li>Skadeleder: skadeleder@polygongroup.com / password</li>
+            <li>Service: service@polygongroup.com / password</li>
           </ul>
         </div>
       </div>
