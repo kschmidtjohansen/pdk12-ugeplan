@@ -53,6 +53,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 }) => {
   const { t } = useTranslation();
   
+  // Parse the date from formData to create a Date object for the assignment date
+  const assignmentDate = formData.date ? new Date(formData.date) : null;
+  
   return (
     <DialogContent className="max-w-md">
       <DialogHeader>
@@ -165,9 +168,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           <EmployeeSelector 
             employees={employees}
             selectedEmployees={selectedEmployees}
-            onToggle={handleEmployeeToggle}
+            onChange={handleEmployeeToggle}
             vacations={vacations}
-            currentDate={formData.date}
+            assignmentDate={assignmentDate}
           />
           {selectedEmployees.length === 0 && (
             <p className="text-sm text-red-500">{t("planner.selectAtLeastOneEmployee")}</p>
