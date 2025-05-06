@@ -13,6 +13,8 @@ export interface Employee {
   phone: string;
   jobTitle: string;
   role: string;
+  onLeave?: boolean;
+  notes?: string;
 }
 
 interface EmployeesListProps {
@@ -34,7 +36,9 @@ const EmployeesList: React.FC<EmployeesListProps> = ({ employees, onEdit, onDele
               <TableHead>{t("employees.name")}</TableHead>
               <TableHead>{t("employees.contactInfo")}</TableHead>
               <TableHead>{t("employees.jobTitle")}</TableHead>
-              <TableHead>{t("employees.role")}</TableHead>
+              {isAdmin && <TableHead>{t("employees.role")}</TableHead>}
+              <TableHead>{t("employees.leaveStatus")}</TableHead>
+              {isAdmin && <TableHead>{t("employees.notes")}</TableHead>}
               {isAdmin && <TableHead className="w-[100px]">{t("common.actions")}</TableHead>}
             </TableRow>
           </TableHeader>

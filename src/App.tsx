@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { TranslationProvider } from "./context/TranslationContext";
 import { NotificationProvider } from "./context/NotificationContext";
@@ -33,11 +33,18 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<LoginPage />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/planner" element={<PlannerPage />} />
-                  <Route path="/employees" element={<EmployeesPage />} />
-                  <Route path="/cars" element={<CarsPage />} />
-                  <Route path="/vacation" element={<VacationPage />} />
+                  <Route path="/ugeplan" element={<PlannerPage />} />
+                  <Route path="/medarbejdere" element={<EmployeesPage />} />
+                  <Route path="/biler" element={<CarsPage />} />
+                  <Route path="/fridage" element={<VacationPage />} />
                   <Route path="/admin" element={<AdminPage />} />
+                  
+                  {/* Redirects for backwards compatibility */}
+                  <Route path="/planner" element={<Navigate to="/ugeplan" replace />} />
+                  <Route path="/employees" element={<Navigate to="/medarbejdere" replace />} />
+                  <Route path="/cars" element={<Navigate to="/biler" replace />} />
+                  <Route path="/vacation" element={<Navigate to="/fridage" replace />} />
+                  
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </MainLayout>

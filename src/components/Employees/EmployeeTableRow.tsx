@@ -31,7 +31,7 @@ interface EmployeeTableRowProps {
 }
 
 const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, onDelete }) => {
-  const { isAdmin } = usePermissions();
+  const { isAdmin, isSkadeleder } = usePermissions();
   const { t } = useTranslation();
 
   // Get role variant for status badge
@@ -62,11 +62,23 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, o
         </div>
       </TableCell>
       <TableCell>{employee.jobTitle}</TableCell>
+      {isAdmin && (
+        <TableCell>
+          <StatusBadge variant={getRoleVariant(employee.role)}>
+            {USER_ROLES.find(role => role.value === employee.role)?.label}
+          </StatusBadge>
+        </TableCell>
+      )}
       <TableCell>
-        <StatusBadge variant={getRoleVariant(employee.role)}>
-          {USER_ROLES.find(role => role.value === employee.role)?.label}
+        <StatusBadge variant={employee.onLeave ? 'destructive' : 'success'}>
+          {employee.onLeave ? t("employees.onLeave") : t("employees.available")}
         </StatusBadge>
       </TableCell>
+      {(isAdmin || isSkadeleder) && (
+        <TableCell>
+          {employee.notes || '-'}
+        </TableCell>
+      )}
       {isAdmin && (
         <TableCell>
           <div className="flex space-x-2">

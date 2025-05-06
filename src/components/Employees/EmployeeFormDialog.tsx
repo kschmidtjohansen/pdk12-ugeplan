@@ -1,11 +1,14 @@
 
 import React from 'react';
 import { useTranslation } from '../../context/TranslationContext';
+import { usePermissions } from '../../context/AuthContext';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { Employee } from './EmployeesList';
 
 interface USER_ROLES_TYPE {
@@ -30,12 +33,14 @@ interface FormData {
   phone: string;
   jobTitle: string;
   role: string;
+  onLeave?: boolean;
+  notes?: string;
 }
 
 interface EmployeeFormDialogProps {
   currentEmployee: Employee | null;
   formData: FormData;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (value: string) => void;
   handleSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
@@ -50,6 +55,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
   onClose
 }) => {
   const { t } = useTranslation();
+  const { isAdmin } = usePermissions();
 
   return (
     <DialogContent className="max-w-md">
@@ -108,21 +114,58 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           />
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="role">{t("employees.role")}</Label>
-          <Select value={formData.role} onValueChange={handleSelectChange} required>
-            <SelectTrigger id="role">
-              <SelectValue placeholder={t("admin.roles.selectRole")} />
-            </SelectTrigger>
-            <SelectContent>
-              {USER_ROLES.map(role => (
-                <SelectItem key={role.value} value={role.value}>
-                  {role.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {isAdmin && (
+          <div className="space-y-2">
+            <Label htmlFor="role">{t("employees.role")}</Label>
+            <Select value={formData.role} onValueChange={handleSelectChange} required>
+              <SelectTrigger id="role">
+                <SelectValue placeholder={t("admin.userManagement.selectRole")} />
+              </SelectTrigger>
+              <SelectContent>
+                {USER_ROLES.map(role => (
+                  <SelectItem key={role.value} value={role.value}>
+                    {role.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <div className="flex items-center space-x-2 pt-2">
+          <Checkbox
+            id="onLeave"
+            name="onLeave"
+            checked={formData.onLeave || false}
+            onCheckedChange={(checked) => {
+              const event = {
+                target: {
+                  name: 'onLeave',
+                  type: 'checkbox',
+                  checked: !!checked
+                }
+              } as React.ChangeEvent<HTMLInputElement>;
+              handleInputChange(event);
+            }}
+          />
+          <Label htmlFor="onLeave" className="text-sm font-normal">
+            {t("employees.onLeave")}
+          </Label>
         </div>
+
+        {isAdmin && (
+          <div className="space-y-2">
+            <Label htmlFor="notes">{t("employees.notes")}</Label>
+            <Textarea 
+              id="notes" 
+              name="notes" 
+              value={formData.notes || ''} 
+              onChange={handleInputChange} 
+              placeholder={t("employees.notesPlaceholder")}
+              rows={3}
+            />
+          </div>
+        )}
         
         <DialogFooter>
           <Button 

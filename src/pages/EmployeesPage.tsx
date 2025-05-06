@@ -21,28 +21,36 @@ const initialEmployees = [{
   email: 'john.doe@polygon.com',
   phone: '+45 12 34 56 78',
   jobTitle: 'Senior Technician',
-  role: 'skadeleder'
+  role: 'skadeleder',
+  onLeave: false,
+  notes: 'Team leader for water damage projects.'
 }, {
   id: '2',
   name: 'Jane Smith',
   email: 'jane.smith@polygon.com',
   phone: '+45 23 45 67 89',
   jobTitle: 'Technician',
-  role: 'servicemedarbejder'
+  role: 'servicemedarbejder',
+  onLeave: true,
+  notes: 'On parental leave until 2025-06-01.'
 }, {
   id: '3',
   name: 'Mike Johnson',
   email: 'mike.johnson@polygon.com',
   phone: '+45 34 56 78 90',
   jobTitle: 'Project Manager',
-  role: 'administrator'
+  role: 'administrator',
+  onLeave: false,
+  notes: 'Main admin for the system.'
 }, {
   id: '4',
   name: 'Anna Williams',
   email: 'anna.williams@polygon.com',
   phone: '+45 45 67 89 01',
   jobTitle: 'Junior Technician',
-  role: 'servicemedarbejder'
+  role: 'servicemedarbejder',
+  onLeave: false,
+  notes: 'New hire, needs training on water damage assessment.'
 }];
 
 const EmployeesPage: React.FC = () => {
@@ -58,7 +66,9 @@ const EmployeesPage: React.FC = () => {
     email: '',
     phone: '',
     jobTitle: '',
-    role: ''
+    role: '',
+    onLeave: false,
+    notes: ''
   });
 
   const handleCreateNew = () => {
@@ -68,7 +78,9 @@ const EmployeesPage: React.FC = () => {
       email: '',
       phone: '',
       jobTitle: '',
-      role: 'servicemedarbejder'
+      role: 'servicemedarbejder',
+      onLeave: false,
+      notes: ''
     });
     setDialogOpen(true);
   };
@@ -80,7 +92,9 @@ const EmployeesPage: React.FC = () => {
       email: employee.email,
       phone: employee.phone,
       jobTitle: employee.jobTitle,
-      role: employee.role
+      role: employee.role,
+      onLeave: employee.onLeave || false,
+      notes: employee.notes || ''
     });
     setDialogOpen(true);
   };
@@ -101,12 +115,21 @@ const EmployeesPage: React.FC = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({
+        ...prev,
+        [name]: checked
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSelectChange = (value: string) => {

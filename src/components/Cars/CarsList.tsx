@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car, Edit, Trash2 } from 'lucide-react';
+import { Car, Edit, Trash2, Check, X } from 'lucide-react';
 import { 
   Table,
   TableBody,
@@ -77,6 +77,13 @@ const CarsList: React.FC<CarsListProps> = ({
                   <p className="text-muted-foreground">{t('cars.numberPlate')}:</p>
                   <p>{car.numberPlate}</p>
                 </div>
+                <div>
+                  <p className="text-muted-foreground">{t('cars.hasTrailerHitch')}:</p>
+                  <p>{car.hasTrailerHitch ? 
+                    <Check className="h-4 w-4 text-green-600" /> : 
+                    <X className="h-4 w-4 text-red-600" />}
+                  </p>
+                </div>
                 {canViewFuelCardCode && (
                   <div className="col-span-2">
                     <p className="text-muted-foreground">{t('cars.fuelCardCode')}:</p>
@@ -99,6 +106,7 @@ const CarsList: React.FC<CarsListProps> = ({
                   <TableHead>{t('cars.vehicleName')}</TableHead>
                   <TableHead>{t('cars.carNumber')}</TableHead>
                   <TableHead>{t('cars.numberPlate')}</TableHead>
+                  <TableHead>{t('cars.hasTrailerHitch')}</TableHead>
                   {canViewFuelCardCode && <TableHead>{t('cars.fuelCardCode')}</TableHead>}
                   {isAdmin && <TableHead className="w-[100px]">{t('common.actions')}</TableHead>}
                 </TableRow>
@@ -114,6 +122,11 @@ const CarsList: React.FC<CarsListProps> = ({
                     </TableCell>
                     <TableCell>{car.carNumber}</TableCell>
                     <TableCell>{car.numberPlate}</TableCell>
+                    <TableCell>
+                      {car.hasTrailerHitch ? 
+                        <Check className="h-4 w-4 text-green-600" /> : 
+                        <X className="h-4 w-4 text-red-600" />}
+                    </TableCell>
                     {canViewFuelCardCode && (
                       <TableCell>
                         <code className="bg-gray-100 p-1 rounded">{car.fuelCardCode}</code>

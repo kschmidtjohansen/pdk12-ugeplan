@@ -8,4 +8,6 @@ export interface Employee {
   phone: string;
   jobTitle: string;
   role: UserRole;
+  onLeave?: boolean;
+  notes?: string;
 }
