@@ -24,7 +24,7 @@ import { Employee } from '@/types/employee';
 interface EmployeeSelectorProps {
   employees: Employee[];
   selectedEmployees: string[];
-  onChange: (selected: string[]) => void;
+  onChange: (employeeName: string) => void;
   vacations: Vacation[];
   assignmentDate: Date | null;
 }
@@ -61,11 +61,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       return; // Do not allow selecting employees on leave or vacation
     }
     
-    const newSelectedEmployees = selectedEmployees.includes(employeeId)
-      ? selectedEmployees.filter((id) => id !== employeeId)
-      : [...selectedEmployees, employeeId];
-      
-    onChange(newSelectedEmployees);
+    onChange(employeeId);
   };
 
   // Get display name with vacation status
