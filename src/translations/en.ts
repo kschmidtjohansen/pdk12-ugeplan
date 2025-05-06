@@ -18,7 +18,8 @@ const translations = {
     yes: 'Yes',
     no: 'No',
     language: 'Language',
-    actions: 'Actions'
+    actions: 'Actions',
+    optional: 'optional'
   },
   login: {
     title: 'Login',
@@ -80,6 +81,7 @@ const translations = {
     editAssignment: 'Edit Assignment',
     createFirstAssignment: 'Create First Assignment',
     noAssignments: 'No assignments planned',
+    noAssignmentsForWeek: 'No assignments planned for week {week}',
     updateDetails: 'Update details for this assignment',
     addAssignment: 'Add a new assignment to the weekly plan',
     assignmentTitle: 'Assignment Title',
@@ -200,7 +202,10 @@ const translations = {
     noNotifications: 'No notifications',
     viewAll: 'View all',
     newVacationRequest: 'New vacation request',
-    newVacationRequestMsg: '{name} has requested vacation from {from} to {to}'
+    newVacationRequestMsg: '{name} has requested vacation from {from} to {to}',
+    vacationStatusChanged: 'Vacation request status changed',
+    vacationApproved: 'Your vacation request has been approved',
+    vacationRejected: 'Your vacation request has been rejected'
   },
   accessDenied: {
     title: 'Access Denied',

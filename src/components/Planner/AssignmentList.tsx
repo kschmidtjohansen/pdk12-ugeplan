@@ -12,6 +12,7 @@ interface AssignmentListProps {
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onCreateAssignment: () => void;
+  selectedWeek?: number;
 }
 
 const AssignmentList: React.FC<AssignmentListProps> = ({
@@ -19,6 +20,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   onEditAssignment,
   onDeleteAssignment,
   onCreateAssignment,
+  selectedWeek
 }) => {
   const { canEdit, canCreate } = usePermissions();
   const { t } = useTranslation();
@@ -63,7 +65,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   };
 
   if (assignments.length === 0) {
-    return <EmptyState onCreateNew={onCreateAssignment} canCreate={canCreate} />;
+    return <EmptyState onCreateNew={onCreateAssignment} canCreate={canCreate} selectedWeek={selectedWeek} />;
   }
 
   return (

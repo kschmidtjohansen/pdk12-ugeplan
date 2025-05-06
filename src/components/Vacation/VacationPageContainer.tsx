@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 import { Vacation } from '../../types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import VacationTabs from './VacationTabs';
 import VacationList from './VacationList';
 import VacationFormDialog from './VacationFormDialog';
@@ -18,6 +19,7 @@ interface VacationPageContainerProps {
 
 const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerComponent }) => {
   const { isServicemedarbejder, canApproveVacation } = usePermissions();
+  const { user } = useAuth();
   const { t } = useTranslation();
   const {
     vacations,
@@ -84,7 +86,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   const filteredVacations = vacations.filter(v => {
     if (activeTab === 'approved') return v.status === 'approved';
     if (activeTab === 'pending') return v.status === 'pending';
-    if (activeTab === 'mine') return v.employeeId === 'current-user-id'; // Replace with actual user ID
+    if (activeTab === 'mine') return v.employeeId === user?.id; // Filter by current user's ID
     return true;
   });
 

@@ -5,6 +5,7 @@ const planner = {
   editAssignment: 'Rediger Opgave',
   createFirstAssignment: 'Opret Første Opgave',
   noAssignments: 'Ingen opgaver planlagt',
+  noAssignmentsForWeek: 'Ingen opgaver planlagt for uge {week}',
   updateDetails: 'Opdater detaljer for denne opgave',
   addAssignment: 'Tilføj en ny opgave til ugeplanen',
   assignmentTitle: 'Opgavetitel',

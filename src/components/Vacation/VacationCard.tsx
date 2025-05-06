@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
+import { da } from 'date-fns/locale';
 import { Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
@@ -21,7 +22,10 @@ const VacationCard: React.FC<VacationCardProps> = ({
   onApprove,
   onReject
 }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+  
+  // Set locale based on current language
+  const locale = currentLanguage === 'da' ? da : undefined;
   
   return (
     <Card 
@@ -59,7 +63,7 @@ const VacationCard: React.FC<VacationCardProps> = ({
           <div className="flex flex-col">
             <dt className="font-medium text-gray-500">{t("vacation.dateRange")}</dt>
             <dd>
-              {format(vacation.startDate, 'PPP')} - {format(vacation.endDate, 'PPP')}
+              {format(vacation.startDate, 'd. MMM yyyy', { locale })} - {format(vacation.endDate, 'd. MMM yyyy', { locale })}
             </dd>
           </div>
           <div className="flex flex-col">
@@ -74,7 +78,7 @@ const VacationCard: React.FC<VacationCardProps> = ({
           )}
           <div className="flex flex-col">
             <dt className="font-medium text-gray-500">{t("vacation.requestedOn")}</dt>
-            <dd>{format(vacation.createdAt, 'PPP')}</dd>
+            <dd>{format(vacation.createdAt, 'd. MMM yyyy', { locale })}</dd>
           </div>
         </dl>
       </CardContent>

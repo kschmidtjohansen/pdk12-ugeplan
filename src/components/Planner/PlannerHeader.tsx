@@ -7,6 +7,7 @@ import { useTranslation } from '@/context/TranslationContext';
 
 interface PlannerHeaderProps {
   currentWeek: number;
+  weekDateRange: string;
   canCreate: boolean;
   onCreateNew: () => void;
   onPreviousWeek: () => void;
@@ -15,6 +16,7 @@ interface PlannerHeaderProps {
 
 const PlannerHeader: React.FC<PlannerHeaderProps> = ({
   currentWeek,
+  weekDateRange,
   canCreate,
   onCreateNew,
   onPreviousWeek,
@@ -32,13 +34,16 @@ const PlannerHeader: React.FC<PlannerHeaderProps> = ({
         </Button>}
       </PageHeader>
       
-      <div className="flex justify-center space-x-4 w-full">
-        <Button onClick={onPreviousWeek} variant="outline" className="flex items-center">
-          <ChevronLeft className="mr-2 h-4 w-4" /> {t("planner.previousWeek")}
-        </Button>
-        <Button onClick={onNextWeek} variant="outline" className="flex items-center">
-          {t("planner.nextWeek")} <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
+      <div className="flex flex-col md:flex-row justify-between items-center w-full">
+        <p className="text-sm font-medium mb-2 md:mb-0">{weekDateRange}</p>
+        <div className="flex justify-center space-x-4">
+          <Button onClick={onPreviousWeek} variant="outline" className="flex items-center">
+            <ChevronLeft className="mr-2 h-4 w-4" /> {t("planner.previousWeek")}
+          </Button>
+          <Button onClick={onNextWeek} variant="outline" className="flex items-center">
+            {t("planner.nextWeek")} <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );

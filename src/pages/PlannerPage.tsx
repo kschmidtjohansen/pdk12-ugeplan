@@ -5,7 +5,9 @@ import { useTranslation } from '../context/TranslationContext';
 import { Assignment, getCurrentWeek } from '../types/assignment';
 import { Vacation } from '../types/vacation';
 import { Employee } from '../types/employee';
-import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
+import { usePlannerAssignments, getWeekDates } from '@/hooks/usePlannerAssignments';
+import { format } from 'date-fns';
+import { da } from 'date-fns/locale';
 
 // Import custom components
 import PlannerHeader from '../components/Planner/PlannerHeader';
@@ -53,14 +55,20 @@ const MOCK_VACATIONS: Vacation[] = [
 
 const PlannerPage: React.FC = () => {
   const { canCreate } = usePermissions();
-  const { t } = useTranslation();
-  const { assignments, createAssignment, updateAssignment, deleteAssignment } = usePlannerAssignments();
+  const { t, currentLanguage } = useTranslation();
+  const initialWeek = getCurrentWeek();
+  const [selectedWeek, setSelectedWeek] = useState<number>(initialWeek);
+  const { assignments, createAssignment, updateAssignment, deleteAssignment } = usePlannerAssignments(selectedWeek);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const [vacations] = useState<Vacation[]>(MOCK_VACATIONS);
   
-  const initialWeek = getCurrentWeek();
-  const [selectedWeek, setSelectedWeek] = useState<number>(initialWeek);
+  // Calculate week dates
+  const weekDates = getWeekDates(selectedWeek);
+  const dateFormat = 'd. MMM';
+  const locale = currentLanguage === 'da' ? da : undefined;
+  
+  const weekDateRange = `${format(weekDates.start, dateFormat, { locale })} - ${format(weekDates.end, dateFormat, { locale })}`;
   
   const handleCreateNew = () => {
     setCurrentAssignment(null);
@@ -103,6 +111,7 @@ const PlannerPage: React.FC = () => {
     <div className="w-full max-w-full h-full flex flex-col">
       <PlannerHeader 
         currentWeek={selectedWeek}
+        weekDateRange={weekDateRange}
         canCreate={canCreate}
         onCreateNew={handleCreateNew}
         onPreviousWeek={handlePreviousWeek}

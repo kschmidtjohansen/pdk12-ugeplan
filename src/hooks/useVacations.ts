@@ -42,7 +42,7 @@ const initialVacations: Vacation[] = [{
 export const useVacations = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const { addNotification } = useNotifications();
   
   const [vacations, setVacations] = useState<Vacation[]>(initialVacations);
@@ -83,8 +83,9 @@ export const useVacations = () => {
 
     // Generate notification for administrators
     if (user?.role !== 'administrator') {
-      const formattedStartDate = format(date.from, 'dd/MM/yyyy');
-      const formattedEndDate = format(date.to, 'dd/MM/yyyy');
+      const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
+      const formattedStartDate = format(date.from, dateFormat);
+      const formattedEndDate = format(date.to, dateFormat);
       addNotification({
         type: 'vacation',
         title: t("notifications.newVacationRequest"),
@@ -116,6 +117,17 @@ export const useVacations = () => {
       title: t("vacation.requestApproved"),
       description: t("vacation.requestApprovedMsg", { name: vacation.employeeName })
     });
+    
+    // Notify the employee about their approved vacation request
+    if (vacation.employeeId !== user?.id) {
+      const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
+      addNotification({
+        type: 'vacation',
+        title: t("vacation.requestApproved"),
+        message: t("vacation.requestApprovedMsg", { name: vacation.employeeName }),
+        link: '/vacation'
+      });
+    }
   };
 
   const rejectVacation = (vacation: Vacation, noteText: string) => {
@@ -134,6 +146,17 @@ export const useVacations = () => {
       title: t("vacation.requestRejected"),
       description: t("vacation.requestRejectedMsg", { name: vacation.employeeName })
     });
+    
+    // Notify the employee about their rejected vacation request
+    if (vacation.employeeId !== user?.id) {
+      const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
+      addNotification({
+        type: 'vacation',
+        title: t("vacation.requestRejected"),
+        message: t("vacation.requestRejectedMsg", { name: vacation.employeeName }),
+        link: '/vacation'
+      });
+    }
   };
 
   return {

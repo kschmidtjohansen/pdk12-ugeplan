@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { addDays, format } from 'date-fns';
+import { da } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { 
   Dialog,
@@ -42,7 +43,10 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
   setReason,
   onSubmit
 }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+  
+  // Set the locale based on the current language
+  const locale = currentLanguage === 'da' ? da : undefined;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -64,10 +68,10 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {date.from ? date.to ? (
                       <>
-                        {format(date.from, "LLL dd, y")} -{" "}
-                        {format(date.to, "LLL dd, y")}
+                        {format(date.from, "d. MMM yyyy", { locale })} -{" "}
+                        {format(date.to, "d. MMM yyyy", { locale })}
                       </>
-                    ) : format(date.from, "LLL dd, y") : (
+                    ) : format(date.from, "d. MMM yyyy", { locale }) : (
                       <span>{t("vacation.selectVacationDates")}</span>
                     )}
                   </Button>
@@ -78,7 +82,8 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
                     selected={date} 
                     onSelect={setDate} 
                     initialFocus 
-                    numberOfMonths={2} 
+                    numberOfMonths={2}
+                    locale={locale}
                     disabled={date => date < addDays(new Date(), 1)} 
                     className={cn("p-3 pointer-events-auto")} 
                   />
