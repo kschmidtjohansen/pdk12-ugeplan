@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
@@ -11,11 +10,9 @@ type ChartDataType = {
   name: string;
   value: number;
 };
-
 interface AssignmentDistributionChartProps {
   assignments: Assignment[];
 }
-
 const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = ({
   assignments
 }) => {
@@ -42,7 +39,6 @@ const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = 
     acc[category] = (acc[category] || 0) + 1;
     return acc;
   }, {});
-
   const chartData = Object.entries(assignmentsByType).map(([key, value]) => ({
     name: t(`dashboard.assignments.${key}`, {
       defaultValue: key
@@ -76,27 +72,6 @@ const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = 
     }
     return null;
   };
-
-  return (
-    <Card className="col-span-1 md:col-span-2">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium">
-          {t('dashboard.charts.assignmentDistribution')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="h-64">
-        <ChartContainer config={chartConfig}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              <XAxis dataKey="name" />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" fill="#0EA5E9" />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartContainer>
-      </CardContent>
-    </Card>
-  );
+  return;
 };
-
 export default AssignmentDistributionChart;
