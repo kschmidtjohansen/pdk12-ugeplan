@@ -1,14 +1,13 @@
 
 import React, { useState } from 'react';
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Button } from '@/components/ui/button';
-import { Plus, UserPlus } from 'lucide-react';
+import { Tabs } from "@/components/ui/tabs";
 import { Vacation } from '../../types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { useAuth } from '@/context/AuthContext';
 import VacationTabs from './VacationTabs';
-import VacationList from './VacationList';
+import VacationTabContent from './VacationTabContent';
+import VacationButtons from './VacationButtons';
 import VacationFormDialog from './VacationFormDialog';
 import AdminVacationFormDialog from './AdminVacationFormDialog';
 import VacationActionDialog from './VacationActionDialog';
@@ -127,18 +126,11 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     <div className="space-y-6 w-full">
       {headerComponent}
 
-      <div className="flex space-x-2">
-        <Button onClick={handleCreateNew} className="bg-polygon-blue">
-          <Plus className="mr-2 h-4 w-4" /> {t("vacation.applyForVacation")}
-        </Button>
-        
-        {/* Admin button for requesting vacation for others */}
-        {canApproveVacation && (
-          <Button onClick={handleCreateForEmployee} variant="outline" className="border-polygon-blue text-polygon-blue">
-            <UserPlus className="mr-2 h-4 w-4" /> {t("vacation.requestForEmployee")}
-          </Button>
-        )}
-      </div>
+      <VacationButtons 
+        onCreateNew={handleCreateNew}
+        onCreateForEmployee={handleCreateForEmployee}
+        canApproveVacation={canApproveVacation}
+      />
       
       <Tabs 
         defaultValue={isServicemedarbejder ? 'mine' : 'all'} 
@@ -150,14 +142,13 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
           activeTab={activeTab} 
         />
 
-        <TabsContent value={activeTab} className="mt-6">
-          <VacationList
-            vacations={filteredVacations}
-            canApproveVacation={canApproveVacation}
-            onApprove={handleApproveClick}
-            onReject={handleRejectClick}
-          />
-        </TabsContent>
+        <VacationTabContent 
+          activeTab={activeTab}
+          filteredVacations={filteredVacations}
+          canApproveVacation={canApproveVacation}
+          onApprove={handleApproveClick}
+          onReject={handleRejectClick}
+        />
       </Tabs>
 
       {/* Employee vacation status list */}

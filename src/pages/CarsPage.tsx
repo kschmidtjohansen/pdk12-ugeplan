@@ -1,176 +1,36 @@
 
-import React, { useState } from 'react';
-import PageHeader from '../components/Layout/PageHeader';
+import React from 'react';
 import { usePermissions } from '../context/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { useTranslation } from '@/context/TranslationContext';
-
-// Import refactored components
 import CarsList from '@/components/Cars/CarsList';
-import CarFormDialog from '@/components/Cars/CarFormDialog';
-import DeleteConfirmDialog from '@/components/Cars/DeleteConfirmDialog';
-import { CarData, CarFormData } from '@/components/Cars/types';
-
-// Mock data
-const initialCars: CarData[] = [
-  {
-    id: '1',
-    name: 'Van 1',
-    carNumber: 'PG-001',
-    numberPlate: 'AB 12 345',
-    fuelCardCode: '123456',
-    hasTrailerHitch: true,
-  },
-  {
-    id: '2',
-    name: 'Van 2',
-    carNumber: 'PG-002',
-    numberPlate: 'CD 23 456',
-    fuelCardCode: '234567',
-    hasTrailerHitch: false,
-  },
-  {
-    id: '3',
-    name: 'Truck 3',
-    carNumber: 'PG-003',
-    numberPlate: 'EF 34 567',
-    fuelCardCode: '345678',
-    hasTrailerHitch: true,
-  },
-  {
-    id: '4',
-    name: 'Sedan 1',
-    carNumber: 'PG-004',
-    numberPlate: 'GH 45 678',
-    fuelCardCode: '456789',
-    hasTrailerHitch: false,
-  },
-];
+import CarPageHeader from '@/components/Cars/CarPageHeader';
+import CarDialogs from '@/components/Cars/CarDialogs';
+import { useCars } from '@/hooks/useCars';
 
 const CarsPage: React.FC = () => {
   const { canViewFuelCardCode, isAdmin } = usePermissions();
-  const { toast } = useToast();
-  const { t } = useTranslation();
-  const [cars, setCars] = useState<CarData[]>(initialCars);
-  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
-  const [currentCar, setCurrentCar] = useState<CarData | null>(null);
-  const [formData, setFormData] = useState<CarFormData>({
-    name: '',
-    carNumber: '',
-    numberPlate: '',
-    fuelCardCode: '',
-    hasTrailerHitch: false,
-  });
-
-  const handleCreateNew = () => {
-    setCurrentCar(null);
-    setFormData({
-      name: '',
-      carNumber: '',
-      numberPlate: '',
-      fuelCardCode: '',
-      hasTrailerHitch: false,
-    });
-    setDialogOpen(true);
-  };
-
-  const handleEdit = (car: CarData) => {
-    // Only administrators can edit cars
-    if (!isAdmin) return;
-    
-    setCurrentCar(car);
-    setFormData({
-      name: car.name,
-      carNumber: car.carNumber,
-      numberPlate: car.numberPlate,
-      fuelCardCode: car.fuelCardCode,
-      hasTrailerHitch: car.hasTrailerHitch || false,
-    });
-    setDialogOpen(true);
-  };
-
-  const handleDelete = (car: CarData) => {
-    // Only administrators can delete cars
-    if (!isAdmin) return;
-    
-    setCurrentCar(car);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (currentCar) {
-      setCars(cars.filter(car => car.id !== currentCar.id));
-      toast({
-        title: t('cars.vehicleDeleted'),
-        description: t('cars.vehicleDeletedMsg', { name: currentCar.name }),
-      });
-      setDeleteDialogOpen(false);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleCheckboxChange = (field: string, checked: boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: checked,
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (currentCar) {
-      // Update existing
-      setCars(
-        cars.map((c) =>
-          c.id === currentCar.id ? { ...c, ...formData } : c
-        )
-      );
-      toast({
-        title: t('cars.vehicleUpdated'),
-        description: t('cars.vehicleUpdatedMsg', { name: formData.name }),
-      });
-    } else {
-      // Create new
-      const newCar: CarData = {
-        ...formData,
-        id: Date.now().toString(),
-      };
-      setCars([...cars, newCar]);
-      toast({
-        title: t('cars.vehicleAdded'),
-        description: t('cars.vehicleAddedMsg', { name: formData.name }),
-      });
-    }
-    
-    setDialogOpen(false);
-  };
+  const {
+    cars,
+    currentCar,
+    formData,
+    dialogOpen,
+    setDialogOpen,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    handleCreateNew,
+    handleEdit,
+    handleDelete,
+    confirmDelete,
+    handleInputChange,
+    handleCheckboxChange,
+    handleSubmit
+  } = useCars();
 
   return (
     <>
-      <PageHeader 
-        title={t('cars.title')}
-        description={t('cars.description')}
-      >
-        {isAdmin && (
-          <Button 
-            onClick={handleCreateNew}
-            className="bg-polygon-blue hover:bg-polygon-darkblue"
-          >
-            <Plus className="mr-2 h-4 w-4" /> {t('cars.addVehicle')}
-          </Button>
-        )}
-      </PageHeader>
+      <CarPageHeader 
+        onCreateNew={handleCreateNew}
+        isAdmin={isAdmin}
+      />
 
       <CarsList 
         cars={cars} 
@@ -181,21 +41,17 @@ const CarsPage: React.FC = () => {
         onDelete={handleDelete}
       />
 
-      <CarFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
+      <CarDialogs
+        dialogOpen={dialogOpen}
+        setDialogOpen={setDialogOpen}
+        deleteDialogOpen={deleteDialogOpen}
+        setDeleteDialogOpen={setDeleteDialogOpen}
         formData={formData}
         onInputChange={handleInputChange}
         onCheckboxChange={handleCheckboxChange}
         onSubmit={handleSubmit}
-        isEditing={!!currentCar}
-        canViewFuelCardCode={canViewFuelCardCode}
-      />
-
-      <DeleteConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
         currentCar={currentCar}
+        canViewFuelCardCode={canViewFuelCardCode}
         onConfirmDelete={confirmDelete}
       />
     </>

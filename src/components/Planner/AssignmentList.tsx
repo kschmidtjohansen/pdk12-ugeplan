@@ -2,14 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
-import { format as formatDate, isToday, isPast } from 'date-fns';
 import { Assignment } from '@/types/assignment';
-import AssignmentCard from './AssignmentCard';
 import EmptyState from './EmptyState';
-import { Button } from '@/components/ui/button';
-import { Send } from 'lucide-react';
-import { getAllWeekDays, formatDateWithCapital, getDateStatus } from '@/utils/dateUtils';
+import { getAllWeekDays, getDateStatus } from '@/utils/dateUtils';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
+import DaySection from './DaySection';
 
 interface AssignmentListProps {
   assignments: Assignment[];
@@ -96,77 +93,29 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
     }));
   };
 
-  // Check if all assignments for a date are published
-  const isDateFullyPublished = (date: string) => {
-    const dateAssignments = groupedAssignments[date] || [];
-    return dateAssignments.length > 0 && dateAssignments.every(a => a.published === true);
-  };
-
   // Check if there are any visible assignments after filtering
   if (visibleAssignments.length === 0 && allWeekDays.length === 0) {
     return <EmptyState onCreateNew={onCreateAssignment} canCreate={canCreate} selectedWeek={selectedWeek} />;
   }
 
-  // Render a day section
-  const renderDaySection = (dateKey: string) => {
-    const isExpanded = expandedDays[dateKey] !== false; // Default to expanded
-    const dayAssignments = groupedAssignments[dateKey];
-    const hasUnpublishedAssignments = dayAssignments.some(a => !a.published);
-    
-    return (
-      <div key={dateKey} className="w-full space-y-3">
-        <div className="flex items-center justify-between">
-          <div 
-            className="flex items-center cursor-pointer" 
-            onClick={() => toggleDayExpansion(dateKey)}
-          >
-            <h3 className="text-lg font-medium">
-              {formatDateWithCapital(dateKey)}
-            </h3>
-            <div className="ml-2 text-sm text-gray-500">
-              ({dayAssignments.length} {dayAssignments.length === 1 ? 'opgave' : 'opgaver'})
-            </div>
-          </div>
-          
-          {canPublishTasks && hasUnpublishedAssignments && onPublishDay && (
-            <Button 
-              onClick={onPublishDay}
-              className="bg-green-600 hover:bg-green-700"
-              size="sm"
-            >
-              <Send className="mr-2 h-4 w-4" /> {t("planner.publishDayTasks")}
-            </Button>
-          )}
-        </div>
-        
-        {isExpanded && (
-          <div className="w-full grid grid-cols-1 gap-4">
-            {dayAssignments.length > 0 ? (
-              dayAssignments.map((assignment) => (
-                <AssignmentCard
-                  key={assignment.id}
-                  assignment={assignment}
-                  canEdit={canEdit}
-                  onEdit={() => onEditAssignment(assignment)}
-                  onDelete={() => onDeleteAssignment(assignment.id)}
-                  onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
-                />
-              ))
-            ) : (
-              <div className="p-4 border border-dashed rounded-md text-center text-gray-500">
-                {t("planner.nothingPlannedToday")}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div className="w-full space-y-6">
       {/* Current and future dates section */}
-      {currentAndFutureDates.map(renderDaySection)}
+      {currentAndFutureDates.map(dateKey => (
+        <DaySection 
+          key={dateKey}
+          dateKey={dateKey}
+          dayAssignments={groupedAssignments[dateKey]}
+          isExpanded={expandedDays[dateKey] !== false} // Default to expanded
+          onToggleExpansion={toggleDayExpansion}
+          onPublishDay={onPublishDay}
+          onEditAssignment={onEditAssignment}
+          onDeleteAssignment={onDeleteAssignment}
+          onPublishAssignment={onPublishAssignment}
+          canEdit={canEdit}
+          canPublishTasks={canPublishTasks}
+        />
+      ))}
       
       {/* Past dates section with header */}
       {pastDates.length > 0 && (
@@ -175,7 +124,21 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
             {t("planner.previousTasks")}
           </h2>
           <div className="space-y-6">
-            {pastDates.map(renderDaySection)}
+            {pastDates.map(dateKey => (
+              <DaySection 
+                key={dateKey}
+                dateKey={dateKey}
+                dayAssignments={groupedAssignments[dateKey]}
+                isExpanded={expandedDays[dateKey] !== false} // Default to expanded
+                onToggleExpansion={toggleDayExpansion}
+                onPublishDay={onPublishDay}
+                onEditAssignment={onEditAssignment}
+                onDeleteAssignment={onDeleteAssignment}
+                onPublishAssignment={onPublishAssignment}
+                canEdit={canEdit}
+                canPublishTasks={canPublishTasks}
+              />
+            ))}
           </div>
         </div>
       )}
