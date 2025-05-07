@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
-import { startOfWeek, endOfWeek, addDays, isWithinInterval, parseISO, format } from 'date-fns';
+import { startOfWeek, endOfWeek, addDays, isWithinInterval, parseISO, format, addWeeks } from 'date-fns';
 import { da } from 'date-fns/locale';
 
-// Mock data
+// Fixed mock data with updated dates to match current year
 const initialAssignments = [
   {
     id: '1',
@@ -68,29 +68,48 @@ const initialAssignments = [
     employees: ['Jane Smith'],
     published: false
   },
+  // New mock assignments for today's dashboard
+  {
+    id: '6',
+    title: 'Akut vandskade',
+    description: 'Hurtig inspektion af vandskade i lejlighed.',
+    date: '2025-05-07', // Today (for testing)
+    fromTime: '08:00',
+    toTime: '10:00',
+    location: 'Vejle Centrum',
+    car: 'Van 3',
+    employees: ['John Doe'],
+    published: true
+  },
+  {
+    id: '7',
+    title: 'Fugtmåling',
+    description: 'Standard fugtmåling efter tidligere vandskade.',
+    date: '2025-05-07', // Today (for testing)
+    fromTime: '11:00',
+    toTime: '12:30',
+    location: 'Kolding Nord',
+    car: 'Van 1',
+    employees: ['John Doe'],
+    published: true
+  },
 ];
 
+// Fixed week dates calculation using date-fns
 export const getWeekDates = (weekNumber: number, year: number = new Date().getFullYear()) => {
-  // Calculate the first day of the first week of the year
-  // In ISO-8601, the first week is the one that contains the first Thursday of the year
+  // Create a date for January 1st of the given year
   const firstDayOfYear = new Date(year, 0, 1);
-  const dayOfWeek = firstDayOfYear.getDay() || 7; // Convert Sunday (0) to 7 for ISO week
   
-  // Days to add to get to the first Monday of the year
-  const daysToAdd = (8 - dayOfWeek) % 7;
+  // Find the first day of the first week (which contains January 4th per ISO standard)
+  const firstWeekStart = startOfWeek(new Date(year, 0, 4), { weekStartsOn: 1 });
   
-  // First Monday of the year
-  const firstMonday = new Date(year, 0, 1 + daysToAdd);
+  // Calculate the start of our target week by adding (weekNumber - 1) weeks to the first week
+  const targetWeekStart = addWeeks(firstWeekStart, weekNumber - 1);
   
-  // Add (weekNumber - 1) weeks to get to the requested week's Monday
-  const monday = new Date(firstMonday);
-  monday.setDate(firstMonday.getDate() + (weekNumber - 1) * 7);
+  // The end of the week is 6 days after the start (start of week is Monday, end is Sunday)
+  const targetWeekEnd = addDays(targetWeekStart, 6);
   
-  // Calculate Sunday by adding 6 days
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  
-  return { start: monday, end: sunday };
+  return { start: targetWeekStart, end: targetWeekEnd };
 };
 
 export const usePlannerAssignments = (selectedWeek?: number) => {
@@ -137,6 +156,18 @@ export const usePlannerAssignments = (selectedWeek?: number) => {
     });
   };
 
+  const publishAssignmentsByDate = (date: string) => {
+    const updatedAssignments = assignments.map(a => 
+      a.date === date ? { ...a, published: true } : a
+    );
+    
+    setAssignments(updatedAssignments);
+    toast({
+      title: t("planner.assignmentsPublished"),
+      description: t("planner.assignmentsPublishedMsg"),
+    });
+  };
+
   const publishAssignments = (assignmentIds: string[]) => {
     setAssignments(
       assignments.map((a) =>
@@ -167,6 +198,7 @@ export const usePlannerAssignments = (selectedWeek?: number) => {
     updateAssignment,
     deleteAssignment,
     publishAssignments,
-    publishAssignment
+    publishAssignment,
+    publishAssignmentsByDate
   };
 };

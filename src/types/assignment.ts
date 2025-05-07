@@ -19,22 +19,22 @@ export interface GroupedAssignments {
 // Helper functions
 export const getCurrentWeek = (): number => {
   const now = new Date();
-  // ISO 8601 week calculation - week starts on Monday
-  const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
-  // Get day of week (0-Sunday to 6-Saturday)
-  const dayOfWeek = firstDayOfYear.getDay(); 
-  // Adjust the day of week to ISO standard (1-Monday to 7-Sunday)
-  const isoDay = dayOfWeek === 0 ? 7 : dayOfWeek;
-  // Calculate first monday of year
-  const firstMonday = new Date(now.getFullYear(), 0, 1 + (8 - isoDay));
   
-  // If the date is before the first Monday, it's in week 52/53 of the previous year
-  if (now < firstMonday) {
-    const lastDayOfPrevYear = new Date(now.getFullYear() - 1, 11, 31);
-    return getCurrentWeekOfYear(lastDayOfPrevYear);
-  }
+  // ISO 8601 week calculation
+  const date = new Date(now.getTime());
+  date.setHours(0, 0, 0, 0);
   
-  return getCurrentWeekOfYear(now);
+  // Set to nearest Thursday: current date + 4 - current day number
+  // Make Sunday's day number 7
+  date.setDate(date.getDate() + 4 - (date.getDay() || 7));
+  
+  // Get first day of year
+  const yearStart = new Date(date.getFullYear(), 0, 1);
+  
+  // Calculate full weeks to nearest Thursday
+  const weekNum = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+
+  return weekNum;
 };
 
 // Helper function to calculate ISO week number

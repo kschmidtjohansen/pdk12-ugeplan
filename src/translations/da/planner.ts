@@ -35,6 +35,7 @@ const planner = {
   notPublished: 'Ikke publiceret',
   publishAssignment: 'Publicer opgave',
   publishTodayTasks: 'Publicer dagens opgaver',
+  publishDayTasks: 'Publicer dag',
   assignmentPublished: 'Opgave publiceret',
   assignmentsPublished: 'Opgaver publiceret',
   assignmentPublishedMsg: 'Opgaven er nu synlig for servicemedarbejdere.',

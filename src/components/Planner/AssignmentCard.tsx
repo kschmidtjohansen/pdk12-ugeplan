@@ -31,9 +31,13 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
         <div className="flex items-center gap-2">
           <h3 className="font-medium text-lg">{assignment.title}</h3>
-          {isPublished && (
+          {isPublished ? (
             <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
               {t('planner.published')}
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
+              {t('planner.notPublished')}
             </Badge>
           )}
         </div>
