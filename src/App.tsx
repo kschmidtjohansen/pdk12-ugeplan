@@ -14,7 +14,6 @@ import PlannerPage from "./pages/PlannerPage";
 import EmployeesPage from "./pages/EmployeesPage";
 import CarsPage from "./pages/CarsPage";
 import VacationPage from "./pages/VacationPage";
-import GodkendtPage from "./pages/GodkendtPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/Layout/MainLayout";
@@ -38,7 +37,6 @@ const App = () => (
                   <Route path="/Medarbejdere" element={<EmployeesPage />} />
                   <Route path="/Biler" element={<CarsPage />} />
                   <Route path="/Fridage" element={<VacationPage />} />
-                  <Route path="/Godkendt" element={<GodkendtPage />} />
                   <Route path="/admin" element={<AdminPage />} />
                   {/* Keep backward compatibility with old routes */}
                   <Route path="/dashboard" element={<DashboardPage />} />
@@ -46,7 +44,6 @@ const App = () => (
                   <Route path="/employees" element={<EmployeesPage />} />
                   <Route path="/cars" element={<CarsPage />} />
                   <Route path="/vacation" element={<VacationPage />} />
-                  <Route path="/approved" element={<GodkendtPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </MainLayout>

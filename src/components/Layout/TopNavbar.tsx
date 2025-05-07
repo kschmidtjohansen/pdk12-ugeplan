@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { useNotifications } from '../../context/NotificationContext';
-import { Search, Users, Car, Clock, Calendar, Menu, X, Settings, Check } from 'lucide-react';
+import { Search, Users, Car, Clock, Calendar, Menu, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { NavigationItem } from '../../types/navigation';
@@ -52,7 +53,6 @@ const TopNavbar: React.FC = () => {
     { path: '/employees', name: t('navigation.employees'), translationKey: 'navigation.employees', icon: <Users className="h-5 w-5" /> },
     { path: '/cars', name: t('navigation.cars'), translationKey: 'navigation.cars', icon: <Car className="h-5 w-5" /> },
     { path: '/vacation', name: t('navigation.vacation'), translationKey: 'navigation.vacation', icon: <Calendar className="h-5 w-5" /> },
-    { path: '/approved', name: t('navigation.approved'), translationKey: 'navigation.approved', icon: <Check className="h-5 w-5" />, adminOnly: true },
     { path: '/admin', name: t('navigation.admin'), translationKey: 'navigation.admin', icon: <Settings className="h-5 w-5" />, adminOnly: true },
   ];
 
