@@ -62,12 +62,20 @@ const EmployeesPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    phone: string;
+    jobTitle: string;
+    role: UserRole;
+    onLeave: boolean;
+    notes: string;
+  }>({
     name: '',
     email: '',
     phone: '',
     jobTitle: '',
-    role: '',
+    role: 'servicemedarbejder',
     onLeave: false,
     notes: ''
   });
@@ -127,7 +135,7 @@ const EmployeesPage: React.FC = () => {
   const handleSelectChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
-      role: value
+      role: value as UserRole
     }));
   };
 
@@ -171,7 +179,7 @@ const EmployeesPage: React.FC = () => {
       });
     } else {
       // Create new
-      const newEmployee = {
+      const newEmployee: Employee = {
         ...formData,
         id: Date.now().toString()
       };
