@@ -5,6 +5,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Vacation } from '@/types/vacation';
 import { CalendarClock, User } from 'lucide-react';
 import { format } from 'date-fns';
+import { da, enGB } from 'date-fns/locale';
 
 interface UpcomingVacationsWidgetProps {
   vacations: Vacation[];
@@ -15,8 +16,8 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
 }) => {
   const { t, currentLanguage } = useTranslation();
   
-  // Determine locale based on current language
-  const locale = currentLanguage === 'da' ? 'da-DK' : 'en-GB';
+  // Determine locale object based on current language
+  const dateLocale = currentLanguage === 'da' ? da : enGB;
   
   // Sort vacations by start date and get only approved upcoming ones
   const upcomingVacations = vacations
@@ -48,8 +49,8 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
                 <div className="space-y-0.5">
                   <p className="text-sm font-medium">{vacation.employeeName}</p>
                   <p className="text-xs text-muted-foreground">
-                    {format(new Date(vacation.startDate), 'PPP', { locale })} - 
-                    {format(new Date(vacation.endDate), 'PPP', { locale })}
+                    {format(new Date(vacation.startDate), 'PPP', { locale: dateLocale })} - {' '}
+                    {format(new Date(vacation.endDate), 'PPP', { locale: dateLocale })}
                   </p>
                 </div>
               </div>

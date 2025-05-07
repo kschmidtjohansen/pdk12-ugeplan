@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/chart";
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
-import { BarChart, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface AssignmentDistributionChartProps {
   assignments: Assignment[];
@@ -64,9 +64,9 @@ const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = 
         >
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
-              <ChartTooltip>
-                <ChartTooltipContent />
-              </ChartTooltip>
+              <XAxis dataKey="name" />
+              <Tooltip content={(props) => <ChartTooltipContent {...props} />} />
+              <Bar dataKey="value" fill="var(--color-waterDamage)" />
             </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
