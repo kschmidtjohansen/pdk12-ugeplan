@@ -16,9 +16,10 @@ const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = 
 }) => {
   const { t } = useTranslation();
   
-  // Group assignments by status
+  // Group assignments by status (derived from published property)
   const statusCount = assignments.reduce((acc: Record<string, number>, curr) => {
-    const status = curr.status || 'pending';
+    // Since Assignment type doesn't have a status property directly, we'll derive it
+    const status = curr.published ? 'published' : 'pending';
     acc[status] = (acc[status] || 0) + 1;
     return acc;
   }, {});
