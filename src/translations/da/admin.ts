@@ -12,7 +12,9 @@ const admin = {
     vehicles: 'Køretøjer',
     vehiclesDesc: '3 i brug nu',
     vacationRequests: 'Ferieansøgninger',
-    vacationRequestsDesc: '2 afventer godkendelse'
+    vacationRequestsDesc: '2 afventer godkendelse',
+    scheduledTasks: 'Planlagte Opgaver',
+    scheduledTasksDesc: 'Opgaver i ugeplanen'
   },
   userManagement: {
     title: 'Brugeradministration',

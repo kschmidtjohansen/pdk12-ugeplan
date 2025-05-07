@@ -38,6 +38,13 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   
+  // Handle checkbox change if no specific handler is provided
+  const handleCheckboxChange = (field: string, checked: boolean) => {
+    if (onCheckboxChange) {
+      onCheckboxChange(field, checked);
+    }
+  };
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -103,7 +110,7 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
             <Checkbox 
               id="hasTrailerHitch"
               checked={formData.hasTrailerHitch || false} 
-              onCheckedChange={(checked) => onCheckboxChange && onCheckboxChange('hasTrailerHitch', checked === true)}
+              onCheckedChange={(checked) => handleCheckboxChange('hasTrailerHitch', checked === true)}
             />
             <Label htmlFor="hasTrailerHitch">{t('cars.hasTrailerHitch')}</Label>
           </div>

@@ -21,32 +21,40 @@ const initialEmployees = [{
   email: 'john.doe@polygon.com',
   phone: '+45 12 34 56 78',
   jobTitle: 'Senior Technician',
-  role: 'skadeleder'
+  role: 'skadeleder',
+  onLeave: false,
+  notes: 'Experienced team leader with 10+ years in the field.'
 }, {
   id: '2',
   name: 'Jane Smith',
   email: 'jane.smith@polygon.com',
   phone: '+45 23 45 67 89',
   jobTitle: 'Technician',
-  role: 'servicemedarbejder'
+  role: 'servicemedarbejder',
+  onLeave: true,
+  notes: 'Specializes in water damage assessment.'
 }, {
   id: '3',
   name: 'Mike Johnson',
   email: 'mike.johnson@polygon.com',
   phone: '+45 34 56 78 90',
   jobTitle: 'Project Manager',
-  role: 'administrator'
+  role: 'administrator',
+  onLeave: false,
+  notes: 'Main system administrator and project coordinator.'
 }, {
   id: '4',
   name: 'Anna Williams',
   email: 'anna.williams@polygon.com',
   phone: '+45 45 67 89 01',
   jobTitle: 'Junior Technician',
-  role: 'servicemedarbejder'
+  role: 'servicemedarbejder',
+  onLeave: false,
+  notes: 'New team member, currently in training.'
 }];
 
 const EmployeesPage: React.FC = () => {
-  const { isAdmin } = usePermissions();
+  const { isAdmin, isSkadeleder } = usePermissions();
   const { toast } = useToast();
   const { t } = useTranslation();
   const [employees, setEmployees] = useState(initialEmployees);
@@ -58,7 +66,9 @@ const EmployeesPage: React.FC = () => {
     email: '',
     phone: '',
     jobTitle: '',
-    role: ''
+    role: '',
+    onLeave: false,
+    notes: ''
   });
 
   const handleCreateNew = () => {
@@ -68,7 +78,9 @@ const EmployeesPage: React.FC = () => {
       email: '',
       phone: '',
       jobTitle: '',
-      role: 'servicemedarbejder'
+      role: 'servicemedarbejder',
+      onLeave: false,
+      notes: ''
     });
     setDialogOpen(true);
   };
@@ -80,7 +92,9 @@ const EmployeesPage: React.FC = () => {
       email: employee.email,
       phone: employee.phone,
       jobTitle: employee.jobTitle,
-      role: employee.role
+      role: employee.role,
+      onLeave: employee.onLeave || false,
+      notes: employee.notes || ''
     });
     setDialogOpen(true);
   };
@@ -101,7 +115,7 @@ const EmployeesPage: React.FC = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -114,6 +128,30 @@ const EmployeesPage: React.FC = () => {
       ...prev,
       role: value
     }));
+  };
+
+  const handleCheckboxChange = (field: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: checked
+    }));
+  };
+
+  const handleToggleLeave = (employee: Employee) => {
+    if (!isAdmin) return;
+    
+    setEmployees(employees.map(e => 
+      e.id === employee.id ? {...e, onLeave: !e.onLeave} : e
+    ));
+    
+    toast({
+      title: employee.onLeave 
+        ? t("employees.employeeAvailable") 
+        : t("employees.employeeOnLeave"),
+      description: employee.onLeave 
+        ? t("employees.employeeAvailableMsg", { name: employee.name }) 
+        : t("employees.employeeOnLeaveMsg", { name: employee.name })
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -161,6 +199,7 @@ const EmployeesPage: React.FC = () => {
         employees={employees} 
         onEdit={handleEdit} 
         onDelete={handleDelete}
+        onToggleLeave={handleToggleLeave}
       />
 
       {/* Employee Add/Edit Dialog */}
@@ -170,6 +209,7 @@ const EmployeesPage: React.FC = () => {
           formData={formData}
           handleInputChange={handleInputChange}
           handleSelectChange={handleSelectChange}
+          handleCheckboxChange={handleCheckboxChange}
           handleSubmit={handleSubmit}
           onClose={() => setDialogOpen(false)}
         />

@@ -18,7 +18,9 @@ const common = {
   no: 'Nej',
   language: 'Sprog',
   actions: 'Handlinger',
-  optional: 'valgfri'
+  optional: 'valgfri',
+  on: 'Til',
+  off: 'Fra'
 };
 
 export default common;

@@ -5,23 +5,16 @@ import { usePermissions } from '../../context/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import EmployeeTableRow from './EmployeeTableRow';
-
-export interface Employee {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  jobTitle: string;
-  role: string;
-}
+import { Employee } from '@/types/employee';
 
 interface EmployeesListProps {
   employees: Employee[];
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
+  onToggleLeave?: (employee: Employee) => void;
 }
 
-const EmployeesList: React.FC<EmployeesListProps> = ({ employees, onEdit, onDelete }) => {
+const EmployeesList: React.FC<EmployeesListProps> = ({ employees, onEdit, onDelete, onToggleLeave }) => {
   const { isAdmin } = usePermissions();
   const { t } = useTranslation();
 
@@ -34,7 +27,8 @@ const EmployeesList: React.FC<EmployeesListProps> = ({ employees, onEdit, onDele
               <TableHead>{t("employees.name")}</TableHead>
               <TableHead>{t("employees.contactInfo")}</TableHead>
               <TableHead>{t("employees.jobTitle")}</TableHead>
-              <TableHead>{t("employees.role")}</TableHead>
+              {/* Only show role column to admins */}
+              {isAdmin && <TableHead>{t("employees.role")}</TableHead>}
               {isAdmin && <TableHead className="w-[100px]">{t("common.actions")}</TableHead>}
             </TableRow>
           </TableHeader>
@@ -45,6 +39,7 @@ const EmployeesList: React.FC<EmployeesListProps> = ({ employees, onEdit, onDele
                 employee={employee}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onToggleLeave={onToggleLeave}
               />
             ))}
           </TableBody>

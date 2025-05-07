@@ -21,6 +21,7 @@ const initialCars: CarData[] = [
     carNumber: 'PG-001',
     numberPlate: 'AB 12 345',
     fuelCardCode: '123456',
+    hasTrailerHitch: true,
   },
   {
     id: '2',
@@ -28,6 +29,7 @@ const initialCars: CarData[] = [
     carNumber: 'PG-002',
     numberPlate: 'CD 23 456',
     fuelCardCode: '234567',
+    hasTrailerHitch: false,
   },
   {
     id: '3',
@@ -35,6 +37,7 @@ const initialCars: CarData[] = [
     carNumber: 'PG-003',
     numberPlate: 'EF 34 567',
     fuelCardCode: '345678',
+    hasTrailerHitch: true,
   },
   {
     id: '4',
@@ -42,6 +45,7 @@ const initialCars: CarData[] = [
     carNumber: 'PG-004',
     numberPlate: 'GH 45 678',
     fuelCardCode: '456789',
+    hasTrailerHitch: false,
   },
 ];
 
@@ -58,6 +62,7 @@ const CarsPage: React.FC = () => {
     carNumber: '',
     numberPlate: '',
     fuelCardCode: '',
+    hasTrailerHitch: false,
   });
 
   const handleCreateNew = () => {
@@ -67,6 +72,7 @@ const CarsPage: React.FC = () => {
       carNumber: '',
       numberPlate: '',
       fuelCardCode: '',
+      hasTrailerHitch: false,
     });
     setDialogOpen(true);
   };
@@ -81,6 +87,7 @@ const CarsPage: React.FC = () => {
       carNumber: car.carNumber,
       numberPlate: car.numberPlate,
       fuelCardCode: car.fuelCardCode,
+      hasTrailerHitch: car.hasTrailerHitch || false,
     });
     setDialogOpen(true);
   };
@@ -109,6 +116,13 @@ const CarsPage: React.FC = () => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleCheckboxChange = (field: string, checked: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: checked,
     }));
   };
 
@@ -172,6 +186,7 @@ const CarsPage: React.FC = () => {
         onOpenChange={setDialogOpen}
         formData={formData}
         onInputChange={handleInputChange}
+        onCheckboxChange={handleCheckboxChange}
         onSubmit={handleSubmit}
         isEditing={!!currentCar}
         canViewFuelCardCode={canViewFuelCardCode}

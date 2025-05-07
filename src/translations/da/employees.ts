@@ -22,7 +22,17 @@ const employees = {
   employeeAddedMsg: '{name} er blevet tilføjet til afdelingen.',
   employeeDeletedMsg: '{name}\'s konto er blevet fjernet.',
   deleteConfirm: 'Er du sikker?',
-  deleteWarning: 'Du er ved at slette {name}\'s konto. Denne handling kan ikke fortrydes.'
+  deleteWarning: 'Du er ved at slette {name}\'s konto. Denne handling kan ikke fortrydes.',
+  onLeave: 'På orlov',
+  markOnLeave: 'Marker som på orlov',
+  markAvailable: 'Marker som tilgængelig',
+  employeeOnLeave: 'Medarbejder sat på orlov',
+  employeeAvailable: 'Medarbejder markeret tilgængelig',
+  employeeOnLeaveMsg: '{name} er nu markeret som værende på orlov.',
+  employeeAvailableMsg: '{name} er nu markeret som tilgængelig.',
+  notes: 'Noter',
+  notesPlaceholder: 'Tilføj noter om denne medarbejder...',
+  viewNotes: 'Se noter'
 };
 
 export default employees;

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car, Edit, Trash2 } from 'lucide-react';
+import { Car, Edit, Trash2, Check, X } from 'lucide-react';
 import { 
   Table,
   TableBody,
@@ -83,6 +83,22 @@ const CarsList: React.FC<CarsListProps> = ({
                     <code className="bg-gray-100 p-1 rounded">{car.fuelCardCode}</code>
                   </div>
                 )}
+                <div className="col-span-2">
+                  <p className="text-muted-foreground">{t('cars.hasTrailerHitch')}:</p>
+                  <div className="flex items-center">
+                    {car.hasTrailerHitch ? (
+                      <>
+                        <Check className="h-4 w-4 mr-1 text-green-500" />
+                        <span>{t('common.yes')}</span>
+                      </>
+                    ) : (
+                      <>
+                        <X className="h-4 w-4 mr-1 text-red-500" />
+                        <span>{t('common.no')}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -100,6 +116,7 @@ const CarsList: React.FC<CarsListProps> = ({
                   <TableHead>{t('cars.carNumber')}</TableHead>
                   <TableHead>{t('cars.numberPlate')}</TableHead>
                   {canViewFuelCardCode && <TableHead>{t('cars.fuelCardCode')}</TableHead>}
+                  <TableHead>{t('cars.hasTrailerHitch')}</TableHead>
                   {isAdmin && <TableHead className="w-[100px]">{t('common.actions')}</TableHead>}
                 </TableRow>
               </TableHeader>
@@ -119,6 +136,19 @@ const CarsList: React.FC<CarsListProps> = ({
                         <code className="bg-gray-100 p-1 rounded">{car.fuelCardCode}</code>
                       </TableCell>
                     )}
+                    <TableCell>
+                      {car.hasTrailerHitch ? (
+                        <div className="flex items-center">
+                          <Check className="h-4 w-4 mr-1 text-green-500" />
+                          <span>{t('common.yes')}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <X className="h-4 w-4 mr-1 text-red-500" />
+                          <span>{t('common.no')}</span>
+                        </div>
+                      )}
+                    </TableCell>
                     {isAdmin && (
                       <TableCell>
                         <div className="flex space-x-2">
