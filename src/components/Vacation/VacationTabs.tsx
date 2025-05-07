@@ -23,13 +23,12 @@ const VacationTabs: React.FC<VacationTabsProps> = ({
     );
   }
 
-  // For other roles, show all tabs
+  // For other roles, show All, Pending and Approved tabs
   return (
-    <TabsList className="grid grid-cols-4 w-full max-w-md">
+    <TabsList className="grid grid-cols-3 w-full max-w-md">
       <TabsTrigger value="all">{t("vacation.tabs.all")}</TabsTrigger>
       <TabsTrigger value="pending">{t("vacation.tabs.pending")}</TabsTrigger>
       <TabsTrigger value="approved">{t("vacation.tabs.approved")}</TabsTrigger>
-      <TabsTrigger value="mine">{t("vacation.tabs.mine")}</TabsTrigger>
     </TabsList>
   );
 };

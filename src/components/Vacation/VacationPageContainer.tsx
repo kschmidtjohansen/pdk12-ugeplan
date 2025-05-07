@@ -108,10 +108,19 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   };
 
   const filteredVacations = vacations.filter(v => {
+    // In "mine" tab, show all user's vacation requests regardless of status
+    if (activeTab === 'mine') return v.employeeId === user?.id;
+    
+    // In "approved" tab, only show approved vacations
     if (activeTab === 'approved') return v.status === 'approved';
+    
+    // In "pending" tab, only show pending vacations
     if (activeTab === 'pending') return v.status === 'pending';
-    if (activeTab === 'mine') return v.employeeId === user?.id; // Filter by current user's ID
-    return true;
+    
+    // In "all" tab:
+    // 1. Never show rejected vacations (except in "mine" tab)
+    // 2. Only show pending vacations (approved ones go to "approved" tab)
+    return v.status === 'pending';
   });
 
   return (

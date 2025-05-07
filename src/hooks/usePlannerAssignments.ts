@@ -6,7 +6,7 @@ import { Assignment } from '@/types/assignment';
 import { startOfWeek, endOfWeek, addDays, isWithinInterval, parseISO, format, addWeeks } from 'date-fns';
 import { da } from 'date-fns/locale';
 
-// Fixed mock data with updated dates to match current year
+// Updated mock data with current dates
 const initialAssignments = [
   {
     id: '1',
@@ -68,12 +68,12 @@ const initialAssignments = [
     employees: ['Jane Smith'],
     published: false
   },
-  // New mock assignments for today's dashboard
+  // New mock assignments for current week
   {
     id: '6',
     title: 'Akut vandskade',
     description: 'Hurtig inspektion af vandskade i lejlighed.',
-    date: '2025-05-07', // Today (for testing)
+    date: '2025-05-07', // Current week
     fromTime: '08:00',
     toTime: '10:00',
     location: 'Vejle Centrum',
@@ -85,7 +85,7 @@ const initialAssignments = [
     id: '7',
     title: 'Fugtmåling',
     description: 'Standard fugtmåling efter tidligere vandskade.',
-    date: '2025-05-07', // Today (for testing)
+    date: '2025-05-07', // Current week
     fromTime: '11:00',
     toTime: '12:30',
     location: 'Kolding Nord',
@@ -93,9 +93,45 @@ const initialAssignments = [
     employees: ['John Doe'],
     published: true
   },
+  {
+    id: '8',
+    title: 'Tag inspektion',
+    description: 'Inspektion af tag efter storm',
+    date: '2025-05-08', // Current week 
+    fromTime: '09:00',
+    toTime: '11:30',
+    location: 'Horsens',
+    car: 'Van 2',
+    employees: ['Jane Smith', 'Mike Johnson'],
+    published: true
+  },
+  {
+    id: '9',
+    title: 'Kælder udtørring',
+    description: 'Opsætning af udstyr til udtørring af kælder',
+    date: '2025-05-08', // Current week
+    fromTime: '13:00',
+    toTime: '15:30',
+    location: 'Fredericia',
+    car: 'Truck 2',
+    employees: ['Anna Williams'],
+    published: false
+  },
+  {
+    id: '10',
+    title: 'Skade vurdering',
+    description: 'Generel vurdering af vandskadet ejendom',
+    date: '2025-05-10', // Current week (weekend)
+    fromTime: '10:00',
+    toTime: '12:00',
+    location: 'Middelfart',
+    car: 'Van 3',
+    employees: ['Mike Johnson'],
+    published: false
+  }
 ];
 
-// Fixed week dates calculation using date-fns
+// Improved week dates calculation using date-fns
 export const getWeekDates = (weekNumber: number, year: number = new Date().getFullYear()) => {
   // Create a date for January 1st of the given year
   const firstDayOfYear = new Date(year, 0, 1);

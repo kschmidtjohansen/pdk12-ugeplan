@@ -39,7 +39,8 @@ const planner = {
   assignmentPublished: 'Opgave udgivet',
   assignmentsPublished: 'Opgaver Udgivet',
   assignmentPublishedMsg: 'Opgaven er nu synlig for servicemedarbejdere.',
-  assignmentsPublishedMsg: 'Opgaverne er nu synlige for servicemedarbejdere.'
+  assignmentsPublishedMsg: 'Opgaverne er nu synlige for servicemedarbejdere.',
+  weekDateRange: '{start} til {end}'
 };
 
 export default planner;

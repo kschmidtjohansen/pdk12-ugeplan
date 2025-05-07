@@ -1,16 +1,18 @@
 
 import React, { useState } from 'react';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
+import { da } from 'date-fns/locale';
 import PageHeader from '../components/Layout/PageHeader';
 import PlannerHeader from '../components/Planner/PlannerHeader';
 import AssignmentDialogManager from '../components/Planner/AssignmentDialogManager';
+import AssignmentList from '../components/Planner/AssignmentList';
 import { useTranslation } from '../context/TranslationContext';
 import { Assignment, getCurrentWeek } from '../types/assignment';
 import { getUnpublishedAssignment } from '../hooks/useAssignmentPublishing';
-import { usePlannerAssignments } from '../hooks/usePlannerAssignments';
+import { usePlannerAssignments, getWeekDates } from '../hooks/usePlannerAssignments';
 
 const PlannerPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const [currentWeek, setCurrentWeek] = useState(getCurrentWeek());
   const { 
     assignments, 
@@ -35,6 +37,12 @@ const PlannerPage: React.FC = () => {
     car: '',
     employees: []
   });
+
+  // Get week date range
+  const { start, end } = getWeekDates(currentWeek);
+  const dateFormat = currentLanguage === 'da' ? 'd. MMMM' : 'MMMM d';
+  const locale = currentLanguage === 'da' ? da : undefined;
+  const dateRangeText = `${format(start, dateFormat, { locale })} - ${format(end, dateFormat, { locale })}`;
 
   // Handle assignment creation/editing
   const handleOpenCreateDialog = (date: string) => {
@@ -88,11 +96,25 @@ const PlannerPage: React.FC = () => {
         title={t("navigation.planner")} 
         description={t("planner.weekDescription", { week: currentWeek })}
       />
+      
+      <div className="text-sm text-muted-foreground mb-6">
+        {dateRangeText}
+      </div>
 
       <PlannerHeader 
         currentWeek={currentWeek} 
         setCurrentWeek={setCurrentWeek}
         onCreateNew={handleOpenCreateDialog}
+      />
+
+      <AssignmentList
+        assignments={assignments}
+        onEditAssignment={handleOpenEditDialog}
+        onDeleteAssignment={deleteAssignment}
+        onPublishAssignment={publishAssignment}
+        onPublishDay={handlePublishDay}
+        onCreateAssignment={handleOpenCreateDialog}
+        selectedWeek={currentWeek}
       />
 
       <AssignmentDialogManager
