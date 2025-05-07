@@ -41,7 +41,8 @@ const planner = {
   assignmentPublishedMsg: 'Opgaven er nu synlig for servicemedarbejdere.',
   assignmentsPublishedMsg: 'Opgaverne er nu synlige for servicemedarbejdere.',
   weekDateRange: '{start} til {end}',
-  nothingPlannedToday: 'Intet planlagt i dag'
+  nothingPlannedToday: 'Intet planlagt i dag',
+  previousTasks: 'Tidligere opgaver'
 };
 
 export default planner;
