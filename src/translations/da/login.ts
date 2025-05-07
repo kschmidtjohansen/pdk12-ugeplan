@@ -15,7 +15,7 @@ const login = {
     forgotPassword: 'Glemt adgangskode?',
     title: 'Nulstil adgangskode',
     description: 'Indtast din email-adresse, og vi sender dig et link til at nulstille din adgangskode.',
-    button: 'Send nulstillings-link',
+    button: 'Send link til nulstilling',
     buttonLoading: 'Sender...',
     emailSentTitle: 'Email sendt',
     emailSentDescription: 'Tjek din indbakke for linket til nulstilling af adgangskode.',
