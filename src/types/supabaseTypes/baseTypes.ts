@@ -1,11 +1,43 @@
 
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+import { Json } from '../../integrations/supabase/types';
+import {
+  UserRow,
+  UserInsert,
+  UserUpdate
+} from './userTypes';
+
+import {
+  EmployeeRow,
+  EmployeeInsert,
+  EmployeeUpdate
+} from './employeeTypes';
+
+import {
+  CarRow,
+  CarInsert,
+  CarUpdate
+} from './carTypes';
+
+import {
+  VacationRow,
+  VacationInsert,
+  VacationUpdate
+} from './vacationTypes';
+
+import {
+  AssignmentRow,
+  AssignmentInsert,
+  AssignmentUpdate,
+  AssignmentEmployeeRow,
+  AssignmentEmployeeInsert,
+  AssignmentEmployeeUpdate
+} from './assignmentTypes';
+
+import {
+  NotificationRow,
+  NotificationInsert,
+  NotificationUpdate
+} from './notificationTypes';
 
 export interface Database {
   public: {

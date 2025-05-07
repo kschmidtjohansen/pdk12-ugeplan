@@ -2,7 +2,7 @@
 import { assignmentApi } from './assignmentApi';
 import { publishingService } from './assignmentPublishing';
 import { assignmentHelpers } from './assignmentHelpers';
-import { Assignment, AssignmentWithEmployees } from './types';
+import { Assignment, AssignmentWithEmployees, AssignmentInsert } from './types';
 
 /**
  * Main assignment service that coordinates between API calls and helpers
@@ -63,7 +63,8 @@ export const assignmentService = {
       // First, create the assignment
       const { employees, ...assignmentData } = assignment;
       
-      const newAssignment = await assignmentApi.createAssignment({
+      // Create properly typed AssignmentInsert object
+      const newAssignmentData: AssignmentInsert = {
         title: assignmentData.title,
         description: assignmentData.description,
         date: assignmentData.date,
@@ -72,7 +73,9 @@ export const assignmentService = {
         location: assignmentData.location,
         car_id: assignmentData.car_id,
         published: assignmentData.published || false
-      });
+      };
+      
+      const newAssignment = await assignmentApi.createAssignment(newAssignmentData);
       
       // Then, create assignment-employee relationships if needed
       if (employees && employees.length > 0) {
