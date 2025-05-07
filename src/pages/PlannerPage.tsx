@@ -14,18 +14,17 @@ const PlannerPage: React.FC = () => {
   const [currentWeek, setCurrentWeek] = useState(getCurrentWeek());
   const { 
     assignments, 
-    addAssignment, 
+    createAssignment, 
     updateAssignment,
-    selectedDay, 
-    setSelectedDay,
     deleteAssignment,
     publishAssignment,
-    publishDayAssignments
+    publishAssignmentsByDate
   } = usePlannerAssignments();
 
   // Using state for managing dialog and form data
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<string>('');
   const [formData, setFormData] = useState<Partial<Assignment>>({
     title: '',
     description: '',
@@ -67,7 +66,7 @@ const PlannerPage: React.FC = () => {
       const unpublishedData = getUnpublishedAssignment(data as Assignment);
       updateAssignment(unpublishedData);
     } else {
-      addAssignment({
+      createAssignment({
         ...data,
         id: Date.now().toString(),
         published: false
@@ -91,7 +90,7 @@ const PlannerPage: React.FC = () => {
 
       <AssignmentDialogManager
         open={dialogOpen}
-        setOpen={setDialogOpen}
+        onOpenChange={setDialogOpen}
         editMode={editMode}
         formData={formData}
         setFormData={setFormData}
@@ -100,7 +99,7 @@ const PlannerPage: React.FC = () => {
         onPublish={publishAssignment}
         assignments={assignments}
         selectedDay={selectedDay}
-        onPublishDay={publishDayAssignments}
+        onPublishDay={publishAssignmentsByDate}
       />
     </div>
   );

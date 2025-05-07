@@ -14,64 +14,54 @@ interface Car {
 interface AssignmentDialogManagerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currentAssignment: Assignment | null;
-  cars: Car[];
-  employees: Employee[];
-  vacations: Vacation[];
-  onSubmit: (formData: Partial<Assignment>, selectedEmployees: string[]) => void;
+  editMode: boolean;
+  formData: Partial<Assignment>;
+  setFormData: React.Dispatch<React.SetStateAction<Partial<Assignment>>>;
+  onSubmit: (data: Partial<Assignment>) => void;
+  onDelete: (assignmentId: string) => void;
+  onPublish: (assignmentId: string) => void;
+  assignments: Assignment[];
+  selectedDay: string;
+  onPublishDay: (date: string) => void;
 }
 
 const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   open,
   onOpenChange,
-  currentAssignment,
-  cars,
-  employees,
-  vacations,
-  onSubmit
+  editMode,
+  formData,
+  setFormData,
+  onSubmit,
+  onDelete,
+  onPublish,
+  assignments,
+  selectedDay,
+  onPublishDay
 }) => {
-  const [formData, setFormData] = useState({
-    id: '',
-    title: '',
-    description: '',
-    date: new Date().toISOString().split('T')[0], // Default to today
-    fromTime: '',
-    toTime: '',
-    location: '',
-    car: '',
-  });
+  // Updated to match the mocked data we would have from the application state
+  const cars = [
+    { id: '1', name: 'Van 1' },
+    { id: '2', name: 'Van 2' },
+    { id: '3', name: 'Van 3' },
+    { id: '4', name: 'Truck 3' },
+    { id: '5', name: 'Sedan 1' },
+  ];
 
-  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+  const employees = [
+    { id: '1', name: 'John Doe' },
+    { id: '2', name: 'Jane Smith' },
+    { id: '3', name: 'Mike Johnson' },
+    { id: '4', name: 'Anna Williams' },
+  ];
 
-  // Update form data when currentAssignment changes
+  const vacations: Vacation[] = [];
+
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>(formData.employees || []);
+
+  // Update selected employees when formData changes
   React.useEffect(() => {
-    if (currentAssignment) {
-      setFormData({
-        id: currentAssignment.id,
-        title: currentAssignment.title,
-        description: currentAssignment.description,
-        date: currentAssignment.date,
-        fromTime: currentAssignment.fromTime,
-        toTime: currentAssignment.toTime,
-        location: currentAssignment.location,
-        car: currentAssignment.car,
-      });
-      setSelectedEmployees(currentAssignment.employees || []);
-    } else {
-      // Reset form when opening for a new assignment
-      setFormData({
-        id: '',
-        title: '',
-        description: '',
-        date: new Date().toISOString().split('T')[0],
-        fromTime: '',
-        toTime: '',
-        location: '',
-        car: '',
-      });
-      setSelectedEmployees([]);
-    }
-  }, [currentAssignment, open]);
+    setSelectedEmployees(formData.employees || []);
+  }, [formData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -96,18 +86,33 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
         return [...prev, employeeName];
       }
     });
+
+    // Also update the formData
+    setFormData((prev) => {
+      const updatedEmployees = prev.employees ? [...prev.employees] : [];
+      if (updatedEmployees.includes(employeeName)) {
+        return {
+          ...prev,
+          employees: updatedEmployees.filter(name => name !== employeeName)
+        };
+      } else {
+        return {
+          ...prev,
+          employees: [...updatedEmployees, employeeName]
+        };
+      }
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData, selectedEmployees);
-    onOpenChange(false);
+    onSubmit(formData);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <AssignmentForm 
-        currentAssignment={currentAssignment}
+        currentAssignment={editMode ? formData as Assignment : null}
         formData={formData}
         selectedEmployees={selectedEmployees}
         cars={cars}
