@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
@@ -14,8 +13,8 @@ interface AssignmentListProps {
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
-  onPublishDay?: () => void;  // Updated to match the expected signature
-  onCreateAssignment: () => void;
+  onPublishDay?: () => void;  // No parameters expected
+  onCreateAssignment: (date: string) => void; // Fixed to match with PlannerHeader
   selectedWeek?: number;
 }
 
@@ -111,7 +110,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
               
               {canPublishTasks && hasUnpublishedAssignments && onPublishDay && (
                 <Button 
-                  onClick={onPublishDay} 
+                  onClick={onPublishDay} // No parameters passed
                   className="bg-green-600 hover:bg-green-700"
                   size="sm"
                 >
