@@ -29,9 +29,29 @@ const dashboard = {
   assignments: {
     waterDamage: 'Vandskade inspektion',
     fireDamage: 'Brandskade restaurering',
-    mold: 'Skimmelsvamp vurdering'
+    mold: 'Skimmelsvamp vurdering',
+    other: 'Andre opgaver'
   },
-  location: 'Lokation'
+  location: 'Lokation',
+  systemMetrics: 'System Metrikker',
+  metrics: {
+    activeAssignments: 'Aktive Opgaver',
+    activeAssignmentsDesc: 'Igangværende publicerede opgaver',
+    upcomingVacations: 'Kommende Ferier',
+    upcomingVacationsDesc: 'Godkendte ferieanmodninger',
+    vehicleStatus: 'Køretøjsstatus',
+    vehicleStatusDesc: 'Tilgængelige / Samlede køretøjer',
+    employeeActivity: 'Medarbejderaktivitet',
+    employeeActivityDesc: 'Gennemsnitlig aktivitetsrate denne måned'
+  },
+  charts: {
+    assignmentDistribution: 'Opgavefordeling'
+  },
+  upcomingVacations: 'Kommende Ferier',
+  noUpcomingVacations: 'Ingen kommende ferier planlagt',
+  vehicleStatus: 'Køretøjsstatus',
+  available: 'Tilgængelig',
+  inUse: 'I brug'
 };
 
 export default dashboard;

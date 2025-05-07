@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Users, Car, Clock, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import { getCurrentWeek } from '@/types/assignment';
+import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 
 // Import assignments from planner hook to reuse the mock data
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
@@ -73,6 +74,9 @@ const DashboardPage: React.FC = () => {
     return baseItems;
   };
   
+  // Show dashboard metrics only for admin or skadeleder
+  const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
+  
   return (
     <>
       <PageHeader 
@@ -83,6 +87,7 @@ const DashboardPage: React.FC = () => {
         })} 
       />
 
+      {/* Quick access grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {getQuickAccessItems().map((item, index) => (
           <Link key={index} to={item.link} className="block">
@@ -99,6 +104,19 @@ const DashboardPage: React.FC = () => {
         ))}
       </div>
 
+      {/* Dashboard metrics for admin/skadeleder */}
+      {shouldShowMetrics && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>{t('dashboard.systemMetrics')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DashboardMetrics />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Today's assignments */}
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
