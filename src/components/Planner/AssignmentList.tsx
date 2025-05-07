@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
@@ -14,7 +15,7 @@ interface AssignmentListProps {
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
   onPublishDay?: () => void;  // No parameters expected
-  onCreateAssignment: (date: string) => void; // Fixed to match with PlannerHeader
+  onCreateAssignment: (date: string) => void; // Correctly defined to accept a date parameter
   selectedWeek?: number;
 }
 
