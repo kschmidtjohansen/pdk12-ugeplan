@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import PageHeader from '../components/Layout/PageHeader';
-import { usePermissions } from '../context/AuthContext';
+import { usePermissions, UserRole } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import { Dialog } from "@/components/ui/dialog";
 import { AlertDialog } from '@/components/ui/alert-dialog';
@@ -10,12 +10,13 @@ import { useToast } from '@/components/ui/use-toast';
 import { Plus } from 'lucide-react';
 
 // Import custom components
-import EmployeesList, { Employee } from '../components/Employees/EmployeesList';
+import EmployeesList from '../components/Employees/EmployeesList';
 import EmployeeFormDialog from '../components/Employees/EmployeeFormDialog';
 import EmployeeDeleteDialog from '../components/Employees/EmployeeDeleteDialog';
+import { Employee } from '@/types/employee';
 
 // Mock data
-const initialEmployees = [{
+const initialEmployees: Employee[] = [{
   id: '1',
   name: 'John Doe',
   email: 'john.doe@polygon.com',

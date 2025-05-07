@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Employee } from './EmployeesList';
+import { Employee } from '@/types/employee';
 
 interface EmployeeDeleteDialogProps {
   employee: Employee | null;

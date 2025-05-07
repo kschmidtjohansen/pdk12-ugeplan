@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
-import { Employee } from '../Employees/EmployeesList';
+import { Employee } from '@/types/employee';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface EmployeeFormDialogProps {

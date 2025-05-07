@@ -54,7 +54,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, o
         <div className="flex items-center gap-2">
           <span>{employee.name}</span>
           {employee.onLeave && (
-            <StatusBadge variant="destructive">
+            <StatusBadge variant="error">
               {t('employees.onLeave')}
             </StatusBadge>
           )}
