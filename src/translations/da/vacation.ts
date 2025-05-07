@@ -1,6 +1,7 @@
 
 const vacation = {
   pageDescription: 'Ansøg om og administrer fridage',
+  approvedPageDescription: 'Oversigt over godkendte fridage',
   applyForVacation: 'Ansøg om fri',
   requestForEmployee: 'Ansøg for medarbejder',
   selectEmployee: 'Vælg medarbejder',

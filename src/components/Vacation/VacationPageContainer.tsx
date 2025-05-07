@@ -17,9 +17,13 @@ import { useVacations } from '@/hooks/useVacations';
 
 interface VacationPageContainerProps {
   headerComponent: React.ReactNode;
+  showApproved?: boolean;
 }
 
-const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerComponent }) => {
+const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ 
+  headerComponent, 
+  showApproved = false 
+}) => {
   const { isServicemedarbejder, canApproveVacation } = usePermissions();
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -107,29 +111,41 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     setNoteDialogOpen(false);
   };
 
+  // Modified filtering logic for vacations
   const filteredVacations = vacations.filter(v => {
+    // If we're on the approved-only page, only show approved vacations
+    if (showApproved) return v.status === 'approved';
+    
+    // For the main vacation page:
     if (activeTab === 'approved') return v.status === 'approved';
     if (activeTab === 'pending') return v.status === 'pending';
-    if (activeTab === 'mine') return v.employeeId === user?.id; // Filter by current user's ID
-    return true;
+    if (activeTab === 'mine') return v.employeeId === user?.id;
+    
+    // For the "All" tab, show everything except rejected vacations
+    return v.status !== 'rejected';
   });
+
+  // Don't show the "approved" tab in the main vacations page if we have a dedicated page for it
+  const hideApprovedTab = showApproved === false;
 
   return (
     <div className="space-y-6 w-full">
       {headerComponent}
 
-      <div className="flex space-x-2">
-        <Button onClick={handleCreateNew} className="bg-polygon-blue">
-          <Plus className="mr-2 h-4 w-4" /> {t("vacation.applyForVacation")}
-        </Button>
-        
-        {/* Admin button for requesting vacation for others */}
-        {canApproveVacation && (
-          <Button onClick={handleCreateForEmployee} variant="outline" className="border-polygon-blue text-polygon-blue">
-            <UserPlus className="mr-2 h-4 w-4" /> {t("vacation.requestForEmployee")}
+      {!showApproved && (
+        <div className="flex space-x-2">
+          <Button onClick={handleCreateNew} className="bg-polygon-blue">
+            <Plus className="mr-2 h-4 w-4" /> {t("vacation.applyForVacation")}
           </Button>
-        )}
-      </div>
+          
+          {/* Admin button for requesting vacation for others */}
+          {canApproveVacation && (
+            <Button onClick={handleCreateForEmployee} variant="outline" className="border-polygon-blue text-polygon-blue">
+              <UserPlus className="mr-2 h-4 w-4" /> {t("vacation.requestForEmployee")}
+            </Button>
+          )}
+        </div>
+      )}
       
       <Tabs 
         defaultValue={isServicemedarbejder ? 'mine' : 'all'} 
@@ -138,13 +154,15 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
       >
         <VacationTabs 
           isServicemedarbejder={isServicemedarbejder} 
-          activeTab={activeTab} 
+          activeTab={activeTab}
+          hideApprovedTab={hideApprovedTab}
+          showApprovedOnly={showApproved}
         />
 
         <TabsContent value={activeTab} className="mt-6">
           <VacationList
             vacations={filteredVacations}
-            canApproveVacation={canApproveVacation}
+            canApproveVacation={canApproveVacation && !showApproved}
             onApprove={handleApproveClick}
             onReject={handleRejectClick}
           />
