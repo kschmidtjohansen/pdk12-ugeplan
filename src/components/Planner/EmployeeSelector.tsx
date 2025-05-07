@@ -39,29 +39,34 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       return selectedDate >= startDate && selectedDate <= endDate;
     });
   };
+  
+  // Function to check if employee is unavailable (either on vacation or marked as onLeave)
+  const isEmployeeUnavailable = (employee: Employee, date: string): boolean => {
+    return isEmployeeOnVacation(employee.id, date) || employee.onLeave === true;
+  };
 
   return (
     <div className="border rounded-md p-3 space-y-2">
       {employees.map((employee) => {
-        const onVacation = isEmployeeOnVacation(employee.id, currentDate);
+        const isUnavailable = isEmployeeUnavailable(employee, currentDate);
         return (
           <div key={employee.id} className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id={`employee-${employee.id}`}
                 checked={selectedEmployees.includes(employee.name)}
-                onCheckedChange={() => !onVacation && onToggle(employee.name)}
-                disabled={onVacation}
+                onCheckedChange={() => !isUnavailable && onToggle(employee.name)}
+                disabled={isUnavailable}
               />
               <label
                 htmlFor={`employee-${employee.id}`}
-                className={`text-sm leading-none ${onVacation ? 'text-gray-400' : ''}`}
+                className={`text-sm leading-none ${isUnavailable ? 'text-gray-400' : ''}`}
               >
                 {employee.name}
               </label>
             </div>
             
-            {onVacation && (
+            {isUnavailable && (
               <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
                 {t('planner.onVacation')}
               </span>
