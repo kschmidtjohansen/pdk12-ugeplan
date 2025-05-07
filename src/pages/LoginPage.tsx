@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -15,10 +15,17 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,11 +122,9 @@ const LoginPage: React.FC = () => {
         
         <div className="mt-6 text-center text-sm text-gray-500">
           <p>{t('login.testCredentials')}</p>
-          <ul className="mt-2 space-y-1">
-            <li>Admin: admin@polygongroup.com / password</li>
-            <li>Skadeleder: skadeleder@polygongroup.com / password</li>
-            <li>Service: service@polygongroup.com / password</li>
-          </ul>
+          <p className="mt-2">
+            {t('common.note')}: {t('login.supabaseAuth')}
+          </p>
         </div>
       </div>
 

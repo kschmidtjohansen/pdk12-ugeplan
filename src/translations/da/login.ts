@@ -11,6 +11,7 @@ const login = {
   welcomeMessage: 'Velkommen til Polygon Ugeplan',
   internalSystem: 'Afdeling 12 - Trekantsområdet',
   testCredentials: 'Til test, brug følgende oplysninger:',
+  supabaseAuth: 'Systemet bruger nu Supabase til godkendelse. Kontakt din administrator for at oprette en konto.',
   passwordReset: {
     forgotPassword: 'Glemt adgangskode?',
     title: 'Nulstil adgangskode',

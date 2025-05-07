@@ -1,5 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { User as SupabaseUser, Session } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabase";
+import { authService } from "../services/authService";
 
 // User roles
 export type UserRole = "administrator" | "skadeleder" | "servicemedarbejder";
@@ -12,7 +15,6 @@ export interface User {
   role: UserRole;
   phone?: string;
   jobTitle?: string;
-  password?: string; // Used only for admin management, not stored client-side in production
 }
 
 // Auth context interface
@@ -21,7 +23,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   requestPasswordReset: (email: string) => Promise<void>;
-  resetPassword: (userId: string, newPassword: string) => Promise<void>;
+  resetPassword: (newPassword: string) => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -29,127 +31,154 @@ interface AuthContextType {
 // Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for development
-const MOCK_USERS: User[] = [
-  {
-    id: "1",
-    name: "Admin",
-    email: "admin@polygongroup.com",
-    role: "administrator",
-    phone: "+45 12 34 56 78",
-    jobTitle: "System Administrator",
-    password: "password" // For development only
-  },
-  {
-    id: "2",
-    name: "Skadeleder",
-    email: "skadeleder@polygongroup.com",
-    role: "skadeleder",
-    phone: "+45 23 45 67 89",
-    jobTitle: "Team Leader",
-    password: "password" // For development only
-  },
-  {
-    id: "3",
-    name: "Servicemedarbejder",
-    email: "service@polygongroup.com",
-    role: "servicemedarbejder",
-    phone: "+45 34 56 78 90",
-    jobTitle: "Field Technician",
-    password: "password" // For development only
-  },
-];
-
 // Auth provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   children 
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
 
-  // Check for stored auth on mount
+  // Check for active session on mount and handle auth state changes
   useEffect(() => {
-    const storedUser = localStorage.getItem("polygonUser");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    // Get initial session
+    const initAuth = async () => {
+      setIsLoading(true);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        setSession(session);
+        await fetchAndSetUserProfile(session.user);
+      }
+      
+      setIsLoading(false);
+      
+      // Subscribe to auth changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (_event, session) => {
+          setSession(session);
+          
+          if (session) {
+            await fetchAndSetUserProfile(session.user);
+          } else {
+            setUser(null);
+          }
+          
+          setIsLoading(false);
+        }
+      );
+      
+      // Cleanup subscription
+      return () => {
+        subscription.unsubscribe();
+      };
+    };
+    
+    initAuth();
   }, []);
+  
+  // Helper to fetch user profile
+  const fetchAndSetUserProfile = async (authUser: SupabaseUser) => {
+    try {
+      // Get user profile from users table
+      const { data: profile, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authUser.id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return;
+      }
+      
+      if (profile) {
+        setUser({
+          id: profile.id,
+          name: profile.name,
+          email: profile.email,
+          role: profile.role,
+          phone: profile.phone,
+          jobTitle: profile.job_title
+        });
+      }
+    } catch (error) {
+      console.error('Error in fetchAndSetUserProfile:', error);
+    }
+  };
 
-  // Mock login function
+  // Login function
   const login = async (email: string, password: string) => {
-    // Simulate API request
     setIsLoading(true);
     
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        const foundUser = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
-        
-        if (foundUser && password === foundUser.password) {
-          // Don't include password in the user object stored in state/localStorage
-          const { password: _, ...userWithoutPassword } = foundUser;
-          setUser(userWithoutPassword);
-          localStorage.setItem("polygonUser", JSON.stringify(userWithoutPassword));
-          setIsLoading(false);
-          resolve();
-        } else {
-          setIsLoading(false);
-          reject(new Error("Invalid email or password"));
-        }
-      }, 1000);
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      // Auth state changes are handled by the onAuthStateChange subscription
+    } catch (error) {
+      setIsLoading(false);
+      throw error;
+    }
   };
 
   // Logout function
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("polygonUser");
+  const logout = async () => {
+    setIsLoading(true);
+    
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Password reset request function
   const requestPasswordReset = async (email: string) => {
     setIsLoading(true);
     
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        const foundUser = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
-        
-        if (foundUser) {
-          // In a real app, this would send an email
-          console.log(`Password reset requested for ${email}`);
-          setIsLoading(false);
-          resolve();
-        } else {
-          setIsLoading(false);
-          reject(new Error("User not found"));
-        }
-      }, 1000);
-    });
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Admin reset password function
-  const resetPassword = async (userId: string, newPassword: string) => {
+  // Reset password function
+  const resetPassword = async (newPassword: string) => {
     setIsLoading(true);
     
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        const userIndex = MOCK_USERS.findIndex(u => u.id === userId);
-        
-        if (userIndex !== -1) {
-          // Update password in mock users array
-          MOCK_USERS[userIndex] = {
-            ...MOCK_USERS[userIndex],
-            password: newPassword
-          };
-          console.log(`Password has been reset for user ${userId}`);
-          setIsLoading(false);
-          resolve();
-        } else {
-          setIsLoading(false);
-          reject(new Error("User not found"));
-        }
-      }, 500);
-    });
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
