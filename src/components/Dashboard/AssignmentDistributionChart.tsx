@@ -3,12 +3,24 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   ChartContainer, 
-  ChartTooltip, 
   ChartTooltipContent 
 } from "@/components/ui/chart";
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
-import { BarChart, Bar, XAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  ResponsiveContainer, 
+  Tooltip,
+  TooltipProps
+} from 'recharts';
+
+// Define the chart data type
+type ChartDataType = {
+  name: string;
+  value: number;
+};
 
 interface AssignmentDistributionChartProps {
   assignments: Assignment[];
@@ -52,6 +64,22 @@ const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = 
     other: { color: "#8E9196" }
   };
   
+  // Custom tooltip component that works with Recharts typing
+  const CustomTooltip = ({ 
+    active, 
+    payload 
+  }: TooltipProps<number, string>) => {
+    if (active && payload && payload.length) {
+      return (
+        <ChartTooltipContent 
+          active={active}
+          payload={payload}
+        />
+      );
+    }
+    return null;
+  };
+
   return (
     <Card className="col-span-1 md:col-span-2">
       <CardHeader>
@@ -65,7 +93,7 @@ const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = 
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
               <XAxis dataKey="name" />
-              <Tooltip content={(props) => <ChartTooltipContent {...props} />} />
+              <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="value" fill="var(--color-waterDamage)" />
             </BarChart>
           </ResponsiveContainer>
