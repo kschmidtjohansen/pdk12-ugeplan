@@ -75,6 +75,13 @@ const PlannerPage: React.FC = () => {
     setDialogOpen(false);
   };
 
+  // Create a wrapper function that calls publishAssignmentsByDate with the selectedDay
+  const handlePublishDay = () => {
+    if (selectedDay) {
+      publishAssignmentsByDate(selectedDay);
+    }
+  };
+
   return (
     <div>
       <PageHeader 

@@ -5,6 +5,7 @@ import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import AssignmentForm from './AssignmentForm';
+import { useEmployees } from '@/hooks/useEmployees';
 
 interface Car {
   id: string;
@@ -47,13 +48,9 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
     { id: '5', name: 'Sedan 1' },
   ];
 
-  const employees = [
-    { id: '1', name: 'John Doe' },
-    { id: '2', name: 'Jane Smith' },
-    { id: '3', name: 'Mike Johnson' },
-    { id: '4', name: 'Anna Williams' },
-  ];
-
+  // Use the hook to get the full employee objects
+  const { employees: allEmployees } = useEmployees();
+  
   const vacations: Vacation[] = [];
 
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>(formData.employees || []);
@@ -116,7 +113,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
         formData={formData}
         selectedEmployees={selectedEmployees}
         cars={cars}
-        employees={employees}
+        employees={allEmployees}
         vacations={vacations}
         handleInputChange={handleInputChange}
         handleSelectChange={handleSelectChange}
