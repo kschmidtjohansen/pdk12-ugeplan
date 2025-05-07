@@ -2,6 +2,9 @@
 const vacation = {
   pageDescription: 'Ansøg om og administrer fridage',
   applyForVacation: 'Ansøg om fri',
+  requestForEmployee: 'Ansøg for medarbejder',
+  selectEmployee: 'Vælg medarbejder',
+  selectEmployeeAndDates: 'Vælg en medarbejder, datoer og årsag til fraværet.',
   tabs: {
     all: 'Alle',
     pending: 'Afventer',
@@ -38,10 +41,21 @@ const vacation = {
   selectBothDates: 'Vælg venligst både start- og slutdato',
   requestSubmitted: 'Ansøgning om fridag indsendt',
   requestSent: 'Din ansøgning er sendt til godkendelse.',
+  adminRequestSubmitted: 'Ansøgning om fridag indsendt for medarbejder',
+  adminRequestSent: 'Ansøgningen for {name} er sendt til godkendelse.',
+  adminRequestedForYou: '{adminName} har ansøgt om fri for dig fra {from} til {to}',
+  requestSubmittedForYou: 'Ansøgning om fridag indsendt for dig',
   requestRejected: 'Ansøgning om fridag afvist',
   requestApproved: 'Ansøgning om fridag godkendt',
   requestRejectedMsg: '{name}\'s ansøgning er blevet afvist.',
-  requestApprovedMsg: '{name}\'s ansøgning er blevet godkendt.'
+  requestApprovedMsg: '{name}\'s ansøgning er blevet godkendt.',
+  yourRequestApproved: 'Din ansøgning om fridag er blevet godkendt.',
+  yourRequestRejected: 'Din ansøgning om fridag er blevet afvist. Årsag: {reason}',
+  error: 'Fejl',
+  employeeNotFound: 'Medarbejderen kunne ikke findes',
+  currentlyOnVacation: 'Medarbejdere på ferie',
+  daysRemaining: 'Dage tilbage',
+  days: 'dage'
 };
 
 export default vacation;

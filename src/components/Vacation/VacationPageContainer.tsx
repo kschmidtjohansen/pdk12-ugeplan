@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, UserPlus } from 'lucide-react';
 import { Vacation } from '../../types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
@@ -10,7 +10,9 @@ import { useAuth } from '@/context/AuthContext';
 import VacationTabs from './VacationTabs';
 import VacationList from './VacationList';
 import VacationFormDialog from './VacationFormDialog';
+import AdminVacationFormDialog from './AdminVacationFormDialog';
 import VacationActionDialog from './VacationActionDialog';
+import EmployeeVacationStatus from './EmployeeVacationStatus';
 import { useVacations } from '@/hooks/useVacations';
 
 interface VacationPageContainerProps {
@@ -29,12 +31,17 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     setReason,
     note,
     setNote,
+    dialogOpen,
+    setDialogOpen,
+    adminDialogOpen,
+    setAdminDialogOpen,
+    selectedEmployeeId,
+    setSelectedEmployeeId,
     submitVacationRequest,
     approveVacation,
     rejectVacation
   } = useVacations();
   
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [actionVacation, setActionVacation] = useState<Vacation | null>(null);
   const [activeTab, setActiveTab] = useState(isServicemedarbejder ? 'mine' : 'all');
@@ -48,10 +55,27 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     setDialogOpen(true);
   };
 
+  const handleCreateForEmployee = () => {
+    setDate({
+      from: undefined,
+      to: undefined
+    });
+    setReason('');
+    setSelectedEmployeeId('');
+    setAdminDialogOpen(true);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     const success = submitVacationRequest(e);
     if (success) {
       setDialogOpen(false);
+    }
+  };
+
+  const handleAdminSubmit = (e: React.FormEvent) => {
+    const success = submitVacationRequest(e, true);
+    if (success) {
+      setAdminDialogOpen(false);
     }
   };
 
@@ -94,9 +118,18 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     <div className="space-y-6 w-full">
       {headerComponent}
 
-      <Button onClick={handleCreateNew} className="bg-polygon-blue">
-        <Plus className="mr-2 h-4 w-4" /> {t("vacation.applyForVacation")}
-      </Button>
+      <div className="flex space-x-2">
+        <Button onClick={handleCreateNew} className="bg-polygon-blue">
+          <Plus className="mr-2 h-4 w-4" /> {t("vacation.applyForVacation")}
+        </Button>
+        
+        {/* Admin button for requesting vacation for others */}
+        {canApproveVacation && (
+          <Button onClick={handleCreateForEmployee} variant="outline" className="border-polygon-blue text-polygon-blue">
+            <UserPlus className="mr-2 h-4 w-4" /> {t("vacation.requestForEmployee")}
+          </Button>
+        )}
+      </div>
       
       <Tabs 
         defaultValue={isServicemedarbejder ? 'mine' : 'all'} 
@@ -118,6 +151,9 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         </TabsContent>
       </Tabs>
 
+      {/* Employee vacation status list */}
+      <EmployeeVacationStatus vacations={vacations} />
+
       {/* Apply for vacation dialog */}
       <VacationFormDialog
         open={dialogOpen}
@@ -127,6 +163,19 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         reason={reason}
         setReason={setReason}
         onSubmit={handleSubmit}
+      />
+
+      {/* Admin request for employee dialog */}
+      <AdminVacationFormDialog
+        open={adminDialogOpen}
+        onOpenChange={setAdminDialogOpen}
+        date={date}
+        setDate={setDate}
+        reason={reason}
+        setReason={setReason}
+        selectedEmployeeId={selectedEmployeeId}
+        setSelectedEmployeeId={setSelectedEmployeeId}
+        onSubmit={handleAdminSubmit}
       />
 
       {/* Approve/Reject note dialog */}

@@ -1,0 +1,75 @@
+
+import React from 'react';
+import { format, differenceInDays } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Vacation } from '@/types/vacation';
+import { useTranslation } from '@/context/TranslationContext';
+import { Badge } from '@/components/ui/badge';
+import { Calendar } from 'lucide-react';
+
+interface EmployeeVacationStatusProps {
+  vacations: Vacation[];
+}
+
+const EmployeeVacationStatus: React.FC<EmployeeVacationStatusProps> = ({ vacations }) => {
+  const { t, currentLanguage } = useTranslation();
+  const today = new Date();
+  
+  // Filter for approved vacations that are currently active or upcoming
+  const activeVacations = vacations.filter(v => 
+    v.status === 'approved' && 
+    new Date(v.endDate) >= today
+  );
+  
+  if (activeVacations.length === 0) {
+    return null;
+  }
+  
+  const calculateDaysRemaining = (endDate: Date): number => {
+    return differenceInDays(new Date(endDate), today) + 1;
+  };
+
+  const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
+  
+  return (
+    <Card className="mt-8">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Calendar className="h-5 w-5" />
+          {t("vacation.currentlyOnVacation")}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("employees.name")}</TableHead>
+              <TableHead>{t("vacation.dateRange")}</TableHead>
+              <TableHead>{t("vacation.reason")}</TableHead>
+              <TableHead>{t("vacation.daysRemaining")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {activeVacations.map(vacation => (
+              <TableRow key={vacation.id}>
+                <TableCell className="font-medium">{vacation.employeeName}</TableCell>
+                <TableCell>
+                  {format(new Date(vacation.startDate), dateFormat)} - {format(new Date(vacation.endDate), dateFormat)}
+                </TableCell>
+                <TableCell>{vacation.reason}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="bg-green-50">
+                    {calculateDaysRemaining(vacation.endDate)} {t("vacation.days")}
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default EmployeeVacationStatus;
