@@ -68,7 +68,7 @@ const initialAssignments = [
     employees: ['Jane Smith'],
     published: false
   },
-  // New mock assignments for current week
+  // Current week mock assignments 
   {
     id: '6',
     title: 'Akut vandskade',

@@ -21,7 +21,7 @@ const PlannerPage: React.FC = () => {
     deleteAssignment,
     publishAssignment,
     publishAssignmentsByDate
-  } = usePlannerAssignments();
+  } = usePlannerAssignments(currentWeek); // Pass currentWeek to the hook
 
   // Using state for managing dialog and form data
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -115,6 +115,7 @@ const PlannerPage: React.FC = () => {
         onPublishDay={handlePublishDay}
         onCreateAssignment={handleOpenCreateDialog}
         selectedWeek={currentWeek}
+        weekDates={getWeekDates(currentWeek)} // Pass week dates
       />
 
       <AssignmentDialogManager

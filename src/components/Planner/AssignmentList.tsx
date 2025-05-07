@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
-import { format as formatDate } from 'date-fns';
+import { format as formatDate, isToday, isFuture, isPast, parse, parseISO, startOfWeek, addDays } from 'date-fns';
 import { Assignment } from '@/types/assignment';
 import AssignmentCard from './AssignmentCard';
 import EmptyState from './EmptyState';
@@ -14,9 +14,10 @@ interface AssignmentListProps {
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
-  onPublishDay?: () => void;  // No parameters expected
-  onCreateAssignment: (date: string) => void; // Correctly defined to accept a date parameter
+  onPublishDay?: () => void;
+  onCreateAssignment: (date: string) => void;
   selectedWeek?: number;
+  weekDates?: { start: Date; end: Date };
 }
 
 const AssignmentList: React.FC<AssignmentListProps> = ({
@@ -26,11 +27,13 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   onPublishAssignment,
   onPublishDay,
   onCreateAssignment,
-  selectedWeek
+  selectedWeek,
+  weekDates
 }) => {
   const { canEdit, canCreate, canSeeUnpublishedTasks, canPublishTasks } = usePermissions();
   const { t } = useTranslation();
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
   // Filter assignments based on user permissions
   const visibleAssignments = canSeeUnpublishedTasks 
@@ -50,8 +53,75 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
     {}
   );
 
-  // Sort dates
-  const sortedDates = Object.keys(groupedAssignments).sort();
+  // Create a date for each day of the week
+  const getAllWeekDays = () => {
+    if (!weekDates) return [];
+
+    const days = [];
+    let currentDay = new Date(weekDates.start);
+
+    while (currentDay <= weekDates.end) {
+      days.push(formatDate(currentDay, 'yyyy-MM-dd'));
+      currentDay = addDays(currentDay, 1);
+    }
+
+    return days;
+  };
+
+  // Fill in any missing days
+  const allWeekDays = getAllWeekDays();
+  allWeekDays.forEach(dateKey => {
+    if (!groupedAssignments[dateKey]) {
+      groupedAssignments[dateKey] = [];
+    }
+  });
+
+  // Custom sorting function for dates
+  const sortDates = (dates: string[]) => {
+    return dates.sort((a, b) => {
+      const dateA = new Date(a);
+      const dateB = new Date(b);
+      
+      // Check if today
+      const aIsToday = isToday(dateA);
+      const bIsToday = isToday(dateB);
+      
+      if (aIsToday && !bIsToday) return -1;
+      if (!aIsToday && bIsToday) return 1;
+      
+      // Check if future or past
+      const aIsFuture = isFuture(dateA);
+      const bIsFuture = isFuture(dateB);
+      const aIsPast = isPast(dateA);
+      const bIsPast = isPast(dateB);
+      
+      if (aIsFuture && bIsPast) return -1;
+      if (aIsPast && bIsFuture) return 1;
+      
+      // If both are future or both are past, sort by date
+      return dateA.getTime() - dateB.getTime();
+    });
+  };
+
+  // Sort dates with today first, then future days, then past days
+  const sortedDates = sortDates(Object.keys(groupedAssignments));
+
+  // Effect to update time at midnight to refresh sorting
+  useEffect(() => {
+    // Calculate time until midnight
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const timeUntilMidnight = tomorrow.getTime() - now.getTime();
+    
+    // Set timeout to update at midnight
+    const midnightTimer = setTimeout(() => {
+      setCurrentTime(new Date());
+    }, timeUntilMidnight);
+    
+    return () => clearTimeout(midnightTimer);
+  }, [currentTime]);
 
   // Toggle day expansion
   const toggleDayExpansion = (date: string) => {
@@ -82,7 +152,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   };
 
   // Check if there are any visible assignments after filtering
-  if (visibleAssignments.length === 0) {
+  if (visibleAssignments.length === 0 && allWeekDays.length === 0) {
     return <EmptyState onCreateNew={onCreateAssignment} canCreate={canCreate} selectedWeek={selectedWeek} />;
   }
 
@@ -91,7 +161,6 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
       {sortedDates.map((dateKey) => {
         const isExpanded = expandedDays[dateKey] !== false; // Default to expanded
         const dayAssignments = groupedAssignments[dateKey];
-        const allPublished = isDateFullyPublished(dateKey);
         const hasUnpublishedAssignments = dayAssignments.some(a => !a.published);
         
         return (
@@ -111,7 +180,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
               
               {canPublishTasks && hasUnpublishedAssignments && onPublishDay && (
                 <Button 
-                  onClick={onPublishDay} // No parameters passed
+                  onClick={onPublishDay}
                   className="bg-green-600 hover:bg-green-700"
                   size="sm"
                 >
@@ -122,16 +191,22 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
             
             {isExpanded && (
               <div className="w-full grid grid-cols-1 gap-4">
-                {dayAssignments.map((assignment) => (
-                  <AssignmentCard
-                    key={assignment.id}
-                    assignment={assignment}
-                    canEdit={canEdit}
-                    onEdit={() => onEditAssignment(assignment)}
-                    onDelete={() => onDeleteAssignment(assignment.id)}
-                    onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
-                  />
-                ))}
+                {dayAssignments.length > 0 ? (
+                  dayAssignments.map((assignment) => (
+                    <AssignmentCard
+                      key={assignment.id}
+                      assignment={assignment}
+                      canEdit={canEdit}
+                      onEdit={() => onEditAssignment(assignment)}
+                      onDelete={() => onDeleteAssignment(assignment.id)}
+                      onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
+                    />
+                  ))
+                ) : (
+                  <div className="p-4 border border-dashed rounded-md text-center text-gray-500">
+                    {t("planner.nothingPlannedToday")}
+                  </div>
+                )}
               </div>
             )}
           </div>
