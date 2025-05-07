@@ -1,161 +1,109 @@
 
-import React, { useState } from 'react';
-import {
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useForm } from 'react-hook-form';
 import { useToast } from '@/components/ui/use-toast';
-import { User } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
-import { useAuth } from '@/context/AuthContext';
-import { Eye, EyeOff } from 'lucide-react';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 interface PasswordChangeDialogProps {
-  currentUser: User | null;
-  onClose: () => void;
+  userId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onPasswordChange: (userId: string, newPassword: string) => Promise<void>;
 }
 
-const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
-  currentUser,
-  onClose,
-}) => {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const { resetPassword } = useAuth();
-  const { toast } = useToast();
-  const { t } = useTranslation();
-  const [error, setError] = useState<string | null>(null);
+interface PasswordForm {
+  password: string;
+  confirmPassword: string;
+}
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (newPassword !== confirmPassword) {
-      setError(t('admin.passwords.passwordsMustMatch'));
-      return;
-    }
-    
-    if (newPassword.length < 6) {
-      setError(t('admin.passwords.passwordTooShort'));
-      return;
-    }
-    
-    setError(null);
-    setIsLoading(true);
-    
+const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({ 
+  userId, 
+  open, 
+  onOpenChange,
+  onPasswordChange
+}) => {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  
+  const passwordSchema = z.object({
+    password: z.string().min(8, t('admin.passwordMinLength')),
+    confirmPassword: z.string()
+  }).refine(data => data.password === data.confirmPassword, {
+    message: t('admin.passwordsMustMatch'),
+    path: ['confirmPassword'],
+  });
+  
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<PasswordForm>({
+    resolver: zodResolver(passwordSchema)
+  });
+  
+  const onSubmit = async (data: PasswordForm) => {
     try {
-      if (currentUser) {
-        await resetPassword(currentUser.id, newPassword);
-        toast({
-          title: t('admin.passwords.resetSuccess'),
-          description: t('admin.passwords.resetDescription', { name: currentUser.name }),
-        });
-        onClose();
-      }
+      await onPasswordChange(userId, data.password);
+      toast({
+        title: t('admin.passwordChanged'),
+        description: t('admin.passwordChangedSuccess'),
+      });
+      reset();
+      onOpenChange(false);
     } catch (error) {
       toast({
+        variant: 'destructive',
         title: t('common.error'),
-        description: t('admin.passwords.resetError'),
-        variant: "destructive",
+        description: t('admin.passwordChangeFailed'),
       });
-    } finally {
-      setIsLoading(false);
+      console.error(error);
     }
   };
-
-  const toggleShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
-
+  
   return (
-    <DialogContent className="sm:max-w-[425px]">
-      <DialogHeader>
-        <DialogTitle>{t('admin.passwords.resetPasswordFor', { name: currentUser?.name })}</DialogTitle>
-        <DialogDescription>
-          {t('admin.passwords.enterNewPassword')}
-        </DialogDescription>
-      </DialogHeader>
-      
-      <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-        <div className="grid gap-2">
-          <Label htmlFor="newPassword">{t('admin.passwords.newPassword')}</Label>
-          <div className="relative">
-            <Input
-              id="newPassword"
-              type={showPassword ? "text" : "password"}
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full px-3"
-              onClick={toggleShowPassword}
-            >
-              {showPassword ? 
-                <EyeOff className="h-4 w-4" /> : 
-                <Eye className="h-4 w-4" />
-              }
-            </Button>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t('admin.changePassword')}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="password">{t('common.newPassword')}</Label>
+              <Input
+                id="password"
+                type="password"
+                {...register('password')}
+              />
+              {errors.password && (
+                <p className="text-sm text-red-500">{errors.password.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">{t('common.confirmPassword')}</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                {...register('confirmPassword')}
+              />
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+              )}
+            </div>
           </div>
-        </div>
-        
-        <div className="grid gap-2">
-          <Label htmlFor="confirmPassword">{t('admin.passwords.confirmPassword')}</Label>
-          <div className="relative">
-            <Input
-              id="confirmPassword"
-              type={showPassword ? "text" : "password"}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full px-3"
-              onClick={toggleShowPassword}
-            >
-              {showPassword ? 
-                <EyeOff className="h-4 w-4" /> : 
-                <Eye className="h-4 w-4" />
-              }
+          <DialogFooter className="mt-4">
+            <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
+              {t('common.cancel')}
             </Button>
-          </div>
-        </div>
-
-        {error && (
-          <p className="text-sm text-destructive">{error}</p>
-        )}
-        
-        <DialogFooter>
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onClose}
-          >
-            {t('common.cancel')}
-          </Button>
-          <Button 
-            type="submit" 
-            className="bg-polygon-blue hover:bg-polygon-darkblue"
-            disabled={isLoading}
-          >
-            {isLoading ? t('admin.passwords.resetting') : t('admin.passwords.resetPassword')}
-          </Button>
-        </DialogFooter>
-      </form>
-    </DialogContent>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? t('common.saving') : t('common.save')}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
