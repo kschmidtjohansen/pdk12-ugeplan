@@ -1,32 +1,58 @@
 
 import React from 'react';
-import { Clock, Edit, Trash2 } from 'lucide-react';
+import { Clock, Edit, Trash2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Assignment } from '../../types/assignment';
+import { usePermissions } from '@/context/AuthContext';
+import { useTranslation } from '@/context/TranslationContext';
 
 interface AssignmentCardProps {
   assignment: Assignment;
   canEdit: boolean;
   onEdit: (assignment: Assignment) => void;
   onDelete: () => void;
+  onPublish?: () => void;
 }
 
 const AssignmentCard: React.FC<AssignmentCardProps> = ({
   assignment,
   canEdit,
   onEdit,
-  onDelete
+  onDelete,
+  onPublish
 }) => {
+  const { canPublishTasks } = usePermissions();
+  const { t } = useTranslation();
+  const isPublished = assignment.published === true;
+
   return (
     <div className="w-full border rounded-md p-4 bg-white hover:border-polygon-purple transition-colors">
       <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
-        <h3 className="font-medium text-lg">{assignment.title}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="font-medium text-lg">{assignment.title}</h3>
+          {isPublished && (
+            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+              {t('planner.published')}
+            </Badge>
+          )}
+        </div>
         {canEdit && (
           <div className="flex gap-1">
             <Button variant="ghost" size="sm" onClick={() => onEdit(assignment)} className="h-8">
               <Edit className="h-4 w-4" />
             </Button>
+            {canPublishTasks && !isPublished && onPublish && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onPublish} 
+                className="h-8"
+                title={t('planner.publishAssignment')}
+              >
+                <Send className="h-4 w-4 text-polygon-blue" />
+              </Button>
+            )}
             <Button variant="ghost" size="sm" onClick={onDelete} className="h-8">
               <Trash2 className="h-4 w-4 text-red-500" />
             </Button>

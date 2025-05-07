@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePermissions } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import { Assignment, getCurrentWeek } from '../types/assignment';
@@ -54,11 +54,11 @@ const MOCK_VACATIONS: Vacation[] = [
 ];
 
 const PlannerPage: React.FC = () => {
-  const { canCreate } = usePermissions();
+  const { canCreate, canPublishTasks } = usePermissions();
   const { t, currentLanguage } = useTranslation();
   const initialWeek = getCurrentWeek();
   const [selectedWeek, setSelectedWeek] = useState<number>(initialWeek);
-  const { assignments, createAssignment, updateAssignment, deleteAssignment } = usePlannerAssignments(selectedWeek);
+  const { assignments, createAssignment, updateAssignment, deleteAssignment, publishAssignment, publishAssignments } = usePlannerAssignments(selectedWeek);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const [vacations] = useState<Vacation[]>(MOCK_VACATIONS);
@@ -70,6 +70,14 @@ const PlannerPage: React.FC = () => {
   
   const weekDateRange = `${format(weekDates.start, dateFormat, { locale })} - ${format(weekDates.end, dateFormat, { locale })}`;
   
+  // Current date in YYYY-MM-DD format for filtering today's tasks
+  const today = format(new Date(), 'yyyy-MM-dd');
+  
+  // Get unpublished tasks for today
+  const unpublishedTodayTasks = assignments.filter(
+    assignment => assignment.date === today && assignment.published !== true
+  );
+
   const handleCreateNew = () => {
     setCurrentAssignment(null);
     setDialogOpen(true);
@@ -94,6 +102,7 @@ const PlannerPage: React.FC = () => {
         ...formData,
         id: Date.now().toString(),
         employees: selectedEmployees,
+        published: false
       } as Assignment;
       createAssignment(newAssignment);
     }
@@ -107,6 +116,13 @@ const PlannerPage: React.FC = () => {
     setSelectedWeek(prevWeek => prevWeek < 52 ? prevWeek + 1 : 1);
   };
 
+  const handlePublishTodayTasks = () => {
+    const taskIds = unpublishedTodayTasks.map(task => task.id);
+    if (taskIds.length > 0) {
+      publishAssignments(taskIds);
+    }
+  };
+
   return (
     <div className="w-full max-w-full h-full flex flex-col">
       <PlannerHeader 
@@ -116,6 +132,8 @@ const PlannerPage: React.FC = () => {
         onCreateNew={handleCreateNew}
         onPreviousWeek={handlePreviousWeek}
         onNextWeek={handleNextWeek}
+        onPublishTodayTasks={canPublishTasks ? handlePublishTodayTasks : undefined}
+        hasTasksToPublishToday={unpublishedTodayTasks.length > 0}
       />
 
       <div className="w-full flex-grow mt-6">
@@ -123,7 +141,9 @@ const PlannerPage: React.FC = () => {
           assignments={assignments}
           onEditAssignment={handleEdit}
           onDeleteAssignment={deleteAssignment}
+          onPublishAssignment={canPublishTasks ? publishAssignment : undefined}
           onCreateAssignment={handleCreateNew}
+          selectedWeek={selectedWeek}
         />
       </div>
 

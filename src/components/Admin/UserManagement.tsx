@@ -19,6 +19,7 @@ import { Employee } from '@/types/employee';
 import UserTable from './UserTable';
 import UserFormDialog from './UserFormDialog';
 import UserDeleteDialog from './UserDeleteDialog';
+import PasswordChangeDialog from './PasswordChangeDialog';
 
 // Mock users for display with extended properties
 const mockUsers: (User & Partial<Employee>)[] = [
@@ -70,6 +71,7 @@ const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<(User & Partial<Employee>)[]>(mockUsers);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<(User & Partial<Employee>) | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -121,6 +123,11 @@ const UserManagement: React.FC = () => {
   const handleDeleteUser = (user: User & Partial<Employee>) => {
     setCurrentUser(user);
     setDeleteDialogOpen(true);
+  };
+
+  const handleResetPassword = (user: User & Partial<Employee>) => {
+    setCurrentUser(user);
+    setPasswordDialogOpen(true);
   };
 
   const confirmDeleteUser = () => {
@@ -204,6 +211,7 @@ const UserManagement: React.FC = () => {
             users={users}
             onEditUser={handleEditUser}
             onDeleteUser={handleDeleteUser}
+            onResetPassword={handleResetPassword}
             getRoleLabel={getRoleLabel}
             getInitials={getInitials}
           />
@@ -229,6 +237,14 @@ const UserManagement: React.FC = () => {
           onConfirmDelete={confirmDeleteUser}
         />
       </AlertDialog>
+
+      {/* Password Change Dialog */}
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <PasswordChangeDialog
+          currentUser={currentUser}
+          onClose={() => setPasswordDialogOpen(false)}
+        />
+      </Dialog>
     </>
   );
 };

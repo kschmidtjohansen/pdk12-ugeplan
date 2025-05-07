@@ -16,6 +16,7 @@ interface UserTableProps {
   users: (User & Partial<Employee>)[];
   onEditUser: (user: User & Partial<Employee>) => void;
   onDeleteUser: (user: User & Partial<Employee>) => void;
+  onResetPassword: (user: User & Partial<Employee>) => void;
   getRoleLabel: (role: UserRole) => string;
   getInitials: (name: string) => string;
 }
@@ -24,6 +25,7 @@ const UserTable: React.FC<UserTableProps> = ({
   users,
   onEditUser,
   onDeleteUser,
+  onResetPassword,
   getRoleLabel,
   getInitials,
 }) => {
@@ -48,6 +50,7 @@ const UserTable: React.FC<UserTableProps> = ({
             user={user}
             onEdit={onEditUser}
             onDelete={onDeleteUser}
+            onResetPassword={onResetPassword}
             getRoleLabel={getRoleLabel}
             getInitials={getInitials}
           />

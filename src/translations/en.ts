@@ -32,7 +32,20 @@ const translations = {
     success: 'Login successful',
     welcomeMessage: 'Welcome to Polygon Weekly Compass',
     internalSystem: 'Internal Planning System',
-    testCredentials: 'For testing, use the following credentials:'
+    testCredentials: 'For testing, use the following credentials:',
+    passwordReset: {
+      forgotPassword: 'Forgot password?',
+      title: 'Reset Password',
+      description: 'Enter your email address and we\'ll send you a link to reset your password.',
+      button: 'Send Reset Link',
+      buttonLoading: 'Sending...',
+      emailSentTitle: 'Email Sent',
+      emailSentDescription: 'Check your inbox for the password reset link.',
+      emailError: 'Could not send reset email. Please try again.',
+      successMessage: 'Password reset link has been sent!',
+      checkEmail: 'Check your email for a link to reset your password. If it doesn\'t appear within a few minutes, check your spam folder.',
+      backToLogin: 'Back to login'
+    }
   },
   navigation: {
     dashboard: 'Dashboard',
@@ -106,7 +119,15 @@ const translations = {
     onVacation: 'On Vacation',
     previousWeek: 'Previous Week',
     nextWeek: 'Next Week',
-    hasTrailerHitch: 'Has Trailer Hitch'
+    hasTrailerHitch: 'Has Trailer Hitch',
+    published: 'Published',
+    notPublished: 'Not Published',
+    publishAssignment: 'Publish Assignment',
+    publishTodayTasks: 'Publish Today\'s Tasks',
+    assignmentPublished: 'Assignment published',
+    assignmentsPublished: 'Assignments published',
+    assignmentPublishedMsg: 'The assignment is now visible to service employees.',
+    assignmentsPublishedMsg: 'The assignments are now visible to service employees.'
   },
   vacation: {
     pageDescription: 'Apply for and manage vacation time',
@@ -165,7 +186,9 @@ const translations = {
       vehicles: 'Vehicles',
       vehiclesDesc: '3 in use now',
       vacationRequests: 'Vacation Requests',
-      vacationRequestsDesc: '2 pending approval'
+      vacationRequestsDesc: '2 pending approval',
+      scheduledTasks: 'Scheduled Tasks',
+      scheduledTasksDesc: 'Tasks for this week'
     },
     userManagement: {
       title: 'User Management',
@@ -189,6 +212,19 @@ const translations = {
       userDeletedMsg: '{name}\'s account has been removed.',
       deleteConfirm: 'Are you sure?',
       deleteWarning: 'You are about to delete {name}\'s account. This action cannot be undone.'
+    },
+    passwords: {
+      resetPasswordFor: 'Reset Password for {name}',
+      enterNewPassword: 'Enter a new password for this user.',
+      newPassword: 'New Password',
+      confirmPassword: 'Confirm Password',
+      resetPassword: 'Reset Password',
+      resetting: 'Resetting...',
+      resetSuccess: 'Password Reset',
+      resetDescription: '{name}\'s password has been reset successfully.',
+      resetError: 'Could not reset password. Please try again.',
+      passwordsMustMatch: 'Passwords must match.',
+      passwordTooShort: 'Password must be at least 6 characters.'
     },
     roles: {
       administrator: 'Administrator',

@@ -9,6 +9,7 @@ export interface Assignment {
   location: string;
   car: string;
   employees: string[];
+  published?: boolean;
 }
 
 export interface GroupedAssignments {
@@ -18,11 +19,37 @@ export interface GroupedAssignments {
 // Helper functions
 export const getCurrentWeek = (): number => {
   const now = new Date();
-  const onejan = new Date(now.getFullYear(), 0, 1);
-  const weekNum = Math.ceil(
-    ((now.getTime() - onejan.getTime()) / 86400000 + onejan.getDay() + 1) / 7
-  );
-  return weekNum;
+  // ISO 8601 week calculation - week starts on Monday
+  const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
+  // Get day of week (0-Sunday to 6-Saturday)
+  const dayOfWeek = firstDayOfYear.getDay(); 
+  // Adjust the day of week to ISO standard (1-Monday to 7-Sunday)
+  const isoDay = dayOfWeek === 0 ? 7 : dayOfWeek;
+  // Calculate first monday of year
+  const firstMonday = new Date(now.getFullYear(), 0, 1 + (8 - isoDay));
+  
+  // If the date is before the first Monday, it's in week 52/53 of the previous year
+  if (now < firstMonday) {
+    const lastDayOfPrevYear = new Date(now.getFullYear() - 1, 11, 31);
+    return getCurrentWeekOfYear(lastDayOfPrevYear);
+  }
+  
+  return getCurrentWeekOfYear(now);
+};
+
+// Helper function to calculate ISO week number
+const getCurrentWeekOfYear = (date: Date): number => {
+  // Create a copy of the date
+  const d = new Date(date.getTime());
+  
+  // Set to the nearest Thursday (to match ISO 8601 week definition)
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  
+  // Get first day of year
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  
+  // Calculate full weeks from first day of year to the Thursday
+  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 };
 
 export const groupByDate = (assignments: Assignment[]): GroupedAssignments => {

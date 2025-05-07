@@ -12,6 +12,7 @@ export interface User {
   role: UserRole;
   phone?: string;
   jobTitle?: string;
+  password?: string; // Used only for admin management, not stored client-side in production
 }
 
 // Auth context interface
@@ -19,6 +20,8 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  requestPasswordReset: (email: string) => Promise<void>;
+  resetPassword: (userId: string, newPassword: string) => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -34,7 +37,8 @@ const MOCK_USERS: User[] = [
     email: "admin@polygongroup.com",
     role: "administrator",
     phone: "+45 12 34 56 78",
-    jobTitle: "System Administrator"
+    jobTitle: "System Administrator",
+    password: "password" // For development only
   },
   {
     id: "2",
@@ -42,7 +46,8 @@ const MOCK_USERS: User[] = [
     email: "skadeleder@polygongroup.com",
     role: "skadeleder",
     phone: "+45 23 45 67 89",
-    jobTitle: "Team Leader"
+    jobTitle: "Team Leader",
+    password: "password" // For development only
   },
   {
     id: "3",
@@ -50,7 +55,8 @@ const MOCK_USERS: User[] = [
     email: "service@polygongroup.com",
     role: "servicemedarbejder",
     phone: "+45 34 56 78 90",
-    jobTitle: "Field Technician"
+    jobTitle: "Field Technician",
+    password: "password" // For development only
   },
 ];
 
@@ -79,9 +85,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setTimeout(() => {
         const foundUser = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
         
-        if (foundUser && password === "password") {
-          setUser(foundUser);
-          localStorage.setItem("polygonUser", JSON.stringify(foundUser));
+        if (foundUser && password === foundUser.password) {
+          // Don't include password in the user object stored in state/localStorage
+          const { password: _, ...userWithoutPassword } = foundUser;
+          setUser(userWithoutPassword);
+          localStorage.setItem("polygonUser", JSON.stringify(userWithoutPassword));
           setIsLoading(false);
           resolve();
         } else {
@@ -98,12 +106,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.removeItem("polygonUser");
   };
 
+  // Password reset request function
+  const requestPasswordReset = async (email: string) => {
+    setIsLoading(true);
+    
+    return new Promise<void>((resolve, reject) => {
+      setTimeout(() => {
+        const foundUser = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+        
+        if (foundUser) {
+          // In a real app, this would send an email
+          console.log(`Password reset requested for ${email}`);
+          setIsLoading(false);
+          resolve();
+        } else {
+          setIsLoading(false);
+          reject(new Error("User not found"));
+        }
+      }, 1000);
+    });
+  };
+
+  // Admin reset password function
+  const resetPassword = async (userId: string, newPassword: string) => {
+    setIsLoading(true);
+    
+    return new Promise<void>((resolve, reject) => {
+      setTimeout(() => {
+        const userIndex = MOCK_USERS.findIndex(u => u.id === userId);
+        
+        if (userIndex !== -1) {
+          // Update password in mock users array
+          MOCK_USERS[userIndex] = {
+            ...MOCK_USERS[userIndex],
+            password: newPassword
+          };
+          console.log(`Password has been reset for user ${userId}`);
+          setIsLoading(false);
+          resolve();
+        } else {
+          setIsLoading(false);
+          reject(new Error("User not found"));
+        }
+      }, 500);
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user,
         login,
         logout,
+        requestPasswordReset,
+        resetPassword,
         isAuthenticated: !!user,
         isLoading,
       }}
@@ -139,6 +195,10 @@ export const usePermissions = () => {
     // Vacation specific permissions
     canApproveVacation: user?.role === "administrator",
     canViewAllVacations: user?.role === "administrator" || user?.role === "skadeleder",
+    
+    // Task visibility
+    canSeeUnpublishedTasks: user?.role === "administrator" || user?.role === "skadeleder",
+    canPublishTasks: user?.role === "administrator" || user?.role === "skadeleder",
     
     // Helper function to check if user has a specific role or higher
     hasRole: (minimumRole: UserRole): boolean => {

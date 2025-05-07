@@ -11,6 +11,7 @@ interface AssignmentListProps {
   assignments: Assignment[];
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
+  onPublishAssignment?: (assignmentId: string) => void;
   onCreateAssignment: () => void;
   selectedWeek?: number;
 }
@@ -19,15 +20,21 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   assignments,
   onEditAssignment,
   onDeleteAssignment,
+  onPublishAssignment,
   onCreateAssignment,
   selectedWeek
 }) => {
-  const { canEdit, canCreate } = usePermissions();
+  const { canEdit, canCreate, canSeeUnpublishedTasks } = usePermissions();
   const { t } = useTranslation();
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
 
+  // Filter assignments based on user permissions
+  const visibleAssignments = canSeeUnpublishedTasks 
+    ? assignments 
+    : assignments.filter(assignment => assignment.published === true);
+
   // Group assignments by date
-  const groupedAssignments = assignments.reduce<Record<string, Assignment[]>>(
+  const groupedAssignments = visibleAssignments.reduce<Record<string, Assignment[]>>(
     (acc, assignment) => {
       const dateKey = formatDate(new Date(assignment.date), 'yyyy-MM-dd');
       if (!acc[dateKey]) {
@@ -64,7 +71,8 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
     return formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
   };
 
-  if (assignments.length === 0) {
+  // Check if there are any visible assignments after filtering
+  if (visibleAssignments.length === 0) {
     return <EmptyState onCreateNew={onCreateAssignment} canCreate={canCreate} selectedWeek={selectedWeek} />;
   }
 
@@ -97,6 +105,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
                     canEdit={canEdit}
                     onEdit={() => onEditAssignment(assignment)}
                     onDelete={() => onDeleteAssignment(assignment.id)}
+                    onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
                   />
                 ))}
               </div>

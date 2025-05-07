@@ -2,8 +2,10 @@
 import React from 'react';
 import PageHeader from '../Layout/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Send } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
+import { usePermissions } from '@/context/AuthContext';
+import { format } from 'date-fns';
 
 interface PlannerHeaderProps {
   currentWeek: number;
@@ -12,6 +14,8 @@ interface PlannerHeaderProps {
   onCreateNew: () => void;
   onPreviousWeek: () => void;
   onNextWeek: () => void;
+  onPublishTodayTasks?: () => void;
+  hasTasksToPublishToday?: boolean;
 }
 
 const PlannerHeader: React.FC<PlannerHeaderProps> = ({
@@ -20,18 +24,35 @@ const PlannerHeader: React.FC<PlannerHeaderProps> = ({
   canCreate,
   onCreateNew,
   onPreviousWeek,
-  onNextWeek
+  onNextWeek,
+  onPublishTodayTasks,
+  hasTasksToPublishToday = false
 }) => {
   const { t } = useTranslation();
+  const { canPublishTasks } = usePermissions();
+  
+  // Check if today is within the current week
+  const today = format(new Date(), 'yyyy-MM-dd');
 
   return (
     <div className="space-y-4">
       <PageHeader title={t("navigation.planner")} description={t("planner.weekDescription", {
         week: currentWeek
       })}>
-        {canCreate && <Button onClick={onCreateNew} className="bg-polygon-blue">
-          <Plus className="mr-2 h-4 w-4" /> {t("planner.newAssignment")}
-        </Button>}
+        <div className="flex gap-2">
+          {canCreate && <Button onClick={onCreateNew} className="bg-polygon-blue">
+            <Plus className="mr-2 h-4 w-4" /> {t("planner.newAssignment")}
+          </Button>}
+          
+          {canPublishTasks && hasTasksToPublishToday && onPublishTodayTasks && (
+            <Button 
+              onClick={onPublishTodayTasks} 
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Send className="mr-2 h-4 w-4" /> {t("planner.publishTodayTasks")}
+            </Button>
+          )}
+        </div>
       </PageHeader>
       
       <div className="flex flex-col md:flex-row justify-between items-center w-full">

@@ -30,7 +30,15 @@ const planner = {
   onVacation: 'Har fri',
   previousWeek: 'Forrige Uge',
   nextWeek: 'Næste Uge',
-  hasTrailerHitch: 'Har anhængertræk'
+  hasTrailerHitch: 'Har anhængertræk',
+  published: 'Publiceret',
+  notPublished: 'Ikke publiceret',
+  publishAssignment: 'Publicer opgave',
+  publishTodayTasks: 'Publicer dagens opgaver',
+  assignmentPublished: 'Opgave publiceret',
+  assignmentsPublished: 'Opgaver publiceret',
+  assignmentPublishedMsg: 'Opgaven er nu synlig for servicemedarbejdere.',
+  assignmentsPublishedMsg: 'Opgaverne er nu synlige for servicemedarbejdere.'
 };
 
 export default planner;

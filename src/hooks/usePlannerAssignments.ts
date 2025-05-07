@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
-import { startOfWeek, endOfWeek, isWithinInterval, parseISO } from 'date-fns';
+import { startOfWeek, endOfWeek, addDays, isWithinInterval, parseISO, format } from 'date-fns';
+import { da } from 'date-fns/locale';
 
 // Mock data
 const initialAssignments = [
@@ -17,6 +18,7 @@ const initialAssignments = [
     location: 'Aarhus Central',
     car: 'Van 1',
     employees: ['John Doe'],
+    published: true
   },
   {
     id: '2',
@@ -28,6 +30,7 @@ const initialAssignments = [
     location: 'København Syd',
     car: 'Truck 3',
     employees: ['Jane Smith'],
+    published: false
   },
   {
     id: '3',
@@ -39,6 +42,7 @@ const initialAssignments = [
     location: 'Odense Øst',
     car: 'Van 2',
     employees: ['Mike Johnson', 'Anna Williams'],
+    published: false
   },
   {
     id: '4',
@@ -50,6 +54,7 @@ const initialAssignments = [
     location: 'Aalborg',
     car: 'Van 1',
     employees: ['John Doe'],
+    published: false
   },
   {
     id: '5',
@@ -61,31 +66,37 @@ const initialAssignments = [
     location: 'Esbjerg',
     car: 'Sedan 1',
     employees: ['Jane Smith'],
+    published: false
   },
 ];
 
 export const getWeekDates = (weekNumber: number, year: number = new Date().getFullYear()) => {
-  // Create a date for January 1st of the given year
-  const januaryFirst = new Date(year, 0, 1);
+  // Calculate the first day of the first week of the year
+  // In ISO-8601, the first week is the one that contains the first Thursday of the year
+  const firstDayOfYear = new Date(year, 0, 1);
+  const dayOfWeek = firstDayOfYear.getDay() || 7; // Convert Sunday (0) to 7 for ISO week
   
-  // Calculate days to first week
-  // If January 1st is not a Monday, find the first Monday
-  const daysOffset = (8 - januaryFirst.getDay()) % 7;
+  // Days to add to get to the first Monday of the year
+  const daysToAdd = (8 - dayOfWeek) % 7;
   
-  // Calculate the date of the first day of the given week
-  const firstDayOfWeek = new Date(year, 0, 1 + daysOffset + (weekNumber - 1) * 7);
+  // First Monday of the year
+  const firstMonday = new Date(year, 0, 1 + daysToAdd);
   
-  // Calculate the last day of the week (6 days after the first day)
-  const lastDayOfWeek = new Date(firstDayOfWeek);
-  lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+  // Add (weekNumber - 1) weeks to get to the requested week's Monday
+  const monday = new Date(firstMonday);
+  monday.setDate(firstMonday.getDate() + (weekNumber - 1) * 7);
   
-  return { start: firstDayOfWeek, end: lastDayOfWeek };
+  // Calculate Sunday by adding 6 days
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  
+  return { start: monday, end: sunday };
 };
 
 export const usePlannerAssignments = (selectedWeek?: number) => {
   const [assignments, setAssignments] = useState<Assignment[]>(initialAssignments);
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
 
   // Filter assignments by the selected week
   const filteredAssignments = selectedWeek 
@@ -126,10 +137,36 @@ export const usePlannerAssignments = (selectedWeek?: number) => {
     });
   };
 
+  const publishAssignments = (assignmentIds: string[]) => {
+    setAssignments(
+      assignments.map((a) =>
+        assignmentIds.includes(a.id) ? { ...a, published: true } : a
+      )
+    );
+    toast({
+      title: t("planner.assignmentsPublished"),
+      description: t("planner.assignmentsPublishedMsg"),
+    });
+  };
+
+  const publishAssignment = (assignmentId: string) => {
+    setAssignments(
+      assignments.map((a) =>
+        a.id === assignmentId ? { ...a, published: true } : a
+      )
+    );
+    toast({
+      title: t("planner.assignmentPublished"),
+      description: t("planner.assignmentPublishedMsg"),
+    });
+  };
+
   return {
     assignments: filteredAssignments,
     createAssignment,
     updateAssignment,
-    deleteAssignment
+    deleteAssignment,
+    publishAssignments,
+    publishAssignment
   };
 };

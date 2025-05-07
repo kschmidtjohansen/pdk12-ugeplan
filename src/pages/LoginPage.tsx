@@ -8,11 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import PasswordResetDialog from '@/components/Auth/PasswordResetDialog';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const { login } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -38,6 +40,10 @@ const LoginPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleForgotPassword = () => {
+    setResetDialogOpen(true);
   };
 
   return (
@@ -74,7 +80,17 @@ const LoginPage: React.FC = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">{t('common.password')}</Label>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="password">{t('common.password')}</Label>
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto text-sm" 
+                    onClick={handleForgotPassword}
+                    type="button"
+                  >
+                    {t('login.passwordReset.forgotPassword')}
+                  </Button>
+                </div>
                 <Input
                   id="password"
                   type="password"
@@ -106,6 +122,11 @@ const LoginPage: React.FC = () => {
           </ul>
         </div>
       </div>
+
+      <PasswordResetDialog
+        open={resetDialogOpen}
+        onOpenChange={setResetDialogOpen}
+      />
     </div>
   );
 };
