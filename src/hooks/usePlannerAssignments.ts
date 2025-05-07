@@ -4,25 +4,41 @@ import { useAssignments } from './useAssignments';
 import { useAssignmentPublishing } from './useAssignmentPublishing';
 import { useAssignmentFilters } from './useAssignmentFilters';
 import { getWeekDates } from '@/utils/dateUtils';
+import { Assignment } from '@/types/assignment';
 
 // Main hook combining all assignment-related functionality
 export const usePlannerAssignments = (selectedWeek?: number) => {
-  const { assignments, createAssignment, updateAssignment, deleteAssignment } = useAssignments();
-  const { publishAssignments, publishAssignment, publishAssignmentsByDate } = useAssignmentPublishing(
-    assignments, 
-    // Pass setAssignments from useAssignments
-    // This is a workaround since we need access to state setter from another hook
-    (newAssignments) => useAssignments().assignments
+  const { 
+    assignments: allAssignments, 
+    createAssignment, 
+    updateAssignment, 
+    deleteAssignment 
+  } = useAssignments();
+  
+  // Function to update assignments array that we pass to the publishing hook
+  const updateAssignments = (updatedAssignments: Assignment[]) => {
+    // Map through each assignment and update it individually to preserve proper state updates
+    updatedAssignments.forEach(updated => {
+      updateAssignment(updated);
+    });
+  };
+  
+  // Pass the update function to the publishing hook
+  const { 
+    publishAssignments, 
+    publishAssignment, 
+    publishAssignmentsByDate 
+  } = useAssignmentPublishing(
+    allAssignments,
+    updateAssignments
   );
+  
   const { filterByWeek } = useAssignmentFilters();
   
   // Filter assignments by the selected week
   const filteredAssignments = selectedWeek 
-    ? filterByWeek(assignments, selectedWeek)
-    : assignments;
-
-  // Re-export the week dates calculation utility
-  const getWeekDatesUtil = getWeekDates;
+    ? filterByWeek(allAssignments, selectedWeek)
+    : allAssignments;
 
   return {
     assignments: filteredAssignments,
@@ -32,6 +48,6 @@ export const usePlannerAssignments = (selectedWeek?: number) => {
     publishAssignments,
     publishAssignment,
     publishAssignmentsByDate,
-    getWeekDates: getWeekDatesUtil
+    getWeekDates
   };
 };

@@ -14,7 +14,7 @@ export const getUnpublishedAssignment = (assignment: Assignment) => {
 // Hook for publishing assignments
 export const useAssignmentPublishing = (
   assignments: Assignment[], 
-  setAssignments: React.Dispatch<React.SetStateAction<Assignment[]>>
+  updateAssignments: (updatedAssignments: Assignment[]) => void
 ) => {
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -24,7 +24,7 @@ export const useAssignmentPublishing = (
       a.date === date ? { ...a, published: true } : a
     );
     
-    setAssignments(updatedAssignments);
+    updateAssignments(updatedAssignments);
     toast({
       title: t("planner.assignmentsPublished"),
       description: t("planner.assignmentsPublishedMsg"),
@@ -32,11 +32,11 @@ export const useAssignmentPublishing = (
   };
 
   const publishAssignments = (assignmentIds: string[]) => {
-    setAssignments(
-      assignments.map((a) =>
-        assignmentIds.includes(a.id) ? { ...a, published: true } : a
-      )
+    const updatedAssignments = assignments.map((a) =>
+      assignmentIds.includes(a.id) ? { ...a, published: true } : a
     );
+    
+    updateAssignments(updatedAssignments);
     toast({
       title: t("planner.assignmentsPublished"),
       description: t("planner.assignmentsPublishedMsg"),
@@ -44,11 +44,11 @@ export const useAssignmentPublishing = (
   };
 
   const publishAssignment = (assignmentId: string) => {
-    setAssignments(
-      assignments.map((a) =>
-        a.id === assignmentId ? { ...a, published: true } : a
-      )
+    const updatedAssignments = assignments.map((a) =>
+      a.id === assignmentId ? { ...a, published: true } : a
     );
+    
+    updateAssignments(updatedAssignments);
     toast({
       title: t("planner.assignmentPublished"),
       description: t("planner.assignmentPublishedMsg"),
