@@ -76,6 +76,7 @@ const PlannerPage: React.FC = () => {
   };
 
   // Create a wrapper function that calls publishAssignmentsByDate with the selectedDay
+  // This function takes no parameters to match the expected signature
   const handlePublishDay = () => {
     if (selectedDay) {
       publishAssignmentsByDate(selectedDay);

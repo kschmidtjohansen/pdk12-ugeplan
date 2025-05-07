@@ -14,7 +14,7 @@ interface AssignmentListProps {
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
-  onPublishDay?: (date: string) => void;
+  onPublishDay?: () => void;  // Updated to match the expected signature
   onCreateAssignment: () => void;
   selectedWeek?: number;
 }
