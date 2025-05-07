@@ -37,13 +37,13 @@ const App = () => (
                   <Route path="/Biler" element={<CarsPage />} />
                   <Route path="/Fridage" element={<VacationPage />} />
                   <Route path="/admin" element={<AdminPage />} />
-                  {/* Keep backward compatibility with old routes */}
+                  {/* Keep backward compatibility with old routes 
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/planner" element={<PlannerPage />} />
                   <Route path="/employees" element={<EmployeesPage />} />
                   <Route path="/cars" element={<CarsPage />} />
                   <Route path="/vacation" element={<VacationPage />} />
-                  <Route path="*" element={<NotFound />} />
+                  <Route path="*" element={<NotFound />} /> */}
                 </Routes>
               </MainLayout>
             </BrowserRouter>
