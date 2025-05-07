@@ -31,28 +31,7 @@ const dashboard = {
     fireDamage: 'Brandskade restaurering',
     mold: 'Skimmelsvamp vurdering'
   },
-  location: 'Lokation',
-  
-  // New metrics translations
-  metrics: {
-    todayTasks: 'Dagens opgaver',
-    tasksDescription: 'Planlagte opgaver i dag',
-    activeEmployees: 'Aktive medarbejdere',
-    employeesDescription: 'Medarbejdere på vagt i dag',
-    activeCars: 'Aktive køretøjer',
-    carsDescription: 'Køretøjer i brug i dag',
-    onVacation: 'På ferie',
-    vacationDescription: 'Medarbejdere på ferie'
-  },
-  
-  // Dashboard widgets
-  assignmentDistribution: 'Opgavefordeling',
-  upcomingVacations: 'Kommende ferier',
-  vehicleStatus: 'Køretøjsstatus',
-  currentlyOnLeave: 'På ferie nu',
-  startingSoon: 'Starter snart',
-  inUse: 'I brug',
-  available: 'Tilgængelig'
+  location: 'Lokation'
 };
 
 export default dashboard;

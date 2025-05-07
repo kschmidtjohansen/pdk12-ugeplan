@@ -1,14 +1,14 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import PageHeader from '../components/Layout/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Users, Car, Clock, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import { getCurrentWeek } from '@/types/assignment';
-import Dashboard from '@/components/Dashboard/Dashboard';
 
 // Import assignments from planner hook to reuse the mock data
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
@@ -41,6 +41,37 @@ const DashboardPage: React.FC = () => {
       day: 'numeric'
     });
   };
+
+  // Quick access items based on user role
+  const getQuickAccessItems = () => {
+    const baseItems = [{
+      title: t('dashboard.quickAccess.planner.title'),
+      icon: <Clock className="h-10 w-10" />,
+      description: t('dashboard.quickAccess.planner.description'),
+      link: '/planner'
+    }, {
+      title: t('dashboard.quickAccess.vacation.title'),
+      icon: <Calendar className="h-10 w-10 text-polygon-blue" />,
+      description: t('dashboard.quickAccess.vacation.description'),
+      link: '/vacation'
+    }];
+
+    // Add role-specific items
+    if (user?.role === 'administrator' || user?.role === 'skadeleder') {
+      baseItems.push({
+        title: t('dashboard.quickAccess.employees.title'),
+        icon: <Users className="h-10 w-10" />,
+        description: t('dashboard.quickAccess.employees.description'),
+        link: '/employees'
+      }, {
+        title: t('dashboard.quickAccess.cars.title'),
+        icon: <Car className="h-10 w-10" />,
+        description: t('dashboard.quickAccess.cars.description'),
+        link: '/cars'
+      });
+    }
+    return baseItems;
+  };
   
   return (
     <>
@@ -52,11 +83,23 @@ const DashboardPage: React.FC = () => {
         })} 
       />
 
-      {/* Dashboard Component */}
-      <Dashboard />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {getQuickAccessItems().map((item, index) => (
+          <Link key={index} to={item.link} className="block">
+            <Card className="h-full hover:border-polygon-blue transition-all duration-200">
+              <CardHeader className="pb-2">
+                <div className="text-polygon-blue">{item.icon}</div>
+                <CardTitle className="mt-2">{item.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <p className="text-muted-foreground text-sm">{item.description}</p>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
 
-      {/* My Assignments Section - Kept from original implementation */}
-      <Card className="my-8">
+      <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
             <span>
