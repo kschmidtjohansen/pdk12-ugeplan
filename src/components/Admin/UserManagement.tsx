@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -241,8 +240,9 @@ const UserManagement: React.FC = () => {
       {/* Password Change Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
         <PasswordChangeDialog
-          currentUser={currentUser}
-          onClose={() => setPasswordDialogOpen(false)}
+          userId={currentUser?.id || ''}
+          open={passwordDialogOpen}
+          onOpenChange={setPasswordDialogOpen}
         />
       </Dialog>
     </>
