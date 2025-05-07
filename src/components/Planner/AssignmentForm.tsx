@@ -33,7 +33,7 @@ interface AssignmentFormProps {
   vacations: Vacation[];
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
-  handleEmployeeToggle: (employeeId: string) => void;
+  handleEmployeeToggle: (employeeName: string) => void;
   handleSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
 }
@@ -52,9 +52,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   onClose,
 }) => {
   const { t } = useTranslation();
-  
-  // Parse the date from formData to create a Date object for the assignment date
-  const assignmentDate = formData.date ? new Date(formData.date) : null;
   
   return (
     <DialogContent className="max-w-md">
@@ -168,10 +165,13 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           <EmployeeSelector 
             employees={employees}
             selectedEmployees={selectedEmployees}
-            onChange={handleEmployeeToggle}
+            onToggle={handleEmployeeToggle}
             vacations={vacations}
-            assignmentDate={assignmentDate}
+            currentDate={formData.date}
           />
+          {selectedEmployees.length === 0 && (
+            <p className="text-sm text-red-500">{t("planner.selectAtLeastOneEmployee")}</p>
+          )}
         </div>
         
         <DialogFooter>

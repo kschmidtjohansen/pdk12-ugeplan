@@ -26,15 +26,11 @@ const AdminPage: React.FC = () => {
   };
 
   const handleVehiclesClick = () => {
-    navigate('/biler');
+    navigate('/cars');
   };
 
   const handleVacationClick = () => {
-    navigate('/fridage');
-  };
-  
-  const handleTasksClick = () => {
-    navigate('/ugeplan');
+    navigate('/vacation');
   };
 
   return (
@@ -54,7 +50,6 @@ const AdminPage: React.FC = () => {
             onUsersClick={handleUsersClick}
             onVehiclesClick={handleVehiclesClick}
             onVacationClick={handleVacationClick}
-            onTasksClick={handleTasksClick}
           />
         </TabsContent>
         <TabsContent value="users" className="mt-6">

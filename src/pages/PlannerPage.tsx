@@ -8,7 +8,6 @@ import { Employee } from '../types/employee';
 import { usePlannerAssignments, getWeekDates } from '@/hooks/usePlannerAssignments';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
-import { useVacations } from '@/hooks/useVacations';
 
 // Import custom components
 import PlannerHeader from '../components/Planner/PlannerHeader';
@@ -30,6 +29,30 @@ const MOCK_CARS = [
   { id: '4', name: 'Sedan 1', hasTrailerHitch: false },
 ];
 
+// Mock vacations for employee availability feature
+const MOCK_VACATIONS: Vacation[] = [
+  {
+    id: '1',
+    employeeId: '1',
+    employeeName: 'John Doe',
+    startDate: new Date('2025-05-10'),
+    endDate: new Date('2025-05-15'),
+    reason: 'Annual leave',
+    status: 'approved',
+    createdAt: new Date('2025-04-01'),
+  },
+  {
+    id: '2',
+    employeeId: '2',
+    employeeName: 'Jane Smith',
+    startDate: new Date('2025-05-06'),  // On vacation during the first assignment
+    endDate: new Date('2025-05-13'),
+    reason: 'Family vacation',
+    status: 'approved',
+    createdAt: new Date('2025-04-15'),
+  },
+];
+
 const PlannerPage: React.FC = () => {
   const { canCreate } = usePermissions();
   const { t, currentLanguage } = useTranslation();
@@ -38,7 +61,7 @@ const PlannerPage: React.FC = () => {
   const { assignments, createAssignment, updateAssignment, deleteAssignment } = usePlannerAssignments(selectedWeek);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
-  const { vacations } = useVacations();
+  const [vacations] = useState<Vacation[]>(MOCK_VACATIONS);
   
   // Calculate week dates
   const weekDates = getWeekDates(selectedWeek);

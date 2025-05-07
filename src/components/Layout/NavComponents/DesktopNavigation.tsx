@@ -3,7 +3,6 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { NavigationItem } from '../../../types/navigation';
-import { useTranslation } from '@/context/TranslationContext';
 
 interface DesktopNavigationProps {
   items: NavigationItem[];
@@ -11,7 +10,6 @@ interface DesktopNavigationProps {
 
 const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
   const location = useLocation();
-  const { t } = useTranslation();
   
   return (
     <div className="hidden md:ml-6 md:flex md:space-x-4">
@@ -27,7 +25,7 @@ const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
           )}
         >
           <span className="mr-2">{item.icon}</span>
-          <span>{t(item.translationKey)}</span>
+          <span>{item.name}</span>
         </Link>
       ))}
     </div>

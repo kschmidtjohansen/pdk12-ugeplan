@@ -8,7 +8,6 @@ import { AlertDialog } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Plus } from 'lucide-react';
-import { useVacations } from '../hooks/useVacations';
 
 // Import custom components
 import EmployeesList, { Employee } from '../components/Employees/EmployeesList';
@@ -22,43 +21,34 @@ const initialEmployees = [{
   email: 'john.doe@polygon.com',
   phone: '+45 12 34 56 78',
   jobTitle: 'Senior Technician',
-  role: 'skadeleder',
-  onLeave: false,
-  notes: 'Team leader for water damage projects.'
+  role: 'skadeleder'
 }, {
   id: '2',
   name: 'Jane Smith',
   email: 'jane.smith@polygon.com',
   phone: '+45 23 45 67 89',
   jobTitle: 'Technician',
-  role: 'servicemedarbejder',
-  onLeave: true,
-  notes: 'On parental leave until 2025-06-01.'
+  role: 'servicemedarbejder'
 }, {
   id: '3',
   name: 'Mike Johnson',
   email: 'mike.johnson@polygon.com',
   phone: '+45 34 56 78 90',
   jobTitle: 'Project Manager',
-  role: 'administrator',
-  onLeave: false,
-  notes: 'Main admin for the system.'
+  role: 'administrator'
 }, {
   id: '4',
   name: 'Anna Williams',
   email: 'anna.williams@polygon.com',
   phone: '+45 45 67 89 01',
   jobTitle: 'Junior Technician',
-  role: 'servicemedarbejder',
-  onLeave: false,
-  notes: 'New hire, needs training on water damage assessment.'
+  role: 'servicemedarbejder'
 }];
 
 const EmployeesPage: React.FC = () => {
   const { isAdmin } = usePermissions();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { vacations } = useVacations();
   const [employees, setEmployees] = useState(initialEmployees);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -68,9 +58,7 @@ const EmployeesPage: React.FC = () => {
     email: '',
     phone: '',
     jobTitle: '',
-    role: '',
-    onLeave: false,
-    notes: ''
+    role: ''
   });
 
   const handleCreateNew = () => {
@@ -80,9 +68,7 @@ const EmployeesPage: React.FC = () => {
       email: '',
       phone: '',
       jobTitle: '',
-      role: 'servicemedarbejder',
-      onLeave: false,
-      notes: ''
+      role: 'servicemedarbejder'
     });
     setDialogOpen(true);
   };
@@ -94,9 +80,7 @@ const EmployeesPage: React.FC = () => {
       email: employee.email,
       phone: employee.phone,
       jobTitle: employee.jobTitle,
-      role: employee.role,
-      onLeave: employee.onLeave || false,
-      notes: employee.notes || ''
+      role: employee.role
     });
     setDialogOpen(true);
   };
@@ -117,21 +101,12 @@ const EmployeesPage: React.FC = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    
-    if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked;
-      setFormData(prev => ({
-        ...prev,
-        [name]: checked
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSelectChange = (value: string) => {
@@ -186,7 +161,6 @@ const EmployeesPage: React.FC = () => {
         employees={employees} 
         onEdit={handleEdit} 
         onDelete={handleDelete}
-        vacations={vacations}
       />
 
       {/* Employee Add/Edit Dialog */}

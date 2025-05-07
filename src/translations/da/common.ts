@@ -18,9 +18,7 @@ const common = {
   no: 'Nej',
   language: 'Sprog',
   actions: 'Handlinger',
-  selected: 'valgt',
-  noResultsFound: 'Ingen resultater fundet',
-  optional: 'valgfrit'
+  optional: 'valgfri'
 };
 
 export default common;

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Car, Calendar, FileText } from 'lucide-react';
+import { Users, Car, Calendar } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 
 interface MetricCardProps {
@@ -35,19 +35,17 @@ interface SystemMetricsProps {
   onUsersClick?: () => void;
   onVehiclesClick?: () => void;
   onVacationClick?: () => void;
-  onTasksClick?: () => void;
 }
 
 const SystemMetrics: React.FC<SystemMetricsProps> = ({ 
   onUsersClick, 
   onVehiclesClick, 
-  onVacationClick,
-  onTasksClick 
+  onVacationClick 
 }) => {
   const { t } = useTranslation();
   
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-3">
       <MetricCard
         title={t('admin.systemMetrics.totalUsers')}
         value="12"
@@ -68,13 +66,6 @@ const SystemMetrics: React.FC<SystemMetricsProps> = ({
         description={t('admin.systemMetrics.vacationRequestsDesc')}
         icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
         onClick={onVacationClick}
-      />
-      <MetricCard
-        title={t('admin.systemMetrics.scheduledTasks')}
-        value="15"
-        description={t('admin.systemMetrics.scheduledTasksDesc')}
-        icon={<FileText className="h-4 w-4 text-muted-foreground" />}
-        onClick={onTasksClick}
       />
     </div>
   );
