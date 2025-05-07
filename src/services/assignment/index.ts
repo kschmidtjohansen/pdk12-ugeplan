@@ -1,4 +1,3 @@
-
 import { assignmentApi } from './assignmentApi';
 import { publishingService } from './assignmentPublishing';
 import { assignmentHelpers } from './assignmentHelpers';
@@ -65,14 +64,14 @@ export const assignmentService = {
       
       // Create properly typed AssignmentInsert object
       const newAssignmentData: AssignmentInsert = {
-        title: assignmentData.title,
-        description: assignmentData.description,
-        date: assignmentData.date,
-        from_time: assignmentData.from_time,
-        to_time: assignmentData.to_time,
-        location: assignmentData.location,
-        car_id: assignmentData.car_id,
-        published: assignmentData.published || false
+        title: assignmentData.title || '',
+        description: assignmentData.description || '',
+        date: assignmentData.date || '',
+        from_time: assignmentData.from_time || '',
+        to_time: assignmentData.to_time || '',
+        location: assignmentData.location || '',
+        car_id: assignmentData.car_id || '',
+        published: assignmentData.published ?? false
       };
       
       const newAssignment = await assignmentApi.createAssignment(newAssignmentData);

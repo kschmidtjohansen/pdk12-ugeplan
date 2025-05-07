@@ -9,3 +9,8 @@ export type AssignmentEmployee = Database['public']['Tables']['assignment_employ
 export interface AssignmentWithEmployees extends Assignment {
   employees: string[];
 }
+
+export interface AssignmentEmployeeRelation {
+  assignment_id: string;
+  employee_id: string;
+}

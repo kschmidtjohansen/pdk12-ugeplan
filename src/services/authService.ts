@@ -1,5 +1,6 @@
 
 import { supabase, handleApiError } from '../lib/supabase';
+import { UserRole } from '../types/auth';
 
 export interface LoginCredentials {
   email: string;
@@ -8,17 +9,27 @@ export interface LoginCredentials {
 
 export interface SignupCredentials extends LoginCredentials {
   name: string;
-  role: 'administrator' | 'skadeleder' | 'servicemedarbejder';
+  role: UserRole;
+  phone?: string;
+  jobTitle?: string;
 }
 
 export interface UserData {
   id: string;
   email: string;
   name: string;
-  role: 'administrator' | 'skadeleder' | 'servicemedarbejder';
+  role: UserRole;
+  phone?: string;
+  jobTitle?: string;
 }
 
+/**
+ * Service for authentication and user management
+ */
 export const authService = {
+  /**
+   * Login with email and password
+   */
   async login({ email, password }: LoginCredentials) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -33,7 +44,10 @@ export const authService = {
     }
   },
   
-  async signup({ email, password, name, role }: SignupCredentials) {
+  /**
+   * Sign up a new user
+   */
+  async signup({ email, password, name, role, phone, jobTitle }: SignupCredentials) {
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -42,6 +56,8 @@ export const authService = {
           data: {
             name,
             role,
+            phone,
+            job_title: jobTitle,
           },
         },
       });
@@ -57,6 +73,8 @@ export const authService = {
             email,
             name,
             role,
+            phone,
+            job_title: jobTitle,
           });
         
         if (profileError) throw profileError;
@@ -130,6 +148,9 @@ export const authService = {
   },
 
   // Admin functions
+  /**
+   * List all users (admin only)
+   */
   async listUsers() {
     try {
       const { data, error } = await supabase
@@ -143,9 +164,20 @@ export const authService = {
     }
   },
   
-  async createUser({ email, password, name, role }: SignupCredentials) {
+  /**
+   * Create a new user (admin only)
+   */
+  async createUser({ email, password, name, role, phone, jobTitle }: SignupCredentials) {
     try {
-      const { data, error } = await this.signup({ email, password, name, role });
+      const { data, error } = await this.signup({ 
+        email, 
+        password, 
+        name, 
+        role,
+        phone,
+        jobTitle
+      });
+      
       if (error) throw error;
       
       // Return the new user data in the format needed for UI
@@ -154,7 +186,9 @@ export const authService = {
           id: data.user.id,
           email,
           name,
-          role
+          role,
+          phone,
+          jobTitle
         };
       }
       return null;
@@ -163,7 +197,10 @@ export const authService = {
     }
   },
   
-  async updateUser(userId: string, { name, email, role, password }: Partial<SignupCredentials>) {
+  /**
+   * Update an existing user (admin only)
+   */
+  async updateUser(userId: string, { name, email, role, password, phone, jobTitle }: Partial<SignupCredentials>) {
     try {
       // Update the auth user if password was provided
       if (password) {
@@ -176,9 +213,11 @@ export const authService = {
       const { data, error } = await supabase
         .from('users')
         .update({ 
-          name: name,
-          email: email,
-          role: role
+          name,
+          email,
+          role,
+          phone,
+          job_title: jobTitle
         })
         .eq('id', userId)
         .select()
@@ -191,6 +230,9 @@ export const authService = {
     }
   },
   
+  /**
+   * Delete a user (admin only)
+   */
   async deleteUser(userId: string) {
     try {
       // Note: This would typically require admin API access
@@ -208,6 +250,9 @@ export const authService = {
     }
   },
   
+  /**
+   * Reset a user's password (admin only)
+   */
   async resetUserPassword(userId: string, newPassword: string) {
     try {
       // Note: This would typically require admin API access
