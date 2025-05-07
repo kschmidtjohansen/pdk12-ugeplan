@@ -9,7 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { User } from '@/context/AuthContext';
+import { User } from '@/types/auth';
 import { Employee } from '@/types/employee';
 import { useTranslation } from '@/context/TranslationContext';
 

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,7 +11,8 @@ import {
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { User, UserRole } from '@/context/AuthContext';
+import { UserRole } from '@/context/AuthContext';
+import { User } from '@/types/auth';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 

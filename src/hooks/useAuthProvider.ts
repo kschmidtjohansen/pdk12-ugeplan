@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import type { User as SupabaseUser, Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
-import { User } from "../types/auth";
+import { User, UserRole } from "../types/auth";
 
 export function useAuthProvider() {
   const [user, setUser] = useState<User | null>(null);
@@ -29,7 +29,7 @@ export function useAuthProvider() {
           id: profile.id,
           name: profile.name,
           email: profile.email,
-          role: profile.role,
+          role: profile.role as UserRole, // Cast to UserRole type
           phone: profile.phone,
           jobTitle: profile.job_title
         });

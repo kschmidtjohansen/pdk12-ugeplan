@@ -9,21 +9,18 @@ import PasswordChangeDialog from './PasswordChangeDialog';
 import { authService } from '../../services/authService';
 import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
-import type { UserRole } from '../../context/AuthContext';
+import type { UserRole } from '../../types/auth';
+import type { User } from '../../types/auth';
+import { Dialog } from '../ui/dialog';
+import { AlertDialog } from '../ui/alert-dialog';
 
 // User form data type
 interface UserFormData {
   name: string;
   email: string;
   password: string;
-  role: UserRole;
-}
-
-// User type from API
-interface User {
-  id: string;
-  name: string;
-  email: string;
+  phone: string;
+  jobTitle: string;
   role: UserRole;
 }
 
@@ -38,11 +35,28 @@ const UserManagementContainer = () => {
     name: '',
     email: '',
     password: '',
+    phone: '',
+    jobTitle: '',
     role: 'servicemedarbejder'
   });
   
   const { toast } = useToast();
   const { t } = useTranslation();
+
+  // Helper function to get role label
+  const getRoleLabel = (role: UserRole): string => {
+    return t(`admin.roles.${role}`);
+  };
+
+  // Helper function to get initials from name
+  const getInitials = (name: string): string => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
   // Load users
   useEffect(() => {
@@ -55,7 +69,16 @@ const UserManagementContainer = () => {
         if (error) throw error;
         
         if (usersData) {
-          setUsers(usersData);
+          // Convert to proper User type
+          const typedUsers = usersData.map(user => ({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role as UserRole,
+            phone: user.phone || '',
+            jobTitle: user.job_title || ''
+          }));
+          setUsers(typedUsers);
         }
       } catch (error) {
         console.error('Failed to load users', error);
@@ -72,6 +95,26 @@ const UserManagementContainer = () => {
     loadUsers();
   }, [toast, t]);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleRoleChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      role: value as UserRole,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle form submission logic
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -82,6 +125,8 @@ const UserManagementContainer = () => {
             name: '',
             email: '',
             password: '',
+            phone: '',
+            jobTitle: '',
             role: 'servicemedarbejder'
           });
           setFormDialogOpen(true);
@@ -92,134 +137,100 @@ const UserManagementContainer = () => {
       
       <UserTable 
         users={users} 
-        loading={loading} 
-        onEdit={(user) => {
+        onEditUser={(user) => {
           setCurrentUser(user);
           setFormData({
             name: user.name,
             email: user.email,
             password: '',
+            phone: user.phone || '',
+            jobTitle: user.jobTitle || '',
             role: user.role
           });
           setFormDialogOpen(true);
         }}
-        onDelete={(user) => {
+        onDeleteUser={(user) => {
           setCurrentUser(user);
           setDeleteDialogOpen(true);
         }}
-        onChangePassword={(user) => {
+        onResetPassword={(user) => {
           setCurrentUser(user);
           setPasswordDialogOpen(true);
         }}
+        getRoleLabel={getRoleLabel}
+        getInitials={getInitials}
       />
       
       {/* Dialogs */}
-      <UserFormDialog 
-        open={formDialogOpen}
-        onOpenChange={setFormDialogOpen}
-        currentUser={currentUser}
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={async (data) => {
-          try {
-            if (currentUser) {
-              // Update existing user
-              await authService.updateUser(currentUser.id, data);
+      <Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>
+        <UserFormDialog 
+          currentUser={currentUser}
+          formData={formData}
+          handleInputChange={handleInputChange}
+          handleRoleChange={handleRoleChange}
+          handleSubmit={handleSubmit}
+          onClose={() => setFormDialogOpen(false)}
+        />
+      </Dialog>
+      
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <UserDeleteDialog 
+          currentUser={currentUser}
+          onConfirmDelete={async () => {
+            if (!currentUser) return;
+            
+            try {
+              await authService.deleteUser(currentUser.id);
               
               // Update local state
-              setUsers(users.map(u => 
-                u.id === currentUser.id 
-                  ? { ...u, name: data.name, email: data.email, role: data.role } 
-                  : u
-              ));
+              setUsers(users.filter(u => u.id !== currentUser.id));
               
               toast({
-                title: t('admin.userUpdated'),
-                description: t('admin.userUpdatedDesc', { name: data.name })
+                title: t('admin.userDeleted'),
+                description: t('admin.userDeletedDesc', { name: currentUser.name })
               });
-            } else {
-              // Create new user
-              const newUser = await authService.createUser(data);
               
-              // Update local state
-              if (newUser) {
-                setUsers([...users, newUser]);
-              }
-              
+              setDeleteDialogOpen(false);
+            } catch (error) {
+              console.error('Error deleting user', error);
               toast({
-                title: t('admin.userCreated'),
-                description: t('admin.userCreatedDesc', { name: data.name })
+                variant: 'destructive',
+                title: t('admin.errorDeletingUser'),
+                description: t('admin.errorGeneric')
               });
             }
-            
-            setFormDialogOpen(false);
-          } catch (error) {
-            console.error('Error saving user', error);
-            toast({
-              variant: 'destructive',
-              title: t('admin.errorSavingUser'),
-              description: t('admin.errorGeneric')
-            });
-          }
-        }}
-      />
+          }}
+        />
+      </AlertDialog>
       
-      <UserDeleteDialog 
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        user={currentUser}
-        onConfirm={async () => {
-          if (!currentUser) return;
-          
-          try {
-            await authService.deleteUser(currentUser.id);
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <PasswordChangeDialog 
+          userId={currentUser?.id || ''}
+          open={passwordDialogOpen}
+          onOpenChange={setPasswordDialogOpen}
+          onConfirm={async (password) => {
+            if (!currentUser) return;
             
-            // Update local state
-            setUsers(users.filter(u => u.id !== currentUser.id));
-            
-            toast({
-              title: t('admin.userDeleted'),
-              description: t('admin.userDeletedDesc', { name: currentUser.name })
-            });
-            
-            setDeleteDialogOpen(false);
-          } catch (error) {
-            console.error('Error deleting user', error);
-            toast({
-              variant: 'destructive',
-              title: t('admin.errorDeletingUser'),
-              description: t('admin.errorGeneric')
-            });
-          }
-        }}
-      />
-      
-      <PasswordChangeDialog 
-        open={passwordDialogOpen}
-        onOpenChange={setPasswordDialogOpen}
-        user={currentUser}
-        onConfirm={async (password) => {
-          if (!currentUser) return;
-          
-          try {
-            await authService.resetUserPassword(currentUser.id, password);
-            
-            toast({
-              title: t('admin.passwordChanged'),
-              description: t('admin.passwordChangedDesc', { name: currentUser.name })
-            });
-            
-            setPasswordDialogOpen(false);
-          } catch (error) {
-            console.error('Error changing password', error);
-            toast({
-              variant: 'destructive',
-              title: t('admin.errorChangingPassword'),
-              description: t('admin.errorGeneric')
-            });
-          }
-        }}
-      />
+            try {
+              await authService.resetUserPassword(currentUser.id, password);
+              
+              toast({
+                title: t('admin.passwordChanged'),
+                description: t('admin.passwordChangedDesc', { name: currentUser.name })
+              });
+              
+              setPasswordDialogOpen(false);
+            } catch (error) {
+              console.error('Error changing password', error);
+              toast({
+                variant: 'destructive',
+                title: t('admin.errorChangingPassword'),
+                description: t('admin.errorGeneric')
+              });
+            }
+          }}
+        />
+      </Dialog>
     </div>
   );
 };

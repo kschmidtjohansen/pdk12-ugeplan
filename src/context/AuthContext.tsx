@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext } from "react";
-import { AuthContextType, AuthProviderProps } from "../types/auth";
+import { AuthContextType, AuthProviderProps, User, UserRole } from "../types/auth";
 import { useAuthProvider } from "../hooks/useAuthProvider";
 
 // Create context
@@ -28,4 +28,4 @@ export const useAuth = () => {
 
 // Re-export permissions hook
 export { usePermissions } from "../hooks/usePermissions";
-export type { UserRole } from "../types/auth";
+export type { User, UserRole } from "../types/auth";
