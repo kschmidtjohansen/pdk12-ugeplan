@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, UserSquare2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Vacation } from '@/types/vacation';
-import { format, isBefore, isAfter, isWithinInterval } from 'date-fns';
+import { format, isWithinInterval } from 'date-fns';
 import { Employee } from '@/types/employee';
 import { StatusBadge } from '../ui/status-badge';
 
@@ -55,8 +55,8 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     );
   };
 
-  // Function to toggle employee selection
-  const toggleEmployee = (employeeId: string) => {
+  // Function to handle employee selection
+  const handleSelect = (employeeId: string) => {
     const employee = employees.find(e => e.id === employeeId);
     
     // Check if employee is on leave or on vacation
@@ -65,19 +65,6 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     }
     
     onChange(employeeId);
-  };
-
-  // Get display name with vacation status
-  const getEmployeeDisplayName = (employee: Employee) => {
-    if (employee.onLeave) {
-      return `${employee.name} (${t('employees.onLeave')})`;
-    }
-    
-    if (isOnVacation(employee.id)) {
-      return `${employee.name} (${t('planner.onVacation')})`;
-    }
-    
-    return employee.name;
   };
 
   return (
@@ -96,7 +83,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="p-0" align="start" side="bottom">
+        <PopoverContent className="p-0 w-[300px]" align="start" side="bottom">
           <Command>
             <CommandInput placeholder={t('planner.selectEmployee')} />
             <CommandList>
@@ -112,17 +99,19 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                     <CommandItem
                       key={employee.id}
                       value={employee.id}
-                      onSelect={() => toggleEmployee(employee.id)}
+                      onSelect={() => handleSelect(employee.id)}
                       disabled={isDisabled}
                       className={cn(
-                        isDisabled && "opacity-50 cursor-not-allowed",
-                        isOnLeave && "text-red-500",
-                        isOnVac && "text-amber-500"
+                        "flex items-center justify-between",
+                        isDisabled && "opacity-50 cursor-not-allowed"
                       )}
                     >
-                      <div className="flex items-center flex-1">
-                        <UserSquare2 className="mr-2 h-4 w-4" />
-                        <span className="flex-1">{employee.name}</span>
+                      <div className="flex items-center truncate">
+                        <UserSquare2 className="mr-2 h-4 w-4 flex-shrink-0" />
+                        <span className="truncate">{employee.name}</span>
+                      </div>
+                      
+                      <div className="flex items-center ml-2">
                         {isOnLeave && (
                           <StatusBadge variant="destructive" className="ml-2">
                             {t('employees.onLeave')}
@@ -133,11 +122,10 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                             {t('planner.onVacation')}
                           </StatusBadge>
                         )}
+                        {isSelected && !isDisabled && (
+                          <Check className="ml-2 h-4 w-4 flex-shrink-0" />
+                        )}
                       </div>
-                      
-                      {isSelected && (
-                        <Check className="ml-auto h-4 w-4" />
-                      )}
                     </CommandItem>
                   );
                 })}
@@ -166,7 +154,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               <span>{employee.name}</span>
               <button
                 type="button"
-                onClick={() => toggleEmployee(employeeId)}
+                onClick={() => handleSelect(employeeId)}
                 className="ml-1 text-primary hover:text-primary/80"
               >
                 &times;

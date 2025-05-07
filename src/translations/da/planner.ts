@@ -30,7 +30,8 @@ const planner = {
   onVacation: 'På ferie',
   previousWeek: 'Forrige Uge',
   nextWeek: 'Næste Uge',
-  hasTrailerHitch: 'Har anhængertræk'
+  hasTrailerHitch: 'Har anhængertræk',
+  employeeUnavailable: 'Medarbejderen er ikke tilgængelig'
 };
 
 export default planner;
