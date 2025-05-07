@@ -23,7 +23,7 @@ interface AssignmentDialogManagerProps {
   onPublish: (assignmentId: string) => void;
   assignments: Assignment[];
   selectedDay: string;
-  onPublishDay: (date: string) => void;
+  onPublishDay: () => void;
 }
 
 const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({

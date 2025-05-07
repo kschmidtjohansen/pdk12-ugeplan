@@ -106,7 +106,7 @@ const PlannerPage: React.FC = () => {
         onPublish={publishAssignment}
         assignments={assignments}
         selectedDay={selectedDay}
-        onPublishDay={publishAssignmentsByDate}
+        onPublishDay={handlePublishDay}
       />
     </div>
   );
