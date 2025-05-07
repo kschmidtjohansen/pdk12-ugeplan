@@ -111,7 +111,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
               
               {canPublishTasks && hasUnpublishedAssignments && onPublishDay && (
                 <Button 
-                  onClick={() => onPublishDay(dateKey)} 
+                  onClick={onPublishDay} 
                   className="bg-green-600 hover:bg-green-700"
                   size="sm"
                 >
