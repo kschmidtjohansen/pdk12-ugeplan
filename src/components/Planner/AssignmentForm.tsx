@@ -33,7 +33,7 @@ interface AssignmentFormProps {
   vacations: Vacation[];
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
-  handleEmployeeToggle: (employeeName: string) => void;
+  handleEmployeeToggle: (employeeId: string) => void;
   handleSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
 }
@@ -172,9 +172,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             vacations={vacations}
             assignmentDate={assignmentDate}
           />
-          {selectedEmployees.length === 0 && (
-            <p className="text-sm text-red-500">{t("planner.selectAtLeastOneEmployee")}</p>
-          )}
         </div>
         
         <DialogFooter>

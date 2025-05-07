@@ -1,4 +1,3 @@
-
 const translations = {
   common: {
     login: 'Login',
@@ -19,7 +18,9 @@ const translations = {
     no: 'No',
     language: 'Language',
     actions: 'Actions',
-    optional: 'optional'
+    optional: 'optional',
+    selected: 'selected',
+    noResultsFound: 'No results found',
   },
   login: {
     title: 'Login',
@@ -255,8 +256,17 @@ const translations = {
     fullName: 'Full Name',
     employeeUpdated: 'Employee updated',
     employeeAdded: 'Employee added',
+    employeeDeleted: 'Employee deleted',
     employeeUpdatedMsg: '{name}\'s information has been updated.',
-    employeeAddedMsg: '{name} has been added to the department.'
+    employeeAddedMsg: '{name} has been added to the department.',
+    employeeDeletedMsg: '{name}\'s account has been removed.',
+    deleteConfirm: 'Are you sure?',
+    deleteWarning: 'You are about to delete {name}\'s account. This action cannot be undone.',
+    onLeave: 'On Leave',
+    available: 'Available',
+    leaveStatus: 'Status',
+    notes: 'Notes',
+    notesPlaceholder: 'Add notes about the employee here...'
   }
 };
 

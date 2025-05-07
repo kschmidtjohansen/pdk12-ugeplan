@@ -18,13 +18,14 @@ import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, UserSquare2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Vacation } from '@/types/vacation';
-import { format, isBefore, isAfter } from 'date-fns';
+import { format, isBefore, isAfter, isWithinInterval } from 'date-fns';
 import { Employee } from '@/types/employee';
+import { StatusBadge } from '../ui/status-badge';
 
 interface EmployeeSelectorProps {
   employees: Employee[];
   selectedEmployees: string[];
-  onChange: (employeeName: string) => void;
+  onChange: (employeeId: string) => void;
   vacations: Vacation[];
   assignmentDate: Date | null;
 }
@@ -47,8 +48,10 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       (vacation) =>
         vacation.employeeId === employeeId &&
         vacation.status === 'approved' &&
-        isBefore(assignmentDate, vacation.endDate) &&
-        isAfter(assignmentDate, vacation.startDate)
+        isWithinInterval(assignmentDate, {
+          start: vacation.startDate,
+          end: vacation.endDate
+        })
     );
   };
 
@@ -117,9 +120,19 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                         isOnVac && "text-amber-500"
                       )}
                     >
-                      <div className="flex items-center">
+                      <div className="flex items-center flex-1">
                         <UserSquare2 className="mr-2 h-4 w-4" />
-                        <span>{getEmployeeDisplayName(employee)}</span>
+                        <span className="flex-1">{employee.name}</span>
+                        {isOnLeave && (
+                          <StatusBadge variant="destructive" className="ml-2">
+                            {t('employees.onLeave')}
+                          </StatusBadge>
+                        )}
+                        {isOnVac && (
+                          <StatusBadge variant="warning" className="ml-2">
+                            {t('planner.onVacation')}
+                          </StatusBadge>
+                        )}
                       </div>
                       
                       {isSelected && (

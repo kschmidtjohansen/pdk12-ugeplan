@@ -5,6 +5,7 @@ import { usePermissions } from '../../context/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import EmployeeTableRow from './EmployeeTableRow';
+import { Vacation } from '@/types/vacation';
 
 export interface Employee {
   id: string;
@@ -21,9 +22,15 @@ interface EmployeesListProps {
   employees: Employee[];
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
+  vacations?: Vacation[];
 }
 
-const EmployeesList: React.FC<EmployeesListProps> = ({ employees, onEdit, onDelete }) => {
+const EmployeesList: React.FC<EmployeesListProps> = ({ 
+  employees, 
+  onEdit, 
+  onDelete,
+  vacations = []
+}) => {
   const { isAdmin } = usePermissions();
   const { t } = useTranslation();
 
@@ -49,6 +56,7 @@ const EmployeesList: React.FC<EmployeesListProps> = ({ employees, onEdit, onDele
                 employee={employee}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                vacations={vacations}
               />
             ))}
           </TableBody>

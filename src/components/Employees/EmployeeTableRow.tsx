@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Edit, Mail, Phone, Trash2 } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Employee } from './EmployeesList';
+import { Vacation } from '@/types/vacation';
+import { isWithinInterval } from 'date-fns';
 
 interface USER_ROLES_TYPE {
   value: string;
@@ -28,9 +30,15 @@ interface EmployeeTableRowProps {
   employee: Employee;
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
+  vacations?: Vacation[];
 }
 
-const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, onDelete }) => {
+const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ 
+  employee, 
+  onEdit, 
+  onDelete,
+  vacations = [] 
+}) => {
   const { isAdmin, isSkadeleder } = usePermissions();
   const { t } = useTranslation();
 
@@ -45,6 +53,44 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, o
         return 'default';
     }
   };
+
+  // Check if employee is currently on approved vacation
+  const isOnVacation = () => {
+    if (!vacations || vacations.length === 0) return false;
+    
+    const today = new Date();
+    return vacations.some(
+      (vacation) =>
+        vacation.employeeId === employee.id &&
+        vacation.status === 'approved' &&
+        isWithinInterval(today, {
+          start: vacation.startDate,
+          end: vacation.endDate
+        })
+    );
+  };
+
+  // Get status for the employee
+  const getEmployeeStatus = () => {
+    if (employee.onLeave) {
+      return {
+        variant: 'destructive' as const,
+        text: t("employees.onLeave")
+      };
+    } else if (isOnVacation()) {
+      return {
+        variant: 'warning' as const,
+        text: t("planner.onVacation")
+      };
+    } else {
+      return {
+        variant: 'success' as const,
+        text: t("employees.available")
+      };
+    }
+  };
+
+  const status = getEmployeeStatus();
 
   return (
     <TableRow>
@@ -70,8 +116,8 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, o
         </TableCell>
       )}
       <TableCell>
-        <StatusBadge variant={employee.onLeave ? 'destructive' : 'success'}>
-          {employee.onLeave ? t("employees.onLeave") : t("employees.available")}
+        <StatusBadge variant={status.variant}>
+          {status.text}
         </StatusBadge>
       </TableCell>
       {(isAdmin || isSkadeleder) && (

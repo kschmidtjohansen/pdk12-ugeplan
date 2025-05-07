@@ -1,15 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog } from "@/components/ui/dialog";
 import { Assignment } from '@/types/assignment';
+import { Car } from '@/types/car';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
+import { useToast } from '@/components/ui/use-toast';
+import { useTranslation } from '@/context/TranslationContext';
 import AssignmentForm from './AssignmentForm';
-
-interface Car {
-  id: string;
-  name: string;
-}
 
 interface AssignmentDialogManagerProps {
   open: boolean;
@@ -28,85 +26,95 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   cars,
   employees,
   vacations,
-  onSubmit
+  onSubmit,
 }) => {
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const today = new Date();
+  const formattedToday = today.toISOString().split('T')[0];
+  
   const [formData, setFormData] = useState({
-    id: '',
     title: '',
     description: '',
-    date: new Date().toISOString().split('T')[0], // Default to today
-    fromTime: '',
-    toTime: '',
+    date: formattedToday,
+    fromTime: '09:00',
+    toTime: '17:00',
     location: '',
-    car: '',
+    car: ''
   });
-
+  
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
-
-  // Update form data when currentAssignment changes
-  React.useEffect(() => {
+  
+  // Reset form when dialog opens or currentAssignment changes
+  useEffect(() => {
     if (currentAssignment) {
       setFormData({
-        id: currentAssignment.id,
-        title: currentAssignment.title,
-        description: currentAssignment.description,
-        date: currentAssignment.date,
-        fromTime: currentAssignment.fromTime,
-        toTime: currentAssignment.toTime,
-        location: currentAssignment.location,
-        car: currentAssignment.car,
+        title: currentAssignment.title || '',
+        description: currentAssignment.description || '',
+        date: currentAssignment.date || formattedToday,
+        fromTime: currentAssignment.fromTime || '09:00',
+        toTime: currentAssignment.toTime || '17:00',
+        location: currentAssignment.location || '',
+        car: currentAssignment.car || ''
       });
       setSelectedEmployees(currentAssignment.employees || []);
     } else {
-      // Reset form when opening for a new assignment
       setFormData({
-        id: '',
         title: '',
         description: '',
-        date: new Date().toISOString().split('T')[0],
-        fromTime: '',
-        toTime: '',
+        date: formattedToday,
+        fromTime: '09:00',
+        toTime: '17:00',
         location: '',
-        car: '',
+        car: ''
       });
       setSelectedEmployees([]);
     }
-  }, [currentAssignment, open]);
-
+  }, [currentAssignment, open, formattedToday]);
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
-
+  
   const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
-
-  const handleEmployeeToggle = (employeeName: string) => {
-    setSelectedEmployees((prev) => {
-      if (prev.includes(employeeName)) {
-        return prev.filter(name => name !== employeeName);
+  
+  const handleEmployeeToggle = (employeeId: string) => {
+    setSelectedEmployees(prev => {
+      if (prev.includes(employeeId)) {
+        return prev.filter(id => id !== employeeId);
       } else {
-        return [...prev, employeeName];
+        return [...prev, employeeId];
       }
     });
   };
-
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (selectedEmployees.length === 0) {
+      toast({
+        title: t("planner.selectAtLeastOneEmployee"),
+        variant: "destructive"
+      });
+      return;
+    }
+    
     onSubmit(formData, selectedEmployees);
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <AssignmentForm 
+      <AssignmentForm
         currentAssignment={currentAssignment}
         formData={formData}
         selectedEmployees={selectedEmployees}

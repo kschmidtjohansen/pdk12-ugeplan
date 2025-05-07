@@ -8,6 +8,7 @@ import { AlertDialog } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Plus } from 'lucide-react';
+import { useVacations } from '../hooks/useVacations';
 
 // Import custom components
 import EmployeesList, { Employee } from '../components/Employees/EmployeesList';
@@ -57,6 +58,7 @@ const EmployeesPage: React.FC = () => {
   const { isAdmin } = usePermissions();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { vacations } = useVacations();
   const [employees, setEmployees] = useState(initialEmployees);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -184,6 +186,7 @@ const EmployeesPage: React.FC = () => {
         employees={employees} 
         onEdit={handleEdit} 
         onDelete={handleDelete}
+        vacations={vacations}
       />
 
       {/* Employee Add/Edit Dialog */}
