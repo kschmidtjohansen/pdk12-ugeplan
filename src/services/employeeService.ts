@@ -36,58 +36,26 @@ export const fetchEmployees = async (): Promise<Employee[]> => {
 };
 
 /**
- * Create a new employee
+ * Create a new employee using the admin-create-user edge function
  */
-export const createEmployee = async (formData: EmployeeFormData) => {
+export const createEmployee = async (formData: EmployeeFormData): Promise<Employee> => {
   try {
-    // First create the user in auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: formData.email,
-      email_confirm: true,
-      password: 'tempPassword123', // Temporary password that will be reset
-      user_metadata: {
-        name: formData.name
-      }
+    // Call the edge function to create a user with admin privileges
+    const { data, error } = await supabase.functions.invoke('admin-create-user', {
+      body: { formData }
     });
 
-    if (authError) {
-      throw authError;
+    if (error) {
+      console.error('Edge function error creating employee:', error);
+      throw new Error(`Failed to create employee: ${error.message || 'Unknown error'}`);
     }
 
-    if (!authData.user) {
-      throw new Error('Failed to create user');
+    if (!data || data.error) {
+      throw new Error(`Failed to create employee: ${data?.error || 'Unknown error'}`);
     }
 
-    // The profile should be created automatically via trigger,
-    // but we'll update it with the additional data
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        job_title: formData.jobTitle,
-        role: formData.role,
-        on_leave: formData.onLeave,
-        notes: formData.notes
-      })
-      .eq('id', authData.user.id);
-
-    if (profileError) {
-      throw profileError;
-    }
-
-    // Return the new employee
-    return {
-      id: authData.user.id,
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      jobTitle: formData.jobTitle,
-      role: formData.role,
-      onLeave: formData.onLeave,
-      notes: formData.notes
-    } as Employee;
+    // Return the new employee data from the edge function
+    return data as Employee;
   } catch (error) {
     console.error('Error creating employee:', error);
     throw error;
@@ -125,15 +93,22 @@ export const updateEmployee = async (employeeId: string, formData: EmployeeFormD
 };
 
 /**
- * Delete an employee
+ * Delete an employee using the admin-delete-user edge function
  */
 export const deleteEmployee = async (employeeId: string): Promise<boolean> => {
   try {
-    // Delete user in auth (will cascade delete profile due to foreign key)
-    const { error } = await supabase.auth.admin.deleteUser(employeeId);
-    
+    // Call the edge function to delete a user with admin privileges
+    const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+      body: { userId: employeeId }
+    });
+
     if (error) {
-      throw error;
+      console.error('Edge function error deleting employee:', error);
+      throw new Error(`Failed to delete employee: ${error.message || 'Unknown error'}`);
+    }
+
+    if (data.error) {
+      throw new Error(`Failed to delete employee: ${data.error}`);
     }
     
     return true;
