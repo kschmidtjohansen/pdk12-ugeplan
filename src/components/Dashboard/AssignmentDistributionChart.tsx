@@ -1,70 +1,77 @@
-
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
+import { BarChart, Bar, XAxis, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
-
+// Define the chart data type
+type ChartDataType = {
+  name: string;
+  value: number;
+};
 interface AssignmentDistributionChartProps {
   assignments: Assignment[];
 }
-
-const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = ({ 
-  assignments 
+const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = ({
+  assignments
 }) => {
-  const { t } = useTranslation();
-  
-  // Group assignments by status (derived from published property)
-  const statusCount = assignments.reduce((acc: Record<string, number>, curr) => {
-    // Since Assignment type doesn't have a status property directly, we'll derive it
-    const status = curr.published ? 'published' : 'pending';
-    acc[status] = (acc[status] || 0) + 1;
+  const {
+    t,
+    currentLanguage
+  } = useTranslation();
+
+  // Group assignments by type (using title as proxy for type)
+  const assignmentsByType = assignments.reduce<Record<string, number>>((acc, assignment) => {
+    // Extract assignment category from title (simplified approach)
+    let category = assignment.title.split(' ')[0].toLowerCase();
+
+    // Map common categories
+    if (category.includes('vand') || category.includes('water')) {
+      category = 'waterDamage';
+    } else if (category.includes('brand') || category.includes('fire')) {
+      category = 'fireDamage';
+    } else if (category.includes('skimmel') || category.includes('mold')) {
+      category = 'mold';
+    } else {
+      category = 'other';
+    }
+    acc[category] = (acc[category] || 0) + 1;
     return acc;
   }, {});
-  
-  // Convert to chart data
-  const data = Object.keys(statusCount).map(status => ({
-    name: t(`planner.status.${status}`),
-    value: statusCount[status],
+  const chartData = Object.entries(assignmentsByType).map(([key, value]) => ({
+    name: t(`dashboard.assignments.${key}`, {
+      defaultValue: key
+    }),
+    value
   }));
 
-  return (
-    <Card>
-      <CardContent className="pt-6">
-        <h3 className="text-lg font-medium mb-4">{t("dashboard.assignmentDistribution")}</h3>
-        <div className="h-[300px]">
-          {data.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={data}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-full flex items-center justify-center text-gray-500">
-              {t("dashboard.noAssignmentData")}
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+  // Chart configuration
+  const chartConfig = {
+    waterDamage: {
+      color: "#0EA5E9"
+    },
+    fireDamage: {
+      color: "#F97316"
+    },
+    mold: {
+      color: "#8B5CF6"
+    },
+    other: {
+      color: "#8E9196"
+    }
+  };
 
+  // Custom tooltip component that works with Recharts typing
+  const CustomTooltip = ({
+    active,
+    payload
+  }: TooltipProps<number, string>) => {
+    if (active && payload && payload.length) {
+      return <ChartTooltipContent active={active} payload={payload} />;
+    }
+    return null;
+  };
+  return;
+};
 export default AssignmentDistributionChart;

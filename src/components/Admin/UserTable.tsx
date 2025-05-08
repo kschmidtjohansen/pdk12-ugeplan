@@ -7,8 +7,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { UserRole } from '@/context/AuthContext';
-import { User } from '@/types/auth';
+import { User, UserRole } from '@/context/AuthContext';
 import { Employee } from '@/types/employee';
 import { useTranslation } from '@/context/TranslationContext';
 import UserTableRow from './UserTableRow';

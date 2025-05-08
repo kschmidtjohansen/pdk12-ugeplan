@@ -1,48 +1,80 @@
 
 import React from 'react';
-import { useTranslation } from '../context/TranslationContext';
-import { usePermissions } from '../context/AuthContext';
+import PageHeader from '../components/Layout/PageHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import UserManagementContainer from '../components/Admin/UserManagementContainer';
-import SystemMetrics from '../components/Admin/SystemMetrics';
-import { AlertTriangle } from 'lucide-react';
+import { usePermissions } from '@/context/AuthContext';
+import { useTranslation } from '@/context/TranslationContext';
+import { useNavigate } from 'react-router-dom';
+import UserManagement from '@/components/Admin/UserManagement';
+import SystemMetrics from '@/components/Admin/SystemMetrics';
+import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 
-const AdminPage = () => {
-  const { t } = useTranslation();
+const AdminPage: React.FC = () => {
   const { isAdmin } = usePermissions();
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = React.useState("metrics");
+  const { assignments } = usePlannerAssignments();
 
-  if (!isAdmin) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center space-y-4">
-          <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500" />
-          <h1 className="text-2xl font-semibold">{t('accessDenied.title')}</h1>
-          <p className="text-muted-foreground">{t('accessDenied.adminRequired')}</p>
-        </div>
-      </div>
-    );
-  }
+  // Redirect if not an admin
+  React.useEffect(() => {
+    if (!isAdmin) {
+      navigate('/Dashboard');
+    }
+  }, [isAdmin, navigate]);
+
+  const handleUsersClick = () => {
+    setActiveTab("users");
+  };
+
+  const handleVehiclesClick = () => {
+    navigate('/Biler');
+  };
+
+  const handleVacationClick = () => {
+    navigate('/Fridage');
+  };
+
+  const handleTasksClick = () => {
+    navigate('/Ugeplan');
+  };
 
   return (
-    <div className="container mx-auto py-6 space-y-8">
-      <header>
-        <h1 className="text-3xl font-bold">{t('navigation.admin')}</h1>
-        <p className="text-muted-foreground">{t('admin.description')}</p>
-      </header>
+    <>
+      <PageHeader
+        title={t('admin.title')}
+        description={t('admin.description')}
+      />
 
-      <Tabs defaultValue="users" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="users">{t('admin.users')}</TabsTrigger>
-          <TabsTrigger value="system">{t('admin.system')}</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+        <TabsList>
+          <TabsTrigger value="metrics">{t('admin.tabs.metrics')}</TabsTrigger>
+          <TabsTrigger value="users">{t('admin.tabs.users')}</TabsTrigger>
         </TabsList>
-        <TabsContent value="users">
-          <UserManagementContainer />
+        <TabsContent value="metrics" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {/* Additional scheduled tasks metric card */}
+            <div 
+              className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={handleTasksClick}
+            >
+              <h3 className="font-medium text-lg">{t('admin.systemMetrics.scheduledTasks')}</h3>
+              <p className="text-3xl font-bold text-polygon-blue mt-2">{assignments ? assignments.length : 0}</p>
+              <p className="text-sm text-muted-foreground mt-1">{t('admin.systemMetrics.scheduledTasksDesc')}</p>
+            </div>
+          </div>
+          
+          <SystemMetrics 
+            onUsersClick={handleUsersClick}
+            onVehiclesClick={handleVehiclesClick}
+            onVacationClick={handleVacationClick}
+          />
         </TabsContent>
-        <TabsContent value="system">
-          <SystemMetrics />
+        <TabsContent value="users" className="mt-6">
+          <UserManagement />
         </TabsContent>
       </Tabs>
-    </div>
+    </>
   );
 };
 

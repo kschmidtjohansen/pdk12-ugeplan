@@ -30,8 +30,8 @@ const translations = {
     buttonLoading: 'Logging in...',
     failed: 'Invalid email or password. Please try again.',
     success: 'Login successful',
-    welcomeMessage: 'Welcome to Polygon Weekly Planner',
-    internalSystem: 'Afd. 12',
+    welcomeMessage: 'Welcome to Polygon Weekly Compass',
+    internalSystem: 'Internal Planning System',
     testCredentials: 'For testing, use the following credentials:',
     passwordReset: {
       forgotPassword: 'Forgot password?',

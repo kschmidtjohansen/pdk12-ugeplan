@@ -3,8 +3,7 @@ import React from 'react';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { UserRole } from '@/context/AuthContext';
-import { User } from '@/types/auth';
+import { User, UserRole } from '@/context/AuthContext';
 import { Employee } from '@/types/employee';
 import { Edit, Trash2, Key } from 'lucide-react';
 

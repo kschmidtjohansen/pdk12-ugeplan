@@ -18,16 +18,7 @@ import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/Layout/MainLayout";
 
-// Create a client with default settings
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false, // Don't refetch when window gains focus
-      staleTime: 5 * 60 * 1000, // Data is fresh for 5 minutes
-      retry: 1, // Only retry failed requests once
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

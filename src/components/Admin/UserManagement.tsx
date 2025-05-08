@@ -11,8 +11,7 @@ import {
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { UserRole } from '@/context/AuthContext';
-import { User } from '@/types/auth';
+import { User, UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 
@@ -242,9 +241,8 @@ const UserManagement: React.FC = () => {
       {/* Password Change Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
         <PasswordChangeDialog
-          userId={currentUser?.id || ''}
-          open={passwordDialogOpen}
-          onOpenChange={setPasswordDialogOpen}
+          currentUser={currentUser}
+          onClose={() => setPasswordDialogOpen(false)}
         />
       </Dialog>
     </>
