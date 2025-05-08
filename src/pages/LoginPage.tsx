@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import { Button } from '@/components/ui/button';
@@ -9,18 +9,35 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import PasswordResetDialog from '@/components/Auth/PasswordResetDialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const LoginPage: React.FC = () => {
+  // Login form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
+  // Signup form state
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
+  const [name, setName] = useState('');
+  
   const [isLoading, setIsLoading] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const { login } = useAuth();
+  const { login, signup, isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -30,11 +47,43 @@ const LoginPage: React.FC = () => {
         title: t('common.success'),
         description: t('login.success'),
       });
-      navigate('/dashboard');
-    } catch (error) {
+      // Navigate is handled by the auth state change in useEffect
+    } catch (error: any) {
       toast({
         title: t('common.error'),
-        description: t('login.failed'),
+        description: error.message || t('login.failed'),
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (signupPassword !== signupConfirmPassword) {
+      toast({
+        title: t('common.error'),
+        description: t('login.passwordMismatch'),
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+
+    try {
+      await signup(signupEmail, signupPassword, name);
+      toast({
+        title: t('common.success'),
+        description: t('login.signupSuccess'),
+      });
+      // Navigate is handled by the auth state change or email confirmation flow
+    } catch (error: any) {
+      toast({
+        title: t('common.error'),
+        description: error.message || t('login.signupFailed'),
         variant: "destructive",
       });
     } finally {
@@ -60,67 +109,133 @@ const LoginPage: React.FC = () => {
         </div>
         
         <Card>
-          <CardHeader>
-            <CardTitle>{t('login.title')}</CardTitle>
-            <CardDescription>
-              {t('login.description')}
-            </CardDescription>
-          </CardHeader>
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">{t('common.email')}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder={t('login.emailPlaceholder')}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="password">{t('common.password')}</Label>
+          <Tabs defaultValue="login">
+            <TabsList className="grid grid-cols-2 w-full">
+              <TabsTrigger value="login">{t('login.title')}</TabsTrigger>
+              <TabsTrigger value="signup">{t('login.signup')}</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="login">
+              <CardHeader>
+                <CardTitle>{t('login.title')}</CardTitle>
+                <CardDescription>
+                  {t('login.description')}
+                </CardDescription>
+              </CardHeader>
+              <form onSubmit={handleLogin}>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">{t('common.email')}</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder={t('login.emailPlaceholder')}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="password">{t('common.password')}</Label>
+                      <Button 
+                        variant="link" 
+                        className="p-0 h-auto text-sm" 
+                        onClick={handleForgotPassword}
+                        type="button"
+                      >
+                        {t('login.passwordReset.forgotPassword')}
+                      </Button>
+                    </div>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder={t('login.passwordPlaceholder')}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                </CardContent>
+                <CardFooter>
                   <Button 
-                    variant="link" 
-                    className="p-0 h-auto text-sm" 
-                    onClick={handleForgotPassword}
-                    type="button"
+                    className="w-full bg-polygon-blue hover:bg-polygon-darkblue" 
+                    type="submit" 
+                    disabled={isLoading}
                   >
-                    {t('login.passwordReset.forgotPassword')}
+                    {isLoading ? t('login.buttonLoading') : t('login.button')}
                   </Button>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder={t('login.passwordPlaceholder')}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                className="w-full bg-polygon-blue hover:bg-polygon-darkblue" 
-                type="submit" 
-                disabled={isLoading}
-              >
-                {isLoading ? t('login.buttonLoading') : t('login.button')}
-              </Button>
-            </CardFooter>
-          </form>
+                </CardFooter>
+              </form>
+            </TabsContent>
+            
+            <TabsContent value="signup">
+              <CardHeader>
+                <CardTitle>{t('login.signup')}</CardTitle>
+                <CardDescription>
+                  {t('login.signupDescription')}
+                </CardDescription>
+              </CardHeader>
+              <form onSubmit={handleSignup}>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name">{t('common.name')}</Label>
+                    <Input
+                      id="signup-name"
+                      type="text"
+                      placeholder={t('login.namePlaceholder')}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">{t('common.email')}</Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      placeholder={t('login.emailPlaceholder')}
+                      value={signupEmail}
+                      onChange={(e) => setSignupEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">{t('common.password')}</Label>
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      placeholder={t('login.passwordPlaceholder')}
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password">{t('login.confirmPassword')}</Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      placeholder={t('login.confirmPasswordPlaceholder')}
+                      value={signupConfirmPassword}
+                      onChange={(e) => setSignupConfirmPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    className="w-full bg-polygon-purple hover:bg-polygon-darkpurple" 
+                    type="submit" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? t('login.creatingAccount') : t('login.createAccount')}
+                  </Button>
+                </CardFooter>
+              </form>
+            </TabsContent>
+          </Tabs>
         </Card>
-        
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>{t('login.testCredentials')}</p>
-          <ul className="mt-2 space-y-1">
-            <li>Admin: admin@polygongroup.com / password</li>
-            <li>Skadeleder: skadeleder@polygongroup.com / password</li>
-            <li>Service: service@polygongroup.com / password</li>
-          </ul>
-        </div>
       </div>
 
       <PasswordResetDialog

@@ -1,77 +1,65 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
-import { useTranslation } from '@/context/TranslationContext';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Assignment } from '@/types/assignment';
-import { BarChart, Bar, XAxis, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
+import { useTranslation } from '@/context/TranslationContext';
 
-// Define the chart data type
-type ChartDataType = {
-  name: string;
-  value: number;
-};
 interface AssignmentDistributionChartProps {
   assignments: Assignment[];
 }
-const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = ({
-  assignments
-}) => {
-  const {
-    t,
-    currentLanguage
-  } = useTranslation();
 
-  // Group assignments by type (using title as proxy for type)
-  const assignmentsByType = assignments.reduce<Record<string, number>>((acc, assignment) => {
-    // Extract assignment category from title (simplified approach)
-    let category = assignment.title.split(' ')[0].toLowerCase();
+// Fix the return type of the component to return JSX
+const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = ({ assignments }) => {
+  const { t } = useTranslation();
 
-    // Map common categories
-    if (category.includes('vand') || category.includes('water')) {
-      category = 'waterDamage';
-    } else if (category.includes('brand') || category.includes('fire')) {
-      category = 'fireDamage';
-    } else if (category.includes('skimmel') || category.includes('mold')) {
-      category = 'mold';
-    } else {
-      category = 'other';
-    }
-    acc[category] = (acc[category] || 0) + 1;
-    return acc;
-  }, {});
-  const chartData = Object.entries(assignmentsByType).map(([key, value]) => ({
-    name: t(`dashboard.assignments.${key}`, {
-      defaultValue: key
-    }),
-    value
-  }));
+  const data = [
+    { name: t('dashboard.published'), value: assignments.filter(a => a.published).length },
+    { name: t('dashboard.unpublished'), value: assignments.filter(a => !a.published).length },
+  ];
 
-  // Chart configuration
-  const chartConfig = {
-    waterDamage: {
-      color: "#0EA5E9"
-    },
-    fireDamage: {
-      color: "#F97316"
-    },
-    mold: {
-      color: "#8B5CF6"
-    },
-    other: {
-      color: "#8E9196"
-    }
-  };
+  const COLORS = ['#22c55e', '#94a3b8'];
 
-  // Custom tooltip component that works with Recharts typing
-  const CustomTooltip = ({
-    active,
-    payload
-  }: TooltipProps<number, string>) => {
-    if (active && payload && payload.length) {
-      return <ChartTooltipContent active={active} payload={payload} />;
-    }
-    return null;
-  };
-  return;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm font-medium">
+          {t('dashboard.assignmentDistribution')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {assignments.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            {t('dashboard.noAssignments')}
+          </p>
+        ) : (
+          <ResponsiveContainer width="100%" height={200}>
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value: number) => [
+                  `${value} ${t('dashboard.assignments')}`,
+                  '',
+                ]}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        )}
+      </CardContent>
+    </Card>
+  );
 };
+
 export default AssignmentDistributionChart;

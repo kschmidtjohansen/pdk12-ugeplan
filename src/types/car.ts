@@ -1,6 +1,8 @@
 
-export interface Car {
-  id: string;
-  name: string;
-  hasTrailerHitch?: boolean;
+import { TableCar } from './supabase';
+
+export interface Car extends TableCar {
+  brand?: string;
+  model?: string;
+  licensePlate?: string;
 }

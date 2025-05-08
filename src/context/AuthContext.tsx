@@ -1,27 +1,30 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-
-// User roles
-export type UserRole = "administrator" | "skadeleder" | "servicemedarbejder";
+import { supabase } from "@/integrations/supabase/client";
+import { Session, User } from "@supabase/supabase-js";
+import { UserRole, TableProfile } from "@/types/supabase";
 
 // User interface
-export interface User {
+export interface UserWithProfile {
   id: string;
   name: string;
   email: string;
   role: UserRole;
   phone?: string;
   jobTitle?: string;
-  password?: string; // Used only for admin management, not stored client-side in production
+  onLeave?: boolean;
+  notes?: string;
 }
 
 // Auth context interface
 interface AuthContextType {
-  user: User | null;
+  user: UserWithProfile | null;
+  session: Session | null;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  signup: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
   requestPasswordReset: (email: string) => Promise<void>;
-  resetPassword: (userId: string, newPassword: string) => Promise<void>;
+  resetPassword: (newPassword: string) => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -29,134 +32,182 @@ interface AuthContextType {
 // Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for development
-const MOCK_USERS: User[] = [
-  {
-    id: "1",
-    name: "Admin",
-    email: "admin@polygongroup.com",
-    role: "administrator",
-    phone: "+45 12 34 56 78",
-    jobTitle: "System Administrator",
-    password: "password" // For development only
-  },
-  {
-    id: "2",
-    name: "Skadeleder",
-    email: "skadeleder@polygongroup.com",
-    role: "skadeleder",
-    phone: "+45 23 45 67 89",
-    jobTitle: "Team Leader",
-    password: "password" // For development only
-  },
-  {
-    id: "3",
-    name: "Servicemedarbejder",
-    email: "service@polygongroup.com",
-    role: "servicemedarbejder",
-    phone: "+45 34 56 78 90",
-    jobTitle: "Field Technician",
-    password: "password" // For development only
-  },
-];
-
 // Auth provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   children 
 }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserWithProfile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check for stored auth on mount
-  useEffect(() => {
-    const storedUser = localStorage.getItem("polygonUser");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+  // Convert Supabase user and profile to our UserWithProfile format
+  const buildUserWithProfile = async (user: User): Promise<UserWithProfile | null> => {
+    if (!user) return null;
+    
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (error || !profile) {
+        console.error('Error fetching profile:', error);
+        return null;
+      }
+      
+      return {
+        id: user.id,
+        name: profile.name,
+        email: profile.email,
+        role: profile.role,
+        phone: profile.phone,
+        jobTitle: profile.job_title,
+        onLeave: profile.on_leave,
+        notes: profile.notes,
+      };
+    } catch (error) {
+      console.error('Error building user profile:', error);
+      return null;
     }
-    setIsLoading(false);
+  };
+
+  // Setup auth state listener and get initial session
+  useEffect(() => {
+    // First set up the auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        setSession(currentSession);
+        
+        if (currentSession?.user) {
+          // Defer profile fetching to avoid recursion
+          setTimeout(async () => {
+            const userWithProfile = await buildUserWithProfile(currentSession.user);
+            setUser(userWithProfile);
+          }, 0);
+        } else {
+          setUser(null);
+        }
+        
+        setIsLoading(false);
+      }
+    );
+
+    // Then get the initial session
+    const initializeAuth = async () => {
+      try {
+        setIsLoading(true);
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        setSession(currentSession);
+        
+        if (currentSession?.user) {
+          const userWithProfile = await buildUserWithProfile(currentSession.user);
+          setUser(userWithProfile);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    initializeAuth();
+
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Mock login function
+  // Login function
   const login = async (email: string, password: string) => {
-    // Simulate API request
     setIsLoading(true);
-    
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        const foundUser = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
-        
-        if (foundUser && password === foundUser.password) {
-          // Don't include password in the user object stored in state/localStorage
-          const { password: _, ...userWithoutPassword } = foundUser;
-          setUser(userWithoutPassword);
-          localStorage.setItem("polygonUser", JSON.stringify(userWithoutPassword));
-          setIsLoading(false);
-          resolve();
-        } else {
-          setIsLoading(false);
-          reject(new Error("Invalid email or password"));
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error logging in:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Signup function
+  const signup = async (email: string, password: string, name: string) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+          }
         }
-      }, 1000);
-    });
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error signing up:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Logout function
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("polygonUser");
+  const logout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUser(null);
+      setSession(null);
+    } catch (error) {
+      console.error('Error logging out:', error);
+      throw error;
+    }
   };
 
   // Password reset request function
   const requestPasswordReset = async (email: string) => {
     setIsLoading(true);
-    
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        const foundUser = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
-        
-        if (foundUser) {
-          // In a real app, this would send an email
-          console.log(`Password reset requested for ${email}`);
-          setIsLoading(false);
-          resolve();
-        } else {
-          setIsLoading(false);
-          reject(new Error("User not found"));
-        }
-      }, 1000);
-    });
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error requesting password reset:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Admin reset password function
-  const resetPassword = async (userId: string, newPassword: string) => {
+  // Reset password function
+  const resetPassword = async (newPassword: string) => {
     setIsLoading(true);
-    
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        const userIndex = MOCK_USERS.findIndex(u => u.id === userId);
-        
-        if (userIndex !== -1) {
-          // Update password in mock users array
-          MOCK_USERS[userIndex] = {
-            ...MOCK_USERS[userIndex],
-            password: newPassword
-          };
-          console.log(`Password has been reset for user ${userId}`);
-          setIsLoading(false);
-          resolve();
-        } else {
-          setIsLoading(false);
-          reject(new Error("User not found"));
-        }
-      }, 500);
-    });
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        session,
         login,
+        signup,
         logout,
         requestPasswordReset,
         resetPassword,

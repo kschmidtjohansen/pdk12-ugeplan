@@ -9,16 +9,261 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      assignment_employees: {
+        Row: {
+          assignment_id: string
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          assignment_id: string
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          assignment_id?: string
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_employees_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignment_employees_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assignments: {
+        Row: {
+          car_id: string | null
+          created_at: string
+          created_by: string | null
+          date: string
+          description: string | null
+          from_time: string
+          id: string
+          location: string
+          published: boolean
+          title: string
+          to_time: string
+          updated_at: string
+        }
+        Insert: {
+          car_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          date: string
+          description?: string | null
+          from_time: string
+          id?: string
+          location: string
+          published?: boolean
+          title: string
+          to_time: string
+          updated_at?: string
+        }
+        Update: {
+          car_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string | null
+          from_time?: string
+          id?: string
+          location?: string
+          published?: boolean
+          title?: string
+          to_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignments_car_id_fkey"
+            columns: ["car_id"]
+            isOneToOne: false
+            referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cars: {
+        Row: {
+          car_number: string
+          created_at: string
+          fuel_card_code: string | null
+          has_trailer_hitch: boolean | null
+          id: string
+          name: string
+          number_plate: string
+          updated_at: string
+        }
+        Insert: {
+          car_number: string
+          created_at?: string
+          fuel_card_code?: string | null
+          has_trailer_hitch?: boolean | null
+          id?: string
+          name: string
+          number_plate: string
+          updated_at?: string
+        }
+        Update: {
+          car_number?: string
+          created_at?: string
+          fuel_card_code?: string | null
+          has_trailer_hitch?: boolean | null
+          id?: string
+          name?: string
+          number_plate?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          job_title: string | null
+          name: string
+          notes: string | null
+          on_leave: boolean
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          job_title?: string | null
+          name: string
+          notes?: string | null
+          on_leave?: boolean
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          job_title?: string | null
+          name?: string
+          notes?: string | null
+          on_leave?: boolean
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vacations: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          notes: string | null
+          profile_id: string
+          reason: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          notes?: string | null
+          profile_id: string
+          reason: string
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          notes?: string | null
+          profile_id?: string
+          reason?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vacations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_auth_user_role: {
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
+      is_admin_or_skadeleder: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "administrator" | "skadeleder" | "servicemedarbejder"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +378,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["administrator", "skadeleder", "servicemedarbejder"],
+    },
   },
 } as const

@@ -1,48 +1,11 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 import { UserRole } from '@/context/AuthContext';
-
-// Initial employee data
-const initialEmployees: Employee[] = [{
-  id: '1',
-  name: 'John Doe',
-  email: 'john.doe@polygon.com',
-  phone: '+45 12 34 56 78',
-  jobTitle: 'Senior Technician',
-  role: 'skadeleder',
-  onLeave: false,
-  notes: 'Experienced team leader with 10+ years in the field.'
-}, {
-  id: '2',
-  name: 'Jane Smith',
-  email: 'jane.smith@polygon.com',
-  phone: '+45 23 45 67 89',
-  jobTitle: 'Technician',
-  role: 'servicemedarbejder',
-  onLeave: true,
-  notes: 'Specializes in water damage assessment.'
-}, {
-  id: '3',
-  name: 'Mike Johnson',
-  email: 'mike.johnson@polygon.com',
-  phone: '+45 34 56 78 90',
-  jobTitle: 'Project Manager',
-  role: 'administrator',
-  onLeave: false,
-  notes: 'Main system administrator and project coordinator.'
-}, {
-  id: '4',
-  name: 'Anna Williams',
-  email: 'anna.williams@polygon.com',
-  phone: '+45 45 67 89 01',
-  jobTitle: 'Junior Technician',
-  role: 'servicemedarbejder',
-  onLeave: false,
-  notes: 'New team member, currently in training.'
-}];
+import { supabase } from '@/integrations/supabase/client';
+import { TableProfile } from '@/types/supabase';
 
 export interface EmployeeFormData {
   name: string;
@@ -57,7 +20,7 @@ export interface EmployeeFormData {
 export const useEmployees = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
   const [formData, setFormData] = useState<EmployeeFormData>({
     name: '',
@@ -68,6 +31,48 @@ export const useEmployees = () => {
     onLeave: false,
     notes: ''
   });
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch employees from Supabase
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*');
+
+        if (error) {
+          throw error;
+        }
+
+        // Transform profile data to match our Employee interface
+        const transformedEmployees: Employee[] = data.map((profile: TableProfile) => ({
+          id: profile.id,
+          name: profile.name,
+          email: profile.email,
+          phone: profile.phone || '',
+          jobTitle: profile.job_title || '',
+          role: profile.role,
+          onLeave: profile.on_leave,
+          notes: profile.notes || ''
+        }));
+
+        setEmployees(transformedEmployees);
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+        toast({
+          title: t('common.error'),
+          description: t('employees.fetchError'),
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEmployees();
+  }, [toast, t]);
 
   const resetFormData = () => {
     setFormData({
@@ -123,61 +128,192 @@ export const useEmployees = () => {
     }));
   };
 
-  const createEmployee = () => {
-    const newEmployee: Employee = {
-      ...formData,
-      id: Date.now().toString()
-    };
-    setEmployees([...employees, newEmployee]);
-    toast({
-      title: t("employees.employeeAdded"),
-      description: t("employees.employeeAddedMsg", {
-        name: formData.name
-      })
-    });
+  const createEmployee = async () => {
+    try {
+      // First create the user in auth
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: formData.email,
+        email_confirm: true,
+        password: 'tempPassword123', // Temporary password that will be reset
+        user_metadata: {
+          name: formData.name
+        }
+      });
+
+      if (authError) {
+        throw authError;
+      }
+
+      if (!authData.user) {
+        throw new Error('Failed to create user');
+      }
+
+      // The profile should be created automatically via trigger,
+      // but we'll update it with the additional data
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          job_title: formData.jobTitle,
+          role: formData.role,
+          on_leave: formData.onLeave,
+          notes: formData.notes
+        })
+        .eq('id', authData.user.id);
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      // Add the new employee to the state
+      const newEmployee: Employee = {
+        id: authData.user.id,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        jobTitle: formData.jobTitle,
+        role: formData.role,
+        onLeave: formData.onLeave,
+        notes: formData.notes
+      };
+
+      setEmployees([...employees, newEmployee]);
+
+      toast({
+        title: t("employees.employeeAdded"),
+        description: t("employees.employeeAddedMsg", {
+          name: formData.name
+        })
+      });
+
+      return newEmployee;
+    } catch (error) {
+      console.error('Error creating employee:', error);
+      toast({
+        title: t('common.error'),
+        description: t('employees.createError'),
+        variant: "destructive",
+      });
+      throw error;
+    }
   };
 
-  const updateEmployee = () => {
+  const updateEmployee = async () => {
     if (!currentEmployee) return;
     
-    setEmployees(employees.map(e => e.id === currentEmployee.id ? {
-      ...e,
-      ...formData
-    } : e));
-    
-    toast({
-      title: t("employees.employeeUpdated"),
-      description: t("employees.employeeUpdatedMsg", {
-        name: formData.name
-      })
-    });
-  };
+    try {
+      // Update profile in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          job_title: formData.jobTitle,
+          role: formData.role,
+          on_leave: formData.onLeave,
+          notes: formData.notes
+        })
+        .eq('id', currentEmployee.id);
 
-  const deleteEmployee = (employeeId: string) => {
-    setEmployees(employees.filter(e => e.id !== employeeId));
-    const employeeToDelete = employees.find(e => e.id === employeeId);
-    
-    if (employeeToDelete) {
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      setEmployees(employees.map(e => e.id === currentEmployee.id ? {
+        ...e,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        jobTitle: formData.jobTitle,
+        role: formData.role,
+        onLeave: formData.onLeave,
+        notes: formData.notes
+      } : e));
+      
       toast({
-        title: t("employees.employeeDeleted"),
-        description: t("employees.employeeDeletedMsg", { name: employeeToDelete.name })
+        title: t("employees.employeeUpdated"),
+        description: t("employees.employeeUpdatedMsg", {
+          name: formData.name
+        })
+      });
+    } catch (error) {
+      console.error('Error updating employee:', error);
+      toast({
+        title: t('common.error'),
+        description: t('employees.updateError'),
+        variant: "destructive",
       });
     }
   };
 
-  const toggleEmployeeLeave = (employee: Employee) => {
-    setEmployees(employees.map(e => 
-      e.id === employee.id ? {...e, onLeave: !e.onLeave} : e
-    ));
-    
-    toast({
-      title: employee.onLeave 
-        ? t("employees.employeeAvailable") 
-        : t("employees.employeeOnLeave"),
-      description: employee.onLeave 
-        ? t("employees.employeeAvailableMsg", { name: employee.name }) 
-        : t("employees.employeeOnLeaveMsg", { name: employee.name })
-    });
+  const deleteEmployee = async (employeeId: string) => {
+    try {
+      const employeeToDelete = employees.find(e => e.id === employeeId);
+      if (!employeeToDelete) return;
+      
+      // Delete user in auth (will cascade delete profile due to foreign key)
+      const { error } = await supabase.auth.admin.deleteUser(employeeId);
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      setEmployees(employees.filter(e => e.id !== employeeId));
+      
+      toast({
+        title: t("employees.employeeDeleted"),
+        description: t("employees.employeeDeletedMsg", { name: employeeToDelete.name })
+      });
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+      toast({
+        title: t('common.error'),
+        description: t('employees.deleteError'),
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleEmployeeLeave = async (employee: Employee) => {
+    try {
+      const newLeaveStatus = !employee.onLeave;
+      
+      // Update in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({ on_leave: newLeaveStatus })
+        .eq('id', employee.id);
+
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      setEmployees(employees.map(e => 
+        e.id === employee.id ? {...e, onLeave: newLeaveStatus} : e
+      ));
+      
+      toast({
+        title: newLeaveStatus 
+          ? t("employees.employeeOnLeave")
+          : t("employees.employeeAvailable"),
+        description: newLeaveStatus 
+          ? t("employees.employeeOnLeaveMsg", { name: employee.name }) 
+          : t("employees.employeeAvailableMsg", { name: employee.name })
+      });
+    } catch (error) {
+      console.error('Error toggling employee leave status:', error);
+      toast({
+        title: t('common.error'),
+        description: t('employees.updateError'),
+        variant: "destructive",
+      });
+    }
   };
 
   return {
@@ -192,6 +328,7 @@ export const useEmployees = () => {
     createEmployee,
     updateEmployee,
     deleteEmployee,
-    toggleEmployeeLeave
+    toggleEmployeeLeave,
+    isLoading
   };
 };

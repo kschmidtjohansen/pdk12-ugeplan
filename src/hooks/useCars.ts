@@ -1,48 +1,15 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
-import { CarData, CarFormData } from '@/components/Cars/types';
-
-// Mock data
-const initialCars: CarData[] = [
-  {
-    id: '1',
-    name: 'Van 1',
-    carNumber: 'PG-001',
-    numberPlate: 'AB 12 345',
-    fuelCardCode: '123456',
-    hasTrailerHitch: true,
-  },
-  {
-    id: '2',
-    name: 'Van 2',
-    carNumber: 'PG-002',
-    numberPlate: 'CD 23 456',
-    fuelCardCode: '234567',
-    hasTrailerHitch: false,
-  },
-  {
-    id: '3',
-    name: 'Truck 3',
-    carNumber: 'PG-003',
-    numberPlate: 'EF 34 567',
-    fuelCardCode: '345678',
-    hasTrailerHitch: true,
-  },
-  {
-    id: '4',
-    name: 'Sedan 1',
-    carNumber: 'PG-004',
-    numberPlate: 'GH 45 678',
-    fuelCardCode: '456789',
-    hasTrailerHitch: false,
-  },
-];
+import { CarFormData } from '@/components/Cars/types';
+import { supabase } from '@/integrations/supabase/client';
+import { Car } from '@/types/car';
+import { InsertCar, UpdateCar } from '@/types/supabase';
 
 export const useCars = () => {
-  const [cars, setCars] = useState<CarData[]>(initialCars);
-  const [currentCar, setCurrentCar] = useState<CarData | null>(null);
+  const [cars, setCars] = useState<Car[]>([]);
+  const [currentCar, setCurrentCar] = useState<Car | null>(null);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<CarFormData>({
@@ -52,8 +19,46 @@ export const useCars = () => {
     fuelCardCode: '',
     hasTrailerHitch: false,
   });
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { t } = useTranslation();
+
+  // Fetch cars from Supabase
+  useEffect(() => {
+    const fetchCars = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('cars')
+          .select('*');
+
+        if (error) {
+          throw error;
+        }
+
+        // Transform car data to match our Car interface
+        const transformedCars: Car[] = data.map(car => ({
+          ...car,
+          brand: '', // These fields are not in the database but are in our interface
+          model: '',
+          licensePlate: car.number_plate
+        }));
+
+        setCars(transformedCars);
+      } catch (error) {
+        console.error('Error fetching cars:', error);
+        toast({
+          title: t('common.error'),
+          description: t('cars.fetchError'),
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCars();
+  }, [toast, t]);
 
   const handleCreateNew = () => {
     setCurrentCar(null);
@@ -67,31 +72,49 @@ export const useCars = () => {
     setDialogOpen(true);
   };
 
-  const handleEdit = (car: CarData) => {
+  const handleEdit = (car: Car) => {
     setCurrentCar(car);
     setFormData({
       name: car.name,
-      carNumber: car.carNumber,
-      numberPlate: car.numberPlate,
-      fuelCardCode: car.fuelCardCode,
-      hasTrailerHitch: car.hasTrailerHitch || false,
+      carNumber: car.car_number,
+      numberPlate: car.number_plate,
+      fuelCardCode: car.fuel_card_code || '',
+      hasTrailerHitch: car.has_trailer_hitch || false,
     });
     setDialogOpen(true);
   };
 
-  const handleDelete = (car: CarData) => {
+  const handleDelete = (car: Car) => {
     setCurrentCar(car);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (currentCar) {
-      setCars(cars.filter(car => car.id !== currentCar.id));
-      toast({
-        title: t('cars.vehicleDeleted'),
-        description: t('cars.vehicleDeletedMsg', { name: currentCar.name }),
-      });
-      setDeleteDialogOpen(false);
+      try {
+        const { error } = await supabase
+          .from('cars')
+          .delete()
+          .eq('id', currentCar.id);
+
+        if (error) {
+          throw error;
+        }
+
+        setCars(cars.filter(car => car.id !== currentCar.id));
+        toast({
+          title: t('cars.vehicleDeleted'),
+          description: t('cars.vehicleDeletedMsg', { name: currentCar.name }),
+        });
+        setDeleteDialogOpen(false);
+      } catch (error) {
+        console.error('Error deleting car:', error);
+        toast({
+          title: t('common.error'),
+          description: t('cars.deleteError'),
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -110,34 +133,84 @@ export const useCars = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (currentCar) {
-      // Update existing
-      setCars(
-        cars.map((c) =>
-          c.id === currentCar.id ? { ...c, ...formData } : c
-        )
-      );
-      toast({
-        title: t('cars.vehicleUpdated'),
-        description: t('cars.vehicleUpdatedMsg', { name: formData.name }),
-      });
-    } else {
-      // Create new
-      const newCar: CarData = {
-        ...formData,
-        id: Date.now().toString(),
+    try {
+      // Prepare data for Supabase
+      const carData: InsertCar = {
+        name: formData.name,
+        car_number: formData.carNumber,
+        number_plate: formData.numberPlate,
+        fuel_card_code: formData.fuelCardCode || null,
+        has_trailer_hitch: formData.hasTrailerHitch,
       };
-      setCars([...cars, newCar]);
+
+      if (currentCar) {
+        // Update existing
+        const { data, error } = await supabase
+          .from('cars')
+          .update(carData)
+          .eq('id', currentCar.id)
+          .select();
+
+        if (error) {
+          throw error;
+        }
+
+        if (data && data.length > 0) {
+          setCars(
+            cars.map((c) =>
+              c.id === currentCar.id ? { 
+                ...data[0],
+                brand: '', // Keep our interface fields
+                model: '',
+                licensePlate: data[0].number_plate
+              } : c
+            )
+          );
+        }
+
+        toast({
+          title: t('cars.vehicleUpdated'),
+          description: t('cars.vehicleUpdatedMsg', { name: formData.name }),
+        });
+      } else {
+        // Create new
+        const { data, error } = await supabase
+          .from('cars')
+          .insert(carData)
+          .select();
+
+        if (error) {
+          throw error;
+        }
+
+        if (data && data.length > 0) {
+          const newCar: Car = {
+            ...data[0],
+            brand: '', // Add our interface fields
+            model: '',
+            licensePlate: data[0].number_plate
+          };
+          setCars([...cars, newCar]);
+        }
+
+        toast({
+          title: t('cars.vehicleAdded'),
+          description: t('cars.vehicleAddedMsg', { name: formData.name }),
+        });
+      }
+      
+      setDialogOpen(false);
+    } catch (error) {
+      console.error('Error submitting car:', error);
       toast({
-        title: t('cars.vehicleAdded'),
-        description: t('cars.vehicleAddedMsg', { name: formData.name }),
+        title: t('common.error'),
+        description: currentCar ? t('cars.updateError') : t('cars.createError'),
+        variant: "destructive",
       });
     }
-    
-    setDialogOpen(false);
   };
 
   return {
@@ -154,6 +227,7 @@ export const useCars = () => {
     confirmDelete,
     handleInputChange,
     handleCheckboxChange,
-    handleSubmit
+    handleSubmit,
+    isLoading
   };
 };
