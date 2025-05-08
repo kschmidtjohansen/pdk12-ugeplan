@@ -1,17 +1,23 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import TopNavbar from './TopNavbar';
+import { useToast } from '@/components/ui/use-toast';
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    console.log('MainLayout render - Auth state:', { isAuthenticated, user });
+  }, [isAuthenticated, user]);
 
   // Don't show layout for login page
   if (location.pathname === "/") {

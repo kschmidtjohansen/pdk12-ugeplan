@@ -17,12 +17,14 @@ export interface User {
 // Auth context interface
 export interface AuthContextType {
   user: User | null;
+  session: Session | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   requestPasswordReset: (email: string) => Promise<void>;
   resetPassword: (newPassword: string) => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
+  authError: string | null;
 }
 
 // Auth provider props

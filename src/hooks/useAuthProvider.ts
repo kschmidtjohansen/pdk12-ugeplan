@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import type { User as SupabaseUser, Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
@@ -8,11 +7,14 @@ export function useAuthProvider() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Helper to fetch user profile
   const fetchAndSetUserProfile = async (authUser: SupabaseUser) => {
     try {
       setIsLoading(true);
+      console.log('Fetching user profile for:', authUser.id);
+      
       // Get user profile from users table
       const { data: profile, error } = await supabase
         .from('users')
@@ -22,12 +24,13 @@ export function useAuthProvider() {
       
       if (error) {
         console.error('Error fetching user profile:', error);
+        setAuthError(`Failed to fetch user profile: ${error.message}`);
         setIsLoading(false);
         return;
       }
       
       if (profile) {
-        console.log('User profile fetched:', profile);
+        console.log('User profile fetched successfully:', profile);
         setUser({
           id: profile.id,
           name: profile.name,
@@ -36,11 +39,14 @@ export function useAuthProvider() {
           phone: profile.phone,
           jobTitle: profile.job_title
         });
+        setAuthError(null);
       } else {
         console.error('No user profile found:', authUser.id);
+        setAuthError('User profile not found. Please contact support.');
       }
     } catch (error) {
       console.error('Error in fetchAndSetUserProfile:', error);
+      setAuthError('An unexpected error occurred while fetching your profile.');
     } finally {
       setIsLoading(false);
     }
@@ -49,17 +55,22 @@ export function useAuthProvider() {
   // Login function
   const login = async (email: string, password: string) => {
     setIsLoading(true);
+    setAuthError(null);
     
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('Attempting login for:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) {
+        console.error('Login error:', error);
+        setAuthError(error.message);
         throw new Error(error.message);
       }
       
+      console.log('Login successful, session created:', data.session?.user?.id);
       // Auth state changes are handled by the onAuthStateChange subscription
     } catch (error) {
       setIsLoading(false);
@@ -72,11 +83,14 @@ export function useAuthProvider() {
     setIsLoading(true);
     
     try {
+      console.log('Logging out user');
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
+      setAuthError(null);
     } catch (error) {
       console.error('Logout error:', error);
+      setAuthError('Failed to log out. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -120,6 +134,34 @@ export function useAuthProvider() {
     }
   };
 
+  // Debug function to check RLS policies
+  const testDatabaseAccess = async () => {
+    if (!user) return;
+    
+    try {
+      console.log('Testing database access for user:', user.id);
+      
+      // Test users table access
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('*')
+        .limit(1);
+      
+      console.log('Users access test result:', { data: usersData, error: usersError });
+      
+      // More specific test for current user's data
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      console.log('Current user data access test:', { data: userData, error: userError });
+    } catch (error) {
+      console.error('Error testing database access:', error);
+    }
+  };
+
   // Check for active session on mount and handle auth state changes
   useEffect(() => {
     console.log('Setting up auth state listener');
@@ -131,11 +173,13 @@ export function useAuthProvider() {
         setSession(newSession);
         
         if (newSession?.user) {
+          console.log('User authenticated:', newSession.user.email);
           // Use setTimeout to prevent potential deadlocks with Supabase client
           setTimeout(() => {
             fetchAndSetUserProfile(newSession.user);
           }, 0);
         } else {
+          console.log('No user session found');
           setUser(null);
           setIsLoading(false);
         }
@@ -158,6 +202,7 @@ export function useAuthProvider() {
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
+        setAuthError('Failed to initialize authentication.');
         setIsLoading(false);
       }
     };
@@ -170,6 +215,13 @@ export function useAuthProvider() {
     };
   }, []);
 
+  // Run the DB access test when a user logs in
+  useEffect(() => {
+    if (user && user.role === 'administrator') {
+      testDatabaseAccess();
+    }
+  }, [user]);
+
   return {
     user,
     session,
@@ -178,6 +230,7 @@ export function useAuthProvider() {
     requestPasswordReset,
     resetPassword,
     isAuthenticated: !!user,
-    isLoading
+    isLoading,
+    authError
   };
 }

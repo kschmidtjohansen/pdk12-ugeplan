@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import PasswordResetDialog from '@/components/Auth/PasswordResetDialog';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Bug } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -17,10 +17,13 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
   
   const {
     login,
-    isAuthenticated
+    isAuthenticated,
+    authError,
+    user
   } = useAuth();
   const {
     t
@@ -30,12 +33,20 @@ const LoginPage: React.FC = () => {
     toast
   } = useToast();
 
+  // Show auth error from provider
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+    }
+  }, [authError]);
+
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
+      console.log('User authenticated, redirecting to dashboard', user);
       navigate('/dashboard');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, user]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,12 +54,12 @@ const LoginPage: React.FC = () => {
     setError(null);
     
     try {
+      console.log('Attempting login:', email);
       await login(email, password);
       toast({
         title: t('common.success'),
         description: t('login.success')
       });
-      navigate('/dashboard');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : t('login.failed');
       setError(errorMessage);
@@ -64,6 +75,10 @@ const LoginPage: React.FC = () => {
   
   const handleForgotPassword = () => {
     setResetDialogOpen(true);
+  };
+
+  const toggleDebug = () => {
+    setShowDebug(!showDebug);
   };
   
   return <div className="min-h-screen flex items-center justify-center bg-polygon-lightgray p-4">
@@ -118,10 +133,35 @@ const LoginPage: React.FC = () => {
                 />
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex flex-col gap-4">
               <Button className="w-full bg-polygon-blue hover:bg-polygon-darkblue" type="submit" disabled={isLoading}>
                 {isLoading ? t('login.buttonLoading') : t('login.button')}
               </Button>
+              
+              <div className="text-center">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={toggleDebug}
+                  className="text-xs text-muted-foreground"
+                >
+                  <Bug className="h-3 w-3 mr-1" />
+                  {showDebug ? 'Hide Debug' : 'Debug'}  
+                </Button>
+              </div>
+              
+              {showDebug && (
+                <div className="text-xs bg-muted/50 p-2 rounded text-muted-foreground">
+                  <strong>Authentication State:</strong>
+                  <pre className="mt-1 overflow-x-auto">
+                    isAuthenticated: {String(isAuthenticated)}<br />
+                    isLoading: {String(isLoading)}<br />
+                    hasError: {String(!!error || !!authError)}<br />
+                    userRole: {user?.role || 'none'}
+                  </pre>
+                </div>
+              )}
             </CardFooter>
           </form>
         </Card>
