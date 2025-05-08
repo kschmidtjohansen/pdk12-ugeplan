@@ -1,9 +1,9 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import React, { createContext, useContext } from "react";
 import { Session } from "@supabase/supabase-js";
-import { UserWithProfile, User } from "@/types/auth";
-import { profileToEmployee } from "@/types/employee";
+import { UserWithProfile } from "@/types/auth";
+import { useAuthState } from "@/hooks/useAuthState";
+import { login, signup, logout, requestPasswordReset, resetPassword } from "@/services/authService";
 
 // Export types for use in other components
 export type { User, UserRole, UserWithProfile } from "@/types/auth";
@@ -25,138 +25,33 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Auth provider component
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
-  children 
-}) => {
-  const [user, setUser] = useState<UserWithProfile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Convert Supabase user and profile to our UserWithProfile format
-  const buildUserWithProfile = async (supabaseUser: any): Promise<UserWithProfile | null> => {
-    if (!supabaseUser) return null;
-    
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', supabaseUser.id)
-        .single();
-      
-      if (error || !profile) {
-        console.error('Error fetching profile:', error);
-        return null;
-      }
-      
-      const employee = profileToEmployee(profile);
-      
-      return {
-        id: employee.id,
-        name: employee.name,
-        email: employee.email,
-        role: employee.role,
-        phone: employee.phone,
-        jobTitle: employee.jobTitle,
-        onLeave: employee.onLeave,
-        notes: employee.notes
-      };
-    } catch (error) {
-      console.error('Error building user profile:', error);
-      return null;
-    }
-  };
-
-  // Setup auth state listener and get initial session
-  useEffect(() => {
-    // First set up the auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        setSession(currentSession);
-        
-        if (currentSession?.user) {
-          // Defer profile fetching to avoid recursion
-          setTimeout(async () => {
-            const userWithProfile = await buildUserWithProfile(currentSession.user);
-            setUser(userWithProfile);
-          }, 0);
-        } else {
-          setUser(null);
-        }
-        
-        setIsLoading(false);
-      }
-    );
-
-    // Then get the initial session
-    const initializeAuth = async () => {
-      try {
-        setIsLoading(true);
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        
-        setSession(currentSession);
-        
-        if (currentSession?.user) {
-          const userWithProfile = await buildUserWithProfile(currentSession.user);
-          setUser(userWithProfile);
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    initializeAuth();
-
-    // Cleanup subscription
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, session, isAuthenticated, isLoading } = useAuthState();
 
   // Login function
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
+  const handleLogin = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      await login(email, password);
     } catch (error) {
       console.error('Error logging in:', error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
   // Signup function
-  const signup = async (email: string, password: string, name: string) => {
-    setIsLoading(true);
+  const handleSignup = async (email: string, password: string, name: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-          }
-        }
-      });
-      if (error) throw error;
+      await signup(email, password, name);
     } catch (error) {
       console.error('Error signing up:', error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
   // Logout function
-  const logout = async () => {
+  const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      setUser(null);
-      setSession(null);
+      await logout();
     } catch (error) {
       console.error('Error logging out:', error);
       throw error;
@@ -164,34 +59,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   // Password reset request function
-  const requestPasswordReset = async (email: string) => {
-    setIsLoading(true);
+  const handleRequestPasswordReset = async (email: string) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/reset-password',
-      });
-      if (error) throw error;
+      await requestPasswordReset(email);
     } catch (error) {
       console.error('Error requesting password reset:', error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  // Reset password function - update to only take one parameter
-  const resetPassword = async (newPassword: string) => {
-    setIsLoading(true);
+  // Reset password function
+  const handleResetPassword = async (newPassword: string) => {
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-      if (error) throw error;
+      await resetPassword(newPassword);
     } catch (error) {
       console.error('Error resetting password:', error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -200,12 +83,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         user,
         session,
-        login,
-        signup,
-        logout,
-        requestPasswordReset,
-        resetPassword,
-        isAuthenticated: !!user,
+        login: handleLogin,
+        signup: handleSignup,
+        logout: handleLogout,
+        requestPasswordReset: handleRequestPasswordReset,
+        resetPassword: handleResetPassword,
+        isAuthenticated,
         isLoading,
       }}
     >
