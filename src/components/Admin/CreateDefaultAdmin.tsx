@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { authService } from '../../services/authService';
 import { useToast } from '../ui/use-toast';
 import { AlertCircle, CheckCircle } from 'lucide-react';
+import { UserRole } from '@/types/auth';
 
 interface CreateAdminResponse {
   id?: string;

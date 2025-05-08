@@ -33,7 +33,7 @@ const LoginPage: React.FC = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      navigate('/');
     }
   }, [isAuthenticated, navigate]);
   
@@ -48,7 +48,7 @@ const LoginPage: React.FC = () => {
         title: t('common.success'),
         description: t('login.success')
       });
-      navigate('/dashboard');
+      // The useEffect will handle the navigation when isAuthenticated changes
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : t('login.failed');
       setError(errorMessage);
