@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
@@ -7,6 +8,7 @@ import SystemMetricsOverview from './SystemMetricsOverview';
 import AssignmentDistributionChart from './AssignmentDistributionChart';
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
 import VehicleStatusWidget from './VehicleStatusWidget';
+
 const DashboardMetrics: React.FC = () => {
   const {
     t
@@ -27,12 +29,27 @@ const DashboardMetrics: React.FC = () => {
   // For the demo, assume half of vehicles are available
   const availableVehicles = Math.floor(cars.length / 2);
   const totalVehicles = cars.length;
-  return <div className="space-y-6">
+
+  return (
+    <div className="space-y-6">
       {/* System metrics overview */}
-      <SystemMetricsOverview assignments={assignments} upcomingVacations={upcomingVacations} availableVehicles={availableVehicles} totalVehicles={totalVehicles} />
+      <SystemMetricsOverview 
+        assignments={assignments} 
+        upcomingVacations={upcomingVacations} 
+        availableVehicles={availableVehicles} 
+        totalVehicles={totalVehicles} 
+      />
       
       {/* Charts and widgets */}
-      
-    </div>;
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <AssignmentDistributionChart assignments={assignments} />
+        <div className="space-y-6">
+          <UpcomingVacationsWidget />
+          <VehicleStatusWidget availableVehicles={availableVehicles} totalVehicles={totalVehicles} />
+        </div>
+      </div>
+    </div>
+  );
 };
+
 export default DashboardMetrics;
