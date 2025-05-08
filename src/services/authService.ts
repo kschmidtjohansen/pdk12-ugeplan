@@ -1,5 +1,6 @@
 
-import { supabase, handleApiError } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
+import { handleApiError } from '../lib/supabase';
 import { UserRole } from '../types/auth';
 
 export interface LoginCredentials {
@@ -138,7 +139,7 @@ export const authService = {
         .from('users')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;

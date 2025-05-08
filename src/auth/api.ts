@@ -13,7 +13,7 @@ export const fetchUserProfile = async (authUser: any): Promise<{ user: User | nu
       .from('users')
       .select('*')
       .eq('id', authUser.id)
-      .single();
+      .maybeSingle();
     
     if (error) {
       console.error('Error fetching user profile:', error);

@@ -22,6 +22,7 @@ export function useAuthProvider() {
       await loginUser(email, password);
       // Auth state changes are handled by the onAuthStateChange subscription
     } catch (error: any) {
+      console.error("Login error:", error);
       setAuthError(error.message);
       setIsLoading(false);
       throw error;
@@ -105,6 +106,7 @@ export function useAuthProvider() {
       const { user: profile, error } = await fetchUserProfile(authUser);
       
       if (error) {
+        console.error("Error fetching user profile:", error);
         setAuthError(error);
         setUser(null);
         toast({
@@ -113,6 +115,7 @@ export function useAuthProvider() {
           description: error,
         });
       } else if (profile) {
+        console.log("User profile loaded successfully:", profile);
         setUser(profile);
         setAuthError(null);
       }
