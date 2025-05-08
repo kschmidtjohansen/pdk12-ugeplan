@@ -4,6 +4,16 @@ import { authService } from '../../services/authService';
 import { useToast } from '../ui/use-toast';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 
+interface CreateAdminResponse {
+  id?: string;
+  email?: string;
+  name?: string;
+  role?: string;
+  phone?: string;
+  jobTitle?: string;
+  error?: string | Error;
+}
+
 const CreateDefaultAdmin = () => {
   const { toast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
@@ -28,7 +38,7 @@ const CreateDefaultAdmin = () => {
       };
       
       // Create the administrator user
-      const result = await authService.createUser(adminCredentials);
+      const result = await authService.createUser(adminCredentials) as CreateAdminResponse;
       
       if (result?.id) {
         setIsCreated(true);

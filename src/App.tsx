@@ -57,7 +57,7 @@ function App() {
                 {showAdmin && <div className="fixed top-4 right-4 z-50 max-w-md"><CreateDefaultAdmin /></div>}
                 <Routes>
                   <Route path="/login" element={<LoginPage />} />
-                  <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+                  <Route path="/" element={<ProtectedRoute>{<MainLayout />}</ProtectedRoute>}>
                     <Route index element={<DashboardPage />} />
                     <Route path="planner" element={<PlannerPage />} />
                     <Route path="admin" element={<AdminPage />} />
