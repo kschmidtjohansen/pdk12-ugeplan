@@ -1,6 +1,9 @@
 
+import { UserRole } from '../auth/types';
+
 // Re-export types from auth module
-export type { User, UserRole, AuthContextType, AuthProviderProps } from '../auth/types';
+export type { User, AuthContextType, AuthProviderProps } from '../auth/types';
+export { UserRole };
 
 // Permission interface
 export interface Permissions {
