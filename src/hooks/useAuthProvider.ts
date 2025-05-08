@@ -12,6 +12,7 @@ export function useAuthProvider() {
   // Helper to fetch user profile
   const fetchAndSetUserProfile = async (authUser: SupabaseUser) => {
     try {
+      setIsLoading(true);
       // Get user profile from users table
       const { data: profile, error } = await supabase
         .from('users')
@@ -21,21 +22,25 @@ export function useAuthProvider() {
       
       if (error) {
         console.error('Error fetching user profile:', error);
+        setIsLoading(false);
         return;
       }
       
       if (profile) {
+        console.log('User profile fetched:', profile);
         setUser({
           id: profile.id,
           name: profile.name,
           email: profile.email,
-          role: profile.role as UserRole, // Cast to UserRole type
+          role: profile.role as UserRole,
           phone: profile.phone,
           jobTitle: profile.job_title
         });
       }
     } catch (error) {
       console.error('Error in fetchAndSetUserProfile:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -114,36 +119,41 @@ export function useAuthProvider() {
 
   // Check for active session on mount and handle auth state changes
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Set up auth state listener FIRST to avoid missing any auth events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
+      async (event, newSession) => {
+        console.log('Auth state changed:', event, newSession?.user?.id);
+        setSession(newSession);
         
-        if (session?.user) {
+        if (newSession?.user) {
           // Use setTimeout to prevent potential deadlocks with Supabase client
           setTimeout(() => {
-            fetchAndSetUserProfile(session.user);
+            fetchAndSetUserProfile(newSession.user);
           }, 0);
         } else {
           setUser(null);
+          setIsLoading(false);
         }
-        
-        setIsLoading(false);
       }
     );
     
     // THEN check for existing session
     const initAuth = async () => {
-      setIsLoading(true);
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        setSession(session);
-        await fetchAndSetUserProfile(session.user);
+      try {
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        
+        if (existingSession) {
+          console.log('Found existing session:', existingSession.user.id);
+          setSession(existingSession);
+          await fetchAndSetUserProfile(existingSession.user);
+        } else {
+          console.log('No existing session found');
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
     
     initAuth();
