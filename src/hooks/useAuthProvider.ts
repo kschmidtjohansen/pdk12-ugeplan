@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import type { User as SupabaseUser, Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
@@ -25,6 +26,7 @@ export function useAuthProvider() {
       if (error) {
         console.error('Error fetching user profile:', error);
         setAuthError(`Failed to fetch user profile: ${error.message}`);
+        setUser(null);
         setIsLoading(false);
         return;
       }
@@ -43,10 +45,12 @@ export function useAuthProvider() {
       } else {
         console.error('No user profile found:', authUser.id);
         setAuthError('User profile not found. Please contact support.');
+        setUser(null);
       }
     } catch (error) {
       console.error('Error in fetchAndSetUserProfile:', error);
       setAuthError('An unexpected error occurred while fetching your profile.');
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -67,6 +71,7 @@ export function useAuthProvider() {
       if (error) {
         console.error('Login error:', error);
         setAuthError(error.message);
+        setIsLoading(false);
         throw new Error(error.message);
       }
       
@@ -134,34 +139,6 @@ export function useAuthProvider() {
     }
   };
 
-  // Debug function to check RLS policies
-  const testDatabaseAccess = async () => {
-    if (!user) return;
-    
-    try {
-      console.log('Testing database access for user:', user.id);
-      
-      // Test users table access
-      const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('*')
-        .limit(1);
-      
-      console.log('Users access test result:', { data: usersData, error: usersError });
-      
-      // More specific test for current user's data
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      console.log('Current user data access test:', { data: userData, error: userError });
-    } catch (error) {
-      console.error('Error testing database access:', error);
-    }
-  };
-
   // Check for active session on mount and handle auth state changes
   useEffect(() => {
     console.log('Setting up auth state listener');
@@ -214,13 +191,6 @@ export function useAuthProvider() {
       subscription.unsubscribe();
     };
   }, []);
-
-  // Run the DB access test when a user logs in
-  useEffect(() => {
-    if (user && user.role === 'administrator') {
-      testDatabaseAccess();
-    }
-  }, [user]);
 
   return {
     user,

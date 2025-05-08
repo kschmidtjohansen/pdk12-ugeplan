@@ -23,7 +23,8 @@ const LoginPage: React.FC = () => {
     login,
     isAuthenticated,
     authError,
-    user
+    user,
+    isLoading: authLoading
   } = useAuth();
   const {
     t
@@ -134,8 +135,8 @@ const LoginPage: React.FC = () => {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-              <Button className="w-full bg-polygon-blue hover:bg-polygon-darkblue" type="submit" disabled={isLoading}>
-                {isLoading ? t('login.buttonLoading') : t('login.button')}
+              <Button className="w-full bg-polygon-blue hover:bg-polygon-darkblue" type="submit" disabled={isLoading || authLoading}>
+                {isLoading || authLoading ? t('login.buttonLoading') : t('login.button')}
               </Button>
               
               <div className="text-center">
@@ -156,9 +157,11 @@ const LoginPage: React.FC = () => {
                   <strong>Authentication State:</strong>
                   <pre className="mt-1 overflow-x-auto">
                     isAuthenticated: {String(isAuthenticated)}<br />
-                    isLoading: {String(isLoading)}<br />
+                    isLoading: {String(authLoading)}<br />
                     hasError: {String(!!error || !!authError)}<br />
-                    userRole: {user?.role || 'none'}
+                    userRole: {user?.role || 'none'}<br />
+                    error: {error || authError || 'none'}<br />
+                    {authError && `authError: ${authError}`}
                   </pre>
                 </div>
               )}
