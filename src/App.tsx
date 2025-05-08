@@ -1,75 +1,67 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "next-themes";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { TranslationProvider } from "./context/TranslationContext";
+import { NotificationProvider } from "./context/NotificationContext";
 
-import LoginPage from './pages/LoginPage';
-import MainLayout from './components/Layout/MainLayout';
-import DashboardPage from './pages/DashboardPage';
-import PlannerPage from './pages/PlannerPage';
-import AdminPage from './pages/AdminPage';
-import EmployeesPage from './pages/EmployeesPage';
-import CarsPage from './pages/CarsPage';
-import VacationPage from './pages/VacationPage';
-import NotFound from './pages/NotFound';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { TranslationProvider } from './context/TranslationContext';
-import { NotificationProvider } from './context/NotificationContext';
+import LoginPage from "./pages/LoginPage";
+import DashboardPage from "./pages/DashboardPage";
+import PlannerPage from "./pages/PlannerPage";
+import EmployeesPage from "./pages/EmployeesPage";
+import CarsPage from "./pages/CarsPage";
+import VacationPage from "./pages/VacationPage";
+import AdminPage from "./pages/AdminPage";
+import NotFound from "./pages/NotFound";
+import MainLayout from "./components/Layout/MainLayout";
 
-const queryClient = new QueryClient();
+// Create a client with default settings
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Don't refetch when window gains focus
+      staleTime: 5 * 60 * 1000, // Data is fresh for 5 minutes
+      retry: 1, // Only retry failed requests once
+    },
+  },
+});
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
-  
-  return <>{children}</>;
-};
-
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="light">
-        <TranslationProvider>
-          <AuthProvider>
-            <NotificationProvider>
-              <Router>
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <TranslationProvider>
+        <NotificationProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <MainLayout>
                 <Routes>
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route 
-                    path="/" 
-                    element={
-                      <ProtectedRoute>
-                        <MainLayout />
-                      </ProtectedRoute>
-                    }
-                  >
-                    <Route index element={<DashboardPage />} />
-                    <Route path="dashboard" element={<DashboardPage />} />
-                    <Route path="planner" element={<PlannerPage />} />
-                    <Route path="admin" element={<AdminPage />} />
-                    <Route path="employees" element={<EmployeesPage />} />
-                    <Route path="cars" element={<CarsPage />} />
-                    <Route path="vacation" element={<VacationPage />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Route>
+                  <Route path="/" element={<LoginPage />} />
+                  <Route path="/Dashboard" element={<DashboardPage />} />
+                  <Route path="/Ugeplan" element={<PlannerPage />} />
+                  <Route path="/Medarbejdere" element={<EmployeesPage />} />
+                  <Route path="/Biler" element={<CarsPage />} />
+                  <Route path="/Fridage" element={<VacationPage />} />
+                  <Route path="/admin" element={<AdminPage />} />
+                  {/* Keep backward compatibility with old routes */}
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/planner" element={<PlannerPage />} />
+                  <Route path="/employees" element={<EmployeesPage />} />
+                  <Route path="/cars" element={<CarsPage />} />
+                  <Route path="/vacation" element={<VacationPage />} />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
-              </Router>
-              <Toaster />
-            </NotificationProvider>
-          </AuthProvider>
-        </TranslationProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  );
-}
+              </MainLayout>
+            </BrowserRouter>
+          </TooltipProvider>
+        </NotificationProvider>
+      </TranslationProvider>
+    </AuthProvider>
+  </QueryClientProvider>
+);
 
 export default App;

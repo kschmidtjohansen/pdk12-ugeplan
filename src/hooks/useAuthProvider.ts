@@ -33,17 +33,6 @@ export function useAuthProvider() {
           phone: profile.phone,
           jobTitle: profile.job_title
         });
-      } else {
-        // If no profile exists yet in the users table, create one from auth metadata
-        const userData = {
-          id: authUser.id,
-          name: authUser.user_metadata.name,
-          email: authUser.email,
-          role: authUser.user_metadata.role as UserRole,
-          phone: authUser.user_metadata.phone,
-          jobTitle: authUser.user_metadata.job_title
-        };
-        setUser(userData);
       }
     } catch (error) {
       console.error('Error in fetchAndSetUserProfile:', error);
