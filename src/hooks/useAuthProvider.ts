@@ -3,12 +3,14 @@ import { useState, useEffect } from "react";
 import type { User as SupabaseUser, Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { User, UserRole } from "../types/auth";
+import { useToast } from "@/components/ui/use-toast";
 
 export function useAuthProvider() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Helper to fetch user profile
   const fetchAndSetUserProfile = async (authUser: SupabaseUser) => {
@@ -28,6 +30,11 @@ export function useAuthProvider() {
         setAuthError(`Failed to fetch user profile: ${error.message}`);
         setUser(null);
         setIsLoading(false);
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: `Failed to fetch user profile: ${error.message}`,
+        });
         return;
       }
       
@@ -46,11 +53,21 @@ export function useAuthProvider() {
         console.error('No user profile found:', authUser.id);
         setAuthError('User profile not found. Please contact support.');
         setUser(null);
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "User profile not found. Please contact support.",
+        });
       }
     } catch (error) {
       console.error('Error in fetchAndSetUserProfile:', error);
       setAuthError('An unexpected error occurred while fetching your profile.');
       setUser(null);
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: "An unexpected error occurred while fetching your profile.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +89,12 @@ export function useAuthProvider() {
         console.error('Login error:', error);
         setAuthError(error.message);
         setIsLoading(false);
-        throw new Error(error.message);
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: error.message,
+        });
+        throw error;
       }
       
       console.log('Login successful, session created:', data.session?.user?.id);
@@ -93,9 +115,18 @@ export function useAuthProvider() {
       setUser(null);
       setSession(null);
       setAuthError(null);
-    } catch (error) {
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error: any) {
       console.error('Logout error:', error);
       setAuthError('Failed to log out. Please try again.');
+      toast({
+        variant: "destructive",
+        title: "Logout Failed",
+        description: "Failed to log out. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -111,8 +142,18 @@ export function useAuthProvider() {
       });
       
       if (error) {
-        throw new Error(error.message);
+        toast({
+          variant: "destructive",
+          title: "Password Reset Failed",
+          description: error.message,
+        });
+        throw error;
       }
+      
+      toast({
+        title: "Password Reset Email Sent",
+        description: "Check your email for the password reset link.",
+      });
     } catch (error) {
       throw error;
     } finally {
@@ -130,8 +171,18 @@ export function useAuthProvider() {
       });
       
       if (error) {
-        throw new Error(error.message);
+        toast({
+          variant: "destructive",
+          title: "Password Update Failed",
+          description: error.message,
+        });
+        throw error;
       }
+      
+      toast({
+        title: "Password Updated",
+        description: "Your password has been successfully updated.",
+      });
     } catch (error) {
       throw error;
     } finally {
@@ -181,6 +232,11 @@ export function useAuthProvider() {
         console.error('Error initializing auth:', error);
         setAuthError('Failed to initialize authentication.');
         setIsLoading(false);
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "Failed to initialize authentication.",
+        });
       }
     };
     

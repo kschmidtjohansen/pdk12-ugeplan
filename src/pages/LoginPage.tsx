@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import PasswordResetDialog from '@/components/Auth/PasswordResetDialog';
-import { AlertCircle, Bug } from 'lucide-react';
+import { AlertCircle, Bug, Info } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -105,6 +105,11 @@ const LoginPage: React.FC = () => {
                   <span>{error}</span>
                 </div>
               )}
+              
+              <div className="bg-amber-50 border border-amber-200 p-3 rounded-md flex items-center gap-2 text-sm text-amber-700 mb-2">
+                <Info size={16} />
+                <span>For testing, you can use: <strong>admin@polygongroup.com</strong> with password <strong>password123</strong></span>
+              </div>
               
               <div className="space-y-2">
                 <Label htmlFor="email">{t('common.email')}</Label>
