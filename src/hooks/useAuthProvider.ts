@@ -36,6 +36,8 @@ export function useAuthProvider() {
           phone: profile.phone,
           jobTitle: profile.job_title
         });
+      } else {
+        console.error('No user profile found:', authUser.id);
       }
     } catch (error) {
       console.error('Error in fetchAndSetUserProfile:', error);
@@ -72,6 +74,7 @@ export function useAuthProvider() {
     try {
       await supabase.auth.signOut();
       setUser(null);
+      setSession(null);
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -119,6 +122,8 @@ export function useAuthProvider() {
 
   // Check for active session on mount and handle auth state changes
   useEffect(() => {
+    console.log('Setting up auth state listener');
+    
     // Set up auth state listener FIRST to avoid missing any auth events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
@@ -140,6 +145,7 @@ export function useAuthProvider() {
     // THEN check for existing session
     const initAuth = async () => {
       try {
+        console.log('Checking for existing session');
         const { data: { session: existingSession } } = await supabase.auth.getSession();
         
         if (existingSession) {

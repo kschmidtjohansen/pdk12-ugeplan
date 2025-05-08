@@ -273,6 +273,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: string
+      }
       user_has_role: {
         Args: { requested_role: string }
         Returns: boolean
