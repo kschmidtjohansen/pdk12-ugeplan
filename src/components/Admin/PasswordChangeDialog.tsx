@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   DialogContent,
@@ -10,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { User } from '@/types/auth';
+import { User } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
@@ -51,7 +52,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
     
     try {
       if (currentUser) {
-        await resetPassword(newPassword);
+        await resetPassword(currentUser.id, newPassword);
         toast({
           title: t('admin.passwords.resetSuccess'),
           description: t('admin.passwords.resetDescription', { name: currentUser.name }),

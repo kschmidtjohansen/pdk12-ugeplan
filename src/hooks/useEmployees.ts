@@ -1,148 +1,183 @@
 
+import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
-import { useEmployeeForm, EmployeeFormData } from './useEmployeeForm';
-import { useEmployeeData } from './useEmployeeData';
-import { 
-  createEmployee as createEmployeeService,
-  updateEmployee as updateEmployeeService,
-  deleteEmployee as deleteEmployeeService,
-  toggleEmployeeLeave as toggleEmployeeLeaveService
-} from '@/services/employeeService';
+import { UserRole } from '@/context/AuthContext';
 
-export type { EmployeeFormData } from './useEmployeeForm';
+// Initial employee data
+const initialEmployees: Employee[] = [{
+  id: '1',
+  name: 'John Doe',
+  email: 'john.doe@polygon.com',
+  phone: '+45 12 34 56 78',
+  jobTitle: 'Senior Technician',
+  role: 'skadeleder',
+  onLeave: false,
+  notes: 'Experienced team leader with 10+ years in the field.'
+}, {
+  id: '2',
+  name: 'Jane Smith',
+  email: 'jane.smith@polygon.com',
+  phone: '+45 23 45 67 89',
+  jobTitle: 'Technician',
+  role: 'servicemedarbejder',
+  onLeave: true,
+  notes: 'Specializes in water damage assessment.'
+}, {
+  id: '3',
+  name: 'Mike Johnson',
+  email: 'mike.johnson@polygon.com',
+  phone: '+45 34 56 78 90',
+  jobTitle: 'Project Manager',
+  role: 'administrator',
+  onLeave: false,
+  notes: 'Main system administrator and project coordinator.'
+}, {
+  id: '4',
+  name: 'Anna Williams',
+  email: 'anna.williams@polygon.com',
+  phone: '+45 45 67 89 01',
+  jobTitle: 'Junior Technician',
+  role: 'servicemedarbejder',
+  onLeave: false,
+  notes: 'New team member, currently in training.'
+}];
+
+export interface EmployeeFormData {
+  name: string;
+  email: string;
+  phone: string;
+  jobTitle: string;
+  role: UserRole;
+  onLeave: boolean;
+  notes: string;
+}
 
 export const useEmployees = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { employees, updateEmployees, isLoading } = useEmployeeData();
-  const { 
-    currentEmployee, 
-    formData, 
-    prepareForCreate,
-    prepareForEdit,
-    handleInputChange,
-    handleSelectChange,
-    handleCheckboxChange,
-    setCurrentEmployee
-  } = useEmployeeForm();
+  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
+  const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
+  const [formData, setFormData] = useState<EmployeeFormData>({
+    name: '',
+    email: '',
+    phone: '',
+    jobTitle: '',
+    role: 'servicemedarbejder',
+    onLeave: false,
+    notes: ''
+  });
 
-  const createEmployee = async () => {
-    try {
-      const newEmployee = await createEmployeeService(formData);
-      
-      // Add the new employee to the state
-      updateEmployees([...employees, newEmployee]);
-
-      toast({
-        title: t("employees.employeeAdded"),
-        description: t("employees.employeeAddedMsg", {
-          name: formData.name
-        })
-      });
-
-      return newEmployee;
-    } catch (error) {
-      console.error('Error creating employee:', error);
-      toast({
-        title: t('common.error'),
-        description: t('employees.createError'),
-        variant: "destructive",
-      });
-      throw error;
-    }
+  const resetFormData = () => {
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      jobTitle: '',
+      role: 'servicemedarbejder',
+      onLeave: false,
+      notes: ''
+    });
   };
 
-  const updateEmployee = async () => {
+  const prepareForCreate = () => {
+    setCurrentEmployee(null);
+    resetFormData();
+    return formData;
+  };
+
+  const prepareForEdit = (employee: Employee) => {
+    setCurrentEmployee(employee);
+    setFormData({
+      name: employee.name,
+      email: employee.email,
+      phone: employee.phone,
+      jobTitle: employee.jobTitle,
+      role: employee.role,
+      onLeave: employee.onLeave || false,
+      notes: employee.notes || ''
+    });
+    return formData;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSelectChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      role: value as UserRole
+    }));
+  };
+
+  const handleCheckboxChange = (field: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: checked
+    }));
+  };
+
+  const createEmployee = () => {
+    const newEmployee: Employee = {
+      ...formData,
+      id: Date.now().toString()
+    };
+    setEmployees([...employees, newEmployee]);
+    toast({
+      title: t("employees.employeeAdded"),
+      description: t("employees.employeeAddedMsg", {
+        name: formData.name
+      })
+    });
+  };
+
+  const updateEmployee = () => {
     if (!currentEmployee) return;
     
-    try {
-      await updateEmployeeService(currentEmployee.id, formData);
+    setEmployees(employees.map(e => e.id === currentEmployee.id ? {
+      ...e,
+      ...formData
+    } : e));
+    
+    toast({
+      title: t("employees.employeeUpdated"),
+      description: t("employees.employeeUpdatedMsg", {
+        name: formData.name
+      })
+    });
+  };
 
-      // Update local state
-      updateEmployees(employees.map(e => e.id === currentEmployee.id ? {
-        ...e,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        jobTitle: formData.jobTitle,
-        role: formData.role,
-        onLeave: formData.onLeave,
-        notes: formData.notes
-      } : e));
-      
+  const deleteEmployee = (employeeId: string) => {
+    setEmployees(employees.filter(e => e.id !== employeeId));
+    const employeeToDelete = employees.find(e => e.id === employeeId);
+    
+    if (employeeToDelete) {
       toast({
-        title: t("employees.employeeUpdated"),
-        description: t("employees.employeeUpdatedMsg", {
-          name: formData.name
-        })
-      });
-    } catch (error) {
-      console.error('Error updating employee:', error);
-      toast({
-        title: t('common.error'),
-        description: t('employees.updateError'),
-        variant: "destructive",
+        title: t("employees.employeeDeleted"),
+        description: t("employees.employeeDeletedMsg", { name: employeeToDelete.name })
       });
     }
   };
 
-  const deleteEmployee = async (employeeId: string) => {
-    try {
-      const employeeToDelete = employees.find(e => e.id === employeeId);
-      if (!employeeToDelete) return;
-      
-      const success = await deleteEmployeeService(employeeId);
-      
-      if (success) {
-        // Update local state
-        updateEmployees(employees.filter(e => e.id !== employeeId));
-        
-        toast({
-          title: t("employees.employeeDeleted"),
-          description: t("employees.employeeDeletedMsg", { name: employeeToDelete.name })
-        });
-      }
-    } catch (error) {
-      console.error('Error deleting employee:', error);
-      toast({
-        title: t('common.error'),
-        description: t('employees.deleteError'),
-        variant: "destructive",
-      });
-    }
-  };
-
-  const toggleEmployeeLeave = async (employee: Employee) => {
-    try {
-      const newLeaveStatus = !employee.onLeave;
-      
-      const success = await toggleEmployeeLeaveService(employee.id, newLeaveStatus);
-
-      if (success) {
-        // Update local state
-        updateEmployees(employees.map(e => 
-          e.id === employee.id ? {...e, onLeave: newLeaveStatus} : e
-        ));
-        
-        toast({
-          title: newLeaveStatus 
-            ? t("employees.employeeOnLeave")
-            : t("employees.employeeAvailable"),
-          description: newLeaveStatus 
-            ? t("employees.employeeOnLeaveMsg", { name: employee.name }) 
-            : t("employees.employeeAvailableMsg", { name: employee.name })
-        });
-      }
-    } catch (error) {
-      console.error('Error toggling employee leave status:', error);
-      toast({
-        title: t('common.error'),
-        description: t('employees.updateError'),
-        variant: "destructive",
-      });
-    }
+  const toggleEmployeeLeave = (employee: Employee) => {
+    setEmployees(employees.map(e => 
+      e.id === employee.id ? {...e, onLeave: !e.onLeave} : e
+    ));
+    
+    toast({
+      title: employee.onLeave 
+        ? t("employees.employeeAvailable") 
+        : t("employees.employeeOnLeave"),
+      description: employee.onLeave 
+        ? t("employees.employeeAvailableMsg", { name: employee.name }) 
+        : t("employees.employeeOnLeaveMsg", { name: employee.name })
+    });
   };
 
   return {
@@ -157,7 +192,6 @@ export const useEmployees = () => {
     createEmployee,
     updateEmployee,
     deleteEmployee,
-    toggleEmployeeLeave,
-    isLoading
+    toggleEmployeeLeave
   };
 };

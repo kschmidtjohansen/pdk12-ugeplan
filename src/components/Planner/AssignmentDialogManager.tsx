@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog } from "@/components/ui/dialog";
 import { Assignment } from '@/types/assignment';
@@ -5,7 +6,11 @@ import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import AssignmentForm from './AssignmentForm';
 import { useEmployees } from '@/hooks/useEmployees';
-import { Car } from '@/types/car';
+
+interface Car {
+  id: string;
+  name: string;
+}
 
 interface AssignmentDialogManagerProps {
   open: boolean;
@@ -34,58 +39,13 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   selectedDay,
   onPublishDay
 }) => {
-  // Updated to match the Car type from Supabase
-  const cars: Car[] = [
-    { 
-      id: '1', 
-      name: 'Van 1', 
-      car_number: 'V1', 
-      number_plate: 'AB123CD', 
-      fuel_card_code: '1234',
-      has_trailer_hitch: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    { 
-      id: '2', 
-      name: 'Van 2', 
-      car_number: 'V2', 
-      number_plate: 'EF456GH', 
-      fuel_card_code: '2345',
-      has_trailer_hitch: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    { 
-      id: '3', 
-      name: 'Van 3', 
-      car_number: 'V3', 
-      number_plate: 'IJ789KL', 
-      fuel_card_code: '3456',
-      has_trailer_hitch: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    { 
-      id: '4', 
-      name: 'Truck 3', 
-      car_number: 'T3', 
-      number_plate: 'MN012OP', 
-      fuel_card_code: '4567',
-      has_trailer_hitch: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    { 
-      id: '5', 
-      name: 'Sedan 1', 
-      car_number: 'S1', 
-      number_plate: 'QR345ST', 
-      fuel_card_code: '5678',
-      has_trailer_hitch: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
+  // Updated to match the mocked data we would have from the application state
+  const cars = [
+    { id: '1', name: 'Van 1' },
+    { id: '2', name: 'Van 2' },
+    { id: '3', name: 'Van 3' },
+    { id: '4', name: 'Truck 3' },
+    { id: '5', name: 'Sedan 1' },
   ];
 
   // Use the hook to get the full employee objects

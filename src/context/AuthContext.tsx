@@ -1,22 +1,27 @@
 
-import React, { createContext, useContext } from "react";
-import { Session } from "@supabase/supabase-js";
-import { UserWithProfile } from "@/types/auth";
-import { useAuthState } from "@/hooks/useAuthState";
-import { login, signup, logout, requestPasswordReset, resetPassword } from "@/services/authService";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
-// Export types for use in other components
-export type { User, UserRole, UserWithProfile } from "@/types/auth";
+// User roles
+export type UserRole = "administrator" | "skadeleder" | "servicemedarbejder";
+
+// User interface
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  phone?: string;
+  jobTitle?: string;
+  password?: string; // Used only for admin management, not stored client-side in production
+}
 
 // Auth context interface
 interface AuthContextType {
-  user: UserWithProfile | null;
-  session: Session | null;
+  user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
-  logout: () => Promise<void>;
+  logout: () => void;
   requestPasswordReset: (email: string) => Promise<void>;
-  resetPassword: (newPassword: string) => Promise<void>;
+  resetPassword: (userId: string, newPassword: string) => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -24,71 +29,138 @@ interface AuthContextType {
 // Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Mock users for development
+const MOCK_USERS: User[] = [
+  {
+    id: "1",
+    name: "Admin",
+    email: "admin@polygongroup.com",
+    role: "administrator",
+    phone: "+45 12 34 56 78",
+    jobTitle: "System Administrator",
+    password: "password" // For development only
+  },
+  {
+    id: "2",
+    name: "Skadeleder",
+    email: "skadeleder@polygongroup.com",
+    role: "skadeleder",
+    phone: "+45 23 45 67 89",
+    jobTitle: "Team Leader",
+    password: "password" // For development only
+  },
+  {
+    id: "3",
+    name: "Servicemedarbejder",
+    email: "service@polygongroup.com",
+    role: "servicemedarbejder",
+    phone: "+45 34 56 78 90",
+    jobTitle: "Field Technician",
+    password: "password" // For development only
+  },
+];
+
 // Auth provider component
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, session, isAuthenticated, isLoading } = useAuthState();
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
+  children 
+}) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Login function
-  const handleLogin = async (email: string, password: string) => {
-    try {
-      await login(email, password);
-    } catch (error) {
-      console.error('Error logging in:', error);
-      throw error;
+  // Check for stored auth on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem("polygonUser");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
-  };
+    setIsLoading(false);
+  }, []);
 
-  // Signup function
-  const handleSignup = async (email: string, password: string, name: string) => {
-    try {
-      await signup(email, password, name);
-    } catch (error) {
-      console.error('Error signing up:', error);
-      throw error;
-    }
+  // Mock login function
+  const login = async (email: string, password: string) => {
+    // Simulate API request
+    setIsLoading(true);
+    
+    return new Promise<void>((resolve, reject) => {
+      setTimeout(() => {
+        const foundUser = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+        
+        if (foundUser && password === foundUser.password) {
+          // Don't include password in the user object stored in state/localStorage
+          const { password: _, ...userWithoutPassword } = foundUser;
+          setUser(userWithoutPassword);
+          localStorage.setItem("polygonUser", JSON.stringify(userWithoutPassword));
+          setIsLoading(false);
+          resolve();
+        } else {
+          setIsLoading(false);
+          reject(new Error("Invalid email or password"));
+        }
+      }, 1000);
+    });
   };
 
   // Logout function
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Error logging out:', error);
-      throw error;
-    }
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("polygonUser");
   };
 
   // Password reset request function
-  const handleRequestPasswordReset = async (email: string) => {
-    try {
-      await requestPasswordReset(email);
-    } catch (error) {
-      console.error('Error requesting password reset:', error);
-      throw error;
-    }
+  const requestPasswordReset = async (email: string) => {
+    setIsLoading(true);
+    
+    return new Promise<void>((resolve, reject) => {
+      setTimeout(() => {
+        const foundUser = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+        
+        if (foundUser) {
+          // In a real app, this would send an email
+          console.log(`Password reset requested for ${email}`);
+          setIsLoading(false);
+          resolve();
+        } else {
+          setIsLoading(false);
+          reject(new Error("User not found"));
+        }
+      }, 1000);
+    });
   };
 
-  // Reset password function
-  const handleResetPassword = async (newPassword: string) => {
-    try {
-      await resetPassword(newPassword);
-    } catch (error) {
-      console.error('Error resetting password:', error);
-      throw error;
-    }
+  // Admin reset password function
+  const resetPassword = async (userId: string, newPassword: string) => {
+    setIsLoading(true);
+    
+    return new Promise<void>((resolve, reject) => {
+      setTimeout(() => {
+        const userIndex = MOCK_USERS.findIndex(u => u.id === userId);
+        
+        if (userIndex !== -1) {
+          // Update password in mock users array
+          MOCK_USERS[userIndex] = {
+            ...MOCK_USERS[userIndex],
+            password: newPassword
+          };
+          console.log(`Password has been reset for user ${userId}`);
+          setIsLoading(false);
+          resolve();
+        } else {
+          setIsLoading(false);
+          reject(new Error("User not found"));
+        }
+      }, 500);
+    });
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        session,
-        login: handleLogin,
-        signup: handleSignup,
-        logout: handleLogout,
-        requestPasswordReset: handleRequestPasswordReset,
-        resetPassword: handleResetPassword,
-        isAuthenticated,
+        login,
+        logout,
+        requestPasswordReset,
+        resetPassword,
+        isAuthenticated: !!user,
         isLoading,
       }}
     >
@@ -106,5 +178,37 @@ export const useAuth = () => {
   return context;
 };
 
-// Export usePermissions from the new file
-export { usePermissions } from '@/hooks/usePermissions';
+// Hook to check permissions based on role
+export const usePermissions = () => {
+  const { user } = useAuth();
+  
+  return {
+    // General permissions
+    canCreate: user?.role === "administrator" || user?.role === "skadeleder",
+    canEdit: user?.role === "administrator" || user?.role === "skadeleder",
+    canDelete: user?.role === "administrator",
+    canViewFuelCardCode: user?.role === "administrator",
+    isAdmin: user?.role === "administrator",
+    isSkadeleder: user?.role === "skadeleder",
+    isServicemedarbejder: user?.role === "servicemedarbejder",
+    
+    // Vacation specific permissions
+    canApproveVacation: user?.role === "administrator",
+    canViewAllVacations: user?.role === "administrator" || user?.role === "skadeleder",
+    
+    // Task visibility
+    canSeeUnpublishedTasks: user?.role === "administrator" || user?.role === "skadeleder",
+    canPublishTasks: user?.role === "administrator" || user?.role === "skadeleder",
+    
+    // Helper function to check if user has a specific role or higher
+    hasRole: (minimumRole: UserRole): boolean => {
+      if (!user) return false;
+      
+      if (minimumRole === "servicemedarbejder") return true; // Everyone is at least servicemedarbejder
+      if (minimumRole === "skadeleder") return user.role === "skadeleder" || user.role === "administrator";
+      if (minimumRole === "administrator") return user.role === "administrator";
+      
+      return false;
+    }
+  };
+};

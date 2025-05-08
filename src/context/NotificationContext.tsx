@@ -1,41 +1,101 @@
 
-import React, { createContext, useContext } from "react";
-import { NotificationType } from "@/types/notification";
-import { useNotificationState } from "@/hooks/useNotificationState";
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useTranslation } from './TranslationContext';
+
+export interface Notification {
+  id: string;
+  type: 'vacation' | 'assignment' | 'system';
+  title: string;
+  message: string;
+  read: boolean;
+  date: Date;
+  link?: string;
+}
 
 interface NotificationContextType {
-  notifications: NotificationType[];
-  addNotification: (notification: Omit<NotificationType, "id" | "read" | "date">) => void;
+  notifications: Notification[];
+  unreadCount: number;
+  addNotification: (notification: Omit<Notification, 'id' | 'read' | 'date'>) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
-  deleteNotification: (id: string) => void;
   clearNotification: (id: string) => void;
-  unreadCount: number;
+  clearAllNotifications: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const {
-    notifications,
-    addNotification,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification,
-    clearNotification,
-    unreadCount,
-  } = useNotificationState();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    // Load notifications from localStorage on mount
+    const savedNotifications = localStorage.getItem('polygonNotifications');
+    if (savedNotifications) {
+      try {
+        const parsedNotifications = JSON.parse(savedNotifications).map((notification: any) => ({
+          ...notification,
+          date: new Date(notification.date)
+        }));
+        setNotifications(parsedNotifications);
+      } catch (error) {
+        console.error('Failed to parse notifications from localStorage', error);
+      }
+    }
+  }, []);
+
+  // Save notifications to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('polygonNotifications', JSON.stringify(notifications));
+  }, [notifications]);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const addNotification = (notification: Omit<Notification, 'id' | 'read' | 'date'>) => {
+    const newNotification: Notification = {
+      ...notification,
+      id: Date.now().toString(),
+      read: false,
+      date: new Date()
+    };
+
+    setNotifications(prev => [newNotification, ...prev]);
+  };
+
+  const markAsRead = (id: string) => {
+    setNotifications(prev =>
+      prev.map(notification =>
+        notification.id === id ? { ...notification, read: true } : notification
+      )
+    );
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(prev =>
+      prev.map(notification => ({ ...notification, read: true }))
+    );
+  };
+
+  const clearNotification = (id: string) => {
+    setNotifications(prev =>
+      prev.filter(notification => notification.id !== id)
+    );
+  };
+
+  const clearAllNotifications = () => {
+    setNotifications([]);
+  };
 
   return (
     <NotificationContext.Provider
       value={{
         notifications,
+        unreadCount,
         addNotification,
         markAsRead,
         markAllAsRead,
-        deleteNotification,
         clearNotification,
-        unreadCount,
+        clearAllNotifications
       }}
     >
       {children}
@@ -46,7 +106,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (context === undefined) {
-    throw new Error("useNotifications must be used within a NotificationProvider");
+    throw new Error('useNotifications must be used within a NotificationProvider');
   }
   return context;
 };

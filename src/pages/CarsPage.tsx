@@ -1,11 +1,10 @@
 
 import React from 'react';
-import { usePermissions } from '../hooks/usePermissions';
+import { usePermissions } from '../context/AuthContext';
 import CarsList from '@/components/Cars/CarsList';
 import CarPageHeader from '@/components/Cars/CarPageHeader';
 import CarDialogs from '@/components/Cars/CarDialogs';
 import { useCars } from '@/hooks/useCars';
-import { convertCarToCarData } from '@/types/car';
 
 const CarsPage: React.FC = () => {
   const { canViewFuelCardCode, isAdmin } = usePermissions();
@@ -26,9 +25,6 @@ const CarsPage: React.FC = () => {
     handleSubmit
   } = useCars();
 
-  // Convert cars to CarData format for the components that still use it
-  const carsData = cars.map(convertCarToCarData);
-
   return (
     <>
       <CarPageHeader 
@@ -37,24 +33,12 @@ const CarsPage: React.FC = () => {
       />
 
       <CarsList 
-        cars={carsData} 
+        cars={cars} 
         canEdit={false} // Now only admins can edit, controlled in the component
         canViewFuelCardCode={canViewFuelCardCode} 
         isAdmin={isAdmin}
-        onEdit={(carData) => {
-          // Find the original Car object that matches this CarData
-          const originalCar = cars.find(car => car.id === carData.id);
-          if (originalCar) {
-            handleEdit(originalCar);
-          }
-        }}
-        onDelete={(carData) => {
-          // Find the original Car object that matches this CarData
-          const originalCar = cars.find(car => car.id === carData.id);
-          if (originalCar) {
-            handleDelete(originalCar);
-          }
-        }}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
 
       <CarDialogs
@@ -66,7 +50,7 @@ const CarsPage: React.FC = () => {
         onInputChange={handleInputChange}
         onCheckboxChange={handleCheckboxChange}
         onSubmit={handleSubmit}
-        currentCar={currentCar ? convertCarToCarData(currentCar) : null}
+        currentCar={currentCar}
         canViewFuelCardCode={canViewFuelCardCode}
         onConfirmDelete={confirmDelete}
       />

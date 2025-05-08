@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAssignments } from './useAssignments';
 import { useAssignmentPublishing } from './useAssignmentPublishing';
 import { useAssignmentFilters } from './useAssignmentFilters';
@@ -12,13 +12,12 @@ export const usePlannerAssignments = (selectedWeek?: number) => {
     assignments: allAssignments, 
     createAssignment, 
     updateAssignment, 
-    deleteAssignment,
-    isLoading
+    deleteAssignment 
   } = useAssignments();
   
   // Function to update assignments array that we pass to the publishing hook
   const updateAssignments = (updatedAssignments: Assignment[]) => {
-    // Map through each assignment and update it individually
+    // Map through each assignment and update it individually to preserve proper state updates
     updatedAssignments.forEach(updated => {
       updateAssignment(updated);
     });
@@ -49,7 +48,6 @@ export const usePlannerAssignments = (selectedWeek?: number) => {
     publishAssignments,
     publishAssignment,
     publishAssignmentsByDate,
-    getWeekDates,
-    isLoading
+    getWeekDates
   };
 };

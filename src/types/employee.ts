@@ -1,6 +1,5 @@
 
-import { UserRole } from '@/types/auth';
-import { TableProfile } from '@/types/supabase';
+import { UserRole } from '@/context/AuthContext';
 
 export interface Employee {
   id: string;
@@ -11,18 +10,4 @@ export interface Employee {
   role: UserRole;
   onLeave?: boolean;
   notes?: string;
-}
-
-// Utility function to convert TableProfile to Employee
-export function profileToEmployee(profile: TableProfile): Employee {
-  return {
-    id: profile.id,
-    name: profile.name,
-    email: profile.email,
-    phone: profile.phone || '',
-    jobTitle: profile.job_title || '',
-    role: profile.role,
-    onLeave: profile.on_leave,
-    notes: profile.notes || ''
-  };
 }

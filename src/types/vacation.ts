@@ -12,8 +12,3 @@ export interface Vacation {
   createdAt: Date;
   notes?: string;
 }
-
-// Helper function to check if a string is a valid vacation status
-export function isValidVacationStatus(status: string): status is VacationStatus {
-  return ['pending', 'approved', 'rejected'].includes(status);
-}

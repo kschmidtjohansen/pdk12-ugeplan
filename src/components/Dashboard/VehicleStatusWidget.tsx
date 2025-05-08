@@ -45,7 +45,7 @@ const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
                   </div>
                   <div>
                     <p className="text-sm font-medium">{car.name}</p>
-                    <p className="text-xs text-muted-foreground">{car.number_plate}</p>
+                    <p className="text-xs text-muted-foreground">ID: {car.id}</p>
                   </div>
                 </div>
                 <div>
