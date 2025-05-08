@@ -36,15 +36,7 @@ export const useCars = () => {
           throw error;
         }
 
-        // Transform car data to match our Car interface
-        const transformedCars: Car[] = data.map(car => ({
-          ...car,
-          brand: '', // These fields are not in the database but are in our interface
-          model: '',
-          licensePlate: car.number_plate
-        }));
-
-        setCars(transformedCars);
+        setCars(data as Car[]);
       } catch (error) {
         console.error('Error fetching cars:', error);
         toast({
@@ -161,12 +153,7 @@ export const useCars = () => {
         if (data && data.length > 0) {
           setCars(
             cars.map((c) =>
-              c.id === currentCar.id ? { 
-                ...data[0],
-                brand: '', // Keep our interface fields
-                model: '',
-                licensePlate: data[0].number_plate
-              } : c
+              c.id === currentCar.id ? data[0] as Car : c
             )
           );
         }
@@ -187,13 +174,7 @@ export const useCars = () => {
         }
 
         if (data && data.length > 0) {
-          const newCar: Car = {
-            ...data[0],
-            brand: '', // Add our interface fields
-            model: '',
-            licensePlate: data[0].number_plate
-          };
-          setCars([...cars, newCar]);
+          setCars([...cars, data[0] as Car]);
         }
 
         toast({

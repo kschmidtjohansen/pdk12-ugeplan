@@ -41,8 +41,20 @@ const CarsPage: React.FC = () => {
         canEdit={false} // Now only admins can edit, controlled in the component
         canViewFuelCardCode={canViewFuelCardCode} 
         isAdmin={isAdmin}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        onEdit={(carData) => {
+          // Find the original Car object that matches this CarData
+          const originalCar = cars.find(car => car.id === carData.id);
+          if (originalCar) {
+            handleEdit(originalCar);
+          }
+        }}
+        onDelete={(carData) => {
+          // Find the original Car object that matches this CarData
+          const originalCar = cars.find(car => car.id === carData.id);
+          if (originalCar) {
+            handleDelete(originalCar);
+          }
+        }}
       />
 
       <CarDialogs
