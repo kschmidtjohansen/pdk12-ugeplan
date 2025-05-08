@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { NotificationType } from "@/types/notification";
@@ -12,6 +11,7 @@ interface NotificationContextType {
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   deleteNotification: (id: string) => void;
+  clearNotification: (id: string) => void;  // Added the missing method
   unreadCount: number;
 }
 
@@ -119,11 +119,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       if (error) {
         throw error;
       }
-
-      if (data && data.length > 0) {
-        // No need to manually update state here as we're listening for changes
-        // via the realtime subscription
-      }
     } catch (error) {
       console.error('Error adding notification:', error);
     }
@@ -178,6 +173,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  // Add missing clearNotification method (alias for deleteNotification)
+  const clearNotification = async (id: string) => {
+    return deleteNotification(id);
+  };
+
   const deleteNotification = async (id: string) => {
     try {
       // Delete from Supabase
@@ -207,6 +207,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         markAsRead,
         markAllAsRead,
         deleteNotification,
+        clearNotification,
         unreadCount,
       }}
     >

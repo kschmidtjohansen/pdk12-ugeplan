@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Vacation } from '../types/vacation';
+import { Vacation, VacationStatus, isValidVacationStatus } from '../types/vacation';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -55,7 +54,7 @@ export const useVacations = () => {
           startDate: new Date(v.start_date),
           endDate: new Date(v.end_date),
           reason: v.reason,
-          status: v.status,
+          status: isValidVacationStatus(v.status) ? v.status : 'pending',
           notes: v.notes,
           createdAt: new Date(v.created_at)
         }));
@@ -76,6 +75,7 @@ export const useVacations = () => {
     fetchVacations();
   }, [toast, t]);
 
+  // Submit vacation request function
   const submitVacationRequest = async (e: React.FormEvent, isAdminRequest: boolean = false) => {
     e.preventDefault();
     if (!date.from || !date.to || !user) {
@@ -140,7 +140,7 @@ export const useVacations = () => {
           startDate: new Date(data[0].start_date),
           endDate: new Date(data[0].end_date),
           reason: data[0].reason,
-          status: data[0].status,
+          status: isValidVacationStatus(data[0].status) ? data[0].status : 'pending',
           notes: data[0].notes,
           createdAt: new Date(data[0].created_at)
         };
@@ -206,6 +206,15 @@ export const useVacations = () => {
     }
   };
 
+  // Helper to cast status string to VacationStatus
+  const getValidVacationStatus = (status: string): VacationStatus => {
+    if (isValidVacationStatus(status)) {
+      return status;
+    }
+    return 'pending';
+  };
+
+  // Process vacation approval
   const approveVacation = async (vacation: Vacation, noteText: string) => {
     try {
       // Update in Supabase
@@ -258,6 +267,7 @@ export const useVacations = () => {
     }
   };
 
+  // Process vacation rejection
   const rejectVacation = async (vacation: Vacation, noteText: string) => {
     try {
       // Update in Supabase

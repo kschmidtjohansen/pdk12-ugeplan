@@ -1,5 +1,5 @@
 
-import { UserRole } from '@/context/AuthContext';
+import { UserRole } from '@/types/auth';
 import { TableProfile } from '@/types/supabase';
 
 export interface Employee {

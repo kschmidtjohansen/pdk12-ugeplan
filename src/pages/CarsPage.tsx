@@ -1,10 +1,11 @@
 
 import React from 'react';
-import { usePermissions } from '../context/AuthContext';
+import { usePermissions } from '../hooks/usePermissions';
 import CarsList from '@/components/Cars/CarsList';
 import CarPageHeader from '@/components/Cars/CarPageHeader';
 import CarDialogs from '@/components/Cars/CarDialogs';
 import { useCars } from '@/hooks/useCars';
+import { convertCarToCarData } from '@/types/car';
 
 const CarsPage: React.FC = () => {
   const { canViewFuelCardCode, isAdmin } = usePermissions();
@@ -25,6 +26,9 @@ const CarsPage: React.FC = () => {
     handleSubmit
   } = useCars();
 
+  // Convert cars to CarData format for the components that still use it
+  const carsData = cars.map(convertCarToCarData);
+
   return (
     <>
       <CarPageHeader 
@@ -33,7 +37,7 @@ const CarsPage: React.FC = () => {
       />
 
       <CarsList 
-        cars={cars} 
+        cars={carsData} 
         canEdit={false} // Now only admins can edit, controlled in the component
         canViewFuelCardCode={canViewFuelCardCode} 
         isAdmin={isAdmin}
@@ -50,7 +54,7 @@ const CarsPage: React.FC = () => {
         onInputChange={handleInputChange}
         onCheckboxChange={handleCheckboxChange}
         onSubmit={handleSubmit}
-        currentCar={currentCar}
+        currentCar={currentCar ? convertCarToCarData(currentCar) : null}
         canViewFuelCardCode={canViewFuelCardCode}
         onConfirmDelete={confirmDelete}
       />

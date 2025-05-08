@@ -1,20 +1,12 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Session, User } from "@supabase/supabase-js";
-import { UserRole, TableProfile } from "@/types/supabase";
+import { Session } from "@supabase/supabase-js";
+import { UserWithProfile, User } from "@/types/auth";
+import { profileToEmployee } from "@/types/employee";
 
-// User interface
-export interface UserWithProfile {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  phone?: string;
-  jobTitle?: string;
-  onLeave?: boolean;
-  notes?: string;
-}
+// Export types for use in other components
+export type { User, UserRole, UserWithProfile } from "@/types/auth";
 
 // Auth context interface
 interface AuthContextType {
@@ -41,14 +33,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   // Convert Supabase user and profile to our UserWithProfile format
-  const buildUserWithProfile = async (user: User): Promise<UserWithProfile | null> => {
-    if (!user) return null;
+  const buildUserWithProfile = async (supabaseUser: any): Promise<UserWithProfile | null> => {
+    if (!supabaseUser) return null;
     
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', supabaseUser.id)
         .single();
       
       if (error || !profile) {
@@ -56,15 +48,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return null;
       }
       
+      const employee = profileToEmployee(profile);
+      
       return {
-        id: user.id,
-        name: profile.name,
-        email: profile.email,
-        role: profile.role,
-        phone: profile.phone,
-        jobTitle: profile.job_title,
-        onLeave: profile.on_leave,
-        notes: profile.notes,
+        id: employee.id,
+        name: employee.name,
+        email: employee.email,
+        role: employee.role,
+        phone: employee.phone,
+        jobTitle: employee.jobTitle,
+        onLeave: employee.onLeave,
+        notes: employee.notes
       };
     } catch (error) {
       console.error('Error building user profile:', error);
@@ -185,7 +179,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Reset password function
+  // Reset password function - update to only take one parameter
   const resetPassword = async (newPassword: string) => {
     setIsLoading(true);
     try {
@@ -229,37 +223,5 @@ export const useAuth = () => {
   return context;
 };
 
-// Hook to check permissions based on role
-export const usePermissions = () => {
-  const { user } = useAuth();
-  
-  return {
-    // General permissions
-    canCreate: user?.role === "administrator" || user?.role === "skadeleder",
-    canEdit: user?.role === "administrator" || user?.role === "skadeleder",
-    canDelete: user?.role === "administrator",
-    canViewFuelCardCode: user?.role === "administrator",
-    isAdmin: user?.role === "administrator",
-    isSkadeleder: user?.role === "skadeleder",
-    isServicemedarbejder: user?.role === "servicemedarbejder",
-    
-    // Vacation specific permissions
-    canApproveVacation: user?.role === "administrator",
-    canViewAllVacations: user?.role === "administrator" || user?.role === "skadeleder",
-    
-    // Task visibility
-    canSeeUnpublishedTasks: user?.role === "administrator" || user?.role === "skadeleder",
-    canPublishTasks: user?.role === "administrator" || user?.role === "skadeleder",
-    
-    // Helper function to check if user has a specific role or higher
-    hasRole: (minimumRole: UserRole): boolean => {
-      if (!user) return false;
-      
-      if (minimumRole === "servicemedarbejder") return true; // Everyone is at least servicemedarbejder
-      if (minimumRole === "skadeleder") return user.role === "skadeleder" || user.role === "administrator";
-      if (minimumRole === "administrator") return user.role === "administrator";
-      
-      return false;
-    }
-  };
-};
+// Export usePermissions from the new file
+export { usePermissions } from '@/hooks/usePermissions';
