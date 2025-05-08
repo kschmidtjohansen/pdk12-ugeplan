@@ -106,11 +106,6 @@ const LoginPage: React.FC = () => {
                 </div>
               )}
               
-              <div className="bg-amber-50 border border-amber-200 p-3 rounded-md flex items-center gap-2 text-sm text-amber-700 mb-2">
-                <Info size={16} />
-                <span>For testing, you can use: <strong>admin@polygongroup.com</strong> with password <strong>password123</strong></span>
-              </div>
-              
               <div className="space-y-2">
                 <Label htmlFor="email">{t('common.email')}</Label>
                 <Input 
@@ -175,7 +170,7 @@ const LoginPage: React.FC = () => {
         </Card>
         
         <div className="mt-6 text-center text-sm text-gray-500">
-          <p>{t('login.testCredentials')}</p>
+          <p>{t('login.supabaseAuth')}</p>
         </div>
       </div>
 

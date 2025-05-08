@@ -277,6 +277,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: string
       }
+      is_same_user: {
+        Args: { requested_user_id: string }
+        Returns: boolean
+      }
       user_has_role: {
         Args: { requested_role: string }
         Returns: boolean
