@@ -10,7 +10,7 @@ export interface Assignment {
   car: string | { id: string; name: string } | null;
   employees: string[];
   published?: boolean;
-  type?: string;
+  type?: "waterDamage" | "fireDamage" | "mold" | "other";
 }
 
 export interface GroupedAssignments {

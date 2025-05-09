@@ -48,6 +48,13 @@ const DashboardPage: React.FC = () => {
     });
   };
 
+  // Format car display value
+  const getCarDisplay = (car: string | { id: string; name: string } | null) => {
+    if (!car) return 'No car assigned';
+    if (typeof car === 'string') return car;
+    return car.name;
+  };
+
   // Quick access items based on user role
   const getQuickAccessItems = () => {
     const baseItems = [{
@@ -158,7 +165,7 @@ const DashboardPage: React.FC = () => {
                     </div>
                     <div className="flex items-start gap-2">
                       <Car className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                      <span>{assignment.car}</span>
+                      <span>{getCarDisplay(assignment.car)}</span>
                     </div>
                   </div>
                 </div>
