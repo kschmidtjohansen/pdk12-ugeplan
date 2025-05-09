@@ -42,33 +42,18 @@ export const useVacationApprovalActions = (fetchVacations: () => Promise<void>) 
           .single();
         
         if (employeeData) {
-          // Create notification in the system
-          const { error: notificationError } = await supabase
-            .from('notifications')
-            .insert([
-              {
-                user_id: vacation.employeeId,
-                type: 'vacation',
-                title: t("vacation.requestApproved"),
-                message: t("vacation.yourRequestApproved"),
-                read: false,
-                link: '/vacation'
-              }
-            ]);
+          // Instead of directly inserting into the notifications table (which causes type errors),
+          // we'll use the context's addNotification function which will handle the database interaction
           
-          if (notificationError) {
-            console.error('Error creating notification:', notificationError);
-          }
+          // Create notification message
+          const notificationTitle = t("vacation.requestApproved");
+          const notificationMessage = t("vacation.yourRequestApproved");
           
-          // Add notification to local context
+          // Add notification to local context and update the user
           addNotification({
-            id: new Date().getTime().toString(),
-            user_id: vacation.employeeId,
             type: 'vacation',
-            title: t("vacation.requestApproved"),
-            message: t("vacation.yourRequestApproved"),
-            read: false,
-            date: new Date(),
+            title: notificationTitle,
+            message: notificationMessage,
             link: '/vacation'
           });
         }
@@ -116,33 +101,15 @@ export const useVacationApprovalActions = (fetchVacations: () => Promise<void>) 
           .single();
         
         if (employeeData) {
-          // Create notification in the system
-          const { error: notificationError } = await supabase
-            .from('notifications')
-            .insert([
-              {
-                user_id: vacation.employeeId,
-                type: 'vacation',
-                title: t("vacation.requestRejected"),
-                message: t("vacation.yourRequestRejected", { reason: noteText || t('common.noReasonProvided') }),
-                read: false,
-                link: '/vacation'
-              }
-            ]);
+          // Create notification message
+          const notificationTitle = t("vacation.requestRejected");
+          const notificationMessage = t("vacation.yourRequestRejected", { reason: noteText || t('common.noReasonProvided') });
           
-          if (notificationError) {
-            console.error('Error creating notification:', notificationError);
-          }
-          
-          // Add notification to local context
+          // Add notification to local context instead of direct DB insert
           addNotification({
-            id: new Date().getTime().toString(),
-            user_id: vacation.employeeId,
             type: 'vacation',
-            title: t("vacation.requestRejected"),
-            message: t("vacation.yourRequestRejected", { reason: noteText || t('common.noReasonProvided') }),
-            read: false,
-            date: new Date(),
+            title: notificationTitle,
+            message: notificationMessage,
             link: '/vacation'
           });
         }

@@ -6,6 +6,7 @@ import { NotificationProvider } from './context/NotificationContext';
 import App from './App.tsx';
 import './index.css';
 
+// The correct order is important: AuthProvider first, then TranslationProvider, then NotificationProvider
 createRoot(document.getElementById("root")!).render(
   <AuthProvider>
     <TranslationProvider>

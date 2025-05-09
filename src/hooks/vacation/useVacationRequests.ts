@@ -81,27 +81,19 @@ export const useVacationRequests = () => {
           description: t('vacation.adminRequestSent', { name: actualEmployeeName }),
         });
         
-        // Notify the employee
-        const { error: notificationError } = await supabase
-          .from('notifications')
-          .insert([
-            {
-              user_id: employeeId,
-              type: 'vacation',
-              title: t('vacation.requestSubmittedForYou'),
-              message: t('vacation.adminRequestedForYou', { 
-                adminName: user?.name,
-                from: format(startDate, 'dd.MM.yyyy'),
-                to: format(endDate, 'dd.MM.yyyy')
-              }),
-              read: false,
-              link: '/vacation'
-            }
-          ]);
-          
-        if (notificationError) {
-          console.error('Error sending notification to employee:', notificationError);
-        }
+        // Notify the employee - we'll use the context function instead of direct DB insert
+        const notifyMessage = t('vacation.adminRequestedForYou', { 
+          adminName: user?.name,
+          from: format(startDate, 'dd.MM.yyyy'),
+          to: format(endDate, 'dd.MM.yyyy')
+        });
+        
+        addNotification({
+          type: 'vacation',
+          title: t('vacation.requestSubmittedForYou'),
+          message: notifyMessage,
+          link: '/vacation'
+        });
       } else {
         toast({
           title: t('vacation.requestSubmitted'),
@@ -118,31 +110,24 @@ export const useVacationRequests = () => {
       if (adminError) {
         console.error('Error fetching admin users:', adminError);
       } else if (adminUsers) {
-        // Create notifications for each admin
-        const adminNotifications = adminUsers
+        // For each admin, use the context to add a notification
+        adminUsers
           .filter(admin => admin.user_id !== user?.id) // Don't notify yourself
-          .map(admin => ({
-            user_id: admin.user_id,
-            type: 'vacation',
-            title: t('notifications.newVacationRequest'),
-            message: t('notifications.newVacationRequestMsg', {
+          .forEach(admin => {
+            const notifyMessage = t('notifications.newVacationRequestMsg', {
               name: actualEmployeeName,
               from: format(startDate, 'dd.MM.yyyy'),
               to: format(endDate, 'dd.MM.yyyy')
-            }),
-            read: false,
-            link: '/vacation'
-          }));
-        
-        if (adminNotifications.length > 0) {
-          const { error: notifError } = await supabase
-            .from('notifications')
-            .insert(adminNotifications);
+            });
             
-          if (notifError) {
-            console.error('Error creating admin notifications:', notifError);
-          }
-        }
+            // Add notification using the context
+            addNotification({
+              type: 'vacation',
+              title: t('notifications.newVacationRequest'),
+              message: notifyMessage,
+              link: '/vacation'
+            });
+          });
       }
       
       return true;
