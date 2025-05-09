@@ -71,8 +71,8 @@ const DashboardMetrics: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AssignmentDistributionChart assignments={assignments} />
         <div className="space-y-6">
-          <UpcomingVacationsWidget />
-          <VehicleStatusWidget availableVehicles={availableVehicles} totalVehicles={totalVehicles} />
+          <UpcomingVacationsWidget vacations={vacations} />
+          <VehicleStatusWidget cars={cars} />
         </div>
       </div>
     </div>
