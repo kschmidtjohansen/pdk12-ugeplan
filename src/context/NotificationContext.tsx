@@ -31,182 +31,73 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  // Fetch notifications when user changes
+  // For now, let's use mock notifications until the notifications table is created
   useEffect(() => {
-    if (!user) {
-      setNotifications([]);
-      return;
-    }
-    
-    fetchNotifications();
-
-    // Subscribe to notification changes
-    const channel = supabase
-      .channel('notification_changes')
-      .on(
-        'postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`
-        }, 
-        () => {
-          fetchNotifications();
+    if (user) {
+      // Mock notifications for now
+      const mockNotifications: Notification[] = [
+        {
+          id: '1',
+          type: 'vacation',
+          title: t('notifications.vacationRequestUpdated'),
+          message: t('notifications.vacationApproved'),
+          read: false,
+          date: new Date(),
+          link: '/vacation'
+        },
+        {
+          id: '2',
+          type: 'assignment',
+          title: t('notifications.newAssignment'),
+          message: t('notifications.assignmentDetails'),
+          read: true,
+          date: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+          link: '/planner'
         }
-      )
-      .subscribe();
+      ];
       
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-
-  const fetchNotifications = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-        
-      if (error) throw error;
-      
-      if (data) {
-        const formattedNotifications: Notification[] = data.map(item => ({
-          id: item.id,
-          type: item.type as 'vacation' | 'assignment' | 'system',
-          title: item.title,
-          message: item.message,
-          read: item.read,
-          date: new Date(item.created_at),
-          link: item.link
-        }));
-        
-        setNotifications(formattedNotifications);
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
+      setNotifications(mockNotifications);
+    } else {
+      setNotifications([]);
     }
-  };
+  }, [user, t]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const addNotification = async (notification: Omit<Notification, 'id' | 'read' | 'date'>) => {
-    if (!user) return;
+    // For now, add locally until db table is created
+    const newNotification: Notification = {
+      ...notification,
+      id: Date.now().toString(),
+      read: false,
+      date: new Date()
+    };
     
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .insert([{
-          user_id: user.id,
-          type: notification.type,
-          title: notification.title,
-          message: notification.message,
-          read: false,
-          link: notification.link
-        }])
-        .select();
-        
-      if (error) throw error;
-      
-      if (data && data.length > 0) {
-        const newNotification: Notification = {
-          id: data[0].id,
-          type: data[0].type,
-          title: data[0].title,
-          message: data[0].message,
-          read: data[0].read,
-          date: new Date(data[0].created_at),
-          link: data[0].link
-        };
-        
-        setNotifications(prev => [newNotification, ...prev]);
-      }
-    } catch (error) {
-      console.error('Error adding notification:', error);
-    }
+    setNotifications(prev => [newNotification, ...prev]);
   };
 
   const markAsRead = async (id: string) => {
-    if (!user) return;
-    
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('id', id)
-        .eq('user_id', user.id);
-        
-      if (error) throw error;
-      
-      setNotifications(prev =>
-        prev.map(notification =>
-          notification.id === id ? { ...notification, read: true } : notification
-        )
-      );
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
+    setNotifications(prev =>
+      prev.map(notification =>
+        notification.id === id ? { ...notification, read: true } : notification
+      )
+    );
   };
 
   const markAllAsRead = async () => {
-    if (!user || notifications.length === 0) return;
-    
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('user_id', user.id)
-        .eq('read', false);
-        
-      if (error) throw error;
-      
-      setNotifications(prev =>
-        prev.map(notification => ({ ...notification, read: true }))
-      );
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
+    setNotifications(prev =>
+      prev.map(notification => ({ ...notification, read: true }))
+    );
   };
 
   const clearNotification = async (id: string) => {
-    if (!user) return;
-    
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
-        
-      if (error) throw error;
-      
-      setNotifications(prev =>
-        prev.filter(notification => notification.id !== id)
-      );
-    } catch (error) {
-      console.error('Error clearing notification:', error);
-    }
+    setNotifications(prev =>
+      prev.filter(notification => notification.id !== id)
+    );
   };
 
   const clearAllNotifications = async () => {
-    if (!user || notifications.length === 0) return;
-    
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('user_id', user.id);
-        
-      if (error) throw error;
-      
-      setNotifications([]);
-    } catch (error) {
-      console.error('Error clearing all notifications:', error);
-    }
+    setNotifications([]);
   };
 
   return (

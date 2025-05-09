@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import { TranslationProvider } from './context/TranslationContext';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import PlannerPage from './pages/PlannerPage';
@@ -10,7 +9,7 @@ import VacationPage from './pages/VacationPage';
 import EmployeesPage from './pages/EmployeesPage';
 import CarsPage from './pages/CarsPage';
 import PasswordResetPage from './pages/PasswordResetPage';
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
 
 function App() {
   const { isAuthenticated } = useAuth();
