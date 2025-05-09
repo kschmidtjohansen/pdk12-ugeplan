@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import EmployeeFormDialog from './EmployeeFormDialog';
 import EmployeeDeleteDialog from './EmployeeDeleteDialog';

@@ -4,6 +4,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import {
+  Dialog,
   DialogHeader,
   DialogFooter,
   DialogTitle,
@@ -59,44 +60,46 @@ const PasswordResetDialog: React.FC<PasswordResetDialogProps> = ({ open, onOpenC
   };
 
   return (
-    <DialogContent className="sm:max-w-[425px]">
-      <DialogHeader>
-        <DialogTitle>{t('login.passwordReset.title')}</DialogTitle>
-        <DialogDescription>
-          {t('login.passwordReset.description')}
-        </DialogDescription>
-      </DialogHeader>
-      <form onSubmit={handleSubmit}>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="email">{t('common.email')}</Label>
-            <Input
-              id="email"
-              placeholder={t('login.passwordReset.emailPlaceholder')}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>{t('login.passwordReset.title')}</DialogTitle>
+          <DialogDescription>
+            {t('login.passwordReset.description')}
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">{t('common.email')}</Label>
+              <Input
+                id="email"
+                placeholder={t('login.passwordReset.emailPlaceholder')}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
           </div>
-        </div>
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            {t('login.passwordReset.backToLogin')}
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting 
-              ? t('login.passwordReset.buttonLoading') 
-              : t('login.passwordReset.sendResetEmail')
-            }
-          </Button>
-        </DialogFooter>
-      </form>
-    </DialogContent>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              {t('login.passwordReset.backToLogin')}
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting 
+                ? t('login.passwordReset.buttonLoading') 
+                : t('login.passwordReset.sendResetEmail')
+              }
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
