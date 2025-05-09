@@ -34,21 +34,19 @@ function App() {
   };
 
   return (
-    <TranslationProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/password-reset" element={<PasswordResetPage />} />
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-          <Route path="/planner" element={<ProtectedRoute><PlannerPage /></ProtectedRoute>} />
-          <Route path="/vacation" element={<ProtectedRoute><VacationPage /></ProtectedRoute>} />
-          <Route path="/employees" element={<ProtectedRoute><EmployeesPage /></ProtectedRoute>} />
-          <Route path="/cars" element={<ProtectedRoute><CarsPage /></ProtectedRoute>} />
-        </Routes>
-        <Toaster />
-      </Router>
-    </TranslationProvider>
+    <Router>
+      <Routes>
+        <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/password-reset" element={<PasswordResetPage />} />
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/planner" element={<ProtectedRoute><PlannerPage /></ProtectedRoute>} />
+        <Route path="/vacation" element={<ProtectedRoute><VacationPage /></ProtectedRoute>} />
+        <Route path="/employees" element={<ProtectedRoute><EmployeesPage /></ProtectedRoute>} />
+        <Route path="/cars" element={<ProtectedRoute><CarsPage /></ProtectedRoute>} />
+      </Routes>
+      <Toaster />
+    </Router>
   );
 }
 
