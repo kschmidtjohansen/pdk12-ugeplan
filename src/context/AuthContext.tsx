@@ -1,167 +1,264 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
+import { AuthError, Session, User } from '@supabase/supabase-js';
 
-// User roles
-export type UserRole = "administrator" | "skadeleder" | "servicemedarbejder";
+export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder';
 
-// User interface
 export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole;
-  phone?: string;
-  jobTitle?: string;
-  password?: string; // Used only for admin management, not stored client-side in production
 }
 
-// Auth context interface
-interface AuthContextType {
+interface AuthState {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  requestPasswordReset: (email: string) => Promise<void>;
-  resetPassword: (userId: string, newPassword: string) => Promise<void>;
-  isAuthenticated: boolean;
-  isLoading: boolean;
+  session: Session | null;
+  loading: boolean;
 }
 
-// Create context
+interface AuthContextType extends AuthState {
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
+  adminResetPassword: (userId: string, newPassword: string) => Promise<void>;
+  updateUserRole: (userId: string, role: UserRole) => Promise<void>;
+}
+
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for development
-const MOCK_USERS: User[] = [
-  {
-    id: "1",
-    name: "Admin",
-    email: "admin@polygongroup.com",
-    role: "administrator",
-    phone: "+45 12 34 56 78",
-    jobTitle: "System Administrator",
-    password: "password" // For development only
-  },
-  {
-    id: "2",
-    name: "Skadeleder",
-    email: "skadeleder@polygongroup.com",
-    role: "skadeleder",
-    phone: "+45 23 45 67 89",
-    jobTitle: "Team Leader",
-    password: "password" // For development only
-  },
-  {
-    id: "3",
-    name: "Servicemedarbejder",
-    email: "service@polygongroup.com",
-    role: "servicemedarbejder",
-    phone: "+45 34 56 78 90",
-    jobTitle: "Field Technician",
-    password: "password" // For development only
-  },
-];
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    session: null,
+    loading: true,
+  });
+  const { toast } = useToast();
 
-// Auth provider component
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
-  children 
-}) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Check for stored auth on mount
+  // Initialize auth state and set up session listener
   useEffect(() => {
-    const storedUser = localStorage.getItem("polygonUser");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    // Get the current session
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+
+        if (session) {
+          await refreshUserData(session);
+        } else {
+          setAuthState(prev => ({ ...prev, loading: false }));
+        }
+
+        // Listen for auth changes
+        const { data: { subscription } } = await supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (session) {
+              await refreshUserData(session);
+            } else {
+              setAuthState({
+                user: null,
+                session: null,
+                loading: false,
+              });
+            }
+          }
+        );
+
+        // Cleanup subscription
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        setAuthState(prev => ({ ...prev, loading: false }));
+      }
+    };
+
+    initializeAuth();
   }, []);
 
-  // Mock login function
+  // Helper function to fetch user data from profile and roles
+  const refreshUserData = async (session: Session) => {
+    try {
+      const userId = session.user.id;
+
+      // Fetch user profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Fetch user role
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+
+      if (roleError && roleError.code !== 'PGRST116') {
+        // PGRST116 is "no rows returned" error
+        throw roleError;
+      }
+
+      const role = roleData?.role as UserRole || 'servicemedarbejder';
+
+      // Update auth state with user data
+      setAuthState({
+        user: {
+          id: userId,
+          name: profile.name,
+          email: profile.email,
+          role,
+        },
+        session,
+        loading: false,
+      });
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+      setAuthState(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  // Login function
   const login = async (email: string, password: string) => {
-    // Simulate API request
-    setIsLoading(true);
-    
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        const foundUser = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
-        
-        if (foundUser && password === foundUser.password) {
-          // Don't include password in the user object stored in state/localStorage
-          const { password: _, ...userWithoutPassword } = foundUser;
-          setUser(userWithoutPassword);
-          localStorage.setItem("polygonUser", JSON.stringify(userWithoutPassword));
-          setIsLoading(false);
-          resolve();
-        } else {
-          setIsLoading(false);
-          reject(new Error("Invalid email or password"));
-        }
-      }, 1000);
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      // User data will be refreshed by the auth listener
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   };
 
   // Logout function
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("polygonUser");
+  const logout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
+    }
   };
 
-  // Password reset request function
-  const requestPasswordReset = async (email: string) => {
-    setIsLoading(true);
-    
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        const foundUser = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
-        
-        if (foundUser) {
-          // In a real app, this would send an email
-          console.log(`Password reset requested for ${email}`);
-          setIsLoading(false);
-          resolve();
-        } else {
-          setIsLoading(false);
-          reject(new Error("User not found"));
-        }
-      }, 1000);
-    });
+  // Register function
+  const register = async (email: string, password: string, name: string) => {
+    try {
+      // Register user
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      // User profile will be created automatically via database trigger
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
   };
 
-  // Admin reset password function
-  const resetPassword = async (userId: string, newPassword: string) => {
-    setIsLoading(true);
-    
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        const userIndex = MOCK_USERS.findIndex(u => u.id === userId);
-        
-        if (userIndex !== -1) {
-          // Update password in mock users array
-          MOCK_USERS[userIndex] = {
-            ...MOCK_USERS[userIndex],
-            password: newPassword
-          };
-          console.log(`Password has been reset for user ${userId}`);
-          setIsLoading(false);
-          resolve();
-        } else {
-          setIsLoading(false);
-          reject(new Error("User not found"));
-        }
-      }, 500);
-    });
+  // Reset password (email flow)
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Reset password error:', error);
+      throw error;
+    }
+  };
+
+  // Update password (for logged-in user)
+  const updatePassword = async (password: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Update password error:', error);
+      throw error;
+    }
+  };
+
+  // Admin reset password (using edge function)
+  const adminResetPassword = async (userId: string, newPassword: string) => {
+    try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+
+      const { data, error } = await supabase.functions.invoke('admin-reset-password', {
+        body: {
+          userId,
+          newPassword,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      return data;
+    } catch (error) {
+      console.error('Admin reset password error:', error);
+      throw error;
+    }
+  };
+
+  // Update user role (admin only)
+  const updateUserRole = async (userId: string, role: UserRole) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-user-role', {
+        body: {
+          userId,
+          role,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      return data;
+    } catch (error) {
+      console.error('Update user role error:', error);
+      throw error;
+    }
   };
 
   return (
     <AuthContext.Provider
       value={{
-        user,
+        ...authState,
         login,
         logout,
-        requestPasswordReset,
+        register,
         resetPassword,
-        isAuthenticated: !!user,
-        isLoading,
+        updatePassword,
+        adminResetPassword,
+        updateUserRole,
       }}
     >
       {children}
@@ -169,46 +266,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-// Hook for using auth context
+// Custom hook to use auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
 
-// Hook to check permissions based on role
+// Permission helper hook
 export const usePermissions = () => {
   const { user } = useAuth();
-  
+
   return {
-    // General permissions
-    canCreate: user?.role === "administrator" || user?.role === "skadeleder",
-    canEdit: user?.role === "administrator" || user?.role === "skadeleder",
-    canDelete: user?.role === "administrator",
-    canViewFuelCardCode: user?.role === "administrator",
-    isAdmin: user?.role === "administrator",
-    isSkadeleder: user?.role === "skadeleder",
-    isServicemedarbejder: user?.role === "servicemedarbejder",
-    
-    // Vacation specific permissions
-    canApproveVacation: user?.role === "administrator",
-    canViewAllVacations: user?.role === "administrator" || user?.role === "skadeleder",
-    
-    // Task visibility
-    canSeeUnpublishedTasks: user?.role === "administrator" || user?.role === "skadeleder",
-    canPublishTasks: user?.role === "administrator" || user?.role === "skadeleder",
-    
-    // Helper function to check if user has a specific role or higher
-    hasRole: (minimumRole: UserRole): boolean => {
-      if (!user) return false;
-      
-      if (minimumRole === "servicemedarbejder") return true; // Everyone is at least servicemedarbejder
-      if (minimumRole === "skadeleder") return user.role === "skadeleder" || user.role === "administrator";
-      if (minimumRole === "administrator") return user.role === "administrator";
-      
-      return false;
-    }
+    isAdmin: user?.role === 'administrator',
+    isSkadeleder: user?.role === 'skadeleder' || user?.role === 'administrator',
+    isServicemedarbejder: !!user, // All authenticated users are at least servicemedarbejder
+    canViewFuelCardCode: user?.role === 'administrator' || user?.role === 'skadeleder',
+    canPublishTasks: user?.role === 'administrator' || user?.role === 'skadeleder',
+    canApproveVacation: user?.role === 'administrator',
   };
 };

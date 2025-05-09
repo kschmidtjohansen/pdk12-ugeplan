@@ -7,17 +7,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/components/ui/use-toast';
-import { User } from '@/context/AuthContext';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
-import { Eye, EyeOff } from 'lucide-react';
+import { User } from '@/context/AuthContext';
+import { Employee } from '@/types/employee';
 
 interface PasswordChangeDialogProps {
-  currentUser: User | null;
+  currentUser: (User & Partial<Employee>) | null;
   onClose: () => void;
 }
 
@@ -27,131 +27,109 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
 }) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const { resetPassword } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { adminResetPassword } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const [error, setError] = useState<string | null>(null);
+
+  const validateForm = () => {
+    if (newPassword.length < 6) {
+      toast({
+        title: t('common.error'),
+        description: t('admin.passwords.passwordTooShort'),
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: t('common.error'),
+        description: t('admin.passwords.passwordsMustMatch'),
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentUser || !validateForm()) return;
     
-    if (newPassword !== confirmPassword) {
-      setError(t('admin.passwords.passwordsMustMatch'));
-      return;
-    }
-    
-    if (newPassword.length < 6) {
-      setError(t('admin.passwords.passwordTooShort'));
-      return;
-    }
-    
-    setError(null);
-    setIsLoading(true);
-    
+    setIsSubmitting(true);
+
     try {
-      if (currentUser) {
-        await resetPassword(currentUser.id, newPassword);
-        toast({
-          title: t('admin.passwords.resetSuccess'),
-          description: t('admin.passwords.resetDescription', { name: currentUser.name }),
-        });
-        onClose();
-      }
+      await adminResetPassword(currentUser.id, newPassword);
+      
+      toast({
+        title: t('admin.passwords.resetSuccess'),
+        description: t('admin.passwords.resetDescription', { name: currentUser.name }),
+      });
+      
+      setNewPassword('');
+      setConfirmPassword('');
+      onClose();
     } catch (error) {
+      console.error('Error resetting password:', error);
       toast({
         title: t('common.error'),
         description: t('admin.passwords.resetError'),
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
-  };
-
-  const toggleShowPassword = () => {
-    setShowPassword(!showPassword);
   };
 
   return (
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
-        <DialogTitle>{t('admin.passwords.resetPasswordFor', { name: currentUser?.name })}</DialogTitle>
+        <DialogTitle>
+          {currentUser && t('admin.passwords.resetPasswordFor', { name: currentUser.name })}
+        </DialogTitle>
         <DialogDescription>
           {t('admin.passwords.enterNewPassword')}
         </DialogDescription>
       </DialogHeader>
-      
-      <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-        <div className="grid gap-2">
-          <Label htmlFor="newPassword">{t('admin.passwords.newPassword')}</Label>
-          <div className="relative">
+      <form onSubmit={handleSubmit}>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="new-password" className="text-right">
+              {t('admin.passwords.newPassword')}
+            </Label>
             <Input
-              id="newPassword"
-              type={showPassword ? "text" : "password"}
+              id="new-password"
+              type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              className="col-span-3"
               required
+              autoComplete="new-password"
             />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full px-3"
-              onClick={toggleShowPassword}
-            >
-              {showPassword ? 
-                <EyeOff className="h-4 w-4" /> : 
-                <Eye className="h-4 w-4" />
-              }
-            </Button>
           </div>
-        </div>
-        
-        <div className="grid gap-2">
-          <Label htmlFor="confirmPassword">{t('admin.passwords.confirmPassword')}</Label>
-          <div className="relative">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="confirm-password" className="text-right">
+              {t('admin.passwords.confirmPassword')}
+            </Label>
             <Input
-              id="confirmPassword"
-              type={showPassword ? "text" : "password"}
+              id="confirm-password"
+              type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              className="col-span-3"
               required
+              autoComplete="new-password"
             />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full px-3"
-              onClick={toggleShowPassword}
-            >
-              {showPassword ? 
-                <EyeOff className="h-4 w-4" /> : 
-                <Eye className="h-4 w-4" />
-              }
-            </Button>
           </div>
         </div>
-
-        {error && (
-          <p className="text-sm text-destructive">{error}</p>
-        )}
-        
         <DialogFooter>
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onClose}
-          >
+          <Button type="button" variant="outline" onClick={onClose}>
             {t('common.cancel')}
           </Button>
-          <Button 
-            type="submit" 
-            className="bg-polygon-blue hover:bg-polygon-darkblue"
-            disabled={isLoading}
-          >
-            {isLoading ? t('admin.passwords.resetting') : t('admin.passwords.resetPassword')}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? t('admin.passwords.resetting') : t('admin.passwords.resetPassword')}
           </Button>
         </DialogFooter>
       </form>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -9,16 +9,24 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import PasswordResetDialog from '@/components/Auth/PasswordResetDialog';
+import { AuthError } from '@supabase/supabase-js';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // If user is already logged in, redirect to dashboard
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,9 +40,21 @@ const LoginPage: React.FC = () => {
       });
       navigate('/dashboard');
     } catch (error) {
+      console.error('Login error:', error);
+      const authError = error as AuthError;
+      
+      let errorMessage = t('login.failed');
+      
+      // More specific error messages based on the error code
+      if (authError.message === 'Invalid login credentials') {
+        errorMessage = t('login.invalidCredentials');
+      } else if (authError.message.includes('rate limit')) {
+        errorMessage = t('login.tooManyRequests');
+      }
+      
       toast({
         title: t('common.error'),
-        description: t('login.failed'),
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -112,15 +132,6 @@ const LoginPage: React.FC = () => {
             </CardFooter>
           </form>
         </Card>
-        
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>{t('login.testCredentials')}</p>
-          <ul className="mt-2 space-y-1">
-            <li>Admin: admin@polygongroup.com / password</li>
-            <li>Skadeleder: skadeleder@polygongroup.com / password</li>
-            <li>Service: service@polygongroup.com / password</li>
-          </ul>
-        </div>
       </div>
 
       <PasswordResetDialog

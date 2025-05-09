@@ -1,20 +1,19 @@
 
 import React, { useState } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/components/ui/use-toast';
-import { ArrowLeft } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface PasswordResetDialogProps {
   open: boolean;
@@ -23,104 +22,70 @@ interface PasswordResetDialogProps {
 
 const PasswordResetDialog: React.FC<PasswordResetDialogProps> = ({
   open,
-  onOpenChange
+  onOpenChange,
 }) => {
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const { requestPasswordReset } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { resetPassword } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
-      await requestPasswordReset(email);
-      setIsSubmitted(true);
+      await resetPassword(email);
       toast({
-        title: t('login.passwordReset.emailSentTitle'),
-        description: t('login.passwordReset.emailSentDescription'),
+        title: t('login.passwordReset.resetEmailSent'),
+        description: t('login.passwordReset.resetEmailDescription'),
       });
+      setEmail('');
+      onOpenChange(false);
     } catch (error) {
+      console.error('Error sending reset email:', error);
       toast({
         title: t('common.error'),
-        description: t('login.passwordReset.emailError'),
+        description: t('login.passwordReset.resetEmailError'),
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const handleClose = () => {
-    setEmail('');
-    setIsSubmitted(false);
-    onOpenChange(false);
-  };
-
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{t('login.passwordReset.title')}</DialogTitle>
           <DialogDescription>
-            {isSubmitted 
-              ? t('login.passwordReset.successMessage') 
-              : t('login.passwordReset.description')}
+            {t('login.passwordReset.description')}
           </DialogDescription>
         </DialogHeader>
-
-        {!isSubmitted ? (
-          <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">{t('common.email')}</Label>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="reset-email" className="text-right">
+                {t('common.email')}
+              </Label>
               <Input
-                id="email"
+                id="reset-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={t('login.emailPlaceholder')}
+                className="col-span-3"
                 required
+                placeholder={t('login.passwordReset.emailPlaceholder')}
               />
             </div>
-            
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handleClose}
-              >
-                {t('common.cancel')}
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={isLoading}
-              >
-                {isLoading 
-                  ? t('login.passwordReset.buttonLoading') 
-                  : t('login.passwordReset.button')
-                }
-              </Button>
-            </DialogFooter>
-          </form>
-        ) : (
-          <div className="space-y-4 pt-4">
-            <p className="text-center text-muted-foreground">
-              {t('login.passwordReset.checkEmail')}
-            </p>
-            <Button 
-              className="w-full" 
-              variant="outline" 
-              onClick={handleClose}
-              type="button"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t('login.passwordReset.backToLogin')}
-            </Button>
           </div>
-        )}
+          <DialogFooter>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? t('common.sending') : t('login.passwordReset.sendResetEmail')}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
