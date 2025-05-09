@@ -6,21 +6,31 @@ import { Car } from '@/types/car';
 import { Car as CarIcon, Check, X } from 'lucide-react';
 
 interface VehicleStatusWidgetProps {
-  cars: Car[];
+  availableVehicles: number;
+  totalVehicles: number;
+  cars?: Car[];
 }
 
 const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
-  cars
+  availableVehicles,
+  totalVehicles,
+  cars = []
 }) => {
   const {
     t
   } = useTranslation();
 
-  // For demo purposes, let's randomly mark some vehicles as in use
-  const carsWithStatus = cars.map(car => ({
-    ...car,
-    inUse: Math.random() > 0.5
-  })).slice(0, 3); // Only show top 3 cars for the widget
+  // Only use cars data if it's provided, otherwise use the counts directly
+  const carsToDisplay = cars && cars.length > 0 
+    ? cars.map(car => ({
+        ...car,
+        inUse: Math.random() > 0.5
+      })).slice(0, 3) // Only show top 3 cars for the widget
+    : Array.from({ length: Math.min(3, totalVehicles) }, (_, i) => ({
+        id: `placeholder-${i}`,
+        name: `Vehicle ${i + 1}`,
+        inUse: i >= availableVehicles
+      }));
   
   return (
     <Card>
@@ -31,13 +41,13 @@ const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
         <CarIcon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        {carsWithStatus.length === 0 ? (
+        {carsToDisplay.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-2">
             No vehicles available
           </p>
         ) : (
           <div className="space-y-4">
-            {carsWithStatus.map(car => (
+            {carsToDisplay.map(car => (
               <div key={car.id} className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="h-9 w-9 rounded-full bg-polygon-light flex items-center justify-center mr-3">
