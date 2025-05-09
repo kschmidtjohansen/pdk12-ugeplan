@@ -20,12 +20,20 @@ export const usePlannerAssignments = (selectedWeek?: number) => {
   
   const [filteredAssignments, setFilteredAssignments] = useState<Assignment[]>([]);
   
-  // Pass the assignments and update function to the publishing hook
+  // Create a wrapper function that matches the expected signature
+  const updateAssignmentsWrapper = (updatedAssignments: Assignment[]) => {
+    // Map through each assignment and update it individually
+    updatedAssignments.forEach(updated => {
+      updateAssignment(updated);
+    });
+  };
+  
+  // Pass the assignments and wrapper function to the publishing hook
   const { 
     publishAssignments, 
     publishAssignment, 
     publishAssignmentsByDate 
-  } = useAssignmentPublishing(allAssignments, updateAssignment);
+  } = useAssignmentPublishing(allAssignments, updateAssignmentsWrapper);
   
   // Subscribe to real-time updates for published assignments
   useEffect(() => {
