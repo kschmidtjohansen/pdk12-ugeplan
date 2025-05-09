@@ -20,7 +20,11 @@ const common = {
   actions: 'Handlinger',
   optional: 'valgfri',
   on: 'Til',
-  off: 'Fra'
+  off: 'Fra',
+  create: 'Opret bruger',
+  active: 'Aktiv',
+  status: 'Status',
+  saving: 'Gemmer...'
 };
 
 export default common;

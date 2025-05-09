@@ -1,12 +1,15 @@
 
 import React from 'react';
-import { TableRow, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Edit, Key, Trash } from 'lucide-react';
+import {
+  Avatar,
+  AvatarFallback,
+} from '@/components/ui/avatar';
 import { UserRole } from '@/context/AuthContext';
-import { Edit, Trash2, Key } from 'lucide-react';
+import { useTranslation } from '@/context/TranslationContext';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-// Define AdminUser interface here to make it consistent across components
 export interface AdminUser {
   id: string;
   name: string;
@@ -18,63 +21,97 @@ export interface AdminUser {
 
 interface UserTableRowProps {
   user: AdminUser;
-  onEdit: (user: AdminUser) => void;
-  onDelete: (user: AdminUser) => void;
-  onResetPassword?: (user: AdminUser) => void;
+  onEditUser: (user: AdminUser) => void;
+  onDeleteUser: (user: AdminUser) => void;
+  onResetPassword: (user: AdminUser) => void;
   getRoleLabel: (role: UserRole) => string;
   getInitials: (name: string) => string;
 }
 
 const UserTableRow: React.FC<UserTableRowProps> = ({
   user,
-  onEdit,
-  onDelete,
+  onEditUser,
+  onDeleteUser,
   onResetPassword,
   getRoleLabel,
   getInitials,
 }) => {
+  const { t } = useTranslation();
+
   return (
-    <TableRow key={user.id}>
-      <TableCell className="flex items-center space-x-3">
-        <Avatar>
-          <AvatarFallback className="bg-polygon-purple text-white">
-            {getInitials(user.name)}
-          </AvatarFallback>
-        </Avatar>
-        <span>{user.name}</span>
-      </TableCell>
-      <TableCell>{user.email}</TableCell>
-      <TableCell>{user.phone || "-"}</TableCell>
-      <TableCell>{user.jobTitle || "-"}</TableCell>
-      <TableCell>{getRoleLabel(user.role)}</TableCell>
-      <TableCell>
-        <div className="flex space-x-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onEdit(user)}
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
-          {onResetPassword && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onResetPassword(user)}
-            >
-              <Key className="h-4 w-4" />
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDelete(user)}
-          >
-            <Trash2 className="h-4 w-4 text-red-500" />
-          </Button>
+    <tr className="border-b border-gray-200 hover:bg-gray-50">
+      <td className="py-4 pl-4 pr-3 text-sm sm:pl-6">
+        <div className="flex items-center">
+          <Avatar className="h-8 w-8 bg-polygon-blue text-white">
+            <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
+          </Avatar>
+          <div className="ml-4">
+            <div className="font-medium text-gray-900">{user.name}</div>
+            <div className="text-gray-500">{user.email}</div>
+          </div>
         </div>
-      </TableCell>
-    </TableRow>
+      </td>
+      <td className="px-3 py-4 text-sm text-gray-600 hidden md:table-cell">
+        {getRoleLabel(user.role)}
+      </td>
+      <td className="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 whitespace-nowrap">
+        <div className="flex justify-end gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onResetPassword(user)}
+                  className="h-8 w-8"
+                >
+                  <Key className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('admin.passwords.resetPasswordFor', { name: user.name })}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onEditUser(user)}
+                  className="h-8 w-8"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('admin.userManagement.editUser')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onDeleteUser(user)}
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('common.delete')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </td>
+    </tr>
   );
 };
 

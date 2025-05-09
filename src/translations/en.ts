@@ -1,4 +1,3 @@
-
 const translations = {
   common: {
     login: 'Login',
@@ -19,7 +18,13 @@ const translations = {
     no: 'No',
     language: 'Language',
     actions: 'Actions',
-    optional: 'optional'
+    optional: 'optional',
+    on: 'On',
+    off: 'Off',
+    create: 'Create user',
+    active: 'Active',
+    status: 'Status',
+    saving: 'Saving...'
   },
   login: {
     title: 'Login',

@@ -20,8 +20,8 @@ export const useEmployeeData = () => {
       setLoading(true);
       setError(null);
       
-      // Join profiles with user_roles to get all employee data
-      const { data, error } = await supabase
+      // First get all profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
           id,
@@ -30,26 +30,43 @@ export const useEmployeeData = () => {
           phone,
           job_title,
           on_leave,
-          notes,
-          user_roles!inner (role)
+          notes
         `)
         .order('name');
       
-      if (error) throw error;
+      if (profilesError) throw profilesError;
       
-      if (data) {
-        const formattedEmployees: Employee[] = data.map(item => ({
-          id: item.id,
-          name: item.name,
-          email: item.email,
-          phone: item.phone || '',
-          jobTitle: item.job_title || '',
-          role: safeProperty(item.user_roles, 'role', 'servicemedarbejder') as UserRole,
-          onLeave: item.on_leave || false,
-          notes: item.notes || ''
-        }));
+      // Then get all roles for these users
+      if (profilesData && profilesData.length > 0) {
+        const userIds = profilesData.map(profile => profile.id);
+        
+        const { data: rolesData, error: rolesError } = await supabase
+          .from('user_roles')
+          .select('user_id, role')
+          .in('user_id', userIds);
+        
+        if (rolesError) throw rolesError;
+        
+        // Combine the data
+        const formattedEmployees: Employee[] = profilesData.map(item => {
+          // Find the role for this user
+          const userRole = rolesData?.find(r => r.user_id === item.id);
+          
+          return {
+            id: item.id,
+            name: item.name,
+            email: item.email,
+            phone: item.phone || '',
+            jobTitle: item.job_title || '',
+            role: userRole ? userRole.role as UserRole : 'servicemedarbejder',
+            onLeave: item.on_leave || false,
+            notes: item.notes || ''
+          };
+        });
         
         setEmployees(formattedEmployees);
+      } else {
+        setEmployees([]);
       }
     } catch (err) {
       console.error('Error fetching employees:', err);

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -48,7 +47,40 @@ export const useCars = () => {
 
   // Load cars on component mount
   useEffect(() => {
-    fetchCars();
+    let isMounted = true;
+    
+    const loadCars = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('cars')
+          .select('*')
+          .order('name', { ascending: true });
+        
+        if (error) throw error;
+        
+        if (isMounted) {
+          setCars(data || []);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('Error fetching cars:', err);
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch cars');
+          toast({
+            title: t('common.error'),
+            description: t('common.error'),
+            variant: 'destructive',
+          });
+          setLoading(false);
+        }
+      }
+    };
+    
+    loadCars();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleCreateNew = () => {

@@ -33,28 +33,38 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      toast({
-        title: t('common.success'),
-        description: t('login.success'),
-      });
-      navigate('/dashboard');
+      const { error } = await login(email, password);
+      
+      // Only show success message if there's no error
+      if (error) {
+        console.error('Login error:', error);
+        
+        let errorMessage = t('login.failed');
+        
+        // More specific error messages based on the error code
+        if (error.includes('Invalid login credentials')) {
+          errorMessage = t('login.invalidCredentials');
+        } else if (error.includes('rate limit')) {
+          errorMessage = t('login.tooManyRequests');
+        }
+        
+        toast({
+          title: t('common.error'),
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: t('common.success'),
+          description: t('login.success'),
+        });
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.error('Login error:', error);
-      const authError = error as AuthError;
-      
-      let errorMessage = t('login.failed');
-      
-      // More specific error messages based on the error code
-      if (authError.message === 'Invalid login credentials') {
-        errorMessage = t('login.invalidCredentials');
-      } else if (authError.message.includes('rate limit')) {
-        errorMessage = t('login.tooManyRequests');
-      }
-      
       toast({
         title: t('common.error'),
-        description: errorMessage,
+        description: t('login.failed'),
         variant: "destructive",
       });
     } finally {

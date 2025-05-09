@@ -50,9 +50,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   handleSubmit,
   onClose,
 }) => {
-  const [showPasswordFields, setShowPasswordFields] = useState(!currentUser);
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { t } = useTranslation();
@@ -66,16 +64,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
     try {
       if (!currentUser) {
         // Creating a new user
-        if (password !== confirmPassword) {
-          toast({
-            title: t('common.error'),
-            description: t('admin.passwords.passwordsMustMatch'),
-            variant: "destructive",
-          });
-          setIsSubmitting(false);
-          return;
-        }
-        
         if (password.length < 6) {
           toast({
             title: t('common.error'),
@@ -246,36 +234,20 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           </div>
           
           {!currentUser && (
-            <>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="password" className="text-right">
-                  {t('common.password')}
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="col-span-3"
-                  required={!currentUser}
-                  autoComplete="new-password"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="confirmPassword" className="text-right">
-                  {t('admin.passwords.confirmPassword')}
-                </Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="col-span-3"
-                  required={!currentUser}
-                  autoComplete="new-password"
-                />
-              </div>
-            </>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                {t('common.password')}
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="col-span-3"
+                required={!currentUser}
+                autoComplete="new-password"
+              />
+            </div>
           )}
         </div>
         <DialogFooter>
@@ -284,7 +256,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting 
-              ? t('common.saving') 
+              ? t('common.loading') 
               : currentUser
                 ? t('common.save')
                 : t('common.create')
