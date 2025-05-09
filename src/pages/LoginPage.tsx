@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -9,33 +9,22 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import PasswordResetDialog from '@/components/Auth/PasswordResetDialog';
-import { supabase } from '@/integrations/supabase/client';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const [loginErrorDetails, setLoginErrorDetails] = useState<string | null>(null);
-  const { login, isAuthenticated } = useAuth();
+  const { login } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Check if user is already logged in and redirect if they are
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setLoginErrorDetails(null);
 
     try {
-      console.log("Attempting login with email:", email);
       await login(email, password);
       toast({
         title: t('common.success'),
@@ -43,16 +32,6 @@ const LoginPage: React.FC = () => {
       });
       navigate('/dashboard');
     } catch (error) {
-      console.error("Login error:", error);
-      
-      // Get more detailed error information
-      let errorMessage = "Unknown login error occurred";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      
-      setLoginErrorDetails(errorMessage);
-      
       toast({
         title: t('common.error'),
         description: t('login.failed'),
@@ -65,17 +44,6 @@ const LoginPage: React.FC = () => {
 
   const handleForgotPassword = () => {
     setResetDialogOpen(true);
-  };
-
-  const handleDemoLogin = async (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword('Password123!');
-    
-    // Auto submit after a short delay to let the user see the form being filled
-    setTimeout(() => {
-      const form = document.querySelector('form');
-      if (form) form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-    }, 500);
   };
 
   return (
@@ -132,16 +100,8 @@ const LoginPage: React.FC = () => {
                   required
                 />
               </div>
-              
-              {loginErrorDetails && (
-                <div className="text-sm bg-red-50 text-red-800 p-2 rounded-md border border-red-200">
-                  <p className="font-semibold">Error details:</p>
-                  <p className="break-words">{loginErrorDetails}</p>
-                </div>
-              )}
-              
             </CardContent>
-            <CardFooter className="flex-col space-y-4">
+            <CardFooter>
               <Button 
                 className="w-full bg-polygon-blue hover:bg-polygon-darkblue" 
                 type="submit" 
@@ -149,25 +109,18 @@ const LoginPage: React.FC = () => {
               >
                 {isLoading ? t('login.buttonLoading') : t('login.button')}
               </Button>
-              
-              <div className="w-full text-center">
-                <p className="text-sm text-gray-500 mb-2">{t('login.testCredentials')}</p>
-                <div className="flex flex-col md:flex-row justify-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDemoLogin('kasper.johansen@polygongroup.com')}
-                    type="button"
-                    className="bg-green-50 hover:bg-green-100 border-green-200"
-                  >
-                    Administrator Login
-                  </Button>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">Password: Password123!</p>
-              </div>
             </CardFooter>
           </form>
         </Card>
+        
+        <div className="mt-6 text-center text-sm text-gray-500">
+          <p>{t('login.testCredentials')}</p>
+          <ul className="mt-2 space-y-1">
+            <li>Admin: admin@polygongroup.com / password</li>
+            <li>Skadeleder: skadeleder@polygongroup.com / password</li>
+            <li>Service: service@polygongroup.com / password</li>
+          </ul>
+        </div>
       </div>
 
       <PasswordResetDialog

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -13,7 +12,6 @@ import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 
 // Import assignments from planner hook to reuse the mock data
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
-
 const DashboardPage: React.FC = () => {
   const {
     user
@@ -81,20 +79,17 @@ const DashboardPage: React.FC = () => {
 
   // Show dashboard metrics only for admin or skadeleder
   const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
-
-  return (
-    <>
+  return <>
       <PageHeader title={t('dashboard.welcome', {
-        name: user?.name
-      })} description={t('dashboard.today', {
-        date: getFormattedDate(),
-        week: currentWeek
-      })} />
+      name: user?.name
+    })} description={t('dashboard.today', {
+      date: getFormattedDate(),
+      week: currentWeek
+    })} />
 
       {/* Quick access grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {getQuickAccessItems().map((item, index) => (
-          <Link key={index} to={item.link} className="block">
+        {getQuickAccessItems().map((item, index) => <Link key={index} to={item.link} className="block">
             <Card className="h-full hover:border-polygon-blue transition-all duration-200">
               <CardHeader className="pb-2">
                 <div className="text-polygon-blue">{item.icon}</div>
@@ -104,12 +99,11 @@ const DashboardPage: React.FC = () => {
                 <p className="text-muted-foreground text-sm">{item.description}</p>
               </CardContent>
             </Card>
-          </Link>
-        ))}
+          </Link>)}
       </div>
 
       {/* Dashboard metrics for admin/skadeleder */}
-      {shouldShowMetrics && <DashboardMetrics />}
+      {shouldShowMetrics}
 
       {/* Today's assignments */}
       <Card className="mb-8">
@@ -117,8 +111,8 @@ const DashboardPage: React.FC = () => {
           <CardTitle className="flex justify-between items-center">
             <span>
               {t('dashboard.myAssignments', {
-                week: currentWeek
-              })}
+              week: currentWeek
+            })}
             </span>
             <Button variant="outline" size="sm" asChild>
               <Link to="/planner">{t('dashboard.viewAll')}</Link>
@@ -126,14 +120,10 @@ const DashboardPage: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {todaysAssignments.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">
+          {todaysAssignments.length === 0 ? <p className="text-center py-8 text-muted-foreground">
               {t('dashboard.noAssignments')}
-            </p>
-          ) : (
-            <div className="grid gap-4">
-              {todaysAssignments.map(assignment => (
-                <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
+            </p> : <div className="grid gap-4">
+              {todaysAssignments.map(assignment => <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
                   <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
                     <h3 className="font-medium">{assignment.title}</h3>
                     <span className="text-sm bg-gray-100 px-2 py-1 rounded-md">
@@ -145,9 +135,9 @@ const DashboardPage: React.FC = () => {
                     <div className="flex items-start gap-2">
                       <Clock className="h-4 w-4 flex-shrink-0 mt-0.5" />
                       <span>{t('dashboard.assignmentTime', {
-                        fromTime: assignment.fromTime,
-                        toTime: assignment.toTime
-                      })}</span>
+                    fromTime: assignment.fromTime,
+                    toTime: assignment.toTime
+                  })}</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
@@ -158,14 +148,10 @@ const DashboardPage: React.FC = () => {
                       <span>{assignment.car}</span>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                </div>)}
+            </div>}
         </CardContent>
       </Card>
-    </>
-  );
+    </>;
 };
-
 export default DashboardPage;

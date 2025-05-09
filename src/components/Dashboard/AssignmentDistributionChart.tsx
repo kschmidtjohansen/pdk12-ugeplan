@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
@@ -11,11 +10,9 @@ type ChartDataType = {
   name: string;
   value: number;
 };
-
 interface AssignmentDistributionChartProps {
   assignments: Assignment[];
 }
-
 const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = ({
   assignments
 }) => {
@@ -42,7 +39,6 @@ const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = 
     acc[category] = (acc[category] || 0) + 1;
     return acc;
   }, {});
-  
   const chartData = Object.entries(assignmentsByType).map(([key, value]) => ({
     name: t(`dashboard.assignments.${key}`, {
       defaultValue: key
@@ -76,40 +72,6 @@ const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = 
     }
     return null;
   };
-
-  // If no assignments, show empty state
-  if (assignments.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('dashboard.assignmentDistribution', { defaultValue: 'Assignment Distribution' })}</CardTitle>
-        </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center">
-          <p className="text-gray-500">{t('dashboard.noData', { defaultValue: 'No assignment data available' })}</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Return the JSX for the chart
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('dashboard.assignmentDistribution', { defaultValue: 'Assignment Distribution' })}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer className="h-[300px]" config={chartConfig}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-              <XAxis dataKey="name" />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" fill="#0EA5E9" name="assignments" />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartContainer>
-      </CardContent>
-    </Card>
-  );
+  return;
 };
-
 export default AssignmentDistributionChart;

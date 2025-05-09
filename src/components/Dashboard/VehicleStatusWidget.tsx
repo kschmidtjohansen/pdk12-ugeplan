@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from '@/context/TranslationContext';
 import { Car } from '@/types/car';
 import { Car as CarIcon, Check, X } from 'lucide-react';
-import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 
 interface VehicleStatusWidgetProps {
   cars: Car[];
@@ -16,22 +15,12 @@ const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
   const {
     t
   } = useTranslation();
-  
-  const { assignments } = usePlannerAssignments();
-  
-  // Calculate cars in use today
-  const today = new Date().toISOString().split('T')[0];
-  const assignedCarNames = assignments
-    .filter(a => a.date === today)
-    .map(a => a.car);
-  
-  // Determine which cars are in use
-  const carsWithStatus = cars
-    .map(car => ({
-      ...car,
-      inUse: assignedCarNames.includes(car.name)
-    }))
-    .slice(0, 3); // Only show top 3 cars for the widget
+
+  // For demo purposes, let's randomly mark some vehicles as in use
+  const carsWithStatus = cars.map(car => ({
+    ...car,
+    inUse: Math.random() > 0.5
+  })).slice(0, 3); // Only show top 3 cars for the widget
   
   return (
     <Card>
