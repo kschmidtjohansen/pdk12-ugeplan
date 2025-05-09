@@ -66,6 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.id);
         if (event === "SIGNED_IN" && session?.user) {
           setIsLoading(true);
           await fetchUserData(session.user.id);
@@ -83,45 +84,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   
   // Fetch user data including roles from database
   const fetchUserData = async (userId: string) => {
-    // Get profile data
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    console.log("Fetching user data for:", userId);
     
-    if (profileError) {
-      console.error("Error fetching profile:", profileError);
-      return;
+    try {
+      // Get profile data
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+        return;
+      }
+      
+      console.log("Profile data:", profileData);
+      
+      // Get user roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .rpc('get_user_roles', { p_user_id: userId });
+      
+      if (rolesError) {
+        console.error("Error fetching roles:", rolesError);
+        return;
+      }
+      
+      console.log("Roles data:", rolesData);
+      
+      // Determine primary role (administrator > skadeleder > servicemedarbejder)
+      let primaryRole: UserRole = "servicemedarbejder";
+      
+      if (rolesData && rolesData.length > 0) {
+        if (rolesData.includes("administrator")) {
+          primaryRole = "administrator";
+        } else if (rolesData.includes("skadeleder")) {
+          primaryRole = "skadeleder";
+        }
+      } else {
+        console.warn("No roles found for user, defaulting to servicemedarbejder");
+      }
+      
+      console.log("Primary role determined:", primaryRole);
+      
+      // Set user with combined data
+      setUser({
+        id: userId,
+        name: profileData?.name || "Unknown User",
+        email: profileData?.email || userId,
+        role: primaryRole,
+        phone: profileData?.phone || undefined,
+        jobTitle: profileData?.job_title || undefined,
+      });
+    } catch (error) {
+      console.error("Error in fetchUserData:", error);
     }
-    
-    // Get user roles
-    const { data: rolesData, error: rolesError } = await supabase
-      .rpc('get_user_roles', { p_user_id: userId });
-    
-    if (rolesError) {
-      console.error("Error fetching roles:", rolesError);
-      return;
-    }
-    
-    // Determine primary role (administrator > skadeleder > servicemedarbejder)
-    let primaryRole: UserRole = "servicemedarbejder";
-    
-    if (rolesData.includes("administrator")) {
-      primaryRole = "administrator";
-    } else if (rolesData.includes("skadeleder")) {
-      primaryRole = "skadeleder";
-    }
-    
-    // Set user with combined data
-    setUser({
-      id: userId,
-      name: profileData.name,
-      email: profileData.email,
-      role: primaryRole,
-      phone: profileData.phone || undefined,
-      jobTitle: profileData.job_title || undefined,
-    });
   };
 
   // Login function using Supabase auth
@@ -129,12 +146,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsLoading(true);
     
     try {
+      console.log("Attempting login for:", email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
       if (error) throw error;
+      
+      console.log("Login successful, user ID:", data?.user?.id);
       
       // User data will be fetched through onAuthStateChange listener
     } catch (error: any) {

@@ -60,7 +60,7 @@ serve(async (req) => {
       });
     }
 
-    // Create the user
+    // Step 1: Create the user
     const { data: userData, error: userError } = await supabase.auth.admin.createUser({
       email,
       password,
@@ -72,10 +72,13 @@ serve(async (req) => {
     });
 
     if (userError) {
+      console.error("Error creating user:", userError);
       throw userError;
     }
 
-    // Add administrator role to the user
+    console.log("User created successfully:", userData.user.id);
+
+    // Step 2: Add administrator role to the user
     const { error: roleError } = await supabase
       .from('user_roles')
       .insert({
@@ -84,8 +87,11 @@ serve(async (req) => {
       });
 
     if (roleError) {
+      console.error("Error assigning role:", roleError);
       throw roleError;
     }
+
+    console.log("Administrator role assigned successfully");
 
     return new Response(JSON.stringify({ 
       success: true, 
@@ -96,6 +102,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
+    console.error("Error in create-admin function:", error);
     return new Response(JSON.stringify({ 
       error: 'Internal server error', 
       details: error.message 

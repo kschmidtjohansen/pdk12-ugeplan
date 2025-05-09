@@ -16,6 +16,7 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [loginErrorDetails, setLoginErrorDetails] = useState<string | null>(null);
   const { login, isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -31,8 +32,10 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setLoginErrorDetails(null);
 
     try {
+      console.log("Attempting login with email:", email);
       await login(email, password);
       toast({
         title: t('common.success'),
@@ -41,6 +44,15 @@ const LoginPage: React.FC = () => {
       navigate('/dashboard');
     } catch (error) {
       console.error("Login error:", error);
+      
+      // Get more detailed error information
+      let errorMessage = "Unknown login error occurred";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      setLoginErrorDetails(errorMessage);
+      
       toast({
         title: t('common.error'),
         description: t('login.failed'),
@@ -120,6 +132,14 @@ const LoginPage: React.FC = () => {
                   required
                 />
               </div>
+              
+              {loginErrorDetails && (
+                <div className="text-sm bg-red-50 text-red-800 p-2 rounded-md border border-red-200">
+                  <p className="font-semibold">Error details:</p>
+                  <p className="break-words">{loginErrorDetails}</p>
+                </div>
+              )}
+              
             </CardContent>
             <CardFooter className="flex-col space-y-4">
               <Button 
@@ -138,10 +158,12 @@ const LoginPage: React.FC = () => {
                     size="sm"
                     onClick={() => handleDemoLogin('kasper.johansen@polygongroup.com')}
                     type="button"
+                    className="bg-green-50 hover:bg-green-100 border-green-200"
                   >
                     Administrator Login
                   </Button>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">Password: Password123!</p>
               </div>
             </CardFooter>
           </form>
