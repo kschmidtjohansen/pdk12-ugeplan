@@ -56,7 +56,6 @@ const PlannerPage: React.FC = () => {
   // Handle assignment creation/editing
   const handleOpenCreateDialog = (date: string) => {
     setCurrentAssignment(null);
-    setIsDialogOpen(true);
     setSelectedDay(date);
     setFormData({
       title: '',
@@ -68,13 +67,16 @@ const PlannerPage: React.FC = () => {
       car: '',
       employees: []
     });
+    // Open dialog only after state is set
+    setTimeout(() => setIsDialogOpen(true), 0);
   };
 
   const handleOpenEditDialog = (assignment: Assignment) => {
     setCurrentAssignment(assignment);
-    setIsDialogOpen(true);
     setSelectedDay(assignment.date);
-    setFormData(assignment);
+    setFormData({...assignment});
+    // Open dialog only after state is set
+    setTimeout(() => setIsDialogOpen(true), 0);
   };
 
   const handleSubmit = (data: Partial<Assignment>) => {

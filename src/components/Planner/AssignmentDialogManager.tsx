@@ -43,12 +43,15 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   
   const vacations: Vacation[] = [];
 
-  const [selectedEmployees, setSelectedEmployees] = useState<string[]>(formData.employees || []);
+  // Use state to track selected employees, but only initialize it once when formData changes
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
 
-  // Update selected employees when formData changes
+  // Update selected employees when formData.employees changes, but only when relevant
   useEffect(() => {
-    setSelectedEmployees(formData.employees || []);
-  }, [formData]);
+    if (formData.employees) {
+      setSelectedEmployees(formData.employees);
+    }
+  }, [formData.id]); // Only update when formData.id changes (new assignment or edit)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

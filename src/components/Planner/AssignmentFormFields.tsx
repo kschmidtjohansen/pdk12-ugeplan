@@ -29,6 +29,29 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 }) => {
   const { t } = useTranslation();
   
+  // Helper function to safely handle date formatting
+  const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString) return '';
+    try {
+      return format(new Date(dateString), "yyyy-MM-dd");
+    } catch (e) {
+      console.error("Invalid date format:", dateString);
+      return '';
+    }
+  };
+  
+  // Helper function to handle calendar date selection
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      try {
+        const formattedDate = format(date, 'yyyy-MM-dd');
+        onFieldChange('date', formattedDate);
+      } catch (e) {
+        console.error("Error formatting date:", e);
+      }
+    }
+  };
+  
   return (
     <>
       <div className="grid gap-2">
@@ -62,7 +85,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {formData.date ? (
-                format(new Date(formData.date), "yyyy-MM-dd")
+                formatDate(formData.date)
               ) : (
                 <span>{t('planner.date')}</span>
               )}
@@ -72,12 +95,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             <Calendar
               mode="single"
               selected={formData.date ? new Date(formData.date) : undefined}
-              onSelect={(date) => {
-                if (date) {
-                  const formattedDate = format(date, 'yyyy-MM-dd');
-                  onFieldChange('date', formattedDate);
-                }
-              }}
+              onSelect={handleDateSelect}
               className="rounded-md border"
             />
           </PopoverContent>
