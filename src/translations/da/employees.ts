@@ -32,7 +32,8 @@ const employees = {
   employeeAvailableMsg: '{name} er nu markeret som tilgængelig.',
   notes: 'Noter',
   notesPlaceholder: 'Tilføj noter om denne medarbejder...',
-  viewNotes: 'Se noter'
+  viewNotes: 'Se noter',
+  viewNotesOnly: 'Du kan se men ikke redigere noter'
 };
 
 export default employees;

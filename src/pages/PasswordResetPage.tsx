@@ -54,7 +54,7 @@ const PasswordResetPage: React.FC = () => {
 
     try {
       // Update the user's password using the access token
-      const { error } = await supabase.auth.updateUser({ 
+      const { error } = await supabase.auth.updateUser({
         password: password 
       });
       

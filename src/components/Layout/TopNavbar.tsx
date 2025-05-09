@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -32,7 +31,8 @@ const TopNavbar: React.FC = () => {
       title: t('common.success'),
       description: t('login.success')
     });
-    navigate('/');
+    // Updated to redirect to login page
+    navigate('/login');
   };
 
   const handleNotificationClick = (notification: NotificationType) => {
@@ -43,7 +43,7 @@ const TopNavbar: React.FC = () => {
   };
 
   // Don't show navbar for login page
-  if (location.pathname === "/") {
+  if (location.pathname === "/login" || location.pathname === "/password-reset") {
     return null;
   }
 

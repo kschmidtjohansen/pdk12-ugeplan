@@ -209,7 +209,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const isServicemedarbejder = user?.role === 'servicemedarbejder';
   
   // Define complex permissions
-  const canViewFuelCardCode = isAdmin || isSkadeleder;
+  // Updated to restrict fuel card access to administrators only
+  const canViewFuelCardCode = isAdmin;
   const canPublishTasks = isAdmin || isSkadeleder;
   const canApproveVacation = isAdmin;
   const canEdit = isAdmin || isSkadeleder;
