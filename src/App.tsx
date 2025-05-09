@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +18,7 @@ import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/Layout/MainLayout";
 import PasswordResetPage from "./pages/PasswordResetPage";
+import Index from "./pages/Index";
 
 const queryClient = new QueryClient();
 
@@ -33,18 +35,12 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<LoginPage />} />
                   <Route path="/password-reset" element={<PasswordResetPage />} />
-                  <Route path="/Dashboard" element={<DashboardPage />} />
-                  <Route path="/Ugeplan" element={<PlannerPage />} />
-                  <Route path="/Medarbejdere" element={<EmployeesPage />} />
-                  <Route path="/Biler" element={<CarsPage />} />
-                  <Route path="/Fridage" element={<VacationPage />} />
-                  <Route path="/admin" element={<AdminPage />} />
-                  {/* Keep backward compatibility with old routes */}
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/planner" element={<PlannerPage />} />
                   <Route path="/employees" element={<EmployeesPage />} />
                   <Route path="/cars" element={<CarsPage />} />
                   <Route path="/vacation" element={<VacationPage />} />
+                  <Route path="/admin" element={<AdminPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </MainLayout>

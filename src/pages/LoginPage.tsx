@@ -9,33 +9,48 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import PasswordResetDialog from '@/components/Auth/PasswordResetDialog';
-import { AuthError } from '@supabase/supabase-js';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const { login, user } = useAuth();
+  const { login, user, isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   // If user is already logged in, redirect to dashboard
   useEffect(() => {
-    if (user) {
+    if (user || isAuthenticated) {
       navigate('/dashboard');
     }
-  }, [user, navigate]);
+  }, [user, isAuthenticated, navigate]);
+
+  // Add a safety timeout to prevent "logging in" state getting stuck forever
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
+    
+    if (isLoading) {
+      timeoutId = setTimeout(() => {
+        console.log('Login timeout reached, resetting loading state');
+        setIsLoading(false);
+      }, 10000); // 10 seconds timeout
+    }
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+      console.log('Attempting login for:', email);
       const { error } = await login(email, password);
       
-      // Only show success message if there's no error
       if (error) {
         console.error('Login error:', error);
         
@@ -53,12 +68,14 @@ const LoginPage: React.FC = () => {
           description: errorMessage,
           variant: "destructive",
         });
+        setIsLoading(false);
       } else {
+        // Success is handled by the useEffect above through the auth state change
         toast({
           title: t('common.success'),
           description: t('login.success'),
         });
-        navigate('/dashboard');
+        // No need to navigate here, the useEffect will handle it
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -67,7 +84,6 @@ const LoginPage: React.FC = () => {
         description: t('login.failed'),
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
