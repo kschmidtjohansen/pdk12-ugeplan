@@ -119,16 +119,13 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         <div className="grid gap-2">
           <Label htmlFor="car">{t('planner.car')}</Label>
           <Select
-            value={formData.car as string}
+            value={formData.car as string || undefined}
             onValueChange={(value) => onFieldChange('car', value)}
           >
             <SelectTrigger id="car">
               <SelectValue placeholder={t('planner.selectCar')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">
-                {t('planner.selectCar')}
-              </SelectItem>
               {cars.map((car) => (
                 <SelectItem key={car.id} value={car.id}>
                   {car.car_number} - {car.name}
@@ -143,7 +140,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         <div className="grid gap-2">
           <Label htmlFor="employees">{t('planner.employees')}</Label>
           <Select
-            value={formData.employees?.[0] || ""}
+            value={formData.employees?.[0] || undefined}
             onValueChange={(value) => onFieldChange('employees', [value])}
           >
             <SelectTrigger id="employees">
