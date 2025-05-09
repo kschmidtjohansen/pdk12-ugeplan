@@ -1,6 +1,7 @@
 
 import { addDays, addWeeks, format, isToday, isFuture, isPast, isWithinInterval, parseISO, startOfWeek } from 'date-fns';
 import { da } from 'date-fns/locale';
+import { Assignment, GroupedAssignments } from '@/types/assignment';
 
 // Calculate week dates using date-fns
 export const getWeekDates = (weekNumber: number, year: number = new Date().getFullYear()) => {
@@ -86,4 +87,16 @@ export const getAllWeekDays = (weekDates: { start: Date; end: Date }) => {
   }
 
   return days;
+};
+
+// Group assignments by day (this was missing)
+export const groupAssignmentsByDay = (assignments: Assignment[]): GroupedAssignments => {
+  return assignments.reduce((groups: GroupedAssignments, assignment) => {
+    const date = assignment.date;
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(assignment);
+    return groups;
+  }, {});
 };

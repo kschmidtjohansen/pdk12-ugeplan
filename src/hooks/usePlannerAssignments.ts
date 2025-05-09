@@ -22,14 +22,13 @@ export const usePlannerAssignments = () => {
   } = useAssignments();
   
   // Get filter functionality
-  const { 
-    filters,
-    filteredAssignments,
-    handleFilterChange
-  } = useAssignmentFilters(assignments);
+  const filterMethods = useAssignmentFilters();
+  
+  // Filter assignments
+  const filteredAssignments = filterMethods.filterByPermissions(assignments, true); // Default to showing all
   
   // Get publishing functionality
-  const { publishAssignment } = useAssignmentPublishing(updateAssignment);
+  const { publishAssignment, publishAssignmentsByDate } = useAssignmentPublishing(assignments, updateAssignment);
   
   // Open dialog for creating a new assignment
   const handleCreate = () => {
@@ -65,7 +64,6 @@ export const usePlannerAssignments = () => {
     groupedAssignments,
     loading,
     error,
-    filters,
     isDialogOpen,
     setIsDialogOpen,
     currentAssignment,
@@ -76,9 +74,10 @@ export const usePlannerAssignments = () => {
     handleEdit,
     handleDelete,
     handleDeleteConfirm,
-    handleFilterChange,
     createAssignment,
     updateAssignment,
-    publishAssignment
+    deleteAssignment,
+    publishAssignment,
+    publishAssignmentsByDate
   };
 };

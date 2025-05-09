@@ -14,17 +14,27 @@ export const getUnpublishedAssignment = (assignment: Assignment) => {
 // Hook for publishing assignments
 export const useAssignmentPublishing = (
   assignments: Assignment[], 
-  updateAssignments: (updatedAssignments: Assignment[]) => void
+  updateAssignment: (assignment: Assignment) => Promise<boolean>
 ) => {
   const { toast } = useToast();
   const { t } = useTranslation();
 
   const publishAssignmentsByDate = (date: string) => {
-    const updatedAssignments = assignments.map(a => 
-      a.date === date ? { ...a, published: true } : a
+    const assignmentsToUpdate = assignments.filter(a => 
+      a.date === date && !a.published
     );
     
-    updateAssignments(updatedAssignments);
+    if (assignmentsToUpdate.length === 0) {
+      return;
+    }
+    
+    // Update each assignment
+    Promise.all(
+      assignmentsToUpdate.map(a => 
+        updateAssignment({ ...a, published: true })
+      )
+    );
+    
     toast({
       title: t("planner.assignmentsPublished"),
       description: t("planner.assignmentsPublishedMsg"),
@@ -32,11 +42,21 @@ export const useAssignmentPublishing = (
   };
 
   const publishAssignments = (assignmentIds: string[]) => {
-    const updatedAssignments = assignments.map((a) =>
-      assignmentIds.includes(a.id) ? { ...a, published: true } : a
+    const assignmentsToUpdate = assignments.filter(a => 
+      assignmentIds.includes(a.id) && !a.published
     );
     
-    updateAssignments(updatedAssignments);
+    if (assignmentsToUpdate.length === 0) {
+      return;
+    }
+    
+    // Update each assignment
+    Promise.all(
+      assignmentsToUpdate.map(a => 
+        updateAssignment({ ...a, published: true })
+      )
+    );
+    
     toast({
       title: t("planner.assignmentsPublished"),
       description: t("planner.assignmentsPublishedMsg"),
@@ -44,11 +64,16 @@ export const useAssignmentPublishing = (
   };
 
   const publishAssignment = (assignmentId: string) => {
-    const updatedAssignments = assignments.map((a) =>
-      a.id === assignmentId ? { ...a, published: true } : a
+    const assignmentToUpdate = assignments.find(a => 
+      a.id === assignmentId && !a.published
     );
     
-    updateAssignments(updatedAssignments);
+    if (!assignmentToUpdate) {
+      return;
+    }
+    
+    updateAssignment({ ...assignmentToUpdate, published: true });
+    
     toast({
       title: t("planner.assignmentPublished"),
       description: t("planner.assignmentPublishedMsg"),

@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { format, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import PageHeader from '../components/Layout/PageHeader';
 import PlannerHeader from '../components/Planner/PlannerHeader';
@@ -10,7 +11,6 @@ import { Assignment, getCurrentWeek } from '../types/assignment';
 import { getUnpublishedAssignment } from '../hooks/useAssignmentPublishing';
 import { usePlannerAssignments } from '../hooks/usePlannerAssignments';
 import { getWeekDates } from '@/utils/weekDates';
-import { publishAssignmentHandler } from '@/utils/assignmentPublishing';
 
 const PlannerPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
@@ -21,12 +21,14 @@ const PlannerPage: React.FC = () => {
     updateAssignment,
     deleteAssignment,
     publishAssignment,
-    publishAssignmentsByDate
-  } = usePlannerAssignments(currentWeek); // Pass currentWeek to the hook
+    publishAssignmentsByDate,
+    isDialogOpen,
+    setIsDialogOpen,
+    currentAssignment,
+    setCurrentAssignment
+  } = usePlannerAssignments();
 
-  // Using state for managing dialog and form data
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  // Using state for managing form data
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [formData, setFormData] = useState<Partial<Assignment>>({
     title: '',
@@ -47,8 +49,8 @@ const PlannerPage: React.FC = () => {
 
   // Handle assignment creation/editing
   const handleOpenCreateDialog = (date: string) => {
-    setEditMode(false);
-    setDialogOpen(true);
+    setCurrentAssignment(null);
+    setIsDialogOpen(true);
     setSelectedDay(date);
     setFormData({
       title: '',
@@ -63,14 +65,14 @@ const PlannerPage: React.FC = () => {
   };
 
   const handleOpenEditDialog = (assignment: Assignment) => {
-    setEditMode(true);
-    setDialogOpen(true);
+    setCurrentAssignment(assignment);
+    setIsDialogOpen(true);
     setSelectedDay(assignment.date);
     setFormData(assignment);
   };
 
   const handleSubmit = (data: Partial<Assignment>) => {
-    if (editMode) {
+    if (currentAssignment) {
       // Set the edited assignment as unpublished
       const unpublishedData = getUnpublishedAssignment(data as Assignment);
       updateAssignment(unpublishedData);
@@ -81,7 +83,7 @@ const PlannerPage: React.FC = () => {
         published: false
       } as Assignment);
     }
-    setDialogOpen(false);
+    setIsDialogOpen(false);
   };
 
   // Fixed wrapper function that takes no parameters but uses selectedDay internally
@@ -120,9 +122,9 @@ const PlannerPage: React.FC = () => {
       />
 
       <AssignmentDialogManager
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        editMode={editMode}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        editMode={!!currentAssignment}
         formData={formData}
         setFormData={setFormData}
         onSubmit={handleSubmit}

@@ -16,12 +16,14 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
   const { getCarsIdByName, getEmployeeIdByName } = useAssignmentHelpers();
 
   // Create a new assignment
-  const createAssignment = async (assignment: Partial<Assignment>, employees: string[]) => {
+  const createAssignment = async (assignment: Partial<Assignment>) => {
     try {
       // Get car ID if provided
       let carId = null;
-      if (assignment.car?.name) {
+      if (typeof assignment.car === 'object' && assignment.car?.name) {
         carId = await getCarsIdByName(assignment.car.name);
+      } else if (typeof assignment.car === 'string') {
+        carId = await getCarsIdByName(assignment.car);
       }
       
       // Insert into assignments table
@@ -32,7 +34,7 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
             title: assignment.title,
             description: assignment.description,
             location: assignment.location,
-            assignment_date: assignment.date instanceof Date ? assignment.date.toISOString().split('T')[0] : undefined,
+            assignment_date: assignment.date instanceof Date ? assignment.date.toISOString().split('T')[0] : assignment.date,
             from_time: assignment.fromTime,
             to_time: assignment.toTime,
             car_id: carId,
@@ -44,13 +46,13 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
       
       if (error) throw error;
       
-      if (data && data[0] && employees.length > 0) {
+      if (data && data[0] && assignment.employees && assignment.employees.length > 0) {
         const assignmentId = data[0].id;
         
         // Create employee assignments relationships
         const employeesEntries = [];
         
-        for (const employeeName of employees) {
+        for (const employeeName of assignment.employees) {
           const employeeId = await getEmployeeIdByName(employeeName);
           if (employeeId) {
             employeesEntries.push({
@@ -70,7 +72,7 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
 
         // Notify assigned employees
         if (assignment.published) {
-          for (const employeeName of employees) {
+          for (const employeeName of assignment.employees) {
             // Skip notifications for the current user
             const employeeId = await getEmployeeIdByName(employeeName);
             if (employeeId && employeeId !== user?.id) {
@@ -94,7 +96,7 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
       // Show success message
       toast({
         title: t("planner.assignmentCreated"),
-        description: t("planner.assignmentCreatedDesc")
+        description: t("planner.assignmentCreatedMsg", { title: assignment.title })
       });
       
       return true;
@@ -110,12 +112,14 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
   };
 
   // Update an existing assignment
-  const updateAssignment = async (assignment: Assignment, employees: string[]) => {
+  const updateAssignment = async (assignment: Assignment) => {
     try {
       // Get car ID if provided
       let carId = null;
-      if (assignment.car?.name) {
+      if (typeof assignment.car === 'object' && assignment.car?.name) {
         carId = await getCarsIdByName(assignment.car.name);
+      } else if (typeof assignment.car === 'string') {
+        carId = await getCarsIdByName(assignment.car);
       }
       
       // Update the assignment
@@ -125,7 +129,7 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
           title: assignment.title,
           description: assignment.description,
           location: assignment.location,
-          assignment_date: assignment.date instanceof Date ? assignment.date.toISOString().split('T')[0] : undefined,
+          assignment_date: assignment.date instanceof Date ? assignment.date.toISOString().split('T')[0] : assignment.date,
           from_time: assignment.fromTime,
           to_time: assignment.toTime,
           car_id: carId,
@@ -145,10 +149,10 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
       if (deleteError) throw deleteError;
       
       // Create new employee assignments
-      if (employees.length > 0) {
+      if (assignment.employees && assignment.employees.length > 0) {
         const employeesEntries = [];
         
-        for (const employeeName of employees) {
+        for (const employeeName of assignment.employees) {
           const employeeId = await getEmployeeIdByName(employeeName);
           if (employeeId) {
             employeesEntries.push({
@@ -168,7 +172,7 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
 
         // Notify employees about assignment update if published
         if (assignment.published) {
-          for (const employeeName of employees) {
+          for (const employeeName of assignment.employees) {
             // Skip notifications for the current user
             const employeeId = await getEmployeeIdByName(employeeName);
             if (employeeId && employeeId !== user?.id) {
@@ -192,7 +196,7 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
       // Show success message
       toast({
         title: t("planner.assignmentUpdated"),
-        description: t("planner.assignmentUpdatedDesc")
+        description: t("planner.assignmentUpdatedMsg", { title: assignment.title })
       });
       
       return true;
@@ -232,7 +236,7 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
       // Show success message
       toast({
         title: t("planner.assignmentDeleted"),
-        description: t("planner.assignmentDeletedDesc")
+        description: t("planner.assignmentDeletedMsg")
       });
       
       return true;
