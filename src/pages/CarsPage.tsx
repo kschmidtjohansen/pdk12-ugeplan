@@ -5,6 +5,7 @@ import CarsList from '@/components/Cars/CarsList';
 import CarPageHeader from '@/components/Cars/CarPageHeader';
 import CarDialogs from '@/components/Cars/CarDialogs';
 import { useCars } from '@/hooks/useCars';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const CarsPage: React.FC = () => {
   const { canViewFuelCardCode, isAdmin } = usePermissions();
@@ -28,7 +29,7 @@ const CarsPage: React.FC = () => {
   } = useCars();
 
   return (
-    <>
+    <TooltipProvider>
       <CarPageHeader 
         onCreateNew={handleCreateNew}
         isAdmin={isAdmin}
@@ -45,7 +46,7 @@ const CarsPage: React.FC = () => {
       ) : (
         <CarsList 
           cars={cars} 
-          canEdit={false} // Now only admins can edit, controlled in the component
+          canEdit={false}
           canViewFuelCardCode={canViewFuelCardCode} 
           isAdmin={isAdmin}
           onEdit={handleEdit}
@@ -66,7 +67,7 @@ const CarsPage: React.FC = () => {
         canViewFuelCardCode={canViewFuelCardCode}
         onConfirmDelete={confirmDelete}
       />
-    </>
+    </TooltipProvider>
   );
 };
 

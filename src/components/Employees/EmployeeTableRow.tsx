@@ -98,41 +98,70 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, o
       {isAdmin && (
         <TableCell>
           <div className="flex space-x-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => onEdit(employee)} 
-              className="h-8 w-8 p-0"
-            >
-              <span className="sr-only">{t("common.edit")}</span>
-              <Edit className="h-4 w-4" />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => onEdit(employee)} 
+                    className="h-8 w-8 p-0"
+                  >
+                    <span className="sr-only">{t("common.edit")}</span>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t("common.edit")}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
             {onToggleLeave && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onToggleLeave(employee)} 
-                className="h-8 w-8 p-0"
-              >
-                <span className="sr-only">
-                  {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
-                </span>
-                {employee.onLeave ? (
-                  <UserCheck className="h-4 w-4 text-green-500" />
-                ) : (
-                  <UserX className="h-4 w-4 text-orange-500" />
-                )}
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => onToggleLeave(employee)} 
+                      className="h-8 w-8 p-0"
+                    >
+                      <span className="sr-only">
+                        {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
+                      </span>
+                      {employee.onLeave ? (
+                        <UserCheck className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <UserX className="h-4 w-4 text-orange-500" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => onDelete(employee)} 
-              className="h-8 w-8 p-0 text-destructive"
-            >
-              <span className="sr-only">{t("common.delete")}</span>
-              <Trash2 className="h-4 w-4" />
-            </Button>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => onDelete(employee)} 
+                    className="h-8 w-8 p-0 text-destructive"
+                  >
+                    <span className="sr-only">{t("common.delete")}</span>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t("common.delete")}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </TableCell>
       )}
