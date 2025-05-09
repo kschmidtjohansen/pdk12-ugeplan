@@ -75,7 +75,7 @@ const PlannerPage: React.FC = () => {
     if (currentAssignment) {
       // Set the edited assignment as unpublished
       const unpublishedData = getUnpublishedAssignment(data as Assignment);
-      updateAssignment(unpublishedData);
+      updateAssignment(currentAssignment.id, unpublishedData);
     } else {
       createAssignment({
         ...data,

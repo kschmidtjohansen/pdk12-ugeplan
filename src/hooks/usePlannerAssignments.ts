@@ -27,8 +27,12 @@ export const usePlannerAssignments = () => {
   // Filter assignments
   const filteredAssignments = filterMethods.filterByPermissions(assignments, true); // Default to showing all
   
-  // Get publishing functionality
-  const { publishAssignment, publishAssignmentsByDate } = useAssignmentPublishing(assignments, updateAssignment);
+  // Get publishing functionality - adapt updateAssignment to match expected signature
+  const assignmentUpdater = (assignment: Assignment) => {
+    return updateAssignment(assignment.id, assignment);
+  };
+  
+  const { publishAssignment, publishAssignmentsByDate } = useAssignmentPublishing(assignments, assignmentUpdater);
   
   // Open dialog for creating a new assignment
   const handleCreate = () => {

@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
@@ -10,12 +9,11 @@ const Dialog = DialogPrimitive.Root
 const DialogTrigger = DialogPrimitive.Trigger
 
 const DialogPortal = ({
-  className,
   children,
   ...props
 }: DialogPrimitive.DialogPortalProps) => (
   <DialogPrimitive.Portal {...props}>
-    <div className={cn("fixed inset-0 z-50 flex items-start justify-center sm:items-center", className)}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center sm:items-center">
       {children}
     </div>
   </DialogPrimitive.Portal>
