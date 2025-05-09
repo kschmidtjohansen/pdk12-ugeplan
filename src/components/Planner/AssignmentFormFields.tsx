@@ -12,7 +12,6 @@ import { format } from 'date-fns';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 import { Car } from '@/types/car';
-import { Vacation } from '@/types/vacation';
 
 interface AssignmentFormFieldsProps {
   formData: any;
@@ -58,6 +57,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         <Label htmlFor="title">{t('planner.assignmentTitle')}</Label>
         <Input
           id="title"
+          name="title"
           value={formData.title || ''}
           onChange={(e) => onFieldChange('title', e.target.value)}
         />
@@ -67,6 +67,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         <Label htmlFor="description">{t('planner.description')}</Label>
         <Textarea
           id="description"
+          name="description"
           value={formData.description || ''}
           onChange={(e) => onFieldChange('description', e.target.value)}
         />
@@ -77,6 +78,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         <Popover>
           <PopoverTrigger asChild>
             <Button
+              type="button"
               variant={"outline"}
               className={
                 "w-[280px] justify-start text-left font-normal" +
@@ -108,6 +110,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
           <Input
             type="time"
             id="fromTime"
+            name="fromTime"
             value={formData.fromTime || '08:00'}
             onChange={(e) => onFieldChange('fromTime', e.target.value)}
           />
@@ -118,6 +121,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
           <Input
             type="time"
             id="toTime"
+            name="toTime"
             value={formData.toTime || '16:00'}
             onChange={(e) => onFieldChange('toTime', e.target.value)}
           />
@@ -128,16 +132,17 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         <Label htmlFor="location">{t('planner.location')}</Label>
         <Input
           id="location"
+          name="location"
           value={formData.location || ''}
           onChange={(e) => onFieldChange('location', e.target.value)}
         />
       </div>
 
-      {cars.length > 0 && (
+      {cars && cars.length > 0 && (
         <div className="grid gap-2">
           <Label htmlFor="car">{t('planner.car')}</Label>
           <Select
-            value={formData.car as string || undefined}
+            value={formData.car || undefined}
             onValueChange={(value) => onFieldChange('car', value)}
           >
             <SelectTrigger id="car">
@@ -154,12 +159,12 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         </div>
       )}
       
-      {employees.length > 0 && (
+      {employees && employees.length > 0 && (
         <div className="grid gap-2">
           <Label htmlFor="employees">{t('planner.employees')}</Label>
           <Select
-            value={formData.employees?.[0] || undefined}
-            onValueChange={(value) => onFieldChange('employees', [value])}
+            value={(formData.employees && formData.employees[0]) || undefined}
+            onValueChange={(value) => onFieldChange('employees', value)}
           >
             <SelectTrigger id="employees">
               <SelectValue placeholder={t('planner.selectEmployee')} />

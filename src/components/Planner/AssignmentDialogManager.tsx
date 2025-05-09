@@ -43,19 +43,19 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   
   const vacations: Vacation[] = [];
 
-  // Use state to track selected employees, but only initialize it once when formData changes
+  // Use state to track selected employees
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
 
-  // Update selected employees when formData.employees changes, but only when relevant
+  // Initialize selected employees ONLY when the dialog opens with new formData
   useEffect(() => {
-    if (formData.employees) {
-      setSelectedEmployees(formData.employees);
+    if (open && formData.employees) {
+      setSelectedEmployees([...formData.employees]);
     }
-  }, [formData.id]); // Only update when formData.id changes (new assignment or edit)
+  }, [open, formData.id]); // Only update when the dialog opens or formData.id changes
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value,
     }));
@@ -63,13 +63,13 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
 
   const handleSelectChange = (name: string, value: string) => {
     if (name === 'employees') {
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         employees: value ? [value] : [],
       }));
       setSelectedEmployees(value ? [value] : []);
     } else {
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         [name]: value,
       }));
@@ -77,28 +77,35 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   };
 
   const handleEmployeeToggle = (employeeName: string) => {
-    setSelectedEmployees((prev) => {
-      if (prev.includes(employeeName)) {
-        return prev.filter(name => name !== employeeName);
+    // Create a new array for selectedEmployees to prevent direct state mutation
+    setSelectedEmployees(prev => {
+      const newSelection = [...prev];
+      const index = newSelection.indexOf(employeeName);
+      
+      if (index !== -1) {
+        newSelection.splice(index, 1);
       } else {
-        return [...prev, employeeName];
+        newSelection.push(employeeName);
       }
+      
+      return newSelection;
     });
 
-    // Also update the formData
-    setFormData((prev) => {
+    // Also update the formData with the new employee selection
+    setFormData(prev => {
       const updatedEmployees = prev.employees ? [...prev.employees] : [];
-      if (updatedEmployees.includes(employeeName)) {
-        return {
-          ...prev,
-          employees: updatedEmployees.filter(name => name !== employeeName)
-        };
+      const index = updatedEmployees.indexOf(employeeName);
+      
+      if (index !== -1) {
+        updatedEmployees.splice(index, 1);
       } else {
-        return {
-          ...prev,
-          employees: [...updatedEmployees, employeeName]
-        };
+        updatedEmployees.push(employeeName);
       }
+      
+      return {
+        ...prev,
+        employees: updatedEmployees
+      };
     });
   };
 
@@ -106,6 +113,13 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
     e.preventDefault();
     onSubmit(formData);
   };
+
+  // Reset selected employees when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setSelectedEmployees([]);
+    }
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
