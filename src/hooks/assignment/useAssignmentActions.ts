@@ -5,10 +5,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
-import { Database } from '@/integrations/supabase/types';
-
-// Define a type for the accepted assignment types
-type AssignmentType = Database["public"]["Enums"]["assignment_type"];
 
 // This hook provides actions for managing assignments
 export const useAssignmentActions = (
@@ -41,9 +37,6 @@ export const useAssignmentActions = (
         }
       }
       
-      // Determine assignment type from the assignment data and ensure it's valid
-      const assignmentType: AssignmentType = assignmentData.type as AssignmentType || 'other';
-      
       // Insert the new assignment
       const { error } = await supabase.from('assignments').insert({
         title: assignmentData.title,
@@ -53,7 +46,6 @@ export const useAssignmentActions = (
         from_time: assignmentData.fromTime,
         to_time: assignmentData.toTime,
         car_id: carId,
-        type: assignmentType,
         published: assignmentData.published || false,
         created_at: new Date().toISOString()
       });
@@ -100,9 +92,6 @@ export const useAssignmentActions = (
         }
       }
       
-      // Determine assignment type and ensure it's valid
-      const assignmentType: AssignmentType = assignmentData.type as AssignmentType || 'other';
-      
       // Update the assignment
       const { error } = await supabase
         .from('assignments')
@@ -114,7 +103,6 @@ export const useAssignmentActions = (
           from_time: assignmentData.fromTime,
           to_time: assignmentData.toTime,
           car_id: carId,
-          type: assignmentType,
           published: assignmentData.published,
           updated_at: new Date().toISOString()
         })

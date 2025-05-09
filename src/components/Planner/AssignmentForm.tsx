@@ -43,6 +43,21 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 }) => {
   const { t } = useTranslation();
   
+  // Create a function to handle field changes for AssignmentFormFields
+  const handleFieldChange = (field: string, value: any) => {
+    if (field === 'title' || field === 'description' || field === 'location') {
+      const event = {
+        target: {
+          name: field,
+          value: value
+        }
+      } as React.ChangeEvent<HTMLInputElement>;
+      handleInputChange(event);
+    } else {
+      handleSelectChange(field, value);
+    }
+  };
+  
   return (
     <DialogContent className="max-w-md">
       <DialogHeader>
@@ -59,13 +74,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         <AssignmentFormFields
           formData={formData}
-          selectedEmployees={selectedEmployees}
+          onFieldChange={handleFieldChange}
           cars={cars}
           employees={employees}
-          vacations={vacations}
-          handleInputChange={handleInputChange}
-          handleSelectChange={handleSelectChange}
-          handleEmployeeToggle={handleEmployeeToggle}
         />
         
         <DialogFooter>
@@ -79,7 +90,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           <Button 
             type="submit"
             className="bg-polygon-purple hover:bg-polygon-darkpurple"
-            disabled={selectedEmployees.length === 0}
+            disabled={!formData.employees || formData.employees.length === 0}
           >
             {currentAssignment ? t("planner.saveChanges") : t("planner.createAssignment")}
           </Button>

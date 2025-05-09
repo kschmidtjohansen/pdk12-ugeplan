@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { format } from 'date-fns';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 import { Car } from '@/types/car';
+import { Vacation } from '@/types/vacation';
 
 interface AssignmentFormFieldsProps {
   formData: any;
@@ -141,9 +143,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         <div className="grid gap-2">
           <Label htmlFor="employees">{t('planner.employees')}</Label>
           <Select
-            multiple
-            value={formData.employees || []}
-            onValueChange={(value) => onFieldChange('employees', value)}
+            value={formData.employees?.[0] || ""}
+            onValueChange={(value) => onFieldChange('employees', [value])}
           >
             <SelectTrigger id="employees">
               <SelectValue placeholder={t('planner.selectEmployee')} />

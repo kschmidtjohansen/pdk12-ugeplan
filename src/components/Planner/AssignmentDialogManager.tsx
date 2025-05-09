@@ -59,10 +59,18 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    if (name === 'employees') {
+      setFormData((prev) => ({
+        ...prev,
+        employees: value ? [value] : [],
+      }));
+      setSelectedEmployees(value ? [value] : []);
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleEmployeeToggle = (employeeName: string) => {
