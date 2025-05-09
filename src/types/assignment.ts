@@ -1,3 +1,4 @@
+
 export interface Assignment {
   id: string;
   title: string;
@@ -15,8 +16,10 @@ export interface AssignmentFilterOptions {
   showUnpublished: boolean;
 }
 
-// Update getCurrentWeek function to use the getCurrentWeekNumber from utils
+// Use proper ES module import instead of require
+import { getCurrentWeekNumber } from '../utils/weekDates';
+
+// Update getCurrentWeek function to use the imported function
 export const getCurrentWeek = (): number => {
-  const { getCurrentWeekNumber } = require('../utils/weekDates');
   return getCurrentWeekNumber();
 };
