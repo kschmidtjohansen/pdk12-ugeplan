@@ -1,40 +1,34 @@
-
 import { Assignment } from '@/types/assignment';
-import { isWithinInterval, parseISO } from 'date-fns';
-import { getWeekDates } from '@/utils/dateUtils';
 
+// Filters and groups assignments
 export const useAssignmentFilters = () => {
-  // Filter assignments by week
-  const filterByWeek = (assignments: Assignment[], weekNumber: number) => {
-    const { start, end } = getWeekDates(weekNumber);
-    
-    return assignments.filter(assignment => {
-      const assignmentDate = parseISO(assignment.date);
-      return isWithinInterval(assignmentDate, { start, end });
-    });
-  };
-
-  // Filter assignments by permissions
+  // Filter assignments based on user permissions
   const filterByPermissions = (assignments: Assignment[], canSeeUnpublishedTasks: boolean) => {
-    return canSeeUnpublishedTasks 
-      ? assignments 
-      : assignments.filter(assignment => assignment.published === true);
+    if (canSeeUnpublishedTasks) {
+      // Admin or skadeleder can see all
+      return assignments;
+    } else {
+      // Others can only see published tasks
+      return assignments.filter(a => a.published);
+    }
   };
 
   // Group assignments by date
   const groupByDate = (assignments: Assignment[]) => {
-    return assignments.reduce<Record<string, Assignment[]>>((acc, assignment) => {
-      const dateKey = assignment.date;
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
+    const grouped: Record<string, Assignment[]> = {};
+    
+    assignments.forEach(assignment => {
+      const date = assignment.date;
+      if (!grouped[date]) {
+        grouped[date] = [];
       }
-      acc[dateKey].push(assignment);
-      return acc;
-    }, {});
+      grouped[date].push(assignment);
+    });
+    
+    return grouped;
   };
 
   return {
-    filterByWeek,
     filterByPermissions,
     groupByDate
   };

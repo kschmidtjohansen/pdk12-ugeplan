@@ -29,7 +29,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   selectedWeek,
   weekDates
 }) => {
-  const { canEdit, canCreate, canSeeUnpublishedTasks, canPublishTasks } = usePermissions();
+  const { isAdmin, isSkadeleder, canEdit, canCreate, canSeeUnpublishedTasks, canPublishTasks } = usePermissions();
   const { t } = useTranslation();
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
   const [currentTime, setCurrentTime] = useState<Date>(new Date());

@@ -1,12 +1,11 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-import { AuthError, Session, User } from '@supabase/supabase-js';
+import { AuthError, Session } from '@supabase/supabase-js';
 
 export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder';
 
-export interface User {
+export interface AppUser {
   id: string;
   name: string;
   email: string;
@@ -14,7 +13,7 @@ export interface User {
 }
 
 interface AuthState {
-  user: User | null;
+  user: AppUser | null;
   session: Session | null;
   loading: boolean;
 }
