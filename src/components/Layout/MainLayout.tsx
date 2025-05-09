@@ -13,8 +13,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Don't show layout for login page
-  if (location.pathname === "/") {
+  // Don't show layout for login page or password reset page
+  if (location.pathname === "/login" || location.pathname === "/password-reset") {
     return <>{children}</>;
   }
 
@@ -24,7 +24,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">{t('accessDenied.title')}</h1>
           <p className="mb-4">{t('accessDenied.message')}</p>
-          <Button onClick={() => navigate('/')}>
+          <Button onClick={() => navigate('/login')}>
             <LogIn className="mr-2 h-4 w-4" /> {t('common.login')}
           </Button>
         </div>
@@ -36,8 +36,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <div className="flex flex-col min-h-screen w-full bg-polygon-lightgray">
       <TopNavbar />
       
-      {/* Main Content - Adjusted to ensure full width */}
-      <main className="flex-1 page-container w-full max-w-full">
+      {/* Main Content - Adjusted to ensure full width and proper padding for navbar */}
+      <main className="flex-1 page-container w-full max-w-full mt-16 px-4 pt-6">
         {children}
       </main>
     </div>

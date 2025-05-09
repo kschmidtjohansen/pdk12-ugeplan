@@ -8,8 +8,10 @@ import PlannerPage from './pages/PlannerPage';
 import VacationPage from './pages/VacationPage';
 import EmployeesPage from './pages/EmployeesPage';
 import CarsPage from './pages/CarsPage';
+import AdminPage from './pages/AdminPage';
 import PasswordResetPage from './pages/PasswordResetPage';
 import { Toaster } from "@/components/ui/toaster";
+import MainLayout from './components/Layout/MainLayout';
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -35,14 +37,59 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/password-reset" element={<PasswordResetPage />} />
-        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-        <Route path="/planner" element={<ProtectedRoute><PlannerPage /></ProtectedRoute>} />
-        <Route path="/vacation" element={<ProtectedRoute><VacationPage /></ProtectedRoute>} />
-        <Route path="/employees" element={<ProtectedRoute><EmployeesPage /></ProtectedRoute>} />
-        <Route path="/cars" element={<ProtectedRoute><CarsPage /></ProtectedRoute>} />
+        
+        {/* Protected routes wrapped with MainLayout */}
+        <Route path="/" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <DashboardPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <DashboardPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/planner" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <PlannerPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/vacation" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <VacationPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/employees" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <EmployeesPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/cars" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CarsPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <AdminPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
       </Routes>
       <Toaster />
     </Router>

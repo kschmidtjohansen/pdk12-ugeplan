@@ -1,3 +1,4 @@
+
 const translations = {
   common: {
     login: 'Login',
@@ -91,7 +92,32 @@ const translations = {
       fireDamage: 'Fire damage restoration',
       mold: 'Mold assessment'
     },
-    location: 'Location'
+    location: 'Location',
+    // Add missing dashboard keys
+    availableEmployees: 'Available Employees',
+    onLeaveEmployees: 'On Leave Employees',
+    totalEmployees: 'Total employees: {count}',
+    availableCars: 'Available Cars',
+    todayAssignments: 'Today\'s Assignments',
+    scheduledToday: 'Tasks scheduled for today',
+    upcomingVacations: 'Upcoming Vacations',
+    noUpcomingVacations: 'No upcoming vacations planned',
+    vehicleStatus: 'Vehicle Status',
+    available: 'Available',
+    inUse: 'In use',
+    metrics: {
+      activeAssignments: 'Active Assignments',
+      activeAssignmentsDesc: 'Ongoing published assignments',
+      upcomingVacations: 'Upcoming Vacations',
+      upcomingVacationsDesc: 'Approved vacation requests',
+      vehicleStatus: 'Vehicle Status',
+      vehicleStatusDesc: 'Available / Total vehicles',
+      employeeActivity: 'Employee Activity',
+      employeeActivityDesc: 'Average activity rate this month'
+    },
+    charts: {
+      assignmentDistribution: 'Assignment Distribution'
+    }
   },
   planner: {
     weekDescription: 'Week {week} Plan and Tasks',
@@ -297,7 +323,12 @@ const translations = {
     employeeUpdated: 'Employee updated',
     employeeAdded: 'Employee added',
     employeeUpdatedMsg: '{name}\'s information has been updated.',
-    employeeAddedMsg: '{name} has been added to the department.'
+    employeeAddedMsg: '{name} has been added to the department.',
+    // Add missing employee keys
+    onLeave: 'On Leave',
+    markOnLeave: 'Mark on leave',
+    markAvailable: 'Mark available',
+    viewNotes: 'View notes'
   }
 };
 

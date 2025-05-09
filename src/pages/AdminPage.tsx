@@ -19,7 +19,7 @@ const AdminPage: React.FC = () => {
   // Redirect if not an admin
   React.useEffect(() => {
     if (!isAdmin) {
-      navigate('/Dashboard');
+      navigate('/dashboard');
     }
   }, [isAdmin, navigate]);
 
@@ -28,15 +28,15 @@ const AdminPage: React.FC = () => {
   };
 
   const handleVehiclesClick = () => {
-    navigate('/Biler');
+    navigate('/cars');
   };
 
   const handleVacationClick = () => {
-    navigate('/Fridage');
+    navigate('/vacation');
   };
 
   const handleTasksClick = () => {
-    navigate('/Ugeplan');
+    navigate('/planner');
   };
 
   return (

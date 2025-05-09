@@ -76,89 +76,67 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
           </Link>
         ))}
         
-        {/* Notifications - Mobile */}
-        {isAdmin && notifications.length > 0 && (
-          <div className="px-3 py-2">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-500 flex items-center">
-                <Bell className="mr-2 h-4 w-4" />
-                {t('notifications.title')}
-                {unreadCount > 0 && (
-                  <Badge className="ml-2 bg-polygon-purple text-white">
-                    {unreadCount}
-                  </Badge>
-                )}
-              </span>
-            </div>
-            {notifications.slice(0, 3).map((notification) => (
-              <div 
-                key={notification.id}
-                className={cn(
-                  "p-2 text-sm rounded-md mb-1 cursor-pointer",
-                  !notification.read && "bg-muted"
-                )}
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handleNotificationClick(notification);
-                }}
-              >
-                <div className="font-medium">{notification.title}</div>
-                <div className="text-xs text-muted-foreground">
-                  {format(notification.date, 'PPp')}
-                </div>
-              </div>
-            ))}
-            <Link 
-              to="/vacation"
-              className="block text-xs text-polygon-purple hover:underline mt-1"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              {t('notifications.viewAll')}
-            </Link>
-          </div>
-        )}
-        
-        {/* Mobile user info and logout */}
-        <div className="border-t border-gray-200 pt-4 pb-3">
-          <div className="flex items-center px-3">
+        {/* User profile */}
+        <div className="pt-4 pb-3 border-t border-gray-200">
+          <div className="flex items-center px-5">
             <div className="flex-shrink-0">
-              <Avatar className="h-10 w-10 profile-avatar">
-                <AvatarFallback>{user?.name ? getInitials(user.name) : 'U'}</AvatarFallback>
+              <Avatar>
+                <AvatarFallback>{user ? getInitials(user.name || '') : '?'}</AvatarFallback>
               </Avatar>
             </div>
             <div className="ml-3">
               <div className="text-base font-medium text-gray-800">{user?.name}</div>
               <div className="text-sm font-medium text-gray-500">{user?.email}</div>
-              <div className="text-sm font-medium text-gray-500 capitalize">{user?.role}</div>
             </div>
-          </div>
-          <div className="mt-3 space-y-1 px-2">
-            {/* Language Switcher in Mobile Menu */}
-            <div className="px-3 py-2">
-              <span className="block text-sm font-medium text-gray-500 mb-2">{t('common.language')}</span>
-              <div className="flex space-x-2">
-                {Object.entries(languageNames).map(([code, name]) => (
-                  <Button
-                    key={code}
-                    variant={currentLanguage === code ? "default" : "outline"}
-                    size="sm"
-                    className="text-sm"
-                    onClick={() => setLanguage(code as 'en' | 'da')}
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="ml-auto flex-shrink-0 p-1"
+              >
+                <span className="sr-only">{t('notifications.title')}</span>
+                <Bell className="h-5 w-5 text-gray-500" />
+                {unreadCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute top-0 right-0 transform translate-x-1 -translate-y-1 flex items-center justify-center h-4 w-4 text-[10px] p-0"
                   >
-                    {name}
-                  </Button>
-                ))}
+                    {unreadCount}
+                  </Badge>
+                )}
+              </Button>
+            )}
+          </div>
+          
+          <div className="mt-3 space-y-1 px-2">
+            {/* Language selector */}
+            <div className="flex items-center px-3 py-2 text-gray-700">
+              <span className="mr-2">{t('common.language')}:</span>
+              <div className="flex gap-2">
+                <Button 
+                  variant={currentLanguage === 'en' ? "default" : "outline"} 
+                  size="sm" 
+                  onClick={() => setLanguage('en')}
+                >
+                  EN
+                </Button>
+                <Button 
+                  variant={currentLanguage === 'da' ? "default" : "outline"} 
+                  size="sm" 
+                  onClick={() => setLanguage('da')}
+                >
+                  DA
+                </Button>
               </div>
             </div>
             
+            {/* Logout button */}
             <Button 
               variant="ghost" 
-              className="w-full text-gray-700 justify-start"
-              onClick={handleLogout}
+              size="sm" 
+              onClick={handleLogout} 
+              className="w-full justify-start px-3 py-2 text-base"
             >
-              <svg className="mr-3 h-5 w-5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
-              </svg>
               {t('common.logout')}
             </Button>
           </div>

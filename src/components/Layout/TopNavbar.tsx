@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -42,7 +43,7 @@ const TopNavbar: React.FC = () => {
     }
   };
 
-  // Don't show navbar for login page
+  // Don't show navbar for login page or password reset page
   if (location.pathname === "/login" || location.pathname === "/password-reset") {
     return null;
   }
