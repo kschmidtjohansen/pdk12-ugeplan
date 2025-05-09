@@ -2,7 +2,6 @@
 import { useAssignmentData } from './assignment/useAssignmentData';
 import { useAssignmentActions } from './assignment/useAssignmentActions';
 import { Assignment } from '@/types/assignment';
-import { supabase } from '@/integrations/supabase/client';
 
 export const useAssignments = () => {
   const { 

@@ -1,81 +1,103 @@
 
+import { useState } from 'react';
+import { Assignment } from '@/types/assignment';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
-import { Assignment } from '@/types/assignment';
-import { useAssignmentHelpers } from './useAssignmentHelpers';
+import { useNotifications } from '@/context/NotificationContext';
+import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useAssignmentHelpers } from './useAssignmentHelpers';
 
-export const useAssignmentActions = (
-  fetchAssignments: () => Promise<void>
-) => {
+export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { addNotification } = useNotifications();
   const { getCarsIdByName, getEmployeeIdByName } = useAssignmentHelpers();
-  
-  const createAssignment = async (newAssignment: Assignment) => {
+
+  // Create a new assignment
+  const createAssignment = async (assignment: Partial<Assignment>, employees: string[]) => {
     try {
-      // First create the assignment record
+      // Get car ID if provided
+      let carId = null;
+      if (assignment.carName) {
+        carId = await getCarsIdByName(assignment.carName);
+      }
+      
+      // Insert into assignments table
       const { data, error } = await supabase
         .from('assignments')
-        .insert([{
-          title: newAssignment.title,
-          description: newAssignment.description,
-          assignment_date: newAssignment.date, // Map from date to assignment_date
-          from_time: newAssignment.fromTime, // Map from fromTime to from_time
-          to_time: newAssignment.toTime, // Map from toTime to to_time
-          location: newAssignment.location,
-          car_id: await getCarsIdByName(newAssignment.car), // Look up the car ID by name
-          published: newAssignment.published || false
-        }])
+        .insert([
+          {
+            title: assignment.title,
+            description: assignment.description,
+            location: assignment.location,
+            assignment_date: assignment.date?.toISOString().split('T')[0],
+            from_time: assignment.fromTime,
+            to_time: assignment.toTime,
+            car_id: carId,
+            type: assignment.type,
+            published: assignment.published || false
+          }
+        ])
         .select();
       
       if (error) throw error;
       
-      if (!data || data.length === 0) {
-        throw new Error('No data returned from assignment creation');
-      }
-      
-      const createdAssignment = data[0];
-      
-      // Now create employee assignments
-      if (newAssignment.employees && newAssignment.employees.length > 0) {
-        // Get the user IDs for the employee names
-        const employeeIds = await Promise.all(
-          newAssignment.employees.map(name => getEmployeeIdByName(name))
-        );
+      if (data && data[0] && employees.length > 0) {
+        const assignmentId = data[0].id;
         
-        // Filter out any null IDs
-        const validEmployeeIds = employeeIds.filter(Boolean) as string[];
+        // Create employee assignments relationships
+        const employeesEntries = [];
         
-        if (validEmployeeIds.length > 0) {
-          // Create the employee assignment records
-          const assignmentEmployees = validEmployeeIds.map(userId => ({
-            assignment_id: createdAssignment.id,
-            user_id: userId
-          }));
-          
-          const { error: empError } = await supabase
+        for (const employeeName of employees) {
+          const employeeId = await getEmployeeIdByName(employeeName);
+          if (employeeId) {
+            employeesEntries.push({
+              assignment_id: assignmentId,
+              user_id: employeeId
+            });
+          }
+        }
+        
+        if (employeesEntries.length > 0) {
+          const { error: assignmentError } = await supabase
             .from('assignments_employees')
-            .insert(assignmentEmployees);
+            .insert(employeesEntries);
           
-          if (empError) {
-            console.error('Error assigning employees:', empError);
+          if (assignmentError) throw assignmentError;
+        }
+
+        // Notify assigned employees
+        if (assignment.published) {
+          for (const employeeName of employees) {
+            // Skip notifications for the current user
+            const employeeId = await getEmployeeIdByName(employeeName);
+            if (employeeId && employeeId !== user?.id) {
+              addNotification({
+                type: 'assignment',
+                title: t("notifications.newAssignment"),
+                message: t("notifications.assignedToJob", { 
+                  job: assignment.title,
+                  date: new Date(assignment.date || new Date()).toLocaleDateString()
+                }),
+                link: '/Ugeplan'
+              });
+            }
           }
         }
       }
       
-      // Refresh the assignments
-      fetchAssignments();
+      // Refresh assignments list
+      await fetchAssignments();
       
+      // Show success message
       toast({
         title: t("planner.assignmentCreated"),
-        description: t("planner.assignmentCreatedMsg", { title: newAssignment.title }),
+        description: t("planner.assignmentCreatedDesc")
       });
       
-      return {
-        ...newAssignment,
-        id: createdAssignment.id
-      };
+      return true;
     } catch (err) {
       console.error('Error creating assignment:', err);
       toast({
@@ -83,75 +105,97 @@ export const useAssignmentActions = (
         description: err instanceof Error ? err.message : 'Error creating assignment',
         variant: 'destructive',
       });
-      return newAssignment; // Return original for optimistic UI updates
+      return false;
     }
   };
 
-  const updateAssignment = async (updatedAssignment: Assignment) => {
+  // Update an existing assignment
+  const updateAssignment = async (assignment: Assignment, employees: string[]) => {
     try {
-      // First update the assignment record
+      // Get car ID if provided
+      let carId = null;
+      if (assignment.carName) {
+        carId = await getCarsIdByName(assignment.carName);
+      }
+      
+      // Update the assignment
       const { error } = await supabase
         .from('assignments')
         .update({
-          title: updatedAssignment.title,
-          description: updatedAssignment.description,
-          assignment_date: updatedAssignment.date, // Map from date to assignment_date
-          from_time: updatedAssignment.fromTime, // Map from fromTime to from_time
-          to_time: updatedAssignment.toTime, // Map from toTime to to_time
-          location: updatedAssignment.location,
-          car_id: await getCarsIdByName(updatedAssignment.car), // Look up the car ID by name
-          published: updatedAssignment.published
+          title: assignment.title,
+          description: assignment.description,
+          location: assignment.location,
+          assignment_date: assignment.date?.toISOString().split('T')[0],
+          from_time: assignment.fromTime,
+          to_time: assignment.toTime,
+          car_id: carId,
+          type: assignment.type,
+          published: assignment.published || false
         })
-        .eq('id', updatedAssignment.id);
+        .eq('id', assignment.id);
       
       if (error) throw error;
       
-      // Update employee assignments - first delete existing
-      const { error: delError } = await supabase
+      // Delete existing employee assignments
+      const { error: deleteError } = await supabase
         .from('assignments_employees')
         .delete()
-        .eq('assignment_id', updatedAssignment.id);
+        .eq('assignment_id', assignment.id);
       
-      if (delError) {
-        console.error('Error deleting existing employee assignments:', delError);
-      }
+      if (deleteError) throw deleteError;
       
-      // Now create new employee assignments
-      if (updatedAssignment.employees && updatedAssignment.employees.length > 0) {
-        // Get the user IDs for the employee names
-        const employeeIds = await Promise.all(
-          updatedAssignment.employees.map(name => getEmployeeIdByName(name))
-        );
+      // Create new employee assignments
+      if (employees.length > 0) {
+        const employeesEntries = [];
         
-        // Filter out any null IDs
-        const validEmployeeIds = employeeIds.filter(Boolean) as string[];
+        for (const employeeName of employees) {
+          const employeeId = await getEmployeeIdByName(employeeName);
+          if (employeeId) {
+            employeesEntries.push({
+              assignment_id: assignment.id,
+              user_id: employeeId
+            });
+          }
+        }
         
-        if (validEmployeeIds.length > 0) {
-          // Create the employee assignment records
-          const assignmentEmployees = validEmployeeIds.map(userId => ({
-            assignment_id: updatedAssignment.id,
-            user_id: userId
-          }));
-          
-          const { error: empError } = await supabase
+        if (employeesEntries.length > 0) {
+          const { error: assignmentError } = await supabase
             .from('assignments_employees')
-            .insert(assignmentEmployees);
+            .insert(employeesEntries);
           
-          if (empError) {
-            console.error('Error assigning employees:', empError);
+          if (assignmentError) throw assignmentError;
+        }
+
+        // Notify employees about assignment update if published
+        if (assignment.published) {
+          for (const employeeName of employees) {
+            // Skip notifications for the current user
+            const employeeId = await getEmployeeIdByName(employeeName);
+            if (employeeId && employeeId !== user?.id) {
+              addNotification({
+                type: 'assignment',
+                title: t("notifications.updatedAssignment"),
+                message: t("notifications.assignmentUpdated", { 
+                  job: assignment.title,
+                  date: new Date(assignment.date || new Date()).toLocaleDateString()
+                }),
+                link: '/Ugeplan'
+              });
+            }
           }
         }
       }
       
-      // Refresh the assignments
-      fetchAssignments();
+      // Refresh assignments list
+      await fetchAssignments();
       
+      // Show success message
       toast({
         title: t("planner.assignmentUpdated"),
-        description: t("planner.assignmentUpdatedMsg", { title: updatedAssignment.title }),
+        description: t("planner.assignmentUpdatedDesc")
       });
       
-      return updatedAssignment;
+      return true;
     } catch (err) {
       console.error('Error updating assignment:', err);
       toast({
@@ -159,21 +203,20 @@ export const useAssignmentActions = (
         description: err instanceof Error ? err.message : 'Error updating assignment',
         variant: 'destructive',
       });
-      return updatedAssignment; // Return original for optimistic UI updates
+      return false;
     }
   };
 
+  // Delete an assignment
   const deleteAssignment = async (assignmentId: string) => {
     try {
-      // Delete employee assignments first (due to foreign key constraints)
-      const { error: empError } = await supabase
+      // Delete the employee assignments first (due to foreign key constraints)
+      const { error: deleteRelationError } = await supabase
         .from('assignments_employees')
         .delete()
         .eq('assignment_id', assignmentId);
       
-      if (empError) {
-        console.error('Error deleting employee assignments:', empError);
-      }
+      if (deleteRelationError) throw deleteRelationError;
       
       // Then delete the assignment
       const { error } = await supabase
@@ -183,12 +226,13 @@ export const useAssignmentActions = (
       
       if (error) throw error;
       
-      // Update assignments through fetch
-      fetchAssignments();
+      // Refresh assignments list
+      await fetchAssignments();
       
+      // Show success message
       toast({
         title: t("planner.assignmentDeleted"),
-        description: t("planner.assignmentDeletedMsg"),
+        description: t("planner.assignmentDeletedDesc")
       });
       
       return true;
