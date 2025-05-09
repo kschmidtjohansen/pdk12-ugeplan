@@ -1,16 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog } from "@/components/ui/dialog";
 import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import AssignmentForm from './AssignmentForm';
 import { useEmployees } from '@/hooks/useEmployees';
-
-interface Car {
-  id: string;
-  name: string;
-}
+import { useCars } from '@/hooks/useCars';
 
 interface AssignmentDialogManagerProps {
   open: boolean;
@@ -39,14 +35,8 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   selectedDay,
   onPublishDay
 }) => {
-  // Updated to match the mocked data we would have from the application state
-  const cars = [
-    { id: '1', name: 'Van 1' },
-    { id: '2', name: 'Van 2' },
-    { id: '3', name: 'Van 3' },
-    { id: '4', name: 'Truck 3' },
-    { id: '5', name: 'Sedan 1' },
-  ];
+  // Get cars from the hook
+  const { cars } = useCars();
 
   // Use the hook to get the full employee objects
   const { employees: allEmployees } = useEmployees();
@@ -56,7 +46,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>(formData.employees || []);
 
   // Update selected employees when formData changes
-  React.useEffect(() => {
+  useEffect(() => {
     setSelectedEmployees(formData.employees || []);
   }, [formData]);
 

@@ -55,11 +55,11 @@ const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
                   </div>
                   <div>
                     <p className="text-sm font-medium">{car.name}</p>
-                    <p className="text-xs text-muted-foreground">ID: {car.id}</p>
+                    <p className="text-xs text-muted-foreground">ID: {car.id.substring(0, 8)}</p>
                   </div>
                 </div>
                 <div>
-                  {car.inUse ? (
+                  {(car as any).inUse ? (
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                       <X className="h-3 w-3 mr-1" /> {t('dashboard.inUse')}
                     </span>

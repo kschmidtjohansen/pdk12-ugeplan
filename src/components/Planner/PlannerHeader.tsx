@@ -1,3 +1,4 @@
+
 import React from 'react';
 import PageHeader from '../Layout/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { Plus, ChevronLeft, ChevronRight, Send } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { format } from 'date-fns';
-import { getWeekDates } from '@/hooks/usePlannerAssignments';
+import { getWeekDates } from '@/utils/weekDates';
 import { da } from 'date-fns/locale';
 
 interface PlannerHeaderProps {

@@ -72,22 +72,22 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="carNumber">{t('cars.carNumber')}</Label>
+            <Label htmlFor="car_number">{t('cars.carNumber')}</Label>
             <Input
-              id="carNumber"
-              name="carNumber"
-              value={formData.carNumber}
+              id="car_number"
+              name="car_number"
+              value={formData.car_number}
               onChange={onInputChange}
               required
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="numberPlate">{t('cars.numberPlate')}</Label>
+            <Label htmlFor="number_plate">{t('cars.numberPlate')}</Label>
             <Input
-              id="numberPlate"
-              name="numberPlate"
-              value={formData.numberPlate}
+              id="number_plate"
+              name="number_plate"
+              value={formData.number_plate}
               onChange={onInputChange}
               required
             />
@@ -95,11 +95,11 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
           
           {canViewFuelCardCode && (
             <div className="space-y-2">
-              <Label htmlFor="fuelCardCode">{t('cars.fuelCardCode')}</Label>
+              <Label htmlFor="fuel_card_code">{t('cars.fuelCardCode')}</Label>
               <Input
-                id="fuelCardCode"
-                name="fuelCardCode"
-                value={formData.fuelCardCode}
+                id="fuel_card_code"
+                name="fuel_card_code"
+                value={formData.fuel_card_code}
                 onChange={onInputChange}
                 required
               />
@@ -108,11 +108,11 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
           
           <div className="flex items-center space-x-2 mt-4">
             <Checkbox 
-              id="hasTrailerHitch"
-              checked={formData.hasTrailerHitch || false} 
-              onCheckedChange={(checked) => handleCheckboxChange('hasTrailerHitch', checked === true)}
+              id="has_trailer_hitch"
+              checked={formData.has_trailer_hitch || false} 
+              onCheckedChange={(checked) => handleCheckboxChange('has_trailer_hitch', checked === true)}
             />
-            <Label htmlFor="hasTrailerHitch">{t('cars.hasTrailerHitch')}</Label>
+            <Label htmlFor="has_trailer_hitch">{t('cars.hasTrailerHitch')}</Label>
           </div>
           
           <DialogFooter>

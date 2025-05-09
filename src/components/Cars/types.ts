@@ -2,10 +2,12 @@
 export interface CarData {
   id: string;
   name: string;
-  carNumber: string;
-  numberPlate: string;
-  fuelCardCode: string;
-  hasTrailerHitch?: boolean;
+  car_number: string;
+  number_plate: string;
+  fuel_card_code: string;
+  has_trailer_hitch?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
-export type CarFormData = Omit<CarData, 'id'>;
+export type CarFormData = Omit<CarData, 'id' | 'created_at' | 'updated_at'>;

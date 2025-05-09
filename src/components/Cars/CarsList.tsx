@@ -71,22 +71,22 @@ const CarsList: React.FC<CarsListProps> = ({
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <p className="text-muted-foreground">{t('cars.carNumber')}:</p>
-                  <p>{car.carNumber}</p>
+                  <p>{car.car_number}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">{t('cars.numberPlate')}:</p>
-                  <p>{car.numberPlate}</p>
+                  <p>{car.number_plate}</p>
                 </div>
                 {canViewFuelCardCode && (
                   <div className="col-span-2">
                     <p className="text-muted-foreground">{t('cars.fuelCardCode')}:</p>
-                    <code className="bg-gray-100 p-1 rounded">{car.fuelCardCode}</code>
+                    <code className="bg-gray-100 p-1 rounded">{car.fuel_card_code}</code>
                   </div>
                 )}
                 <div className="col-span-2">
                   <p className="text-muted-foreground">{t('cars.hasTrailerHitch')}:</p>
                   <div className="flex items-center">
-                    {car.hasTrailerHitch ? (
+                    {car.has_trailer_hitch ? (
                       <>
                         <Check className="h-4 w-4 mr-1 text-green-500" />
                         <span>{t('common.yes')}</span>
@@ -129,15 +129,15 @@ const CarsList: React.FC<CarsListProps> = ({
                         <span className="font-medium">{car.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell>{car.carNumber}</TableCell>
-                    <TableCell>{car.numberPlate}</TableCell>
+                    <TableCell>{car.car_number}</TableCell>
+                    <TableCell>{car.number_plate}</TableCell>
                     {canViewFuelCardCode && (
                       <TableCell>
-                        <code className="bg-gray-100 p-1 rounded">{car.fuelCardCode}</code>
+                        <code className="bg-gray-100 p-1 rounded">{car.fuel_card_code}</code>
                       </TableCell>
                     )}
                     <TableCell>
-                      {car.hasTrailerHitch ? (
+                      {car.has_trailer_hitch ? (
                         <div className="flex items-center">
                           <Check className="h-4 w-4 mr-1 text-green-500" />
                           <span>{t('common.yes')}</span>
