@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
 import AssignmentFormFields from './AssignmentFormFields';
+import EmployeeSelector from './EmployeeSelector';
 import { Car } from '../../types/car';
 import { Employee } from '../../types/employee';
 import { Vacation } from '../../types/vacation';
@@ -26,6 +27,7 @@ interface AssignmentFormProps {
   handleEmployeeToggle: (employeeName: string) => void;
   handleSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
+  currentDate: string;
 }
 
 const AssignmentForm: React.FC<AssignmentFormProps> = ({
@@ -40,6 +42,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   handleEmployeeToggle,
   handleSubmit,
   onClose,
+  currentDate,
 }) => {
   const { t } = useTranslation();
   
@@ -79,6 +82,18 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           employees={employees}
         />
         
+        {/* Employee multi-selector */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">{t('planner.employees')}</h3>
+          <EmployeeSelector
+            employees={employees}
+            selectedEmployees={selectedEmployees}
+            onToggle={handleEmployeeToggle}
+            vacations={vacations}
+            currentDate={currentDate || formData.date}
+          />
+        </div>
+        
         <DialogFooter>
           <Button 
             type="button" 
@@ -90,7 +105,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           <Button 
             type="submit"
             className="bg-polygon-purple hover:bg-polygon-darkpurple"
-            disabled={!formData.employees || formData.employees.length === 0}
+            disabled={!selectedEmployees || selectedEmployees.length === 0}
           >
             {currentAssignment ? t("planner.saveChanges") : t("planner.createAssignment")}
           </Button>

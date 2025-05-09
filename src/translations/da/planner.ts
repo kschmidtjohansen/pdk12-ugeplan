@@ -42,8 +42,10 @@ const planner = {
   assignmentsPublishedMsg: 'Opgaverne er nu synlige for servicemedarbejdere.',
   weekDateRange: '{start} til {end}',
   nothingPlannedToday: 'Intet planlagt i dag',
+  previousDays: 'Tidligere dage',
   previousTasks: 'Tidligere opgaver',
-  fetchError: 'Der opstod en fejl ved hentning af opgaver'
+  fetchError: 'Der opstod en fejl ved hentning af opgaver',
+  unavailable: 'Utilgængelig'
 };
 
 export default planner;

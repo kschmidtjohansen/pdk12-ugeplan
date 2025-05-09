@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
 import { format } from 'date-fns';
+import { da } from 'date-fns/locale';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 import { Car } from '@/types/car';
@@ -26,13 +27,28 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   cars,
   employees
 }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   
   // Helper function to safely handle date formatting
   const formatDate = (dateString: string | undefined | null) => {
     if (!dateString) return '';
     try {
-      return format(new Date(dateString), "yyyy-MM-dd");
+      // Use Danish locale if the current language is Danish
+      const locale = currentLanguage === 'da' ? da : undefined;
+      return format(new Date(dateString), "yyyy-MM-dd", { locale });
+    } catch (e) {
+      console.error("Invalid date format:", dateString);
+      return '';
+    }
+  };
+  
+  // Format date for display in the calendar button
+  const formatDisplayDate = (dateString: string | undefined | null) => {
+    if (!dateString) return '';
+    try {
+      // Use Danish locale if the current language is Danish
+      const locale = currentLanguage === 'da' ? da : undefined;
+      return format(new Date(dateString), "d MMMM yyyy", { locale });
     } catch (e) {
       console.error("Invalid date format:", dateString);
       return '';
@@ -87,7 +103,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {formData.date ? (
-                formatDate(formData.date)
+                formatDisplayDate(formData.date)
               ) : (
                 <span>{t('planner.date')}</span>
               )}
@@ -98,7 +114,9 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
               mode="single"
               selected={formData.date ? new Date(formData.date) : undefined}
               onSelect={handleDateSelect}
-              className="rounded-md border"
+              locale={currentLanguage === 'da' ? da : undefined}
+              weekStartsOn={1} // 1 means Monday is the first day
+              className="rounded-md border p-3 pointer-events-auto"
             />
           </PopoverContent>
         </Popover>

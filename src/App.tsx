@@ -1,55 +1,51 @@
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
+import PlannerPage from './pages/PlannerPage';
+import VacationPage from './pages/VacationPage';
+import EmployeesPage from './pages/EmployeesPage';
+import CarsPage from './pages/CarsPage';
+import PasswordResetPage from './pages/PasswordResetPage';
+import { Toaster } from "@/components/ui/toaster"
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import { TranslationProvider } from "./context/TranslationContext";
-import { NotificationProvider } from "./context/NotificationContext";
+function App() {
+  const { isLoggedIn } = useAuth();
+  const [loading, setLoading] = useState(true);
 
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
-import PlannerPage from "./pages/PlannerPage";
-import EmployeesPage from "./pages/EmployeesPage";
-import CarsPage from "./pages/CarsPage";
-import VacationPage from "./pages/VacationPage";
-import AdminPage from "./pages/AdminPage";
-import NotFound from "./pages/NotFound";
-import MainLayout from "./components/Layout/MainLayout";
-import PasswordResetPage from "./pages/PasswordResetPage";
-import Index from "./pages/Index";
+  useEffect(() => {
+    // Simulate loading
+    setTimeout(() => {
+      setLoading(false);
+    }, 500);
+  }, []);
 
-const queryClient = new QueryClient();
+  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    if (loading) {
+      return <div>Loading...</div>;
+    }
+    if (!isLoggedIn) {
+      return <Navigate to="/login" />;
+    }
+    return <>{children}</>;
+  };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TranslationProvider>
-        <NotificationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <MainLayout>
-                <Routes>
-                  <Route path="/" element={<LoginPage />} />
-                  <Route path="/password-reset" element={<PasswordResetPage />} />
-                  <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/planner" element={<PlannerPage />} />
-                  <Route path="/employees" element={<EmployeesPage />} />
-                  <Route path="/cars" element={<CarsPage />} />
-                  <Route path="/vacation" element={<VacationPage />} />
-                  <Route path="/admin" element={<AdminPage />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </MainLayout>
-            </BrowserRouter>
-          </TooltipProvider>
-        </NotificationProvider>
-      </TranslationProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/password-reset" element={<PasswordResetPage />} />
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/planner" element={<ProtectedRoute><PlannerPage /></ProtectedRoute>} />
+        <Route path="/vacation" element={<ProtectedRoute><VacationPage /></ProtectedRoute>} />
+        <Route path="/employees" element={<ProtectedRoute><EmployeesPage /></ProtectedRoute>} />
+        <Route path="/cars" element={<ProtectedRoute><CarsPage /></ProtectedRoute>} />
+      </Routes>
+      <Toaster />
+    </Router>
+  );
+}
 
 export default App;

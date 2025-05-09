@@ -7,6 +7,7 @@ import { Vacation } from '@/types/vacation';
 import AssignmentForm from './AssignmentForm';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/useCars';
+import { useVacations } from '@/hooks/useVacations';
 
 interface AssignmentDialogManagerProps {
   open: boolean;
@@ -38,20 +39,22 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   // Get cars from the hook
   const { cars } = useCars();
 
-  // Use the hook to get the full employee objects
+  // Use the hook to get the full employee objects and vacations
   const { employees: allEmployees } = useEmployees();
+  const { vacations } = useVacations();
   
-  const vacations: Vacation[] = [];
-
   // Use state to track selected employees
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
 
   // Initialize selected employees ONLY when the dialog opens with new formData
   useEffect(() => {
     if (open && formData.employees) {
-      setSelectedEmployees([...formData.employees]);
+      setSelectedEmployees(Array.isArray(formData.employees) ? [...formData.employees] : []);
+    } else if (open && !formData.employees) {
+      // Initialize with empty array to avoid null/undefined
+      setSelectedEmployees([]);
     }
-  }, [open, formData.id]); // Only update when the dialog opens or formData.id changes
+  }, [open, formData.id]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -63,11 +66,14 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
 
   const handleSelectChange = (name: string, value: string) => {
     if (name === 'employees') {
+      // For the dropdown, just update with a single employee
+      const newEmployees = value ? [value] : [];
+      
       setFormData(prev => ({
         ...prev,
-        employees: value ? [value] : [],
+        employees: newEmployees,
       }));
-      setSelectedEmployees(value ? [value] : []);
+      setSelectedEmployees(newEmployees);
     } else {
       setFormData(prev => ({
         ...prev,
@@ -93,7 +99,8 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
 
     // Also update the formData with the new employee selection
     setFormData(prev => {
-      const updatedEmployees = prev.employees ? [...prev.employees] : [];
+      // Ensure we're working with an array
+      const updatedEmployees = Array.isArray(prev.employees) ? [...prev.employees] : [];
       const index = updatedEmployees.indexOf(employeeName);
       
       if (index !== -1) {
@@ -111,7 +118,20 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Ensure formData.employees is updated with selectedEmployees before submission
+    setFormData(prev => ({
+      ...prev,
+      employees: selectedEmployees
+    }));
+    
+    // Use setTimeout to ensure state is updated before form submission
+    setTimeout(() => {
+      onSubmit({
+        ...formData,
+        employees: selectedEmployees
+      });
+    }, 0);
   };
 
   // Reset selected employees when dialog closes
@@ -135,6 +155,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
         handleEmployeeToggle={handleEmployeeToggle}
         handleSubmit={handleSubmit}
         onClose={() => onOpenChange(false)}
+        currentDate={selectedDay}
       />
     </Dialog>
   );

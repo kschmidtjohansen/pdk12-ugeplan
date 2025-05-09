@@ -77,7 +77,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
     }
   });
 
-  // Sort future dates (ascending)
+  // Sort future dates (ascending) - Ensure Monday is first
   futureDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
   
   // Sort past dates (descending - newest first)
@@ -153,7 +153,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
       {pastDates.length > 0 && (
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">
-            {t("planner.previousTasks")}
+            {t("planner.previousDays")}
           </h2>
           <div className="space-y-6">
             {pastDates.map(dateKey => (

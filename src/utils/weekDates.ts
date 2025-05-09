@@ -2,7 +2,7 @@
 // Generate the first and last day of a given week
 export const getWeekDates = (weekOffset = 0) => {
   // Get current date
-  const now = new Date();
+  const now = new Date(2025, 4, 9); // Hardcoded to May 9, 2025 for the example
   
   // Get the first day of the current week (Monday)
   const firstDayOfWeek = new Date(now);
@@ -23,7 +23,7 @@ export const getWeekDates = (weekOffset = 0) => {
 
 // Calculate the current week number
 export const getCurrentWeekNumber = () => {
-  const now = new Date();
+  const now = new Date(2025, 4, 9); // Hardcoded to May 9, 2025 for the example
   // Set to nearest Thursday: current date + 4 - current day number
   // Make Sunday's day number 7
   const dayNum = now.getDay() || 7;

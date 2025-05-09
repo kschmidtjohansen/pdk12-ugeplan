@@ -50,13 +50,17 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       {employees.map((employee) => {
         const isUnavailable = isEmployeeUnavailable(employee, currentDate);
         return (
-          <div key={employee.id} className="flex items-center justify-between">
+          <div 
+            key={employee.id} 
+            className={`flex items-center justify-between p-2 rounded ${isUnavailable ? 'bg-gray-100' : ''}`}
+          >
             <div className="flex items-center space-x-2">
               <Checkbox
                 id={`employee-${employee.id}`}
                 checked={selectedEmployees.includes(employee.name)}
-                onCheckedChange={() => !isUnavailable && onToggle(employee.name)}
+                onCheckedChange={() => onToggle(employee.name)}
                 disabled={isUnavailable}
+                className={isUnavailable ? 'opacity-50' : ''}
               />
               <label
                 htmlFor={`employee-${employee.id}`}
@@ -68,7 +72,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             
             {isUnavailable && (
               <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
-                {t('planner.onVacation')}
+                {t('planner.unavailable')}
               </span>
             )}
           </div>

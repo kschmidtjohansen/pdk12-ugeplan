@@ -34,12 +34,44 @@ export const useVacationApprovalActions = (fetchVacations: () => Promise<void>) 
       
       // Notify the employee about their approved vacation request
       if (vacation.employeeId !== user?.id) {
-        addNotification({
-          type: 'vacation',
-          title: t("vacation.requestApproved"),
-          message: t("vacation.yourRequestApproved"),
-          link: '/vacation'
-        });
+        // Get employee data from supabase to send notification
+        const { data: employeeData } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .eq('id', vacation.employeeId)
+          .single();
+        
+        if (employeeData) {
+          // Create notification in the system
+          const { error: notificationError } = await supabase
+            .from('notifications')
+            .insert([
+              {
+                user_id: vacation.employeeId,
+                type: 'vacation',
+                title: t("vacation.requestApproved"),
+                message: t("vacation.yourRequestApproved"),
+                read: false,
+                link: '/vacation'
+              }
+            ]);
+          
+          if (notificationError) {
+            console.error('Error creating notification:', notificationError);
+          }
+          
+          // Add notification to local context
+          addNotification({
+            id: new Date().getTime().toString(),
+            user_id: vacation.employeeId,
+            type: 'vacation',
+            title: t("vacation.requestApproved"),
+            message: t("vacation.yourRequestApproved"),
+            read: false,
+            date: new Date(),
+            link: '/vacation'
+          });
+        }
       }
       
       return true;
@@ -76,12 +108,44 @@ export const useVacationApprovalActions = (fetchVacations: () => Promise<void>) 
       
       // Notify the employee about their rejected vacation request
       if (vacation.employeeId !== user?.id) {
-        addNotification({
-          type: 'vacation',
-          title: t("vacation.requestRejected"),
-          message: t("vacation.yourRequestRejected", { reason: noteText }),
-          link: '/vacation'
-        });
+        // Get employee data from supabase to send notification
+        const { data: employeeData } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .eq('id', vacation.employeeId)
+          .single();
+        
+        if (employeeData) {
+          // Create notification in the system
+          const { error: notificationError } = await supabase
+            .from('notifications')
+            .insert([
+              {
+                user_id: vacation.employeeId,
+                type: 'vacation',
+                title: t("vacation.requestRejected"),
+                message: t("vacation.yourRequestRejected", { reason: noteText || t('common.noReasonProvided') }),
+                read: false,
+                link: '/vacation'
+              }
+            ]);
+          
+          if (notificationError) {
+            console.error('Error creating notification:', notificationError);
+          }
+          
+          // Add notification to local context
+          addNotification({
+            id: new Date().getTime().toString(),
+            user_id: vacation.employeeId,
+            type: 'vacation',
+            title: t("vacation.requestRejected"),
+            message: t("vacation.yourRequestRejected", { reason: noteText || t('common.noReasonProvided') }),
+            read: false,
+            date: new Date(),
+            link: '/vacation'
+          });
+        }
       }
       
       return true;

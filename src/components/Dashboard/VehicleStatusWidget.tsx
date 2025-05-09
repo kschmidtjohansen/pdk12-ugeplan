@@ -4,27 +4,41 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from '@/context/TranslationContext';
 import { Car } from '@/types/car';
 import { Car as CarIcon, Check, X } from 'lucide-react';
+import { Assignment } from '@/types/assignment';
+import { format } from 'date-fns';
 
 interface VehicleStatusWidgetProps {
   availableVehicles: number;
   totalVehicles: number;
   cars?: Car[];
+  assignments?: Assignment[];
 }
 
 const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
   availableVehicles,
   totalVehicles,
-  cars = []
+  cars = [],
+  assignments = []
 }) => {
   const {
     t
   } = useTranslation();
 
-  // Only use cars data if it's provided, otherwise use the counts directly
+  // Get today's date in YYYY-MM-DD format
+  const today = format(new Date(), 'yyyy-MM-dd');
+  
+  // Function to check if a car is in use today based on assignments
+  const isCarInUse = (carId: string): boolean => {
+    return assignments.some(assignment => {
+      return assignment.car === carId && assignment.date === today;
+    });
+  };
+
+  // Use cars data if provided, with actual availability status
   const carsToDisplay = cars && cars.length > 0 
     ? cars.map(car => ({
         ...car,
-        inUse: Math.random() > 0.5
+        inUse: isCarInUse(car.id)
       })).slice(0, 3) // Only show top 3 cars for the widget
     : Array.from({ length: Math.min(3, totalVehicles) }, (_, i) => ({
         id: `placeholder-${i}`,

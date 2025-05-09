@@ -24,7 +24,8 @@ const common = {
   create: 'Opret bruger',
   active: 'Aktiv',
   status: 'Status',
-  saving: 'Gemmer...'
+  saving: 'Gemmer...',
+  noReasonProvided: 'Ingen årsag angivet'
 };
 
 export default common;

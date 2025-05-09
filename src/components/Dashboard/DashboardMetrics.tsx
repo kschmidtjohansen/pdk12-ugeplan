@@ -6,6 +6,8 @@ import { useVacations } from '@/hooks/useVacations';
 import { useCars } from '@/hooks/useCars';
 import SystemMetricsOverview from './SystemMetricsOverview';
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
+import VehicleStatusWidget from './VehicleStatusWidget';
+import { format } from 'date-fns';
 
 const DashboardMetrics: React.FC = () => {
   const {
@@ -24,8 +26,18 @@ const DashboardMetrics: React.FC = () => {
   // Calculate metrics for the dashboard
   const upcomingVacations = vacations.filter(v => v.status === 'approved' && new Date(v.startDate) >= new Date()).length;
 
-  // For the demo, assume half of vehicles are available
-  const availableVehicles = Math.floor(cars.length / 2);
+  // Get today's date in YYYY-MM-DD format
+  const today = format(new Date(), 'yyyy-MM-dd');
+
+  // Calculate available vehicles based on assignments for today
+  const carsInUseToday = new Set();
+  assignments.forEach(assignment => {
+    if (assignment.date === today && assignment.car) {
+      carsInUseToday.add(assignment.car);
+    }
+  });
+
+  const availableVehicles = cars.length - carsInUseToday.size;
   const totalVehicles = cars.length;
 
   return (
@@ -38,9 +50,23 @@ const DashboardMetrics: React.FC = () => {
         totalVehicles={totalVehicles} 
       />
       
-      {/* Only show UpcomingVacationsWidget with full width */}
-      <div className="w-full">
-        <UpcomingVacationsWidget vacations={vacations.filter(v => v.status === 'approved')} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Vehicle status widget */}
+        <div>
+          <VehicleStatusWidget 
+            availableVehicles={availableVehicles} 
+            totalVehicles={totalVehicles} 
+            cars={cars}
+            assignments={assignments}
+          />
+        </div>
+        
+        {/* Upcoming vacations widget */}
+        <div>
+          <UpcomingVacationsWidget 
+            vacations={vacations.filter(v => v.status === 'approved')} 
+          />
+        </div>
       </div>
     </div>
   );
