@@ -11,9 +11,8 @@ import {
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { User, UserRole } from '@/context/AuthContext';
+import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
-import { Employee } from '@/types/employee';
 import { supabase } from '@/integrations/supabase/client';
 
 // Import refactored components
@@ -21,14 +20,7 @@ import UserTable from './UserTable';
 import UserFormDialog from './UserFormDialog';
 import UserDeleteDialog from './UserDeleteDialog';
 import PasswordChangeDialog from './PasswordChangeDialog';
-
-// Update the AdminUser interface to extend User and Partial<Employee>
-interface AdminUser extends Partial<User>, Partial<Employee> {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-}
+import { AdminUser } from './UserTableRow';
 
 const UserManagement: React.FC = () => {
   const { toast } = useToast();

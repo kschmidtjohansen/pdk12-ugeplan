@@ -7,16 +7,15 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { User, UserRole } from '@/context/AuthContext';
-import { Employee } from '@/types/employee';
+import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
-import UserTableRow from './UserTableRow';
+import UserTableRow, { AdminUser } from './UserTableRow';
 
 interface UserTableProps {
-  users: (User & Partial<Employee>)[];
-  onEditUser: (user: User & Partial<Employee>) => void;
-  onDeleteUser: (user: User & Partial<Employee>) => void;
-  onResetPassword: (user: User & Partial<Employee>) => void;
+  users: AdminUser[];
+  onEditUser: (user: AdminUser) => void;
+  onDeleteUser: (user: AdminUser) => void;
+  onResetPassword: (user: AdminUser) => void;
   getRoleLabel: (role: UserRole) => string;
   getInitials: (name: string) => string;
 }

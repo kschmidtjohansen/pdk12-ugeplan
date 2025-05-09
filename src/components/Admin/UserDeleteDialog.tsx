@@ -10,15 +10,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useTranslation } from '@/context/TranslationContext';
-
-interface AdminUser {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  phone?: string;
-  jobTitle?: string;
-}
+import { AdminUser } from './UserTableRow';
 
 interface UserDeleteDialogProps {
   currentUser: AdminUser | null;

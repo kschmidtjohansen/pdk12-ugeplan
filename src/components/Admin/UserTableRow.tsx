@@ -3,15 +3,24 @@ import React from 'react';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, UserRole } from '@/context/AuthContext';
-import { Employee } from '@/types/employee';
+import { UserRole } from '@/context/AuthContext';
 import { Edit, Trash2, Key } from 'lucide-react';
 
+// Define AdminUser interface here to make it consistent across components
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  phone?: string;
+  jobTitle?: string;
+}
+
 interface UserTableRowProps {
-  user: User & Partial<Employee>;
-  onEdit: (user: User & Partial<Employee>) => void;
-  onDelete: (user: User & Partial<Employee>) => void;
-  onResetPassword?: (user: User & Partial<Employee>) => void; // Add this
+  user: AdminUser;
+  onEdit: (user: AdminUser) => void;
+  onDelete: (user: AdminUser) => void;
+  onResetPassword?: (user: AdminUser) => void;
   getRoleLabel: (role: UserRole) => string;
   getInitials: (name: string) => string;
 }
