@@ -35,9 +35,6 @@ const UserTable: React.FC<UserTableProps> = ({
       <TableHeader>
         <TableRow>
           <TableHead>{t('admin.userManagement.name')}</TableHead>
-          <TableHead>{t('admin.userManagement.email')}</TableHead>
-          <TableHead>{t('employees.phone')}</TableHead>
-          <TableHead>{t('employees.jobTitle')}</TableHead>
           <TableHead>{t('admin.userManagement.role')}</TableHead>
           <TableHead className="w-[100px]">{t('admin.userManagement.actions')}</TableHead>
         </TableRow>
@@ -47,8 +44,8 @@ const UserTable: React.FC<UserTableProps> = ({
           <UserTableRow
             key={user.id}
             user={user}
-            onEdit={onEditUser}
-            onDelete={onDeleteUser}
+            onEditUser={onEditUser}
+            onDeleteUser={onDeleteUser}
             onResetPassword={onResetPassword}
             getRoleLabel={getRoleLabel}
             getInitials={getInitials}
