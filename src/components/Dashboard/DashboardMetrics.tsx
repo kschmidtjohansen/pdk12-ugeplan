@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { useVacations } from '@/hooks/useVacations';
@@ -14,20 +14,47 @@ const DashboardMetrics: React.FC = () => {
     t
   } = useTranslation();
   const {
-    assignments
+    assignments,
+    isLoading: assignmentsLoading
   } = usePlannerAssignments();
   const {
-    vacations
+    vacations,
+    isLoading: vacationsLoading
   } = useVacations();
   const {
-    cars
+    cars,
+    isLoading: carsLoading
   } = useCars();
 
-  // Calculate metrics for the dashboard
-  const upcomingVacations = vacations.filter(v => v.status === 'approved' && new Date(v.startDate) >= new Date()).length;
+  // Loading state for the entire component
+  const [isLoading, setIsLoading] = useState(true);
 
-  // For the demo, assume half of vehicles are available
-  const availableVehicles = Math.floor(cars.length / 2);
+  // Update loading state when all data is loaded
+  useEffect(() => {
+    if (!assignmentsLoading && !vacationsLoading && !carsLoading) {
+      setIsLoading(false);
+    }
+  }, [assignmentsLoading, vacationsLoading, carsLoading]);
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-64">Loading dashboard data...</div>;
+  }
+
+  // Calculate metrics for the dashboard
+  const upcomingVacations = vacations.filter(v => 
+    v.status === 'approved' && new Date(v.startDate) >= new Date()
+  ).length;
+
+  // For availability, count cars without active assignments today
+  const today = new Date().toISOString().split('T')[0];
+  const assignedCarNames = assignments
+    .filter(a => a.date === today)
+    .map(a => a.car);
+  
+  const availableVehicles = cars.filter(car => 
+    !assignedCarNames.includes(car.name)
+  ).length;
+  
   const totalVehicles = cars.length;
 
   return (

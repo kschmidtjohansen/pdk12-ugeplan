@@ -77,6 +77,20 @@ const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = 
     return null;
   };
 
+  // If no assignments, show empty state
+  if (assignments.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('dashboard.assignmentDistribution', { defaultValue: 'Assignment Distribution' })}</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[300px] flex items-center justify-center">
+          <p className="text-gray-500">{t('dashboard.noData', { defaultValue: 'No assignment data available' })}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Return the JSX for the chart
   return (
     <Card>
