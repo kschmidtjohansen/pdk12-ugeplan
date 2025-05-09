@@ -51,7 +51,14 @@ const dashboard = {
   noUpcomingVacations: 'Ingen kommende ferier planlagt',
   vehicleStatus: 'Køretøjsstatus',
   available: 'Tilgængelig',
-  inUse: 'I brug'
-};
+  inUse: 'I brug',
+  availableEmployees: 'Tilgængelige Medarbejdere',
+  onLeaveEmployees: 'Fraværende Medarbejdere',
+  totalEmployees: 'Samlede medarbejdere: {count}',
+  availableCars: 'Tilgængelige Biler',
+  todayAssignments: 'Dagens Opgaver',
+  scheduledToday: 'Opgaver planlagt til i dag',
+  upcomingAssignments: 'Kommende Opgaver'
+}
 
 export default dashboard;

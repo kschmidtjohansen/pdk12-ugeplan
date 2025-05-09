@@ -2,22 +2,21 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from '@/context/TranslationContext';
+import { Calendar } from 'lucide-react';
 
 const UpcomingAssignmentsWidget = () => {
   const { t } = useTranslation();
   
-  // This is a placeholder component that will be enhanced later
-  // for now, it just renders a basic card to fix the build errors
-  
   return (
     <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium">
           {t('dashboard.upcomingAssignments')}
         </CardTitle>
+        <Calendar className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground text-center py-2">
           {t('common.noData')}
         </p>
       </CardContent>

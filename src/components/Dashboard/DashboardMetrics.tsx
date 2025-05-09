@@ -9,8 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from '@/context/TranslationContext';
 import { format } from 'date-fns';
 import { 
-  Users, Car, Calendar, CheckSquare, 
-  UserCheck, CarFront, CalendarRange, UserX
+  UserCheck, CarFront, CheckSquare, UserX
 } from 'lucide-react';
 
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
@@ -31,9 +30,6 @@ const DashboardMetrics: React.FC = () => {
   
   const today = format(new Date(), 'yyyy-MM-dd');
   const todayAssignments = assignments.filter(a => a.date === today).length;
-  
-  const pendingVacations = vacations.filter(v => v.status === 'pending').length;
-  const approvedVacations = vacations.filter(v => v.status === 'approved').length;
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

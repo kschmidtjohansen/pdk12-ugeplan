@@ -126,7 +126,7 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                         {t("common.delete")}
                       </Button>
                       <Button 
-                        variant="ghost" 
+                        variant="outline" 
                         size="sm" 
                         onClick={() => onToggleLeave(employee)} 
                         className="text-amber-600 hover:text-amber-800 ml-2"
