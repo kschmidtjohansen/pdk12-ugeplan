@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -11,9 +11,10 @@ import {
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { UserRole } from '@/context/AuthContext';
+import { User, UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
+import { supabase } from '@/integrations/supabase/client';
 
 // Import refactored components
 import UserTable from './UserTable';
@@ -21,64 +22,19 @@ import UserFormDialog from './UserFormDialog';
 import UserDeleteDialog from './UserDeleteDialog';
 import PasswordChangeDialog from './PasswordChangeDialog';
 
-// Define custom Admin User type to match our expectations
-interface AdminUser {
+// Update the AdminUser interface to extend User and Partial<Employee>
+interface AdminUser extends Partial<User>, Partial<Employee> {
   id: string;
   name: string;
   email: string;
   role: UserRole;
-  phone?: string;
-  jobTitle?: string;
 }
-
-// Mock users for display with extended properties
-const mockUsers: AdminUser[] = [
-  {
-    id: "1",
-    name: "Administrator",
-    email: "admin@polygongroup.com",
-    role: "administrator",
-    phone: "+45 12 34 56 78",
-    jobTitle: "Driftansvarlig"
-  },
-  {
-    id: "2",
-    name: "Skadeleder",
-    email: "skadeleder@polygongroup.com",
-    role: "skadeleder",
-    phone: "+45 23 45 67 89",
-    jobTitle: "Skadeleder"
-  },
-  {
-    id: "3",
-    name: "Servicemedarbejder",
-    email: "service@polygongroup.com",
-    role: "servicemedarbejder",
-    phone: "+45 34 56 78 90",
-    jobTitle: "Servicemedarbejder"
-  },
-  {
-    id: "4",
-    name: "John Doe",
-    email: "john.doe@polygongroup.com",
-    role: "servicemedarbejder",
-    phone: "+45 45 67 89 01",
-    jobTitle: "Servicemedarbejde"
-  },
-  {
-    id: "5",
-    name: "Jane Smith",
-    email: "jane.smith@polygongroup.com",
-    role: "skadeleder",
-    phone: "+45 56 78 90 12",
-    jobTitle: "Fugttekniker"
-  },
-];
 
 const UserManagement: React.FC = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const [users, setUsers] = useState<AdminUser[]>(mockUsers);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
@@ -90,6 +46,62 @@ const UserManagement: React.FC = () => {
     jobTitle: '',
     role: 'servicemedarbejder' as UserRole,
   });
+
+  // Fetch users from Supabase
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      
+      // Get all users with their roles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          name,
+          email,
+          phone,
+          job_title
+        `);
+      
+      if (profilesError) throw profilesError;
+      
+      // Get user roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+        
+      if (rolesError) throw rolesError;
+      
+      // Combine the data
+      const combinedUsers: AdminUser[] = profilesData.map(profile => {
+        const userRole = rolesData.find(r => r.user_id === profile.id);
+        return {
+          id: profile.id,
+          name: profile.name,
+          email: profile.email,
+          phone: profile.phone || '',
+          jobTitle: profile.job_title || '',
+          role: (userRole?.role || 'servicemedarbejder') as UserRole
+        };
+      });
+      
+      setUsers(combinedUsers);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      toast({
+        title: t('common.error'),
+        description: t('admin.userManagement.fetchError'),
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Load users on component mount
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   // Helper function to get role label
   const getRoleLabel = (role: UserRole): string => {
@@ -140,14 +152,32 @@ const UserManagement: React.FC = () => {
     setPasswordDialogOpen(true);
   };
 
-  const confirmDeleteUser = () => {
+  const confirmDeleteUser = async () => {
     if (currentUser) {
-      setUsers(users.filter(user => user.id !== currentUser.id));
-      toast({
-        title: t('admin.userManagement.userDeleted'),
-        description: t('admin.userManagement.userDeletedMsg', { name: currentUser.name }),
-      });
-      setDeleteDialogOpen(false);
+      try {
+        // Use Supabase edge function to delete user
+        const { error } = await supabase.functions.invoke('admin-user-delete', {
+          body: { userId: currentUser.id }
+        });
+        
+        if (error) throw error;
+        
+        setUsers(users.filter(user => user.id !== currentUser.id));
+        
+        toast({
+          title: t('admin.userManagement.userDeleted'),
+          description: t('admin.userManagement.userDeletedMsg', { name: currentUser.name }),
+        });
+        
+        setDeleteDialogOpen(false);
+      } catch (err) {
+        console.error('Error deleting user:', err);
+        toast({
+          title: t('common.error'),
+          description: t('admin.userManagement.deleteError'),
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -166,37 +196,74 @@ const UserManagement: React.FC = () => {
     }));
   };
 
-  const handleSubmitUser = (e: React.FormEvent) => {
+  const handleSubmitUser = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (currentUser) {
-      // Update existing
-      setUsers(
-        users.map((u) =>
-          u.id === currentUser.id ? { ...u, ...formData } : u
-        )
-      );
+    try {
+      if (currentUser) {
+        // Update existing user
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            name: formData.name,
+            phone: formData.phone,
+            job_title: formData.jobTitle
+          })
+          .eq('id', currentUser.id);
+          
+        if (profileError) throw profileError;
+        
+        // Update role if changed
+        if (currentUser.role !== formData.role) {
+          const { error: roleError } = await supabase.functions.invoke('admin-user-role', {
+            body: { userId: currentUser.id, role: formData.role }
+          });
+          
+          if (roleError) throw roleError;
+        }
+        
+        // Update local state
+        setUsers(
+          users.map((u) =>
+            u.id === currentUser.id ? { ...u, ...formData } : u
+          )
+        );
+        
+        toast({
+          title: t('admin.userManagement.userUpdated'),
+          description: t('admin.userManagement.userUpdateMsg', { name: formData.name }),
+        });
+      } else {
+        // Create new user via UserFormDialog which handles the creation
+        // We just need to update local state after successful creation
+        const newUser: AdminUser = {
+          id: Date.now().toString(), // Temporary ID, will be replaced with actual one
+          ...formData
+        };
+        
+        setUsers([...users, newUser]);
+        
+        toast({
+          title: t('admin.userManagement.userAdded'),
+          description: t('admin.userManagement.userAddedMsg', {
+            name: formData.name, 
+            role: getRoleLabel(formData.role)
+          }),
+        });
+        
+        // Refresh users list to get the actual data from the database
+        fetchUsers();
+      }
+      
+      setUserDialogOpen(false);
+    } catch (err) {
+      console.error('Error saving user:', err);
       toast({
-        title: t('admin.userManagement.userUpdated'),
-        description: t('admin.userManagement.userUpdateMsg', { name: formData.name }),
-      });
-    } else {
-      // Create new
-      const newUser: AdminUser = {
-        ...formData,
-        id: Date.now().toString(),
-      };
-      setUsers([...users, newUser]);
-      toast({
-        title: t('admin.userManagement.userAdded'),
-        description: t('admin.userManagement.userAddedMsg', {
-          name: formData.name, 
-          role: getRoleLabel(formData.role)
-        }),
+        title: t('common.error'),
+        description: currentUser ? t('admin.userManagement.updateError') : t('admin.userManagement.createError'),
+        variant: 'destructive',
       });
     }
-    
-    setUserDialogOpen(false);
   };
 
   return (
@@ -217,14 +284,20 @@ const UserManagement: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <UserTable 
-            users={users}
-            onEditUser={handleEditUser}
-            onDeleteUser={handleDeleteUser}
-            onResetPassword={handleResetPassword}
-            getRoleLabel={getRoleLabel}
-            getInitials={getInitials}
-          />
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-polygon-blue"></div>
+            </div>
+          ) : (
+            <UserTable 
+              users={users}
+              onEditUser={handleEditUser}
+              onDeleteUser={handleDeleteUser}
+              onResetPassword={handleResetPassword}
+              getRoleLabel={getRoleLabel}
+              getInitials={getInitials}
+            />
+          )}
         </CardContent>
       </Card>
 

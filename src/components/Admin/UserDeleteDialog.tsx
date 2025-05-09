@@ -9,12 +9,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { User } from '@/context/AuthContext';
-import { Employee } from '@/types/employee';
 import { useTranslation } from '@/context/TranslationContext';
 
+interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  phone?: string;
+  jobTitle?: string;
+}
+
 interface UserDeleteDialogProps {
-  currentUser: (User & Partial<Employee>) | null;
+  currentUser: AdminUser | null;
   onConfirmDelete: () => void;
 }
 
