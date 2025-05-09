@@ -24,5 +24,6 @@ export const useAssignments = () => {
     createAssignment,
     updateAssignment,
     deleteAssignment,
+    fetchAssignments
   };
 };

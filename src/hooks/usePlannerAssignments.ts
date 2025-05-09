@@ -1,88 +1,84 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAssignments } from './useAssignments';
-import { useAssignmentPublishing } from './useAssignmentPublishing';
 import { useAssignmentFilters } from './useAssignmentFilters';
-import { getWeekDates } from '@/utils/weekDates';
 import { Assignment } from '@/types/assignment';
-import { supabase } from '@/integrations/supabase/client';
+import { useAssignmentPublishing } from './useAssignmentPublishing';
+import { groupAssignmentsByDay } from '@/utils/dateUtils';
 
-// Main hook combining all assignment-related functionality
-export const usePlannerAssignments = (selectedWeek?: number) => {
-  const { 
-    assignments: allAssignments, 
-    loading,
-    error,
-    createAssignment, 
-    updateAssignment, 
-    deleteAssignment 
-  } = useAssignments();
+export const usePlannerAssignments = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   
-  const [filteredAssignments, setFilteredAssignments] = useState<Assignment[]>([]);
-  
-  // Create a wrapper function that matches the expected signature
-  const updateAssignmentsWrapper = (updatedAssignments: Assignment[]) => {
-    // Map through each assignment and update it individually
-    updatedAssignments.forEach(updated => {
-      updateAssignment(updated);
-    });
-  };
-  
-  // Pass the assignments and wrapper function to the publishing hook
-  const { 
-    publishAssignments, 
-    publishAssignment, 
-    publishAssignmentsByDate 
-  } = useAssignmentPublishing(allAssignments, updateAssignmentsWrapper);
-  
-  // Subscribe to real-time updates for published assignments
-  useEffect(() => {
-    const channel = supabase
-      .channel('assignment_publish_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'assignments',
-          filter: 'published=true'
-        },
-        (payload) => {
-          console.log('Assignment published:', payload);
-          // You could add specific handling for published assignments here
-        }
-      )
-      .subscribe();
-      
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-  
-  // Filter assignments by selected week whenever assignments or selectedWeek changes
-  useEffect(() => {
-    if (selectedWeek !== undefined) {
-      const weekDates = getWeekDates(selectedWeek);
-      const filtered = allAssignments.filter(assignment => {
-        const assignmentDate = new Date(assignment.date);
-        return assignmentDate >= weekDates.start && assignmentDate <= weekDates.end;
-      });
-      setFilteredAssignments(filtered);
-    } else {
-      setFilteredAssignments(allAssignments);
-    }
-  }, [allAssignments, selectedWeek]);
-
-  return {
-    assignments: filteredAssignments,
+  // Get assignments data and actions
+  const {
+    assignments,
     loading,
     error,
     createAssignment,
     updateAssignment,
-    deleteAssignment,
-    publishAssignments,
-    publishAssignment,
-    publishAssignmentsByDate,
-    getWeekDates
+    deleteAssignment
+  } = useAssignments();
+  
+  // Get filter functionality
+  const { 
+    filters,
+    filteredAssignments,
+    handleFilterChange
+  } = useAssignmentFilters(assignments);
+  
+  // Get publishing functionality
+  const { publishAssignment } = useAssignmentPublishing(updateAssignment);
+  
+  // Open dialog for creating a new assignment
+  const handleCreate = () => {
+    setCurrentAssignment(null);
+    setIsDialogOpen(true);
+  };
+  
+  // Open dialog for editing an existing assignment
+  const handleEdit = (assignment: Assignment) => {
+    setCurrentAssignment(assignment);
+    setIsDialogOpen(true);
+  };
+  
+  // Open dialog for confirming assignment deletion
+  const handleDeleteConfirm = (assignment: Assignment) => {
+    setCurrentAssignment(assignment);
+    setIsDeleteDialogOpen(true);
+  };
+  
+  // Execute the assignment delete action
+  const handleDelete = async () => {
+    if (currentAssignment) {
+      await deleteAssignment(currentAssignment.id);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+  
+  // Group assignments by day for display
+  const groupedAssignments = groupAssignmentsByDay(filteredAssignments);
+  
+  return {
+    assignments: filteredAssignments,
+    groupedAssignments,
+    loading,
+    error,
+    filters,
+    isDialogOpen,
+    setIsDialogOpen,
+    currentAssignment,
+    setCurrentAssignment,
+    isDeleteDialogOpen,
+    setIsDeleteDialogOpen,
+    handleCreate,
+    handleEdit,
+    handleDelete,
+    handleDeleteConfirm,
+    handleFilterChange,
+    createAssignment,
+    updateAssignment,
+    publishAssignment
   };
 };

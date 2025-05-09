@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { format, addDays } from 'date-fns';
 import { da } from 'date-fns/locale';
@@ -11,6 +10,7 @@ import { Assignment, getCurrentWeek } from '../types/assignment';
 import { getUnpublishedAssignment } from '../hooks/useAssignmentPublishing';
 import { usePlannerAssignments } from '../hooks/usePlannerAssignments';
 import { getWeekDates } from '@/utils/weekDates';
+import { publishAssignmentHandler } from '@/utils/assignmentPublishing';
 
 const PlannerPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();

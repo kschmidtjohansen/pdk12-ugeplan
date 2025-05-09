@@ -20,8 +20,8 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
     try {
       // Get car ID if provided
       let carId = null;
-      if (assignment.carName) {
-        carId = await getCarsIdByName(assignment.carName);
+      if (assignment.car?.name) {
+        carId = await getCarsIdByName(assignment.car.name);
       }
       
       // Insert into assignments table
@@ -32,11 +32,11 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
             title: assignment.title,
             description: assignment.description,
             location: assignment.location,
-            assignment_date: assignment.date?.toISOString().split('T')[0],
+            assignment_date: assignment.date instanceof Date ? assignment.date.toISOString().split('T')[0] : undefined,
             from_time: assignment.fromTime,
             to_time: assignment.toTime,
             car_id: carId,
-            type: assignment.type,
+            type: assignment.type || 'other',
             published: assignment.published || false
           }
         ])
@@ -114,8 +114,8 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
     try {
       // Get car ID if provided
       let carId = null;
-      if (assignment.carName) {
-        carId = await getCarsIdByName(assignment.carName);
+      if (assignment.car?.name) {
+        carId = await getCarsIdByName(assignment.car.name);
       }
       
       // Update the assignment
@@ -125,11 +125,11 @@ export const useAssignmentActions = (fetchAssignments: () => Promise<void>) => {
           title: assignment.title,
           description: assignment.description,
           location: assignment.location,
-          assignment_date: assignment.date?.toISOString().split('T')[0],
+          assignment_date: assignment.date instanceof Date ? assignment.date.toISOString().split('T')[0] : undefined,
           from_time: assignment.fromTime,
           to_time: assignment.toTime,
           car_id: carId,
-          type: assignment.type,
+          type: assignment.type || 'other',
           published: assignment.published || false
         })
         .eq('id', assignment.id);
