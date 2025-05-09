@@ -37,8 +37,10 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Public routes without layout */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/password-reset" element={<PasswordResetPage />} />
+        <Route path="/password-reset/:token" element={<PasswordResetPage />} />
         
         {/* Protected routes wrapped with MainLayout */}
         <Route path="/" element={

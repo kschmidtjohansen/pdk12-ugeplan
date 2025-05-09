@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
@@ -35,6 +36,11 @@ const DaySection: React.FC<DaySectionProps> = ({
   const formattedDate = formatDateWithCapital(dateKey, currentLanguage);
   const hasUnpublishedAssignments = dayAssignments.some(a => !a.published);
 
+  // Determine task text based on language and count
+  const taskText = currentLanguage === 'da' 
+    ? (dayAssignments.length === 1 ? 'opgave' : 'opgaver')
+    : (dayAssignments.length === 1 ? 'task' : 'tasks');
+
   return (
     <div className="w-full space-y-3">
       <div className="flex items-center justify-between">
@@ -46,7 +52,7 @@ const DaySection: React.FC<DaySectionProps> = ({
             {formattedDate}
           </h3>
           <div className="ml-2 text-sm text-gray-500">
-            ({dayAssignments.length} {dayAssignments.length === 1 ? 'opgave' : 'opgaver'})
+            ({dayAssignments.length} {taskText})
           </div>
         </div>
         

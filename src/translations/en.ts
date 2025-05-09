@@ -25,7 +25,9 @@ const translations = {
     create: 'Create user',
     active: 'Active',
     status: 'Status',
-    saving: 'Saving...'
+    saving: 'Saving...',
+    noReasonProvided: 'No reason provided',
+    noData: 'No data available'
   },
   login: {
     title: 'Login',
@@ -45,12 +47,18 @@ const translations = {
       description: 'Enter your email address and we\'ll send you a link to reset your password.',
       button: 'Send Reset Link',
       buttonLoading: 'Sending...',
+      emailPlaceholder: 'Enter email for password reset',
+      sendResetEmail: 'Send reset password',
       emailSentTitle: 'Email Sent',
       emailSentDescription: 'Check your inbox for the password reset link.',
       emailError: 'Could not send reset email. Please try again.',
       successMessage: 'Password reset link has been sent!',
       checkEmail: 'Check your email for a link to reset your password. If it doesn\'t appear within a few minutes, check your spam folder.',
-      backToLogin: 'Back to login'
+      backToLogin: 'Back to login',
+      enterNewPassword: 'Enter a new password for your account.',
+      resetButton: 'Reset Password',
+      passwordUpdated: 'Your password has been updated!',
+      resetError: 'There was a problem resetting your password. Please try again.'
     }
   },
   navigation: {
@@ -83,6 +91,7 @@ const translations = {
       }
     },
     weekAssignments: 'Your assignments - Week {week}',
+    myAssignments: 'My Assignments - Week {week}',
     viewAll: 'View All',
     noAssignments: 'No assignments for this week',
     assignmentTime: '{fromTime} - {toTime}',
@@ -90,10 +99,10 @@ const translations = {
     assignments: {
       waterDamage: 'Water damage inspection',
       fireDamage: 'Fire damage restoration',
-      mold: 'Mold assessment'
+      mold: 'Mold assessment',
+      other: 'Other tasks'
     },
     location: 'Location',
-    // Add missing dashboard keys
     availableEmployees: 'Available Employees',
     onLeaveEmployees: 'On Leave Employees',
     totalEmployees: 'Total employees: {count}',
@@ -105,6 +114,7 @@ const translations = {
     vehicleStatus: 'Vehicle Status',
     available: 'Available',
     inUse: 'In use',
+    systemMetrics: 'System Metrics',
     metrics: {
       activeAssignments: 'Active Assignments',
       activeAssignmentsDesc: 'Ongoing published assignments',
@@ -155,14 +165,24 @@ const translations = {
     notPublished: 'Not Published',
     publishAssignment: 'Publish Assignment',
     publishTodayTasks: 'Publish Today\'s Tasks',
+    publishDayTasks: 'Publish Day',
     assignmentPublished: 'Assignment published',
     assignmentsPublished: 'Assignments published',
     assignmentPublishedMsg: 'The assignment is now visible to service employees.',
-    assignmentsPublishedMsg: 'The assignments are now visible to service employees.'
+    assignmentsPublishedMsg: 'The assignments are now visible to service employees.',
+    weekDateRange: '{start} to {end}',
+    nothingPlannedToday: 'Nothing planned today',
+    previousDays: 'Previous days',
+    previousTasks: 'Previous tasks',
+    fetchError: 'An error occurred while fetching assignments',
+    unavailable: 'Unavailable'
   },
   vacation: {
     pageDescription: 'Apply for and manage vacation time',
     applyForVacation: 'Apply for Vacation',
+    requestForEmployee: 'Request for Employee',
+    selectEmployee: 'Select Employee',
+    selectEmployeeAndDates: 'Select an employee, dates, and reason for the time off.',
     tabs: {
       all: 'All',
       pending: 'Pending',
@@ -199,10 +219,21 @@ const translations = {
     selectBothDates: 'Please select both start and end dates',
     requestSubmitted: 'Vacation request submitted',
     requestSent: 'Your request has been sent for approval.',
+    adminRequestSubmitted: 'Vacation request submitted for employee',
+    adminRequestSent: '{name}\'s request has been sent for approval.',
+    adminRequestedForYou: '{adminName} has requested time off for you from {from} to {to}',
+    requestSubmittedForYou: 'Vacation request submitted for you',
     requestRejected: 'Vacation request rejected',
     requestApproved: 'Vacation request approved',
     requestRejectedMsg: '{name}\'s request has been rejected.',
-    requestApprovedMsg: '{name}\'s request has been approved.'
+    requestApprovedMsg: '{name}\'s request has been approved.',
+    yourRequestApproved: 'Your vacation request has been approved.',
+    yourRequestRejected: 'Your vacation request has been rejected. Reason: {reason}',
+    error: 'Error',
+    employeeNotFound: 'Employee not found',
+    currentlyOnVacation: 'Currently on Vacation',
+    daysRemaining: 'Days Remaining',
+    days: 'days'
   },
   admin: {
     title: 'Admin Dashboard',
@@ -322,13 +353,23 @@ const translations = {
     fullName: 'Full Name',
     employeeUpdated: 'Employee updated',
     employeeAdded: 'Employee added',
+    employeeDeleted: 'Employee deleted',
     employeeUpdatedMsg: '{name}\'s information has been updated.',
     employeeAddedMsg: '{name} has been added to the department.',
-    // Add missing employee keys
+    employeeDeletedMsg: '{name}\'s account has been removed.',
+    deleteConfirm: 'Are you sure?',
+    deleteWarning: 'You are about to delete {name}\'s account. This action cannot be undone.',
     onLeave: 'On Leave',
     markOnLeave: 'Mark on leave',
     markAvailable: 'Mark available',
-    viewNotes: 'View notes'
+    employeeOnLeave: 'Employee marked on leave',
+    employeeAvailable: 'Employee marked as available',
+    employeeOnLeaveMsg: '{name} has been marked as on leave.',
+    employeeAvailableMsg: '{name} has been marked as available.',
+    notes: 'Notes',
+    notesPlaceholder: 'Add notes about this employee...',
+    viewNotes: 'View notes',
+    viewNotesOnly: 'You can view but not edit notes'
   }
 };
 
