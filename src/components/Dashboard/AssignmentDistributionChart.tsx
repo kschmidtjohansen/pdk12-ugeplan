@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
@@ -13,6 +14,7 @@ type ChartDataType = {
 interface AssignmentDistributionChartProps {
   assignments: Assignment[];
 }
+
 const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = ({
   assignments
 }) => {
@@ -72,6 +74,23 @@ const AssignmentDistributionChart: React.FC<AssignmentDistributionChartProps> = 
     }
     return null;
   };
-  return;
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t('dashboard.charts.assignmentDistribution')}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer className="aspect-[4/3]" config={chartConfig}>
+          <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+            <XAxis dataKey="name" />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar dataKey="value" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  );
 };
+
 export default AssignmentDistributionChart;
