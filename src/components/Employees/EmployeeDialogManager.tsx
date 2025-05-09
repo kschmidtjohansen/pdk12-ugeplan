@@ -5,7 +5,7 @@ import { AlertDialog } from '@/components/ui/alert-dialog';
 import EmployeeFormDialog from './EmployeeFormDialog';
 import EmployeeDeleteDialog from './EmployeeDeleteDialog';
 import { Employee } from '@/types/employee';
-import { EmployeeFormData } from '@/hooks/useEmployees';
+import { EmployeeFormData } from '@/hooks/employee/useEmployeeFormState';
 
 interface EmployeeDialogManagerProps {
   dialogOpen: boolean;
