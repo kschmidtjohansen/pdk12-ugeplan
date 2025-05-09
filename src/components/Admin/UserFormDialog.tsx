@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   DialogContent,
@@ -17,8 +18,17 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 
+interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  phone?: string;
+  jobTitle?: string;
+}
+
 interface UserFormDialogProps {
-  currentUser: (User & Partial<Employee>) | null;
+  currentUser: AdminUser | null;
   formData: {
     name: string;
     email: string;
@@ -77,7 +87,11 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         }
         
         // Register the new user
-        await register(formData.email, password, formData.name);
+        const { error, user } = await register(formData.email, password, formData.name);
+        
+        if (error || !user) {
+          throw new Error(error || "Failed to create user");
+        }
         
         // Wait a brief moment for the user to be created and the trigger to run
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -93,7 +107,8 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         
         // Update the user's role if it's not the default
         if (formData.role !== 'servicemedarbejder') {
-          await updateUserRole(newUser.id, formData.role);
+          const { error: roleError } = await updateUserRole(newUser.id, formData.role);
+          if (roleError) throw new Error(roleError);
         }
         
         // Update profile with additional details
@@ -121,7 +136,10 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         if (profileError) throw profileError;
         
         // Update role if changed
-        await updateUserRole(currentUser.id, formData.role);
+        if (currentUser.role !== formData.role) {
+          const { error: roleError } = await updateUserRole(currentUser.id, formData.role);
+          if (roleError) throw new Error(roleError);
+        }
       }
       
       // Call original submit handler for UI updates

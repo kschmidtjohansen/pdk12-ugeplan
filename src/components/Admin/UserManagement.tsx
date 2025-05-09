@@ -11,7 +11,7 @@ import {
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { User, UserRole } from '@/context/AuthContext';
+import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 
@@ -21,8 +21,18 @@ import UserFormDialog from './UserFormDialog';
 import UserDeleteDialog from './UserDeleteDialog';
 import PasswordChangeDialog from './PasswordChangeDialog';
 
+// Define custom Admin User type to match our expectations
+interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  phone?: string;
+  jobTitle?: string;
+}
+
 // Mock users for display with extended properties
-const mockUsers: (User & Partial<Employee>)[] = [
+const mockUsers: AdminUser[] = [
   {
     id: "1",
     name: "Administrator",
@@ -68,11 +78,11 @@ const mockUsers: (User & Partial<Employee>)[] = [
 const UserManagement: React.FC = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const [users, setUsers] = useState<(User & Partial<Employee>)[]>(mockUsers);
+  const [users, setUsers] = useState<AdminUser[]>(mockUsers);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<(User & Partial<Employee>) | null>(null);
+  const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -108,7 +118,7 @@ const UserManagement: React.FC = () => {
     setUserDialogOpen(true);
   };
 
-  const handleEditUser = (user: User & Partial<Employee>) => {
+  const handleEditUser = (user: AdminUser) => {
     setCurrentUser(user);
     setFormData({
       name: user.name,
@@ -120,12 +130,12 @@ const UserManagement: React.FC = () => {
     setUserDialogOpen(true);
   };
 
-  const handleDeleteUser = (user: User & Partial<Employee>) => {
+  const handleDeleteUser = (user: AdminUser) => {
     setCurrentUser(user);
     setDeleteDialogOpen(true);
   };
 
-  const handleResetPassword = (user: User & Partial<Employee>) => {
+  const handleResetPassword = (user: AdminUser) => {
     setCurrentUser(user);
     setPasswordDialogOpen(true);
   };
@@ -172,7 +182,7 @@ const UserManagement: React.FC = () => {
       });
     } else {
       // Create new
-      const newUser = {
+      const newUser: AdminUser = {
         ...formData,
         id: Date.now().toString(),
       };

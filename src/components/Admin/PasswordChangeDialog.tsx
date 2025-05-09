@@ -16,8 +16,17 @@ import { useAuth } from '@/context/AuthContext';
 import { User } from '@/context/AuthContext';
 import { Employee } from '@/types/employee';
 
+interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  phone?: string;
+  jobTitle?: string;
+}
+
 interface PasswordChangeDialogProps {
-  currentUser: (User & Partial<Employee>) | null;
+  currentUser: AdminUser | null;
   onClose: () => void;
 }
 
@@ -61,7 +70,11 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
     setIsSubmitting(true);
 
     try {
-      await adminResetPassword(currentUser.id, newPassword);
+      const { error } = await adminResetPassword(currentUser.id, newPassword);
+      
+      if (error) {
+        throw new Error(error);
+      }
       
       toast({
         title: t('admin.passwords.resetSuccess'),

@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { DateRange } from 'react-day-picker';
 import { useEmployees } from './useEmployees';
 import { supabase } from '@/integrations/supabase/client';
+import { safeProperty } from '@/utils/dbHelpers';
 
 export const useVacations = () => {
   const { user } = useAuth();
@@ -59,7 +60,7 @@ export const useVacations = () => {
         const formattedVacations: Vacation[] = data.map(item => ({
           id: item.id,
           employeeId: item.user_id,
-          employeeName: item.profiles?.name || 'Unknown',
+          employeeName: safeProperty(item.profiles, 'name', 'Unknown'),
           startDate: new Date(item.start_date),
           endDate: new Date(item.end_date),
           reason: item.reason || '',

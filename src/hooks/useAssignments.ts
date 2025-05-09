@@ -4,6 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { supabase } from '@/integrations/supabase/client';
+import { safeProperty } from '@/utils/dbHelpers';
 
 export const useAssignments = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -58,14 +59,17 @@ export const useAssignments = () => {
               fromTime: assignment.from_time, // Map from from_time to fromTime
               toTime: assignment.to_time, // Map from to_time to toTime
               location: assignment.location,
-              car: assignment.cars?.name || '',
+              car: safeProperty(assignment.cars, 'name', ''),
               employees: [],
               published: assignment.published || false
             };
           }
           
-          // Extract employee names from the join result
-          const employeeNames = employeesData?.map(emp => emp.profiles?.name || '') || [];
+          // Extract employee names from the join result and handle possible null values
+          const employeeNames = employeesData?.map(emp => {
+            // Handle the case where `profiles` might be an error object
+            return safeProperty(emp.profiles, 'name', '');
+          }) || [];
           
           // Return formatted assignment with employee names
           return {
@@ -76,7 +80,7 @@ export const useAssignments = () => {
             fromTime: assignment.from_time, // Map from from_time to fromTime
             toTime: assignment.to_time, // Map from to_time to toTime
             location: assignment.location,
-            car: assignment.cars?.name || '',
+            car: safeProperty(assignment.cars, 'name', ''),
             employees: employeeNames.filter(Boolean), // Filter out empty names
             published: assignment.published || false
           };

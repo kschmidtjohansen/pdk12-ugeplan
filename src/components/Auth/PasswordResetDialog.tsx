@@ -26,7 +26,7 @@ const PasswordResetDialog: React.FC<PasswordResetDialogProps> = ({
 }) => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { resetPassword } = useAuth();
+  const { requestPasswordReset } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
 
@@ -35,7 +35,11 @@ const PasswordResetDialog: React.FC<PasswordResetDialogProps> = ({
     setIsSubmitting(true);
 
     try {
-      await resetPassword(email);
+      const { error } = await requestPasswordReset(email);
+      if (error) {
+        throw new Error(error);
+      }
+      
       toast({
         title: t('login.passwordReset.resetEmailSent'),
         description: t('login.passwordReset.resetEmailDescription'),

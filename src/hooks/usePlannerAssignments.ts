@@ -37,10 +37,10 @@ export const usePlannerAssignments = (selectedWeek?: number) => {
   let filteredAssignments = allAssignments;
   
   if (selectedWeek !== undefined) {
-    const { start, end } = getWeekDates(selectedWeek);
+    const weekDates = getWeekDates(selectedWeek);
     filteredAssignments = allAssignments.filter(assignment => {
       const assignmentDate = new Date(assignment.date);
-      return assignmentDate >= start && assignmentDate <= end;
+      return assignmentDate >= weekDates.start && assignmentDate <= weekDates.end;
     });
   }
 
@@ -51,6 +51,7 @@ export const usePlannerAssignments = (selectedWeek?: number) => {
     deleteAssignment,
     publishAssignments,
     publishAssignment,
-    publishAssignmentsByDate
+    publishAssignmentsByDate,
+    getWeekDates // Export this function here so components that use this hook can access it
   };
 };

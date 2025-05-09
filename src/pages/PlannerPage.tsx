@@ -10,6 +10,7 @@ import { useTranslation } from '../context/TranslationContext';
 import { Assignment, getCurrentWeek } from '../types/assignment';
 import { getUnpublishedAssignment } from '../hooks/useAssignmentPublishing';
 import { usePlannerAssignments } from '../hooks/usePlannerAssignments';
+import { getWeekDates } from '@/utils/weekDates';
 
 const PlannerPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
@@ -20,8 +21,7 @@ const PlannerPage: React.FC = () => {
     updateAssignment,
     deleteAssignment,
     publishAssignment,
-    publishAssignmentsByDate,
-    getWeekDates 
+    publishAssignmentsByDate
   } = usePlannerAssignments(currentWeek); // Pass currentWeek to the hook
 
   // Using state for managing dialog and form data

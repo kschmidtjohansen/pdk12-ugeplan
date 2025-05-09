@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -26,6 +27,10 @@ interface AuthContextType {
   logout: () => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>;
   requestPasswordReset: (email: string) => Promise<{ error: string | null }>;
+  resetPassword: (email: string) => Promise<{ error: string | null }>;
+  adminResetPassword: (userId: string, newPassword: string) => Promise<{ error: string | null }>;
+  register: (email: string, password: string, name: string) => Promise<{ error: string | null, user: User | null }>;
+  updateUserRole: (userId: string, role: UserRole) => Promise<{ error: string | null }>;
   loading: boolean;
   // Add permissions getters
   canViewFuelCardCode: boolean;
@@ -47,6 +52,10 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
   signUp: async () => ({ error: null }),
   requestPasswordReset: async () => ({ error: null }),
+  resetPassword: async () => ({ error: null }),
+  adminResetPassword: async () => ({ error: null }),
+  register: async () => ({ error: null, user: null }),
+  updateUserRole: async () => ({ error: null }),
   loading: true,
   canViewFuelCardCode: false,
   canPublishTasks: false,
@@ -225,6 +234,71 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // New functions for user management
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+      return { error: error ? error.message : null };
+    } catch (error) {
+      console.error('Password reset error:', error);
+      return { error: 'An unexpected error occurred during password reset.' };
+    }
+  };
+
+  const adminResetPassword = async (userId: string, newPassword: string) => {
+    try {
+      // Call edge function to reset user password
+      const { error: fnError } = await supabase.functions.invoke('admin-reset-password', {
+        body: { userId, newPassword },
+      });
+      
+      if (fnError) throw fnError;
+      
+      return { error: null };
+    } catch (error) {
+      console.error('Admin password reset error:', error);
+      return { error: 'An unexpected error occurred during password reset.' };
+    }
+  };
+
+  const register = async (email: string, password: string, name: string) => {
+    try {
+      // Create the user account
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name }
+        }
+      });
+      
+      if (error) throw error;
+      
+      return { error: null, user: data.user };
+    } catch (error) {
+      console.error('User registration error:', error);
+      return { error: 'An unexpected error occurred during registration.', user: null };
+    }
+  };
+
+  const updateUserRole = async (userId: string, role: UserRole) => {
+    try {
+      // Call the admin-user-role edge function to update the user's role
+      const { error: fnError } = await supabase.functions.invoke('admin-user-role', {
+        body: { userId, role },
+      });
+      
+      if (fnError) throw fnError;
+      
+      return { error: null };
+    } catch (error) {
+      console.error('Update user role error:', error);
+      return { error: 'An unexpected error occurred while updating the user role.' };
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -236,6 +310,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logout,
       signUp,
       requestPasswordReset,
+      resetPassword,
+      adminResetPassword,
+      register,
+      updateUserRole,
       loading,
       canViewFuelCardCode,
       canPublishTasks,

@@ -5,6 +5,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 import { UserRole } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { safeProperty } from '@/utils/dbHelpers';
 
 export interface EmployeeFormData {
   name: string;
@@ -63,7 +64,7 @@ export const useEmployees = () => {
           email: item.email,
           phone: item.phone || '',
           jobTitle: item.job_title || '',
-          role: item.user_roles.role as UserRole,
+          role: safeProperty(item.user_roles, 'role', 'servicemedarbejder') as UserRole,
           onLeave: item.on_leave || false,
           notes: item.notes || ''
         }));
