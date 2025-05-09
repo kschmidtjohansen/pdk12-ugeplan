@@ -58,22 +58,30 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
     }
   });
 
-  // Separate dates into current/future and past
-  const currentAndFutureDates: string[] = [];
+  // Get today's date string in YYYY-MM-DD format
+  const todayString = new Date().toISOString().split('T')[0];
+
+  // Separate dates into today, future, and past
+  const todayDate: string[] = [];
+  const futureDates: string[] = [];
   const pastDates: string[] = [];
   
   Object.keys(groupedAssignments).forEach(date => {
     const status = getDateStatus(date);
-    if (status === 'today' || status === 'future') {
-      currentAndFutureDates.push(date);
+    if (status === 'today') {
+      todayDate.push(date);
+    } else if (status === 'future') {
+      futureDates.push(date);
     } else if (status === 'past') {
       pastDates.push(date);
     }
   });
 
-  // Sort by date (ascending)
-  currentAndFutureDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-  pastDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  // Sort future dates (ascending)
+  futureDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  
+  // Sort past dates (descending - newest first)
+  pastDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
   // Effect to update time at midnight to refresh sorting
   useEffect(() => {
@@ -107,8 +115,25 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
 
   return (
     <div className="w-full space-y-6">
-      {/* Current and future dates section */}
-      {currentAndFutureDates.map(dateKey => (
+      {/* Today's date section (always at the top) */}
+      {todayDate.map(dateKey => (
+        <DaySection 
+          key={dateKey}
+          dateKey={dateKey}
+          dayAssignments={groupedAssignments[dateKey]}
+          isExpanded={expandedDays[dateKey] !== false} // Default to expanded
+          onToggleExpansion={toggleDayExpansion}
+          onPublishDay={onPublishDay}
+          onEditAssignment={onEditAssignment}
+          onDeleteAssignment={onDeleteAssignment}
+          onPublishAssignment={onPublishAssignment}
+          canEdit={canEdit}
+          canPublishTasks={canPublishTasks}
+        />
+      ))}
+      
+      {/* Future dates section */}
+      {futureDates.map(dateKey => (
         <DaySection 
           key={dateKey}
           dateKey={dateKey}

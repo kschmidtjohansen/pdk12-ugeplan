@@ -11,19 +11,34 @@ export const groupAssignmentsByDay = (assignments: any[]) => {
   }, {});
 };
 
-// Format date with capital first letter
-export const formatDateWithCapital = (dateString: string): string => {
+// Format date with capital first letter and proper localization
+export const formatDateWithCapital = (dateString: string, locale: string = 'en'): string => {
   if (!dateString) return 'Unknown';
   
   const date = new Date(dateString);
-  // Format like: Monday, January 1
-  const formattedDate = date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric'
-  });
+  // Format based on locale
+  let options;
   
-  return formattedDate;
+  if (locale === 'da') {
+    options = {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
+    };
+    
+    // Format like: Mandag d. 9. maj
+    const formattedDate = date.toLocaleDateString('da-DK', options as Intl.DateTimeFormatOptions);
+    return formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+  } else {
+    // Format like: Monday, January 1
+    options = {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric'
+    };
+    
+    return date.toLocaleDateString('en-US', options as Intl.DateTimeFormatOptions);
+  }
 };
 
 // Get all days in a week (for an inclusive date range)

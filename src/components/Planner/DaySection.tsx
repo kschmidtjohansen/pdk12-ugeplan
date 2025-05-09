@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
-import { formatDateWithCapital } from '@/utils/dateUtils';
+import { formatDateWithCapital, getDateStatus } from '@/utils/dateUtils';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
 import AssignmentCard from './AssignmentCard';
@@ -32,7 +31,8 @@ const DaySection: React.FC<DaySectionProps> = ({
   canEdit,
   canPublishTasks
 }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+  const formattedDate = formatDateWithCapital(dateKey, currentLanguage);
   const hasUnpublishedAssignments = dayAssignments.some(a => !a.published);
 
   return (
@@ -43,7 +43,7 @@ const DaySection: React.FC<DaySectionProps> = ({
           onClick={() => onToggleExpansion(dateKey)}
         >
           <h3 className="text-lg font-medium">
-            {formatDateWithCapital(dateKey)}
+            {formattedDate}
           </h3>
           <div className="ml-2 text-sm text-gray-500">
             ({dayAssignments.length} {dayAssignments.length === 1 ? 'opgave' : 'opgaver'})

@@ -5,9 +5,7 @@ import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { useVacations } from '@/hooks/useVacations';
 import { useCars } from '@/hooks/useCars';
 import SystemMetricsOverview from './SystemMetricsOverview';
-import AssignmentDistributionChart from './AssignmentDistributionChart';
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
-import VehicleStatusWidget from './VehicleStatusWidget';
 
 const DashboardMetrics: React.FC = () => {
   const {
@@ -40,13 +38,9 @@ const DashboardMetrics: React.FC = () => {
         totalVehicles={totalVehicles} 
       />
       
-      {/* Charts and widgets */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AssignmentDistributionChart assignments={assignments} />
-        <div className="space-y-6">
-          <UpcomingVacationsWidget vacations={vacations.filter(v => v.status === 'approved')} />
-          <VehicleStatusWidget availableVehicles={availableVehicles} totalVehicles={totalVehicles} />
-        </div>
+      {/* Only show UpcomingVacationsWidget with full width */}
+      <div className="w-full">
+        <UpcomingVacationsWidget vacations={vacations.filter(v => v.status === 'approved')} />
       </div>
     </div>
   );

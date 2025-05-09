@@ -43,9 +43,15 @@ const PlannerPage: React.FC = () => {
 
   // Get week date range
   const { start, end } = getWeekDates(currentWeek);
-  const dateFormat = currentLanguage === 'da' ? 'd. MMMM' : 'MMMM d';
   const locale = currentLanguage === 'da' ? da : undefined;
-  const dateRangeText = `${format(start, dateFormat, { locale })} - ${format(end, dateFormat, { locale })}`;
+  
+  // Format the date range based on the current language
+  let dateRangeText = '';
+  if (currentLanguage === 'da') {
+    dateRangeText = `${format(start, 'd. MMMM', { locale })} - ${format(end, 'd. MMMM', { locale })}`;
+  } else {
+    dateRangeText = `${format(start, 'MMMM d', { locale })} - ${format(end, 'MMMM d', { locale })}`;
+  }
 
   // Handle assignment creation/editing
   const handleOpenCreateDialog = (date: string) => {

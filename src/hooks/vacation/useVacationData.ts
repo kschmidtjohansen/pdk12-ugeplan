@@ -19,11 +19,11 @@ export const useVacationData = () => {
       setLoading(true);
       setError(null);
       
-      // Get all vacations with employee names
+      // Get all vacations with employee names through an explicit join query
       const { data, error } = await supabase
         .from('vacations')
         .select(`
-          id,
+          id, 
           user_id,
           start_date,
           end_date,
@@ -31,18 +31,29 @@ export const useVacationData = () => {
           status,
           notes,
           created_at,
-          updated_at,
-          profiles:user_id (name)
-        `)
-        .order('start_date', { ascending: false });
+          updated_at
+        `);
       
       if (error) throw error;
       
       if (data) {
+        // Get all user profiles in a separate query
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name');
+          
+        if (profilesError) throw profilesError;
+        
+        // Create a map of user IDs to names
+        const profileMap = new Map();
+        profiles?.forEach(profile => {
+          profileMap.set(profile.id, profile.name);
+        });
+        
         const formattedVacations: Vacation[] = data.map(item => ({
           id: item.id,
           employeeId: item.user_id,
-          employeeName: safeProperty(item.profiles, 'name', 'Unknown'),
+          employeeName: profileMap.get(item.user_id) || 'Unknown',
           startDate: new Date(item.start_date),
           endDate: new Date(item.end_date),
           reason: item.reason || '',

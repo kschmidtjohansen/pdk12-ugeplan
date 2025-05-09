@@ -13,6 +13,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CarData } from './types';
 import { useTranslation } from '@/context/TranslationContext';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
 
 interface CarsListProps {
   cars: CarData[];
@@ -47,24 +53,39 @@ const CarsList: React.FC<CarsListProps> = ({
                 </div>
                 {isAdmin && (
                   <div className="flex space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEdit(car)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <span className="sr-only">{t('common.edit')}</span>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onDelete(car)}
-                      className="h-8 w-8 p-0 text-destructive"
-                    >
-                      <span className="sr-only">{t('common.delete')}</span>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEdit(car)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <span className="sr-only">{t('common.edit')}</span>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t('common.edit')}</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onDelete(car)}
+                          className="h-8 w-8 p-0 text-destructive"
+                        >
+                          <span className="sr-only">{t('common.delete')}</span>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t('common.delete')}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 )}
               </div>
@@ -152,24 +173,39 @@ const CarsList: React.FC<CarsListProps> = ({
                     {isAdmin && (
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onEdit(car)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <span className="sr-only">{t('common.edit')}</span>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onDelete(car)}
-                            className="h-8 w-8 p-0 text-destructive"
-                          >
-                            <span className="sr-only">{t('common.delete')}</span>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onEdit(car)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <span className="sr-only">{t('common.edit')}</span>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{t('common.edit')}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onDelete(car)}
+                                className="h-8 w-8 p-0 text-destructive"
+                              >
+                                <span className="sr-only">{t('common.delete')}</span>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{t('common.delete')}</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                       </TableCell>
                     )}
