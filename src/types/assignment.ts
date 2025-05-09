@@ -7,9 +7,10 @@ export interface Assignment {
   fromTime: string;
   toTime: string;
   location: string;
-  car: string;
+  car: string | { id: string; name: string } | null;
   employees: string[];
   published?: boolean;
+  type?: string;
 }
 
 export interface GroupedAssignments {

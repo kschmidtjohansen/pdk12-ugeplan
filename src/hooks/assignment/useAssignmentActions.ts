@@ -19,20 +19,22 @@ export const useAssignmentActions = (
     try {
       // Format car information for storage
       let carId = null;
-      if (assignmentData.car && typeof assignmentData.car === 'string') {
-        // If car is just a string ID, fetch the car data
-        const { data: carData } = await supabase
-          .from('cars')
-          .select('*')
-          .eq('name', assignmentData.car)
-          .single();
-          
-        if (carData) {
-          carId = carData.id;
+      if (assignmentData.car) {
+        if (typeof assignmentData.car === 'string') {
+          // If car is just a string ID, fetch the car data
+          const { data: carData } = await supabase
+            .from('cars')
+            .select('*')
+            .eq('name', assignmentData.car)
+            .single();
+            
+          if (carData) {
+            carId = carData.id;
+          }
+        } else if (typeof assignmentData.car === 'object') {
+          // If car is already an object, use its ID
+          carId = (assignmentData.car as Car).id;
         }
-      } else if (assignmentData.car && typeof assignmentData.car === 'object') {
-        // If car is already an object, use its ID
-        carId = assignmentData.car.id;
       }
       
       // Determine assignment type from the assignment data
@@ -76,20 +78,22 @@ export const useAssignmentActions = (
     try {
       // Format car information for storage
       let carId = null;
-      if (assignmentData.car && typeof assignmentData.car === 'string') {
-        // If car is just a string ID, fetch the car data
-        const { data: carData } = await supabase
-          .from('cars')
-          .select('*')
-          .eq('name', assignmentData.car)
-          .single();
-          
-        if (carData) {
-          carId = carData.id;
+      if (assignmentData.car) {
+        if (typeof assignmentData.car === 'string') {
+          // If car is just a string ID, fetch the car data
+          const { data: carData } = await supabase
+            .from('cars')
+            .select('*')
+            .eq('name', assignmentData.car)
+            .single();
+            
+          if (carData) {
+            carId = carData.id;
+          }
+        } else if (typeof assignmentData.car === 'object') {
+          // If car is already an object, use its ID
+          carId = (assignmentData.car as Car).id;
         }
-      } else if (assignmentData.car && typeof assignmentData.car === 'object') {
-        // If car is already an object, use its ID
-        carId = assignmentData.car.id;
       }
       
       // Determine assignment type
