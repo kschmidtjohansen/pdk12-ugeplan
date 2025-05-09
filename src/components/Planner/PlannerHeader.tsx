@@ -2,7 +2,7 @@
 import React from 'react';
 import PageHeader from '../Layout/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronLeft, ChevronRight, Send } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { format } from 'date-fns';

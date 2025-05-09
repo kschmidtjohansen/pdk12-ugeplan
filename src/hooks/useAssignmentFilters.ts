@@ -1,4 +1,6 @@
+
 import { Assignment } from '@/types/assignment';
+import { getWeekDates } from '@/utils/weekDates';
 
 // Filters and groups assignments
 export const useAssignmentFilters = () => {
@@ -28,8 +30,19 @@ export const useAssignmentFilters = () => {
     return grouped;
   };
 
+  // Filter assignments by week
+  const filterByWeek = (assignments: Assignment[], weekOffset: number) => {
+    const { start, end } = getWeekDates(weekOffset);
+    
+    return assignments.filter(assignment => {
+      const assignmentDate = new Date(assignment.date);
+      return assignmentDate >= start && assignmentDate <= end;
+    });
+  };
+
   return {
     filterByPermissions,
-    groupByDate
+    groupByDate,
+    filterByWeek
   };
 };

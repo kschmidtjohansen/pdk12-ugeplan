@@ -1,10 +1,14 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-import { AuthError, Session } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
 
+// Define user roles
 export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder';
 
+// Export the User type from supabase for components that need it
+export type { User };
+
+// Define app user type that includes role
 export interface AppUser {
   id: string;
   name: string;
@@ -12,278 +16,263 @@ export interface AppUser {
   role: UserRole;
 }
 
-interface AuthState {
+interface AuthContextType {
   user: AppUser | null;
-  session: Session | null;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  isSkadeleder: boolean;
+  isServicemedarbejder: boolean;
+  login: (email: string, password: string) => Promise<{ error: string | null }>;
+  logout: () => Promise<void>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>;
+  requestPasswordReset: (email: string) => Promise<{ error: string | null }>;
   loading: boolean;
+  // Add permissions getters
+  canViewFuelCardCode: boolean;
+  canPublishTasks: boolean;
+  canApproveVacation: boolean;
+  // Existing checks for permissions
+  canEdit: boolean;
+  canCreate: boolean;
+  canSeeUnpublishedTasks: boolean;
 }
 
-interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  updatePassword: (password: string) => Promise<void>;
-  adminResetPassword: (userId: string, newPassword: string) => Promise<void>;
-  updateUserRole: (userId: string, role: UserRole) => Promise<void>;
-}
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isAuthenticated: false,
+  isAdmin: false,
+  isSkadeleder: false,
+  isServicemedarbejder: false,
+  login: async () => ({ error: null }),
+  logout: async () => {},
+  signUp: async () => ({ error: null }),
+  requestPasswordReset: async () => ({ error: null }),
+  loading: true,
+  canViewFuelCardCode: false,
+  canPublishTasks: false,
+  canApproveVacation: false,
+  canEdit: false,
+  canCreate: false,
+  canSeeUnpublishedTasks: false,
+});
 
 interface AuthProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    session: null,
-    loading: true,
-  });
-  const { toast } = useToast();
-
-  // Initialize auth state and set up session listener
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  
+  // Set up authentication state
   useEffect(() => {
-    // Get the current session
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) throw error;
-
-        if (session) {
-          await refreshUserData(session);
-        } else {
-          setAuthState(prev => ({ ...prev, loading: false }));
-        }
-
-        // Listen for auth changes
-        const { data: { subscription } } = await supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            if (session) {
-              await refreshUserData(session);
-            } else {
-              setAuthState({
-                user: null,
-                session: null,
-                loading: false,
-              });
-            }
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          // Fetch the user's role
+          const { data: roleData, error: roleError } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .single();
+          
+          // Fetch the user's profile
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (!roleError && !profileError && roleData && profileData) {
+            setUser({
+              id: session.user.id,
+              name: profileData.name || session.user.email || '',
+              email: session.user.email || '',
+              role: roleData.role as UserRole
+            });
+          } else {
+            // If we can't get the role, set a default
+            setUser({
+              id: session.user.id,
+              name: session.user.email || '',
+              email: session.user.email || '',
+              role: 'servicemedarbejder'
+            });
+            console.error('Error fetching user role or profile:', roleError, profileError);
           }
-        );
-
-        // Cleanup subscription
-        return () => {
-          subscription.unsubscribe();
-        };
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-        setAuthState(prev => ({ ...prev, loading: false }));
+        } else {
+          setUser(null);
+        }
+        setLoading(false);
       }
-    };
+    );
 
-    initializeAuth();
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        // Use setTimeout to avoid loading race conditions with onAuthStateChange
+        setTimeout(async () => {
+          // Fetch the user's role
+          const { data: roleData, error: roleError } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .single();
+          
+          // Fetch the user's profile
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (!roleError && !profileError && roleData && profileData) {
+            setUser({
+              id: session.user.id,
+              name: profileData.name || session.user.email || '',
+              email: session.user.email || '',
+              role: roleData.role as UserRole
+            });
+          } else {
+            // If we can't get the role, set a default
+            setUser({
+              id: session.user.id,
+              name: session.user.email || '',
+              email: session.user.email || '',
+              role: 'servicemedarbejder'
+            });
+            console.error('Error fetching user role or profile:', roleError, profileError);
+          }
+          setLoading(false);
+        }, 0);
+      } else {
+        setUser(null);
+        setLoading(false);
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Helper function to fetch user data from profile and roles
-  const refreshUserData = async (session: Session) => {
-    try {
-      const userId = session.user.id;
+  // Define permissions based on roles
+  const isAdmin = user?.role === 'administrator';
+  const isSkadeleder = user?.role === 'skadeleder';
+  const isServicemedarbejder = user?.role === 'servicemedarbejder';
+  
+  // Define complex permissions
+  const canViewFuelCardCode = isAdmin || isSkadeleder;
+  const canPublishTasks = isAdmin || isSkadeleder;
+  const canApproveVacation = isAdmin;
+  const canEdit = isAdmin || isSkadeleder;
+  const canCreate = isAdmin || isSkadeleder;
+  const canSeeUnpublishedTasks = isAdmin || isSkadeleder;
+  
+  const isAuthenticated = !!user;
 
-      // Fetch user profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (profileError) throw profileError;
-
-      // Fetch user role
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .single();
-
-      if (roleError && roleError.code !== 'PGRST116') {
-        // PGRST116 is "no rows returned" error
-        throw roleError;
-      }
-
-      const role = roleData?.role as UserRole || 'servicemedarbejder';
-
-      // Update auth state with user data
-      setAuthState({
-        user: {
-          id: userId,
-          name: profile.name,
-          email: profile.email,
-          role,
-        },
-        session,
-        loading: false,
-      });
-    } catch (error) {
-      console.error('Error refreshing user data:', error);
-      setAuthState(prev => ({ ...prev, loading: false }));
-    }
-  };
-
-  // Login function
+  // Authentication functions
   const login = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const { error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
       });
-
-      if (error) throw error;
-
-      // User data will be refreshed by the auth listener
+      
+      return { error: error ? error.message : null };
     } catch (error) {
       console.error('Login error:', error);
-      throw error;
+      return { error: 'An unexpected error occurred during login.' };
     }
   };
 
-  // Logout function
   const logout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      await supabase.auth.signOut();
+      setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
-      throw error;
     }
   };
 
-  // Register function
-  const register = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, name: string) => {
     try {
-      // Register user
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            name,
-          },
-        },
+            name // Store name in user metadata
+          }
+        }
       });
-
-      if (error) throw error;
-
-      // User profile will be created automatically via database trigger
+      
+      return { error: error ? error.message : null };
     } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
+      console.error('Signup error:', error);
+      return { error: 'An unexpected error occurred during signup.' };
     }
   };
-
-  // Reset password (email flow)
-  const resetPassword = async (email: string) => {
+  
+  const requestPasswordReset = async (email: string) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) throw error;
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      return { error: error ? error.message : null };
     } catch (error) {
-      console.error('Reset password error:', error);
-      throw error;
-    }
-  };
-
-  // Update password (for logged-in user)
-  const updatePassword = async (password: string) => {
-    try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
-    } catch (error) {
-      console.error('Update password error:', error);
-      throw error;
-    }
-  };
-
-  // Admin reset password (using edge function)
-  const adminResetPassword = async (userId: string, newPassword: string) => {
-    try {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
-
-      const { data, error } = await supabase.functions.invoke('admin-reset-password', {
-        body: {
-          userId,
-          newPassword,
-        },
-      });
-
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      return data;
-    } catch (error) {
-      console.error('Admin reset password error:', error);
-      throw error;
-    }
-  };
-
-  // Update user role (admin only)
-  const updateUserRole = async (userId: string, role: UserRole) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('admin-user-role', {
-        body: {
-          userId,
-          role,
-        },
-      });
-
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      return data;
-    } catch (error) {
-      console.error('Update user role error:', error);
-      throw error;
+      console.error('Password reset error:', error);
+      return { error: 'An unexpected error occurred during password reset.' };
     }
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        ...authState,
-        login,
-        logout,
-        register,
-        resetPassword,
-        updatePassword,
-        adminResetPassword,
-        updateUserRole,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated,
+      isAdmin,
+      isSkadeleder,
+      isServicemedarbejder,
+      login,
+      logout,
+      signUp,
+      requestPasswordReset,
+      loading,
+      canViewFuelCardCode,
+      canPublishTasks,
+      canApproveVacation,
+      canEdit,
+      canCreate,
+      canSeeUnpublishedTasks
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Custom hook to use auth context
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
 
-// Permission helper hook
 export const usePermissions = () => {
-  const { user } = useAuth();
-
+  const {
+    isAdmin,
+    isSkadeleder,
+    isServicemedarbejder,
+    canViewFuelCardCode,
+    canPublishTasks,
+    canApproveVacation,
+    canEdit,
+    canCreate,
+    canSeeUnpublishedTasks
+  } = useContext(AuthContext);
+  
   return {
-    isAdmin: user?.role === 'administrator',
-    isSkadeleder: user?.role === 'skadeleder' || user?.role === 'administrator',
-    isServicemedarbejder: !!user, // All authenticated users are at least servicemedarbejder
-    canViewFuelCardCode: user?.role === 'administrator' || user?.role === 'skadeleder',
-    canPublishTasks: user?.role === 'administrator' || user?.role === 'skadeleder',
-    canApproveVacation: user?.role === 'administrator',
+    isAdmin,
+    isSkadeleder,
+    isServicemedarbejder,
+    canViewFuelCardCode,
+    canPublishTasks,
+    canApproveVacation,
+    canEdit,
+    canCreate,
+    canSeeUnpublishedTasks
   };
 };

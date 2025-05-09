@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useAssignments } from './useAssignments';
 import { useAssignmentPublishing } from './useAssignmentPublishing';
 import { useAssignmentFilters } from './useAssignmentFilters';
-import { getWeekDates } from '@/utils/dateUtils';
+import { getWeekDates } from '@/utils/weekDates';
 import { Assignment } from '@/types/assignment';
 
 // Main hook combining all assignment-related functionality
@@ -33,12 +33,16 @@ export const usePlannerAssignments = (selectedWeek?: number) => {
     updateAssignments
   );
   
-  const { filterByWeek } = useAssignmentFilters();
+  // Get filtered assignments for the selected week
+  let filteredAssignments = allAssignments;
   
-  // Filter assignments by the selected week
-  const filteredAssignments = selectedWeek 
-    ? filterByWeek(allAssignments, selectedWeek)
-    : allAssignments;
+  if (selectedWeek !== undefined) {
+    const { start, end } = getWeekDates(selectedWeek);
+    filteredAssignments = allAssignments.filter(assignment => {
+      const assignmentDate = new Date(assignment.date);
+      return assignmentDate >= start && assignmentDate <= end;
+    });
+  }
 
   return {
     assignments: filteredAssignments,
@@ -47,7 +51,6 @@ export const usePlannerAssignments = (selectedWeek?: number) => {
     deleteAssignment,
     publishAssignments,
     publishAssignment,
-    publishAssignmentsByDate,
-    getWeekDates
+    publishAssignmentsByDate
   };
 };

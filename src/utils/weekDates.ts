@@ -20,3 +20,4 @@ export const getWeekDates = (weekOffset = 0) => {
     end: lastDayOfWeek
   };
 };
+
