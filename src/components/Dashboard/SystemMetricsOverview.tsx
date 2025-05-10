@@ -9,14 +9,18 @@ import { BarChart, CalendarClock, Users, Car as CarIcon } from 'lucide-react';
 
 interface SystemMetricsOverviewProps {
   assignments: Assignment[];
-  upcomingVacations: number;
+  vacations: Vacation[];
+  availableEmployees: number;
+  totalEmployees: number;
   availableVehicles: number;
   totalVehicles: number;
 }
 
 const SystemMetricsOverview: React.FC<SystemMetricsOverviewProps> = ({
   assignments,
-  upcomingVacations,
+  vacations,
+  availableEmployees,
+  totalEmployees,
   availableVehicles,
   totalVehicles
 }) => {
@@ -24,6 +28,11 @@ const SystemMetricsOverview: React.FC<SystemMetricsOverviewProps> = ({
 
   // Count active assignments (assuming published ones are active)
   const activeAssignments = assignments.filter(a => a.published === true).length;
+  
+  // Count upcoming approved vacations
+  const upcomingVacations = vacations.filter(v => 
+    v.status === 'approved' && new Date(v.startDate) >= new Date()
+  ).length;
   
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

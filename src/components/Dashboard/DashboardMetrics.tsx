@@ -22,6 +22,9 @@ const DashboardMetrics: React.FC = () => {
   const { isAdmin, isSkadeleder } = usePermissions();
   const { t } = useTranslation();
 
+  // Show metrics only for admin and skadeleder roles
+  const shouldShowMetrics = isAdmin || isSkadeleder;
+
   // Calculate metrics
   const availableEmployees = employees.filter(e => !e.onLeave).length;
   const onLeaveEmployees = employees.filter(e => e.onLeave).length;
@@ -32,64 +35,68 @@ const DashboardMetrics: React.FC = () => {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">
-            {t('dashboard.availableEmployees')}
-          </CardTitle>
-          <UserCheck className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{availableEmployees}</div>
-          <p className="text-xs text-muted-foreground">
-            {t('dashboard.totalEmployees', { count: employees.length })}
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">
-            {t('dashboard.onLeaveEmployees')}
-          </CardTitle>
-          <UserX className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{onLeaveEmployees}</div>
-          <p className="text-xs text-muted-foreground">
-            {t('dashboard.totalEmployees', { count: employees.length })}
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">
-            {t('dashboard.availableCars')}
-          </CardTitle>
-          <CarFront className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{availableCars}</div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">
-            {t('dashboard.todayAssignments')}
-          </CardTitle>
-          <CheckSquare className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{todayAssignments}</div>
-          <p className="text-xs text-muted-foreground">
-            {t('dashboard.scheduledToday')}
-          </p>
-        </CardContent>
-      </Card>
+      {shouldShowMetrics && (
+        <>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t('dashboard.availableEmployees')}
+              </CardTitle>
+              <UserCheck className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{availableEmployees}</div>
+              <p className="text-xs text-muted-foreground">
+                {t('dashboard.totalEmployees', { count: employees.length })}
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t('dashboard.onLeaveEmployees')}
+              </CardTitle>
+              <UserX className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{onLeaveEmployees}</div>
+              <p className="text-xs text-muted-foreground">
+                {t('dashboard.totalEmployees', { count: employees.length })}
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t('dashboard.availableCars')}
+              </CardTitle>
+              <CarFront className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{availableCars}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t('dashboard.todayAssignments')}
+              </CardTitle>
+              <CheckSquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{todayAssignments}</div>
+              <p className="text-xs text-muted-foreground">
+                {t('dashboard.scheduledToday')}
+              </p>
+            </CardContent>
+          </Card>
+        </>
+      )}
 
-      {/* Only show upcoming vacations for admin and skadeleder, now full width */}
+      {/* Full width upcoming vacations for admin and skadeleder */}
       {(isAdmin || isSkadeleder) && (
         <div className="md:col-span-2 lg:col-span-4">
           <UpcomingVacationsWidget vacations={vacations} />

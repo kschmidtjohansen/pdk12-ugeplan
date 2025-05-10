@@ -13,21 +13,21 @@ import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 
 // Import assignments from planner hook to reuse the mock data
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
+import { useEmployees } from '@/hooks/useEmployees';
+import { useCars } from '@/hooks/useCars';
+import { useVacations } from '@/hooks/useVacations';
+import { getWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
 
 const DashboardPage: React.FC = () => {
-  const {
-    user
-  } = useAuth();
-  const {
-    t,
-    currentLanguage
-  } = useTranslation();
-  const currentWeek = getCurrentWeek();
-
-  // Use the same assignments data from the planner hook
-  const {
-    assignments
-  } = usePlannerAssignments();
+  const { user } = useAuth();
+  const { t, currentLanguage } = useTranslation();
+  const { assignments } = usePlannerAssignments();
+  const { employees } = useEmployees();
+  const { cars } = useCars();
+  const { vacations } = useVacations();
+  
+  // Use the fixed getCurrentWeekNumber function
+  const currentWeek = getCurrentWeekNumber();
 
   // Get today's date in YYYY-MM-DD format
   const today = format(new Date(), 'yyyy-MM-dd');

@@ -15,8 +15,6 @@ interface VehicleStatusWidgetProps {
 }
 
 const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
-  availableVehicles,
-  totalVehicles,
   cars = [],
   assignments = []
 }) => {
@@ -34,17 +32,17 @@ const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
     });
   };
 
-  // Use cars data if provided, with actual availability status
+  // Calculate total and available based on actual cars data
+  const totalVehicles = cars.length;
+  const availableVehicles = cars.filter(car => !isCarInUse(car.id)).length;
+
+  // Use cars data to display actual status
   const carsToDisplay = cars && cars.length > 0 
     ? cars.map(car => ({
         ...car,
         inUse: isCarInUse(car.id)
       })).slice(0, 3) // Only show top 3 cars for the widget
-    : Array.from({ length: Math.min(3, totalVehicles) }, (_, i) => ({
-        id: `placeholder-${i}`,
-        name: `Vehicle ${i + 1}`,
-        inUse: i >= availableVehicles
-      }));
+    : [];
   
   return (
     <Card>
@@ -57,7 +55,7 @@ const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
       <CardContent>
         {carsToDisplay.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-2">
-            No vehicles available
+            {t('common.noData')}
           </p>
         ) : (
           <div className="space-y-4">

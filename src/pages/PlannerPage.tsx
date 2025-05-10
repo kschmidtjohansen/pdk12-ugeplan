@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import PageHeader from '../components/Layout/PageHeader';
@@ -7,14 +7,14 @@ import PlannerHeader from '../components/Planner/PlannerHeader';
 import AssignmentDialogManager from '../components/Planner/AssignmentDialogManager';
 import AssignmentList from '../components/Planner/AssignmentList';
 import { useTranslation } from '../context/TranslationContext';
-import { Assignment, getCurrentWeek } from '../types/assignment';
+import { Assignment } from '../types/assignment';
 import { getUnpublishedAssignment } from '../hooks/useAssignmentPublishing';
 import { usePlannerAssignments } from '../hooks/usePlannerAssignments';
-import { getWeekDates } from '@/utils/weekDates';
+import { getWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
 
 const PlannerPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
-  const [currentWeek, setCurrentWeek] = useState(getCurrentWeek());
+  const [currentWeek, setCurrentWeek] = useState(getCurrentWeekNumber());
   const { 
     assignments, 
     createAssignment, 
@@ -42,15 +42,15 @@ const PlannerPage: React.FC = () => {
   });
 
   // Get week date range
-  const { start, end } = getWeekDates(currentWeek);
+  const weekDates = getWeekDates(currentWeek - getCurrentWeekNumber());
   const locale = currentLanguage === 'da' ? da : undefined;
   
   // Format the date range based on the current language
   let dateRangeText = '';
   if (currentLanguage === 'da') {
-    dateRangeText = `${format(start, 'd. MMMM', { locale })} - ${format(end, 'd. MMMM', { locale })}`;
+    dateRangeText = `${format(weekDates.start, 'd. MMMM', { locale })} - ${format(weekDates.end, 'd. MMMM', { locale })}`;
   } else {
-    dateRangeText = `${format(start, 'MMMM d', { locale })} - ${format(end, 'MMMM d', { locale })}`;
+    dateRangeText = `${format(weekDates.start, 'MMMM d', { locale })} - ${format(weekDates.end, 'MMMM d', { locale })}`;
   }
 
   // Handle assignment creation/editing
@@ -109,7 +109,10 @@ const PlannerPage: React.FC = () => {
       />
       
       <div className="text-sm text-muted-foreground mb-6">
-        {dateRangeText}
+        {t('planner.weekDateRange', { 
+          start: format(weekDates.start, 'd MMMM', { locale }), 
+          end: format(weekDates.end, 'd MMMM', { locale })
+        })}
       </div>
 
       <PlannerHeader 
@@ -126,7 +129,7 @@ const PlannerPage: React.FC = () => {
         onPublishDay={handlePublishDay}
         onCreateAssignment={handleOpenCreateDialog}
         selectedWeek={currentWeek}
-        weekDates={getWeekDates(currentWeek)} // Pass week dates
+        weekDates={weekDates} // Pass week dates
       />
 
       <AssignmentDialogManager

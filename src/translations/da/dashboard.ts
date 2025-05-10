@@ -58,7 +58,8 @@ const dashboard = {
   availableCars: 'Tilgængelige Biler',
   todayAssignments: 'Dagens Opgaver',
   scheduledToday: 'Opgaver planlagt til i dag',
-  upcomingAssignments: 'Kommende Opgaver'
-}
+  upcomingAssignments: 'Kommende Opgaver',
+  noData: 'Ingen data tilgængelig'
+};
 
 export default dashboard;
