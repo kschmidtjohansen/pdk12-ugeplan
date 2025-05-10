@@ -27,7 +27,7 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
     vacation.status === 'approved' && new Date(vacation.startDate) >= new Date()
   ).sort((a, b) => 
     new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-  ).slice(0, 3); // Only show max 3 upcoming vacations
+  ).slice(0, 5); // Show max 5 upcoming vacations for full width display
 
   return (
     <Card>
@@ -43,7 +43,7 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
             {t('dashboard.noUpcomingVacations')}
           </p>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {upcomingVacations.map(vacation => (
               <div key={vacation.id} className="flex items-center">
                 <div className="h-9 w-9 rounded-full bg-polygon-light flex items-center justify-center mr-3">

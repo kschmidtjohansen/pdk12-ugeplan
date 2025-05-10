@@ -21,8 +21,12 @@ const PasswordResetPage: React.FC = () => {
   // Get token from URL
   const accessToken = searchParams.get('access_token');
 
-  // Don't redirect if no token in URL - we'll handle that in the UI
-  // to make it easier to test this page
+  // If no token is present, redirect to login
+  useEffect(() => {
+    if (!accessToken) {
+      navigate('/login');
+    }
+  }, [accessToken, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,18 +53,6 @@ const PasswordResetPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // For testing - allow demo mode without a token
-      if (!accessToken) {
-        toast({
-          title: "Demo Mode",
-          description: "This is a demo. In a real app, you would need an access token.",
-        });
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
-        return;
-      }
-
       // Update the user's password using the access token
       const { error } = await supabase.auth.updateUser({
         password: password 
@@ -89,8 +81,10 @@ const PasswordResetPage: React.FC = () => {
     }
   };
 
-  // Show a demo notice if no token
-  const isDemo = !accessToken;
+  // If no token, redirect to login (render nothing while redirecting)
+  if (!accessToken) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-polygon-lightgray p-4">
@@ -108,9 +102,6 @@ const PasswordResetPage: React.FC = () => {
           <CardHeader>
             <CardTitle>{t('login.passwordReset.title')}</CardTitle>
             <CardDescription>
-              {isDemo && <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 p-2 rounded mb-2">
-                Demo Mode - No token detected
-              </div>}
               {t('login.passwordReset.enterNewPassword')}
             </CardDescription>
           </CardHeader>

@@ -4,7 +4,7 @@ import { usePermissions } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, Trash2 } from 'lucide-react';
+import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Employee } from '@/types/employee';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -118,14 +118,30 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, o
             </TooltipProvider>
 
             {onToggleLeave && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => onToggleLeave(employee)}
-                className="text-amber-600 hover:text-amber-800"
-              >
-                {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => onToggleLeave(employee)}
+                      className={`h-8 w-8 p-0 ${employee.onLeave ? 'text-green-600' : 'text-amber-600'}`}
+                    >
+                      <span className="sr-only">
+                        {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
+                      </span>
+                      {employee.onLeave ? (
+                        <UserCheck className="h-4 w-4" />
+                      ) : (
+                        <UserMinus className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
 
             <TooltipProvider>

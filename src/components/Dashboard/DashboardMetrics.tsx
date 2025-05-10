@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
-import UpcomingAssignmentsWidget from './UpcomingAssignmentsWidget';
 
 const DashboardMetrics: React.FC = () => {
   const { vacations } = useVacations();
@@ -26,13 +25,13 @@ const DashboardMetrics: React.FC = () => {
   // Calculate metrics
   const availableEmployees = employees.filter(e => !e.onLeave).length;
   const onLeaveEmployees = employees.filter(e => e.onLeave).length;
-  const totalCars = cars.length;
+  const availableCars = cars.length;
   
   const today = format(new Date(), 'yyyy-MM-dd');
   const todayAssignments = assignments.filter(a => a.date === today).length;
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">
@@ -71,7 +70,7 @@ const DashboardMetrics: React.FC = () => {
           <CarFront className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{totalCars}</div>
+          <div className="text-2xl font-bold">{availableCars}</div>
         </CardContent>
       </Card>
       
@@ -90,12 +89,12 @@ const DashboardMetrics: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Only show upcoming vacations for admin and skadeleder */}
+      {/* Only show upcoming vacations for admin and skadeleder, now full width */}
       {(isAdmin || isSkadeleder) && (
-        <UpcomingVacationsWidget vacations={vacations} />
+        <div className="md:col-span-2 lg:col-span-4">
+          <UpcomingVacationsWidget vacations={vacations} />
+        </div>
       )}
-      
-      <UpcomingAssignmentsWidget />
     </div>
   );
 };
