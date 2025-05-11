@@ -1,29 +1,29 @@
 
-import React, { useState } from 'react';
-import { Tabs } from "@/components/ui/tabs";
-import { Vacation } from '../../types/vacation';
-import { useTranslation } from '@/context/TranslationContext';
+import React from 'react';
+import { useVacations } from '@/hooks/useVacations';
 import { usePermissions } from '@/context/AuthContext';
-import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from '@/context/TranslationContext';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 import VacationTabs from './VacationTabs';
 import VacationTabContent from './VacationTabContent';
-import VacationButtons from './VacationButtons';
 import VacationFormDialog from './VacationFormDialog';
-import AdminVacationFormDialog from './AdminVacationFormDialog';
 import VacationActionDialog from './VacationActionDialog';
-import EmployeeVacationStatus from './EmployeeVacationStatus';
-import { useVacations } from '@/hooks/useVacations';
+import AdminVacationFormDialog from './AdminVacationFormDialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface VacationPageContainerProps {
   headerComponent: React.ReactNode;
 }
 
 const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerComponent }) => {
-  const { isServicemedarbejder, canApproveVacation } = usePermissions();
-  const { user } = useAuth();
   const { t } = useTranslation();
+  const { isAdmin, isSkadeleder } = usePermissions();
+  const [activeTab, setActiveTab] = React.useState("all");
+  
   const {
     vacations,
+    loading,
     date,
     setDate,
     reason,
@@ -34,127 +34,113 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     setDialogOpen,
     adminDialogOpen,
     setAdminDialogOpen,
+    editDialogOpen,
+    setEditDialogOpen,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    selectedVacation,
     selectedEmployeeId,
     setSelectedEmployeeId,
     submitVacationRequest,
     approveVacation,
-    rejectVacation
+    rejectVacation,
+    handleEditVacation,
+    submitEditVacation,
+    handleDeleteVacation,
+    confirmDeleteVacation
   } = useVacations();
   
-  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
-  const [actionVacation, setActionVacation] = useState<Vacation | null>(null);
-  const [activeTab, setActiveTab] = useState(isServicemedarbejder ? 'mine' : 'all');
-
-  const handleCreateNew = () => {
-    setDate({
-      from: undefined,
-      to: undefined
-    });
-    setReason('');
+  // State for approval/rejection dialog
+  const [actionDialogOpen, setActionDialogOpen] = React.useState(false);
+  const [actionType, setActionType] = React.useState<"approve" | "reject">("approve");
+  const [currentVacation, setCurrentVacation] = React.useState<any>(null);
+  
+  // Manage tabs
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
+  
+  // Open the dialog for regular employees to request vacation
+  const handleOpenDialog = () => {
     setDialogOpen(true);
   };
-
-  const handleCreateForEmployee = () => {
-    setDate({
-      from: undefined,
-      to: undefined
-    });
-    setReason('');
-    setSelectedEmployeeId('');
+  
+  // Open dialog for admins to request vacation on behalf of others
+  const handleOpenAdminDialog = () => {
     setAdminDialogOpen(true);
   };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    const success = submitVacationRequest(e);
-    if (success) {
-      setDialogOpen(false);
-    }
+  
+  // Handle approval action
+  const handleApprove = (vacation: any) => {
+    setCurrentVacation(vacation);
+    setActionType("approve");
+    setActionDialogOpen(true);
   };
-
-  const handleAdminSubmit = (e: React.FormEvent) => {
-    const success = submitVacationRequest(e, true);
-    if (success) {
-      setAdminDialogOpen(false);
-    }
+  
+  // Handle rejection action
+  const handleReject = (vacation: any) => {
+    setCurrentVacation(vacation);
+    setActionType("reject");
+    setActionDialogOpen(true);
   };
-
-  const handleApproveClick = (vacation: Vacation) => {
-    setActionVacation(vacation);
-    setNote('');
-    setNoteDialogOpen(true);
-  };
-
-  const handleRejectClick = (vacation: Vacation) => {
-    setActionVacation({
-      ...vacation,
-      status: 'rejected'
-    });
-    setNote('');
-    setNoteDialogOpen(true);
-  };
-
-  const handleAction = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!actionVacation) return;
+  
+  // Submit approval/rejection
+  const handleActionSubmit = () => {
+    if (!currentVacation) return;
     
-    if (actionVacation.status === 'rejected') {
-      rejectVacation(actionVacation, note);
+    if (actionType === "approve") {
+      approveVacation(currentVacation, note);
     } else {
-      approveVacation(actionVacation, note);
+      rejectVacation(currentVacation, note);
     }
     
-    setNoteDialogOpen(false);
+    setActionDialogOpen(false);
+    setNote("");
   };
-
-  const filteredVacations = vacations.filter(v => {
-    // In "mine" tab, show all user's vacation requests regardless of status
-    if (activeTab === 'mine') return v.employeeId === user?.id;
-    
-    // In "approved" tab, only show approved vacations
-    if (activeTab === 'approved') return v.status === 'approved';
-    
-    // In "pending" tab, only show pending vacations
-    if (activeTab === 'pending') return v.status === 'pending';
-    
-    // In "all" tab:
-    // 1. Never show rejected vacations (except in "mine" tab)
-    // 2. Only show pending vacations (approved ones go to "approved" tab)
-    return v.status === 'pending';
-  });
-
+  
   return (
-    <div className="space-y-6 w-full">
+    <div>
       {headerComponent}
-
-      <VacationButtons 
-        onCreateNew={handleCreateNew}
-        onCreateForEmployee={handleCreateForEmployee}
-        canApproveVacation={canApproveVacation}
+      
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+        <VacationTabs
+          activeTab={activeTab}
+          onChange={handleTabChange}
+        />
+        
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleOpenDialog}
+            className="bg-polygon-blue hover:bg-polygon-darkblue"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {t("vacation.applyForVacation")}
+          </Button>
+          
+          {(isAdmin || isSkadeleder) && (
+            <Button 
+              onClick={handleOpenAdminDialog} 
+              variant="outline"
+              className="bg-white"
+            >
+              {t("vacation.requestForEmployee")}
+            </Button>
+          )}
+        </div>
+      </div>
+      
+      {/* Vacation tab content with all vacation cards */}
+      <VacationTabContent
+        vacations={vacations}
+        tabValue={activeTab}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        onEdit={handleEditVacation}
+        onDelete={handleDeleteVacation}
+        isLoading={loading}
       />
       
-      <Tabs 
-        defaultValue={isServicemedarbejder ? 'mine' : 'all'} 
-        value={activeTab} 
-        onValueChange={setActiveTab}
-      >
-        <VacationTabs 
-          isServicemedarbejder={isServicemedarbejder} 
-          activeTab={activeTab} 
-        />
-
-        <VacationTabContent 
-          activeTab={activeTab}
-          filteredVacations={filteredVacations}
-          canApproveVacation={canApproveVacation}
-          onApprove={handleApproveClick}
-          onReject={handleRejectClick}
-        />
-      </Tabs>
-
-      {/* Employee vacation status list */}
-      <EmployeeVacationStatus vacations={vacations} />
-
-      {/* Apply for vacation dialog */}
+      {/* Regular vacation request dialog */}
       <VacationFormDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -162,10 +148,10 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         setDate={setDate}
         reason={reason}
         setReason={setReason}
-        onSubmit={handleSubmit}
+        onSubmit={submitVacationRequest}
       />
-
-      {/* Admin request for employee dialog */}
+      
+      {/* Admin vacation request dialog */}
       <AdminVacationFormDialog
         open={adminDialogOpen}
         onOpenChange={setAdminDialogOpen}
@@ -175,18 +161,51 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         setReason={setReason}
         selectedEmployeeId={selectedEmployeeId}
         setSelectedEmployeeId={setSelectedEmployeeId}
-        onSubmit={handleAdminSubmit}
+        onSubmit={(e) => submitVacationRequest(e, true)}
       />
-
-      {/* Approve/Reject note dialog */}
+      
+      {/* Vacation action dialog (approve/reject) */}
       <VacationActionDialog
-        open={noteDialogOpen}
-        onOpenChange={setNoteDialogOpen}
-        vacation={actionVacation}
+        open={actionDialogOpen}
+        onOpenChange={setActionDialogOpen}
+        type={actionType}
         note={note}
         setNote={setNote}
-        onAction={handleAction}
+        onSubmit={handleActionSubmit}
       />
+      
+      {/* Edit vacation dialog */}
+      <VacationFormDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        date={date}
+        setDate={setDate}
+        reason={reason}
+        setReason={setReason}
+        onSubmit={submitEditVacation}
+        isEditing={true}
+      />
+      
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('common.areYouSure')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('common.deleteWarning')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteVacation}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

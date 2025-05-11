@@ -101,9 +101,97 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
     }
   };
 
+  const editVacation = async (
+    vacation: Vacation, 
+    startDate: Date,
+    endDate: Date,
+    reason: string
+  ) => {
+    try {
+      // Only allow editing of pending vacations
+      if (vacation.status !== 'pending') {
+        toast({
+          title: t('common.error'),
+          description: t('vacation.cannotEditNonPending'),
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      const { error } = await supabase
+        .from('vacations')
+        .update({
+          start_date: startDate.toISOString().split('T')[0],
+          end_date: endDate.toISOString().split('T')[0],
+          reason,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', vacation.id);
+      
+      if (error) throw error;
+      
+      // Display toast notification
+      toast({
+        title: t('vacation.requestUpdated'),
+        description: t('vacation.requestUpdatedMsg'),
+      });
+      
+      // Refresh vacation list
+      fetchVacations();
+      
+    } catch (err) {
+      console.error('Error editing vacation:', err);
+      toast({
+        title: t('common.error'),
+        description: err instanceof Error ? err.message : 'Error updating vacation request',
+        variant: 'destructive',
+      });
+    }
+  };
+  
+  const deleteVacation = async (vacation: Vacation) => {
+    try {
+      // Only allow deletion of pending vacations
+      if (vacation.status !== 'pending') {
+        toast({
+          title: t('common.error'),
+          description: t('vacation.cannotDeleteNonPending'),
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      const { error } = await supabase
+        .from('vacations')
+        .delete()
+        .eq('id', vacation.id);
+      
+      if (error) throw error;
+      
+      // Display toast notification
+      toast({
+        title: t('vacation.requestDeleted'),
+        description: t('vacation.requestDeletedMsg'),
+      });
+      
+      // Refresh vacation list
+      fetchVacations();
+      
+    } catch (err) {
+      console.error('Error deleting vacation:', err);
+      toast({
+        title: t('common.error'),
+        description: err instanceof Error ? err.message : 'Error deleting vacation request',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return {
     submitVacationRequest,
     approveVacation,
-    rejectVacation
+    rejectVacation,
+    editVacation,
+    deleteVacation
   };
 };

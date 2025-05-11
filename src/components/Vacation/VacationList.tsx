@@ -1,42 +1,59 @@
 
 import React from 'react';
-import { Card } from '@/components/ui/card';
-import { Vacation } from '../../types/vacation';
-import { useTranslation } from '../../context/TranslationContext';
 import VacationCard from './VacationCard';
+import { Vacation } from '@/types/vacation';
+import { usePermissions } from '@/context/AuthContext';
+import { useTranslation } from '@/context/TranslationContext';
 
 interface VacationListProps {
   vacations: Vacation[];
-  canApproveVacation: boolean;
   onApprove: (vacation: Vacation) => void;
   onReject: (vacation: Vacation) => void;
+  onEdit?: (vacation: Vacation) => void;
+  onDelete?: (vacation: Vacation) => void;
+  isLoading?: boolean;
 }
 
-const VacationList: React.FC<VacationListProps> = ({
-  vacations,
-  canApproveVacation,
-  onApprove,
-  onReject
+const VacationList: React.FC<VacationListProps> = ({ 
+  vacations, 
+  onApprove, 
+  onReject,
+  onEdit,
+  onDelete,
+  isLoading = false 
 }) => {
+  const { isAdmin, isSkadeleder } = usePermissions();
   const { t } = useTranslation();
+  
+  const canApprove = isAdmin || isSkadeleder;
+  
+  if (isLoading) {
+    return (
+      <div className="flex justify-center p-8">
+        <div className="animate-spin h-8 w-8 border-t-2 border-polygon-blue rounded-full"></div>
+      </div>
+    );
+  }
   
   if (vacations.length === 0) {
     return (
-      <Card className="text-center p-8">
-        <p className="text-muted-foreground">{t("vacation.noRequests")}</p>
-      </Card>
+      <div className="text-center py-16 text-gray-500">
+        <p>{t("vacation.noRequests")}</p>
+      </div>
     );
   }
   
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
       {vacations.map((vacation) => (
         <VacationCard
           key={vacation.id}
           vacation={vacation}
-          canApprove={canApproveVacation}
+          canApprove={canApprove}
           onApprove={onApprove}
           onReject={onReject}
+          onEdit={onEdit}
+          onDelete={onDelete}
         />
       ))}
     </div>

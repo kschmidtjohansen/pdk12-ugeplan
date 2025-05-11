@@ -2,27 +2,34 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
-import { Check, X } from 'lucide-react';
+import { Check, X, Edit, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Vacation } from '../../types/vacation';
 import { useTranslation } from '../../context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface VacationCardProps {
   vacation: Vacation;
   canApprove: boolean;
   onApprove: (vacation: Vacation) => void;
   onReject: (vacation: Vacation) => void;
+  onEdit?: (vacation: Vacation) => void;
+  onDelete?: (vacation: Vacation) => void;
 }
 
 const VacationCard: React.FC<VacationCardProps> = ({
   vacation,
   canApprove,
   onApprove,
-  onReject
+  onReject,
+  onEdit,
+  onDelete
 }) => {
   const { t, currentLanguage } = useTranslation();
+  const { user } = useAuth();
+  const isOwner = user?.id === vacation.employeeId;
   
   // Set locale based on current language
   const locale = currentLanguage === 'da' ? da : undefined;
@@ -83,28 +90,58 @@ const VacationCard: React.FC<VacationCardProps> = ({
         </dl>
       </CardContent>
       
-      {/* Only show approve/reject buttons to admins for pending requests */}
-      {canApprove && vacation.status === 'pending' && (
-        <CardFooter className="flex justify-between border-t pt-4 pb-4">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="text-red-600 border-red-200 hover:bg-red-50" 
-            onClick={() => onReject(vacation)}
-          >
-            <X className="mr-1 h-4 w-4" />
-            {t("vacation.reject")}
-          </Button>
-          <Button 
-            size="sm" 
-            className="bg-green-600 hover:bg-green-700" 
-            onClick={() => onApprove(vacation)}
-          >
-            <Check className="mr-1 h-4 w-4" />
-            {t("vacation.approve")}
-          </Button>
-        </CardFooter>
-      )}
+      <CardFooter className="flex justify-between border-t pt-4 pb-4">
+        {/* Owner actions (available for pending requests only) */}
+        {isOwner && vacation.status === 'pending' && (
+          <div className="flex gap-2">
+            {onEdit && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-blue-200 hover:bg-blue-50"
+                onClick={() => onEdit(vacation)}
+              >
+                <Edit className="mr-1 h-4 w-4" />
+                {t("common.edit")}
+              </Button>
+            )}
+            {onDelete && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-red-200 hover:bg-red-50 text-red-600"
+                onClick={() => onDelete(vacation)}
+              >
+                <Trash2 className="mr-1 h-4 w-4" />
+                {t("common.delete")}
+              </Button>
+            )}
+          </div>
+        )}
+        
+        {/* Admin approval actions (for pending requests only) */}
+        {canApprove && vacation.status === 'pending' && (
+          <div className="flex gap-2 ml-auto">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-red-600 border-red-200 hover:bg-red-50" 
+              onClick={() => onReject(vacation)}
+            >
+              <X className="mr-1 h-4 w-4" />
+              {t("vacation.reject")}
+            </Button>
+            <Button 
+              size="sm" 
+              className="bg-green-600 hover:bg-green-700" 
+              onClick={() => onApprove(vacation)}
+            >
+              <Check className="mr-1 h-4 w-4" />
+              {t("vacation.approve")}
+            </Button>
+          </div>
+        )}
+      </CardFooter>
     </Card>
   );
 };

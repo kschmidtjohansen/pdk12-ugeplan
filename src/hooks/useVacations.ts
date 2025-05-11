@@ -4,6 +4,7 @@ import { useVacationFormState } from './vacation/useVacationFormState';
 import { useVacationActions } from './vacation/useVacationActions';
 import { useEmployees } from './useEmployees';
 import { Vacation } from '@/types/vacation';
+import { useState } from 'react';
 
 export const useVacations = () => {
   const { vacations, loading, error, fetchVacations } = useVacationData();
@@ -26,10 +27,17 @@ export const useVacations = () => {
   
   const { employees } = useEmployees();
   
+  // Add states for edit and delete dialogs
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedVacation, setSelectedVacation] = useState<Vacation | null>(null);
+  
   const {
     submitVacationRequest: submitRequest,
     approveVacation,
-    rejectVacation
+    rejectVacation,
+    editVacation,
+    deleteVacation
   } = useVacationActions(fetchVacations);
 
   // Wrapper function to simplify the submit vacation request call
@@ -50,6 +58,50 @@ export const useVacations = () => {
     
     return result;
   };
+  
+  // Edit vacation handler
+  const handleEditVacation = (vacation: Vacation) => {
+    setSelectedVacation(vacation);
+    setDate({
+      from: vacation.startDate,
+      to: vacation.endDate,
+    });
+    setReason(vacation.reason);
+    setEditDialogOpen(true);
+  };
+  
+  // Submit edit handler
+  const submitEditVacation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedVacation || !date.from || !date.to) return;
+    
+    await editVacation(
+      selectedVacation,
+      date.from,
+      date.to,
+      reason
+    );
+    
+    setEditDialogOpen(false);
+    resetFormState();
+    setSelectedVacation(null);
+  };
+  
+  // Delete vacation handler
+  const handleDeleteVacation = (vacation: Vacation) => {
+    setSelectedVacation(vacation);
+    setDeleteDialogOpen(true);
+  };
+  
+  // Confirm delete handler
+  const confirmDeleteVacation = async () => {
+    if (!selectedVacation) return;
+    
+    await deleteVacation(selectedVacation);
+    
+    setDeleteDialogOpen(false);
+    setSelectedVacation(null);
+  };
 
   return {
     vacations,
@@ -65,10 +117,19 @@ export const useVacations = () => {
     setDialogOpen,
     adminDialogOpen,
     setAdminDialogOpen,
+    editDialogOpen,
+    setEditDialogOpen,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    selectedVacation,
     selectedEmployeeId,
     setSelectedEmployeeId,
     submitVacationRequest,
     approveVacation,
-    rejectVacation
+    rejectVacation,
+    handleEditVacation,
+    submitEditVacation,
+    handleDeleteVacation,
+    confirmDeleteVacation
   };
 };
