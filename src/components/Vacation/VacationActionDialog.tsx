@@ -18,21 +18,23 @@ interface VacationActionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   vacation: Vacation | null;
+  actionType: "approve" | "reject";
   note: string;
   setNote: (note: string) => void;
-  onAction: (e: React.FormEvent) => void;
+  onSubmit: () => void;
 }
 
 const VacationActionDialog: React.FC<VacationActionDialogProps> = ({
   open,
   onOpenChange,
   vacation,
+  actionType,
   note,
   setNote,
-  onAction
+  onSubmit
 }) => {
   const { t } = useTranslation();
-  const isRejection = vacation?.status === 'rejected';
+  const isRejection = actionType === 'reject';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -46,7 +48,10 @@ const VacationActionDialog: React.FC<VacationActionDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={onAction} className="space-y-4">
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit();
+        }} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="note">
               {isRejection ? t("vacation.rejectionReason") : t("vacation.noteOptional")}
@@ -60,7 +65,7 @@ const VacationActionDialog: React.FC<VacationActionDialogProps> = ({
                 ? t("vacation.rejectionReasonPlaceholder") 
                 : t("vacation.approveNotePlaceholder")
               } 
-              required={false}
+              required={isRejection}
             />
           </div>
           

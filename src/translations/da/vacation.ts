@@ -2,6 +2,7 @@
 const vacation = {
   pageDescription: 'Ansøg om og administrer fridage',
   applyForVacation: 'Ansøg om fri',
+  editVacationRequest: 'Rediger fraværsansøgning',
   requestForEmployee: 'Ansøg for medarbejder',
   selectEmployee: 'Vælg medarbejder',
   selectEmployeeAndDates: 'Vælg en medarbejder, datoer og årsag til fraværet.',

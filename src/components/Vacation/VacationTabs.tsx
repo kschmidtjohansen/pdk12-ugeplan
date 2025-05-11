@@ -6,11 +6,13 @@ import { useTranslation } from '../../context/TranslationContext';
 interface VacationTabsProps {
   isServicemedarbejder: boolean;
   activeTab: string;
+  onChange: (value: string) => void;
 }
 
 const VacationTabs: React.FC<VacationTabsProps> = ({ 
   isServicemedarbejder, 
-  activeTab 
+  activeTab,
+  onChange
 }) => {
   const { t } = useTranslation();
 
@@ -18,7 +20,9 @@ const VacationTabs: React.FC<VacationTabsProps> = ({
   if (isServicemedarbejder) {
     return (
       <TabsList className="grid grid-cols-1 w-full max-w-md">
-        <TabsTrigger value="mine">{t("vacation.tabs.mine")}</TabsTrigger>
+        <TabsTrigger value="mine" onClick={() => onChange("mine")}>
+          {t("vacation.tabs.mine")}
+        </TabsTrigger>
       </TabsList>
     );
   }
@@ -26,9 +30,15 @@ const VacationTabs: React.FC<VacationTabsProps> = ({
   // For other roles, show All, Pending and Approved tabs
   return (
     <TabsList className="grid grid-cols-3 w-full max-w-md">
-      <TabsTrigger value="all">{t("vacation.tabs.all")}</TabsTrigger>
-      <TabsTrigger value="pending">{t("vacation.tabs.pending")}</TabsTrigger>
-      <TabsTrigger value="approved">{t("vacation.tabs.approved")}</TabsTrigger>
+      <TabsTrigger value="all" onClick={() => onChange("all")}>
+        {t("vacation.tabs.all")}
+      </TabsTrigger>
+      <TabsTrigger value="pending" onClick={() => onChange("pending")}>
+        {t("vacation.tabs.pending")}
+      </TabsTrigger>
+      <TabsTrigger value="approved" onClick={() => onChange("approved")}>
+        {t("vacation.tabs.approved")}
+      </TabsTrigger>
     </TabsList>
   );
 };

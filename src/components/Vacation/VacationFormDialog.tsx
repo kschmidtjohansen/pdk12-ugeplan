@@ -23,6 +23,7 @@ interface VacationFormDialogProps {
   reason: string;
   setReason: (reason: string) => void;
   onSubmit: (e: React.FormEvent) => void;
+  isEditing?: boolean;
 }
 
 const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
@@ -32,7 +33,8 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
   setDate,
   reason,
   setReason,
-  onSubmit
+  onSubmit,
+  isEditing = false
 }) => {
   const { t } = useTranslation();
 
@@ -40,7 +42,11 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{t("vacation.applyForVacation")}</DialogTitle>
+          <DialogTitle>
+            {isEditing 
+              ? t("vacation.editVacationRequest") 
+              : t("vacation.applyForVacation")}
+          </DialogTitle>
           <DialogDescription>
             {t("vacation.selectDatesAndReason")}
           </DialogDescription>
@@ -68,7 +74,9 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
               {t("common.cancel")}
             </Button>
             <Button type="submit" className="bg-polygon-purple hover:bg-polygon-darkpurple">
-              {t("vacation.submitRequest")}
+              {isEditing 
+                ? t("common.save") 
+                : t("vacation.submitRequest")}
             </Button>
           </DialogFooter>
         </form>

@@ -18,7 +18,7 @@ interface VacationPageContainerProps {
 
 const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerComponent }) => {
   const { t } = useTranslation();
-  const { isAdmin, isSkadeleder } = usePermissions();
+  const { isAdmin, isSkadeleder, isServicemedarbejder } = usePermissions();
   const [activeTab, setActiveTab] = React.useState("all");
   
   const {
@@ -104,6 +104,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
       
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <VacationTabs
+          isServicemedarbejder={isServicemedarbejder}
           activeTab={activeTab}
           onChange={handleTabChange}
         />
@@ -168,7 +169,8 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
       <VacationActionDialog
         open={actionDialogOpen}
         onOpenChange={setActionDialogOpen}
-        type={actionType}
+        vacation={currentVacation}
+        actionType={actionType}
         note={note}
         setNote={setNote}
         onSubmit={handleActionSubmit}
