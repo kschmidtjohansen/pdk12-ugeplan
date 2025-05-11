@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
+import VehicleStatusWidget from './VehicleStatusWidget';
 
 const DashboardMetrics: React.FC = () => {
   const { vacations } = useVacations();
@@ -93,12 +94,17 @@ const DashboardMetrics: React.FC = () => {
               </p>
             </CardContent>
           </Card>
+          
+          {/* Real-time vehicle status widget for admins and skadeleders */}
+          <div className="md:col-span-2 lg:col-span-2">
+            <VehicleStatusWidget cars={cars} assignments={assignments} />
+          </div>
         </>
       )}
 
       {/* Full width upcoming vacations for admin and skadeleder */}
       {(isAdmin || isSkadeleder) && (
-        <div className="md:col-span-2 lg:col-span-4">
+        <div className={shouldShowMetrics ? "md:col-span-2 lg:col-span-2" : "md:col-span-2 lg:col-span-4"}>
           <UpcomingVacationsWidget vacations={vacations} />
         </div>
       )}

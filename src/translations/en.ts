@@ -1,4 +1,3 @@
-
 const translations = {
   common: {
     login: 'Login',
@@ -23,7 +22,7 @@ const translations = {
     on: 'On',
     off: 'Off',
     create: 'Create user',
-    active: 'Active',
+    available: 'Available',
     status: 'Status',
     saving: 'Saving...',
     noReasonProvided: 'No reason provided',
@@ -301,9 +300,10 @@ const translations = {
     viewAll: 'View all',
     newVacationRequest: 'New vacation request',
     newVacationRequestMsg: '{name} has requested vacation from {from} to {to}',
+    newVacationRequestActionRequired: '{name} has requested vacation from {from} to {to}. Please approve or reject this request.',
     vacationStatusChanged: 'Vacation request status changed',
     vacationApproved: 'Your vacation request has been approved',
-    vacationRejected: 'Your vacation request has been rejected'
+    vacationRejected: 'Your vacation request has been rejected. Reason: {reason}'
   },
   accessDenied: {
     title: 'Access Denied',

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useTranslation } from './TranslationContext';
 import { useAuth } from './AuthContext';
@@ -17,7 +16,7 @@ export interface Notification {
 interface NotificationContextType {
   notifications: Notification[];
   unreadCount: number;
-  addNotification: (notification: Omit<Notification, 'id' | 'read' | 'date'>) => void;
+  addNotification: (notification: Omit<Notification, 'id' | 'read' | 'date'>, targetUserId?: string) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   clearNotification: (id: string) => void;
@@ -69,7 +68,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             {
               id: '1',
               type: 'vacation',
-              title: t('notifications.vacationRequestUpdated'),
+              title: t('notifications.vacationStatusChanged'),
               message: t('notifications.vacationApproved'),
               read: false,
               date: new Date(),
@@ -89,8 +88,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const addNotification = async (notification: Omit<Notification, 'id' | 'read' | 'date'>) => {
-    if (!user) return;
+  const addNotification = async (notification: Omit<Notification, 'id' | 'read' | 'date'>, targetUserId?: string) => {
+    if (!user && !targetUserId) return;
+    
+    const userId = targetUserId || user?.id;
+    if (!userId) return;
     
     try {
       // Create new notification in the database
@@ -98,7 +100,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .from('notifications')
         .insert([
           {
-            user_id: user.id,
+            user_id: userId,
             type: notification.type,
             title: notification.title,
             message: notification.message,
@@ -112,19 +114,21 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         console.error('Error creating notification:', error);
         
         // Fall back to local-only notification if database insert fails
-        const localNotification: Notification = {
-          ...notification,
-          id: Date.now().toString(),
-          read: false,
-          date: new Date()
-        };
-        
-        setNotifications(prev => [localNotification, ...prev]);
+        if (userId === user?.id) {
+          const localNotification: Notification = {
+            ...notification,
+            id: Date.now().toString(),
+            read: false,
+            date: new Date()
+          };
+          
+          setNotifications(prev => [localNotification, ...prev]);
+        }
         return;
       }
       
-      if (data && data.length > 0) {
-        // Add the new notification to the state
+      if (data && data.length > 0 && userId === user?.id) {
+        // Add the new notification to the state only if it's for the current user
         const newNotification: Notification = {
           id: data[0].id,
           type: data[0].type as 'vacation' | 'assignment' | 'system',
@@ -141,14 +145,16 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       console.error('Error in addNotification:', err);
       
       // Fall back to local-only notification if there's an error
-      const localNotification: Notification = {
-        ...notification,
-        id: Date.now().toString(),
-        read: false,
-        date: new Date()
-      };
-      
-      setNotifications(prev => [localNotification, ...prev]);
+      if (userId === user?.id) {
+        const localNotification: Notification = {
+          ...notification,
+          id: Date.now().toString(),
+          read: false,
+          date: new Date()
+        };
+        
+        setNotifications(prev => [localNotification, ...prev]);
+      }
     }
   };
 

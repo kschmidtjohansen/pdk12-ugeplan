@@ -17,7 +17,16 @@ const translations = {
     yes: 'Ja',
     no: 'Nej',
     language: 'Sprog',
-    actions: 'Handlinger'
+    actions: 'Handlinger',
+    optional: 'valgfrit',
+    on: 'Til',
+    off: 'Fra',
+    create: 'Opret bruger',
+    available: 'Tilgængelig',
+    status: 'Status',
+    saving: 'Gemmer...',
+    noReasonProvided: 'Ingen årsag angivet',
+    noData: 'Ingen data tilgængelig'
   },
   login: {
     title: 'Log ind',
@@ -69,9 +78,37 @@ const translations = {
     assignments: {
       waterDamage: 'Vandskade inspektion',
       fireDamage: 'Brandskade restaurering',
-      mold: 'Skimmelsvamp vurdering'
+      mold: 'Skimmelsvamp vurdering',
+      other: 'Andre opgaver'
     },
-    location: 'Lokation'
+    location: 'Lokation',
+    systemMetrics: 'System Metrikker',
+    metrics: {
+      activeAssignments: 'Aktive Opgaver',
+      activeAssignmentsDesc: 'Igangværende publicerede opgaver',
+      upcomingVacations: 'Kommende Ferier',
+      upcomingVacationsDesc: 'Godkendte ferieanmodninger',
+      vehicleStatus: 'Køretøjsstatus',
+      vehicleStatusDesc: 'Tilgængelige / Samlede køretøjer',
+      employeeActivity: 'Medarbejderaktivitet',
+      employeeActivityDesc: 'Gennemsnitlig aktivitetsrate denne måned'
+    },
+    charts: {
+      assignmentDistribution: 'Opgavefordeling'
+    },
+    upcomingVacations: 'Kommende Ferier',
+    noUpcomingVacations: 'Ingen kommende ferier planlagt',
+    vehicleStatus: 'Køretøjsstatus',
+    available: 'Tilgængelig',
+    inUse: 'I brug',
+    availableEmployees: 'Tilgængelige Medarbejdere',
+    onLeaveEmployees: 'Fraværende Medarbejdere',
+    totalEmployees: 'Samlede medarbejdere: {count}',
+    availableCars: 'Tilgængelige Biler',
+    todayAssignments: 'Dagens Opgaver',
+    scheduledToday: 'Opgaver planlagt til i dag',
+    upcomingAssignments: 'Kommende Opgaver',
+    noData: 'Ingen data tilgængelig'
   },
   planner: {
     weekDescription: 'Uge {week} - Opgaver',
@@ -152,11 +189,13 @@ const translations = {
     },
     systemMetrics: {
       totalUsers: 'Antal Brugere',
-      totalUsersDesc: '5 aktive i dag',
+      totalUsersDesc: '{count} aktive i dag',
       vehicles: 'Køretøjer',
-      vehiclesDesc: '3 i brug nu',
+      vehiclesDesc: '{count} i brug nu',
       vacationRequests: 'Ferieansøgninger',
-      vacationRequestsDesc: '2 afventer godkendelse'
+      vacationRequestsDesc: 'afventer godkendelse',
+      scheduledTasks: 'Planlagte Opgaver',
+      scheduledTasksDesc: 'Opgaver for denne uge'
     },
     userManagement: {
       title: 'Brugeradministration',
@@ -192,8 +231,12 @@ const translations = {
     markAllAsRead: 'Marker alle som læst',
     noNotifications: 'Ingen notifikationer',
     viewAll: 'Se alle',
-    newVacationRequest: 'Ny ansøgning om fridag',
-    newVacationRequestMsg: '{name} har ansøgt om fri fra {from} til {to}'
+    newVacationRequest: 'Ny ansøgning om fridage',
+    newVacationRequestMsg: '{name} har ansøgt om fri fra {from} til {to}',
+    newVacationRequestActionRequired: '{name} har ansøgt om fri fra {from} til {to}. Venligst godkend eller afvis denne ansøgning.',
+    vacationStatusChanged: 'Status på ferieansøgning ændret',
+    vacationApproved: 'Din ferieansøgning er blevet godkendt',
+    vacationRejected: 'Din ferieansøgning er blevet afvist. Årsag: {reason}'
   },
   accessDenied: {
     title: 'Adgang Nægtet',

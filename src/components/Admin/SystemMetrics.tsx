@@ -35,12 +35,22 @@ interface SystemMetricsProps {
   onUsersClick?: () => void;
   onVehiclesClick?: () => void;
   onVacationClick?: () => void;
+  usersCount: number;
+  vehiclesCount: number;
+  pendingVacationCount: number;
+  activeUsersCount?: number;
+  inUseVehiclesCount?: number;
 }
 
 const SystemMetrics: React.FC<SystemMetricsProps> = ({ 
   onUsersClick, 
   onVehiclesClick, 
-  onVacationClick 
+  onVacationClick,
+  usersCount,
+  vehiclesCount,
+  pendingVacationCount,
+  activeUsersCount = 0,
+  inUseVehiclesCount = 0
 }) => {
   const { t } = useTranslation();
   
@@ -48,21 +58,21 @@ const SystemMetrics: React.FC<SystemMetricsProps> = ({
     <div className="grid gap-4 md:grid-cols-3">
       <MetricCard
         title={t('admin.systemMetrics.totalUsers')}
-        value="12"
-        description={t('admin.systemMetrics.totalUsersDesc')}
+        value={usersCount.toString()}
+        description={t('admin.systemMetrics.totalUsersDesc', { count: activeUsersCount })}
         icon={<Users className="h-4 w-4 text-muted-foreground" />}
         onClick={onUsersClick}
       />
       <MetricCard
         title={t('admin.systemMetrics.vehicles')}
-        value="8"
-        description={t('admin.systemMetrics.vehiclesDesc')}
+        value={vehiclesCount.toString()}
+        description={t('admin.systemMetrics.vehiclesDesc', { count: inUseVehiclesCount })}
         icon={<Car className="h-4 w-4 text-muted-foreground" />}
         onClick={onVehiclesClick}
       />
       <MetricCard
         title={t('admin.systemMetrics.vacationRequests')}
-        value="4"
+        value={pendingVacationCount.toString()}
         description={t('admin.systemMetrics.vacationRequestsDesc')}
         icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
         onClick={onVacationClick}

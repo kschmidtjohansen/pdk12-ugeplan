@@ -103,15 +103,17 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
         });
       }
 
-      // Generate notification for administrators
+      // Enhanced notification for administrators with action prompts
       if (user.role !== 'administrator') {
         const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
         const formattedStartDate = format(date.from, dateFormat);
         const formattedEndDate = format(date.to, dateFormat);
+        
+        // Enhanced notification with action request
         addNotification({
           type: 'vacation',
           title: t("notifications.newVacationRequest"),
-          message: t("notifications.newVacationRequestMsg", {
+          message: t("notifications.newVacationRequestActionRequired", {
             name: requestEmployeeName,
             from: formattedStartDate,
             to: formattedEndDate

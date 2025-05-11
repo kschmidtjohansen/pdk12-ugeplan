@@ -8,6 +8,10 @@ import { useNavigate } from 'react-router-dom';
 import UserManagement from '@/components/Admin/UserManagement';
 import SystemMetrics from '@/components/Admin/SystemMetrics';
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
+import { useEmployees } from '@/hooks/useEmployees';
+import { useCars } from '@/hooks/useCars';
+import { useVacations } from '@/hooks/useVacations';
+import { format } from 'date-fns';
 
 const AdminPage: React.FC = () => {
   const { isAdmin } = usePermissions();
@@ -15,6 +19,9 @@ const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = React.useState("metrics");
   const { assignments } = usePlannerAssignments();
+  const { employees } = useEmployees();
+  const { cars } = useCars();
+  const { vacations } = useVacations();
 
   // Redirect if not an admin
   React.useEffect(() => {
@@ -22,6 +29,28 @@ const AdminPage: React.FC = () => {
       navigate('/dashboard');
     }
   }, [isAdmin, navigate]);
+
+  // Calculate metrics based on real data
+  const usersCount = employees.length;
+  const activeUsersCount = employees.filter(e => !e.onLeave).length;
+  const vehiclesCount = cars.length;
+  
+  // Get today's date in YYYY-MM-DD format
+  const today = format(new Date(), 'yyyy-MM-dd');
+  
+  // Count vehicles in use today based on assignments
+  const inUseVehiclesCount = assignments
+    .filter(a => a.date === today && a.car)
+    .reduce((uniqueCars, assignment) => {
+      const carId = typeof assignment.car === 'string' ? assignment.car : assignment.car?.id;
+      if (carId && !uniqueCars.includes(carId)) {
+        uniqueCars.push(carId);
+      }
+      return uniqueCars;
+    }, [] as string[]).length;
+  
+  // Count pending vacation requests
+  const pendingVacationCount = vacations.filter(v => v.status === 'pending').length;
 
   const handleUsersClick = () => {
     setActiveTab("users");
@@ -53,7 +82,7 @@ const AdminPage: React.FC = () => {
         </TabsList>
         <TabsContent value="metrics" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {/* Additional scheduled tasks metric card */}
+            {/* Scheduled tasks metric card */}
             <div 
               className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
               onClick={handleTasksClick}
@@ -68,6 +97,11 @@ const AdminPage: React.FC = () => {
             onUsersClick={handleUsersClick}
             onVehiclesClick={handleVehiclesClick}
             onVacationClick={handleVacationClick}
+            usersCount={usersCount}
+            vehiclesCount={vehiclesCount}
+            pendingVacationCount={pendingVacationCount}
+            activeUsersCount={activeUsersCount}
+            inUseVehiclesCount={inUseVehiclesCount}
           />
         </TabsContent>
         <TabsContent value="users" className="mt-6">
