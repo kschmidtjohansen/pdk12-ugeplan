@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from '../../context/TranslationContext';
 
 interface VacationTabsProps {
@@ -19,27 +19,31 @@ const VacationTabs: React.FC<VacationTabsProps> = ({
   // For service employees, only show the "mine" tab
   if (isServicemedarbejder) {
     return (
-      <TabsList className="grid grid-cols-1 w-full max-w-md">
-        <TabsTrigger value="mine" onClick={() => onChange("mine")}>
-          {t("vacation.tabs.mine")}
-        </TabsTrigger>
-      </TabsList>
+      <Tabs value={activeTab} onValueChange={onChange} className="w-full">
+        <TabsList className="grid grid-cols-1 w-full max-w-md">
+          <TabsTrigger value="mine">
+            {t("vacation.tabs.mine")}
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
     );
   }
 
   // For other roles, show All, Pending and Approved tabs
   return (
-    <TabsList className="grid grid-cols-3 w-full max-w-md">
-      <TabsTrigger value="all" onClick={() => onChange("all")}>
-        {t("vacation.tabs.all")}
-      </TabsTrigger>
-      <TabsTrigger value="pending" onClick={() => onChange("pending")}>
-        {t("vacation.tabs.pending")}
-      </TabsTrigger>
-      <TabsTrigger value="approved" onClick={() => onChange("approved")}>
-        {t("vacation.tabs.approved")}
-      </TabsTrigger>
-    </TabsList>
+    <Tabs value={activeTab} onValueChange={onChange} className="w-full">
+      <TabsList className="grid grid-cols-3 w-full max-w-md">
+        <TabsTrigger value="all">
+          {t("vacation.tabs.all")}
+        </TabsTrigger>
+        <TabsTrigger value="pending">
+          {t("vacation.tabs.pending")}
+        </TabsTrigger>
+        <TabsTrigger value="approved">
+          {t("vacation.tabs.approved")}
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
   );
 };
 

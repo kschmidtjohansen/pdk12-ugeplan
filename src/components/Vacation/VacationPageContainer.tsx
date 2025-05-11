@@ -55,11 +55,6 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   const [actionType, setActionType] = React.useState<"approve" | "reject">("approve");
   const [currentVacation, setCurrentVacation] = React.useState<any>(null);
   
-  // Manage tabs
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
-  
   // Open the dialog for regular employees to request vacation
   const handleOpenDialog = () => {
     setDialogOpen(true);
@@ -106,7 +101,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         <VacationTabs
           isServicemedarbejder={isServicemedarbejder}
           activeTab={activeTab}
-          onChange={handleTabChange}
+          onChange={setActiveTab}
         />
         
         <div className="flex gap-2">
@@ -150,6 +145,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         reason={reason}
         setReason={setReason}
         onSubmit={submitVacationRequest}
+        isEditing={false}
       />
       
       {/* Admin vacation request dialog */}
