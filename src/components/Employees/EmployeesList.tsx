@@ -129,19 +129,25 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                         <Trash2 className="h-4 w-4 mr-1" />
                         {t("common.delete")}
                       </Button>
-                      <Button 
-                        variant="ghost"
-                        size="sm" 
-                        onClick={() => onToggleLeave(employee)} 
-                        className={`${employee.onLeave ? 'text-green-600 hover:text-green-800' : 'text-amber-600 hover:text-amber-800'} ml-2`}
-                      >
-                        {employee.onLeave ? (
-                          <UserCheck className="h-4 w-4 mr-1" />
-                        ) : (
-                          <UserMinus className="h-4 w-4 mr-1" />
-                        )}
-                        {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost"
+                            size="icon" 
+                            onClick={() => onToggleLeave(employee)} 
+                            className={`${employee.onLeave ? 'text-green-600 hover:text-green-800' : 'text-amber-600 hover:text-amber-800'} ml-2`}
+                          >
+                            {employee.onLeave ? (
+                              <UserCheck className="h-4 w-4" />
+                            ) : (
+                              <UserMinus className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
+                        </TooltipContent>
+                      </Tooltip>
                     </td>
                   )}
                 </tr>

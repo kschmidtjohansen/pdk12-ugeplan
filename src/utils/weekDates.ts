@@ -1,29 +1,29 @@
 
 // Generate the first and last day of a given week
 export const getWeekDates = (weekOffset = 0) => {
-  // Calculate the first day (Monday) and last day (Sunday) of the current week (week 19)
-  const currentWeekStart = new Date(2025, 4, 5); // May 5, 2025 (Monday of week 19)
-  const currentWeekEnd = new Date(2025, 4, 11); // May 11, 2025 (Sunday of week 19)
+  // Get the current date
+  const today = new Date();
   
-  let firstDayOfWeek: Date;
-  let lastDayOfWeek: Date;
+  // Find the Monday (start) of the current week
+  const currentDay = today.getDay(); // 0 is Sunday, 1 is Monday, etc.
+  const diff = currentDay === 0 ? 6 : currentDay - 1; // Adjust for Monday as first day
   
-  if (weekOffset === 0) {
-    // Week 19 (current week: May 5-11, 2025)
-    firstDayOfWeek = new Date(currentWeekStart);
-    lastDayOfWeek = new Date(currentWeekEnd);
-  } else {
-    // Calculate dates based on offset from week 19
-    firstDayOfWeek = new Date(currentWeekStart);
-    lastDayOfWeek = new Date(currentWeekEnd);
-    
-    // Add the weekOffset (in days) to get to the requested week
-    firstDayOfWeek.setDate(firstDayOfWeek.getDate() + (weekOffset * 7));
-    lastDayOfWeek.setDate(lastDayOfWeek.getDate() + (weekOffset * 7));
-  }
+  // Calculate current week's Monday
+  const currentWeekStart = new Date(today);
+  currentWeekStart.setDate(today.getDate() - diff);
+  currentWeekStart.setHours(0, 0, 0, 0);
   
-  firstDayOfWeek.setHours(0, 0, 0, 0);
-  lastDayOfWeek.setHours(23, 59, 59, 999);
+  // Calculate current week's Sunday
+  const currentWeekEnd = new Date(currentWeekStart);
+  currentWeekEnd.setDate(currentWeekStart.getDate() + 6);
+  currentWeekEnd.setHours(23, 59, 59, 999);
+  
+  // Calculate the requested week based on offset
+  const firstDayOfWeek = new Date(currentWeekStart);
+  firstDayOfWeek.setDate(firstDayOfWeek.getDate() + (weekOffset * 7));
+  
+  const lastDayOfWeek = new Date(currentWeekEnd);
+  lastDayOfWeek.setDate(lastDayOfWeek.getDate() + (weekOffset * 7));
   
   return {
     start: firstDayOfWeek,
@@ -33,6 +33,12 @@ export const getWeekDates = (weekOffset = 0) => {
 
 // Calculate the current week number
 export const getCurrentWeekNumber = () => {
-  // Since we're using May 5-11, 2025 as our reference date, it's week 19
-  return 19;
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const days = Math.floor((now.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
+  
+  // Calculate the current week number (add 1 because weeks start at 1)
+  const weekNumber = Math.ceil((days + start.getDay()) / 7);
+  
+  return weekNumber;
 };

@@ -26,22 +26,31 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
   isLoading = false
 }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, isAdmin, isSkadeleder } = useAuth();
   
   // Filter vacations based on tab
   const filteredVacations = React.useMemo(() => {
+    // For admin/skadeleders, filter out rejected applications except in "all" tab
+    let filtered = vacations;
+    
+    // If user is admin or skadeleder and not in "all" tab, filter out rejected ones
+    if ((isAdmin || isSkadeleder) && tabValue !== 'all') {
+      filtered = vacations.filter(v => v.status !== 'rejected');
+    }
+    
+    // Now apply tab-specific filters
     switch (tabValue) {
       case 'pending':
-        return vacations.filter((v) => v.status === 'pending');
+        return filtered.filter((v) => v.status === 'pending');
       case 'approved':
-        return vacations.filter((v) => v.status === 'approved');
+        return filtered.filter((v) => v.status === 'approved');
       case 'mine':
-        return vacations.filter((v) => v.employeeId === user?.id);
+        return vacations.filter((v) => v.employeeId === user?.id); // Show all mine regardless of status
       case 'all':
       default:
-        return vacations;
+        return filtered;
     }
-  }, [vacations, tabValue, user?.id]);
+  }, [vacations, tabValue, user?.id, isAdmin, isSkadeleder]);
   
   return (
     <div className="mt-6">

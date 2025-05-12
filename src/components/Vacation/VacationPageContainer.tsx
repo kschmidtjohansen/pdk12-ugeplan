@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useVacations } from '@/hooks/useVacations';
 import { usePermissions } from '@/context/AuthContext';
@@ -182,6 +181,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         setReason={setReason}
         onSubmit={submitEditVacation}
         isEditing={true}
+        onDelete={handleDeleteVacation}
       />
       
       {/* Delete confirmation dialog */}
