@@ -111,43 +111,64 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                   </td>
                   {isAdmin && (
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => onEdit(employee)} 
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        {t("common.edit")}
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => onDelete(employee)} 
-                        className="text-red-600 hover:text-red-800 ml-2"
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        {t("common.delete")}
-                      </Button>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost"
-                            size="icon" 
-                            onClick={() => onToggleLeave(employee)} 
-                            className={`${employee.onLeave ? 'text-green-600 hover:text-green-800' : 'text-amber-600 hover:text-amber-800'} ml-2`}
-                          >
-                            {employee.onLeave ? (
-                              <UserCheck className="h-4 w-4" />
-                            ) : (
-                              <UserMinus className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
-                        </TooltipContent>
-                      </Tooltip>
+                      <div className="flex justify-end space-x-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => onEdit(employee)} 
+                              className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800"
+                            >
+                              <span className="sr-only">{t("common.edit")}</span>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            {t("common.edit")}
+                          </TooltipContent>
+                        </Tooltip>
+                        
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => onDelete(employee)} 
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
+                            >
+                              <span className="sr-only">{t("common.delete")}</span>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            {t("common.delete")}
+                          </TooltipContent>
+                        </Tooltip>
+                        
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost"
+                              size="icon" 
+                              onClick={() => onToggleLeave(employee)} 
+                              className={`h-8 w-8 p-0 ${employee.onLeave ? 'text-green-600 hover:text-green-800' : 'text-amber-600 hover:text-amber-800'}`}
+                            >
+                              <span className="sr-only">
+                                {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
+                              </span>
+                              {employee.onLeave ? (
+                                <UserCheck className="h-4 w-4" />
+                              ) : (
+                                <UserMinus className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                     </td>
                   )}
                 </tr>

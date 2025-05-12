@@ -1,10 +1,12 @@
 
-// Generate the first and last day of a given week
+import { getISOWeek } from "date-fns";
+
+// Generate the first and last day of a given week (ISO week, Monday-Sunday)
 export const getWeekDates = (weekOffset = 0) => {
   // Get the current date
   const today = new Date();
   
-  // Find the Monday (start) of the current week
+  // Find the Monday (start) of the current week (ISO week starts on Monday)
   const currentDay = today.getDay(); // 0 is Sunday, 1 is Monday, etc.
   const diff = currentDay === 0 ? 6 : currentDay - 1; // Adjust for Monday as first day
   
@@ -31,14 +33,8 @@ export const getWeekDates = (weekOffset = 0) => {
   };
 };
 
-// Calculate the current week number
+// Calculate the current week number based on ISO standard (weeks start on Monday)
 export const getCurrentWeekNumber = () => {
   const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const days = Math.floor((now.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
-  
-  // Calculate the current week number (add 1 because weeks start at 1)
-  const weekNumber = Math.ceil((days + start.getDay()) / 7);
-  
-  return weekNumber;
+  return getISOWeek(now);
 };

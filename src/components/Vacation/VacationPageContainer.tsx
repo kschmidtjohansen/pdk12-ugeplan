@@ -1,15 +1,11 @@
+
 import React from 'react';
 import { useVacations } from '@/hooks/useVacations';
 import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import VacationTabs from './VacationTabs';
 import VacationTabContent from './VacationTabContent';
-import VacationFormDialog from './VacationFormDialog';
-import VacationActionDialog from './VacationActionDialog';
-import AdminVacationFormDialog from './AdminVacationFormDialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import VacationHeader from './VacationHeader';
+import VacationDialogs from './VacationDialogs';
 
 interface VacationPageContainerProps {
   headerComponent: React.ReactNode;
@@ -99,37 +95,22 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     }
   };
   
+  // Handle admin vacation request submission
+  const submitAdminVacationRequest = (e: React.FormEvent) => {
+    submitVacationRequest(e, true);
+  };
+  
   return (
     <div>
       {headerComponent}
       
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-        <VacationTabs
-          isServicemedarbejder={isServicemedarbejder}
-          activeTab={activeTab}
-          onChange={setActiveTab}
-        />
-        
-        <div className="flex gap-2">
-          <Button 
-            onClick={handleOpenDialog}
-            className="bg-polygon-blue hover:bg-polygon-darkblue"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            {t("vacation.applyForVacation")}
-          </Button>
-          
-          {(isAdmin || isSkadeleder) && (
-            <Button 
-              onClick={handleOpenAdminDialog} 
-              variant="outline"
-              className="bg-white"
-            >
-              {t("vacation.requestForEmployee")}
-            </Button>
-          )}
-        </div>
-      </div>
+      <VacationHeader 
+        isServicemedarbejder={isServicemedarbejder}
+        activeTab={activeTab}
+        onChangeTab={setActiveTab}
+        onOpenRequestDialog={handleOpenDialog}
+        onOpenAdminDialog={handleOpenAdminDialog}
+      />
       
       {/* Vacation tab content with all vacation cards */}
       <VacationTabContent
@@ -142,75 +123,35 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         isLoading={loading}
       />
       
-      {/* Regular vacation request dialog */}
-      <VacationFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
+      <VacationDialogs
         date={date}
         setDate={setDate}
         reason={reason}
         setReason={setReason}
-        onSubmit={submitVacationRequest}
-        isEditing={false}
-      />
-      
-      {/* Admin vacation request dialog */}
-      <AdminVacationFormDialog
-        open={adminDialogOpen}
-        onOpenChange={setAdminDialogOpen}
-        date={date}
-        setDate={setDate}
-        reason={reason}
-        setReason={setReason}
-        selectedEmployeeId={selectedEmployeeId}
-        setSelectedEmployeeId={setSelectedEmployeeId}
-        onSubmit={(e) => submitVacationRequest(e, true)}
-      />
-      
-      {/* Vacation action dialog (approve/reject) */}
-      <VacationActionDialog
-        open={actionDialogOpen}
-        onOpenChange={setActionDialogOpen}
-        vacation={currentVacation}
-        actionType={actionType}
         note={note}
         setNote={setNote}
-        onSubmit={handleActionSubmit}
+        dialogOpen={dialogOpen}
+        setDialogOpen={setDialogOpen}
+        adminDialogOpen={adminDialogOpen}
+        setAdminDialogOpen={setAdminDialogOpen}
+        editDialogOpen={editDialogOpen}
+        setEditDialogOpen={setEditDialogOpen}
+        deleteDialogOpen={deleteDialogOpen}
+        setDeleteDialogOpen={setDeleteDialogOpen}
+        actionDialogOpen={actionDialogOpen}
+        setActionDialogOpen={setActionDialogOpen}
+        selectedVacation={selectedVacation}
+        currentVacation={currentVacation}
+        selectedEmployeeId={selectedEmployeeId}
+        setSelectedEmployeeId={setSelectedEmployeeId}
+        actionType={actionType}
+        submitVacationRequest={submitVacationRequest}
+        submitAdminVacationRequest={submitAdminVacationRequest}
+        submitEditVacation={submitEditVacation}
+        handleActionSubmit={handleActionSubmit}
+        confirmDeleteVacation={confirmDeleteVacation}
+        handleDeleteCurrentVacation={handleDeleteCurrentVacation}
       />
-      
-      {/* Edit vacation dialog */}
-      <VacationFormDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        date={date}
-        setDate={setDate}
-        reason={reason}
-        setReason={setReason}
-        onSubmit={submitEditVacation}
-        isEditing={true}
-        onDelete={handleDeleteCurrentVacation} // Pass the wrapper function with no params
-      />
-      
-      {/* Delete confirmation dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('common.areYouSure')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('common.deleteWarning')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDeleteVacation}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {t('common.delete')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
