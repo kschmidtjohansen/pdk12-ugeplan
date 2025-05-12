@@ -25,7 +25,7 @@ interface VacationFormDialogProps {
   setReason: (reason: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   isEditing?: boolean;
-  onDelete?: () => void;
+  onDelete?: () => void; // Changed to match the expected signature with no parameters
 }
 
 const VacationFormDialog: React.FC<VacationFormDialogProps> = ({

@@ -92,6 +92,13 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     setNote("");
   };
   
+  // Wrapper for delete vacation to pass to dialog with no parameters
+  const handleDeleteCurrentVacation = () => {
+    if (selectedVacation) {
+      handleDeleteVacation(selectedVacation);
+    }
+  };
+  
   return (
     <div>
       {headerComponent}
@@ -181,7 +188,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         setReason={setReason}
         onSubmit={submitEditVacation}
         isEditing={true}
-        onDelete={handleDeleteVacation}
+        onDelete={handleDeleteCurrentVacation} // Pass the wrapper function with no params
       />
       
       {/* Delete confirmation dialog */}
