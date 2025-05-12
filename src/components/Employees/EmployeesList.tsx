@@ -3,7 +3,7 @@ import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, AlertCircle } from 'lucide-react';
+import { Edit, Trash2, AlertCircle, Mail, Phone, UserCheck, UserMinus } from 'lucide-react';
 import { Employee } from '@/types/employee';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -85,8 +85,12 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{employee.email}</div>
-                    <div className="text-sm text-gray-500">{employee.phone}</div>
+                    <div className="text-sm text-gray-900 flex items-center">
+                      <Mail size={16} className="mr-2 text-gray-500" /> {employee.email}
+                    </div>
+                    <div className="text-sm text-gray-500 flex items-center mt-1">
+                      <Phone size={16} className="mr-2 text-gray-500" /> {employee.phone}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {t(`admin.roles.${employee.role}`)}
@@ -126,11 +130,16 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                         {t("common.delete")}
                       </Button>
                       <Button 
-                        variant="outline" 
+                        variant="ghost"
                         size="sm" 
                         onClick={() => onToggleLeave(employee)} 
-                        className="text-amber-600 hover:text-amber-800 ml-2"
+                        className={`${employee.onLeave ? 'text-green-600 hover:text-green-800' : 'text-amber-600 hover:text-amber-800'} ml-2`}
                       >
+                        {employee.onLeave ? (
+                          <UserCheck className="h-4 w-4 mr-1" />
+                        ) : (
+                          <UserMinus className="h-4 w-4 mr-1" />
+                        )}
                         {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
                       </Button>
                     </td>

@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { DateRange } from 'react-day-picker';
 import { useTranslation } from '../../context/TranslationContext';
 import VacationDateSelector from './VacationDateSelector';
+import { Trash2 } from 'lucide-react';
 
 interface VacationFormDialogProps {
   open: boolean;
@@ -24,6 +25,7 @@ interface VacationFormDialogProps {
   setReason: (reason: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   isEditing?: boolean;
+  onDelete?: () => void;
 }
 
 const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
@@ -34,7 +36,8 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
   reason,
   setReason,
   onSubmit,
-  isEditing = false
+  isEditing = false,
+  onDelete
 }) => {
   const { t } = useTranslation();
 
@@ -69,15 +72,28 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
             />
           </div>
           
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" className="bg-polygon-purple hover:bg-polygon-darkpurple">
-              {isEditing 
-                ? t("common.save") 
-                : t("vacation.submitRequest")}
-            </Button>
+          <DialogFooter className={isEditing ? "flex-col space-y-2 sm:space-y-0 sm:flex-row sm:justify-between" : ""}>
+            {isEditing && onDelete && (
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={onDelete} 
+                className="w-full sm:w-auto"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {t("common.delete")}
+              </Button>
+            )}
+            <div className={`flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:space-x-2 ${isEditing ? "w-full sm:w-auto" : "w-full"}`}>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
+                {t("common.cancel")}
+              </Button>
+              <Button type="submit" className="bg-polygon-purple hover:bg-polygon-darkpurple w-full sm:w-auto">
+                {isEditing 
+                  ? t("common.save") 
+                  : t("vacation.submitRequest")}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>

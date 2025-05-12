@@ -29,11 +29,11 @@ export const formatDateWithCapital = (dateString: string, locale: string = 'en')
         month: 'long'
       } as Intl.DateTimeFormatOptions;
       
-      // Format like: Mandag d. 9. maj
+      // Format like: Mandag d. 5. maj
       const formattedDate = date.toLocaleDateString('da-DK', options);
       return formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
     } else {
-      // Format like: Monday, January 1
+      // Format like: Monday, May 5
       options = {
         weekday: 'long',
         month: 'long',

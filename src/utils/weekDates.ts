@@ -1,8 +1,6 @@
 
 // Generate the first and last day of a given week
 export const getWeekDates = (weekOffset = 0) => {
-  const baseDate = new Date(2025, 4, 10); // May 10th, 2025 (base date)
-  
   // Calculate the first day (Monday) and last day (Sunday) of the current week (week 19)
   const currentWeekStart = new Date(2025, 4, 5); // May 5, 2025 (Monday of week 19)
   const currentWeekEnd = new Date(2025, 4, 11); // May 11, 2025 (Sunday of week 19)
@@ -35,6 +33,6 @@ export const getWeekDates = (weekOffset = 0) => {
 
 // Calculate the current week number
 export const getCurrentWeekNumber = () => {
-  // Since we're using May 10, 2025 as our reference date, it's week 19
+  // Since we're using May 5-11, 2025 as our reference date, it's week 19
   return 19;
 };
