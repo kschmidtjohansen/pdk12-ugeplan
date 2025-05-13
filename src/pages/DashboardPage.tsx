@@ -30,8 +30,9 @@ const DashboardPage: React.FC = () => {
   // Use the fixed getCurrentWeekNumber function
   const currentWeek = getCurrentWeekNumber();
   
-  // Get the current week dates
-  const weekDates = getWeekDates(0); // 0 for current week
+  // Get the current week dates - providing both required arguments
+  // First argument is the offset (0 for current week), second is the year (current year)
+  const weekDates = getWeekDates(0, new Date().getFullYear());
   
   // Convert start/end dates to ISO strings
   const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
