@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
@@ -49,8 +48,11 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   // Group assignments by date
   const groupedAssignments = groupByDate(visibleAssignments);
   
-  // Create a date for each day of the week
-  const allWeekDays = weekDates ? getAllWeekDays(weekDates) : [];
+  // Create array of weekdays - ensuring we use the actual weekDates object
+  const allWeekDays = weekDates ? getAllWeekDays({ 
+    start: new Date(weekDates.start), 
+    end: new Date(weekDates.end) 
+  }) : [];
   
   // Debug the week days
   console.log("Week days from getAllWeekDays:", allWeekDays);

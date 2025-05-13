@@ -65,6 +65,7 @@ export const getWeekDates = (weekNumber: number, year: number) => {
     }
   }
   
+  // Create date objects that are timezone-safe for comparison
   return {
     start: weekStart,
     end: weekEnd,

@@ -49,8 +49,6 @@ export const getAllWeekDays = (
   { start, end }: { start: Date, end: Date, weekNumber?: number, year?: number }
 ): string[] => {
   const days: string[] = [];
-  // Create a new date object to avoid modifying the original start date
-  const currentDate = new Date(start);
   
   // Debug log week range
   console.log(`Getting all week days from: ${format(start, 'yyyy-MM-dd')} (${format(start, 'EEEE')}) to ${format(end, 'yyyy-MM-dd')} (${format(end, 'EEEE')})`);
@@ -64,6 +62,9 @@ export const getAllWeekDays = (
   if (end.getDay() !== 0) {
     console.warn(`End day is not Sunday! Got: ${format(end, 'EEEE')} (day ${end.getDay()})`);
   }
+  
+  // Create a new date object to avoid modifying the original start date
+  const currentDate = new Date(start);
   
   // Set to beginning of the day
   currentDate.setHours(0, 0, 0, 0);
