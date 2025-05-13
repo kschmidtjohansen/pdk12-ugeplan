@@ -6,7 +6,7 @@ import {
   setISOWeek, 
   setISOWeekYear
 } from "date-fns";
-import { da } from "date-fns/locale"; // Import Danish locale from the correct path
+import { da } from "date-fns/locale"; // Import Danish locale
 
 // Group assignments by day (YYYY-MM-DD format)
 export const groupAssignmentsByDay = (assignments: any[]) => {
@@ -32,13 +32,14 @@ export const formatDateWithCapital = (dateString: string, locale: string = 'en')
     if (locale === 'da') {
       // Format like: "Mandag d. 5. maj" with capitalized first letter
       const formatted = format(date, "EEEE 'd.' d'.' MMMM", { locale: da });
+      // Ensure first letter is capitalized
       return formatted.charAt(0).toUpperCase() + formatted.slice(1);
     } else {
       // Format like: "Monday, May 5"
       return format(date, "EEEE, MMMM d");
     }
   } catch (error) {
-    console.error("Error formatting date:", error);
+    console.error("Error formatting date:", error, "for date string:", dateString);
     return dateString; // Fall back to original string if formatting fails
   }
 };

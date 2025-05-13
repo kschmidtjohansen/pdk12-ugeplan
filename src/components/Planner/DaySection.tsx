@@ -33,6 +33,7 @@ const DaySection: React.FC<DaySectionProps> = ({
   canPublishTasks
 }) => {
   const { t, currentLanguage } = useTranslation();
+  
   // Use the formatDateWithCapital function with the current language
   const formattedDate = formatDateWithCapital(dateKey, currentLanguage);
   

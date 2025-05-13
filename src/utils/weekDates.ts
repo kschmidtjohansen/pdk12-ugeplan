@@ -5,9 +5,10 @@ import {
   startOfISOWeek, 
   endOfISOWeek, 
   setISOWeek, 
-  setISOWeekYear
+  setISOWeekYear,
+  getDay
 } from "date-fns";
-import { da } from "date-fns/locale"; // Import Danish locale from the correct path
+import { da } from "date-fns/locale"; // Import Danish locale
 
 /**
  * Get the date range for a specific ISO week number and year
@@ -36,6 +37,16 @@ export const getWeekDates = (weekNumber: number, year: number) => {
   // Add comprehensive debug logging
   console.log(`Week ${weekNumber}, ${year} - Start: ${format(weekStart, 'yyyy-MM-dd')} (${format(weekStart, 'EEEE', { locale: da })})`);
   console.log(`Week ${weekNumber}, ${year} - End: ${format(weekEnd, 'yyyy-MM-dd')} (${format(weekEnd, 'EEEE', { locale: da })})`);
+  
+  // If we're debugging week 20, add extra logging
+  if (weekNumber === 20 && year === 2025) {
+    console.log("DEBUGGING WEEK 20 OF 2025:");
+    for (let i = 0; i <= 6; i++) {
+      const day = new Date(weekStart);
+      day.setDate(weekStart.getDate() + i);
+      console.log(`  Day ${i+1}: ${format(day, 'yyyy-MM-dd')} - ${format(day, 'EEEE d. MMMM', { locale: da })}`);
+    }
+  }
   
   return {
     start: weekStart,
@@ -111,7 +122,7 @@ export const getNextWeekInfo = (weekNumber: number, year: number) => {
 };
 
 /**
- * Format a week date range as a string
+ * Format a week date range as a string with proper Danish capitalization
  * Example: "Mandag 12. - Søndag 18. maj" (Danish)
  * or "Monday, May 12 - Sunday, May 18" (English)
  */
@@ -123,8 +134,12 @@ export const formatWeekDateRange = (weekDates: { start: Date; end: Date }, local
       const endDay = format(weekDates.end, 'EEEE d.', { locale: da });
       const month = format(weekDates.end, 'MMMM', { locale: da });
       
-      // Combine with correct capitalization for Danish
-      const formattedRange = `${startDay.charAt(0).toUpperCase()}${startDay.slice(1)} - ${endDay.charAt(0).toUpperCase()}${endDay.slice(1)} ${month}`;
+      // Extract first letter and capitalize it, then add the rest of the string
+      const startDayCapitalized = startDay.charAt(0).toUpperCase() + startDay.slice(1);
+      const endDayCapitalized = endDay.charAt(0).toUpperCase() + endDay.slice(1);
+      
+      // Combine with proper Danish formatting
+      const formattedRange = `${startDayCapitalized} - ${endDayCapitalized} ${month}`;
       console.log("Formatted date range (DA):", formattedRange);
       return formattedRange;
     } else {
