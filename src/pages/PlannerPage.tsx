@@ -1,178 +1,49 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { format } from 'date-fns';
-import PageHeader from '../components/Layout/PageHeader';
-import PlannerHeader from '../components/Planner/PlannerHeader';
-import AssignmentDialogManager from '../components/Planner/AssignmentDialogManager';
-import AssignmentList from '../components/Planner/AssignmentList';
+import React from 'react';
 import { useTranslation } from '../context/TranslationContext';
-import { Assignment } from '../types/assignment';
+import { usePlannerPage } from '../hooks/usePlannerPage';
+import PlannerPageHeader from '../components/Planner/PlannerPageHeader';
+import PlannerContent from '../components/Planner/PlannerContent';
+import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
 import { getUnpublishedAssignment } from '../hooks/useAssignmentPublishing';
-import { usePlannerAssignments } from '../hooks/usePlannerAssignments';
-import { 
-  getWeekDates, 
-  getCurrentWeekInfo, 
-  getPreviousWeekInfo, 
-  getNextWeekInfo, 
-  formatWeekDateRange 
-} from '@/utils/weekDates';
-import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 
 const PlannerPage: React.FC = () => {
-  const { t, currentLanguage } = useTranslation();
+  const { currentLanguage } = useTranslation();
   
-  // Get current week info (week number and year)
-  const currentWeekInfo = getCurrentWeekInfo();
-  console.log("Current Week Info:", currentWeekInfo);
-  
-  // State to track the selected week number and year
-  const [selectedWeek, setSelectedWeek] = useState(currentWeekInfo.week);
-  const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
-  
-  // Log when the selected week/year changes
-  useEffect(() => {
-    console.log(`Selected week: ${selectedWeek}, year: ${selectedYear}`);
-  }, [selectedWeek, selectedYear]);
-
-  const { 
-    assignments, 
-    createAssignment, 
-    updateAssignment,
-    deleteAssignment,
-    publishAssignment,
-    publishAssignmentsByDate,
+  const {
+    selectedWeek,
+    selectedYear,
+    weekDates,
+    weekAssignments,
     isDialogOpen,
     setIsDialogOpen,
     currentAssignment,
-    setCurrentAssignment
-  } = usePlannerAssignments();
-
-  const { filterByWeek } = useAssignmentFilters();
-
-  // Using state for managing form data
-  const [selectedDay, setSelectedDay] = useState<string>('');
-  const [formData, setFormData] = useState<Partial<Assignment>>({
-    title: '',
-    description: '',
-    date: format(new Date(), 'yyyy-MM-dd'),
-    fromTime: '08:00',
-    toTime: '16:00',
-    location: '',
-    car: '',
-    employees: []
-  });
-
-  // Get the date range for the selected week with correct ISO week calculation
-  const weekDates = getWeekDates(selectedWeek, selectedYear);
-  
-  // Log the detailed week dates for debugging
-  useEffect(() => {
-    console.log("Week dates obtained:", {
-      weekNumber: selectedWeek,
-      year: selectedYear,
-      start: weekDates.start.toISOString(),
-      end: weekDates.end.toISOString(),
-      startDay: format(weekDates.start, 'EEEE'),
-      endDay: format(weekDates.end, 'EEEE')
-    });
-  }, [selectedWeek, selectedYear, weekDates]);
-  
-  // Filter assignments for the current week
-  const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
-  
-  // Format the date range with the proper locale
-  const dateRangeText = formatWeekDateRange(weekDates, currentLanguage);
-  console.log("Formatted date range:", dateRangeText);
-
-  // Navigate to previous week
-  const handlePreviousWeek = useCallback(() => {
-    const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
-    console.log(`Going to previous week: ${week}, year: ${year}`);
-    setSelectedWeek(week);
-    setSelectedYear(year);
-  }, [selectedWeek, selectedYear]);
-
-  // Navigate to next week
-  const handleNextWeek = useCallback(() => {
-    const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
-    console.log(`Going to next week: ${week}, year: ${year}`);
-    setSelectedWeek(week);
-    setSelectedYear(year);
-  }, [selectedWeek, selectedYear]);
-
-  // Handle assignment creation/editing
-  const handleOpenCreateDialog = useCallback((date: string) => {
-    setCurrentAssignment(null);
-    setSelectedDay(date);
-    
-    // Set form data in one update to avoid race conditions
-    setFormData({
-      title: '',
-      description: '',
-      date,
-      fromTime: '08:00',
-      toTime: '16:00',
-      location: '',
-      car: '',
-      employees: []
-    });
-    
-    setIsDialogOpen(true);
-  }, [setCurrentAssignment, setIsDialogOpen]);
-
-  const handleOpenEditDialog = useCallback((assignment: Assignment) => {
-    setCurrentAssignment(assignment);
-    setSelectedDay(assignment.date);
-    
-    // Set form data at once to avoid multiple renders
-    setFormData({...assignment});
-    
-    setIsDialogOpen(true);
-  }, [setCurrentAssignment, setIsDialogOpen]);
-
-  const handleSubmit = useCallback((data: Partial<Assignment>) => {
-    if (currentAssignment) {
-      // Set the edited assignment as unpublished
-      const unpublishedData = getUnpublishedAssignment(data as Assignment);
-      updateAssignment(currentAssignment.id, unpublishedData);
-    } else {
-      createAssignment({
-        ...data,
-        id: Date.now().toString(),
-        published: false
-      } as Assignment);
-    }
-    setIsDialogOpen(false);
-  }, [currentAssignment, createAssignment, updateAssignment, setIsDialogOpen]);
-
-  // Fixed wrapper function that uses selectedDay internally
-  const handlePublishDay = useCallback(() => {
-    if (selectedDay) {
-      publishAssignmentsByDate(selectedDay);
-    }
-  }, [selectedDay, publishAssignmentsByDate]);
+    selectedDay,
+    formData,
+    setFormData,
+    handlePreviousWeek,
+    handleNextWeek,
+    handleOpenCreateDialog,
+    handleOpenEditDialog,
+    handleSubmit,
+    handlePublishDay,
+    deleteAssignment,
+    publishAssignment
+  } = usePlannerPage();
 
   return (
     <div>
-      <PageHeader 
-        title={t("navigation.planner")} 
-        description={t("planner.weekDescription", { week: selectedWeek })}
-      />
-      
-      <div className="text-sm text-muted-foreground mb-6">
-        {dateRangeText}
-      </div>
-
-      <PlannerHeader 
-        currentWeek={selectedWeek}
-        currentYear={selectedYear}
+      <PlannerPageHeader
+        selectedWeek={selectedWeek}
+        selectedYear={selectedYear}
+        weekDates={weekDates}
         onPreviousWeek={handlePreviousWeek}
         onNextWeek={handleNextWeek}
         onCreateNew={handleOpenCreateDialog}
       />
 
-      <AssignmentList
-        assignments={weekAssignments}
+      <PlannerContent
+        weekAssignments={weekAssignments}
         onEditAssignment={handleOpenEditDialog}
         onDeleteAssignment={deleteAssignment}
         onPublishAssignment={publishAssignment}
@@ -183,22 +54,19 @@ const PlannerPage: React.FC = () => {
         weekDates={weekDates}
       />
 
-      {/* Only render dialog when it's actually open */}
-      {isDialogOpen && (
-        <AssignmentDialogManager
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          editMode={!!currentAssignment}
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleSubmit}
-          onDelete={deleteAssignment}
-          onPublish={publishAssignment}
-          assignments={assignments}
-          selectedDay={selectedDay}
-          onPublishDay={handlePublishDay}
-        />
-      )}
+      <PlannerDialogContainer
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+        currentAssignment={currentAssignment}
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={handleSubmit}
+        onDelete={deleteAssignment}
+        onPublish={publishAssignment}
+        assignments={weekAssignments}
+        selectedDay={selectedDay}
+        onPublishDay={handlePublishDay}
+      />
     </div>
   );
 };
