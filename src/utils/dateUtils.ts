@@ -49,7 +49,9 @@ export const formatDateWithCapital = (dateString: string, locale: string = 'en')
 };
 
 // Get all days in a week (for an inclusive date range)
-export const getAllWeekDays = ({ start, end }: { start: Date, end: Date }): string[] => {
+export const getAllWeekDays = (
+  { start, end }: { start: Date, end: Date, weekNumber?: number, year?: number }
+): string[] => {
   const days: string[] = [];
   const currentDate = new Date(start);
   

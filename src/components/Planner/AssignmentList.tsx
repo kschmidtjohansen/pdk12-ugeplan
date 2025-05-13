@@ -16,7 +16,8 @@ interface AssignmentListProps {
   onPublishDay?: () => void;
   onCreateAssignment: (date: string) => void;
   selectedWeek?: number;
-  weekDates?: { start: Date; end: Date };
+  selectedYear?: number;
+  weekDates?: { start: Date; end: Date; weekNumber: number; year: number };
 }
 
 const AssignmentList: React.FC<AssignmentListProps> = ({
@@ -27,6 +28,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   onPublishDay,
   onCreateAssignment,
   selectedWeek,
+  selectedYear,
   weekDates
 }) => {
   const { 

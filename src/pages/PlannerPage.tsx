@@ -10,11 +10,24 @@ import { useTranslation } from '../context/TranslationContext';
 import { Assignment } from '../types/assignment';
 import { getUnpublishedAssignment } from '../hooks/useAssignmentPublishing';
 import { usePlannerAssignments } from '../hooks/usePlannerAssignments';
-import { getWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
+import { 
+  getWeekDates, 
+  getCurrentWeekInfo, 
+  getPreviousWeekInfo, 
+  getNextWeekInfo, 
+  formatWeekDateRange 
+} from '@/utils/weekDates';
 
 const PlannerPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
-  const [currentWeek, setCurrentWeek] = useState(getCurrentWeekNumber());
+  
+  // Get current week info (week number and year)
+  const currentWeekInfo = getCurrentWeekInfo();
+  
+  // State to track the selected week number and year
+  const [selectedWeek, setSelectedWeek] = useState(currentWeekInfo.week);
+  const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
+  
   const { 
     assignments, 
     createAssignment, 
@@ -41,17 +54,26 @@ const PlannerPage: React.FC = () => {
     employees: []
   });
 
-  // Get week date range
-  const weekDates = getWeekDates(currentWeek - getCurrentWeekNumber());
+  // Get the date range for the selected week
+  const weekDates = getWeekDates(selectedWeek, selectedYear);
   const locale = currentLanguage === 'da' ? da : undefined;
   
-  // Format the date range based on the current language
-  let dateRangeText = '';
-  if (currentLanguage === 'da') {
-    dateRangeText = `${format(weekDates.start, 'd. MMMM', { locale })} - ${format(weekDates.end, 'd. MMMM', { locale })}`;
-  } else {
-    dateRangeText = `${format(weekDates.start, 'MMMM d', { locale })} - ${format(weekDates.end, 'MMMM d', { locale })}`;
-  }
+  // Format the date range
+  const dateRangeText = formatWeekDateRange(weekDates, currentLanguage);
+
+  // Navigate to previous week
+  const handlePreviousWeek = useCallback(() => {
+    const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
+    setSelectedWeek(week);
+    setSelectedYear(year);
+  }, [selectedWeek, selectedYear]);
+
+  // Navigate to next week
+  const handleNextWeek = useCallback(() => {
+    const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
+    setSelectedWeek(week);
+    setSelectedYear(year);
+  }, [selectedWeek, selectedYear]);
 
   // Handle assignment creation/editing with useCallback to prevent unnecessary re-renders
   const handleOpenCreateDialog = useCallback((date: string) => {
@@ -109,19 +131,21 @@ const PlannerPage: React.FC = () => {
     <div>
       <PageHeader 
         title={t("navigation.planner")} 
-        description={t("planner.weekDescription", { week: currentWeek })}
+        description={t("planner.weekDescription", { week: selectedWeek })}
       />
       
       <div className="text-sm text-muted-foreground mb-6">
-        {t('planner.weekDateRange', { 
+        {dateRangeText ? dateRangeText : t('planner.weekDateRange', { 
           start: format(weekDates.start, 'd MMMM', { locale }), 
           end: format(weekDates.end, 'd MMMM', { locale })
         })}
       </div>
 
       <PlannerHeader 
-        currentWeek={currentWeek} 
-        setCurrentWeek={setCurrentWeek}
+        currentWeek={selectedWeek}
+        currentYear={selectedYear}
+        onPreviousWeek={handlePreviousWeek}
+        onNextWeek={handleNextWeek}
         onCreateNew={handleOpenCreateDialog}
       />
 
@@ -132,7 +156,8 @@ const PlannerPage: React.FC = () => {
         onPublishAssignment={publishAssignment}
         onPublishDay={handlePublishDay}
         onCreateAssignment={handleOpenCreateDialog}
-        selectedWeek={currentWeek}
+        selectedWeek={selectedWeek}
+        selectedYear={selectedYear}
         weekDates={weekDates}
       />
 

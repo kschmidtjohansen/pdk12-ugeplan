@@ -30,9 +30,9 @@ export const useAssignmentFilters = () => {
     return grouped;
   };
 
-  // Filter assignments by week
-  const filterByWeek = (assignments: Assignment[], weekOffset: number) => {
-    const { start, end } = getWeekDates(weekOffset);
+  // Filter assignments by ISO week and year
+  const filterByWeek = (assignments: Assignment[], weekNumber: number, year: number) => {
+    const { start, end } = getWeekDates(weekNumber, year);
     
     return assignments.filter(assignment => {
       const assignmentDate = new Date(assignment.date);

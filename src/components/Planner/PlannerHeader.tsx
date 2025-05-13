@@ -11,20 +11,24 @@ import { da } from 'date-fns/locale';
 
 interface PlannerHeaderProps {
   currentWeek: number;
-  setCurrentWeek: (week: number) => void;
+  currentYear: number;
+  onPreviousWeek: () => void;
+  onNextWeek: () => void;
   onCreateNew: (date: string) => void;
 }
 
 const PlannerHeader: React.FC<PlannerHeaderProps> = ({
   currentWeek,
-  setCurrentWeek,
+  currentYear,
+  onPreviousWeek,
+  onNextWeek,
   onCreateNew
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { canCreate } = usePermissions();
   
   // Get the first day of the current week
-  const { start } = getWeekDates(currentWeek);
+  const { start } = getWeekDates(currentWeek, currentYear);
   
   // Format date to get a readable string for button tooltip
   const formatDate = (date: Date) => {
@@ -39,14 +43,6 @@ const PlannerHeader: React.FC<PlannerHeaderProps> = ({
     onCreateNew(dateString);
   };
   
-  const handlePreviousWeek = () => {
-    setCurrentWeek(currentWeek - 1);
-  };
-  
-  const handleNextWeek = () => {
-    setCurrentWeek(currentWeek + 1);
-  };
-  
   return (
     <div className="flex flex-col md:flex-row justify-between items-center w-full mb-6">
       <div className="flex gap-2 mb-2 md:mb-0">
@@ -58,10 +54,10 @@ const PlannerHeader: React.FC<PlannerHeaderProps> = ({
       </div>
       
       <div className="flex space-x-4">
-        <Button onClick={handlePreviousWeek} variant="outline" className="flex items-center">
+        <Button onClick={onPreviousWeek} variant="outline" className="flex items-center">
           <ChevronLeft className="mr-2 h-4 w-4" /> {t("planner.previousWeek")}
         </Button>
-        <Button onClick={handleNextWeek} variant="outline" className="flex items-center">
+        <Button onClick={onNextWeek} variant="outline" className="flex items-center">
           {t("planner.nextWeek")} <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
