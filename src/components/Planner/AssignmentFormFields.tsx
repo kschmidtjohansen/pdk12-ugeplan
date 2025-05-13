@@ -74,7 +74,9 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     }
   };
   
-  return <>
+  // Wrap the returned JSX in a fragment to fix the React error #185
+  return (
+    <>
       <div className="grid gap-2">
         <Label htmlFor="title">{t('planner.assignmentTitle')}</Label>
         <Input id="title" name="title" value={formData.title || ''} onChange={e => onFieldChange('title', e.target.value)} />
@@ -128,34 +130,43 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         <Input id="location" name="location" value={formData.location || ''} onChange={e => onFieldChange('location', e.target.value)} />
       </div>
 
-      {cars && cars.length > 0 && <div className="grid gap-2">
+      {cars && cars.length > 0 && (
+        <div className="grid gap-2">
           <Label htmlFor="car">{t('planner.car')}</Label>
           <Select value={formData.car || ''} onValueChange={value => onFieldChange('car', value)}>
             <SelectTrigger id="car">
               <SelectValue placeholder={t('planner.selectCar')} />
             </SelectTrigger>
             <SelectContent>
-              {cars.map(car => <SelectItem key={car.id} value={car.id}>
+              {cars.map(car => (
+                <SelectItem key={car.id} value={car.id}>
                   {car.car_number} - {car.name}
-                </SelectItem>)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-        </div>}
+        </div>
+      )}
       
-      {employees && employees.length > 0 && <div className="grid gap-2">
+      {employees && employees.length > 0 && (
+        <div className="grid gap-2">
           <Label htmlFor="employees">{t('planner.employees')}</Label>
           <Select value={formData.employees && formData.employees[0] || ''} onValueChange={value => onFieldChange('employees', [value])}>
             <SelectTrigger id="employees">
               <SelectValue placeholder={t('planner.selectEmployee')} />
             </SelectTrigger>
             <SelectContent>
-              {employees.map(employee => <SelectItem key={employee.name} value={employee.name}>
+              {employees.map(employee => (
+                <SelectItem key={employee.name} value={employee.name}>
                   {employee.name}
-                </SelectItem>)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-        </div>}
-    </>;
+        </div>
+      )}
+    </>
+  );
 };
 
 export default AssignmentFormFields;
