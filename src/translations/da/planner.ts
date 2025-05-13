@@ -16,6 +16,7 @@ const planner = {
   location: 'Lokation',
   car: 'Bil',
   employees: 'Medarbejdere',
+  noEmployees: 'Ingen medarbejdere tildelt',
   selectCar: 'Vælg en bil',
   noCar: 'Ingen bil tildelt',
   selectEmployee: 'Vælg en medarbejder',
@@ -46,7 +47,10 @@ const planner = {
   previousDays: 'Tidligere dage',
   previousTasks: 'Tidligere opgaver',
   fetchError: 'Der opstod en fejl ved hentning af opgaver',
-  unavailable: 'Utilgængelig'
+  unavailable: 'Utilgængelig',
+  errorCreatingAssignment: 'Der opstod en fejl ved oprettelse af opgaven',
+  errorUpdatingAssignment: 'Der opstod en fejl ved opdatering af opgaven',
+  errorDeletingAssignment: 'Der opstod en fejl ved sletning af opgaven'
 };
 
 export default planner;

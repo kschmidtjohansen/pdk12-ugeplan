@@ -17,6 +17,7 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/useCars';
 import { useVacations } from '@/hooks/useVacations';
 import { getWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
+import AssignmentDetails from '@/components/Planner/AssignmentDetails';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -49,8 +50,8 @@ const DashboardPage: React.FC = () => {
     } else {
       return isInCurrentWeek && 
              assignment.published === true && 
-             user && 
-             assignment.employees.includes(user.name);
+             assignment.employees && 
+             assignment.employees.includes(user?.name || '');
     }
   });
 
@@ -62,26 +63,6 @@ const DashboardPage: React.FC = () => {
       month: 'long',
       day: 'numeric'
     });
-  };
-
-  // Format car display value
-  const getCarDisplay = (car: string | { id: string; name: string } | null) => {
-    if (!car) return t('planner.noCar');
-    if (typeof car === 'string') return car;
-    return car.name;
-  };
-  
-  // Format times without seconds
-  const formatTimeWithoutSeconds = (timeString: string) => {
-    if (!timeString) return '';
-    // If the time includes seconds (HH:MM:SS), remove them
-    if (timeString.includes(':')) {
-      const parts = timeString.split(':');
-      if (parts.length >= 2) {
-        return `${parts[0]}:${parts[1]}`;
-      }
-    }
-    return timeString;
   };
 
   // Quick access items based on user role
@@ -180,29 +161,7 @@ const DashboardPage: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 mb-2">{assignment.description}</p>
-                  <div className="text-sm text-gray-500 flex flex-col gap-1">
-                    <div className="flex items-start gap-2">
-                      <Clock className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                      <span>{t('dashboard.assignmentTime', {
-                        fromTime: formatTimeWithoutSeconds(assignment.fromTime),
-                        toTime: formatTimeWithoutSeconds(assignment.toTime)
-                      })}</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                      <span>{assignment.location}</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <Car className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                      <span>{getCarDisplay(assignment.car)}</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <Users className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                      <span>
-                        {assignment.employees.join(', ')}
-                      </span>
-                    </div>
-                  </div>
+                  <AssignmentDetails assignment={assignment} />
                 </div>
               ))}
             </div>

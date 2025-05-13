@@ -25,7 +25,7 @@ export const useAssignmentActions = (
           const { data: carData } = await supabase
             .from('cars')
             .select('*')
-            .eq('name', assignmentData.car)
+            .eq('id', assignmentData.car)
             .single();
             
           if (carData) {
@@ -54,7 +54,7 @@ export const useAssignmentActions = (
       
       toast({
         title: t('planner.assignmentCreated'),
-        description: t('planner.assignmentCreatedDesc'),
+        description: t('planner.assignmentCreatedMsg', { title: assignmentData.title }),
       });
       
       refetch();
@@ -80,7 +80,7 @@ export const useAssignmentActions = (
           const { data: carData } = await supabase
             .from('cars')
             .select('*')
-            .eq('name', assignmentData.car)
+            .eq('id', assignmentData.car)
             .single();
             
           if (carData) {
@@ -112,7 +112,7 @@ export const useAssignmentActions = (
       
       toast({
         title: t('planner.assignmentUpdated'),
-        description: t('planner.assignmentUpdatedDesc'),
+        description: t('planner.assignmentUpdatedMsg', { title: assignmentData.title }),
       });
       
       refetch();
@@ -141,7 +141,7 @@ export const useAssignmentActions = (
       
       toast({
         title: t('planner.assignmentDeleted'),
-        description: t('planner.assignmentDeletedDesc'),
+        description: t('planner.assignmentDeletedMsg'),
       });
       
       refetch();

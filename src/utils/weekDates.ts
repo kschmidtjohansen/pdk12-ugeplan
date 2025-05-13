@@ -1,5 +1,6 @@
 
-import { getISOWeek, getISOWeekYear, startOfISOWeek, endOfISOWeek, addWeeks } from "date-fns";
+import { getISOWeek, getISOWeekYear, addWeeks, parseISO, getYear } from "date-fns";
+import { startOfISOWeek, endOfISOWeek } from "date-fns";
 
 // Generate the first and last day of a given week (ISO week, Monday-Sunday)
 export const getWeekDates = (weekOffset = 0) => {
@@ -13,12 +14,12 @@ export const getWeekDates = (weekOffset = 0) => {
   const currentWeekEnd = endOfISOWeek(today);
   
   // Calculate the requested week based on offset
-  const firstDayOfWeek = addWeeks(currentWeekStart, weekOffset);
-  const lastDayOfWeek = addWeeks(currentWeekEnd, weekOffset);
+  const targetWeekStart = addWeeks(currentWeekStart, weekOffset);
+  const targetWeekEnd = addWeeks(currentWeekEnd, weekOffset);
   
   return {
-    start: firstDayOfWeek,
-    end: lastDayOfWeek
+    start: targetWeekStart,
+    end: targetWeekEnd
   };
 };
 
@@ -26,4 +27,16 @@ export const getWeekDates = (weekOffset = 0) => {
 export const getCurrentWeekNumber = () => {
   const now = new Date();
   return getISOWeek(now);
+};
+
+// Get week number for a specific date
+export const getWeekNumber = (date: Date | string) => {
+  const dateObj = typeof date === 'string' ? parseISO(date) : date;
+  return getISOWeek(dateObj);
+};
+
+// Get year for a specific date
+export const getYearForDate = (date: Date | string) => {
+  const dateObj = typeof date === 'string' ? parseISO(date) : date;
+  return getYear(dateObj);
 };

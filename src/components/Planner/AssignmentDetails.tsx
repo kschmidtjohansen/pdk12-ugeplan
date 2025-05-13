@@ -49,14 +49,18 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       <div className="flex items-center gap-2">
         <Users className="h-4 w-4 text-polygon-blue" />
         <div className="flex flex-wrap gap-1">
-          {assignment.employees.map((employee, index) => (
-            <div key={index}>
-              <Badge variant="outline" className="bg-gray-100">
-                {employee}
-              </Badge>
-              {index < assignment.employees.length - 1 && ', '}
-            </div>
-          ))}
+          {assignment.employees && assignment.employees.length > 0 ? (
+            assignment.employees.map((employee, index) => (
+              <div key={index}>
+                <Badge variant="outline" className="bg-gray-100">
+                  {employee}
+                </Badge>
+                {index < assignment.employees.length - 1 && ', '}
+              </div>
+            ))
+          ) : (
+            <span>{t('planner.noEmployees')}</span>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-2">

@@ -34,7 +34,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
   // Helper function to safely handle date formatting
   const formatDate = (dateString: string | undefined | null) => {
-    if (!dateString) return '';
+    if (!dateString) return format(new Date(), "yyyy-MM-dd");
     try {
       // Use Danish locale if the current language is Danish
       const locale = currentLanguage === 'da' ? da : undefined;
@@ -43,13 +43,13 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       });
     } catch (e) {
       console.error("Invalid date format:", dateString);
-      return '';
+      return format(new Date(), "yyyy-MM-dd");
     }
   };
 
   // Format date for display in the calendar button
   const formatDisplayDate = (dateString: string | undefined | null) => {
-    if (!dateString) return '';
+    if (!dateString) return format(new Date(), "d MMMM yyyy", { locale: currentLanguage === 'da' ? da : undefined });
     try {
       // Use Danish locale if the current language is Danish
       const locale = currentLanguage === 'da' ? da : undefined;
@@ -58,7 +58,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       });
     } catch (e) {
       console.error("Invalid date format:", dateString);
-      return '';
+      return format(new Date(), "d MMMM yyyy", { locale: currentLanguage === 'da' ? da : undefined });
     }
   };
 
@@ -92,16 +92,16 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             <Button 
               type="button" 
               variant={"outline"} 
-              className={"w-[280px] justify-start text-left font-normal" + (formData.date ? " text-foreground" : " text-muted-foreground")}
+              className={"w-[280px] justify-start text-left font-normal text-foreground"}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {formData.date ? formatDisplayDate(formData.date) : <span>{t('planner.date')}</span>}
+              {formatDisplayDate(formData.date)}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar 
               mode="single" 
-              selected={formData.date ? new Date(formData.date) : undefined} 
+              selected={formData.date ? new Date(formData.date) : new Date()} 
               onSelect={handleDateSelect} 
               locale={currentLanguage === 'da' ? da : undefined} 
               weekStartsOn={1} // 1 means Monday is the first day
@@ -130,7 +130,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
       {cars && cars.length > 0 && <div className="grid gap-2">
           <Label htmlFor="car">{t('planner.car')}</Label>
-          <Select value={formData.car || undefined} onValueChange={value => onFieldChange('car', value)}>
+          <Select value={formData.car || ''} onValueChange={value => onFieldChange('car', value)}>
             <SelectTrigger id="car">
               <SelectValue placeholder={t('planner.selectCar')} />
             </SelectTrigger>
@@ -144,7 +144,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       
       {employees && employees.length > 0 && <div className="grid gap-2">
           <Label htmlFor="employees">{t('planner.employees')}</Label>
-          <Select value={formData.employees && formData.employees[0] || undefined} onValueChange={value => onFieldChange('employees', value)}>
+          <Select value={formData.employees && formData.employees[0] || ''} onValueChange={value => onFieldChange('employees', [value])}>
             <SelectTrigger id="employees">
               <SelectValue placeholder={t('planner.selectEmployee')} />
             </SelectTrigger>

@@ -63,8 +63,8 @@ const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
                     <CarIcon className="h-4 w-4 text-polygon-blue" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">{car.name}</p>
-                    <p className="text-xs text-muted-foreground">ID: {car.id.substring(0, 8)}</p>
+                    <p className="text-sm font-medium">{car.car_number} - {car.name}</p>
+                    <p className="text-xs text-muted-foreground">{car.number_plate}</p>
                   </div>
                 </div>
                 <div>
