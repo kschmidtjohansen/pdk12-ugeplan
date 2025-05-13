@@ -5,9 +5,9 @@ import {
   startOfISOWeek, 
   endOfISOWeek, 
   setISOWeek, 
-  setISOWeekYear,
-  da // Import the Danish locale directly
+  setISOWeekYear
 } from "date-fns";
+import { da } from "date-fns/locale"; // Import Danish locale from the correct path
 
 /**
  * Get the date range for a specific ISO week number and year
@@ -113,7 +113,7 @@ export const getNextWeekInfo = (weekNumber: number, year: number) => {
 export const formatWeekDateRange = (weekDates: { start: Date; end: Date }, locale: string = 'en') => {
   try {
     if (locale === 'da') {
-      // Use imported da locale directly instead of require
+      // Use imported da locale directly
       return `${format(weekDates.start, 'd.')} - ${format(weekDates.end, 'd. MMMM', { locale: da })}`;
     } else {
       return `${format(weekDates.start, 'MMMM d')} - ${format(weekDates.end, 'd')}`;
