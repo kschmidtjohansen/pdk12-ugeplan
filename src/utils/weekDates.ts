@@ -6,7 +6,9 @@ import {
   endOfISOWeek, 
   setISOWeek, 
   setISOWeekYear,
-  getDay
+  getDay,
+  addDays,
+  subDays
 } from "date-fns";
 import { da } from "date-fns/locale"; // Import Danish locale
 
@@ -25,7 +27,7 @@ export const getWeekDates = (weekNumber: number, year: number) => {
   // First set the ISO week year to ensure proper year context
   baseDate = setISOWeekYear(baseDate, year);
   
-  // Then set the ISO week
+  // Then set the ISO week - this puts us somewhere in the target week
   baseDate = setISOWeek(baseDate, weekNumber);
   
   // Get the Monday of that week (start of ISO week)
@@ -33,6 +35,21 @@ export const getWeekDates = (weekNumber: number, year: number) => {
   
   // Get the Sunday of that week (end of ISO week)
   const weekEnd = endOfISOWeek(baseDate);
+  
+  // Ensure we're getting Monday (1) to Sunday (0)
+  const startDay = weekStart.getDay();
+  const endDay = weekEnd.getDay();
+  
+  console.log(`Raw week start day: ${startDay} (${format(weekStart, 'EEEE')})`);
+  console.log(`Raw week end day: ${endDay} (${format(weekEnd, 'EEEE')})`);
+  
+  // Log each day of the week for debugging
+  let currentDay = new Date(weekStart);
+  console.log("WEEK DAYS CHECK:");
+  for (let i = 0; i < 7; i++) {
+    console.log(`Day ${i+1}: ${format(currentDay, 'yyyy-MM-dd')} - ${format(currentDay, 'EEEE')}`);
+    currentDay.setDate(currentDay.getDate() + 1);
+  }
   
   // Add comprehensive debug logging
   console.log(`Week ${weekNumber}, ${year} - Start: ${format(weekStart, 'yyyy-MM-dd')} (${format(weekStart, 'EEEE', { locale: da })})`);
@@ -158,6 +175,10 @@ export const formatWeekDateRange = (weekDates: { start: Date; end: Date }, local
       const startDay = format(weekDates.start, 'EEEE d.', { locale: da });
       const endDay = format(weekDates.end, 'EEEE d.', { locale: da });
       const month = format(weekDates.end, 'MMMM', { locale: da });
+      
+      // Debug the days of week to ensure Monday-Sunday
+      console.log(`Start day: ${format(weekDates.start, 'EEEE')} (${weekDates.start.getDay()})`);
+      console.log(`End day: ${format(weekDates.end, 'EEEE')} (${weekDates.end.getDay()})`);
       
       // Extract first letter and capitalize it, then add the rest of the string
       const startDayCapitalized = startDay.charAt(0).toUpperCase() + startDay.slice(1);

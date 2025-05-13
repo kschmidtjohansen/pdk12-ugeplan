@@ -52,6 +52,19 @@ export const getAllWeekDays = (
   // Create a new date object to avoid modifying the original start date
   const currentDate = new Date(start);
   
+  // Debug log week range
+  console.log(`Getting all week days from: ${format(start, 'yyyy-MM-dd')} (${format(start, 'EEEE')}) to ${format(end, 'yyyy-MM-dd')} (${format(end, 'EEEE')})`);
+  
+  // Ensure start day is Monday (ISO week start)
+  if (start.getDay() !== 1) {
+    console.warn(`Start day is not Monday! Got: ${format(start, 'EEEE')} (day ${start.getDay()})`);
+  }
+  
+  // Ensure end day is Sunday (ISO week end)
+  if (end.getDay() !== 0) {
+    console.warn(`End day is not Sunday! Got: ${format(end, 'EEEE')} (day ${end.getDay()})`);
+  }
+  
   // Set to beginning of the day
   currentDate.setHours(0, 0, 0, 0);
   
@@ -60,8 +73,18 @@ export const getAllWeekDays = (
     const dateString = currentDate.toISOString().split('T')[0];
     days.push(dateString);
     
+    // Debug each day we add
+    console.log(`Adding day: ${dateString} (${format(currentDate, 'EEEE')})`);
+    
     // Go to the next day
     currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  // Validate week days
+  if (days.length === 7) {
+    console.log(`Week has correct length: ${days.length} days`);
+  } else {
+    console.warn(`Week has INCORRECT length: ${days.length} days`);
   }
   
   return days;

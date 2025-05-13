@@ -7,6 +7,7 @@ import EmptyState from './EmptyState';
 import { getAllWeekDays, getDateStatus } from '@/utils/dateUtils';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import DaySection from './DaySection';
+import { format } from 'date-fns';
 
 interface AssignmentListProps {
   assignments: Assignment[];
@@ -52,6 +53,13 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   
   // Create a date for each day of the week
   const allWeekDays = weekDates ? getAllWeekDays(weekDates) : [];
+  
+  // Debug the week days
+  console.log("Week days from getAllWeekDays:", allWeekDays);
+  if (allWeekDays.length > 0) {
+    console.log("First day:", allWeekDays[0], "Day of week:", new Date(allWeekDays[0]).getDay());
+    console.log("Last day:", allWeekDays[allWeekDays.length-1], "Day of week:", new Date(allWeekDays[allWeekDays.length-1]).getDay());
+  }
 
   // Fill in any missing days
   allWeekDays.forEach(dateKey => {

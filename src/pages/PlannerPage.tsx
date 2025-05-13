@@ -71,7 +71,9 @@ const PlannerPage: React.FC = () => {
       weekNumber: selectedWeek,
       year: selectedYear,
       start: weekDates.start.toISOString(),
-      end: weekDates.end.toISOString()
+      end: weekDates.end.toISOString(),
+      startDay: format(weekDates.start, 'EEEE'),
+      endDay: format(weekDates.end, 'EEEE')
     });
   }, [selectedWeek, selectedYear, weekDates]);
   
