@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';

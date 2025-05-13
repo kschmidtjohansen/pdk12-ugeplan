@@ -43,6 +43,15 @@ export const getWeekDates = (weekNumber: number, year: number) => {
   console.log(`Raw week start day: ${startDay} (${format(weekStart, 'EEEE')})`);
   console.log(`Raw week end day: ${endDay} (${format(weekEnd, 'EEEE')})`);
   
+  // Verify the week starts on Monday and ends on Sunday
+  if (startDay !== 1) {
+    console.error(`Week start day is not Monday! Got day ${startDay} (${format(weekStart, 'EEEE')})`);
+  }
+  
+  if (endDay !== 0) {
+    console.error(`Week end day is not Sunday! Got day ${endDay} (${format(weekEnd, 'EEEE')})`);
+  }
+  
   // Log each day of the week for debugging
   let currentDay = new Date(weekStart);
   console.log("WEEK DAYS CHECK:");
