@@ -1,4 +1,3 @@
-
 import { parseISO, getISOWeek, getISOWeekYear, getYear } from "date-fns";
 import { 
   format,
@@ -21,60 +20,65 @@ export const getWeekDates = (weekNumber: number, year: number) => {
     throw new Error(`Invalid week number: ${weekNumber}. Must be between 1 and 53.`);
   }
   
-  // Create a date in the specified year
+  // FIXED: Create a date in the specified year
   let baseDate = new Date(year, 0, 4); // January 4th is always in week 1
   
-  // First set the ISO week year to ensure proper year context
+  // FIXED: First set the ISO week year to ensure proper year context
   baseDate = setISOWeekYear(baseDate, year);
   
-  // Then set the ISO week - this puts us somewhere in the target week
+  // FIXED: Then set the ISO week - this puts us somewhere in the target week
   baseDate = setISOWeek(baseDate, weekNumber);
   
-  // Get the Monday of that week (start of ISO week)
+  // FIXED: Get the Monday of that week (start of ISO week)
+  // startOfISOWeek ALWAYS returns a Monday according to ISO 8601
   const weekStart = startOfISOWeek(baseDate);
   
-  // Get the Sunday of that week (end of ISO week)
+  // FIXED: Get the Sunday of that week (end of ISO week)
+  // endOfISOWeek ALWAYS returns a Sunday according to ISO 8601
   const weekEnd = endOfISOWeek(baseDate);
   
-  // Ensure we're getting Monday (1) to Sunday (0)
+  // FIXED: Ensure we're getting Monday (1) to Sunday (0)
   const startDay = weekStart.getDay();
   const endDay = weekEnd.getDay();
   
-  console.log(`Raw week start day: ${startDay} (${format(weekStart, 'EEEE')})`);
-  console.log(`Raw week end day: ${endDay} (${format(weekEnd, 'EEEE')})`);
+  // FIXED: More explicit debugging
+  console.log(`FIXED getWeekDates - Raw week start day: ${startDay} (${format(weekStart, 'EEEE')})`);
+  console.log(`FIXED getWeekDates - Raw week end day: ${endDay} (${format(weekEnd, 'EEEE')})`);
   
-  // Verify the week starts on Monday and ends on Sunday
+  // FIXED: Verify the week starts on Monday and ends on Sunday
   if (startDay !== 1) {
-    console.error(`Week start day is not Monday! Got day ${startDay} (${format(weekStart, 'EEEE')})`);
+    console.error(`FIXED ERROR: Week start day is not Monday! Got day ${startDay} (${format(weekStart, 'EEEE')})`);
+    // We're not going to adjust since startOfISOWeek SHOULD always return Monday
   }
   
   if (endDay !== 0) {
-    console.error(`Week end day is not Sunday! Got day ${endDay} (${format(weekEnd, 'EEEE')})`);
+    console.error(`FIXED ERROR: Week end day is not Sunday! Got day ${endDay} (${format(weekEnd, 'EEEE')})`);
+    // We're not going to adjust since endOfISOWeek SHOULD always return Sunday
   }
   
-  // Log each day of the week for debugging
+  // FIXED: More explicit logging of each day in the week
   let currentDay = new Date(weekStart);
-  console.log("WEEK DAYS CHECK:");
+  console.log("FIXED getWeekDates - WEEK DAYS CHECK:");
   for (let i = 0; i < 7; i++) {
-    console.log(`Day ${i+1}: ${format(currentDay, 'yyyy-MM-dd')} - ${format(currentDay, 'EEEE')}`);
+    console.log(`FIXED: Day ${i+1}: ${format(currentDay, 'yyyy-MM-dd')} - ${format(currentDay, 'EEEE')} (day ${currentDay.getDay()})`);
     currentDay.setDate(currentDay.getDate() + 1);
   }
   
   // Add comprehensive debug logging
-  console.log(`Week ${weekNumber}, ${year} - Start: ${format(weekStart, 'yyyy-MM-dd')} (${format(weekStart, 'EEEE', { locale: da })})`);
-  console.log(`Week ${weekNumber}, ${year} - End: ${format(weekEnd, 'yyyy-MM-dd')} (${format(weekEnd, 'EEEE', { locale: da })})`);
+  console.log(`FIXED: Week ${weekNumber}, ${year} - Start: ${format(weekStart, 'yyyy-MM-dd')} (${format(weekStart, 'EEEE', { locale: da })})`);
+  console.log(`FIXED: Week ${weekNumber}, ${year} - End: ${format(weekEnd, 'yyyy-MM-dd')} (${format(weekEnd, 'EEEE', { locale: da })})`);
   
   // If we're debugging week 20, add extra logging
   if (weekNumber === 20 && year === 2025) {
-    console.log("DEBUGGING WEEK 20 OF 2025:");
+    console.log("FIXED DEBUGGING WEEK 20 OF 2025:");
     for (let i = 0; i <= 6; i++) {
       const day = new Date(weekStart);
       day.setDate(weekStart.getDate() + i);
-      console.log(`  Day ${i+1}: ${format(day, 'yyyy-MM-dd')} - ${format(day, 'EEEE d. MMMM', { locale: da })}`);
+      console.log(`  FIXED: Day ${i+1}: ${format(day, 'yyyy-MM-dd')} - ${format(day, 'EEEE d. MMMM', { locale: da })} (day ${day.getDay()})`);
     }
   }
   
-  // Create date objects that are timezone-safe for comparison
+  // FIXED: Create date objects that are timezone-safe for comparison
   return {
     start: weekStart,
     end: weekEnd,

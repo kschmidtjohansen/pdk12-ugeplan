@@ -49,20 +49,34 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   // Group assignments by date
   const groupedAssignments = groupByDate(visibleAssignments);
   
-  // Create array of weekdays - ensuring we use the actual weekDates object
-  const allWeekDays = weekDates ? getAllWeekDays({ 
-    start: new Date(weekDates.start), 
-    end: new Date(weekDates.end) 
-  }) : [];
+  // FIXED: Create array of weekdays - ONLY if weekDates is provided
+  let allWeekDays: string[] = [];
   
-  // Debug the week days
-  console.log("Week days from getAllWeekDays:", allWeekDays);
+  if (weekDates?.start && weekDates?.end) {
+    console.log("FIXED AssignmentList: Creating week days for", 
+      format(weekDates.start, 'yyyy-MM-dd'), "to", 
+      format(weekDates.end, 'yyyy-MM-dd')
+    );
+    
+    // FIXED: Make sure dates are proper date objects, not strings or timestamps
+    allWeekDays = getAllWeekDays({ 
+      start: new Date(weekDates.start), 
+      end: new Date(weekDates.end)
+    });
+  } else {
+    console.warn("FIXED AssignmentList: No weekDates provided, can't create week days");
+  }
+  
+  // FIXED: Better debug logging of the week days
+  console.log("FIXED AssignmentList - Week days from getAllWeekDays:", allWeekDays);
   if (allWeekDays.length > 0) {
-    console.log("First day:", allWeekDays[0], "Day of week:", new Date(allWeekDays[0]).getDay());
-    console.log("Last day:", allWeekDays[allWeekDays.length-1], "Day of week:", new Date(allWeekDays[allWeekDays.length-1]).getDay());
+    const firstDay = new Date(allWeekDays[0]);
+    const lastDay = new Date(allWeekDays[allWeekDays.length-1]);
+    console.log(`FIXED AssignmentList - First day: ${format(firstDay, 'yyyy-MM-dd')} (${format(firstDay, 'EEEE')}) - Day of week: ${firstDay.getDay()}`);
+    console.log(`FIXED AssignmentList - Last day: ${format(lastDay, 'yyyy-MM-dd')} (${format(lastDay, 'EEEE')}) - Day of week: ${lastDay.getDay()}`);
   }
 
-  // Fill in any missing days
+  // Fill in any missing days from the week
   allWeekDays.forEach(dateKey => {
     if (!groupedAssignments[dateKey]) {
       groupedAssignments[dateKey] = [];

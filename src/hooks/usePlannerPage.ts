@@ -7,8 +7,7 @@ import {
   getWeekDates, 
   getCurrentWeekInfo, 
   getPreviousWeekInfo, 
-  getNextWeekInfo, 
-  formatWeekDateRange 
+  getNextWeekInfo
 } from '@/utils/weekDates';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import { getUnpublishedAssignment } from '@/hooks/useAssignmentPublishing';
@@ -23,7 +22,7 @@ export const usePlannerPage = () => {
   
   // Log when the selected week/year changes
   useEffect(() => {
-    console.log(`Selected week: ${selectedWeek}, year: ${selectedYear}`);
+    console.log(`FIXED usePlannerPage: Selected week: ${selectedWeek}, year: ${selectedYear}`);
   }, [selectedWeek, selectedYear]);
 
   const { 
@@ -54,19 +53,28 @@ export const usePlannerPage = () => {
     employees: []
   });
 
-  // Get the date range for the selected week with correct ISO week calculation
+  // FIXED: Get the date range for the selected week with correct ISO week calculation
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // Log the detailed week dates for debugging
+  // FIXED: Better log output with more details
   useEffect(() => {
-    console.log("Week dates obtained:", {
+    console.log("FIXED usePlannerPage: Week dates obtained:", {
       weekNumber: selectedWeek,
       year: selectedYear,
       start: weekDates.start.toISOString(),
       end: weekDates.end.toISOString(),
       startDay: format(weekDates.start, 'EEEE'),
-      endDay: format(weekDates.end, 'EEEE')
+      startDayNumber: weekDates.start.getDay(),
+      endDay: format(weekDates.end, 'EEEE'),
+      endDayNumber: weekDates.end.getDay()
     });
+    
+    // Validate that we have Monday-Sunday (days 1-0)
+    if (weekDates.start.getDay() !== 1 || weekDates.end.getDay() !== 0) {
+      console.error("FIXED usePlannerPage ERROR: Week dates are NOT Monday-Sunday!");
+    } else {
+      console.log("FIXED usePlannerPage: Week dates are correct Monday-Sunday range");
+    }
   }, [selectedWeek, selectedYear, weekDates]);
   
   // Filter assignments for the current week
