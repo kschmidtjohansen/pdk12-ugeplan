@@ -33,7 +33,12 @@ const DaySection: React.FC<DaySectionProps> = ({
   canPublishTasks
 }) => {
   const { t, currentLanguage } = useTranslation();
+  // Use the formatDateWithCapital function with the current language
   const formattedDate = formatDateWithCapital(dateKey, currentLanguage);
+  
+  // Log the formatted date for troubleshooting
+  console.log(`Formatted date for ${dateKey}: ${formattedDate} (${currentLanguage})`);
+  
   const hasUnpublishedAssignments = dayAssignments.some(a => !a.published);
 
   // Determine task text based on language and count

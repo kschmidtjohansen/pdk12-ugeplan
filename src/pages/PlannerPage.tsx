@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
-import { da } from 'date-fns/locale';
 import PageHeader from '../components/Layout/PageHeader';
 import PlannerHeader from '../components/Planner/PlannerHeader';
 import AssignmentDialogManager from '../components/Planner/AssignmentDialogManager';
@@ -30,6 +29,7 @@ const PlannerPage: React.FC = () => {
   const [selectedWeek, setSelectedWeek] = useState(currentWeekInfo.week);
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   
+  // Log when the selected week/year changes
   useEffect(() => {
     console.log(`Selected week: ${selectedWeek}, year: ${selectedYear}`);
   }, [selectedWeek, selectedYear]);
@@ -65,6 +65,16 @@ const PlannerPage: React.FC = () => {
   // Get the date range for the selected week with correct ISO week calculation
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
+  // Log the detailed week dates for debugging
+  useEffect(() => {
+    console.log("Week dates obtained:", {
+      weekNumber: selectedWeek,
+      year: selectedYear,
+      start: weekDates.start.toISOString(),
+      end: weekDates.end.toISOString()
+    });
+  }, [selectedWeek, selectedYear, weekDates]);
+  
   // Filter assignments for the current week
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
   
@@ -88,7 +98,7 @@ const PlannerPage: React.FC = () => {
     setSelectedYear(year);
   }, [selectedWeek, selectedYear]);
 
-  // Handle assignment creation/editing with useCallback to prevent unnecessary re-renders
+  // Handle assignment creation/editing
   const handleOpenCreateDialog = useCallback((date: string) => {
     setCurrentAssignment(null);
     setSelectedDay(date);
@@ -133,7 +143,7 @@ const PlannerPage: React.FC = () => {
     setIsDialogOpen(false);
   }, [currentAssignment, createAssignment, updateAssignment, setIsDialogOpen]);
 
-  // Fixed wrapper function that uses selectedDay internally - use useCallback to prevent unnecessary re-renders
+  // Fixed wrapper function that uses selectedDay internally
   const handlePublishDay = useCallback(() => {
     if (selectedDay) {
       publishAssignmentsByDate(selectedDay);

@@ -2,7 +2,8 @@
 import { Navigate } from 'react-router-dom';
 
 const Index = () => {
-  return <Navigate to="/dashboard" replace />;
+  // Navigate directly to the planner page instead of dashboard
+  return <Navigate to="/planner" replace />;
 };
 
 export default Index;

@@ -33,9 +33,9 @@ export const getWeekDates = (weekNumber: number, year: number) => {
   // Get the Sunday of that week (end of ISO week)
   const weekEnd = endOfISOWeek(baseDate);
   
-  // Add debug logging for troubleshooting
-  console.log(`Week ${weekNumber}, ${year} - Start: ${format(weekStart, 'yyyy-MM-dd')} (${format(weekStart, 'EEEE')})`);
-  console.log(`Week ${weekNumber}, ${year} - End: ${format(weekEnd, 'yyyy-MM-dd')} (${format(weekEnd, 'EEEE')})`);
+  // Add comprehensive debug logging
+  console.log(`Week ${weekNumber}, ${year} - Start: ${format(weekStart, 'yyyy-MM-dd')} (${format(weekStart, 'EEEE', { locale: da })})`);
+  console.log(`Week ${weekNumber}, ${year} - End: ${format(weekEnd, 'yyyy-MM-dd')} (${format(weekEnd, 'EEEE', { locale: da })})`);
   
   return {
     start: weekStart,
@@ -112,17 +112,26 @@ export const getNextWeekInfo = (weekNumber: number, year: number) => {
 
 /**
  * Format a week date range as a string
- * Example: "Mandag 6. - Søndag 12. maj" (Danish)
- * or "Monday, May 6 - Sunday, May 12" (English)
+ * Example: "Mandag 12. - Søndag 18. maj" (Danish)
+ * or "Monday, May 12 - Sunday, May 18" (English)
  */
 export const formatWeekDateRange = (weekDates: { start: Date; end: Date }, locale: string = 'en') => {
   try {
     if (locale === 'da') {
-      // Include weekday names for Danish format
-      return `${format(weekDates.start, 'EEEE d.', { locale: da })} - ${format(weekDates.end, 'EEEE d. MMMM', { locale: da })}`;
+      // Danish format: "Mandag 12. - Søndag 18. maj"
+      const startDay = format(weekDates.start, 'EEEE d.', { locale: da });
+      const endDay = format(weekDates.end, 'EEEE d.', { locale: da });
+      const month = format(weekDates.end, 'MMMM', { locale: da });
+      
+      // Combine with correct capitalization for Danish
+      const formattedRange = `${startDay.charAt(0).toUpperCase()}${startDay.slice(1)} - ${endDay.charAt(0).toUpperCase()}${endDay.slice(1)} ${month}`;
+      console.log("Formatted date range (DA):", formattedRange);
+      return formattedRange;
     } else {
-      // Include weekday names for English format
-      return `${format(weekDates.start, 'EEEE, MMMM d')} - ${format(weekDates.end, 'EEEE, MMMM d')}`;
+      // English format: "Monday, May 12 - Sunday, May 18"
+      const formattedRange = `${format(weekDates.start, 'EEEE, MMMM d')} - ${format(weekDates.end, 'EEEE, MMMM d')}`;
+      console.log("Formatted date range (EN):", formattedRange);
+      return formattedRange;
     }
   } catch (error) {
     console.error("Error formatting week date range:", error);
