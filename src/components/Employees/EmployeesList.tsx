@@ -70,7 +70,7 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                           </span>
                           
                           {/* Display notes tooltip for employees on leave */}
-                          {(isAdmin || isSkadeleder) && employee.onLeave && employee.notes && (
+                          {(isAdmin || isSkadeleder) && employee.notes && (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <AlertCircle size={16} className="text-orange-500 ml-2 cursor-help" />

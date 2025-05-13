@@ -39,6 +39,16 @@ const admin = {
     deleteConfirm: 'Er du sikker?',
     deleteWarning: 'Du er ved at slette {name}\'s konto. Denne handling kan ikke fortrydes.'
   },
+  passwords: {
+    changePassword: 'Skift adgangskode',
+    resetPasswordFor: 'Rediger adgangskode for denne medarbejder',
+    newPassword: 'Ny adgangskode',
+    confirmPassword: 'Bekræft adgangskode',
+    passwordMismatch: 'Adgangskoderne stemmer ikke overens',
+    passwordMinLength: 'Adgangskoden skal være mindst 8 tegn lang',
+    passwordChanged: 'Adgangskode ændret',
+    passwordChangedMsg: 'Adgangskoden er blevet ændret.'
+  },
   roles: {
     administrator: 'Administrator',
     skadeleder: 'Skadeleder',
