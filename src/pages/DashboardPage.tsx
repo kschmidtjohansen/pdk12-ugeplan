@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -16,7 +15,7 @@ import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/useCars';
 import { useVacations } from '@/hooks/useVacations';
-import { getWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
+import { getCurrentWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
 import AssignmentDetails from '@/components/Planner/AssignmentDetails';
 
 const DashboardPage: React.FC = () => {
@@ -30,9 +29,8 @@ const DashboardPage: React.FC = () => {
   // Use the fixed getCurrentWeekNumber function
   const currentWeek = getCurrentWeekNumber();
   
-  // Get the current week dates - providing both required arguments
-  // First argument is the offset (0 for current week), second is the year (current year)
-  const weekDates = getWeekDates(0, new Date().getFullYear());
+  // Use the new getCurrentWeekDates function that doesn't require parameters
+  const weekDates = getCurrentWeekDates();
   
   // Convert start/end dates to ISO strings
   const startDateISO = format(weekDates.start, 'yyyy-MM-dd');

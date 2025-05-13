@@ -41,6 +41,16 @@ export const getWeekDates = (weekNumber: number, year: number) => {
 };
 
 /**
+ * Get the current week dates
+ * Returns the date range for the current week
+ */
+export const getCurrentWeekDates = () => {
+  const now = new Date();
+  const currentWeekInfo = getCurrentWeekInfo();
+  return getWeekDates(currentWeekInfo.week, currentWeekInfo.year);
+};
+
+/**
  * Get the current ISO week number and year
  */
 export const getCurrentWeekInfo = () => {
