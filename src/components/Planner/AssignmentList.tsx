@@ -6,8 +6,8 @@ import { Assignment } from '@/types/assignment';
 import EmptyState from './EmptyState';
 import { getAllWeekDays, getDateStatus } from '@/utils/dateUtils';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
-import DaySection from './DaySection';
-import { format } from 'date-fns';
+import CurrentAndFutureDays from './CurrentAndFutureDays';
+import PastAssignments from './PastAssignments';
 
 interface AssignmentListProps {
   assignments: Assignment[];
@@ -33,8 +33,6 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   weekDates
 }) => {
   const { 
-    isAdmin, 
-    isSkadeleder, 
     canEdit, 
     canCreate, 
     canSeeUnpublishedTasks,
@@ -68,9 +66,6 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
     }
   });
 
-  // Get today's date string in YYYY-MM-DD format
-  const todayString = new Date().toISOString().split('T')[0];
-
   // Separate dates into today, future, and past
   const todayDate: string[] = [];
   const futureDates: string[] = [];
@@ -87,7 +82,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
     }
   });
 
-  // Sort future dates (ascending) - Ensure Monday is first
+  // Sort future dates (ascending)
   futureDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
   
   // Sort past dates (descending - newest first)
@@ -125,65 +120,33 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
 
   return (
     <div className="w-full space-y-6">
-      {/* Today's date section (always at the top) */}
-      {todayDate.map(dateKey => (
-        <DaySection 
-          key={dateKey}
-          dateKey={dateKey}
-          dayAssignments={groupedAssignments[dateKey]}
-          isExpanded={expandedDays[dateKey] !== false} // Default to expanded
-          onToggleExpansion={toggleDayExpansion}
-          onPublishDay={onPublishDay}
-          onEditAssignment={onEditAssignment}
-          onDeleteAssignment={onDeleteAssignment}
-          onPublishAssignment={onPublishAssignment}
-          canEdit={canEdit}
-          canPublishTasks={canPublishTasks}
-        />
-      ))}
+      {/* Today's date and future dates section */}
+      <CurrentAndFutureDays 
+        dates={[...todayDate, ...futureDates]}
+        groupedAssignments={groupedAssignments}
+        expandedDays={expandedDays}
+        onToggleExpansion={toggleDayExpansion}
+        onPublishDay={onPublishDay}
+        onEditAssignment={onEditAssignment}
+        onDeleteAssignment={onDeleteAssignment}
+        onPublishAssignment={onPublishAssignment}
+        canEdit={canEdit}
+        canPublishTasks={canPublishTasks}
+      />
       
-      {/* Future dates section */}
-      {futureDates.map(dateKey => (
-        <DaySection 
-          key={dateKey}
-          dateKey={dateKey}
-          dayAssignments={groupedAssignments[dateKey]}
-          isExpanded={expandedDays[dateKey] !== false} // Default to expanded
-          onToggleExpansion={toggleDayExpansion}
-          onPublishDay={onPublishDay}
-          onEditAssignment={onEditAssignment}
-          onDeleteAssignment={onDeleteAssignment}
-          onPublishAssignment={onPublishAssignment}
-          canEdit={canEdit}
-          canPublishTasks={canPublishTasks}
-        />
-      ))}
-      
-      {/* Past dates section with header */}
-      {pastDates.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">
-            {t("planner.previousDays")}
-          </h2>
-          <div className="space-y-6">
-            {pastDates.map(dateKey => (
-              <DaySection 
-                key={dateKey}
-                dateKey={dateKey}
-                dayAssignments={groupedAssignments[dateKey]}
-                isExpanded={expandedDays[dateKey] !== false} // Default to expanded
-                onToggleExpansion={toggleDayExpansion}
-                onPublishDay={onPublishDay}
-                onEditAssignment={onEditAssignment}
-                onDeleteAssignment={onDeleteAssignment}
-                onPublishAssignment={onPublishAssignment}
-                canEdit={canEdit}
-                canPublishTasks={canPublishTasks}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Past dates section */}
+      <PastAssignments 
+        pastDates={pastDates}
+        groupedAssignments={groupedAssignments}
+        expandedDays={expandedDays}
+        onToggleExpansion={toggleDayExpansion}
+        onPublishDay={onPublishDay}
+        onEditAssignment={onEditAssignment}
+        onDeleteAssignment={onDeleteAssignment}
+        onPublishAssignment={onPublishAssignment}
+        canEdit={canEdit}
+        canPublishTasks={canPublishTasks}
+      />
     </div>
   );
 };

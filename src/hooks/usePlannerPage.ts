@@ -11,6 +11,7 @@ import {
   formatWeekDateRange 
 } from '@/utils/weekDates';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
+import { getUnpublishedAssignment } from '@/hooks/useAssignmentPublishing';
 
 export const usePlannerPage = () => {
   // Get current week info (week number and year)
