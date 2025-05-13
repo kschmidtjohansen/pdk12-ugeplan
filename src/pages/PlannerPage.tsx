@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import PageHeader from '../components/Layout/PageHeader';
@@ -53,8 +53,8 @@ const PlannerPage: React.FC = () => {
     dateRangeText = `${format(weekDates.start, 'MMMM d', { locale })} - ${format(weekDates.end, 'MMMM d', { locale })}`;
   }
 
-  // Handle assignment creation/editing
-  const handleOpenCreateDialog = (date: string) => {
+  // Handle assignment creation/editing with useCallback to prevent unnecessary re-renders
+  const handleOpenCreateDialog = useCallback((date: string) => {
     setCurrentAssignment(null);
     setSelectedDay(date);
     
@@ -71,9 +71,9 @@ const PlannerPage: React.FC = () => {
     });
     
     setIsDialogOpen(true);
-  };
+  }, [setCurrentAssignment, setIsDialogOpen]);
 
-  const handleOpenEditDialog = (assignment: Assignment) => {
+  const handleOpenEditDialog = useCallback((assignment: Assignment) => {
     setCurrentAssignment(assignment);
     setSelectedDay(assignment.date);
     
@@ -81,9 +81,9 @@ const PlannerPage: React.FC = () => {
     setFormData({...assignment});
     
     setIsDialogOpen(true);
-  };
+  }, [setCurrentAssignment, setIsDialogOpen]);
 
-  const handleSubmit = (data: Partial<Assignment>) => {
+  const handleSubmit = useCallback((data: Partial<Assignment>) => {
     if (currentAssignment) {
       // Set the edited assignment as unpublished
       const unpublishedData = getUnpublishedAssignment(data as Assignment);
@@ -96,14 +96,14 @@ const PlannerPage: React.FC = () => {
       } as Assignment);
     }
     setIsDialogOpen(false);
-  };
+  }, [currentAssignment, createAssignment, updateAssignment, setIsDialogOpen]);
 
-  // Fixed wrapper function that takes no parameters but uses selectedDay internally
-  const handlePublishDay = () => {
+  // Fixed wrapper function that uses selectedDay internally - use useCallback to prevent unnecessary re-renders
+  const handlePublishDay = useCallback(() => {
     if (selectedDay) {
       publishAssignmentsByDate(selectedDay);
     }
-  };
+  }, [selectedDay, publishAssignmentsByDate]);
 
   return (
     <div>
@@ -136,6 +136,7 @@ const PlannerPage: React.FC = () => {
         weekDates={weekDates}
       />
 
+      {/* Only render dialog when it's actually open */}
       {isDialogOpen && (
         <AssignmentDialogManager
           open={isDialogOpen}
