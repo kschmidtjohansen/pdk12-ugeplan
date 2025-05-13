@@ -1,15 +1,14 @@
-
 import React from 'react';
 import { format } from 'date-fns';
 import PageHeader from '../Layout/PageHeader';
 import PlannerHeader from './PlannerHeader';
 import { useTranslation } from '@/context/TranslationContext';
-import { formatWeekDateRange } from '@/utils/weekDates';
+import { formatWeekDateRange } from '@/utils/dates';
 
 interface PlannerPageHeaderProps {
   selectedWeek: number;
   selectedYear: number;
-  weekDates: ReturnType<typeof import('@/utils/weekDates').getWeekDates>;
+  weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
   onPreviousWeek: () => void;
   onNextWeek: () => void;
   onCreateNew: (date: string) => void;

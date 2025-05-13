@@ -6,7 +6,7 @@ import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { format } from 'date-fns';
-import { getWeekDates } from '@/utils/weekDates';
+import { getWeekDates } from '@/utils/dates';
 import { da } from 'date-fns/locale';
 
 interface PlannerHeaderProps {

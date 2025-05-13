@@ -8,7 +8,7 @@ import {
   getCurrentWeekInfo, 
   getPreviousWeekInfo, 
   getNextWeekInfo
-} from '@/utils/weekDates';
+} from '@/utils/dates';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import { getUnpublishedAssignment } from '@/hooks/useAssignmentPublishing';
 
