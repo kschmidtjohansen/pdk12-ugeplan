@@ -17,6 +17,7 @@ const planner = {
   car: 'Bil',
   employees: 'Medarbejdere',
   selectCar: 'Vælg en bil',
+  noCar: 'Ingen bil tildelt',
   selectEmployee: 'Vælg en medarbejder',
   selectAtLeastOneEmployee: 'Vælg mindst én medarbejder',
   saveChanges: 'Gem Ændringer',

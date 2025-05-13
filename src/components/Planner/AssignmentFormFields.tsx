@@ -13,12 +13,14 @@ import { da } from 'date-fns/locale';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 import { Car } from '@/types/car';
+
 interface AssignmentFormFieldsProps {
   formData: any;
   onFieldChange: (field: string, value: any) => void;
   cars: Car[];
   employees: Employee[];
 }
+
 const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   formData,
   onFieldChange,
@@ -71,6 +73,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       }
     }
   };
+  
   return <>
       <div className="grid gap-2">
         <Label htmlFor="title">{t('planner.assignmentTitle')}</Label>
@@ -86,14 +89,24 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         <Label htmlFor="date">{t('planner.date')}</Label>
         <Popover>
           <PopoverTrigger asChild>
-            <Button type="button" variant={"outline"} className={"w-[280px] justify-start text-left font-normal" + (formData.date ? " text-foreground" : " text-muted-foreground")}>
+            <Button 
+              type="button" 
+              variant={"outline"} 
+              className={"w-[280px] justify-start text-left font-normal" + (formData.date ? " text-foreground" : " text-muted-foreground")}
+            >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {formData.date ? formatDisplayDate(formData.date) : <span>{t('planner.date')}</span>}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar mode="single" selected={formData.date ? new Date(formData.date) : undefined} onSelect={handleDateSelect} locale={currentLanguage === 'da' ? da : undefined} weekStartsOn={1} // 1 means Monday is the first day
-          className="rounded-md border p-3 pointer-events-auto" />
+            <Calendar 
+              mode="single" 
+              selected={formData.date ? new Date(formData.date) : undefined} 
+              onSelect={handleDateSelect} 
+              locale={currentLanguage === 'da' ? da : undefined} 
+              weekStartsOn={1} // 1 means Monday is the first day
+              className="rounded-md border p-3 pointer-events-auto" 
+            />
           </PopoverContent>
         </Popover>
       </div>
@@ -130,9 +143,11 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         </div>}
       
       {employees && employees.length > 0 && <div className="grid gap-2">
-          
+          <Label htmlFor="employees">{t('planner.employees')}</Label>
           <Select value={formData.employees && formData.employees[0] || undefined} onValueChange={value => onFieldChange('employees', value)}>
-            
+            <SelectTrigger id="employees">
+              <SelectValue placeholder={t('planner.selectEmployee')} />
+            </SelectTrigger>
             <SelectContent>
               {employees.map(employee => <SelectItem key={employee.name} value={employee.name}>
                   {employee.name}
@@ -142,4 +157,5 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         </div>}
     </>;
 };
+
 export default AssignmentFormFields;

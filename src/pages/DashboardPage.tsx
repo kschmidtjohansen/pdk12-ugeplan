@@ -28,14 +28,30 @@ const DashboardPage: React.FC = () => {
   
   // Use the fixed getCurrentWeekNumber function
   const currentWeek = getCurrentWeekNumber();
+  
+  // Get the current week dates
+  const weekDates = getWeekDates(0); // 0 for current week
+  
+  // Convert start/end dates to ISO strings
+  const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
+  const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
 
-  // Get today's date in YYYY-MM-DD format
-  const today = format(new Date(), 'yyyy-MM-dd');
-
-  // Get only the assignments for the current user and today's date
-  // For published assignments only (service employees can only see published tasks)
-  const todaysAssignments = assignments.filter(assignment => {
-    return assignment.date === today && assignment.published === true && user && assignment.employees.includes(user.name);
+  // Get assignments for the current week and user
+  const userWeekAssignments = assignments.filter(assignment => {
+    // Check if assignment is within the current week
+    const assignmentDate = assignment.date;
+    const isInCurrentWeek = assignmentDate >= startDateISO && assignmentDate <= endDateISO;
+    
+    // For administrators, show all assignments for the week
+    // For other users, show only published assignments assigned to them
+    if (user?.role === 'administrator') {
+      return isInCurrentWeek;
+    } else {
+      return isInCurrentWeek && 
+             assignment.published === true && 
+             user && 
+             assignment.employees.includes(user.name);
+    }
   });
 
   // Format the date based on the current language
@@ -50,9 +66,22 @@ const DashboardPage: React.FC = () => {
 
   // Format car display value
   const getCarDisplay = (car: string | { id: string; name: string } | null) => {
-    if (!car) return 'No car assigned';
+    if (!car) return t('planner.noCar');
     if (typeof car === 'string') return car;
     return car.name;
+  };
+  
+  // Format times without seconds
+  const formatTimeWithoutSeconds = (timeString: string) => {
+    if (!timeString) return '';
+    // If the time includes seconds (HH:MM:SS), remove them
+    if (timeString.includes(':')) {
+      const parts = timeString.split(':');
+      if (parts.length >= 2) {
+        return `${parts[0]}:${parts[1]}`;
+      }
+    }
+    return timeString;
   };
 
   // Quick access items based on user role
@@ -121,7 +150,7 @@ const DashboardPage: React.FC = () => {
       {/* Dashboard metrics for admin/skadeleder */}
       {shouldShowMetrics && <DashboardMetrics />}
 
-      {/* Today's assignments */}
+      {/* This week's assignments */}
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
@@ -136,13 +165,13 @@ const DashboardPage: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {todaysAssignments.length === 0 ? (
+          {userWeekAssignments.length === 0 ? (
             <p className="text-center py-8 text-muted-foreground">
               {t('dashboard.noAssignments')}
             </p>
           ) : (
             <div className="grid gap-4">
-              {todaysAssignments.map(assignment => (
+              {userWeekAssignments.map(assignment => (
                 <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
                   <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
                     <h3 className="font-medium">{assignment.title}</h3>
@@ -155,8 +184,8 @@ const DashboardPage: React.FC = () => {
                     <div className="flex items-start gap-2">
                       <Clock className="h-4 w-4 flex-shrink-0 mt-0.5" />
                       <span>{t('dashboard.assignmentTime', {
-                        fromTime: assignment.fromTime,
-                        toTime: assignment.toTime
+                        fromTime: formatTimeWithoutSeconds(assignment.fromTime),
+                        toTime: formatTimeWithoutSeconds(assignment.toTime)
                       })}</span>
                     </div>
                     <div className="flex items-start gap-2">
@@ -166,6 +195,12 @@ const DashboardPage: React.FC = () => {
                     <div className="flex items-start gap-2">
                       <Car className="h-4 w-4 flex-shrink-0 mt-0.5" />
                       <span>{getCarDisplay(assignment.car)}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Users className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                      <span>
+                        {assignment.employees.join(', ')}
+                      </span>
                     </div>
                   </div>
                 </div>
