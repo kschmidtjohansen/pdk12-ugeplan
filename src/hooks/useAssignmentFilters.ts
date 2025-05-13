@@ -32,10 +32,15 @@ export const useAssignmentFilters = () => {
 
   // Filter assignments by ISO week and year
   const filterByWeek = (assignments: Assignment[], weekNumber: number, year: number) => {
+    // Get the correct date range for the ISO week
     const { start, end } = getWeekDates(weekNumber, year);
     
     return assignments.filter(assignment => {
       const assignmentDate = new Date(assignment.date);
+      // Set time to noon to avoid timezone issues
+      assignmentDate.setHours(12, 0, 0, 0);
+      
+      // Compare dates to check if assignment falls within the week
       return assignmentDate >= start && assignmentDate <= end;
     });
   };

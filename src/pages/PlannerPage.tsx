@@ -17,6 +17,7 @@ import {
   getNextWeekInfo, 
   formatWeekDateRange 
 } from '@/utils/weekDates';
+import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 
 const PlannerPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
@@ -41,6 +42,8 @@ const PlannerPage: React.FC = () => {
     setCurrentAssignment
   } = usePlannerAssignments();
 
+  const { filterByWeek } = useAssignmentFilters();
+
   // Using state for managing form data
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [formData, setFormData] = useState<Partial<Assignment>>({
@@ -54,8 +57,12 @@ const PlannerPage: React.FC = () => {
     employees: []
   });
 
-  // Get the date range for the selected week
+  // Get the date range for the selected week with correct ISO week calculation
   const weekDates = getWeekDates(selectedWeek, selectedYear);
+  
+  // Filter assignments for the current week
+  const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
+  
   const locale = currentLanguage === 'da' ? da : undefined;
   
   // Format the date range
@@ -150,7 +157,7 @@ const PlannerPage: React.FC = () => {
       />
 
       <AssignmentList
-        assignments={assignments}
+        assignments={weekAssignments}
         onEditAssignment={handleOpenEditDialog}
         onDeleteAssignment={deleteAssignment}
         onPublishAssignment={publishAssignment}

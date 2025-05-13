@@ -1,42 +1,47 @@
 
-import { getISOWeek, getISOWeekYear, getYear, parseISO } from "date-fns";
-import { format, setISOWeek, startOfISOWeek, endOfISOWeek, setISOWeekYear } from "date-fns";
+import { parseISO, getISOWeek, getISOWeekYear, getYear } from "date-fns";
+import { 
+  format,
+  startOfISOWeek, 
+  endOfISOWeek, 
+  setISOWeek, 
+  setISOWeekYear 
+} from "date-fns";
 
 /**
  * Get the date range for a specific ISO week number and year
- * ISO weeks start on Monday and end on Sunday
+ * ISO weeks start on Monday and end on Sunday according to ISO 8601
  */
-export const getWeekDates = (weekNumber: number, year?: number) => {
-  // If no year is provided, use the current year
-  const targetYear = year || getYear(new Date());
+export const getWeekDates = (weekNumber: number, year: number) => {
+  if (weekNumber < 1 || weekNumber > 53) {
+    throw new Error(`Invalid week number: ${weekNumber}. Must be between 1 and 53.`);
+  }
   
-  // Create a date based on the given ISO week number and year
-  let baseDate = new Date();
+  // Create a date in the specified year
+  let baseDate = new Date(year, 0, 4); // January 4th is always in week 1
   
-  // Set the ISO week year first (important for correct week calculations)
-  baseDate = setISOWeekYear(baseDate, targetYear);
+  // First set the ISO week year to ensure proper year context
+  baseDate = setISOWeekYear(baseDate, year);
   
-  // Set the ISO week number
+  // Then set the ISO week
   baseDate = setISOWeek(baseDate, weekNumber);
   
-  // Get the start of the ISO week (Monday)
+  // Get the Monday of that week (start of ISO week)
   const weekStart = startOfISOWeek(baseDate);
   
-  // Get the end of the ISO week (Sunday)
+  // Get the Sunday of that week (end of ISO week)
   const weekEnd = endOfISOWeek(baseDate);
   
   return {
     start: weekStart,
     end: weekEnd,
     weekNumber,
-    year: getISOWeekYear(weekStart) // This may differ from the calendar year at year boundaries
+    year: year
   };
 };
 
 /**
- * Get the current ISO week number
- * Returns an object with both week number and year since 
- * ISO week numbers at year boundaries may belong to different years
+ * Get the current ISO week number and year
  */
 export const getCurrentWeekInfo = () => {
   const now = new Date();
@@ -57,11 +62,11 @@ export const getPreviousWeekInfo = (weekNumber: number, year: number) => {
       year
     };
   } else {
-    // If we're at week 1, go to the last week of the previous year
-    // The last ISO week of a year can be 52 or 53
-    const lastDate = new Date(year - 1, 11, 31); // December 31st of previous year
+    // If at week 1, go to last week of previous year
+    const prevYearDate = new Date(year - 1, 11, 31); // Dec 31 of previous year
+    
     return {
-      week: getISOWeek(lastDate),
+      week: getISOWeek(prevYearDate),
       year: year - 1
     };
   }
@@ -72,17 +77,17 @@ export const getPreviousWeekInfo = (weekNumber: number, year: number) => {
  * Takes into account year boundaries
  */
 export const getNextWeekInfo = (weekNumber: number, year: number) => {
-  // Get the last week of the current year
+  // Get the last week number of the current year
   const lastDate = new Date(year, 11, 31); // December 31st
-  const lastWeek = getISOWeek(lastDate);
+  const lastWeekOfYear = getISOWeek(lastDate);
   
-  if (weekNumber < lastWeek) {
+  if (weekNumber < lastWeekOfYear) {
     return {
       week: weekNumber + 1,
       year
     };
   } else {
-    // If we're at the last week, go to week 1 of the next year
+    // If at the last week, go to first week of next year
     return {
       week: 1,
       year: year + 1
@@ -117,5 +122,6 @@ export const getWeekNumber = (date: Date | string) => {
 
 export const getYearForDate = (date: Date | string) => {
   const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  return getYear(dateObj);
+  // Return ISO week year, not calendar year
+  return getISOWeekYear(dateObj);
 };

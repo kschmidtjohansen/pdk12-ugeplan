@@ -1,4 +1,6 @@
 
+import { getISOWeek, getISOWeekYear } from 'date-fns';
+
 // Group assignments by day (YYYY-MM-DD format)
 export const groupAssignmentsByDay = (assignments: any[]) => {
   return assignments.reduce((acc, assignment) => {
@@ -53,12 +55,13 @@ export const getAllWeekDays = (
   { start, end }: { start: Date, end: Date, weekNumber?: number, year?: number }
 ): string[] => {
   const days: string[] = [];
+  // Create a new date object to avoid modifying the original start date
   const currentDate = new Date(start);
   
   // Set to beginning of the day
   currentDate.setHours(0, 0, 0, 0);
   
-  // Loop through each day until the end date
+  // Loop through each day until the end date (inclusive)
   while (currentDate <= end) {
     const dateString = currentDate.toISOString().split('T')[0];
     days.push(dateString);
@@ -85,4 +88,12 @@ export const getDateStatus = (dateString: string): 'past' | 'today' | 'future' =
   } else {
     return 'future';
   }
+};
+
+// Get ISO week number and year for a given date
+export const getIsoWeekInfo = (date: Date) => {
+  return {
+    week: getISOWeek(date),
+    year: getISOWeekYear(date)
+  };
 };
