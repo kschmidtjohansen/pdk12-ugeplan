@@ -8,6 +8,7 @@ import { getAllWeekDays, getDateStatus } from '@/utils/dateUtils';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import CurrentAndFutureDays from './CurrentAndFutureDays';
 import PastAssignments from './PastAssignments';
+import { format } from 'date-fns'; // Added missing import
 
 interface AssignmentListProps {
   assignments: Assignment[];
