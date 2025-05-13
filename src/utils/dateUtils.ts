@@ -1,5 +1,6 @@
 
-import { getISOWeek, getISOWeekYear } from 'date-fns';
+import { getISOWeek, getISOWeekYear, format } from 'date-fns';
+import { da } from 'date-fns/locale';
 
 // Group assignments by day (YYYY-MM-DD format)
 export const groupAssignmentsByDay = (assignments: any[]) => {
@@ -25,24 +26,12 @@ export const formatDateWithCapital = (dateString: string, locale: string = 'en')
     let options;
     
     if (locale === 'da') {
-      options = {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long'
-      } as Intl.DateTimeFormatOptions;
-      
-      // Format like: Mandag d. 5. maj
-      const formattedDate = date.toLocaleDateString('da-DK', options);
-      return formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+      // Format like: "Mandag d. 5. maj" with capitalized first letter
+      return format(date, "EEEE 'd.' d'.' MMMM", { locale: da })
+        .replace(/^./, str => str.toUpperCase());
     } else {
-      // Format like: Monday, May 5
-      options = {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric'
-      } as Intl.DateTimeFormatOptions;
-      
-      return date.toLocaleDateString('en-US', options);
+      // Format like: "Monday, May 5"
+      return format(date, "EEEE, MMMM d", {});
     }
   } catch (error) {
     console.error("Error formatting date:", error);

@@ -33,11 +33,15 @@ export const getWeekDates = (weekNumber: number, year: number) => {
   // Get the Sunday of that week (end of ISO week)
   const weekEnd = endOfISOWeek(baseDate);
   
+  // Add debug logging for troubleshooting
+  console.log(`Week ${weekNumber}, ${year} - Start: ${format(weekStart, 'yyyy-MM-dd')} (${format(weekStart, 'EEEE')})`);
+  console.log(`Week ${weekNumber}, ${year} - End: ${format(weekEnd, 'yyyy-MM-dd')} (${format(weekEnd, 'EEEE')})`);
+  
   return {
     start: weekStart,
     end: weekEnd,
     weekNumber,
-    year: year
+    year
   };
 };
 
@@ -108,15 +112,17 @@ export const getNextWeekInfo = (weekNumber: number, year: number) => {
 
 /**
  * Format a week date range as a string
- * Example: "6 - 12 maj" or "May 6 - 12"
+ * Example: "Mandag 6. - Søndag 12. maj" (Danish)
+ * or "Monday, May 6 - Sunday, May 12" (English)
  */
 export const formatWeekDateRange = (weekDates: { start: Date; end: Date }, locale: string = 'en') => {
   try {
     if (locale === 'da') {
-      // Use imported da locale directly
-      return `${format(weekDates.start, 'd.')} - ${format(weekDates.end, 'd. MMMM', { locale: da })}`;
+      // Include weekday names for Danish format
+      return `${format(weekDates.start, 'EEEE d.', { locale: da })} - ${format(weekDates.end, 'EEEE d. MMMM', { locale: da })}`;
     } else {
-      return `${format(weekDates.start, 'MMMM d')} - ${format(weekDates.end, 'd')}`;
+      // Include weekday names for English format
+      return `${format(weekDates.start, 'EEEE, MMMM d')} - ${format(weekDates.end, 'EEEE, MMMM d')}`;
     }
   } catch (error) {
     console.error("Error formatting week date range:", error);

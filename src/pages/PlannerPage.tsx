@@ -24,11 +24,16 @@ const PlannerPage: React.FC = () => {
   
   // Get current week info (week number and year)
   const currentWeekInfo = getCurrentWeekInfo();
+  console.log("Current Week Info:", currentWeekInfo);
   
   // State to track the selected week number and year
   const [selectedWeek, setSelectedWeek] = useState(currentWeekInfo.week);
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   
+  useEffect(() => {
+    console.log(`Selected week: ${selectedWeek}, year: ${selectedYear}`);
+  }, [selectedWeek, selectedYear]);
+
   const { 
     assignments, 
     createAssignment, 
@@ -63,14 +68,14 @@ const PlannerPage: React.FC = () => {
   // Filter assignments for the current week
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
   
-  const locale = currentLanguage === 'da' ? da : undefined;
-  
-  // Format the date range
+  // Format the date range with the proper locale
   const dateRangeText = formatWeekDateRange(weekDates, currentLanguage);
+  console.log("Formatted date range:", dateRangeText);
 
   // Navigate to previous week
   const handlePreviousWeek = useCallback(() => {
     const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
+    console.log(`Going to previous week: ${week}, year: ${year}`);
     setSelectedWeek(week);
     setSelectedYear(year);
   }, [selectedWeek, selectedYear]);
@@ -78,6 +83,7 @@ const PlannerPage: React.FC = () => {
   // Navigate to next week
   const handleNextWeek = useCallback(() => {
     const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
+    console.log(`Going to next week: ${week}, year: ${year}`);
     setSelectedWeek(week);
     setSelectedYear(year);
   }, [selectedWeek, selectedYear]);
@@ -142,10 +148,7 @@ const PlannerPage: React.FC = () => {
       />
       
       <div className="text-sm text-muted-foreground mb-6">
-        {dateRangeText ? dateRangeText : t('planner.weekDateRange', { 
-          start: format(weekDates.start, 'd MMMM', { locale }), 
-          end: format(weekDates.end, 'd MMMM', { locale })
-        })}
+        {dateRangeText}
       </div>
 
       <PlannerHeader 
