@@ -57,6 +57,8 @@ const PlannerPage: React.FC = () => {
   const handleOpenCreateDialog = (date: string) => {
     setCurrentAssignment(null);
     setSelectedDay(date);
+    
+    // Set form data in one update to avoid race conditions
     setFormData({
       title: '',
       description: '',
@@ -67,16 +69,18 @@ const PlannerPage: React.FC = () => {
       car: '',
       employees: []
     });
-    // Open dialog only after state is set
-    setTimeout(() => setIsDialogOpen(true), 0);
+    
+    setIsDialogOpen(true);
   };
 
   const handleOpenEditDialog = (assignment: Assignment) => {
     setCurrentAssignment(assignment);
     setSelectedDay(assignment.date);
+    
+    // Set form data at once to avoid multiple renders
     setFormData({...assignment});
-    // Open dialog only after state is set
-    setTimeout(() => setIsDialogOpen(true), 0);
+    
+    setIsDialogOpen(true);
   };
 
   const handleSubmit = (data: Partial<Assignment>) => {
@@ -129,22 +133,24 @@ const PlannerPage: React.FC = () => {
         onPublishDay={handlePublishDay}
         onCreateAssignment={handleOpenCreateDialog}
         selectedWeek={currentWeek}
-        weekDates={weekDates} // Pass week dates
+        weekDates={weekDates}
       />
 
-      <AssignmentDialogManager
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        editMode={!!currentAssignment}
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={handleSubmit}
-        onDelete={deleteAssignment}
-        onPublish={publishAssignment}
-        assignments={assignments}
-        selectedDay={selectedDay}
-        onPublishDay={handlePublishDay}
-      />
+      {isDialogOpen && (
+        <AssignmentDialogManager
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          editMode={!!currentAssignment}
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleSubmit}
+          onDelete={deleteAssignment}
+          onPublish={publishAssignment}
+          assignments={assignments}
+          selectedDay={selectedDay}
+          onPublishDay={handlePublishDay}
+        />
+      )}
     </div>
   );
 };
