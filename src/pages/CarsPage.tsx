@@ -4,7 +4,7 @@ import { usePermissions } from '../context/AuthContext';
 import CarsList from '@/components/Cars/CarsList';
 import CarPageHeader from '@/components/Cars/CarPageHeader';
 import CarDialogs from '@/components/Cars/CarDialogs';
-import { useCars } from '@/hooks/useCars';
+import { useCars } from '@/hooks/car';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 const CarsPage: React.FC = () => {

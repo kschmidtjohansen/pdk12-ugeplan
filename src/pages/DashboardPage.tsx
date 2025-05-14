@@ -14,7 +14,7 @@ import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 // Import assignments from planner hook to reuse the mock data
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
-import { useCars } from '@/hooks/useCars';
+import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
 import { getCurrentWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
 import AssignmentDetails from '@/components/Planner/AssignmentDetails';

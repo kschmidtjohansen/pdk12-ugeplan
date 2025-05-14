@@ -1,16 +1,25 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData, CarFormData } from '@/components/Cars/types';
 import { supabase } from '@/integrations/supabase/client';
 
-export const useCars = () => {
-  const [cars, setCars] = useState<CarData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [currentCar, setCurrentCar] = useState<CarData | null>(null);
-  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+interface UseCarFormStateProps {
+  cars: CarData[];
+  setCars: React.Dispatch<React.SetStateAction<CarData[]>>;
+  currentCar: CarData | null;
+  setCurrentCar: React.Dispatch<React.SetStateAction<CarData | null>>;
+  setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const useCarFormState = ({ 
+  cars, 
+  setCars, 
+  currentCar, 
+  setCurrentCar, 
+  setDialogOpen 
+}: UseCarFormStateProps) => {
   const [formData, setFormData] = useState<CarFormData>({
     name: '',
     car_number: '',
@@ -20,68 +29,6 @@ export const useCars = () => {
   });
   const { toast } = useToast();
   const { t } = useTranslation();
-
-  // Fetch cars from Supabase
-  const fetchCars = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('cars')
-        .select('*')
-        .order('name', { ascending: true });
-      
-      if (error) throw error;
-      setCars(data || []);
-    } catch (err) {
-      console.error('Error fetching cars:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch cars');
-      toast({
-        title: t('common.error'),
-        description: t('common.error'),
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Load cars on component mount
-  useEffect(() => {
-    let isMounted = true;
-    
-    const loadCars = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('cars')
-          .select('*')
-          .order('name', { ascending: true });
-        
-        if (error) throw error;
-        
-        if (isMounted) {
-          setCars(data || []);
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error('Error fetching cars:', err);
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : 'Failed to fetch cars');
-          toast({
-            title: t('common.error'),
-            description: t('common.error'),
-            variant: 'destructive',
-          });
-          setLoading(false);
-        }
-      }
-    };
-    
-    loadCars();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   const handleCreateNew = () => {
     setCurrentCar(null);
@@ -95,8 +42,7 @@ export const useCars = () => {
     setDialogOpen(true);
   };
 
-  const handleEdit = (car: CarData) => {
-    setCurrentCar(car);
+  const initFormWithCar = (car: CarData) => {
     setFormData({
       name: car.name,
       car_number: car.car_number,
@@ -104,41 +50,6 @@ export const useCars = () => {
       fuel_card_code: car.fuel_card_code,
       has_trailer_hitch: car.has_trailer_hitch || false,
     });
-    setDialogOpen(true);
-  };
-
-  const handleDelete = (car: CarData) => {
-    setCurrentCar(car);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (currentCar) {
-      try {
-        const { error } = await supabase
-          .from('cars')
-          .delete()
-          .eq('id', currentCar.id);
-        
-        if (error) throw error;
-        
-        setCars(cars.filter(car => car.id !== currentCar.id));
-        
-        toast({
-          title: t('cars.vehicleDeleted'),
-          description: t('cars.vehicleDeletedMsg', { name: currentCar.name }),
-        });
-      } catch (err) {
-        console.error('Error deleting car:', err);
-        toast({
-          title: t('common.error'),
-          description: err instanceof Error ? err.message : 'Error deleting vehicle',
-          variant: 'destructive',
-        });
-      } finally {
-        setDeleteDialogOpen(false);
-      }
-    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -227,19 +138,10 @@ export const useCars = () => {
   };
 
   return {
-    cars,
-    loading,
-    error,
-    currentCar,
     formData,
-    dialogOpen,
-    setDialogOpen,
-    deleteDialogOpen,
-    setDeleteDialogOpen,
+    setFormData,
     handleCreateNew,
-    handleEdit,
-    handleDelete,
-    confirmDelete,
+    initFormWithCar,
     handleInputChange,
     handleCheckboxChange,
     handleSubmit
