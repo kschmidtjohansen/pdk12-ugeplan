@@ -1,121 +1,71 @@
-
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate
+} from "react-router-dom";
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { Toaster } from "@/components/ui/toaster"
+
 import { useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
+import { TranslationProvider } from './context/TranslationContext';
+import { NotificationProvider } from './context/NotificationContext';
+import { ThemeProvider } from "@/components/theme-provider"
+
+import MainLayout from './components/Layout/MainLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import PlannerPage from './pages/PlannerPage';
-import VacationPage from './pages/VacationPage';
 import EmployeesPage from './pages/EmployeesPage';
 import CarsPage from './pages/CarsPage';
+import VacationPage from './pages/VacationPage';
 import AdminPage from './pages/AdminPage';
-import PasswordResetPage from './pages/PasswordResetPage';
-import { Toaster } from "@/components/ui/toaster";
-import MainLayout from './components/Layout/MainLayout';
-import AutoPublishHandler from './components/AutoPublish/AutoPublishHandler';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import AutoPublishContainer from './components/AutoPublish/AutoPublishContainer';
+
+const queryClient = new QueryClient();
 
 function App() {
-  const { isAuthenticated, loading: authLoading } = useAuth();
-  const [appReady, setAppReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  // Add a delay to ensure auth state is stable before rendering routes
   useEffect(() => {
-    if (!authLoading) {
-      // Small delay to ensure auth state is stable
-      const timer = setTimeout(() => {
-        setAppReady(true);
-      }, 100);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [authLoading]);
+    const checkAuth = async () => {
+      setLoading(false);
+    };
+    checkAuth();
+  }, [user]);
 
-  // Show loading state until auth is ready
-  if (authLoading || !appReady) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
-  // Component to handle protected routes
-  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    // If not authenticated, redirect to login
-    if (!isAuthenticated) {
-      return <Navigate to="/login" />;
-    }
-    return <>{children}</>;
-  };
-
   return (
-    <ErrorBoundary>
-      <Router>
-        {/* Only mount AutoPublishHandler when user is authenticated */}
-        {isAuthenticated && <AutoPublishHandler />}
-        
-        <Routes>
-          {/* Public routes without layout */}
-          <Route path="/login" element={
-            // Prevent authenticated users from accessing login page
-            isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage />
-          } />
-          
-          {/* Support both URL formats for password reset */}
-          <Route path="/password-reset" element={<PasswordResetPage />} />
-          <Route path="/reset-password" element={<PasswordResetPage />} />
-          
-          {/* Protected routes wrapped with MainLayout */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <DashboardPage />
-              </MainLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <DashboardPage />
-              </MainLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/planner" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <PlannerPage />
-              </MainLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/vacation" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <VacationPage />
-              </MainLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/employees" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <EmployeesPage />
-              </MainLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/cars" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <CarsPage />
-              </MainLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <AdminPage />
-              </MainLayout>
-            </ProtectedRoute>
-          } />
-        </Routes>
-        <Toaster />
-      </Router>
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TranslationProvider>
+          <NotificationProvider>
+            <ThemeProvider>
+              <Router>
+                <Toaster />
+                <AutoPublishContainer />
+                <Routes>
+                  <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
+                  <Route path="/" element={user ? <MainLayout><DashboardPage /></MainLayout> : <Navigate to="/login" />} />
+                  <Route path="/planner" element={user ? <MainLayout><PlannerPage /></MainLayout> : <Navigate to="/login" />} />
+                  <Route path="/employees" element={user ? <MainLayout><EmployeesPage /></MainLayout> : <Navigate to="/login" />} />
+                  <Route path="/cars" element={user ? <MainLayout><CarsPage /></MainLayout> : <Navigate to="/login" />} />
+                  <Route path="/vacation" element={user ? <MainLayout><VacationPage /></MainLayout> : <Navigate to="/login" />} />
+                  <Route path="/admin" element={user?.role === 'administrator' ? <MainLayout><AdminPage /></MainLayout> : user ? <Navigate to="/" /> : <Navigate to="/login" />} />
+                  <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+              </Router>
+            </ThemeProvider>
+          </NotificationProvider>
+        </TranslationProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

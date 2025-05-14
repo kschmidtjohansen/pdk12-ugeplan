@@ -55,7 +55,15 @@ const vacation = {
   employeeNotFound: 'Employee could not be found',
   currentlyOnVacation: 'Employees on Vacation',
   daysRemaining: 'Days Remaining',
-  days: 'days'
+  days: 'days',
+  upcoming: 'Upcoming',
+  // New translations for vacation cleanup
+  cleanup: {
+    completed: 'Vacation cleanup completed',
+    completedMessage: 'Removed {count} rejected vacation requests older than 14 days',
+    failed: 'Vacation cleanup failed',
+    failedMessage: 'An error occurred while cleaning up old rejected vacation requests'
+  }
 };
 
 export default vacation;
