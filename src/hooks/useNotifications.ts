@@ -1,14 +1,17 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNotificationFetching } from './notifications/notificationFetching';
 import { useNotificationActions } from './notifications/notificationActions'; 
 import { useNotificationCreate } from './notifications/notificationCreate';
 import { useNotificationRealtime } from './notifications/notificationRealtime';
 import { useVacationNotifications } from './notifications/vacationNotifications';
+import { NotificationType } from '@/types/notification';
 
 // Key for tracking fetch status in localStorage
 const NOTIFICATION_SYSTEM_READY_KEY = "polygon-notification-system-ready";
+const NOTIFICATION_FETCHED_KEY = "polygon-notification-fetched";
+const NOTIFICATION_SESSION_KEY = "polygon-notification-session";
 
 // Track if the notification system initialization has happened in this browser
 const isNotificationSystemReady = (): boolean => {
@@ -28,35 +31,42 @@ const markNotificationSystemReady = (): void => {
   }
 };
 
+// Generate a unique session ID for this browser tab
+const generateSessionId = (): string => {
+  try {
+    let sessionId = localStorage.getItem(NOTIFICATION_SESSION_KEY);
+    if (!sessionId) {
+      sessionId = `notification-session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      localStorage.setItem(NOTIFICATION_SESSION_KEY, sessionId);
+    }
+    return sessionId;
+  } catch (err) {
+    return `notification-session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  }
+};
+
 export const useNotifications = () => {
   const { user } = useAuth();
   const systemReadyRef = useRef<boolean>(isNotificationSystemReady());
   
-  // Use the separate notification hooks with try/catch for safety
-  let notificationFetchingData;
-  try {
-    notificationFetchingData = useNotificationFetching(user);
-  } catch (error) {
-    console.error("Error initializing notification fetching:", error);
-    // Provide fallback default values if the hook fails
-    notificationFetchingData = {
-      notifications: [],
-      setNotifications: () => {},
-      unreadCount: 0,
-      setUnreadCount: () => {},
-      loading: false,
-      fetchNotifications: async () => {}
-    };
-  }
+  // State management
+  const [notifications, setNotifications] = useState<NotificationType[]>([]);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [initialFetchDone, setInitialFetchDone] = useState<boolean>(false);
+  const [sessionFetchDone, setSessionFetchDone] = useState<boolean>(false);
+  const sessionId = useRef(generateSessionId());
   
-  const { 
-    notifications, 
+  // Use the separate notification hooks with try/catch for safety
+  const { fetchNotifications, fetchError } = useNotificationFetching(
+    user,
     setNotifications,
-    unreadCount, 
     setUnreadCount,
-    loading, 
-    fetchNotifications 
-  } = notificationFetchingData;
+    setLoading,
+    sessionId.current,
+    setInitialFetchDone,
+    setSessionFetchDone
+  );
   
   // Safe initialization of other hooks
   let notificationActions;

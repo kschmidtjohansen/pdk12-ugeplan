@@ -39,13 +39,24 @@ export const useNotificationFetching = (
         return;
       }
 
-      console.log(`Fetched ${data.length} notifications`);
+      console.log(`Fetched ${data?.length} notifications`);
       
       if (data) {
-        setNotifications(data as NotificationType[]);
+        // Transform the Supabase data to match NotificationType
+        const transformedData: NotificationType[] = data.map(item => ({
+          id: item.id,
+          type: item.type,
+          title: item.title,
+          message: item.message,
+          link: item.link || undefined,
+          read: item.read,
+          date: new Date(item.created_at)
+        }));
+        
+        setNotifications(transformedData);
         
         // Count unread notifications
-        const unreadCount = data.filter((notification: NotificationType) => !notification.read).length;
+        const unreadCount = data.filter((notification) => !notification.read).length;
         setUnreadCount(unreadCount);
         console.log(`Unread count: ${unreadCount}`);
       }
