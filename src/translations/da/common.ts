@@ -18,13 +18,16 @@ const common = {
   no: 'Nej',
   language: 'Sprog',
   actions: 'Handlinger',
-  optional: 'valgfri',
+  optional: 'valgfrit',
   on: 'Til',
   off: 'Fra',
   create: 'Opret bruger',
-  active: 'Aktiv',
+  available: 'Tilgængelig',
+  active: 'Tilgængelig',
   status: 'Status',
   saving: 'Gemmer...',
+  approve: 'Godkend',
+  reject: 'Afvis',
   noReasonProvided: 'Ingen årsag angivet',
   noData: 'Ingen data tilgængelig'
 };

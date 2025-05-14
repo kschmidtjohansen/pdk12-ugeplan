@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, UserPlus, Check, X, Edit, Trash } from 'lucide-react';
@@ -41,7 +42,7 @@ const VacationButtons: React.FC<VacationButtonsProps> = ({
             size="sm" 
             className="bg-green-500 hover:bg-green-600"
           >
-            <Check className="h-4 w-4 mr-1" /> {t('common.approve')}
+            <Check className="h-4 w-4 mr-1" /> {t('vacation.approve')}
           </Button>
         )}
         
@@ -51,7 +52,7 @@ const VacationButtons: React.FC<VacationButtonsProps> = ({
             size="sm" 
             variant="destructive"
           >
-            <X className="h-4 w-4 mr-1" /> {t('common.reject')}
+            <X className="h-4 w-4 mr-1" /> {t('vacation.reject')}
           </Button>
         )}
         

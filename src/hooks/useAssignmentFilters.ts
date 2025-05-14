@@ -1,78 +1,77 @@
 
+import { useMemo } from 'react';
+import { format, startOfWeek, endOfWeek, isSameDay } from 'date-fns';
 import { Assignment } from '@/types/assignment';
-import { getWeekDates } from '@/utils/dates';
-import { format } from 'date-fns';
+import { isDateInWeek } from '@/utils/dates';
 
-// Filters and groups assignments
 export const useAssignmentFilters = () => {
-  // Filter assignments based on user permissions
-  const filterByPermissions = (assignments: Assignment[], canSeeUnpublishedTasks: boolean) => {
-    if (canSeeUnpublishedTasks) {
-      // Admin or skadeleder can see all
-      return assignments;
-    } else {
-      // Others can only see published tasks
-      return assignments.filter(a => a.published);
-    }
-  };
-
-  // Group assignments by date
-  const groupByDate = (assignments: Assignment[]) => {
-    const grouped: Record<string, Assignment[]> = {};
-    
-    assignments.forEach(assignment => {
-      const date = assignment.date;
-      if (!grouped[date]) {
-        grouped[date] = [];
-      }
-      grouped[date].push(assignment);
-    });
-    
-    return grouped;
-  };
-
-  // Filter assignments by ISO week and year
+  /**
+   * Filter assignments by week number
+   */
   const filterByWeek = (assignments: Assignment[], weekNumber: number, year: number) => {
-    try {
-      console.log(`Filtering assignments for week ${weekNumber}/${year}`);
+    return assignments.filter(assignment => {
+      // Make sure assignment.date is a valid date string
+      if (!assignment.date) return false;
       
-      // Get the correct date range for the ISO week (Monday to Sunday)
-      const { start, end } = getWeekDates(weekNumber, year);
-      
-      // Set start time to beginning of day and end time to end of day
-      const weekStart = new Date(start);
-      weekStart.setHours(0, 0, 0, 0);
-      
-      const weekEnd = new Date(end);
-      weekEnd.setHours(23, 59, 59, 999);
-      
-      console.log(`Week boundaries for filtering - Start: ${format(weekStart, 'yyyy-MM-dd')} (${format(weekStart, 'EEEE')}, day ${weekStart.getDay()})`);
-      console.log(`Week boundaries for filtering - End: ${format(weekEnd, 'yyyy-MM-dd')} (${format(weekEnd, 'EEEE')}, day ${weekEnd.getDay()})`);
-      
-      return assignments.filter(assignment => {
-        // Create a date object from the assignment date string
-        const assignmentDate = new Date(assignment.date);
-        // Normalize time to noon to avoid timezone issues
-        assignmentDate.setHours(12, 0, 0, 0);
-        
-        // Compare if assignment date falls within week range
-        const isInWeek = assignmentDate >= weekStart && assignmentDate <= weekEnd;
-        
-        if (isInWeek) {
-          console.log(`Assignment ${assignment.id} (${assignment.date}) is in week ${weekNumber}`);
-        }
-        
-        return isInWeek;
-      });
-    } catch (error) {
-      console.error("Error filtering by week:", error);
-      return [];
-    }
+      const assignmentDate = new Date(assignment.date);
+      return isDateInWeek(assignmentDate, weekNumber, year);
+    });
   };
-
+  
+  /**
+   * Filter assignments by specific date
+   */
+  const filterByDate = (assignments: Assignment[], date: Date | string) => {
+    const targetDate = typeof date === 'string' ? new Date(date) : date;
+    
+    return assignments.filter(assignment => {
+      const assignmentDate = new Date(assignment.date);
+      return isSameDay(assignmentDate, targetDate);
+    });
+  };
+  
+  /**
+   * Group assignments by date
+   */
+  const groupByDate = (assignments: Assignment[]) => {
+    return assignments.reduce<Record<string, Assignment[]>>((acc, assignment) => {
+      // Format the date as YYYY-MM-DD for consistent grouping
+      const dateKey = format(new Date(assignment.date), 'yyyy-MM-dd');
+      
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      
+      acc[dateKey].push(assignment);
+      return acc;
+    }, {});
+  };
+  
+  /**
+   * Sort assignments by time
+   */
+  const sortByTime = (assignments: Assignment[]) => {
+    return [...assignments].sort((a, b) => {
+      // First compare by date
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      
+      if (dateA.getTime() !== dateB.getTime()) {
+        return dateA.getTime() - dateB.getTime();
+      }
+      
+      // If dates are the same, compare by fromTime
+      const fromTimeA = a.fromTime || '00:00';
+      const fromTimeB = b.fromTime || '00:00';
+      
+      return fromTimeA.localeCompare(fromTimeB);
+    });
+  };
+  
   return {
-    filterByPermissions,
+    filterByWeek,
+    filterByDate,
     groupByDate,
-    filterByWeek
+    sortByTime
   };
 };
