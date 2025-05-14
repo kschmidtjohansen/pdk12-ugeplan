@@ -12,6 +12,17 @@ export interface Assignment {
   published: boolean;
 }
 
+export interface AssignmentFormData {
+  date: string;
+  title?: string;
+  description?: string;
+  fromTime?: string;
+  toTime?: string;
+  location?: string;
+  car?: string;
+  employees?: string[];
+}
+
 export interface AssignmentFilterOptions {
   showUnpublished: boolean;
 }

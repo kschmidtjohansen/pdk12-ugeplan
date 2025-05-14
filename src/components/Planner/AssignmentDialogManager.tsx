@@ -1,9 +1,10 @@
+
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAssignmentFormState } from '@/hooks/assignment/useAssignmentFormState';
 import { useAssignmentDialogState } from '@/hooks/assignment/useAssignmentDialogState';
-import { Assignment, AssignmentFormData } from '@/types/assignment';
+import { Assignment } from '@/types/assignment';
 import { useEmployees } from '@/hooks/useEmployees';
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { useCars } from '@/hooks/car';
@@ -18,10 +19,10 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
   const { assignmentId } = useParams<{ assignmentId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { assignments, fetchAssignments } = usePlannerAssignments();
+  const { assignments, groupedAssignments, loading, error, isDialogOpen: plannerDialogOpen, setIsDialogOpen: setPlannerDialogOpen, publishAssignment, publishAssignmentsByDate } = usePlannerAssignments();
   const { employees } = useEmployees();
   const { cars } = useCars();
-  const { selectedDate } = usePlannerPage();
+  const { selectedDay } = usePlannerPage();
 
   const {
     dialogOpen,
@@ -42,13 +43,13 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
     handleSubmit
   } = useAssignmentFormState(
     employees,
-    cars.cars,
+    cars,
     assignments,
-    fetchAssignments,
+    () => {}, // We'll use the onSubmit prop from PlannerDialogContainer instead
     currentAssignment,
     setCurrentAssignment,
     setDialogOpen,
-    selectedDate
+    selectedDay || new Date().toISOString().split('T')[0]
   );
 
   useEffect(() => {
@@ -60,9 +61,13 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
         // Initialize form data with assignment details
         setFormData({
           date: assignment.date,
-          employee: assignment.employee ? (typeof assignment.employee === 'string' ? assignment.employee : assignment.employee.id) : '',
-          car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : '',
+          title: assignment.title,
           description: assignment.description || '',
+          fromTime: assignment.fromTime,
+          toTime: assignment.toTime,
+          location: assignment.location || '',
+          car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : '',
+          employees: assignment.employees || []
         });
       } else {
         console.error(`Assignment with id ${assignmentId} not found`);
@@ -73,26 +78,31 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
       setIsEditing(false);
       // Reset the form when creating a new assignment
       setFormData({
-        date: selectedDate,
-        employee: '',
-        car: '',
+        date: selectedDay || new Date().toISOString().split('T')[0],
+        title: '',
         description: '',
+        fromTime: '08:00',
+        toTime: '16:00',
+        location: '',
+        car: '',
+        employees: []
       });
     }
-  }, [assignmentId, assignments, navigate, setCurrentAssignment, setFormData, selectedDate, setIsEditing]);
+  }, [assignmentId, assignments, navigate, setCurrentAssignment, setFormData, selectedDay, setIsEditing]);
 
   return (
     <PlannerDialogContainer
-      open={dialogOpen}
-      isEditing={isEditing}
+      isDialogOpen={dialogOpen}
+      setIsDialogOpen={setDialogOpen}
+      currentAssignment={currentAssignment}
       formData={formData}
-      employees={employees}
-      cars={cars.cars}
-      onClose={handleCloseDialog}
-      onInputChange={handleInputChange}
-      onEmployeeChange={handleEmployeeChange}
-      onCarChange={handleCarChange}
+      setFormData={setFormData}
       onSubmit={handleSubmit}
+      onDelete={(id) => console.log('Delete assignment with id:', id)}
+      onPublish={(id) => console.log('Publish assignment with id:', id)}
+      assignments={assignments}
+      selectedDay={selectedDay || new Date().toISOString().split('T')[0]}
+      onPublishDay={() => console.log('Publish day')}
     />
   );
 };
