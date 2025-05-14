@@ -72,10 +72,17 @@ export const useAssignmentActions = (
       
       // If there are employees, link them to the assignment
       if (assignmentData.employees && assignmentData.employees.length > 0 && newAssignment) {
+        console.log("Assignment created, now linking employees:", assignmentData.employees);
         // Get profile IDs for each employee name
         const employeeInserts = [];
         
         for (const employeeName of assignmentData.employees) {
+          // Skip any non-string values that might have gotten in the array
+          if (typeof employeeName !== 'string') {
+            console.warn("Skipping invalid employee data:", employeeName);
+            continue;
+          }
+          
           const profileId = await getProfileIdByName(employeeName);
           if (profileId) {
             employeeInserts.push({
@@ -162,10 +169,17 @@ export const useAssignmentActions = (
       
       // If there are employees, link them to the assignment
       if (assignmentData.employees && assignmentData.employees.length > 0) {
+        console.log("Assignment updated, now linking employees:", assignmentData.employees);
         // Get profile IDs for each employee name
         const employeeInserts = [];
         
         for (const employeeName of assignmentData.employees) {
+          // Skip any non-string values that might have gotten in the array
+          if (typeof employeeName !== 'string') {
+            console.warn("Skipping invalid employee data:", employeeName);
+            continue;
+          }
+          
           const profileId = await getProfileIdByName(employeeName);
           if (profileId) {
             employeeInserts.push({

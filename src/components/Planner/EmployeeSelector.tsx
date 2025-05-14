@@ -45,17 +45,22 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 
   // Parse the current date string into a Date object for comparison
   const dateForComparison = currentDate ? new Date(currentDate) : new Date();
+  
+  // Debug the selected employees
+  console.log("EmployeeSelector - Selected employees:", selectedEmployees);
+  console.log("EmployeeSelector - Available employees:", employees.map(e => e.name));
 
   return (
     <div className="flex flex-wrap gap-2 mt-2">
       {employees.map(employee => {
-        const isSelected = selectedEmployees.includes(employee.id);
+        // Check if the employee is selected by matching their name
+        const isSelected = selectedEmployees.includes(employee.name);
         const isOnVacation = isEmployeeOnVacation(employee.id, dateForComparison);
         
         return (
           <div
             key={employee.id}
-            onClick={() => !isOnVacation && onToggle(employee.id)}
+            onClick={() => !isOnVacation && onToggle(employee.name)}
             className={`
               p-2 rounded-md border cursor-pointer transition-colors
               ${isSelected ? 'bg-polygon-purple text-white' : 'bg-white text-gray-700'}

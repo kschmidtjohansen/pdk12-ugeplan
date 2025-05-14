@@ -128,8 +128,12 @@ export const usePlannerPage = () => {
     setSelectedDay(assignment.date);
     
     // Set form data at once to avoid multiple renders
-    // Make sure to preserve the car ID and employees
-    setFormData({...assignment});
+    // Make sure to preserve the car ID and employees properly
+    // Fix: Ensure employees array is properly copied, not referenced
+    setFormData({
+      ...assignment,
+      employees: Array.isArray(assignment.employees) ? [...assignment.employees] : []
+    });
     
     setIsDialogOpen(true);
   }, [setCurrentAssignment, setIsDialogOpen]);

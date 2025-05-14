@@ -64,14 +64,16 @@ export const useAssignmentData = () => {
             if (userIds.length > 0) {
               const { data: empData, error: empError } = await supabase
                 .from('profiles')
-                .select('name')
+                .select('id, name')
                 .in('id', userIds);
                 
               if (empError) {
                 throw empError;
               }
               
+              // Store complete employee names for consistent handling
               employeeNames = empData?.map(emp => emp.name) || [];
+              console.log(`Assignment ${assignment.id} has employees:`, employeeNames);
             }
             
             // Return formatted assignment with employee names

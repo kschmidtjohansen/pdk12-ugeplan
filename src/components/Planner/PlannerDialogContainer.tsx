@@ -1,27 +1,24 @@
 
-import React from 'react';
-import { Assignment } from '@/types/assignment';
-import AssignmentForm from './AssignmentForm';
+import React, { useEffect, useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
-import { Employee } from '@/types/employee';
-import { Car } from '@/types/car';
 import { useVacations } from '@/hooks/useVacations';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
-import { format } from 'date-fns';
+import AssignmentForm from './AssignmentForm';
+import { Assignment } from '@/types/assignment';
 
 interface PlannerDialogContainerProps {
   isDialogOpen: boolean;
-  setIsDialogOpen: (open: boolean) => void;
+  setIsDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   currentAssignment: Assignment | null;
   formData: Partial<Assignment>;
   setFormData: React.Dispatch<React.SetStateAction<Partial<Assignment>>>;
   onSubmit: (data: Partial<Assignment>) => void;
-  onDelete: (assignmentId: string) => void;
-  onPublish: (assignmentId: string) => void;
+  onDelete: (id: string) => void;
+  onPublish?: (id: string) => void;
   assignments: Assignment[];
   selectedDay: string;
-  onPublishDay: () => void;
+  onPublishDay?: () => void;
 }
 
 const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
@@ -33,69 +30,81 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   onSubmit,
   onDelete,
   onPublish,
-  assignments,
   selectedDay,
   onPublishDay
 }) => {
-  // Add debugging to track the form data as it passes through
-  console.log("PlannerDialogContainer - Current Assignment:", currentAssignment);
-  console.log("PlannerDialogContainer - Form Data:", formData);
-  
-  // Get vacations to pass to the assignment form
   const { vacations } = useVacations();
-  
-  // Fetch employees and cars data
   const { employees } = useEmployees();
   const { cars } = useCars();
   
-  // Always ensure we have today's date for the form, no matter what
-  const todayDate = format(new Date(), 'yyyy-MM-dd');
-
-  // Only render the dialog when it's actually open
-  if (!isDialogOpen) {
-    return null;
-  }
-
-  // Extract selected employees from formData
-  const selectedEmployees = formData.employees || [];
+  // Track selected employees separately for better UI state management
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   
-  // Handle field change coming from the form
+  // Update selected employees when the form data changes
+  useEffect(() => {
+    // Ensure we have a proper array of employee names
+    if (formData.employees && Array.isArray(formData.employees)) {
+      // Filter out any non-string values that might have gotten in
+      const validEmployeeNames = formData.employees.filter(
+        emp => typeof emp === 'string'
+      );
+      setSelectedEmployees(validEmployeeNames);
+      
+      // Debug logs
+      console.log("PlannerDialogContainer - Current Assignment:", currentAssignment);
+      console.log("PlannerDialogContainer - Form Data:", formData);
+    } else {
+      setSelectedEmployees([]);
+    }
+  }, [formData, currentAssignment]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
-  // Handle select change coming from the form
+
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
-  // Handle toggling employees
+
   const handleEmployeeToggle = (employeeName: string) => {
-    setFormData(prev => {
-      const employees = prev.employees || [];
-      if (employees.includes(employeeName)) {
-        return {
-          ...prev,
-          employees: employees.filter(e => e !== employeeName)
-        };
-      } else {
-        return {
-          ...prev,
-          employees: [...employees, employeeName]
-        };
-      }
+    setSelectedEmployees(prev => {
+      const employeeExists = prev.includes(employeeName);
+      
+      // Create a new array to ensure React detects the change
+      const updated = employeeExists
+        ? prev.filter(name => name !== employeeName)
+        : [...prev, employeeName];
+        
+      // Update the form data with the new employee selection
+      setFormData(prevData => ({
+        ...prevData,
+        employees: updated
+      }));
+      
+      return updated;
     });
   };
 
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
+
+  const handleDeleteCurrentAssignment = () => {
+    if (currentAssignment) {
+      onDelete(currentAssignment.id);
+      setIsDialogOpen(false);
+    }
+  };
+
+  const handlePublishCurrentAssignment = () => {
+    if (currentAssignment && onPublish) {
+      onPublish(currentAssignment.id);
+      setIsDialogOpen(false);
+    }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
   };
@@ -106,15 +115,15 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
         currentAssignment={currentAssignment}
         formData={formData}
         selectedEmployees={selectedEmployees}
-        cars={cars}
-        employees={employees}
-        vacations={vacations}
+        cars={cars || []}
+        employees={employees || []}
+        vacations={vacations || []}
         handleInputChange={handleInputChange}
         handleSelectChange={handleSelectChange}
         handleEmployeeToggle={handleEmployeeToggle}
-        handleSubmit={handleSubmit}
-        onClose={() => setIsDialogOpen(false)}
-        currentDate={currentAssignment ? (formData.date || todayDate) : todayDate}
+        handleSubmit={handleFormSubmit}
+        onClose={handleCloseDialog}
+        currentDate={selectedDay}
       />
     </Dialog>
   );
