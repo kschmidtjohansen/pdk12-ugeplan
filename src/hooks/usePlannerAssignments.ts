@@ -5,11 +5,13 @@ import { useAssignmentFilters } from './useAssignmentFilters';
 import { Assignment } from '@/types/assignment';
 import { useAssignmentPublishing } from './useAssignmentPublishing';
 import { groupAssignmentsByDay } from '@/utils/dateUtils';
+import { useAuth } from '@/context/AuthContext';
 
 export const usePlannerAssignments = () => {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  const { user } = useAuth();
   
   // Get assignments data and actions
   const {
@@ -24,8 +26,23 @@ export const usePlannerAssignments = () => {
   // Get filter functionality
   const filterMethods = useAssignmentFilters();
   
-  // Filter assignments
-  const filteredAssignments = filterMethods.filterByPermissions(assignments, true); // Default to showing all
+  // Add the missing filterByPermissions function to our local scope
+  const filterByPermissions = useCallback((assignments: Assignment[], canManage: boolean) => {
+    if (canManage || user?.role === 'administrator' || user?.role === 'skadeleder') {
+      // Admins and managers can see all assignments
+      return assignments;
+    } else {
+      // Regular users only see published assignments assigned to them
+      return assignments.filter(assignment => 
+        assignment.published === true &&
+        assignment.employees && 
+        assignment.employees.includes(user?.name || '')
+      );
+    }
+  }, [user]);
+  
+  // Filter assignments - use our local filterByPermissions function
+  const filteredAssignments = filterByPermissions(assignments, true); // Default to showing all
   
   // Get publishing functionality - adapt updateAssignment to match expected signature
   const assignmentUpdater = useCallback((assignment: Assignment) => {
@@ -82,6 +99,8 @@ export const usePlannerAssignments = () => {
     updateAssignment,
     deleteAssignment,
     publishAssignment,
-    publishAssignmentsByDate
+    publishAssignmentsByDate,
+    // Include the filterByPermissions function so it can be used elsewhere
+    filterByPermissions
   };
 };
