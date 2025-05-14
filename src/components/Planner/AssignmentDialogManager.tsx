@@ -58,13 +58,18 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
       const assignment = assignments.find((a) => a.id === assignmentId);
       if (assignment) {
         setCurrentAssignment(assignment);
+        
+        // Format time values to remove seconds (HH:MM format)
+        const fromTime = assignment.fromTime ? assignment.fromTime.split(':').slice(0, 2).join(':') : '08:00';
+        const toTime = assignment.toTime ? assignment.toTime.split(':').slice(0, 2).join(':') : '16:00';
+        
         // Initialize form data with assignment details
         setFormData({
           date: assignment.date,
           title: assignment.title,
           description: assignment.description || '',
-          fromTime: assignment.fromTime,
-          toTime: assignment.toTime,
+          fromTime: fromTime,
+          toTime: toTime,
           location: assignment.location || '',
           car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : '',
           employees: assignment.employees || []
@@ -90,6 +95,12 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
     }
   }, [assignmentId, assignments, navigate, setCurrentAssignment, setFormData, selectedDay, setIsEditing]);
 
+  // Create a wrapper function that adapts the handleSubmit function to match the expected type
+  const handleSubmitWrapper = (data: Partial<Assignment>) => {
+    const event = { preventDefault: () => {} } as React.FormEvent;
+    handleSubmit(event);
+  };
+
   return (
     <PlannerDialogContainer
       isDialogOpen={dialogOpen}
@@ -97,7 +108,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
       currentAssignment={currentAssignment}
       formData={formData}
       setFormData={setFormData}
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmitWrapper}
       onDelete={(id) => console.log('Delete assignment with id:', id)}
       onPublish={(id) => console.log('Publish assignment with id:', id)}
       assignments={assignments}
