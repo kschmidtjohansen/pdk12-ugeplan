@@ -25,21 +25,23 @@ const TopNavbar: React.FC = () => {
   const location = useLocation();
   const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const initialFetchDone = useRef(false);
   
   // Track if there are vacation-related notifications that need attention
   const [hasVacationNotifications, setHasVacationNotifications] = useState(false);
   
-  // Fetch notifications when component mounts and periodically
+  // Fetch notifications when component mounts and periodically - but only once initially
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !initialFetchDone.current) {
       console.log('TopNavbar: Initial notification fetch triggered');
       fetchNotifications();
+      initialFetchDone.current = true;
       
-      // Also refresh notifications every 60 seconds
+      // Still refresh notifications periodically, but at a reasonable interval (every 5 minutes)
       const intervalId = setInterval(() => {
         console.log('TopNavbar: Refreshing notifications (interval)');
         fetchNotifications();
-      }, 60000);
+      }, 300000); // 5 minutes instead of 60 seconds
       
       return () => clearInterval(intervalId);
     }

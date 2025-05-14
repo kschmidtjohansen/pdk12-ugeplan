@@ -1,5 +1,5 @@
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { format } from 'date-fns';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,11 +10,19 @@ export const useVacationNotifications = (
   addNotification: (notification: any) => Promise<string | null>
 ) => {
   const { t, currentLanguage } = useTranslation();
+  // Use a ref to track if we've already checked for notifications in this session
+  const hasCheckedRef = useRef(false);
   
   // Create notifications for pending vacation requests
   const createNotificationsForPendingRequests = useCallback(async () => {
     // Only run for administrators
     if (!user || user.role !== 'administrator') {
+      return;
+    }
+    
+    // Skip if we've already checked in this session
+    if (hasCheckedRef.current) {
+      console.log('Already checked for pending vacation notifications in this session, skipping');
       return;
     }
     
@@ -42,6 +50,7 @@ export const useVacationNotifications = (
       
       if (!pendingVacations || pendingVacations.length === 0) {
         console.log('No pending vacation requests found');
+        hasCheckedRef.current = true; // Mark as checked even if none found
         return;
       }
       
@@ -121,6 +130,9 @@ export const useVacationNotifications = (
           }
         }
       }
+      
+      // Mark that we've checked for notifications in this session
+      hasCheckedRef.current = true;
     } catch (err) {
       console.error('Error checking for pending vacation requests:', err);
     }

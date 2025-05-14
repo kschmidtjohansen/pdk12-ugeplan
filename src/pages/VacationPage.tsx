@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import PageHeader from '../components/Layout/PageHeader';
 import { useTranslation } from '../context/TranslationContext';
 import VacationPageContainer from '../components/Vacation/VacationPageContainer';
@@ -10,11 +10,15 @@ const VacationPage: React.FC = () => {
   const { t } = useTranslation();
   const { fetchNotifications } = useNotifications();
   const { user } = useAuth();
+  const hasFetchedRef = useRef(false);
   
-  // Refresh notifications when visiting the vacation page
+  // Refresh notifications when visiting the vacation page, but only once
   useEffect(() => {
-    console.log(`VacationPage: Refreshing notifications for user ${user?.id} (${user?.role})`);
-    fetchNotifications();
+    if (user && !hasFetchedRef.current) {
+      console.log(`VacationPage: Refreshing notifications for user ${user?.id} (${user?.role})`);
+      fetchNotifications();
+      hasFetchedRef.current = true;
+    }
   }, [fetchNotifications, user]);
   
   const headerComponent = (

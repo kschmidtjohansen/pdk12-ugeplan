@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useRef } from 'react';
 import { NotificationType } from '@/types/notification';
 import { useNotifications as useNotificationsHook } from '@/hooks/useNotifications';
 import { useAuth } from '@/context/AuthContext';
@@ -47,6 +47,7 @@ export const NotificationProvider: React.FC<{
   } = useNotificationsHook();
   
   const { user } = useAuth();
+  const initialFetchDoneRef = useRef(false);
   
   // Debug log when provider updates
   useEffect(() => {
@@ -58,11 +59,12 @@ export const NotificationProvider: React.FC<{
     });
   }, [notifications.length, unreadCount, loading, user?.role]);
   
-  // Fetch notifications when the user changes
+  // Fetch notifications when the user changes, but only once
   useEffect(() => {
-    if (user) {
+    if (user && !initialFetchDoneRef.current) {
       console.log(`NotificationProvider: Fetching notifications for user ${user.id} (${user.role})`);
       fetchNotifications();
+      initialFetchDoneRef.current = true;
     }
   }, [user, fetchNotifications]);
 
