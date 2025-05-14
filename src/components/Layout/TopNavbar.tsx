@@ -20,7 +20,7 @@ import UserMenu from './NavComponents/UserMenu';
 const TopNavbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { t, currentLanguage, setLanguage } = useTranslation();
-  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, fetchNotifications } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -28,6 +28,13 @@ const TopNavbar: React.FC = () => {
   
   // Track if there are vacation-related notifications that need attention
   const [hasVacationNotifications, setHasVacationNotifications] = useState(false);
+  
+  // Fetch notifications when component mounts
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchNotifications();
+    }
+  }, [isAuthenticated, fetchNotifications]);
   
   // Check for vacation-related notifications
   useEffect(() => {

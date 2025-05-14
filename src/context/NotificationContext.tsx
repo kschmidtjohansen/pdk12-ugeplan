@@ -33,6 +33,7 @@ export const useNotifications = () => useContext(NotificationContext);
 export const NotificationProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
+  // Use the notification hook to get all notification functionality
   const {
     notifications,
     unreadCount,

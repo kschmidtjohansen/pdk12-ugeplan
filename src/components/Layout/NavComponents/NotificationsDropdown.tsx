@@ -34,6 +34,12 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
 }) => {
   const { t } = useTranslation();
   
+  // Add debug logs
+  console.log('NotificationsDropdown rendering with:', { 
+    notificationCount: notifications.length, 
+    unreadCount 
+  });
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -41,7 +47,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-polygon-purple text-white">
-              {unreadCount}
+              {unreadCount > 9 ? '9+' : unreadCount}
             </Badge>
           )}
         </Button>

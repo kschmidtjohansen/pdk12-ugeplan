@@ -17,10 +17,15 @@ export const useNotifications = () => {
   
   // Fetch notifications from Supabase
   const fetchNotifications = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user found, skipping notification fetch');
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
+      console.log(`Fetching notifications for user ${user.id} with role ${user.role}`);
       
       const { data, error } = await supabase
         .from('notifications')
@@ -34,7 +39,7 @@ export const useNotifications = () => {
       }
       
       if (data) {
-        console.log('Fetched notifications:', data);
+        console.log(`Fetched ${data.length} notifications for user ${user.id}:`, data);
         
         const formattedNotifications: NotificationType[] = data.map(item => ({
           id: item.id,
@@ -242,8 +247,10 @@ export const useNotifications = () => {
   // Initial fetch on component mount
   useEffect(() => {
     if (user) {
+      console.log(`Initial notification fetch triggered for user ${user.id} (${user.role})`);
       fetchNotifications();
     } else {
+      console.log('No user, clearing notifications');
       setNotifications([]);
       setUnreadCount(0);
     }
@@ -251,12 +258,15 @@ export const useNotifications = () => {
   
   // Listen for real-time notifications
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user, skipping real-time subscription');
+      return;
+    }
     
-    console.log('Setting up realtime subscription for notifications');
+    console.log(`Setting up realtime subscription for notifications for user ${user.id} (${user.role})`);
     
     const channel = supabase
-      .channel('notification_changes')
+      .channel(`notification_changes_${user.id}`)
       .on(
         'postgres_changes',
         {
@@ -266,7 +276,7 @@ export const useNotifications = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Received new notification via realtime:', payload);
+          console.log(`Received new notification via realtime for user ${user.id}:`, payload);
           
           // A new notification has been inserted
           if (payload.new) {
@@ -284,6 +294,12 @@ export const useNotifications = () => {
             
             // Add to notifications and resort
             setNotifications(prev => {
+              // Check if notification already exists to prevent duplicates
+              if (prev.some(n => n.id === newNotification.id)) {
+                console.log('Notification already exists in state, skipping');
+                return prev;
+              }
+              
               const updated = [...prev, newNotification];
               updated.sort(sortNotifications);
               return updated;
@@ -303,11 +319,11 @@ export const useNotifications = () => {
         }
       )
       .subscribe((status) => {
-        console.log('Notification subscription status:', status);
+        console.log(`Notification subscription status for user ${user.id}:`, status);
       });
       
     return () => {
-      console.log('Cleaning up notification subscription');
+      console.log(`Cleaning up notification subscription for user ${user.id}`);
       supabase.removeChannel(channel);
     };
   }, [user, toast]);
