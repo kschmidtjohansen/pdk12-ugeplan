@@ -30,6 +30,10 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   selectedDay,
   onPublishDay
 }) => {
+  // Add debugging to track the form data as it passes through
+  console.log("PlannerDialogContainer - Current Assignment:", currentAssignment);
+  console.log("PlannerDialogContainer - Form Data:", formData);
+
   // Only render the dialog when it's actually open
   if (!isDialogOpen) {
     return null;

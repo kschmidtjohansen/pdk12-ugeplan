@@ -60,6 +60,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       handleSelectChange(field, value);
     }
   };
+
+  console.log("AssignmentForm - Current formData:", formData);
+  console.log("AssignmentForm - Selected employees:", selectedEmployees);
   
   return (
     <DialogContent className="max-w-md">

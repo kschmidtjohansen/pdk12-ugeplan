@@ -73,6 +73,9 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       }
     }
   };
+
+  // Debug to see what's in formData
+  console.log("FormFields - Current formData:", formData);
   
   // Wrap the returned JSX in a fragment to fix the React error #185
   return (
@@ -133,12 +136,15 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       {cars && cars.length > 0 && (
         <div className="grid gap-2">
           <Label htmlFor="car">{t('planner.car')}</Label>
-          <Select value={formData.car || ''} onValueChange={value => onFieldChange('car', value)}>
+          <Select 
+            value={typeof formData.car === 'string' ? formData.car : formData.car?.id || ''} 
+            onValueChange={value => onFieldChange('car', value)}
+          >
             <SelectTrigger id="car">
               <SelectValue placeholder={t('planner.selectCar')} />
             </SelectTrigger>
             <SelectContent>
-              {cars.map(car => (
+              {cars.sort((a, b) => a.car_number.localeCompare(b.car_number)).map(car => (
                 <SelectItem key={car.id} value={car.id}>
                   {car.car_number} - {car.name}
                 </SelectItem>
@@ -151,7 +157,10 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       {employees && employees.length > 0 && (
         <div className="grid gap-2">
           <Label htmlFor="employees">{t('planner.employees')}</Label>
-          <Select value={formData.employees && formData.employees[0] || ''} onValueChange={value => onFieldChange('employees', [value])}>
+          <Select 
+            value={formData.employees && formData.employees[0] || ''} 
+            onValueChange={value => onFieldChange('employees', [value])}
+          >
             <SelectTrigger id="employees">
               <SelectValue placeholder={t('planner.selectEmployee')} />
             </SelectTrigger>

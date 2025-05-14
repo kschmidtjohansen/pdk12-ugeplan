@@ -39,17 +39,20 @@ const CarsList: React.FC<CarsListProps> = ({
 }) => {
   const { t } = useTranslation();
   
+  // Sort cars by car_number
+  const sortedCars = [...cars].sort((a, b) => a.car_number.localeCompare(b.car_number));
+  
   return (
     <div className="grid gap-4">
       {/* Mobile view - card based display */}
       <div className="md:hidden grid gap-4">
-        {cars.map((car) => (
+        {sortedCars.map((car) => (
           <Card key={car.id} className="overflow-hidden">
             <CardContent className="p-4">
               <div className="flex justify-between items-start">
                 <div className="flex items-center mb-2">
                   <Car className="h-4 w-4 mr-2 text-polygon-blue" />
-                  <h3 className="font-medium">{car.name}</h3>
+                  <h3 className="font-medium">{car.car_number} - {car.name}</h3>
                 </div>
                 {isAdmin && (
                   <div className="flex space-x-2">
@@ -133,8 +136,8 @@ const CarsList: React.FC<CarsListProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('cars.vehicleName')}</TableHead>
                   <TableHead>{t('cars.carNumber')}</TableHead>
+                  <TableHead>{t('cars.vehicleName')}</TableHead>
                   <TableHead>{t('cars.numberPlate')}</TableHead>
                   {canViewFuelCardCode && <TableHead>{t('cars.fuelCardCode')}</TableHead>}
                   <TableHead>{t('cars.hasTrailerHitch')}</TableHead>
@@ -142,15 +145,15 @@ const CarsList: React.FC<CarsListProps> = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {cars.map((car) => (
+                {sortedCars.map((car) => (
                   <TableRow key={car.id}>
                     <TableCell>
                       <div className="flex items-center">
                         <Car className="h-4 w-4 mr-2 text-polygon-blue" />
-                        <span className="font-medium">{car.name}</span>
+                        <span className="font-medium">{car.car_number}</span>
                       </div>
                     </TableCell>
-                    <TableCell>{car.car_number}</TableCell>
+                    <TableCell>{car.name}</TableCell>
                     <TableCell>{car.number_plate}</TableCell>
                     {canViewFuelCardCode && (
                       <TableCell>

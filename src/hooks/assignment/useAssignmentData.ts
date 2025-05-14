@@ -34,58 +34,86 @@ export const useAssignmentData = () => {
           published,
           created_at,
           updated_at,
-          cars:car_id (name)
+          cars:car_id (id, name, car_number)
         `);
       
       if (error) throw error;
       
       if (data) {
+        console.log("Fetched assignments data:", data);
+        
         // Now fetch the employees for each assignment
         const assignmentsWithEmployees = await Promise.all(data.map(async (assignment) => {
-          const { data: employeesData, error: empError } = await supabase
-            .from('assignments_employees')
-            .select(`
-              profiles:user_id (name)
-            `)
-            .eq('assignment_id', assignment.id);
-          
-          if (empError) {
-            console.error('Error fetching employees for assignment:', empError);
+          // For each assignment, get associated employees
+          try {
+            const { data: employeeJoins, error: empJoinError } = await supabase
+              .from('assignments_employees')
+              .select('user_id')
+              .eq('assignment_id', assignment.id);
+              
+            if (empJoinError) {
+              throw empJoinError;
+            }
+            
+            // Extract user IDs
+            const userIds = employeeJoins?.map(join => join.user_id) || [];
+            
+            // Get employee names if there are user IDs
+            let employeeNames: string[] = [];
+            
+            if (userIds.length > 0) {
+              const { data: empData, error: empError } = await supabase
+                .from('profiles')
+                .select('name')
+                .in('id', userIds);
+                
+              if (empError) {
+                throw empError;
+              }
+              
+              employeeNames = empData?.map(emp => emp.name) || [];
+            }
+            
+            // Return formatted assignment with employee names
             return {
               id: assignment.id,
               title: assignment.title,
               description: assignment.description || '',
-              date: assignment.assignment_date, // Map from assignment_date to date
-              fromTime: assignment.from_time, // Map from from_time to fromTime
-              toTime: assignment.to_time, // Map from to_time to toTime
+              date: assignment.assignment_date,
+              fromTime: assignment.from_time,
+              toTime: assignment.to_time,
               location: assignment.location,
-              car: safeProperty(assignment.cars, 'name', ''),
+              car: assignment.cars ? {
+                id: assignment.cars.id,
+                name: assignment.cars.name,
+                car_number: assignment.cars.car_number
+              } : null,
+              employees: employeeNames,
+              published: assignment.published || false
+            };
+          } catch (empError) {
+            console.error('Error fetching employees for assignment:', empError);
+            // Return assignment without employees on error
+            return {
+              id: assignment.id,
+              title: assignment.title,
+              description: assignment.description || '',
+              date: assignment.assignment_date,
+              fromTime: assignment.from_time,
+              toTime: assignment.to_time,
+              location: assignment.location,
+              car: assignment.cars ? {
+                id: assignment.cars.id,
+                name: assignment.cars.name,
+                car_number: assignment.cars.car_number
+              } : null,
               employees: [],
               published: assignment.published || false
             };
           }
-          
-          // Extract employee names from the join result and handle possible null values
-          const employeeNames = employeesData?.map(emp => {
-            // Handle the case where `profiles` might be an error object
-            return safeProperty(emp.profiles, 'name', '');
-          }) || [];
-          
-          // Return formatted assignment with employee names
-          return {
-            id: assignment.id,
-            title: assignment.title,
-            description: assignment.description || '',
-            date: assignment.assignment_date, // Map from assignment_date to date
-            fromTime: assignment.from_time, // Map from from_time to fromTime
-            toTime: assignment.to_time, // Map from to_time to toTime
-            location: assignment.location,
-            car: safeProperty(assignment.cars, 'name', ''),
-            employees: employeeNames.filter(Boolean), // Filter out empty names
-            published: assignment.published || false
-          };
         }));
         
+        console.log("Processed assignments with employees:", assignmentsWithEmployees);
         setAssignments(assignmentsWithEmployees);
       }
     } catch (err) {

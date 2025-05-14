@@ -119,16 +119,20 @@ export const usePlannerPage = () => {
   }, [setCurrentAssignment, setIsDialogOpen]);
 
   const handleOpenEditDialog = useCallback((assignment: Assignment) => {
+    console.log("Opening edit dialog with assignment:", assignment);
     setCurrentAssignment(assignment);
     setSelectedDay(assignment.date);
     
     // Set form data at once to avoid multiple renders
+    // Make sure to preserve the car ID and employees
     setFormData({...assignment});
     
     setIsDialogOpen(true);
   }, [setCurrentAssignment, setIsDialogOpen]);
 
   const handleSubmit = useCallback((data: Partial<Assignment>) => {
+    console.log("Submitting assignment data:", data);
+    
     if (currentAssignment) {
       // Set the edited assignment as unpublished
       const unpublishedData = getUnpublishedAssignment(data as Assignment);
