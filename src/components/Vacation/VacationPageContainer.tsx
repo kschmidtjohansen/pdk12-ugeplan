@@ -21,6 +21,11 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     loading,
     date,
     setDate,
+    // Add the missing state variables
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
     reason,
     setReason,
     note,
@@ -144,6 +149,11 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         setReason={setReason}
         note={note}
         setNote={setNote}
+        // Add the missing props
+        startDate={startDate}
+        endDate={endDate}
+        setStartDate={setStartDate}
+        setEndDate={setEndDate}
         dialogOpen={dialogOpen}
         setDialogOpen={setDialogOpen}
         adminDialogOpen={adminDialogOpen}

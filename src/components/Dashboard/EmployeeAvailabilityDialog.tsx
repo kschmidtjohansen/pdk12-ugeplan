@@ -6,7 +6,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogClose
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
@@ -76,9 +75,9 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
         </ScrollArea>
 
         <div className="mt-4 flex justify-end">
-          <DialogClose asChild>
-            <Button variant="outline">{t('common.close')}</Button>
-          </DialogClose>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            {t('common.close')}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
