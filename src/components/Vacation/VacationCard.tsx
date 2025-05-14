@@ -12,14 +12,16 @@ import { useAuth } from '@/context/AuthContext';
 
 interface VacationCardProps {
   vacation: Vacation;
+  canApprove?: boolean; // Added this prop
   onApprove: (vacation: Vacation) => void;
   onReject: (vacation: Vacation) => void;
-  onEdit: (vacation: Vacation) => void;
-  onDelete: (vacation: Vacation) => void;
+  onEdit?: (vacation: Vacation) => void;
+  onDelete?: (vacation: Vacation) => void;
 }
 
 const VacationCard: React.FC<VacationCardProps> = ({
   vacation,
+  canApprove = false, // Default value
   onApprove,
   onReject,
   onEdit,
@@ -98,7 +100,7 @@ const VacationCard: React.FC<VacationCardProps> = ({
         </div>
       </CardContent>
       
-      {(canAction || isOwner) && (
+      {(canApprove || isOwner) && (
         <CardFooter className="bg-gray-50 px-4 py-2 flex justify-end gap-2">
           <VacationButtons 
             vacation={vacation}
