@@ -2,8 +2,12 @@
 import React from 'react';
 import { Assignment } from '@/types/assignment';
 import AssignmentForm from './AssignmentForm';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useTranslation } from '@/context/TranslationContext';
+import { Dialog } from '@/components/ui/dialog';
+import { Employee } from '@/types/employee';
+import { Car } from '@/types/car';
+import { useVacations } from '@/hooks/useVacations';
+import { useEmployees } from '@/hooks/useEmployees';
+import { useCars } from '@/hooks/car';
 
 interface PlannerDialogContainerProps {
   isDialogOpen: boolean;
@@ -32,31 +36,82 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   selectedDay,
   onPublishDay
 }) => {
-  const { t } = useTranslation();
-  
   // Add debugging to track the form data as it passes through
   console.log("PlannerDialogContainer - Current Assignment:", currentAssignment);
   console.log("PlannerDialogContainer - Form Data:", formData);
+  
+  // Get vacations to pass to the assignment form
+  const { vacations } = useVacations();
+  
+  // Fetch employees and cars data
+  const { employees } = useEmployees();
+  const { cars } = useCars();
 
   // Only render the dialog when it's actually open
   if (!isDialogOpen) {
     return null;
   }
 
+  // Extract selected employees from formData
+  const selectedEmployees = formData.employees || [];
+  
+  // Handle field change coming from the form
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  // Handle select change coming from the form
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  // Handle toggling employees
+  const handleEmployeeToggle = (employeeName: string) => {
+    setFormData(prev => {
+      const employees = prev.employees || [];
+      if (employees.includes(employeeName)) {
+        return {
+          ...prev,
+          employees: employees.filter(e => e !== employeeName)
+        };
+      } else {
+        return {
+          ...prev,
+          employees: [...employees, employeeName]
+        };
+      }
+    });
+  };
+
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogContent className="sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle>
-            {currentAssignment ? t('planner.editAssignment') : t('planner.newAssignment')}
-          </DialogTitle>
-        </DialogHeader>
-        <AssignmentForm
-          assignment={currentAssignment}
-          onSubmit={onSubmit}
-          onCancel={() => setIsDialogOpen(false)}
-        />
-      </DialogContent>
+      <AssignmentForm
+        currentAssignment={currentAssignment}
+        formData={formData}
+        selectedEmployees={selectedEmployees}
+        cars={cars} // Pass the cars data
+        employees={employees} // Pass the employees data
+        vacations={vacations}
+        handleInputChange={handleInputChange}
+        handleSelectChange={handleSelectChange}
+        handleEmployeeToggle={handleEmployeeToggle}
+        handleSubmit={handleSubmit}
+        onClose={() => setIsDialogOpen(false)}
+        currentDate={selectedDay}
+      />
     </Dialog>
   );
 };

@@ -50,16 +50,7 @@ const planner = {
   unavailable: 'Utilgængelig',
   errorCreatingAssignment: 'Der opstod en fejl ved oprettelse af opgaven',
   errorUpdatingAssignment: 'Der opstod en fejl ved opdatering af opgaven',
-  errorDeletingAssignment: 'Der opstod en fejl ved sletning af opgaven',
-  // New translations
-  searchCars: 'Søg efter biler',
-  noCarsFound: 'Ingen biler fundet',
-  noCarsAvailable: 'Ingen biler tilgængelige',
-  employeesSelected: 'medarbejdere valgt',
-  searchEmployees: 'Søg efter medarbejdere',
-  noEmployeesFound: 'Ingen medarbejdere fundet',
-  noEmployeesAvailable: 'Ingen medarbejdere tilgængelige',
-  selectDate: 'Vælg en dato'
+  errorDeletingAssignment: 'Der opstod en fejl ved sletning af opgaven'
 };
 
 export default planner;

@@ -27,7 +27,7 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
   onToggleLeave
 }) => {
   const { t } = useTranslation();
-  const { isAdmin } = usePermissions();
+  const { isAdmin, isSkadeleder } = usePermissions();
 
   return (
     <TooltipProvider>
@@ -43,10 +43,10 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                   {t("employees.contactInfo")}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t("employees.jobTitle")}
+                  {t("employees.role")}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t("employees.role")}
+                  {t("employees.jobTitle")}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t("common.status")}
@@ -69,7 +69,8 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                             {employee.name}
                           </span>
                           
-                          {employee.notes && (
+                          {/* Display notes tooltip for employees on leave */}
+                          {(isAdmin || isSkadeleder) && employee.notes && (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <AlertCircle size={16} className="text-orange-500 ml-2 cursor-help" />
@@ -92,10 +93,10 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {employee.jobTitle}
+                    {t(`admin.roles.${employee.role}`)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {t(`admin.roles.${employee.role}`)}
+                    {employee.jobTitle}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {employee.onLeave ? (
@@ -150,8 +151,8 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                             <Button 
                               variant="ghost"
                               size="icon" 
-                              onClick={() => onToggleLeave(employee)}
-                              className={`h-8 w-8 p-0 ${employee.onLeave ? 'text-green-600' : 'text-amber-600'}`}
+                              onClick={() => onToggleLeave(employee)} 
+                              className={`h-8 w-8 p-0 ${employee.onLeave ? 'text-green-600 hover:text-green-800' : 'text-amber-600 hover:text-amber-800'}`}
                             >
                               <span className="sr-only">
                                 {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
@@ -164,7 +165,7 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent side="top">
-                            <p>{employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}</p>
+                            {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
                           </TooltipContent>
                         </Tooltip>
                       </div>

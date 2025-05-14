@@ -43,7 +43,7 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">
-          {t('vacation.currentlyOnVacation')}
+          {t('dashboard.upcomingVacations')}
         </CardTitle>
         <CalendarClock className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
@@ -69,13 +69,9 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
                       </p>
                     </div>
                   </div>
-                  {isOngoing ? (
+                  {isOngoing && (
                     <Badge variant="outline" className="bg-green-50 whitespace-nowrap">
                       {calculateDaysRemaining(vacation.endDate)} {t("vacation.days")}
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="bg-blue-50 whitespace-nowrap">
-                      {t("vacation.upcoming")}
                     </Badge>
                   )}
                 </div>
