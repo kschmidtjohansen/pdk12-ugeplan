@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -18,21 +17,33 @@ import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
 import { getCurrentWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
 import AssignmentDetails from '@/components/Planner/AssignmentDetails';
-
 const DashboardPage: React.FC = () => {
-  const { user } = useAuth();
-  const { t, currentLanguage } = useTranslation();
-  const { assignments } = usePlannerAssignments();
-  const { employees } = useEmployees();
-  const { cars } = useCars();
-  const { vacations } = useVacations();
-  
+  const {
+    user
+  } = useAuth();
+  const {
+    t,
+    currentLanguage
+  } = useTranslation();
+  const {
+    assignments
+  } = usePlannerAssignments();
+  const {
+    employees
+  } = useEmployees();
+  const {
+    cars
+  } = useCars();
+  const {
+    vacations
+  } = useVacations();
+
   // Use the fixed getCurrentWeekNumber function
   const currentWeek = getCurrentWeekNumber();
-  
+
   // Use the new getCurrentWeekDates function that doesn't require parameters
   const weekDates = getCurrentWeekDates();
-  
+
   // Convert start/end dates to ISO strings
   const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
   const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
@@ -42,16 +53,13 @@ const DashboardPage: React.FC = () => {
     // Check if assignment is within the current week
     const assignmentDate = assignment.date;
     const isInCurrentWeek = assignmentDate >= startDateISO && assignmentDate <= endDateISO;
-    
+
     // For administrators and skadeledere, show all assignments for the week
     if (user?.role === 'administrator' || user?.role === 'skadeleder') {
       return isInCurrentWeek;
     } else {
       // For regular users, show only published assignments assigned to them
-      return isInCurrentWeek && 
-             assignment.published === true && 
-             assignment.employees && 
-             assignment.employees.some(employeeName => employeeName === user?.name);
+      return isInCurrentWeek && assignment.published === true && assignment.employees && assignment.employees.some(employeeName => employeeName === user?.name);
     }
   });
 
@@ -98,23 +106,17 @@ const DashboardPage: React.FC = () => {
 
   // Show dashboard metrics only for admin or skadeleder
   const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
-
-  return (
-    <>
-      <PageHeader 
-        title={t('dashboard.welcome', {
-          name: user?.name
-        })} 
-        description={t('dashboard.today', {
-          date: getFormattedDate(),
-          week: currentWeek
-        })} 
-      />
+  return <>
+      <PageHeader title={t('dashboard.welcome', {
+      name: user?.name
+    })} description={t('dashboard.today', {
+      date: getFormattedDate(),
+      week: currentWeek
+    })} />
 
       {/* Quick access grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {getQuickAccessItems().map((item, index) => (
-          <Link key={index} to={item.link} className="block">
+        {getQuickAccessItems().map((item, index) => <Link key={index} to={item.link} className="block">
             <Card className="h-full hover:border-polygon-blue transition-all duration-200">
               <CardHeader className="pb-2">
                 <div className="text-polygon-blue">{item.icon}</div>
@@ -124,8 +126,7 @@ const DashboardPage: React.FC = () => {
                 <p className="text-muted-foreground text-sm">{item.description}</p>
               </CardContent>
             </Card>
-          </Link>
-        ))}
+          </Link>)}
       </div>
 
       {/* Dashboard metrics for admin/skadeleder */}
@@ -137,8 +138,8 @@ const DashboardPage: React.FC = () => {
           <CardTitle className="flex justify-between items-center">
             <span>
               {t('dashboard.myAssignments', {
-                week: currentWeek
-              })}
+              week: currentWeek
+            })}
             </span>
             <Button variant="outline" size="sm" asChild>
               <Link to="/planner">{t('dashboard.viewAll')}</Link>
@@ -146,14 +147,10 @@ const DashboardPage: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {userWeekAssignments.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">
+          {userWeekAssignments.length === 0 ? <p className="text-center py-8 text-muted-foreground">
               {t('dashboard.noAssignments')}
-            </p>
-          ) : (
-            <div className="grid gap-4">
-              {userWeekAssignments.map(assignment => (
-                <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
+            </p> : <div className="grid gap-4">
+              {userWeekAssignments.map(assignment => <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
                   <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
                     <h3 className="font-medium">{assignment.title}</h3>
                     <span className="text-sm bg-gray-100 px-2 py-1 rounded-md">
@@ -162,14 +159,10 @@ const DashboardPage: React.FC = () => {
                   </div>
                   <p className="text-sm text-gray-600 mb-2">{assignment.description}</p>
                   <AssignmentDetails assignment={assignment} />
-                </div>
-              ))}
-            </div>
-          )}
+                </div>)}
+            </div>}
         </CardContent>
       </Card>
-    </>
-  );
+    </>;
 };
-
 export default DashboardPage;
