@@ -1,7 +1,7 @@
 
 import * as React from "react"
 import { 
-  Toast as ToastPrimitive, 
+  Toast, 
   ToastActionElement, 
   ToastProps 
 } from "@/components/ui/toast"
@@ -9,10 +9,15 @@ import {
 const TOAST_LIMIT = 5
 const TOAST_REMOVE_DELAY = 1000000
 
-export type ToastType = Pick<
-  ToastPrimitive, 
-  "id" | "title" | "description" | "action" | "variant"
->
+// Update the type to use typeof Toast instead of Toast directly
+export type ToastType = {
+  id: string
+  title?: React.ReactNode
+  description?: React.ReactNode
+  action?: ToastActionElement
+  open?: boolean
+  variant?: "default" | "destructive"
+}
 
 interface State {
   toasts: ToastType[]
@@ -47,11 +52,11 @@ type Action =
     }
   | {
       type: ActionType["DISMISS_TOAST"]
-      toastId?: ToastType["id"]
+      toastId?: string
     }
   | {
       type: ActionType["REMOVE_TOAST"]
-      toastId?: ToastType["id"]
+      toastId?: string
     }
 
 interface ToastContext extends State {
@@ -125,7 +130,7 @@ export const ToastProvider = (props: { children: React.ReactNode }) => {
 
   React.useEffect(() => {
     state.toasts.forEach((toast) => {
-      if (toast.id && !toast.open && !toastTimeouts.has(toast.id)) {
+      if (toast.id && toast.open === false && !toastTimeouts.has(toast.id)) {
         const timeout = setTimeout(() => {
           dispatch({
             type: "REMOVE_TOAST",
