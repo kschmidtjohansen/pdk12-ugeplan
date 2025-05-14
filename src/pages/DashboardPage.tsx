@@ -43,15 +43,15 @@ const DashboardPage: React.FC = () => {
     const assignmentDate = assignment.date;
     const isInCurrentWeek = assignmentDate >= startDateISO && assignmentDate <= endDateISO;
     
-    // For administrators, show all assignments for the week
-    // For other users, show only published assignments assigned to them
-    if (user?.role === 'administrator') {
+    // For administrators and skadeledere, show all assignments for the week
+    if (user?.role === 'administrator' || user?.role === 'skadeleder') {
       return isInCurrentWeek;
     } else {
+      // For regular users, show only published assignments assigned to them
       return isInCurrentWeek && 
              assignment.published === true && 
              assignment.employees && 
-             assignment.employees.includes(user?.name || '');
+             assignment.employees.some(employeeName => employeeName === user?.name);
     }
   });
 
