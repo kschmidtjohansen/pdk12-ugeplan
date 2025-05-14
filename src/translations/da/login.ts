@@ -7,7 +7,7 @@ const login = {
   button: 'Log ind',
   buttonLoading: 'Logger ind...',
   failed: 'Ugyldig email eller adgangskode. Prøv igen.',
-  success: 'Login gennemført',
+  success: 'Du er nu logget ind. Velkommen {name}',
   logoutSuccess: 'Du er nu logget ud',
   welcomeMessage: 'Velkommen til Polygon Ugeplan',
   internalSystem: 'Afdeling 12 - Trekantsområdet',
