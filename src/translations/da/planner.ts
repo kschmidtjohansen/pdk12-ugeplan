@@ -51,6 +51,10 @@ const planner = {
   errorCreatingAssignment: 'Der opstod en fejl ved oprettelse af opgaven',
   errorUpdatingAssignment: 'Der opstod en fejl ved opdatering af opgaven',
   errorDeletingAssignment: 'Der opstod en fejl ved sletning af opgaven',
+  noAssignmentsToPublish: 'Ingen opgaver at udgive',
+  noUnpublishedAssignments: 'Der er ingen ikke-udgivne opgaver på denne dato',
+  errorPublishingAssignments: 'Der opstod en fejl ved udgivelse af opgaverne',
+  errorPublishingAssignment: 'Der opstod en fejl ved udgivelse af opgaven',
   selectDate: 'Vælg dato'
 };
 

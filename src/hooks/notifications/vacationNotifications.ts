@@ -5,39 +5,11 @@ import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { safeProperty } from '@/utils/dbHelpers';
 
-// Key for localStorage to track vacation notification processing
-const PROCESSED_VACATION_IDS_KEY = "polygon-processed-vacation-ids";
-
-// Get already processed vacation IDs from localStorage
-const getProcessedVacationIds = (): Set<string> => {
-  try {
-    const stored = localStorage.getItem(PROCESSED_VACATION_IDS_KEY);
-    return stored ? new Set(JSON.parse(stored)) : new Set();
-  } catch (err) {
-    console.error("Error reading processed vacation IDs from localStorage:", err);
-    return new Set();
-  }
-};
-
-// Save processed vacation IDs to localStorage
-const saveProcessedVacationId = (id: string): void => {
-  try {
-    const ids = getProcessedVacationIds();
-    ids.add(id);
-    localStorage.setItem(PROCESSED_VACATION_IDS_KEY, JSON.stringify(Array.from(ids)));
-  } catch (err) {
-    console.error("Error saving processed vacation ID to localStorage:", err);
-  }
-};
-
 export const useVacationNotifications = (
   user: any | null,
   addNotification: (notification: any) => Promise<string | null>
 ) => {
   const { t, currentLanguage } = useTranslation();
-  
-  // Use localStorage-backed tracking to prevent duplicate notifications
-  const processedVacationIdsRef = useRef<Set<string>>(getProcessedVacationIds());
   
   // Create notifications for pending vacation requests
   const createNotificationsForPendingRequests = useCallback(async () => {
@@ -94,6 +66,7 @@ export const useVacationNotifications = (
       }
       
       // Check if we already have notifications for these pending requests
+      // This is the key improvement - we check the database directly instead of using localStorage
       const { data: existingNotifications, error: notifError } = await supabase
         .from('notifications')
         .select('*')
@@ -110,28 +83,26 @@ export const useVacationNotifications = (
       
       // Create notifications for pending requests if needed
       for (const vacation of pendingVacations) {
-        // Skip if already processed in any previous session
-        if (processedVacationIdsRef.current.has(vacation.id)) {
-          console.log(`Already processed vacation ${vacation.id}, skipping`);
-          continue;
-        }
-        
         // Get employee name from our mapping
         const employeeName = profileNameMap.get(vacation.user_id) || 'Employee';
         
-        // Check if we already have a notification for this vacation
-        const hasNotification = existingNotifications?.some(n => 
-          n.message?.includes(employeeName) && 
-          n.message?.includes(vacation.start_date) &&
-          n.message?.includes(vacation.end_date)
-        );
+        const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
+        const formattedStartDate = format(new Date(vacation.start_date), dateFormat);
+        const formattedEndDate = format(new Date(vacation.end_date), dateFormat);
+        
+        // Check if we already have a notification for this vacation by matching vacation details
+        const vacationIdentifier = `${vacation.id}-${vacation.user_id}-${vacation.start_date}-${vacation.end_date}`;
+        
+        // Check the database for existing notifications about this vacation
+        const hasNotification = existingNotifications?.some(n => {
+          // Match by checking if the message contains the employee name and both dates
+          return n.message?.includes(employeeName) && 
+                n.message?.includes(formattedStartDate) &&
+                n.message?.includes(formattedEndDate);
+        });
         
         if (!hasNotification) {
           console.log(`Creating notification for pending vacation request from ${employeeName}`);
-          
-          const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
-          const formattedStartDate = format(new Date(vacation.start_date), dateFormat);
-          const formattedEndDate = format(new Date(vacation.end_date), dateFormat);
           
           const notifyMessage = t('notifications.newVacationRequestActionRequired', {
             name: employeeName,
@@ -148,18 +119,11 @@ export const useVacationNotifications = (
               link: '/vacation'
             });
             
-            // Mark as processed
-            processedVacationIdsRef.current.add(vacation.id);
-            saveProcessedVacationId(vacation.id);
-            
             console.log(`Created notification for pending request:`, notificationId);
           } catch (notifErr) {
             console.error('Error creating notification for pending request:', notifErr);
           }
         } else {
-          // Mark as processed to avoid checking again
-          processedVacationIdsRef.current.add(vacation.id);
-          saveProcessedVacationId(vacation.id);
           console.log(`Notification already exists for vacation ${vacation.id}, skipping`);
         }
       }
