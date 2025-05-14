@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext } from 'react';
 import { NotificationType } from '@/types/notification';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotifications as useNotificationsHook } from '@/hooks/useNotifications';
 
 interface NotificationContextType {
   notifications: NotificationType[];
@@ -26,7 +26,8 @@ const NotificationContext = createContext<NotificationContextType>({
   addNotification: async () => {}
 });
 
-export const useNotificationsContext = () => useContext(NotificationContext);
+// Export the hook for using the notifications context
+export const useNotifications = () => useContext(NotificationContext);
 
 export const NotificationProvider: React.FC<{
   children: React.ReactNode;
@@ -39,7 +40,7 @@ export const NotificationProvider: React.FC<{
     markAllAsRead,
     deleteNotification,
     addNotification
-  } = useNotifications();
+  } = useNotificationsHook();
 
   return (
     <NotificationContext.Provider
