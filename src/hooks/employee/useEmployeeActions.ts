@@ -1,13 +1,13 @@
-
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { addNotification } from '../notifications/notificationCreate';
+import { useNotifications } from '@/context/NotificationContext';
 import { safeProperty } from '@/utils/dbHelpers';
 
 export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { addNotification } = useNotifications();
 
   /**
    * Update employee onLeave status
