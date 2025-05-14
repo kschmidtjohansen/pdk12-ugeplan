@@ -14,7 +14,8 @@ const notifications = {
   vacationApproved: 'Din ferieansøgning er blevet godkendt',
   vacationRejected: 'Din ferieansøgning er blevet afvist: {reason}',
   new: 'Ny',
-  from: 'Fra'
+  from: 'Fra',
+  notifications: 'Notifikationer'
 };
 
 export default notifications;

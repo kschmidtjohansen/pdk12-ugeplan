@@ -1,3 +1,4 @@
+
 import { NotificationType } from '@/types/notification';
 import { format } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
@@ -59,4 +60,16 @@ export const sortNotifications = (a: NotificationType, b: NotificationType): num
   
   // Then sort by date (newest first)
   return b.date.getTime() - a.date.getTime();
+};
+
+/**
+ * Debug utility to log notification object contents safely
+ */
+export const logNotification = (notification: NotificationType, prefix: string = ''): void => {
+  const safeNotification = {
+    ...notification,
+    date: notification.date ? notification.date.toISOString() : 'Invalid Date'
+  };
+  
+  console.log(`${prefix}Notification:`, safeNotification);
 };

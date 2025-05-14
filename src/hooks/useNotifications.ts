@@ -135,11 +135,16 @@ export const useNotifications = () => {
   const addNotification = useCallback(async (
     notification: Omit<NotificationType, 'id' | 'read' | 'date'> & { targetUserId?: string }
   ) => {
-    if (!user) return;
+    if (!user) {
+      console.error('Cannot add notification: No authenticated user');
+      return null;
+    }
     
     try {
       // Use the provided target user ID or the current user's ID
       const userId = notification.targetUserId || user.id;
+      
+      console.log(`Creating notification for user ${userId}:`, notification);
       
       const { data, error } = await supabase
         .from('notifications')
@@ -155,7 +160,18 @@ export const useNotifications = () => {
         ])
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error inserting notification:', error);
+        
+        // Check for specific RLS errors
+        if (error.message?.includes('new row violates row-level security policy')) {
+          console.error('RLS policy violation. Make sure you have permission to add notifications for this user.');
+        }
+        
+        throw error;
+      }
+      
+      console.log('Notification created successfully:', data);
       
       // If notification is for the current user, update local state
       if (userId === user.id && data && data[0]) {
@@ -207,6 +223,8 @@ export const useNotifications = () => {
   useEffect(() => {
     if (!user) return;
     
+    console.log('Setting up realtime subscription for notifications');
+    
     const channel = supabase
       .channel('notification_changes')
       .on(
@@ -218,6 +236,8 @@ export const useNotifications = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
+          console.log('Received new notification via realtime:', payload);
+          
           // A new notification has been inserted
           if (payload.new) {
             const newNotification: NotificationType = {
@@ -229,6 +249,8 @@ export const useNotifications = () => {
               read: payload.new.read,
               date: new Date(payload.new.created_at)
             };
+            
+            console.log('Processing new notification:', newNotification);
             
             // Add to notifications and resort
             setNotifications(prev => {
@@ -250,9 +272,12 @@ export const useNotifications = () => {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Notification subscription status:', status);
+      });
       
     return () => {
+      console.log('Cleaning up notification subscription');
       supabase.removeChannel(channel);
     };
   }, [user, toast]);

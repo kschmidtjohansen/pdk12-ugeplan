@@ -13,6 +13,7 @@ interface NotificationContextType {
   addNotification: (
     notification: Omit<NotificationType, 'id' | 'read' | 'date'> & { targetUserId?: string }
   ) => Promise<string | null>;
+  fetchNotifications: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType>({
@@ -22,7 +23,8 @@ const NotificationContext = createContext<NotificationContextType>({
   markAsRead: async () => {},
   markAllAsRead: async () => {},
   deleteNotification: async () => {},
-  addNotification: async () => null
+  addNotification: async () => null,
+  fetchNotifications: async () => {}
 });
 
 // Export the hook for using the notifications context
@@ -38,7 +40,8 @@ export const NotificationProvider: React.FC<{
     markAsRead,
     markAllAsRead,
     deleteNotification,
-    addNotification
+    addNotification,
+    fetchNotifications
   } = useNotificationsHook();
 
   return (
@@ -50,7 +53,8 @@ export const NotificationProvider: React.FC<{
         markAsRead,
         markAllAsRead,
         deleteNotification,
-        addNotification
+        addNotification,
+        fetchNotifications
       }}
     >
       {children}

@@ -67,13 +67,22 @@ export const useVacationApprovalActions = (fetchVacations: () => Promise<void>) 
       
       // Send notification to the employee
       if (employee.id !== user.id) {
-        addNotification({
-          type: 'vacation',
-          title: t('notifications.vacationApproved'),
-          message: t('notifications.vacationApproved'),
-          link: '/vacation',
-          targetUserId: employee.id
-        });
+        console.log(`Sending approval notification to employee: ${employee.id}`);
+        
+        try {
+          await addNotification({
+            type: 'vacation',
+            title: t('notifications.vacationStatusChanged'),
+            message: t('notifications.vacationApproved'),
+            link: '/vacation',
+            targetUserId: employee.id
+          });
+          
+          console.log(`Approval notification sent to employee: ${employee.id}`);
+        } catch (notifErr) {
+          console.error(`Error sending approval notification: ${notifErr}`);
+          // Don't fail the approval if notification fails
+        }
       }
       
       // After approval, update any employee leave statuses based on vacation dates
@@ -133,15 +142,24 @@ export const useVacationApprovalActions = (fetchVacations: () => Promise<void>) 
       
       // Send notification to the employee
       if (employee.id !== user.id) {
-        addNotification({
-          type: 'vacation',
-          title: t('notifications.vacationRejected'),
-          message: t('notifications.vacationRejected', { 
-            reason: reason || t('common.noReasonProvided')
-          }),
-          link: '/vacation',
-          targetUserId: employee.id
-        });
+        console.log(`Sending rejection notification to employee: ${employee.id}`);
+        
+        try {
+          await addNotification({
+            type: 'vacation',
+            title: t('notifications.vacationStatusChanged'),
+            message: t('notifications.vacationRejected', { 
+              reason: reason || t('common.noReasonProvided')
+            }),
+            link: '/vacation',
+            targetUserId: employee.id
+          });
+          
+          console.log(`Rejection notification sent to employee: ${employee.id}`);
+        } catch (notifErr) {
+          console.error(`Error sending rejection notification: ${notifErr}`);
+          // Don't fail the rejection if notification fails
+        }
       }
       
       // Refresh the vacation list

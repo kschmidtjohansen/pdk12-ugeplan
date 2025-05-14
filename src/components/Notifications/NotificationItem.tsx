@@ -5,7 +5,7 @@ import { NotificationType } from '@/types/notification';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { formatNotificationDate, getNotificationIcon } from '@/utils/notifications';
-import { Check, Trash2, AlertCircle } from 'lucide-react';
+import { Check, Trash2, AlertCircle, PalmTree, Calendar, Bell, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NotificationItemProps {
@@ -40,15 +40,15 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
   const getIconComponent = () => {
     switch (notification.type) {
       case 'assignment':
-        return <AlertCircle className="h-5 w-5 text-blue-500" />;
+        return <Calendar className="h-5 w-5 text-blue-500" />;
       case 'vacation':
-        return <AlertCircle className="h-5 w-5 text-green-500" />;
+        return <PalmTree className="h-5 w-5 text-green-500" />;
       case 'system':
-        return <AlertCircle className="h-5 w-5 text-yellow-500" />;
+        return <Bell className="h-5 w-5 text-yellow-500" />;
       case 'alert':
         return <AlertCircle className="h-5 w-5 text-red-500" />;
       default:
-        return <AlertCircle className="h-5 w-5 text-gray-500" />;
+        return <Info className="h-5 w-5 text-gray-500" />;
     }
   };
   
@@ -74,6 +74,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
         "p-3 border-b last:border-0 hover:bg-muted/50 cursor-pointer relative transition-colors",
         !notification.read && "bg-muted/30"
       )}
+      data-testid="notification-item"
     >
       <ContentWrapper>
         <div className="flex items-start gap-3">
@@ -87,6 +88,11 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
                 !notification.read && "font-semibold"
               )}>
                 {notification.title}
+                {!notification.read && (
+                  <span className="ml-2 inline-flex items-center rounded-full bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700">
+                    {t('notifications.new')}
+                  </span>
+                )}
               </h4>
               <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {formattedDate}
