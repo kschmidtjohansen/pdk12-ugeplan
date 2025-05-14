@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { useState, useCallback } from 'react';
+import { useToast } from '@/hooks/useToast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,8 +24,8 @@ export const useVacationRequests = () => {
   const { vacations, fetchVacations } = useVacationData();
   const { approveVacation, rejectVacation } = useVacationApprovalActions(fetchVacations);
 
-  // Submit a new vacation request
-  const submitVacationRequest = async (
+  // Submit a new vacation request - use useCallback for stability
+  const submitVacationRequest = useCallback(async (
     startDate: Date | undefined,
     endDate: Date | undefined,
     reason: string,
@@ -102,7 +102,7 @@ export const useVacationRequests = () => {
         });
       }
       
-      // Notify administrators about the new vacation request - enhanced with better logging
+      // Notify administrators about the new vacation request
       await notifyAdmins(actualEmployeeName, startDate, endDate);
       
       return true;
@@ -117,10 +117,10 @@ export const useVacationRequests = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [user, toast, t, fetchVacations, addNotification]);
 
-  // Helper function to notify administrators
-  const notifyAdmins = async (employeeName: string, startDate: Date, endDate: Date) => {
+  // Helper function to notify administrators - use useCallback
+  const notifyAdmins = useCallback(async (employeeName: string, startDate: Date, endDate: Date) => {
     try {
       console.log('Notifying administrators about new vacation request');
       
@@ -173,22 +173,21 @@ export const useVacationRequests = () => {
       console.error('Error in admin notification process:', err);
       // Don't throw - we still want the vacation request to be created even if notifications fail
     }
-  };
+  }, [user, t, addNotification]);
   
-  // Open approval dialog
-  const openApprovalDialog = (vacation: Vacation) => {
+  // Dialog management functions - use useCallback
+  const openApprovalDialog = useCallback((vacation: Vacation) => {
     setActiveRequest(vacation);
     setIsApprovalDialogOpen(true);
-  };
+  }, []);
   
-  // Open rejection dialog
-  const openRejectionDialog = (vacation: Vacation) => {
+  const openRejectionDialog = useCallback((vacation: Vacation) => {
     setActiveRequest(vacation);
     setIsRejectionDialogOpen(true);
-  };
+  }, []);
   
   // Handle vacation approval
-  const handleApproveVacation = async (noteText: string) => {
+  const handleApproveVacation = useCallback(async (noteText: string) => {
     if (!activeRequest) return;
     
     const success = await approveVacation(activeRequest, noteText);
@@ -197,10 +196,10 @@ export const useVacationRequests = () => {
       setIsApprovalDialogOpen(false);
       setActiveRequest(null);
     }
-  };
+  }, [activeRequest, approveVacation]);
   
   // Handle vacation rejection
-  const handleRejectVacation = async (noteText: string) => {
+  const handleRejectVacation = useCallback(async (noteText: string) => {
     if (!activeRequest) return;
     
     const success = await rejectVacation(activeRequest, noteText);
@@ -209,7 +208,7 @@ export const useVacationRequests = () => {
       setIsRejectionDialogOpen(false);
       setActiveRequest(null);
     }
-  };
+  }, [activeRequest, rejectVacation]);
 
   return {
     vacations,

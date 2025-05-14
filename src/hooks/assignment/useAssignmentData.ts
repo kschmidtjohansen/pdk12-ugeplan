@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { useState, useEffect, useMemo } from 'react';
+import { useToast } from '@/hooks/useToast';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,7 +44,6 @@ export const useAssignmentData = () => {
         
         // Now fetch the employees for each assignment
         const assignmentsWithEmployees = await Promise.all(data.map(async (assignment) => {
-          // For each assignment, get associated employees
           try {
             const { data: employeeJoins, error: empJoinError } = await supabase
               .from('assignments_employees')
@@ -73,7 +72,6 @@ export const useAssignmentData = () => {
               
               // Store complete employee names for consistent handling
               employeeNames = empData?.map(emp => emp.name) || [];
-              console.log(`Assignment ${assignment.id} has employees:`, employeeNames);
             }
             
             // Return formatted assignment with employee names
@@ -169,8 +167,26 @@ export const useAssignmentData = () => {
     };
   }, []);
 
+  // Memoize sorted assignments by date to prevent unnecessary re-renders
+  const sortedAssignments = useMemo(() => {
+    return [...assignments].sort((a, b) => {
+      // Sort by date first
+      const dateDiff = new Date(a.date).getTime() - new Date(b.date).getTime();
+      
+      // If same date, sort by time
+      if (dateDiff === 0) {
+        // Convert time strings to comparable values
+        const aTime = a.fromTime.replace(':', '');
+        const bTime = b.fromTime.replace(':', '');
+        return parseInt(aTime) - parseInt(bTime);
+      }
+      
+      return dateDiff;
+    });
+  }, [assignments]);
+
   return {
-    assignments,
+    assignments: sortedAssignments,
     loading,
     error,
     fetchAssignments,

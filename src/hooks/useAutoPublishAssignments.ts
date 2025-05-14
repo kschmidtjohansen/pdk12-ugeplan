@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { useAssignments } from './useAssignments';
 import { useAssignmentPublishing } from './useAssignmentPublishing';
 import { format } from 'date-fns';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/useToast';
 import { useTranslation } from '@/context/TranslationContext';
 
 /**
@@ -21,7 +21,7 @@ const useAutoPublishScheduler = () => {
     publishAssignmentsByDate 
   }) => {
     // Function to check if it's time to publish
-    const checkAndPublish = async () => {
+    const checkAndPublish = useRef(async () => {
       if (publishingRef.current || loading) {
         return; // Skip if already publishing or assignments are still loading
       }
@@ -73,7 +73,7 @@ const useAutoPublishScheduler = () => {
       } finally {
         publishingRef.current = false;
       }
-    };
+    }).current;
 
     return {
       checkAndPublish,
