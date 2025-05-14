@@ -55,27 +55,27 @@ export const getNextWeekInfo = (weekNumber: number, year: number) => {
     };
   }
   
-  // Get the last day of the year and check its ISO week number
+  // Get the last week number of the current year
   const lastDay = lastDayOfYear(new Date(year, 0, 1));
   const lastWeekOfYear = getISOWeek(lastDay);
   const isoYearOfLastWeek = getISOWeekYear(lastDay);
   
   console.log(`Last week of ${year} is Week ${lastWeekOfYear} (ISO year: ${isoYearOfLastWeek})`);
   
-  // If we're not at the last week of the year, or if the last week belongs to this year
-  if (weekNumber < lastWeekOfYear || isoYearOfLastWeek === year) {
-    // Just increase the week number
-    console.log(`Next week: ${weekNumber + 1}/${year}`);
-    return {
-      week: weekNumber + 1,
-      year
-    };
-  } else {
+  // Check if we're at the last week of the year
+  if (weekNumber === lastWeekOfYear && isoYearOfLastWeek === year) {
     // We're at the last week of the year, go to first week of next year
     console.log(`Next week from Week ${weekNumber}, ${year} -> Week 1, ${year + 1}`);
     return {
       week: 1,
       year: year + 1
+    };
+  } else {
+    // Regular case - just increase week number
+    console.log(`Next week: ${weekNumber + 1}/${year}`);
+    return {
+      week: weekNumber + 1,
+      year
     };
   }
 };
