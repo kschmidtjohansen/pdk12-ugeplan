@@ -1,4 +1,5 @@
 
+
 const admin = {
   title: 'Admin Dashboard',
   description: 'System administration og indstillinger',
@@ -42,7 +43,7 @@ const admin = {
   passwords: {
     changePassword: 'Skift adgangskode',
     resetPasswordFor: 'Rediger adgangskode for denne medarbejder',
-    enterNewPassword: 'Indtast ny adgangskode for denne medarbejder', // Added missing comma here
+    enterNewPassword: 'Indtast ny adgangskode for denne medarbejder',
     newPassword: 'Ny adgangskode',
     confirmPassword: 'Bekræft adgangskode',
     resetPassword: 'Nulstil adgangskode',
@@ -53,8 +54,8 @@ const admin = {
     passwordMismatch: 'Adgangskoderne stemmer ikke overens',
     passwordMinLength: 'Adgangskoden skal være mindst 8 tegn lang',
     passwordChanged: 'Adgangskode ændret',
-    passwordChangedMsg: 'Adgangskoden er blevet ændret.'
-    passwordTooShort: 'Adgangskode for kort. Skal indeholde 6 tegn.',
+    passwordChangedMsg: 'Adgangskoden er blevet ændret.',
+    passwordTooShort: 'Adgangskode for kort. Skal indeholde 6 tegn.'
   },
   roles: {
     administrator: 'Administrator',
@@ -64,3 +65,4 @@ const admin = {
 };
 
 export default admin;
+
