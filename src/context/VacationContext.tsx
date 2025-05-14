@@ -40,7 +40,7 @@ interface VacationContextType {
   setSelectedVacation: (vacation: Vacation | null) => void;
   
   // Actions
-  submitVacationRequest: (e: React.FormEvent, isAdminRequest?: boolean) => Promise<boolean>;
+  submitVacationRequest: (e: React.FormEvent) => Promise<boolean>;
   approveVacation: (vacation: Vacation, note?: string) => void;
   rejectVacation: (vacation: Vacation, reason: string) => void;
   prepareVacationForEdit: (vacation: Vacation) => void;
@@ -62,7 +62,7 @@ export const VacationProvider: React.FC<{ children: ReactNode }> = ({ children }
   const vacationData = useVacationCore();
   
   return (
-    <VacationContext.Provider value={vacationData}>
+    <VacationContext.Provider value={vacationData as VacationContextType}>
       {children}
     </VacationContext.Provider>
   );

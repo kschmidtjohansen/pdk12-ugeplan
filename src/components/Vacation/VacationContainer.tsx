@@ -89,11 +89,6 @@ const VacationContainer: React.FC<VacationContainerProps> = ({ headerComponent }
     setNote("");
   };
   
-  // Wrapper for admin vacation request submission
-  const submitAdminVacationRequest = (e: React.FormEvent) => {
-    submitVacationRequest(e, true);
-  };
-  
   return (
     <div>
       {headerComponent}
@@ -143,7 +138,7 @@ const VacationContainer: React.FC<VacationContainerProps> = ({ headerComponent }
         setSelectedEmployeeId={setSelectedEmployeeId}
         actionType={actionType}
         submitVacationRequest={submitVacationRequest}
-        submitAdminVacationRequest={submitAdminVacationRequest}
+        submitAdminVacationRequest={submitVacationRequest}
         submitEditVacation={submitEditVacation}
         handleActionSubmit={handleActionSubmit}
         confirmDeleteVacation={confirmDeleteVacation}
