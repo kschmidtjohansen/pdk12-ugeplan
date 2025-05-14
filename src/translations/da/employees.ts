@@ -33,7 +33,8 @@ const employees = {
   notes: 'Noter',
   notesPlaceholder: 'Tilføj noter om denne medarbejder...',
   viewNotes: 'Se noter',
-  viewNotesOnly: 'Du kan se men ikke redigere noter'
+  viewNotesOnly: 'Du kan se men ikke redigere noter',
+  employee: 'Medarbejder'
 };
 
 export default employees;

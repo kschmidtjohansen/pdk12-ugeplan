@@ -45,8 +45,8 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t("employees.jobTitle")}
                 </th>
-                {/* Show role column to admin users only */}
-                {isAdmin && (
+                {/* Show role column to admin and skadeleder users only */}
+                {(isAdmin || isSkadeleder) && (
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("employees.role")}
                   </th>
@@ -98,8 +98,8 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {employee.jobTitle}
                   </td>
-                  {/* Show role to admin users only */}
-                  {isAdmin && (
+                  {/* Show role to admin and skadeleder users only */}
+                  {(isAdmin || isSkadeleder) && (
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {t(`admin.roles.${employee.role}`)}
                     </td>
