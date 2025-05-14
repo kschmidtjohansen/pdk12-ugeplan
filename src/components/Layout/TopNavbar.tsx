@@ -1,14 +1,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { useTranslation } from '../../context/TranslationContext';
-import { useNotifications } from '../../context/NotificationContext';
-import { Search, Users, Car, Clock, Calendar, Menu, X, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from '@/context/TranslationContext';
+import { useNotifications } from '@/context/NotificationContext';
+import { Menu, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { NavigationItem } from '../../types/navigation';
-import { NotificationType } from '../../types/notification';
+import { NotificationType } from '@/types/notification';
 
 // Import custom components
 import Logo from './NavComponents/Logo';
@@ -16,36 +14,26 @@ import DesktopNavigation from './NavComponents/DesktopNavigation';
 import MobileNavigation from './NavComponents/MobileNavigation';
 import NotificationsDropdown from './NavComponents/NotificationsDropdown';
 import UserMenu from './NavComponents/UserMenu';
+import NavigationItems from './NavigationItems';
 
 const TopNavbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { t, currentLanguage, setLanguage } = useTranslation();
-  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, fetchNotifications } = useNotifications();
+  const { 
+    notifications, 
+    unreadCount, 
+    markAsRead, 
+    markAllAsRead, 
+    deleteNotification, 
+    fetchNotifications 
+  } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const initialFetchDone = useRef(false);
   
   // Track if there are vacation-related notifications that need attention
   const [hasVacationNotifications, setHasVacationNotifications] = useState(false);
-  
-  // Fetch notifications when component mounts and periodically - but only once initially
-  useEffect(() => {
-    if (isAuthenticated && !initialFetchDone.current) {
-      console.log('TopNavbar: Initial notification fetch triggered');
-      fetchNotifications();
-      initialFetchDone.current = true;
-      
-      // Still refresh notifications periodically, but at a reasonable interval (every 5 minutes)
-      const intervalId = setInterval(() => {
-        console.log('TopNavbar: Refreshing notifications (interval)');
-        fetchNotifications();
-      }, 300000); // 5 minutes instead of 60 seconds
-      
-      return () => clearInterval(intervalId);
-    }
-  }, [isAuthenticated, fetchNotifications]);
   
   // Check for vacation-related notifications
   useEffect(() => {
@@ -61,19 +49,13 @@ const TopNavbar: React.FC = () => {
       )
     );
     
-    // Also check for pending vacations that require action
-    const pendingActionNeeded = vacationNotifications.some(
-      n => n.message && n.message.includes('Action required')
-    );
-    
     const hasVacation = vacationNotifications.length > 0;
     
     console.log('TopNavbar: Checking vacation notifications:', { 
       hasVacation, 
       count: vacationNotifications.length,
-      pendingActionNeeded,
-      notificationIds: vacationNotifications.map(n => n.id).join(','),
-      messages: vacationNotifications.map(n => n.message)
+      notificationIds: vacationNotifications.map(n => n.id).join(',').substring(0, 100), // Limit output length
+      messages: vacationNotifications.map(n => n.message).slice(0, 3) // Only show first 3
     });
     
     setHasVacationNotifications(hasVacation);
@@ -85,7 +67,6 @@ const TopNavbar: React.FC = () => {
       title: t('common.success'),
       description: t('login.logoutSuccess')
     });
-    // Updated to redirect to login page
     navigate('/login');
   };
 
@@ -109,34 +90,20 @@ const TopNavbar: React.FC = () => {
     isAdmin: user?.role === 'administrator',
     hasVacationNotifications,
     unreadCount,
-    notificationTypes: notifications.map(n => n.type)
+    notificationCount: notifications.length
   });
-  
-  const navigationItems: NavigationItem[] = [
-    { path: '/dashboard', name: t('navigation.dashboard'), translationKey: 'navigation.dashboard', icon: <Search className="h-5 w-5" /> },
-    { path: '/planner', name: t('navigation.planner'), translationKey: 'navigation.planner', icon: <Clock className="h-5 w-5" /> },
-    { path: '/employees', name: t('navigation.employees'), translationKey: 'navigation.employees', icon: <Users className="h-5 w-5" /> },
-    { path: '/cars', name: t('navigation.cars'), translationKey: 'navigation.cars', icon: <Car className="h-5 w-5" /> },
-    { 
-      path: '/vacation', 
-      name: t('navigation.vacation'), 
-      translationKey: 'navigation.vacation', 
-      icon: <Calendar className="h-5 w-5" />,
-      hasNotification: hasVacationNotifications 
-    },
-    { path: '/admin', name: t('navigation.admin'), translationKey: 'navigation.admin', icon: <Settings className="h-5 w-5" />, adminOnly: true },
-  ];
-
-  if (!isAuthenticated) {
-    return null;
-  }
 
   // Filter items based on user role
+  const navigationItems = NavigationItems({ hasVacationNotifications });
   const filteredNavItems = navigationItems.filter(
     item => !item.adminOnly || user?.role === 'administrator'
   );
 
   const isAdmin = user?.role === 'administrator';
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-10 bg-white shadow-md navbar-height">
@@ -167,7 +134,7 @@ const TopNavbar: React.FC = () => {
             {/* Notifications - Desktop - Show for all users */}
             <div className="hidden md:flex md:items-center md:ml-2">
               <NotificationsDropdown 
-                notifications={notifications}
+                notifications={notifications.slice(0, 10)} // Limit to 10 notifications for better performance
                 unreadCount={unreadCount}
                 markAllAsRead={markAllAsRead}
                 handleNotificationClick={handleNotificationClick}
@@ -195,7 +162,7 @@ const TopNavbar: React.FC = () => {
         setMobileMenuOpen={setMobileMenuOpen}
         user={user}
         isAdmin={isAdmin}
-        notifications={notifications}
+        notifications={notifications.slice(0, 10)} // Limit to 10 notifications
         unreadCount={unreadCount}
         handleNotificationClick={handleNotificationClick}
         clearNotification={deleteNotification}

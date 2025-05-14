@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 
 // Key for tracking initial fetch in localStorage
 const NOTIFICATION_FETCHED_KEY = "polygon-notifications-fetched";
+const NOTIFICATION_SESSION_KEY = "polygon-notification-session";
 
 interface NotificationContextType {
   notifications: NotificationType[];
@@ -31,6 +32,20 @@ const NotificationContext = createContext<NotificationContextType>({
   fetchNotifications: async () => {}
 });
 
+// Generate a unique session ID for this browser tab
+const generateSessionId = () => {
+  try {
+    let sessionId = localStorage.getItem(NOTIFICATION_SESSION_KEY);
+    if (!sessionId) {
+      sessionId = `notification-session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      localStorage.setItem(NOTIFICATION_SESSION_KEY, sessionId);
+    }
+    return sessionId;
+  } catch (err) {
+    return `notification-session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  }
+};
+
 // Export the hook for using the notifications context
 export const useNotifications = () => useContext(NotificationContext);
 
@@ -52,6 +67,7 @@ export const NotificationProvider: React.FC<{
   const { user } = useAuth();
   const initialFetchDoneRef = useRef(false);
   const sessionFetchDoneRef = useRef(false);
+  const sessionId = useRef(generateSessionId());
   
   // Debug log when provider updates
   useEffect(() => {
@@ -61,14 +77,15 @@ export const NotificationProvider: React.FC<{
       unreadCount,
       loading,
       initialFetchDone: initialFetchDoneRef.current,
-      sessionFetchDone: sessionFetchDoneRef.current
+      sessionFetchDone: sessionFetchDoneRef.current,
+      sessionId: sessionId.current
     });
   }, [notifications.length, unreadCount, loading, user?.role]);
   
   // Centralize notification fetching - only fetch once per session
   useEffect(() => {
     if (user && !sessionFetchDoneRef.current) {
-      console.log(`NotificationProvider: Initial fetch for user ${user.id} (${user.role})`);
+      console.log(`NotificationProvider: Initial fetch for user ${user.id} (${user.role}) with session ${sessionId.current}`);
       fetchNotifications();
       
       // Mark as fetched for this session

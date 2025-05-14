@@ -7,6 +7,7 @@ import { sortNotifications } from '@/utils/notifications';
 
 // Key for localStorage to track notifications shown across browser sessions
 const NOTIFICATION_HISTORY_KEY = "polygon-notification-history";
+const NOTIFICATION_CHANNEL_KEY = "polygon-notification-channel";
 
 // Get previously shown notification IDs
 const getShownNotificationIds = (): Set<string> => {
@@ -30,6 +31,33 @@ const saveShownNotificationId = (id: string): void => {
   }
 };
 
+// Track if we already have an active subscription for this user
+const getActiveChannel = (): string | null => {
+  try {
+    return localStorage.getItem(NOTIFICATION_CHANNEL_KEY);
+  } catch (err) {
+    return null;
+  }
+};
+
+// Mark that we have an active subscription
+const setActiveChannel = (channelId: string): void => {
+  try {
+    localStorage.setItem(NOTIFICATION_CHANNEL_KEY, channelId);
+  } catch (err) {
+    console.error("Error saving notification channel to localStorage:", err);
+  }
+};
+
+// Clear active channel marker
+const clearActiveChannel = (): void => {
+  try {
+    localStorage.removeItem(NOTIFICATION_CHANNEL_KEY);
+  } catch (err) {
+    console.error("Error removing notification channel from localStorage:", err);
+  }
+};
+
 export const useNotificationRealtime = (
   user: any | null,
   setNotifications: (updater: (prev: NotificationType[]) => NotificationType[]) => void,
@@ -41,6 +69,7 @@ export const useNotificationRealtime = (
   
   // Track active channel to avoid duplicate subscriptions
   const channelRef = useRef<any>(null);
+  const previousUserIdRef = useRef<string | null>(null);
 
   // Clean up function to remove channel subscription
   const cleanupChannel = () => {
@@ -48,6 +77,7 @@ export const useNotificationRealtime = (
       console.log(`Cleaning up notification subscription`);
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
+      clearActiveChannel();
     }
   };
 
@@ -55,15 +85,35 @@ export const useNotificationRealtime = (
   useEffect(() => {
     if (!user) {
       console.log('No user, skipping real-time subscription');
+      previousUserIdRef.current = null;
       return cleanupChannel();
     }
+    
+    // Don't resubscribe for the same user
+    if (previousUserIdRef.current === user.id && channelRef.current) {
+      console.log(`Already subscribed to notifications for user ${user.id}, skipping`);
+      return;
+    }
+    
+    // Update previous user ID
+    previousUserIdRef.current = user.id;
     
     // Clean up any existing subscription to avoid duplicates
     cleanupChannel();
     
+    // Check if we already have a channel active in another tab/window
+    const existingChannel = getActiveChannel();
+    if (existingChannel) {
+      console.log(`Using existing notification channel: ${existingChannel}`);
+      return;
+    }
+    
     // Create a unique channel name for this user and instance
     const channelName = `notification_changes_${user.id}_${Math.random().toString(36).substring(2, 9)}`;
     console.log(`Setting up realtime subscription for notifications using channel: ${channelName}`);
+    
+    // Set as active channel
+    setActiveChannel(channelName);
     
     const channel = supabase
       .channel(channelName)
