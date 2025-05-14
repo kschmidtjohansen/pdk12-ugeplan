@@ -7,26 +7,14 @@ import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 
 export const useAutoPublishAssignments = () => {
-  const { assignments, loading } = useAssignments();
+  const { assignments, loading, updateAssignment } = useAssignments();
   const { toast } = useToast();
   const { t } = useTranslation();
   const [lastPublishedDate, setLastPublishedDate] = useState<string | null>(null);
   const publishTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const publishingRef = useRef(false);
   
-  // Create updateAssignment wrapper for the publishing hook
-  const updateAssignment = async (assignment) => {
-    try {
-      if (!assignments) return false;
-      
-      const { updateAssignment } = useAssignments();
-      return await updateAssignment(assignment.id, assignment);
-    } catch (err) {
-      console.error('Error in auto-publish updateAssignment wrapper:', err);
-      return false;
-    }
-  };
-  
+  // Create publishAssignments function from the publishing hook at component level
   const { publishAssignmentsByDate } = useAssignmentPublishing(
     assignments || [], 
     updateAssignment

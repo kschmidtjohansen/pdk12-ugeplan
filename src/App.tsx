@@ -12,30 +12,33 @@ import AdminPage from './pages/AdminPage';
 import PasswordResetPage from './pages/PasswordResetPage';
 import { Toaster } from "@/components/ui/toaster";
 import MainLayout from './components/Layout/MainLayout';
-import { NotificationProvider } from './context/NotificationContext';
-import { useAutoPublishAssignments } from './hooks/useAutoPublishAssignments';
+import AutoPublishHandler from './components/AutoPublish/AutoPublishHandler';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 function App() {
-  const { isAuthenticated } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  const [appReady, setAppReady] = useState(false);
 
+  // Add a delay to ensure auth state is stable before rendering routes
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
-  }, []);
-
-  // Auto-publish assignments at 16:00
-  const AutoPublishHandler = () => {
-    useAutoPublishAssignments();
-    return null; // This component doesn't render anything
-  };
-
-  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    if (loading) {
-      return <div>Loading...</div>;
+    if (!authLoading) {
+      // Small delay to ensure auth state is stable
+      const timer = setTimeout(() => {
+        setAppReady(true);
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
+  }, [authLoading]);
+
+  // Show loading state until auth is ready
+  if (authLoading || !appReady) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  // Component to handle protected routes
+  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    // If not authenticated, redirect to login
     if (!isAuthenticated) {
       return <Navigate to="/login" />;
     }
@@ -43,83 +46,76 @@ function App() {
   };
 
   return (
-    <Router>
-      {isAuthenticated && <AutoPublishHandler />}
-      <Routes>
-        {/* Public routes without layout */}
-        <Route path="/login" element={<LoginPage />} />
+    <ErrorBoundary>
+      <Router>
+        {/* Only mount AutoPublishHandler when user is authenticated */}
+        {isAuthenticated && <AutoPublishHandler />}
         
-        {/* Support both URL formats for password reset */}
-        <Route path="/password-reset" element={<PasswordResetPage />} />
-        <Route path="/reset-password" element={<PasswordResetPage />} />
-        
-        {/* Protected routes wrapped with MainLayout */}
-        <Route path="/" element={
-          <ProtectedRoute>
-            <NotificationProvider>
+        <Routes>
+          {/* Public routes without layout */}
+          <Route path="/login" element={
+            // Prevent authenticated users from accessing login page
+            isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage />
+          } />
+          
+          {/* Support both URL formats for password reset */}
+          <Route path="/password-reset" element={<PasswordResetPage />} />
+          <Route path="/reset-password" element={<PasswordResetPage />} />
+          
+          {/* Protected routes wrapped with MainLayout */}
+          <Route path="/" element={
+            <ProtectedRoute>
               <MainLayout>
                 <DashboardPage />
               </MainLayout>
-            </NotificationProvider>
-          </ProtectedRoute>
-        } />
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <NotificationProvider>
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
               <MainLayout>
                 <DashboardPage />
               </MainLayout>
-            </NotificationProvider>
-          </ProtectedRoute>
-        } />
-        <Route path="/planner" element={
-          <ProtectedRoute>
-            <NotificationProvider>
+            </ProtectedRoute>
+          } />
+          <Route path="/planner" element={
+            <ProtectedRoute>
               <MainLayout>
                 <PlannerPage />
               </MainLayout>
-            </NotificationProvider>
-          </ProtectedRoute>
-        } />
-        <Route path="/vacation" element={
-          <ProtectedRoute>
-            <NotificationProvider>
+            </ProtectedRoute>
+          } />
+          <Route path="/vacation" element={
+            <ProtectedRoute>
               <MainLayout>
                 <VacationPage />
               </MainLayout>
-            </NotificationProvider>
-          </ProtectedRoute>
-        } />
-        <Route path="/employees" element={
-          <ProtectedRoute>
-            <NotificationProvider>
+            </ProtectedRoute>
+          } />
+          <Route path="/employees" element={
+            <ProtectedRoute>
               <MainLayout>
                 <EmployeesPage />
               </MainLayout>
-            </NotificationProvider>
-          </ProtectedRoute>
-        } />
-        <Route path="/cars" element={
-          <ProtectedRoute>
-            <NotificationProvider>
+            </ProtectedRoute>
+          } />
+          <Route path="/cars" element={
+            <ProtectedRoute>
               <MainLayout>
                 <CarsPage />
               </MainLayout>
-            </NotificationProvider>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin" element={
-          <ProtectedRoute>
-            <NotificationProvider>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute>
               <MainLayout>
                 <AdminPage />
               </MainLayout>
-            </NotificationProvider>
-          </ProtectedRoute>
-        } />
-      </Routes>
-      <Toaster />
-    </Router>
+            </ProtectedRoute>
+          } />
+        </Routes>
+        <Toaster />
+      </Router>
+    </ErrorBoundary>
   );
 }
 
