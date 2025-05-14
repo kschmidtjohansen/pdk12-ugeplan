@@ -1,79 +1,73 @@
 
-import { useState, useCallback } from 'react';
-import { NotificationType } from '@/types/notification';
-import { useTranslation } from '@/context/TranslationContext';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { sortNotifications } from '@/utils/notifications';
+import { NotificationType } from '@/types/notification';
+import { AppUser } from '@/context/AuthContext';
 
-// Safe toast function that doesn't depend on context
-const safeToast = (message: string) => {
-  console.log('Toast message (fallback):', message);
-};
+// Remove direct dependency on toast to avoid initialization issues
+export const useNotificationFetching = (
+  user: AppUser | null, 
+  setNotifications: (notifications: NotificationType[]) => void,
+  setUnreadCount: (count: number) => void,
+  setLoading: (loading: boolean) => void,
+  sessionId: string,
+  setInitialFetchDone: (done: boolean) => void,
+  setSessionFetchDone: (done: boolean) => void
+) => {
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-export const useNotificationFetching = (user: any | null) => {
-  const [notifications, setNotifications] = useState<NotificationType[]>([]);
-  const [unreadCount, setUnreadCount] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
-  
-  // Don't use toast at all in this component to avoid the context dependency
-  const { t } = useTranslation();
-
-  // Fetch notifications from Supabase
-  const fetchNotifications = useCallback(async () => {
-    if (!user) {
-      console.log('No user found, skipping notification fetch');
-      setLoading(false);
+  // Function to fetch notifications for the current user
+  const fetchNotifications = async () => {
+    if (!user || !user.id) {
+      console.log('No user available to fetch notifications');
       return;
     }
-    
+
     try {
       setLoading(true);
-      console.log(`Fetching notifications for user ${user.id} with role ${user.role}`);
+      console.log('Fetching notifications for user:', user.id);
       
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-      
+
       if (error) {
         console.error('Error fetching notifications:', error);
-        throw error;
+        setFetchError(error.message);
+        return;
       }
+
+      console.log(`Fetched ${data.length} notifications`);
       
       if (data) {
-        console.log(`Fetched ${data.length} notifications for user ${user.id}:`, data);
+        setNotifications(data as NotificationType[]);
         
-        const formattedNotifications: NotificationType[] = data.map(item => ({
-          id: item.id,
-          type: item.type,
-          title: item.title,
-          message: item.message,
-          link: item.link || undefined,
-          read: item.read,
-          date: new Date(item.created_at)
-        }));
-        
-        // Sort notifications with unread first, then by date
-        formattedNotifications.sort(sortNotifications);
-        
-        setNotifications(formattedNotifications);
-        setUnreadCount(formattedNotifications.filter(n => !n.read).length);
+        // Count unread notifications
+        const unreadCount = data.filter((notification: NotificationType) => !notification.read).length;
+        setUnreadCount(unreadCount);
+        console.log(`Unread count: ${unreadCount}`);
       }
-    } catch (err) {
-      console.error('Error fetching notifications:', err);
-      safeToast(`Error fetching notifications: ${err}`);
+    } catch (error) {
+      console.error('Unexpected error fetching notifications:', error);
     } finally {
       setLoading(false);
+      setInitialFetchDone(true);
     }
-  }, [user, t]);
-
-  return {
-    notifications,
-    setNotifications,
-    unreadCount,
-    setUnreadCount,
-    loading,
-    fetchNotifications
   };
+
+  // Effect to fetch notifications when user changes
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+    } else {
+      // Clear notifications when user is not available
+      setNotifications([]);
+      setUnreadCount(0);
+    }
+  }, [user]);
+
+  // Return the fetching function for manual refreshes
+  return { fetchNotifications, fetchError };
 };
