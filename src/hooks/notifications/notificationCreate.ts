@@ -1,6 +1,7 @@
 
 import { useCallback, useRef } from 'react';
 import { NotificationType } from '@/types/notification';
+import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { sortNotifications } from '@/utils/notifications';
 
@@ -35,16 +36,12 @@ const hashNotification = (notification: Omit<NotificationType, 'id' | 'read' | '
   return `${userId}:${notification.type}:${notification.title}:${notification.message || ''}`;
 };
 
-// Safe console toast function that doesn't depend on context
-const safeToast = (title: string, description: string, variant: string = 'default') => {
-  console.log(`Toast (${variant}): ${title} - ${description}`);
-};
-
 export const useNotificationCreate = (
   user: any | null,
   setNotifications: (notifications: NotificationType[] | ((prev: NotificationType[]) => NotificationType[])) => void,
   setUnreadCount: (count: number | ((prev: number) => number)) => void
 ) => {
+  const { toast } = useToast();
   // Use localStorage-backed tracking to prevent duplicate creations
   const createdNotificationsRef = useRef<Set<string>>(getCreatedNotificationHashes());
 
@@ -94,7 +91,11 @@ export const useNotificationCreate = (
           
           // Only show toast for user-facing operations, not background processes
           if (!notification.targetUserId || notification.targetUserId === user.id) {
-            safeToast("Permission denied", "You don't have permission to create notifications for this user.", "destructive");
+            toast({
+              title: "Permission denied",
+              description: "You don't have permission to create notifications for this user.",
+              variant: "destructive"
+            });
           }
           return null;
         } else {
@@ -131,6 +132,8 @@ export const useNotificationCreate = (
         
         // Increment unread count
         setUnreadCount((prev: number) => prev + 1);
+        
+        // Toast will be handled by the realtime subscription
       }
       
       return data?.[0]?.id;
@@ -138,7 +141,7 @@ export const useNotificationCreate = (
       console.error('Error adding notification:', err);
       return null;
     }
-  }, [user, setNotifications, setUnreadCount]);
+  }, [user, toast, setNotifications, setUnreadCount]);
 
   return {
     addNotification

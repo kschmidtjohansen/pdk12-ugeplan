@@ -1,7 +1,7 @@
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Vacation, VacationStatus } from '@/types/vacation';
-import { useToast } from '@/hooks/useToast';
+import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { safeProperty } from '@/utils/dbHelpers';
@@ -48,7 +48,7 @@ export const useVacationData = () => {
           
         if (profilesError) throw profilesError;
         
-        // Create a map of user IDs to names for efficient lookup
+        // Create a map of user IDs to names
         const profileMap = new Map();
         profiles?.forEach(profile => {
           profileMap.set(profile.id, profile.name);
@@ -126,26 +126,8 @@ export const useVacationData = () => {
     };
   }, []);
 
-  // Memoize sorted vacations to prevent unnecessary re-renders
-  const sortedVacations = useMemo(() => {
-    return [...vacations].sort((a, b) => {
-      // First sort by status (pending first)
-      const statusOrder = { pending: 0, approved: 1, rejected: 2 };
-      const statusDiff = 
-        statusOrder[a.status as keyof typeof statusOrder] - 
-        statusOrder[b.status as keyof typeof statusOrder];
-      
-      // If status is the same, sort by start date (most recent first)
-      if (statusDiff === 0) {
-        return b.startDate.getTime() - a.startDate.getTime();
-      }
-      
-      return statusDiff;
-    });
-  }, [vacations]);
-
   return {
-    vacations: sortedVacations,
+    vacations,
     loading,
     error,
     fetchVacations

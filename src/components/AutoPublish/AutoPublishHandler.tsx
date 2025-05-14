@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAutoPublishAssignments } from '@/hooks/useAutoPublishAssignments';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -12,7 +12,7 @@ const AutoPublishHandlerContent: React.FC = () => {
 };
 
 // Wrap the component with error boundary to prevent it from breaking the app
-const AutoPublishHandler: React.FC = () => {
+export const AutoPublishHandler: React.FC = () => {
   return (
     <ErrorBoundary fallback={<></>}>
       <AutoPublishHandlerContent />

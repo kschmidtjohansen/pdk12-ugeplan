@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -16,30 +16,16 @@ import { NotificationProvider } from './context/NotificationContext';
 import { ThemeProvider } from "./components/theme-provider"
 
 import MainLayout from './components/Layout/MainLayout';
-import LoginPage from './pages/LoginPage'; // Import directly instead of lazy loading
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
+import PlannerPage from './pages/PlannerPage';
+import EmployeesPage from './pages/EmployeesPage';
+import CarsPage from './pages/CarsPage';
+import VacationPage from './pages/VacationPage';
+import AdminPage from './pages/AdminPage';
+import AutoPublishContainer from './components/AutoPublish/AutoPublishContainer';
 
-// Lazy load other pages for better performance
-const DashboardPage = React.lazy(() => import('./pages/DashboardPage'));
-const PlannerPage = React.lazy(() => import('./pages/PlannerPage'));
-const EmployeesPage = React.lazy(() => import('./pages/EmployeesPage'));
-const CarsPage = React.lazy(() => import('./pages/CarsPage'));
-const VacationPage = React.lazy(() => import('./pages/VacationPage'));
-const AdminPage = React.lazy(() => import('./pages/AdminPage'));
-const AutoPublishContainer = React.lazy(() => import('./components/AutoPublish/AutoPublishContainer'));
-
-// Create QueryClient with optimized settings
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-// Loading component for lazy loading
-const LoadingFallback = () => <div className="flex items-center justify-center h-screen">Loading...</div>;
+const queryClient = new QueryClient();
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -53,35 +39,33 @@ function App() {
   }, [user]);
 
   if (loading) {
-    return <LoadingFallback />;
+    return <div>Loading...</div>;
   }
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <TranslationProvider>
-            <NotificationProvider>
+      <AuthProvider>
+        <TranslationProvider>
+          <NotificationProvider>
+            <ThemeProvider>
               <Router>
                 <Toaster />
-                <Suspense fallback={<LoadingFallback />}>
-                  <AutoPublishContainer />
-                  <Routes>
-                    <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
-                    <Route path="/" element={user ? <MainLayout><DashboardPage /></MainLayout> : <Navigate to="/login" />} />
-                    <Route path="/planner" element={user ? <MainLayout><PlannerPage /></MainLayout> : <Navigate to="/login" />} />
-                    <Route path="/employees" element={user ? <MainLayout><EmployeesPage /></MainLayout> : <Navigate to="/login" />} />
-                    <Route path="/cars" element={user ? <MainLayout><CarsPage /></MainLayout> : <Navigate to="/login" />} />
-                    <Route path="/vacation" element={user ? <MainLayout><VacationPage /></MainLayout> : <Navigate to="/login" />} />
-                    <Route path="/admin" element={user?.role === 'administrator' ? <MainLayout><AdminPage /></MainLayout> : user ? <Navigate to="/" /> : <Navigate to="/login" />} />
-                    <Route path="*" element={<Navigate to="/" />} />
-                  </Routes>
-                </Suspense>
+                <AutoPublishContainer />
+                <Routes>
+                  <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
+                  <Route path="/" element={user ? <MainLayout><DashboardPage /></MainLayout> : <Navigate to="/login" />} />
+                  <Route path="/planner" element={user ? <MainLayout><PlannerPage /></MainLayout> : <Navigate to="/login" />} />
+                  <Route path="/employees" element={user ? <MainLayout><EmployeesPage /></MainLayout> : <Navigate to="/login" />} />
+                  <Route path="/cars" element={user ? <MainLayout><CarsPage /></MainLayout> : <Navigate to="/login" />} />
+                  <Route path="/vacation" element={user ? <MainLayout><VacationPage /></MainLayout> : <Navigate to="/login" />} />
+                  <Route path="/admin" element={user?.role === 'administrator' ? <MainLayout><AdminPage /></MainLayout> : user ? <Navigate to="/" /> : <Navigate to="/login" />} />
+                  <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
               </Router>
-            </NotificationProvider>
-          </TranslationProvider>
-        </AuthProvider>
-      </ThemeProvider>
+            </ThemeProvider>
+          </NotificationProvider>
+        </TranslationProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

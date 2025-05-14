@@ -1,6 +1,7 @@
 
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef } from 'react';
 import { NotificationType } from '@/types/notification';
+import { useNotifications as useNotificationsHook } from '@/hooks/useNotifications';
 import { useAuth } from '@/context/AuthContext';
 
 // Key for tracking initial fetch in localStorage
@@ -48,59 +49,25 @@ const generateSessionId = () => {
 // Export the hook for using the notifications context
 export const useNotifications = () => useContext(NotificationContext);
 
-// Dynamic import of the useNotifications hook to avoid circular dependencies
-const lazyLoadNotificationsHook = () => {
-  return import('../hooks/useNotifications').then(module => module.useNotifications);
-};
-
 export const NotificationProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  // State to track the hook loaded status
-  const [hookLoaded, setHookLoaded] = useState(false);
-  // State to hold hook data
-  const [notificationsData, setNotificationsData] = useState<any>(null);
+  // Use the notification hook to get all notification functionality
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    addNotification,
+    fetchNotifications
+  } = useNotificationsHook();
+  
   const { user } = useAuth();
   const initialFetchDoneRef = useRef(false);
   const sessionFetchDoneRef = useRef(false);
   const sessionId = useRef(generateSessionId());
-  
-  // Load the hook after component is mounted
-  useEffect(() => {
-    let mounted = true;
-    
-    const loadHook = async () => {
-      try {
-        const useNotificationsHook = await lazyLoadNotificationsHook();
-        if (mounted) {
-          const hookData = useNotificationsHook();
-          setNotificationsData(hookData);
-          setHookLoaded(true);
-          console.log('Notifications hook loaded successfully');
-        }
-      } catch (err) {
-        console.error("Failed to load notifications hook:", err);
-      }
-    };
-    
-    loadHook();
-    
-    return () => {
-      mounted = false;
-    };
-  }, []);
-  
-  // If the hook isn't ready yet, provide fallback values
-  const {
-    notifications = [],
-    unreadCount = 0,
-    loading = true,
-    markAsRead = async () => {},
-    markAllAsRead = async () => {},
-    deleteNotification = async () => {},
-    addNotification = async () => null,
-    fetchNotifications = async () => {}
-  } = notificationsData || {};
   
   // Debug log when provider updates
   useEffect(() => {
@@ -111,15 +78,13 @@ export const NotificationProvider: React.FC<{
       loading,
       initialFetchDone: initialFetchDoneRef.current,
       sessionFetchDone: sessionFetchDoneRef.current,
-      sessionId: sessionId.current,
-      hookLoaded,
-      hookInitialized: !!notificationsData
+      sessionId: sessionId.current
     });
-  }, [notifications.length, unreadCount, loading, user?.role, hookLoaded]);
+  }, [notifications.length, unreadCount, loading, user?.role]);
   
   // Centralize notification fetching - only fetch once per session
   useEffect(() => {
-    if (user && hookLoaded && !sessionFetchDoneRef.current) {
+    if (user && !sessionFetchDoneRef.current) {
       console.log(`NotificationProvider: Initial fetch for user ${user.id} (${user.role}) with session ${sessionId.current}`);
       fetchNotifications();
       
@@ -139,7 +104,7 @@ export const NotificationProvider: React.FC<{
       // Reset session flag if user logs out
       sessionFetchDoneRef.current = false;
     }
-  }, [user, fetchNotifications, hookLoaded]);
+  }, [user, fetchNotifications]);
 
   return (
     <NotificationContext.Provider

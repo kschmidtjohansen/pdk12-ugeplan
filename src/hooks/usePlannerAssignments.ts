@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { useAssignments } from './useAssignments';
 import { useAssignmentFilters } from './useAssignmentFilters';
 import { Assignment } from '@/types/assignment';
@@ -24,12 +24,10 @@ export const usePlannerAssignments = () => {
   // Get filter functionality
   const filterMethods = useAssignmentFilters();
   
-  // Filter assignments - now memoized to prevent unnecessary calculations
-  const filteredAssignments = useMemo(() => {
-    return filterMethods.filterByPermissions(assignments, true);
-  }, [assignments, filterMethods]);
+  // Filter assignments
+  const filteredAssignments = filterMethods.filterByPermissions(assignments, true); // Default to showing all
   
-  // Get publishing functionality with stable function reference
+  // Get publishing functionality - adapt updateAssignment to match expected signature
   const assignmentUpdater = useCallback((assignment: Assignment) => {
     return updateAssignment(assignment.id, assignment);
   }, [updateAssignment]);
@@ -42,19 +40,19 @@ export const usePlannerAssignments = () => {
     setIsDialogOpen(true);
   }, []);
   
-  // Open dialog for editing an existing assignment
+  // Open dialog for editing an existing assignment - use useCallback to prevent unnecessary re-renders
   const handleEdit = useCallback((assignment: Assignment) => {
     setCurrentAssignment(assignment);
     setIsDialogOpen(true);
   }, []);
   
-  // Open dialog for confirming assignment deletion
+  // Open dialog for confirming assignment deletion - use useCallback to prevent unnecessary re-renders
   const handleDeleteConfirm = useCallback((assignment: Assignment) => {
     setCurrentAssignment(assignment);
     setIsDeleteDialogOpen(true);
   }, []);
   
-  // Execute the assignment delete action
+  // Execute the assignment delete action - use useCallback to prevent unnecessary re-renders
   const handleDelete = useCallback(async () => {
     if (currentAssignment) {
       await deleteAssignment(currentAssignment.id);
@@ -62,10 +60,8 @@ export const usePlannerAssignments = () => {
     }
   }, [currentAssignment, deleteAssignment]);
   
-  // Group assignments by day for display - memoized calculation
-  const groupedAssignments = useMemo(() => {
-    return groupAssignmentsByDay(filteredAssignments);
-  }, [filteredAssignments]);
+  // Group assignments by day for display - memoize calculation to avoid unnecessary re-calculations
+  const groupedAssignments = groupAssignmentsByDay(filteredAssignments);
   
   return {
     assignments: filteredAssignments,

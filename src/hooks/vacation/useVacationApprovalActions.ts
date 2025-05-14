@@ -1,48 +1,30 @@
 
-import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
-import { useVacationNotifications } from './useVacationNotifications';
-import { Vacation } from '@/types/vacation';
+import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Vacation } from '@/types/vacation';
+import { useNotifications } from '@/context/NotificationContext';
 
-/**
- * Hook for managing vacation approval and rejection actions
- */
-export const useVacationApprovalActions = (fetchVacations: () => Promise<void>) => {
+export const useVacationApprovalActions = (
+  fetchVacations: () => Promise<void>
+) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const { t } = useTranslation();
-  const { notifyEmployeeOfStatusChange } = useVacationNotifications();
-
-  /**
-   * Update employee leave status when a vacation is approved
-   */
-  const updateEmployeeLeaveStatus = async (vacation: Vacation) => {
+  const { addNotification } = useNotifications();
+  
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  
+  // Approve vacation request
+  const approveVacation = async (vacation: Vacation, note?: string): Promise<boolean> => {
+    if (!user) return false;
+    
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      setIsLoading(true);
       
-      const startDate = new Date(vacation.startDate);
-      startDate.setHours(0, 0, 0, 0);
-      
-      // If vacation starts today or earlier, mark employee as on leave
-      if (startDate.getTime() <= today.getTime()) {
-        await supabase
-          .from('profiles')
-          .update({
-            on_leave: true
-          })
-          .eq('id', vacation.employeeId);
-      }
-    } catch (err) {
-      console.error('Error updating employee leave status:', err);
-    }
-  };
-
-  /**
-   * Approve a vacation request
-   */
-  const approveVacation = async (vacation: Vacation, note: string = '') => {
-    try {
+      // Update the vacation status in the database
       const { error } = await supabase
         .from('vacations')
         .update({
@@ -53,47 +35,47 @@ export const useVacationApprovalActions = (fetchVacations: () => Promise<void>) 
         .eq('id', vacation.id);
       
       if (error) throw error;
-
-      // Display toast notification
+      
+      // Refresh vacation data
+      await fetchVacations();
+      
+      // Show success toast
       toast({
         title: t('vacation.requestApproved'),
-        description: t('vacation.requestApprovedMsg', { name: vacation.employeeName })
+        description: t('vacation.requestApprovedMsg', { name: vacation.employeeName }),
       });
-
-      // Add notification for the employee
-      await notifyEmployeeOfStatusChange(vacation.employeeId, true);
       
-      // Update employee on-leave status if vacation starts today
-      await updateEmployeeLeaveStatus(vacation);
+      // Notify the employee
+      await addNotification({
+        type: 'vacation',
+        title: t('vacation.vacationApproved'),
+        message: t('vacation.yourRequestApproved'),
+        link: '/vacation',
+        targetUserId: vacation.employeeId
+      });
       
-      // Refresh vacation list
-      await fetchVacations();
       return true;
     } catch (err) {
-      console.error('Error approving vacation:', err);
+      console.error('Error approving vacation request:', err);
       toast({
         title: t('common.error'),
-        description: err instanceof Error ? err.message : 'Error approving vacation request',
-        variant: 'destructive',
+        description: err instanceof Error ? err.message : 'Failed to approve vacation request',
+        variant: "destructive",
       });
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  /**
-   * Reject a vacation request
-   */
-  const rejectVacation = async (vacation: Vacation, reason: string) => {
-    if (!reason.trim()) {
-      toast({
-        title: t('common.error'),
-        description: t('vacation.rejectionReasonRequired'),
-        variant: 'destructive',
-      });
-      return false;
-    }
-
+  
+  // Reject vacation request
+  const rejectVacation = async (vacation: Vacation, reason: string): Promise<boolean> => {
+    if (!user) return false;
+    
     try {
+      setIsLoading(true);
+      
+      // Update the vacation status in the database
       const { error } = await supabase
         .from('vacations')
         .update({
@@ -104,32 +86,43 @@ export const useVacationApprovalActions = (fetchVacations: () => Promise<void>) 
         .eq('id', vacation.id);
       
       if (error) throw error;
-
-      // Display toast notification
+      
+      // Refresh vacation data
+      await fetchVacations();
+      
+      // Show success toast
       toast({
         title: t('vacation.requestRejected'),
-        description: t('vacation.requestRejectedMsg', { name: vacation.employeeName })
+        description: t('vacation.requestRejectedMsg', { name: vacation.employeeName }),
       });
-
-      // Add notification for the employee
-      await notifyEmployeeOfStatusChange(vacation.employeeId, false, reason);
       
-      // Refresh vacation list
-      await fetchVacations();
+      // Notify the employee
+      await addNotification({
+        type: 'vacation',
+        title: t('vacation.vacationStatusChanged'),
+        message: t('vacation.yourRequestRejected', { reason: reason }),
+        link: '/vacation',
+        targetUserId: vacation.employeeId
+      });
+      
       return true;
     } catch (err) {
-      console.error('Error rejecting vacation:', err);
+      console.error('Error rejecting vacation request:', err);
       toast({
         title: t('common.error'),
-        description: err instanceof Error ? err.message : 'Error rejecting vacation request',
-        variant: 'destructive',
+        description: err instanceof Error ? err.message : 'Failed to reject vacation request',
+        variant: "destructive",
       });
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
-
+  
   return {
+    isLoading,
     approveVacation,
     rejectVacation
   };
 };
+
