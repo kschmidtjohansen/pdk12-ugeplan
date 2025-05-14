@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { useVacations } from '@/hooks/useVacations';
 import { useEmployees } from '@/hooks/useEmployees';
-import { useCars } from '@/hooks/useCars';
+import { useCars } from '@/hooks/car';
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { usePermissions } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

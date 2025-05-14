@@ -35,9 +35,13 @@ export const useCars = () => {
 
   // Enhanced handleEdit to initialize form data
   const handleEdit = (car: CarData) => {
-    const editCar = handleEdit(car);
-    initFormWithCar(editCar);
+    // Set the current car without calling handleEdit recursively
+    setCurrentCar(car);
+    // Initialize form with car data
+    initFormWithCar(car);
+    // Open the dialog
     setDialogOpen(true);
+    return car;
   };
 
   return {
