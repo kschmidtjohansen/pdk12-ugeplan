@@ -28,7 +28,8 @@ const common = {
   noReasonProvided: 'Ingen årsag angivet',
   noData: 'Ingen data tilgængelig',
   areYouSure: 'Er du sikker?',
-  deleteWarning: 'Er du sikker på at du vil slette?'
+  deleteWarning: 'Er du sikker på at du vil slette?',
+  close: 'Luk'
 };
 
 export default common;

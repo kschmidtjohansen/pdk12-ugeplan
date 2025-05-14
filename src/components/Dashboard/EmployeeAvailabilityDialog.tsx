@@ -60,7 +60,6 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
                   </Avatar>
                   <div className="flex-1">
                     <div className="font-medium">{employee.name}</div>
-                    <div className="text-sm text-muted-foreground">{employee.jobTitle || t('employees.employee')}</div>
                   </div>
                   {!isAvailable && employee.onApprovedVacation && (
                     <div className="flex items-center text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
