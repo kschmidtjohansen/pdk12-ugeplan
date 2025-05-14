@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -24,20 +25,22 @@ const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { t, currentLanguage } = useTranslation();
   const { assignments } = usePlannerAssignments();
-  const { employees } = useEmployees();
   const { cars } = useCars();
   const { vacations } = useVacations();
+  const { 
+    employees, 
+    updateEmployeeLeaveStatusFromVacations 
+  } = useEmployees();
 
   // Update employee leave status based on vacations when dashboard loads
   useEffect(() => {
     // We only need to update if we have both employees and vacations
     if (employees.length > 0 && vacations.length > 0) {
-      const { updateEmployeeLeaveStatusFromVacations } = useEmployees();
       if (updateEmployeeLeaveStatusFromVacations) {
         updateEmployeeLeaveStatusFromVacations(vacations);
       }
     }
-  }, [employees, vacations]);
+  }, [employees, vacations, updateEmployeeLeaveStatusFromVacations]);
 
   // Use the fixed getCurrentWeekNumber function
   const currentWeek = getCurrentWeekNumber();
