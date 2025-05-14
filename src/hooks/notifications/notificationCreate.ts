@@ -7,8 +7,8 @@ import { sortNotifications } from '@/utils/notifications';
 
 export const useNotificationCreate = (
   user: any | null,
-  setNotifications: (notifications: NotificationType[]) => void,
-  setUnreadCount: (count: number) => void
+  setNotifications: (notifications: NotificationType[] | ((prev: NotificationType[]) => NotificationType[])) => void,
+  setUnreadCount: (count: number | ((prev: number) => number)) => void
 ) => {
   const { toast } = useToast();
 
@@ -71,14 +71,14 @@ export const useNotificationCreate = (
         };
         
         // Add to notifications and resort
-        setNotifications(prev => {
+        setNotifications((prev: NotificationType[]) => {
           const updated = [...prev, newNotification];
           updated.sort(sortNotifications);
           return updated;
         });
         
         // Increment unread count
-        setUnreadCount(prev => prev + 1);
+        setUnreadCount((prev: number) => prev + 1);
         
         // Show toast for new notification
         toast({

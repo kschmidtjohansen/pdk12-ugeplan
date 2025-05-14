@@ -51,7 +51,7 @@ export const useNotificationRealtime = (
             console.log('Processing new notification:', newNotification);
             
             // Add to notifications and resort
-            setNotifications(prev => {
+            setNotifications((prev: NotificationType[]) => {
               // Check if notification already exists to prevent duplicates
               if (prev.some(n => n.id === newNotification.id)) {
                 console.log('Notification already exists in state, skipping');
@@ -65,7 +65,7 @@ export const useNotificationRealtime = (
             
             // Increment unread count if unread
             if (!payload.new.read) {
-              setUnreadCount(prev => prev + 1);
+              setUnreadCount((prev: number) => prev + 1);
               
               // Show toast for new notification
               toast({

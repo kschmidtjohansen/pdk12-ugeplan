@@ -6,8 +6,8 @@ import { supabase } from '@/integrations/supabase/client';
 export const useNotificationActions = (
   user: any | null,
   notifications: NotificationType[],
-  setNotifications: (notifications: NotificationType[]) => void,
-  setUnreadCount: (count: number) => void
+  setNotifications: (notifications: NotificationType[] | ((prev: NotificationType[]) => NotificationType[])) => void,
+  setUnreadCount: (count: number | ((prev: number) => number)) => void
 ) => {
   // Mark a notification as read
   const markAsRead = useCallback(async (notificationId: string) => {
@@ -27,7 +27,7 @@ export const useNotificationActions = (
       }
       
       // Update local state
-      setNotifications(prev => 
+      setNotifications((prev: NotificationType[]) => 
         prev.map(notification => 
           notification.id === notificationId 
             ? { ...notification, read: true } 
@@ -36,7 +36,7 @@ export const useNotificationActions = (
       );
       
       // Recalculate unread count
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setUnreadCount((prev: number) => Math.max(0, prev - 1));
       
     } catch (err) {
       console.error('Error marking notification as read:', err);
@@ -62,7 +62,7 @@ export const useNotificationActions = (
       }
       
       // Update local state
-      setNotifications(prev => 
+      setNotifications((prev: NotificationType[]) => 
         prev.map(notification => ({ ...notification, read: true }))
       );
       
@@ -93,13 +93,13 @@ export const useNotificationActions = (
       
       // Update local state
       const wasUnread = notifications.find(n => n.id === notificationId && !n.read);
-      setNotifications(prev => 
+      setNotifications((prev: NotificationType[]) => 
         prev.filter(notification => notification.id !== notificationId)
       );
       
       // Recalculate unread count if needed
       if (wasUnread) {
-        setUnreadCount(prev => Math.max(0, prev - 1));
+        setUnreadCount((prev: number) => Math.max(0, prev - 1));
       }
       
     } catch (err) {
