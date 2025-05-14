@@ -163,7 +163,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
                       onEdit={() => handleEdit(assignment)}
                       onDelete={() => handleDelete(assignment)}
                       onPublish={() => handlePublish(assignment)}
-                      size="xs"
+                      size="sm" 
                     />
                   </div>
                 )}
