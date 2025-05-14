@@ -42,14 +42,14 @@ const admin = {
   passwords: {
     changePassword: 'Skift adgangskode',
     resetPasswordFor: 'Rediger adgangskode for denne medarbejder',
-    enterNewPassword: 'Indtast ny adgangskode for denne medarbejder'
+    enterNewPassword: 'Indtast ny adgangskode for denne medarbejder', // Added missing comma here
     newPassword: 'Ny adgangskode',
     confirmPassword: 'Bekræft adgangskode',
     resetPassword: 'Nulstil adgangskode',
     resetting: 'Nulstiller...',
     resetSuccess: 'Adgangskode nustillet',
     resetDescription: '{name}\'s adgangskode er nu nulstillet',
-    resetError: 'Fejl. Kunne ikke nulstille adgangskoden. Prøv igen.'
+    resetError: 'Fejl. Kunne ikke nulstille adgangskoden. Prøv igen.',
     passwordMismatch: 'Adgangskoderne stemmer ikke overens',
     passwordMinLength: 'Adgangskoden skal være mindst 8 tegn lang',
     passwordChanged: 'Adgangskode ændret',
