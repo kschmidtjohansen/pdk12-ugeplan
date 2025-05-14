@@ -26,27 +26,12 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   selectedYear,
   weekDates
 }) => {
-  // Create adapter functions to match the expected types
-  const handleEdit = (assignment: Assignment) => {
-    onEditAssignment(assignment);
-  };
-  
-  const handleDelete = (assignment: Assignment) => {
-    onDeleteAssignment(assignment.id);
-  };
-  
-  const handlePublish = (assignmentId: string) => {
-    onPublishAssignment(assignmentId);
-  };
-
   return (
     <AssignmentList
-      date={weekDates.start.toISOString().split('T')[0]} // Use the start date of the week
       assignments={weekAssignments}
-      canManage={true}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      onPublish={handlePublish}
+      onEditAssignment={onEditAssignment}
+      onDeleteAssignment={onDeleteAssignment}
+      onPublishAssignment={onPublishAssignment}
       onPublishDay={onPublishDay}
       onCreateAssignment={onCreateAssignment}
       selectedWeek={selectedWeek}

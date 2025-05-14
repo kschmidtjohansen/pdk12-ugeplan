@@ -1,115 +1,98 @@
 
-import { startOfWeek, endOfWeek, eachDayOfInterval, format, isSameDay, getWeek, getYear, parse } from 'date-fns';
-import { da, enUS } from 'date-fns/locale';
-
-// Define a type for the week dates
-export interface WeekDates {
-  start: Date;
-  end: Date;
-  days: Date[];
-}
+import { 
+  parseISO, 
+  getISOWeek, 
+  getISOWeekYear, 
+  format,
+  startOfISOWeek, 
+  endOfISOWeek, 
+  setISOWeek, 
+  setISOWeekYear,
+  addDays
+} from "date-fns";
 
 /**
- * Get the date range for a specific week number and year
+ * Get the date range for a specific ISO week number and year
+ * ISO weeks start on Monday and end on Sunday according to ISO 8601
  */
-export const getWeekDates = (weekNumber: number, year: number): WeekDates => {
-  // Create a date in the specified week (e.g., Monday of that week)
-  // This creates a date in the ISO week format (where week 1 is the week with the first Thursday)
-  // FIXED: Changed YYYY to yyyy to match date-fns v3 format requirements
-  const mondayOfWeek = parse(`${year}-W${weekNumber}-1`, 'yyyy-ww-e', new Date(), { locale: enUS });
+export const getWeekDates = (weekNumber: number, year: number) => {
+  if (weekNumber < 1 || weekNumber > 53) {
+    throw new Error(`Invalid week number: ${weekNumber}. Must be between 1 and 53.`);
+  }
   
-  // Start of week is the Monday
-  const start = mondayOfWeek;
-  
-  // End of week is Sunday
-  const end = endOfWeek(mondayOfWeek, { weekStartsOn: 1 });
-  
-  // Generate an array of all days in the week
-  const days = eachDayOfInterval({ start, end });
-  
-  return { start, end, days };
+  try {
+    // Create a date in the specified year
+    const baseDate = new Date(year, 0, 4); // January 4th is always in week 1
+    
+    // Set the ISO week year first to ensure proper year context
+    const dateWithYear = setISOWeekYear(baseDate, year);
+    
+    // Then set the ISO week number
+    const dateWithWeek = setISOWeek(dateWithYear, weekNumber);
+    
+    // Get the start (Monday) of that ISO week
+    const start = startOfISOWeek(dateWithWeek);
+    
+    // Get the end (Sunday) of that ISO week
+    // Using endOfISOWeek directly returns the last millisecond of Sunday
+    const end = endOfISOWeek(dateWithWeek);
+    
+    // Debug output
+    console.log(`Week ${weekNumber}/${year} - Start: ${format(start, 'yyyy-MM-dd')} (${format(start, 'EEEE')}) - Day: ${start.getDay()}`);
+    console.log(`Week ${weekNumber}/${year} - End: ${format(end, 'yyyy-MM-dd')} (${format(end, 'EEEE')}) - Day: ${end.getDay()}`);
+    
+    // Verify week boundaries - Monday(1) to Sunday(0)
+    if (start.getDay() !== 1) {
+      console.error(`ERROR: Week start is not Monday! Got day ${start.getDay()} (${format(start, 'EEEE')})`);
+    }
+    
+    if (end.getDay() !== 0) {
+      console.error(`ERROR: Week end is not Sunday! Got day ${end.getDay()} (${format(end, 'EEEE')})`);
+    }
+    
+    return {
+      start,
+      end,
+      weekNumber,
+      year
+    };
+  } catch (err) {
+    console.error("Error in getWeekDates:", err);
+    throw err;
+  }
 };
 
 /**
- * Format a date range as a string
+ * Get the current ISO week number and year
  */
-export const formatDateRange = (start: Date, end: Date, locale: string = 'da'): string => {
-  const dateLocale = locale === 'da' ? da : enUS;
-  const dateFormat = locale === 'da' ? 'd. MMMM' : 'MMMM d';
-  
-  const startFormat = format(start, dateFormat, { locale: dateLocale });
-  const endFormat = format(end, dateFormat, { locale: dateLocale });
-  
-  return `${startFormat} - ${endFormat}`;
-};
-
-/**
- * Check if a date falls within a specific week
- */
-export const isDateInWeek = (date: Date, weekNumber: number, year: number): boolean => {
-  const weekDates = getWeekDates(weekNumber, year);
-  const dateToCheck = new Date(date);
-  
-  return dateToCheck >= weekDates.start && dateToCheck <= weekDates.end;
-};
-
-/**
- * Check if two dates are the same day
- */
-export const isSameDate = (date1: Date | string, date2: Date | string): boolean => {
-  const d1 = typeof date1 === 'string' ? new Date(date1) : date1;
-  const d2 = typeof date2 === 'string' ? new Date(date2) : date2;
-  return isSameDay(d1, d2);
-};
-
-/**
- * Get the current week number and year
- */
-export const getCurrentWeekInfo = (): { week: number; year: number } => {
+export const getCurrentWeekInfo = () => {
   const now = new Date();
   return {
-    week: getWeek(now, { weekStartsOn: 1, firstWeekContainsDate: 4 }),
-    year: getYear(now)
+    week: getISOWeek(now),
+    year: getISOWeekYear(now)
   };
 };
 
 /**
- * Get the current week's dates
+ * Get the current week dates
+ * Returns the date range for the current week
  */
-export const getCurrentWeekDates = (): WeekDates => {
-  const { week, year } = getCurrentWeekInfo();
-  return getWeekDates(week, year);
+export const getCurrentWeekDates = () => {
+  const now = new Date();
+  const currentWeekInfo = getCurrentWeekInfo();
+  return getWeekDates(currentWeekInfo.week, currentWeekInfo.year);
 };
 
-/**
- * Get the current week number
- */
-export const getCurrentWeekNumber = (): number => {
-  return getCurrentWeekInfo().week;
+// These functions are kept for backward compatibility but may be deprecated in future
+export const getCurrentWeekNumber = () => getCurrentWeekInfo().week;
+
+export const getWeekNumber = (date: Date | string) => {
+  const dateObj = typeof date === 'string' ? parseISO(date) : date;
+  return getISOWeek(dateObj);
 };
 
-/**
- * Convert a date string to a Date object
- */
-export const toDate = (dateString: string): Date => {
-  return new Date(dateString);
-};
-
-/**
- * Format date for display
- */
-export const formatDate = (date: Date | string, localeString: string = 'da'): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  const dateLocale = localeString === 'da' ? da : enUS;
-  return format(dateObj, 'd. MMMM yyyy', { locale: dateLocale });
-};
-
-/**
- * Format date in a short format (e.g., "15. maj" or "May 15")
- */
-export const formatShortDate = (date: Date | string, localeString: string = 'da'): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  const dateLocale = localeString === 'da' ? da : enUS;
-  const dateFormat = localeString === 'da' ? 'd. MMM' : 'MMM d';
-  return format(dateObj, dateFormat, { locale: dateLocale });
+export const getYearForDate = (date: Date | string) => {
+  const dateObj = typeof date === 'string' ? parseISO(date) : date;
+  // Return ISO week year, not calendar year
+  return getISOWeekYear(dateObj);
 };

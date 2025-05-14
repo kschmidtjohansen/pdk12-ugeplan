@@ -1,178 +1,165 @@
 
-import React from 'react';
-import { Assignment } from '@/types/assignment';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from '@/components/ui/badge';
-import { formatDateWithCapital, getDateStatus } from '@/utils/dateUtils';
+import React, { useState, useEffect } from 'react';
+import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
-import { Clock, MapPin, Users, Check, X } from 'lucide-react';
-import AssignmentActionButtons from './AssignmentActionButtons';
+import { Assignment } from '@/types/assignment';
+import EmptyState from './EmptyState';
+import { getAllWeekDays, getDateStatus } from '@/utils/dateUtils';
+import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
+import CurrentAndFutureDays from './CurrentAndFutureDays';
+import PastAssignments from './PastAssignments';
+import { format } from 'date-fns';
 
 interface AssignmentListProps {
-  date: string;
   assignments: Assignment[];
-  canManage: boolean;
-  onEdit?: (assignment: Assignment) => void;
-  onDelete?: (assignment: Assignment) => void;
-  onPublish?: (assignmentId: string) => void;
-  // Add these missing props to match PlannerContent usage
-  onEditAssignment?: (assignment: Assignment) => void;
-  onDeleteAssignment?: (assignmentId: string) => void;
+  onEditAssignment: (assignment: Assignment) => void;
+  onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
   onPublishDay?: () => void;
-  onCreateAssignment?: (date: string) => void;
+  onCreateAssignment: (date: string) => void;
   selectedWeek?: number;
   selectedYear?: number;
-  weekDates?: ReturnType<typeof import('@/utils/weekDates').getWeekDates>;
+  weekDates?: { start: Date; end: Date; weekNumber: number; year: number };
 }
 
 const AssignmentList: React.FC<AssignmentListProps> = ({
-  date,
   assignments,
-  canManage,
-  onEdit,
-  onDelete,
-  onPublish,
-  // Use the new props if provided, otherwise fall back to the old ones
   onEditAssignment,
   onDeleteAssignment,
-  onPublishAssignment
+  onPublishAssignment,
+  onPublishDay,
+  onCreateAssignment,
+  selectedWeek,
+  selectedYear,
+  weekDates
 }) => {
-  const { t, currentLanguage } = useTranslation();
-  const formattedDate = formatDateWithCapital(date, currentLanguage);
-  const dateStatus = getDateStatus(date);
+  const { 
+    canEdit, 
+    canCreate, 
+    canSeeUnpublishedTasks,
+    canPublishTasks 
+  } = usePermissions();
+  const { t } = useTranslation();
+  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const { filterByPermissions, groupByDate } = useAssignmentFilters();
+
+  // Filter assignments based on user permissions
+  const visibleAssignments = filterByPermissions(assignments, canSeeUnpublishedTasks);
+
+  // Group assignments by date
+  const groupedAssignments = groupByDate(visibleAssignments);
   
-  // Format time to show only hours and minutes (HH:MM)
-  const formatTimeWithoutSeconds = (timeString: string) => {
-    if (!timeString) return '';
-    return timeString.split(':').slice(0, 2).join(':');
-  };
+  // Create array of weekdays if weekDates is provided
+  let allWeekDays: string[] = [];
   
-  // Sort assignments by time
-  const sortedAssignments = [...assignments].sort((a, b) => {
-    return a.fromTime && b.fromTime ? a.fromTime.localeCompare(b.fromTime) : 0;
+  if (weekDates?.start && weekDates?.end) {
+    console.log(`AssignmentList: Creating week days for week ${selectedWeek}/${selectedYear}`);
+    console.log(`Start: ${format(weekDates.start, 'yyyy-MM-dd')} (${format(weekDates.start, 'EEEE')}) - Day ${weekDates.start.getDay()}`);
+    console.log(`End: ${format(weekDates.end, 'yyyy-MM-dd')} (${format(weekDates.end, 'EEEE')}) - Day ${weekDates.end.getDay()}`);
+    
+    allWeekDays = getAllWeekDays({ 
+      start: weekDates.start, 
+      end: weekDates.end
+    });
+  }
+  
+  // Debug the week days
+  useEffect(() => {
+    if (allWeekDays.length > 0) {
+      console.log("AssignmentList - Generated week days:", allWeekDays);
+    }
+  }, [allWeekDays]);
+
+  // Fill in any missing days from the week
+  allWeekDays.forEach(dateKey => {
+    if (!groupedAssignments[dateKey]) {
+      groupedAssignments[dateKey] = [];
+    }
   });
 
-  // Handlers that will call the appropriate callback based on which props were provided
-  const handleEdit = (assignment: Assignment) => {
-    if (onEdit) {
-      onEdit(assignment);
-    } else if (onEditAssignment) {
-      onEditAssignment(assignment);
+  // Separate dates into today, future, and past
+  const todayDate: string[] = [];
+  const futureDates: string[] = [];
+  const pastDates: string[] = [];
+  
+  Object.keys(groupedAssignments).forEach(date => {
+    const status = getDateStatus(date);
+    if (status === 'today') {
+      todayDate.push(date);
+    } else if (status === 'future') {
+      futureDates.push(date);
+    } else if (status === 'past') {
+      pastDates.push(date);
     }
+  });
+
+  // Sort future dates (ascending)
+  futureDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  
+  // Sort past dates (descending - newest first)
+  pastDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+  // Effect to update time at midnight to refresh sorting
+  useEffect(() => {
+    // Calculate time until midnight
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const timeUntilMidnight = tomorrow.getTime() - now.getTime();
+    
+    // Set timeout to update at midnight
+    const midnightTimer = setTimeout(() => {
+      setCurrentTime(new Date());
+    }, timeUntilMidnight);
+    
+    return () => clearTimeout(midnightTimer);
+  }, [currentTime]);
+
+  // Toggle day expansion
+  const toggleDayExpansion = (date: string) => {
+    setExpandedDays((prev) => ({
+      ...prev,
+      [date]: !prev[date],
+    }));
   };
 
-  const handleDelete = (assignment: Assignment) => {
-    if (onDelete) {
-      onDelete(assignment);
-    } else if (onDeleteAssignment && assignment.id) {
-      onDeleteAssignment(assignment.id);
-    }
-  };
-
-  const handlePublish = (assignment: Assignment) => {
-    if (onPublish) {
-      onPublish(assignment.id);
-    } else if (onPublishAssignment && assignment.id) {
-      onPublishAssignment(assignment.id);
-    }
-  };
+  // Check if there are any visible assignments after filtering
+  if (visibleAssignments.length === 0 && allWeekDays.length === 0) {
+    return <EmptyState onCreateNew={onCreateAssignment} canCreate={canCreate} selectedWeek={selectedWeek} />;
+  }
 
   return (
-    <Card className="mb-6">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium">
-          {formattedDate}
-          {dateStatus === 'today' && (
-            <Badge className="ml-2 bg-blue-500 text-white">
-              {t('common.today')}
-            </Badge>
-          )}
-        </CardTitle>
-      </CardHeader>
+    <div className="w-full space-y-6">
+      {/* Today's date and future dates section */}
+      <CurrentAndFutureDays 
+        dates={[...todayDate, ...futureDates]}
+        groupedAssignments={groupedAssignments}
+        expandedDays={expandedDays}
+        onToggleExpansion={toggleDayExpansion}
+        onPublishDay={onPublishDay}
+        onEditAssignment={onEditAssignment}
+        onDeleteAssignment={onDeleteAssignment}
+        onPublishAssignment={onPublishAssignment}
+        canEdit={canEdit}
+        canPublishTasks={canPublishTasks}
+      />
       
-      <CardContent>
-        {sortedAssignments.length === 0 ? (
-          <div className="text-sm text-gray-500 py-2">
-            {t('planner.nothingPlannedToday')}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {sortedAssignments.map((assignment) => (
-              <div
-                key={assignment.id}
-                className="p-3 border rounded-md bg-white"
-              >
-                <div className="flex justify-between items-start">
-                  <h4 className="font-medium">{assignment.title}</h4>
-                  <Badge
-                    variant="outline"
-                    className={
-                      assignment.published
-                        ? "bg-green-50 text-green-700 border-green-200"
-                        : "bg-yellow-50 text-yellow-700 border-yellow-200"
-                    }
-                  >
-                    {assignment.published ? (
-                      <Check className="h-3 w-3 mr-1" />
-                    ) : (
-                      <X className="h-3 w-3 mr-1" />
-                    )}
-                    {assignment.published ? t('planner.published') : t('planner.notPublished')}
-                  </Badge>
-                </div>
-                
-                <div className="mt-2 space-y-1">
-                  <div className="flex items-center text-sm">
-                    <Clock className="h-4 w-4 mr-1 text-gray-400" />
-                    <span>
-                      {formatTimeWithoutSeconds(assignment.fromTime)} - {formatTimeWithoutSeconds(assignment.toTime)}
-                    </span>
-                  </div>
-                  
-                  {assignment.location && (
-                    <div className="flex items-center text-sm">
-                      <MapPin className="h-4 w-4 mr-1 text-gray-400" />
-                      <span>{assignment.location}</span>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-start text-sm">
-                    <Users className="h-4 w-4 mr-1 text-gray-400 mt-0.5" />
-                    <div className="flex flex-wrap gap-1">
-                      {assignment.employees && assignment.employees.length > 0 ? (
-                        assignment.employees.map((employee, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs bg-blue-50">
-                            {employee}
-                          </Badge>
-                        ))
-                      ) : (
-                        <span className="text-xs text-gray-500">
-                          {t('planner.noEmployees')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                
-                {canManage && (
-                  <div className="mt-3 flex justify-end gap-2">
-                    <AssignmentActionButtons
-                      assignment={assignment}
-                      canEdit={canManage}
-                      onEdit={() => handleEdit(assignment)}
-                      onDelete={() => handleDelete(assignment)}
-                      onPublish={() => handlePublish(assignment)}
-                      size="sm" 
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      {/* Past dates section */}
+      <PastAssignments 
+        pastDates={pastDates}
+        groupedAssignments={groupedAssignments}
+        expandedDays={expandedDays}
+        onToggleExpansion={toggleDayExpansion}
+        onPublishDay={onPublishDay}
+        onEditAssignment={onEditAssignment}
+        onDeleteAssignment={onDeleteAssignment}
+        onPublishAssignment={onPublishAssignment}
+        canEdit={canEdit}
+        canPublishTasks={canPublishTasks}
+      />
+    </div>
   );
 };
 
