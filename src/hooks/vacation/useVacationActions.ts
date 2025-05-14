@@ -166,14 +166,18 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       
       // Allow administrators to delete any vacation regardless of status
       // For regular users, allow deletion of their own vacations regardless of status      
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('vacations')
         .delete()
-        .eq('id', vacation.id);
+        .eq('id', vacation.id)
+        .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error during vacation deletion:", error);
+        throw error;
+      }
       
-      console.log("Vacation deleted successfully:", vacation.id);
+      console.log("Vacation deleted successfully:", vacation.id, "Response data:", data);
       
       // Display toast notification
       toast({
@@ -216,7 +220,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         }
       }
       
-      // Refresh vacation list
+      // Refresh vacation list - use await to ensure it completes
       await fetchVacations();
       
       return true;

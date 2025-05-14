@@ -89,22 +89,36 @@ export const useVacations = () => {
   
   // Delete vacation handler
   const handleDeleteVacation = (vacation: Vacation) => {
+    console.log("Setting up vacation for deletion:", vacation.id);
     setSelectedVacation(vacation);
     setDeleteDialogOpen(true);
   };
   
-  // Confirm delete handler - Fixed to properly delete the vacation
+  // Confirm delete handler - this function calls the deleteVacation function
   const confirmDeleteVacation = async () => {
-    if (!selectedVacation) return;
+    if (!selectedVacation) {
+      console.error("No vacation selected for deletion");
+      return;
+    }
     
-    console.log("Deleting vacation:", selectedVacation.id);
+    console.log("Confirming deletion of vacation:", selectedVacation.id);
     
-    // Call the deleteVacation function from useVacationActions
-    await deleteVacation(selectedVacation);
-    
-    // Close the dialog and reset state
-    setDeleteDialogOpen(false);
-    setSelectedVacation(null);
+    try {
+      // Call the deleteVacation function from useVacationActions
+      const success = await deleteVacation(selectedVacation);
+      
+      if (success) {
+        console.log("Vacation successfully deleted:", selectedVacation.id);
+        
+        // Close the dialog and reset state
+        setDeleteDialogOpen(false);
+        setSelectedVacation(null);
+      } else {
+        console.error("Failed to delete vacation");
+      }
+    } catch (err) {
+      console.error("Error in confirmDeleteVacation:", err);
+    }
   };
 
   // Handle delete for the current vacation (from the edit dialog)

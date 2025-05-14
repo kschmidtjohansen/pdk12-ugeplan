@@ -19,6 +19,8 @@ export const useVacationData = () => {
       setLoading(true);
       setError(null);
       
+      console.log('Fetching vacations...');
+      
       // Get all vacations with employee names through an explicit join query
       const { data, error } = await supabase
         .from('vacations')
@@ -37,6 +39,8 @@ export const useVacationData = () => {
       if (error) throw error;
       
       if (data) {
+        console.log(`Fetched ${data.length} vacations`);
+        
         // Get all user profiles in a separate query
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
@@ -84,22 +88,40 @@ export const useVacationData = () => {
   
   // Subscribe to vacation changes
   useEffect(() => {
+    console.log('Setting up vacation realtime subscription...');
+    
     const channel = supabase
       .channel('vacation_changes')
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
           schema: 'public',
           table: 'vacations'
         },
-        () => {
-          fetchVacations(); // Refresh when changes occur
+        (payload) => {
+          console.log('Received vacation change event:', payload.eventType, payload);
+          
+          // Use different strategies based on the event type
+          if (payload.eventType === 'DELETE') {
+            console.log('Vacation deleted:', payload.old.id);
+            // Remove the deleted vacation from the local state
+            setVacations(current => 
+              current.filter(v => v.id !== payload.old.id)
+            );
+          } else {
+            // For INSERT and UPDATE, refresh the entire list
+            // This ensures we get the correct employee names
+            fetchVacations();
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Vacation realtime subscription status:', status);
+      });
       
     return () => {
+      console.log('Cleaning up vacation realtime subscription');
       supabase.removeChannel(channel);
     };
   }, []);
