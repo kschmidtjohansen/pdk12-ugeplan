@@ -76,6 +76,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
   // Debug to see what's in formData
   console.log("FormFields - Current formData:", formData);
+  console.log("FormFields - Cars data:", cars?.length || 0, "cars available");
+  console.log("FormFields - Employees data:", employees?.length || 0, "employees available");
   
   // Wrap the returned JSX in a fragment to fix the React error #185
   return (
@@ -144,30 +146,9 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
               <SelectValue placeholder={t('planner.selectCar')} />
             </SelectTrigger>
             <SelectContent>
-              {cars.sort((a, b) => a.car_number.localeCompare(b.car_number)).map(car => (
+              {cars.map(car => (
                 <SelectItem key={car.id} value={car.id}>
                   {car.car_number} - {car.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-      
-      {employees && employees.length > 0 && (
-        <div className="grid gap-2">
-          <Label htmlFor="employees">{t('planner.employees')}</Label>
-          <Select 
-            value={formData.employees && formData.employees[0] || ''} 
-            onValueChange={value => onFieldChange('employees', [value])}
-          >
-            <SelectTrigger id="employees">
-              <SelectValue placeholder={t('planner.selectEmployee')} />
-            </SelectTrigger>
-            <SelectContent>
-              {employees.map(employee => (
-                <SelectItem key={employee.name} value={employee.name}>
-                  {employee.name}
                 </SelectItem>
               ))}
             </SelectContent>

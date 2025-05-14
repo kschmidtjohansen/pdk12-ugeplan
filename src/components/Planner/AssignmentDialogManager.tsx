@@ -97,6 +97,10 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
     }
   }, [assignmentId, assignments, navigate, setCurrentAssignment, setFormData, selectedDay, setIsEditing]);
 
+  // Debug the data flow
+  console.log("AssignmentDialogManager - Employees:", employees?.length || 0);
+  console.log("AssignmentDialogManager - Cars:", cars?.length || 0);
+
   return (
     <PlannerDialogContainer
       isDialogOpen={dialogOpen}

@@ -6,6 +6,8 @@ import { Dialog } from '@/components/ui/dialog';
 import { Employee } from '@/types/employee';
 import { Car } from '@/types/car';
 import { useVacations } from '@/hooks/useVacations';
+import { useEmployees } from '@/hooks/useEmployees';
+import { useCars } from '@/hooks/car';
 
 interface PlannerDialogContainerProps {
   isDialogOpen: boolean;
@@ -40,6 +42,10 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   
   // Get vacations to pass to the assignment form
   const { vacations } = useVacations();
+  
+  // Fetch employees and cars data
+  const { employees } = useEmployees();
+  const { cars } = useCars();
 
   // Only render the dialog when it's actually open
   if (!isDialogOpen) {
@@ -96,8 +102,8 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
         currentAssignment={currentAssignment}
         formData={formData}
         selectedEmployees={selectedEmployees}
-        cars={[]} // We'll fetch cars from a hook in AssignmentForm
-        employees={[]} // We'll fetch employees from a hook in AssignmentForm
+        cars={cars} // Pass the cars data
+        employees={employees} // Pass the employees data
         vacations={vacations}
         handleInputChange={handleInputChange}
         handleSelectChange={handleSelectChange}
