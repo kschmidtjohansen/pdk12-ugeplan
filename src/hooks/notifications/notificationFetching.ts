@@ -1,25 +1,21 @@
 
 import { useState, useCallback } from 'react';
 import { NotificationType } from '@/types/notification';
-import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { sortNotifications } from '@/utils/notifications';
+
+// Safe toast function that doesn't depend on context
+const safeToast = (message: string) => {
+  console.log('Toast message (fallback):', message);
+};
 
 export const useNotificationFetching = (user: any | null) => {
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   
-  // Wrap toast in a try-catch to avoid errors if toast context isn't ready
-  let toast;
-  try {
-    toast = useToast().toast;
-  } catch (e) {
-    // Silent fallback if toast is not available
-    toast = () => console.log('Toast not available yet');
-  }
-  
+  // Don't use toast at all in this component to avoid the context dependency
   const { t } = useTranslation();
 
   // Fetch notifications from Supabase
@@ -66,6 +62,7 @@ export const useNotificationFetching = (user: any | null) => {
       }
     } catch (err) {
       console.error('Error fetching notifications:', err);
+      safeToast(`Error fetching notifications: ${err}`);
     } finally {
       setLoading(false);
     }

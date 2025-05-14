@@ -52,22 +52,37 @@ export const useNotifications = () => useContext(NotificationContext);
 export const NotificationProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  // Use the notification hook to get all notification functionality
-  const {
-    notifications,
-    unreadCount,
-    loading,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification,
-    addNotification,
-    fetchNotifications
-  } = useNotificationsHook();
-  
+  // Don't use the hook until we know the provider is mounted
+  const notificationsHookRef = useRef<any>(null);
   const { user } = useAuth();
   const initialFetchDoneRef = useRef(false);
   const sessionFetchDoneRef = useRef(false);
   const sessionId = useRef(generateSessionId());
+  
+  useEffect(() => {
+    // Only initialize the hook once we're mounted to ensure ToastProvider is available
+    if (!notificationsHookRef.current) {
+      try {
+        // Now it's safe to use the hook since we're definitely mounted
+        // and ToastProvider should be available
+        notificationsHookRef.current = useNotificationsHook();
+      } catch (err) {
+        console.error("Failed to initialize notifications hook:", err);
+      }
+    }
+  }, []);
+  
+  // If the hook isn't ready yet, provide fallback values
+  const {
+    notifications = [],
+    unreadCount = 0,
+    loading = true,
+    markAsRead = async () => {},
+    markAllAsRead = async () => {},
+    deleteNotification = async () => {},
+    addNotification = async () => null,
+    fetchNotifications = async () => {}
+  } = notificationsHookRef.current || {};
   
   // Debug log when provider updates
   useEffect(() => {
@@ -78,13 +93,14 @@ export const NotificationProvider: React.FC<{
       loading,
       initialFetchDone: initialFetchDoneRef.current,
       sessionFetchDone: sessionFetchDoneRef.current,
-      sessionId: sessionId.current
+      sessionId: sessionId.current,
+      hookInitialized: !!notificationsHookRef.current
     });
   }, [notifications.length, unreadCount, loading, user?.role]);
   
   // Centralize notification fetching - only fetch once per session
   useEffect(() => {
-    if (user && !sessionFetchDoneRef.current) {
+    if (user && notificationsHookRef.current && !sessionFetchDoneRef.current) {
       console.log(`NotificationProvider: Initial fetch for user ${user.id} (${user.role}) with session ${sessionId.current}`);
       fetchNotifications();
       
@@ -104,7 +120,7 @@ export const NotificationProvider: React.FC<{
       // Reset session flag if user logs out
       sessionFetchDoneRef.current = false;
     }
-  }, [user, fetchNotifications]);
+  }, [user, fetchNotifications, notificationsHookRef.current]);
 
   return (
     <NotificationContext.Provider

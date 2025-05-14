@@ -32,7 +32,23 @@ export const useNotifications = () => {
   const { user } = useAuth();
   const systemReadyRef = useRef<boolean>(isNotificationSystemReady());
   
-  // Use the separate notification hooks
+  // Use the separate notification hooks with try/catch for safety
+  let notificationFetchingData;
+  try {
+    notificationFetchingData = useNotificationFetching(user);
+  } catch (error) {
+    console.error("Error initializing notification fetching:", error);
+    // Provide fallback default values if the hook fails
+    notificationFetchingData = {
+      notifications: [],
+      setNotifications: () => {},
+      unreadCount: 0,
+      setUnreadCount: () => {},
+      loading: false,
+      fetchNotifications: async () => {}
+    };
+  }
+  
   const { 
     notifications, 
     setNotifications,
@@ -40,37 +56,80 @@ export const useNotifications = () => {
     setUnreadCount,
     loading, 
     fetchNotifications 
-  } = useNotificationFetching(user);
+  } = notificationFetchingData;
+  
+  // Safe initialization of other hooks
+  let notificationActions;
+  try {
+    notificationActions = useNotificationActions(user, notifications, setNotifications, setUnreadCount);
+  } catch (error) {
+    console.error("Error initializing notification actions:", error);
+    notificationActions = {
+      markAsRead: async () => {},
+      markAllAsRead: async () => {},
+      deleteNotification: async () => {}
+    };
+  }
   
   const { 
     markAsRead, 
     markAllAsRead, 
     deleteNotification 
-  } = useNotificationActions(user, notifications, setNotifications, setUnreadCount);
+  } = notificationActions;
   
-  const { addNotification } = useNotificationCreate(user, setNotifications, setUnreadCount);
+  let notificationCreate;
+  try {
+    notificationCreate = useNotificationCreate(user, setNotifications, setUnreadCount);
+  } catch (error) {
+    console.error("Error initializing notification create:", error);
+    notificationCreate = {
+      addNotification: async () => null
+    };
+  }
   
-  // Set up realtime notifications
-  useNotificationRealtime(user, setNotifications, setUnreadCount);
+  const { addNotification } = notificationCreate;
   
-  // Set up vacation notifications processing
-  const { createNotificationsForPendingRequests } = useVacationNotifications(user, addNotification);
+  // Set up realtime notifications with try/catch
+  try {
+    useNotificationRealtime(user, setNotifications, setUnreadCount);
+  } catch (error) {
+    console.error("Error setting up notification realtime:", error);
+  }
+  
+  // Set up vacation notifications processing with try/catch
+  let vacationNotifications;
+  try {
+    vacationNotifications = useVacationNotifications(user, addNotification);
+  } catch (error) {
+    console.error("Error initializing vacation notifications:", error);
+    vacationNotifications = {
+      createNotificationsForPendingRequests: async () => {}
+    };
+  }
+  
+  const { createNotificationsForPendingRequests } = vacationNotifications || { 
+    createNotificationsForPendingRequests: async () => {} 
+  };
   
   // Run once after notifications are fetched to check for missing admin notifications
   useEffect(() => {
     // Only run once per browser session/reload
-    if (user?.role === 'administrator' && !loading && notifications.length >= 0 && !systemReadyRef.current) {
+    if (user?.role === 'administrator' && !loading && notifications?.length >= 0 && !systemReadyRef.current) {
       console.log('Checking for any missing admin notifications for pending vacations');
-      createNotificationsForPendingRequests();
-      systemReadyRef.current = true;
-      markNotificationSystemReady();
+      try {
+        createNotificationsForPendingRequests();
+        systemReadyRef.current = true;
+        markNotificationSystemReady();
+      } catch (error) {
+        console.error("Error creating notifications for pending requests:", error);
+      }
     }
-  }, [user, loading, notifications.length, createNotificationsForPendingRequests]);
+  }, [user, loading, notifications?.length, createNotificationsForPendingRequests]);
   
   return {
-    notifications,
-    unreadCount,
-    loading,
+    notifications: notifications || [],
+    unreadCount: unreadCount || 0,
+    loading: loading || false,
     fetchNotifications,
     markAsRead,
     markAllAsRead,
