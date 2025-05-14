@@ -1,0 +1,115 @@
+
+import { useCallback } from 'react';
+import { NotificationType } from '@/types/notification';
+import { supabase } from '@/integrations/supabase/client';
+
+export const useNotificationActions = (
+  user: any | null,
+  notifications: NotificationType[],
+  setNotifications: (notifications: NotificationType[]) => void,
+  setUnreadCount: (count: number) => void
+) => {
+  // Mark a notification as read
+  const markAsRead = useCallback(async (notificationId: string) => {
+    if (!user) return;
+    
+    try {
+      console.log('Marking notification as read:', notificationId);
+      
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId);
+      
+      if (error) {
+        console.error('Error marking notification as read:', error);
+        throw error;
+      }
+      
+      // Update local state
+      setNotifications(prev => 
+        prev.map(notification => 
+          notification.id === notificationId 
+            ? { ...notification, read: true } 
+            : notification
+        )
+      );
+      
+      // Recalculate unread count
+      setUnreadCount(prev => Math.max(0, prev - 1));
+      
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+    }
+  }, [user, setNotifications, setUnreadCount]);
+  
+  // Mark all notifications as read
+  const markAllAsRead = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      console.log('Marking all notifications as read');
+      
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
+      
+      if (error) {
+        console.error('Error marking all notifications as read:', error);
+        throw error;
+      }
+      
+      // Update local state
+      setNotifications(prev => 
+        prev.map(notification => ({ ...notification, read: true }))
+      );
+      
+      // Reset unread count
+      setUnreadCount(0);
+      
+    } catch (err) {
+      console.error('Error marking all notifications as read:', err);
+    }
+  }, [user, setNotifications, setUnreadCount]);
+  
+  // Delete a notification
+  const deleteNotification = useCallback(async (notificationId: string) => {
+    if (!user) return;
+    
+    try {
+      console.log('Deleting notification:', notificationId);
+      
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId);
+      
+      if (error) {
+        console.error('Error deleting notification:', error);
+        throw error;
+      }
+      
+      // Update local state
+      const wasUnread = notifications.find(n => n.id === notificationId && !n.read);
+      setNotifications(prev => 
+        prev.filter(notification => notification.id !== notificationId)
+      );
+      
+      // Recalculate unread count if needed
+      if (wasUnread) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+      
+    } catch (err) {
+      console.error('Error deleting notification:', err);
+    }
+  }, [user, notifications, setNotifications, setUnreadCount]);
+
+  return {
+    markAsRead,
+    markAllAsRead,
+    deleteNotification
+  };
+};

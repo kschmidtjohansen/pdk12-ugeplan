@@ -47,15 +47,31 @@ const TopNavbar: React.FC = () => {
   
   // Check for vacation-related notifications
   useEffect(() => {
+    // Enhanced check for vacation notifications
     const vacationNotifications = notifications.filter(
-      n => !n.read && (n.type === 'vacation' || n.link?.includes('/vacation'))
+      n => !n.read && (
+        n.type === 'vacation' || 
+        n.link?.includes('/vacation') ||
+        (n.message && (
+          n.message.includes('vacation') || 
+          n.message.includes('ferie')
+        ))
+      )
+    );
+    
+    // Also check for pending vacations that require action
+    const pendingActionNeeded = vacationNotifications.some(
+      n => n.message && n.message.includes('Action required')
     );
     
     const hasVacation = vacationNotifications.length > 0;
+    
     console.log('TopNavbar: Checking vacation notifications:', { 
       hasVacation, 
       count: vacationNotifications.length,
-      notificationIds: vacationNotifications.map(n => n.id).join(',')
+      pendingActionNeeded,
+      notificationIds: vacationNotifications.map(n => n.id).join(','),
+      messages: vacationNotifications.map(n => n.message)
     });
     
     setHasVacationNotifications(hasVacation);
@@ -89,7 +105,9 @@ const TopNavbar: React.FC = () => {
     userId: user?.id,
     role: user?.role,
     isAdmin: user?.role === 'administrator',
-    hasVacationNotifications
+    hasVacationNotifications,
+    unreadCount,
+    notificationTypes: notifications.map(n => n.type)
   });
   
   const navigationItems: NavigationItem[] = [

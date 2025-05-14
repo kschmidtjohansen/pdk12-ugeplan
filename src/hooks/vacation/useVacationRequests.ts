@@ -102,7 +102,7 @@ export const useVacationRequests = () => {
         });
       }
       
-      // Notify administrators about the new vacation request
+      // Notify administrators about the new vacation request - enhanced with better logging
       await notifyAdmins(actualEmployeeName, startDate, endDate);
       
       return true;
