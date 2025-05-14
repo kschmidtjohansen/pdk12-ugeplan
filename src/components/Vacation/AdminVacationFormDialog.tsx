@@ -21,6 +21,7 @@ import { DateRange } from 'react-day-picker';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 import VacationDateSelector from './VacationDateSelector';
+import SeparateVacationDateFields from './SeparateVacationDateFields';
 import { Textarea } from '@/components/ui/textarea';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/context/AuthContext';
@@ -35,6 +36,12 @@ interface AdminVacationFormDialogProps {
   onSubmit: (e: React.FormEvent) => void;
   selectedEmployeeId: string;
   setSelectedEmployeeId: (id: string) => void;
+  // New props for separate date fields
+  startDate: Date | undefined;
+  endDate: Date | undefined;
+  onStartDateChange: (date: Date | undefined) => void;
+  onEndDateChange: (date: Date | undefined) => void;
+  useSeparateDateFields?: boolean;
 }
 
 const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
@@ -46,7 +53,13 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
   setReason,
   onSubmit,
   selectedEmployeeId,
-  setSelectedEmployeeId
+  setSelectedEmployeeId,
+  // New props for separate date fields
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
+  useSeparateDateFields = true
 }) => {
   const { t } = useTranslation();
   const { employees } = useEmployees();
@@ -98,7 +111,16 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
           
           <div className="space-y-2">
             <Label>{t("vacation.dateRange")}</Label>
-            <VacationDateSelector date={date} setDate={setDate} />
+            {useSeparateDateFields ? (
+              <SeparateVacationDateFields
+                startDate={startDate}
+                endDate={endDate}
+                onStartDateChange={onStartDateChange}
+                onEndDateChange={onEndDateChange}
+              />
+            ) : (
+              <VacationDateSelector date={date} setDate={setDate} />
+            )}
           </div>
           
           <div className="space-y-2">

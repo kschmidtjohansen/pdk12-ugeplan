@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -48,7 +49,18 @@ const DashboardPage: React.FC = () => {
       await updateEmployeeLeaveStatusFromVacations();
     };
     
+    // Update status on load
     updateEmployeeStatuses();
+    
+    // Also set up an interval to periodically check for employee status changes
+    // This ensures employees are properly marked as available when their vacation ends
+    const intervalId = setInterval(() => {
+      updateEmployeeStatuses();
+    }, 30 * 60 * 1000); // Check every 30 minutes
+    
+    return () => {
+      clearInterval(intervalId);
+    };
   }, []);
 
   // Use the fixed getCurrentWeekNumber function
@@ -143,10 +155,10 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Dashboard metrics for admin/skadeleder */}
-      {shouldShowMetrics && <DashboardMetrics />}
+      <DashboardMetrics />
 
       {/* This week's assignments */}
-      <Card className="mb-8">
+      <Card className="mb-8 mt-8">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
             <span>

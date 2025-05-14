@@ -12,6 +12,11 @@ export const useVacations = () => {
   const {
     date,
     setDate,
+    // New separate date fields
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
     reason,
     setReason,
     note,
@@ -42,9 +47,19 @@ export const useVacations = () => {
 
   // Wrapper function to simplify the submit vacation request call
   const submitVacationRequest = async (e: React.FormEvent, isAdminRequest: boolean = false) => {
+    e.preventDefault();
+    
+    // Check if we have both dates from either the combined or separate date fields
+    const requestStartDate = startDate || date.from;
+    const requestEndDate = endDate || date.to;
+    
+    if (!requestStartDate || !requestEndDate) {
+      return false;
+    }
+    
     const result = await submitRequest(
       e, 
-      date, 
+      { from: requestStartDate, to: requestEndDate }, 
       reason, 
       isAdminRequest, 
       selectedEmployeeId, 
@@ -66,6 +81,9 @@ export const useVacations = () => {
       from: vacation.startDate,
       to: vacation.endDate,
     });
+    // Also set the individual dates
+    setStartDate(vacation.startDate);
+    setEndDate(vacation.endDate);
     setReason(vacation.reason);
     setEditDialogOpen(true);
   };
@@ -73,12 +91,18 @@ export const useVacations = () => {
   // Submit edit handler
   const submitEditVacation = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedVacation || !date.from || !date.to) return;
+    if (!selectedVacation) return;
+    
+    // Use either the individual dates or the combined date range
+    const editStartDate = startDate || date.from;
+    const editEndDate = endDate || date.to;
+    
+    if (!editStartDate || !editEndDate) return;
     
     await editVacation(
       selectedVacation,
-      date.from,
-      date.to,
+      editStartDate,
+      editEndDate,
       reason
     );
     
@@ -140,6 +164,11 @@ export const useVacations = () => {
     error,
     date,
     setDate,
+    // Add separate date fields
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
     reason,
     setReason,
     note,

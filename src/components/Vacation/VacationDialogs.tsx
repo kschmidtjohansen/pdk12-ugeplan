@@ -17,6 +17,12 @@ interface VacationDialogsProps {
   note: string;
   setNote: (note: string) => void;
   
+  // New separate date fields
+  startDate: Date | undefined;
+  endDate: Date | undefined;
+  setStartDate: (date: Date | undefined) => void;
+  setEndDate: (date: Date | undefined) => void;
+  
   // Dialog visibility
   dialogOpen: boolean;
   setDialogOpen: (open: boolean) => void;
@@ -47,6 +53,8 @@ interface VacationDialogsProps {
 
 const VacationDialogs: React.FC<VacationDialogsProps> = ({
   date, setDate, reason, setReason, note, setNote,
+  // New separate date fields
+  startDate, endDate, setStartDate, setEndDate,
   dialogOpen, setDialogOpen,
   adminDialogOpen, setAdminDialogOpen,
   editDialogOpen, setEditDialogOpen,
@@ -71,6 +79,12 @@ const VacationDialogs: React.FC<VacationDialogsProps> = ({
         setReason={setReason}
         onSubmit={submitVacationRequest}
         isEditing={false}
+        // New props
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        useSeparateDateFields={true}
       />
       
       {/* Admin vacation request dialog */}
@@ -84,6 +98,12 @@ const VacationDialogs: React.FC<VacationDialogsProps> = ({
         selectedEmployeeId={selectedEmployeeId}
         setSelectedEmployeeId={setSelectedEmployeeId}
         onSubmit={submitAdminVacationRequest}
+        // New props
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        useSeparateDateFields={true}
       />
       
       {/* Vacation action dialog (approve/reject) */}
@@ -108,6 +128,12 @@ const VacationDialogs: React.FC<VacationDialogsProps> = ({
         onSubmit={submitEditVacation}
         isEditing={true}
         onDelete={handleDeleteCurrentVacation}
+        // New props
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        useSeparateDateFields={true}
       />
       
       {/* Delete confirmation dialog */}

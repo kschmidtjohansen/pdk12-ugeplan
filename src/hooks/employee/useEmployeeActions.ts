@@ -1,290 +1,337 @@
 
-import { useState } from 'react';
-import { Employee } from '@/types/employee';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { EmployeeFormData } from './useEmployeeFormState';
+import { addNotification } from '../notifications/notificationCreate';
+import { safeProperty } from '@/utils/dbHelpers';
 
-export const useEmployeeActions = (refetchEmployees: () => Promise<void>) => {
+export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  
-  // Utility function to generate a random password
-  const generateRandomPassword = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
-    let password = '';
-    for (let i = 0; i < 12; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return password;
-  };
 
-  const createEmployee = async (formData: EmployeeFormData) => {
-    try {
-      console.log("Creating new employee with email:", formData.email);
-      
-      // Use admin functions to create user instead of signUp to avoid session changes
-      const { data: authData, error: authError } = await supabase.functions.invoke('admin-create-user', {
-        body: { 
-          email: formData.email,
-          password: generateRandomPassword(),
-          userData: {
-            name: formData.name
-          }
-        }
-      });
-      
-      if (authError) {
-        console.error("Error creating user through admin function:", authError);
-        throw authError;
-      }
-      
-      if (!authData || !authData.user) {
-        console.error("No user data returned from admin-create-user function");
-        throw new Error('No user returned from user creation');
-      }
-      
-      const userId = authData.user.id;
-      console.log("User created with ID:", userId);
-      
-      // Then update the profile with additional info
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          phone: formData.phone,
-          job_title: formData.jobTitle,
-          on_leave: formData.onLeave,
-          notes: formData.notes
-        })
-        .eq('id', userId);
-      
-      if (profileError) {
-        console.error("Error updating profile:", profileError);
-        throw profileError;
-      }
-      
-      // Then set the role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .update({
-          role: formData.role
-        })
-        .eq('user_id', userId);
-      
-      if (roleError) {
-        console.error("Error updating user role:", roleError);
-        throw roleError;
-      }
-      
-      // Refresh the employee list
-      await refetchEmployees();
-      
-      toast({
-        title: t("employees.employeeAdded"),
-        description: t("employees.employeeAddedMsg", {
-          name: formData.name
-        })
-      });
-      
-      return true;
-    } catch (err) {
-      console.error('Error creating employee:', err);
-      toast({
-        title: t('common.error'),
-        description: err instanceof Error ? err.message : 'Error creating employee',
-        variant: 'destructive',
-      });
-      return false;
-    }
-  };
-
-  const updateEmployee = async (currentEmployee: Employee, formData: EmployeeFormData) => {
-    if (!currentEmployee) return false;
+  /**
+   * Update employee onLeave status
+   */
+  const toggleEmployeeLeave = async (employee: any, allEmployees: any[]) => {
+    if (!employee?.id) return false;
     
     try {
-      // Update profile
-      const { error: profileError } = await supabase
+      // Toggle the onLeave status
+      const { data, error } = await supabase
         .from('profiles')
-        .update({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          job_title: formData.jobTitle,
-          on_leave: formData.onLeave,
-          notes: formData.notes
-        })
-        .eq('id', currentEmployee.id);
-      
-      if (profileError) throw profileError;
-      
-      // Update role if it changed
-      if (formData.role !== currentEmployee.role) {
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .update({
-            role: formData.role
-          })
-          .eq('user_id', currentEmployee.id);
-        
-        if (roleError) throw roleError;
-      }
-      
-      // Refresh the employee list
-      await refetchEmployees();
-      
-      toast({
-        title: t("employees.employeeUpdated"),
-        description: t("employees.employeeUpdatedMsg", {
-          name: formData.name
-        })
-      });
-      
-      return true;
-    } catch (err) {
-      console.error('Error updating employee:', err);
-      toast({
-        title: t('common.error'),
-        description: err instanceof Error ? err.message : 'Error updating employee',
-        variant: 'destructive',
-      });
-      return false;
-    }
-  };
-
-  const deleteEmployee = async (employeeId: string, employees: Employee[]) => {
-    try {
-      // Find employee before deletion for the toast message
-      const employeeToDelete = employees.find(e => e.id === employeeId);
-      
-      // Call the admin-user-delete edge function
-      const { error } = await supabase.functions.invoke('admin-user-delete', {
-        body: { userId: employeeId }
-      });
+        .update({ on_leave: !employee.onLeave })
+        .eq('id', employee.id)
+        .select();
       
       if (error) throw error;
       
-      // Refresh the employee list
-      await refetchEmployees();
-      
-      if (employeeToDelete) {
-        toast({
-          title: t("employees.employeeDeleted"),
-          description: t("employees.employeeDeletedMsg", { name: employeeToDelete.name })
-        });
-      }
-      
-      return true;
-    } catch (err) {
-      console.error('Error deleting employee:', err);
+      // Show toast notification
       toast({
-        title: t('common.error'),
-        description: err instanceof Error ? err.message : 'Error deleting employee',
-        variant: 'destructive',
+        title: employee.onLeave 
+          ? t('employees.employeeAvailable') 
+          : t('employees.employeeOnLeave'),
+        description: employee.onLeave 
+          ? t('employees.employeeAvailableMsg', { name: employee.name }) 
+          : t('employees.employeeOnLeaveMsg', { name: employee.name })
       });
-      return false;
-    }
-  };
-
-  const toggleEmployeeLeave = async (employee: Employee, employees: Employee[]) => {
-    try {
-      const newLeaveStatus = !employee.onLeave;
       
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          on_leave: newLeaveStatus
-        })
-        .eq('id', employee.id);
-      
-      if (error) throw error;
-      
-      // Refresh the employee list
-      await refetchEmployees();
-      
-      toast({
-        title: newLeaveStatus 
-          ? t("employees.employeeOnLeave") 
-          : t("employees.employeeAvailable"),
-        description: newLeaveStatus 
-          ? t("employees.employeeOnLeaveMsg", { name: employee.name }) 
-          : t("employees.employeeAvailableMsg", { name: employee.name })
-      });
+      // Refresh the employees list after toggle
+      await refreshEmployees();
       
       return true;
     } catch (err) {
       console.error('Error toggling employee leave status:', err);
+      
       toast({
         title: t('common.error'),
-        description: err instanceof Error ? err.message : 'Error updating leave status',
+        description: t('employees.updateError'),
         variant: 'destructive',
       });
+      
       return false;
     }
   };
 
-  // New function to set employee leave status automatically based on vacations
+  /**
+   * Update employee leave status based on active vacations
+   */
   const updateEmployeeLeaveStatusFromVacations = async () => {
     try {
-      // Get current date
+      console.log('Updating employee leave status from vacations...');
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const todayISO = today.toISOString().split('T')[0];
       
-      // Get employees with approved vacations that include today
+      // 1. Find employees who are currently on approved vacation
       const { data: activeVacations, error: vacationError } = await supabase
         .from('vacations')
-        .select(`
-          user_id,
-          start_date,
-          end_date
-        `)
+        .select('user_id')
         .eq('status', 'approved')
-        .lte('start_date', today.toISOString().split('T')[0])
-        .gte('end_date', today.toISOString().split('T')[0]);
+        .lte('start_date', todayISO)
+        .gte('end_date', todayISO);
       
-      if (vacationError) throw vacationError;
-      
-      // For each employee with active vacation, set on_leave to true
-      if (activeVacations && activeVacations.length > 0) {
-        const employeeIds = [...new Set(activeVacations.map(v => v.user_id))];
-        
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ on_leave: true })
-          .in('id', employeeIds);
-        
-        if (updateError) throw updateError;
+      if (vacationError) {
+        console.error('Error fetching active vacations:', vacationError);
+        return false;
       }
       
-      // For employees with vacations that ended yesterday, set on_leave to false
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
+      // Create a set of user IDs who are on active vacations
+      const employeesOnVacation = new Set(
+        activeVacations?.map(vacation => vacation.user_id) || []
+      );
       
-      const { data: endedVacations, error: endedError } = await supabase
-        .from('vacations')
-        .select(`
-          user_id,
-          end_date
-        `)
-        .eq('status', 'approved')
-        .eq('end_date', yesterday.toISOString().split('T')[0]);
+      console.log(`Found ${employeesOnVacation.size} employees on active vacation`);
       
-      if (endedError) throw endedError;
+      // 2. Find all employees and update their status if necessary
+      const { data: employees, error: employeesError } = await supabase
+        .from('profiles')
+        .select('id, on_leave');
       
-      if (endedVacations && endedVacations.length > 0) {
-        const employeeIds = [...new Set(endedVacations.map(v => v.user_id))];
+      if (employeesError) {
+        console.error('Error fetching employees:', employeesError);
+        return false;
+      }
+      
+      // Track employees who need to be marked as on leave or available
+      const employeesToMarkOnLeave: string[] = [];
+      const employeesToMarkAvailable: string[] = [];
+      
+      // Process each employee
+      for (const employee of employees || []) {
+        const isOnVacation = employeesOnVacation.has(employee.id);
         
-        const { error: updateError } = await supabase
+        // If employee is on vacation but not marked as on leave, mark them on leave
+        if (isOnVacation && !employee.on_leave) {
+          employeesToMarkOnLeave.push(employee.id);
+        }
+        
+        // If employee is not on vacation but is marked as on leave due to vacation 
+        // (we'll need to check if they were marked as on leave due to a vacation)
+        if (!isOnVacation && employee.on_leave) {
+          // Check if they were marked as on leave due to a vacation that has ended
+          const { data: recentVacations, error: recentError } = await supabase
+            .from('vacations')
+            .select('id')
+            .eq('user_id', employee.id)
+            .eq('status', 'approved')
+            .lt('end_date', todayISO)
+            .order('end_date', { ascending: false })
+            .limit(1);
+          
+          if (recentError) {
+            console.error(`Error checking recent vacations for employee ${employee.id}:`, recentError);
+            continue;
+          }
+          
+          // If there was a recent vacation that has ended, mark them as available
+          if (recentVacations && recentVacations.length > 0) {
+            employeesToMarkAvailable.push(employee.id);
+          }
+        }
+      }
+      
+      console.log(`Marking ${employeesToMarkOnLeave.length} employees as on leave`);
+      console.log(`Marking ${employeesToMarkAvailable.length} employees as available`);
+      
+      // Update employees who need to be marked as on leave
+      if (employeesToMarkOnLeave.length > 0) {
+        const { error: markOnLeaveError } = await supabase
+          .from('profiles')
+          .update({ on_leave: true })
+          .in('id', employeesToMarkOnLeave);
+        
+        if (markOnLeaveError) {
+          console.error('Error marking employees as on leave:', markOnLeaveError);
+        }
+      }
+      
+      // Update employees who need to be marked as available
+      if (employeesToMarkAvailable.length > 0) {
+        const { error: markAvailableError } = await supabase
           .from('profiles')
           .update({ on_leave: false })
-          .in('id', employeeIds);
+          .in('id', employeesToMarkAvailable);
         
-        if (updateError) throw updateError;
+        if (markAvailableError) {
+          console.error('Error marking employees as available:', markAvailableError);
+        }
+      }
+      
+      // If any updates were made, refresh the employee list
+      if (employeesToMarkOnLeave.length > 0 || employeesToMarkAvailable.length > 0) {
+        await refreshEmployees();
       }
       
       return true;
     } catch (err) {
       console.error('Error updating employee leave status from vacations:', err);
+      return false;
+    }
+  };
+
+  /**
+   * Create a new employee
+   */
+  const createEmployee = async (formData: any) => {
+    try {
+      // Call the admin-create-user function to create a new user
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: {
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+          role: formData.role
+        }
+      });
+      
+      if (error) throw error;
+      
+      if (data.error) {
+        console.error('Function error:', data.error);
+        throw new Error(data.error);
+      }
+      
+      console.log('Employee created:', data);
+      
+      // Update the profile with additional fields
+      if (data.id) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            phone: formData.phone || null,
+            job_title: formData.jobTitle || null,
+            on_leave: formData.onLeave || false,
+            notes: formData.notes || null
+          })
+          .eq('id', data.id);
+        
+        if (profileError) {
+          console.error('Error updating profile:', profileError);
+          throw profileError;
+        }
+      }
+      
+      toast({
+        title: t('employees.employeeAdded'),
+        description: t('employees.employeeAddedMsg', { name: formData.name })
+      });
+      
+      // Refresh the employees list
+      await refreshEmployees();
+      
+      return true;
+    } catch (err) {
+      console.error('Error creating employee:', err);
+      
+      // Show error toast with specific message if available
+      toast({
+        title: t('common.error'),
+        description: err instanceof Error ? err.message : 'Failed to create employee',
+        variant: 'destructive',
+      });
+      
+      return false;
+    }
+  };
+
+  /**
+   * Update an existing employee
+   */
+  const updateEmployee = async (employee: any, formData: any) => {
+    if (!employee?.id) return false;
+    
+    try {
+      // Update the profile data
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || null,
+          job_title: formData.jobTitle || null,
+          on_leave: formData.onLeave || false,
+          notes: formData.notes || null
+        })
+        .eq('id', employee.id);
+      
+      if (profileError) throw profileError;
+      
+      // Update the user role if it changed
+      if (employee.role !== formData.role) {
+        const { error: roleError } = await supabase.functions.invoke('admin-user-role', {
+          body: {
+            userId: employee.id,
+            role: formData.role
+          }
+        });
+        
+        if (roleError) throw roleError;
+      }
+      
+      toast({
+        title: t('employees.employeeUpdated'),
+        description: t('employees.employeeUpdatedMsg', { name: formData.name })
+      });
+      
+      // Refresh the employees list
+      await refreshEmployees();
+      
+      return true;
+    } catch (err) {
+      console.error('Error updating employee:', err);
+      
+      toast({
+        title: t('common.error'),
+        description: err instanceof Error ? err.message : t('employees.updateError'),
+        variant: 'destructive',
+      });
+      
+      return false;
+    }
+  };
+
+  /**
+   * Delete an employee
+   */
+  const deleteEmployee = async (employeeId: string, allEmployees: any[]) => {
+    if (!employeeId) return false;
+    
+    try {
+      // Find employee name before deletion
+      const employee = allEmployees.find(e => e.id === employeeId);
+      if (!employee) throw new Error('Employee not found');
+      
+      // Delete the user through the admin function
+      const { data, error } = await supabase.functions.invoke('admin-user-delete', {
+        body: {
+          userId: employeeId
+        }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      
+      toast({
+        title: t('employees.employeeDeleted'),
+        description: t('employees.employeeDeletedMsg', { name: employee.name })
+      });
+      
+      // Refresh the employees list
+      await refreshEmployees();
+      
+      return true;
+    } catch (err) {
+      console.error('Error deleting employee:', err);
+      
+      toast({
+        title: t('common.error'),
+        description: err instanceof Error ? err.message : t('employees.deleteError'),
+        variant: 'destructive',
+      });
+      
       return false;
     }
   };
