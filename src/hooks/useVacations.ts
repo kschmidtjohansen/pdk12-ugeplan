@@ -113,6 +113,11 @@ export const useVacations = () => {
         // Close the dialog and reset state
         setDeleteDialogOpen(false);
         setSelectedVacation(null);
+
+        // Add local state update as a fallback if realtime update fails
+        // This ensures the UI updates immediately after a successful deletion
+        // without waiting for the realtime notification
+        fetchVacations();
       } else {
         console.error("Failed to delete vacation");
       }

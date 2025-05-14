@@ -42,7 +42,8 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     handleEditVacation,
     submitEditVacation,
     handleDeleteVacation,
-    confirmDeleteVacation
+    confirmDeleteVacation,
+    handleDeleteCurrentVacation
   } = useVacations();
   
   // State for approval/rejection dialog
@@ -106,20 +107,6 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     handleDeleteVacation(vacation);
   };
   
-  // Wrapper for delete vacation to pass to dialog with no parameters
-  const handleDeleteCurrentVacation = () => {
-    if (selectedVacation && isAdmin) {
-      handleDeleteVacation(selectedVacation);
-    }
-  };
-  
-  // Handle admin vacation request submission
-  const submitAdminVacationRequest = (e: React.FormEvent) => {
-    if (isAdmin) {
-      submitVacationRequest(e, true);
-    }
-  };
-  
   return (
     <div>
       {headerComponent}
@@ -166,7 +153,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         setSelectedEmployeeId={setSelectedEmployeeId}
         actionType={actionType}
         submitVacationRequest={submitVacationRequest}
-        submitAdminVacationRequest={submitAdminVacationRequest}
+        submitAdminVacationRequest={submitVacationRequest}
         submitEditVacation={submitEditVacation}
         handleActionSubmit={handleActionSubmit}
         confirmDeleteVacation={confirmDeleteVacation}
