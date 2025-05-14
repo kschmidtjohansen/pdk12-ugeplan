@@ -35,8 +35,8 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     onDeleteAssignment(assignment.id);
   };
   
-  const handlePublish = (assignment: Assignment) => {
-    onPublishAssignment(assignment.id);
+  const handlePublish = (assignmentId: string) => {
+    onPublishAssignment(assignmentId);
   };
 
   return (
