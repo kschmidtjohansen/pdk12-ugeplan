@@ -263,10 +263,12 @@ export const useNotifications = () => {
       return;
     }
     
-    console.log(`Setting up realtime subscription for notifications for user ${user.id} (${user.role})`);
+    // Create a unique channel name for this user and instance to prevent duplicate subscriptions
+    const channelName = `notification_changes_${user.id}_${Math.random().toString(36).substring(2, 9)}`;
+    console.log(`Setting up realtime subscription for notifications using channel: ${channelName}`);
     
     const channel = supabase
-      .channel(`notification_changes_${user.id}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -327,6 +329,141 @@ export const useNotifications = () => {
       supabase.removeChannel(channel);
     };
   }, [user, toast]);
+  
+  // Create test notifications for pending vacation requests (for admins)
+  useEffect(() => {
+    const createNotificationsForPendingRequests = async () => {
+      // Only run for administrators
+      if (!user || user.role !== 'administrator') {
+        return;
+      }
+      
+      try {
+        console.log('Checking for missing admin notifications for pending vacation requests...');
+        
+        // Get all pending vacation requests
+        const { data: pendingVacations, error } = await supabase
+          .from('vacations')
+          .select(`
+            id,
+            user_id,
+            start_date,
+            end_date,
+            reason,
+            status,
+            profiles:user_id (
+              name
+            )
+          `)
+          .eq('status', 'pending');
+          
+        if (error) {
+          console.error('Error fetching pending vacations:', error);
+          return;
+        }
+        
+        if (!pendingVacations || pendingVacations.length === 0) {
+          console.log('No pending vacation requests found');
+          return;
+        }
+        
+        console.log(`Found ${pendingVacations.length} pending vacation requests`);
+        
+        // Check if we already have notifications for these pending requests
+        const { data: existingNotifications, error: notifError } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('type', 'vacation')
+          .eq('read', false);
+          
+        if (notifError) {
+          console.error('Error checking existing notifications:', notifError);
+          return;
+        }
+        
+        const existingNotifIds = new Set((existingNotifications || []).map(n => n.id));
+        console.log(`Found ${existingNotifications?.length || 0} existing unread vacation notifications`);
+        
+        // Create notifications for pending requests if needed
+        for (const vacation of pendingVacations) {
+          const employeeName = vacation.profiles?.name || 'Employee';
+          
+          // Check if we already have a notification for this vacation
+          const hasNotification = existingNotifications?.some(n => 
+            n.message?.includes(employeeName) && 
+            n.message?.includes(vacation.start_date) &&
+            n.message?.includes(vacation.end_date)
+          );
+          
+          if (!hasNotification) {
+            console.log(`Creating notification for pending vacation request from ${employeeName}`);
+            
+            const notifyMessage = t('notifications.newVacationRequestActionRequired', {
+              name: employeeName,
+              from: vacation.start_date,
+              to: vacation.end_date
+            });
+            
+            try {
+              // Insert notification directly via supabase since we want to avoid duplicate notifications
+              const { data, error: insertError } = await supabase
+                .from('notifications')
+                .insert([
+                  {
+                    user_id: user.id,
+                    type: 'vacation',
+                    title: t('notifications.newVacationRequest'),
+                    message: notifyMessage,
+                    link: '/vacation',
+                    read: false
+                  }
+                ])
+                .select();
+                
+              if (insertError) {
+                console.error('Error creating notification for pending request:', insertError);
+              } else {
+                console.log('Created notification for pending request:', data);
+                
+                // Update local state with the new notification
+                if (data && data[0]) {
+                  const newNotification: NotificationType = {
+                    id: data[0].id,
+                    type: data[0].type,
+                    title: data[0].title,
+                    message: data[0].message,
+                    link: data[0].link || undefined,
+                    read: false,
+                    date: new Date(data[0].created_at)
+                  };
+                  
+                  // Update notifications state
+                  setNotifications(prev => {
+                    const updated = [...prev, newNotification];
+                    updated.sort(sortNotifications);
+                    return updated;
+                  });
+                  
+                  // Increment unread count
+                  setUnreadCount(prev => prev + 1);
+                }
+              }
+            } catch (err) {
+              console.error('Error creating notification:', err);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error checking for pending vacation requests:', err);
+      }
+    };
+    
+    // Run this once after initial notifications are fetched
+    if (user?.role === 'administrator' && !loading && notifications.length >= 0) {
+      createNotificationsForPendingRequests();
+    }
+  }, [user, loading, notifications.length, t]);
   
   return {
     notifications,

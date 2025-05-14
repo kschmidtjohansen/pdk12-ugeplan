@@ -37,7 +37,9 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
   // Add debug logs
   console.log('NotificationsDropdown rendering with:', { 
     notificationCount: notifications.length, 
-    unreadCount 
+    unreadCount,
+    notificationTypes: notifications.map(n => n.type),
+    hasUnreadVacation: notifications.some(n => !n.read && n.type === 'vacation')
   });
   
   return (

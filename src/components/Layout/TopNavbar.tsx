@@ -29,10 +29,19 @@ const TopNavbar: React.FC = () => {
   // Track if there are vacation-related notifications that need attention
   const [hasVacationNotifications, setHasVacationNotifications] = useState(false);
   
-  // Fetch notifications when component mounts
+  // Fetch notifications when component mounts and periodically
   useEffect(() => {
     if (isAuthenticated) {
+      console.log('TopNavbar: Initial notification fetch triggered');
       fetchNotifications();
+      
+      // Also refresh notifications every 60 seconds
+      const intervalId = setInterval(() => {
+        console.log('TopNavbar: Refreshing notifications (interval)');
+        fetchNotifications();
+      }, 60000);
+      
+      return () => clearInterval(intervalId);
     }
   }, [isAuthenticated, fetchNotifications]);
   
@@ -41,7 +50,15 @@ const TopNavbar: React.FC = () => {
     const vacationNotifications = notifications.filter(
       n => !n.read && (n.type === 'vacation' || n.link?.includes('/vacation'))
     );
-    setHasVacationNotifications(vacationNotifications.length > 0);
+    
+    const hasVacation = vacationNotifications.length > 0;
+    console.log('TopNavbar: Checking vacation notifications:', { 
+      hasVacation, 
+      count: vacationNotifications.length,
+      notificationIds: vacationNotifications.map(n => n.id).join(',')
+    });
+    
+    setHasVacationNotifications(hasVacation);
   }, [notifications]);
 
   const handleLogout = () => {
@@ -55,6 +72,7 @@ const TopNavbar: React.FC = () => {
   };
 
   const handleNotificationClick = (notification: NotificationType) => {
+    console.log('TopNavbar: Notification clicked:', notification);
     markAsRead(notification.id);
     if (notification.link) {
       navigate(notification.link);
@@ -66,6 +84,14 @@ const TopNavbar: React.FC = () => {
     return null;
   }
 
+  // Debug log for navigation items and notification status
+  console.log('TopNavbar rendering with user:', { 
+    userId: user?.id,
+    role: user?.role,
+    isAdmin: user?.role === 'administrator',
+    hasVacationNotifications
+  });
+  
   const navigationItems: NavigationItem[] = [
     { path: '/dashboard', name: t('navigation.dashboard'), translationKey: 'navigation.dashboard', icon: <Search className="h-5 w-5" /> },
     { path: '/planner', name: t('navigation.planner'), translationKey: 'navigation.planner', icon: <Clock className="h-5 w-5" /> },

@@ -1,7 +1,8 @@
 
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { NotificationType } from '@/types/notification';
 import { useNotifications as useNotificationsHook } from '@/hooks/useNotifications';
+import { useAuth } from '@/context/AuthContext';
 
 interface NotificationContextType {
   notifications: NotificationType[];
@@ -44,6 +45,26 @@ export const NotificationProvider: React.FC<{
     addNotification,
     fetchNotifications
   } = useNotificationsHook();
+  
+  const { user } = useAuth();
+  
+  // Debug log when provider updates
+  useEffect(() => {
+    console.log('NotificationProvider state updated:', {
+      userRole: user?.role,
+      notificationCount: notifications.length,
+      unreadCount,
+      loading
+    });
+  }, [notifications.length, unreadCount, loading, user?.role]);
+  
+  // Fetch notifications when the user changes
+  useEffect(() => {
+    if (user) {
+      console.log(`NotificationProvider: Fetching notifications for user ${user.id} (${user.role})`);
+      fetchNotifications();
+    }
+  }, [user, fetchNotifications]);
 
   return (
     <NotificationContext.Provider

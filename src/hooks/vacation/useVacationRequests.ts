@@ -103,39 +103,7 @@ export const useVacationRequests = () => {
       }
       
       // Notify administrators about the new vacation request
-      const { data: adminUsers, error: adminError } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .in('role', ['administrator', 'skadeleder']);
-        
-      if (adminError) {
-        console.error('Error fetching admin users:', adminError);
-      } else if (adminUsers) {
-        console.log(`Found ${adminUsers.length} admins to notify about vacation request`);
-        
-        // For each admin, use the context to add a notification
-        for (const admin of adminUsers) {
-          // Don't notify yourself if you're an admin
-          if (admin.user_id !== user?.id) {
-            const notifyMessage = t('notifications.newVacationRequestMsg', {
-              name: actualEmployeeName,
-              from: format(startDate, 'dd.MM.yyyy'),
-              to: format(endDate, 'dd.MM.yyyy')
-            });
-            
-            console.log(`Sending notification to admin ${admin.user_id}`);
-            
-            // Add notification using the context
-            await addNotification({
-              type: 'vacation',
-              title: t('notifications.newVacationRequest'),
-              message: notifyMessage,
-              link: '/vacation',
-              targetUserId: admin.user_id
-            });
-          }
-        }
-      }
+      await notifyAdmins(actualEmployeeName, startDate, endDate);
       
       return true;
     } catch (err) {
@@ -148,6 +116,62 @@ export const useVacationRequests = () => {
       return false;
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Helper function to notify administrators
+  const notifyAdmins = async (employeeName: string, startDate: Date, endDate: Date) => {
+    try {
+      console.log('Notifying administrators about new vacation request');
+      
+      const { data: adminUsers, error: adminError } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('role', ['administrator', 'skadeleder']);
+        
+      if (adminError) {
+        console.error('Error fetching admin users:', adminError);
+        return;
+      }
+      
+      if (!adminUsers || adminUsers.length === 0) {
+        console.log('No administrators found');
+        return;
+      }
+      
+      console.log(`Found ${adminUsers.length} admins/skadeledere to notify`);
+      
+      // For each admin, send a notification
+      for (const admin of adminUsers) {
+        // Don't notify yourself if you're an admin making the request
+        if (admin.user_id !== user?.id) {
+          const notifyMessage = t('notifications.newVacationRequestActionRequired', {
+            name: employeeName,
+            from: format(startDate, 'dd.MM.yyyy'),
+            to: format(endDate, 'dd.MM.yyyy')
+          });
+          
+          console.log(`Sending notification to admin ${admin.user_id} (${admin.role})`);
+          
+          try {
+            // Add notification using the context
+            const notificationId = await addNotification({
+              type: 'vacation',
+              title: t('notifications.newVacationRequest'),
+              message: notifyMessage,
+              link: '/vacation',
+              targetUserId: admin.user_id
+            });
+            
+            console.log(`Notification sent to admin ${admin.user_id}, notification ID: ${notificationId}`);
+          } catch (notifErr) {
+            console.error(`Failed to send notification to admin ${admin.user_id}:`, notifErr);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error in admin notification process:', err);
+      // Don't throw - we still want the vacation request to be created even if notifications fail
     }
   };
   
