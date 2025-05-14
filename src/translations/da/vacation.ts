@@ -58,6 +58,8 @@ const vacation = {
   requestDeletedMsg: 'Ansøgningen er blevet fjernet.',
   cannotEditNonPending: 'Kun afventende ansøgninger kan redigeres',
   cannotDeleteNonPending: 'Kun afventende ansøgninger kan slettes',
+  adminCanEditAll: 'Som administrator kan du redigere alle ansøgninger',
+  adminCanDeleteAll: 'Som administrator kan du slette alle ansøgninger',
   error: 'Fejl',
   employeeNotFound: 'Medarbejderen kunne ikke findes',
   currentlyOnVacation: 'Medarbejdere på ferie',

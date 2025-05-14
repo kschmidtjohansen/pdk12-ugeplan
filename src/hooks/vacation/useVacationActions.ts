@@ -5,12 +5,14 @@ import { useNotifications } from '@/context/NotificationContext';
 import { useVacationRequestActions } from './useVacationRequestActions';
 import { Vacation } from '@/types/vacation';
 import { supabase } from '@/integrations/supabase/client';
+import { usePermissions } from '@/context/AuthContext';
 
 export const useVacationActions = (fetchVacations: () => Promise<void>) => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
   const { submitVacationRequest } = useVacationRequestActions(fetchVacations);
+  const { isAdmin } = usePermissions();
 
   const approveVacation = async (vacation: Vacation, note: string = '') => {
     try {
@@ -108,8 +110,8 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
     reason: string
   ) => {
     try {
-      // Only allow editing of pending vacations
-      if (vacation.status !== 'pending') {
+      // Allow administrators to edit any vacation, but normal users can only edit pending vacations
+      if (!isAdmin && vacation.status !== 'pending') {
         toast({
           title: t('common.error'),
           description: t('vacation.cannotEditNonPending'),
@@ -151,8 +153,8 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
   
   const deleteVacation = async (vacation: Vacation) => {
     try {
-      // Only allow deletion of pending vacations
-      if (vacation.status !== 'pending') {
+      // Allow administrators to delete any vacation, but normal users can only delete pending vacations
+      if (!isAdmin && vacation.status !== 'pending') {
         toast({
           title: t('common.error'),
           description: t('vacation.cannotDeleteNonPending'),

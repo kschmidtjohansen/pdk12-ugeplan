@@ -1,20 +1,20 @@
 
 import React from 'react';
-import { usePermissions } from '@/context/AuthContext';
-import { useTranslation } from '@/context/TranslationContext';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { useTranslation } from '@/context/TranslationContext';
+import { usePermissions } from '@/context/AuthContext';
 import VacationTabs from './VacationTabs';
 
 interface VacationHeaderProps {
   isServicemedarbejder: boolean;
   activeTab: string;
-  onChangeTab: (tab: string) => void;
+  onChangeTab: (value: string) => void;
   onOpenRequestDialog: () => void;
   onOpenAdminDialog: () => void;
 }
 
-const VacationHeader: React.FC<VacationHeaderProps> = ({ 
+const VacationHeader: React.FC<VacationHeaderProps> = ({
   isServicemedarbejder,
   activeTab,
   onChangeTab,
@@ -22,34 +22,37 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({
   onOpenAdminDialog
 }) => {
   const { t } = useTranslation();
-  const { isAdmin, isSkadeleder } = usePermissions();
+  const { isAdmin } = usePermissions();
   
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-      <VacationTabs
-        isServicemedarbejder={isServicemedarbejder}
-        activeTab={activeTab}
-        onChange={onChangeTab}
-      />
-      
-      <div className="flex gap-2">
-        <Button 
-          onClick={onOpenRequestDialog}
-          className="bg-polygon-blue hover:bg-polygon-darkblue"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          {t("vacation.applyForVacation")}
-        </Button>
+    <div className="py-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <VacationTabs 
+          isServicemedarbejder={isServicemedarbejder}
+          activeTab={activeTab} 
+          onChange={onChangeTab}
+        />
         
-        {(isAdmin || isSkadeleder) && (
-          <Button 
-            onClick={onOpenAdminDialog} 
-            variant="outline"
-            className="bg-white"
+        <div className="flex gap-2">
+          <Button
+            onClick={onOpenRequestDialog}
+            className="flex-1 md:flex-none"
           >
-            {t("vacation.requestForEmployee")}
+            <Plus className="mr-2 h-4 w-4" />
+            {t("vacation.applyForVacation")}
           </Button>
-        )}
+          
+          {isAdmin && (
+            <Button
+              onClick={onOpenAdminDialog}
+              variant="outline"
+              className="flex-1 md:flex-none"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {t("vacation.requestForEmployee")}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

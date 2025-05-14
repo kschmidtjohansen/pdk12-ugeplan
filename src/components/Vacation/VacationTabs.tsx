@@ -16,20 +16,7 @@ const VacationTabs: React.FC<VacationTabsProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  // For service employees, only show the "mine" tab
-  if (isServicemedarbejder) {
-    return (
-      <Tabs value={activeTab} onValueChange={onChange} className="w-full">
-        <TabsList className="grid grid-cols-1 w-full max-w-md">
-          <TabsTrigger value="mine">
-            {t("vacation.tabs.mine")}
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-    );
-  }
-
-  // For other roles, show All, Pending and Approved tabs
+  // Show all tabs regardless of role, but servicemedarbejder will have different functionality
   return (
     <Tabs value={activeTab} onValueChange={onChange} className="w-full">
       <TabsList className="grid grid-cols-3 w-full max-w-md">

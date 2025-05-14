@@ -36,7 +36,8 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(0, 0, 0, 0);
       
-      return selectedDate >= startDate && selectedDate <= endDate;
+      // Employee is available on the day after their vacation ends
+      return selectedDate >= startDate && selectedDate < endDate;
     });
   };
   

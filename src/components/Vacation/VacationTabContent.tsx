@@ -26,7 +26,7 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
   isLoading = false
 }) => {
   const { t } = useTranslation();
-  const { user, isAdmin, isSkadeleder } = useAuth();
+  const { user, isAdmin, isSkadeleder, isServicemedarbejder } = useAuth();
   
   // Filter vacations based on tab
   const filteredVacations = React.useMemo(() => {
@@ -44,13 +44,16 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
         return filtered.filter((v) => v.status === 'pending');
       case 'approved':
         return filtered.filter((v) => v.status === 'approved');
-      case 'mine':
-        return vacations.filter((v) => v.employeeId === user?.id); // Show all mine regardless of status
       case 'all':
       default:
+        // For service employees, highlight their own vacations but show all
+        if (isServicemedarbejder) {
+          // No need to filter, but we could mark the user's own vacations
+          return filtered;
+        }
         return filtered;
     }
-  }, [vacations, tabValue, user?.id, isAdmin, isSkadeleder]);
+  }, [vacations, tabValue, user?.id, isAdmin, isSkadeleder, isServicemedarbejder]);
   
   return (
     <div className="mt-6">
