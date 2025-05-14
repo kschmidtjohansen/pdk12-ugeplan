@@ -129,24 +129,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
   ) => {
     try {
       // Allow administrators to edit any vacation regardless of status
-      // Non-admin users can only edit pending vacations
-      if (!isAdmin && vacation.status !== 'pending') {
-        toast({
-          title: t('common.error'),
-          description: t('vacation.cannotEditNonPending'),
-          variant: 'destructive',
-        });
-        
-        // For admins, show a toast explaining their special ability
-        if (isAdmin && vacation.status === 'approved' || vacation.status === 'rejected') {
-          toast({
-            title: t('vacation.adminCanEditAll'),
-            description: '',
-          });
-        }
-        return;
-      }
-      
+      // For regular users, allow editing of their own vacations regardless of status
       const { error } = await supabase
         .from('vacations')
         .update({
@@ -181,24 +164,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
   const deleteVacation = async (vacation: Vacation) => {
     try {
       // Allow administrators to delete any vacation regardless of status
-      // Non-admin users can only delete pending vacations
-      if (!isAdmin && vacation.status !== 'pending') {
-        toast({
-          title: t('common.error'),
-          description: t('vacation.cannotDeleteNonPending'),
-          variant: 'destructive',
-        });
-        
-        // For admins, show a toast explaining their special ability
-        if (isAdmin && vacation.status === 'approved' || vacation.status === 'rejected') {
-          toast({
-            title: t('vacation.adminCanDeleteAll'),
-            description: '',
-          });
-        }
-        return;
-      }
-      
+      // For regular users, allow deletion of their own vacations regardless of status      
       const { error } = await supabase
         .from('vacations')
         .delete()

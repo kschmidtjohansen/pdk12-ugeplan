@@ -91,8 +91,8 @@ const VacationCard: React.FC<VacationCardProps> = ({
       </CardContent>
       
       <CardFooter className="flex justify-between border-t pt-4 pb-4">
-        {/* Owner actions (available for pending requests only) */}
-        {isOwner && vacation.status === 'pending' && (
+        {/* Owner actions - show edit & delete buttons for all statuses when owner or admin */}
+        {isOwner && (
           <div className="flex gap-2">
             {onEdit && (
               <Button 
