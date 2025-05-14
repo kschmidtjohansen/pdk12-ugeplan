@@ -87,8 +87,8 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, o
         </div>
       </TableCell>
       <TableCell>{employee.jobTitle}</TableCell>
-      {/* Show role to both admin and skadeleder users */}
-      {(isAdmin || isSkadeleder) && (
+      {/* Show role to admin users only */}
+      {isAdmin && (
         <TableCell>
           <StatusBadge variant={getRoleVariant(employee.role)}>
             {USER_ROLES.find(role => role.value === employee.role)?.label}

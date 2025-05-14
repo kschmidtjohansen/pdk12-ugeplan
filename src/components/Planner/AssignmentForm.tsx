@@ -65,6 +65,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   console.log("AssignmentForm - Selected employees:", selectedEmployees);
   console.log("AssignmentForm - Cars data:", cars);
   console.log("AssignmentForm - Employees data:", employees);
+  console.log("AssignmentForm - Current date:", currentDate);
   
   return (
     <DialogContent className="max-w-md">

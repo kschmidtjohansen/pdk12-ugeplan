@@ -34,7 +34,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
   // Helper function to safely handle date formatting
   const formatDate = (dateString: string | undefined | null) => {
-    if (!dateString) return format(new Date(), "yyyy-MM-dd");
+    const currentDate = new Date();
+    if (!dateString) return format(currentDate, "yyyy-MM-dd");
     try {
       // Use Danish locale if the current language is Danish
       const locale = currentLanguage === 'da' ? da : undefined;
@@ -43,13 +44,15 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       });
     } catch (e) {
       console.error("Invalid date format:", dateString);
-      return format(new Date(), "yyyy-MM-dd");
+      return format(currentDate, "yyyy-MM-dd");
     }
   };
 
   // Format date for display in the calendar button
   const formatDisplayDate = (dateString: string | undefined | null) => {
-    if (!dateString) return format(new Date(), "d MMMM yyyy", { locale: currentLanguage === 'da' ? da : undefined });
+    const currentDate = new Date();
+    // Always use current date when no selection is made
+    if (!dateString) return format(currentDate, "d MMMM yyyy", { locale: currentLanguage === 'da' ? da : undefined });
     try {
       // Use Danish locale if the current language is Danish
       const locale = currentLanguage === 'da' ? da : undefined;
@@ -58,7 +61,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       });
     } catch (e) {
       console.error("Invalid date format:", dateString);
-      return format(new Date(), "d MMMM yyyy", { locale: currentLanguage === 'da' ? da : undefined });
+      return format(currentDate, "d MMMM yyyy", { locale: currentLanguage === 'da' ? da : undefined });
     }
   };
 
