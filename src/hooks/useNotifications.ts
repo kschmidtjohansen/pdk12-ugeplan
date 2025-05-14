@@ -28,9 +28,14 @@ export const useNotifications = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching notifications:', error);
+        throw error;
+      }
       
       if (data) {
+        console.log('Fetched notifications:', data);
+        
         const formattedNotifications: NotificationType[] = data.map(item => ({
           id: item.id,
           type: item.type,
@@ -59,10 +64,17 @@ export const useNotifications = () => {
     if (!user) return;
     
     try {
-      await supabase
+      console.log('Marking notification as read:', notificationId);
+      
+      const { error } = await supabase
         .from('notifications')
         .update({ read: true })
         .eq('id', notificationId);
+      
+      if (error) {
+        console.error('Error marking notification as read:', error);
+        throw error;
+      }
       
       // Update local state
       setNotifications(prev => 
@@ -86,11 +98,18 @@ export const useNotifications = () => {
     if (!user) return;
     
     try {
-      await supabase
+      console.log('Marking all notifications as read');
+      
+      const { error } = await supabase
         .from('notifications')
         .update({ read: true })
         .eq('user_id', user.id)
         .eq('read', false);
+      
+      if (error) {
+        console.error('Error marking all notifications as read:', error);
+        throw error;
+      }
       
       // Update local state
       setNotifications(prev => 
@@ -110,18 +129,25 @@ export const useNotifications = () => {
     if (!user) return;
     
     try {
-      await supabase
+      console.log('Deleting notification:', notificationId);
+      
+      const { error } = await supabase
         .from('notifications')
         .delete()
         .eq('id', notificationId);
       
+      if (error) {
+        console.error('Error deleting notification:', error);
+        throw error;
+      }
+      
       // Update local state
+      const wasUnread = notifications.find(n => n.id === notificationId && !n.read);
       setNotifications(prev => 
         prev.filter(notification => notification.id !== notificationId)
       );
       
       // Recalculate unread count if needed
-      const wasUnread = notifications.find(n => n.id === notificationId && !n.read);
       if (wasUnread) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
@@ -161,13 +187,17 @@ export const useNotifications = () => {
         .select();
       
       if (error) {
-        console.error('Error inserting notification:', error);
-        
-        // Check for specific RLS errors
+        // Specific handling for RLS policy violations
         if (error.message?.includes('new row violates row-level security policy')) {
-          console.error('RLS policy violation. Make sure you have permission to add notifications for this user.');
+          console.error('Permission denied: You do not have permission to create notifications for this user.');
+          toast({
+            title: "Permission denied",
+            description: "You don't have permission to create notifications for this user.",
+            variant: "destructive"
+          });
+        } else {
+          console.error('Error inserting notification:', error);
         }
-        
         throw error;
       }
       
