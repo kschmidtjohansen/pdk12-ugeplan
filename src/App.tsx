@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
@@ -12,6 +13,7 @@ import PasswordResetPage from './pages/PasswordResetPage';
 import { Toaster } from "@/components/ui/toaster";
 import MainLayout from './components/Layout/MainLayout';
 import { NotificationProvider } from './context/NotificationContext';
+import { useAutoPublishAssignments } from './hooks/useAutoPublishAssignments';
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -23,6 +25,12 @@ function App() {
       setLoading(false);
     }, 500);
   }, []);
+
+  // Auto-publish assignments at 16:00
+  const AutoPublishHandler = () => {
+    useAutoPublishAssignments();
+    return null; // This component doesn't render anything
+  };
 
   const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     if (loading) {
@@ -36,6 +44,7 @@ function App() {
 
   return (
     <Router>
+      {isAuthenticated && <AutoPublishHandler />}
       <Routes>
         {/* Public routes without layout */}
         <Route path="/login" element={<LoginPage />} />

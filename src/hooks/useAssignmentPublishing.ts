@@ -30,7 +30,7 @@ export const useAssignmentPublishing = (
         title: t("planner.noAssignmentsToPublish"),
         description: t("planner.noUnpublishedAssignments"),
       });
-      return;
+      return false;
     }
     
     console.log(`Publishing ${assignmentsToUpdate.length} assignments for date ${date}`);
@@ -50,6 +50,8 @@ export const useAssignmentPublishing = (
         title: t("planner.assignmentsPublished"),
         description: t("planner.assignmentsPublishedMsg"),
       });
+      
+      return true;
     } catch (error) {
       console.error(`Error publishing assignments for date ${date}:`, error);
       toast({
@@ -57,6 +59,7 @@ export const useAssignmentPublishing = (
         description: t("planner.errorPublishingAssignments"),
         variant: "destructive"
       });
+      return false;
     }
   };
 
@@ -67,7 +70,7 @@ export const useAssignmentPublishing = (
     
     if (assignmentsToUpdate.length === 0) {
       console.log(`No unpublished assignments found with IDs: ${assignmentIds.join(', ')}`);
-      return;
+      return false;
     }
     
     console.log(`Publishing ${assignmentsToUpdate.length} assignments`);
@@ -87,6 +90,8 @@ export const useAssignmentPublishing = (
         title: t("planner.assignmentsPublished"),
         description: t("planner.assignmentsPublishedMsg"),
       });
+      
+      return true;
     } catch (error) {
       console.error("Error publishing assignments:", error);
       toast({
@@ -94,6 +99,7 @@ export const useAssignmentPublishing = (
         description: t("planner.errorPublishingAssignments"),
         variant: "destructive"
       });
+      return false;
     }
   };
 
@@ -104,7 +110,7 @@ export const useAssignmentPublishing = (
     
     if (!assignmentToUpdate) {
       console.log(`No unpublished assignment found with ID: ${assignmentId}`);
-      return;
+      return false;
     }
     
     console.log(`Publishing assignment: ${assignmentToUpdate.title} (${assignmentId})`);
@@ -117,12 +123,14 @@ export const useAssignmentPublishing = (
           title: t("planner.assignmentPublished"),
           description: t("planner.assignmentPublishedMsg"),
         });
+        return true;
       } else {
         toast({
           title: t("common.error"),
           description: t("planner.errorPublishingAssignment"),
           variant: "destructive"
         });
+        return false;
       }
     } catch (error) {
       console.error(`Error publishing assignment ${assignmentId}:`, error);
@@ -131,6 +139,7 @@ export const useAssignmentPublishing = (
         description: t("planner.errorPublishingAssignment"),
         variant: "destructive"
       });
+      return false;
     }
   };
 

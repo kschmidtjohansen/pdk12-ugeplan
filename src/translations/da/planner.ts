@@ -55,7 +55,9 @@ const planner = {
   noUnpublishedAssignments: 'Der er ingen ikke-udgivne opgaver på denne dato',
   errorPublishingAssignments: 'Der opstod en fejl ved udgivelse af opgaverne',
   errorPublishingAssignment: 'Der opstod en fejl ved udgivelse af opgaven',
-  selectDate: 'Vælg dato'
+  selectDate: 'Vælg dato',
+  autoPublishSuccess: 'Autopublicering udført',
+  autoPublishSuccessMsg: '{count} opgaver blev automatisk udgivet'
 };
 
 export default planner;
