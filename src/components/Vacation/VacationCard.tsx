@@ -27,17 +27,23 @@ const VacationCard: React.FC<VacationCardProps> = ({
   onEdit,
   onDelete
 }) => {
-  const {
-    t,
-    currentLanguage
-  } = useTranslation();
-  const {
-    user
-  } = useAuth();
+  const { t, currentLanguage } = useTranslation();
+  const { user } = useAuth();
   const isOwner = user?.id === vacation.employeeId;
 
   // Set locale based on current language
   const locale = currentLanguage === 'da' ? da : undefined;
+  
+  // Add handlers with debug logs
+  const handleEdit = () => {
+    console.log("Edit button clicked for vacation:", vacation.id);
+    if (onEdit) onEdit(vacation);
+  };
+  
+  const handleDelete = () => {
+    console.log("Delete button clicked for vacation:", vacation.id);
+    if (onDelete) onDelete(vacation);
+  };
   
   return (
     <Card className={cn("overflow-hidden", 
@@ -98,7 +104,7 @@ const VacationCard: React.FC<VacationCardProps> = ({
               variant="outline" 
               size="sm" 
               className="border-blue-200 hover:bg-blue-50" 
-              onClick={() => onEdit(vacation)}
+              onClick={handleEdit}
             >
               <Edit className="mr-1 h-4 w-4" />
               {t("common.edit")}
@@ -107,7 +113,7 @@ const VacationCard: React.FC<VacationCardProps> = ({
               variant="outline"
               size="sm"
               className="text-red-600 border-red-200 hover:bg-red-50"
-              onClick={() => onDelete(vacation)}
+              onClick={handleDelete}
             >
               <Trash2 className="mr-1 h-4 w-4" />
               {t("common.delete")}

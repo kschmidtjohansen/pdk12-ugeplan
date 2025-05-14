@@ -1,4 +1,3 @@
-
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
@@ -163,6 +162,8 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
   
   const deleteVacation = async (vacation: Vacation) => {
     try {
+      console.log("Starting deletion process for vacation:", vacation.id);
+      
       // Allow administrators to delete any vacation regardless of status
       // For regular users, allow deletion of their own vacations regardless of status      
       const { error } = await supabase
@@ -171,6 +172,8 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         .eq('id', vacation.id);
       
       if (error) throw error;
+      
+      console.log("Vacation deleted successfully:", vacation.id);
       
       // Display toast notification
       toast({
@@ -214,7 +217,9 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       }
       
       // Refresh vacation list
-      fetchVacations();
+      await fetchVacations();
+      
+      return true;
       
     } catch (err) {
       console.error('Error deleting vacation:', err);
@@ -223,6 +228,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         description: err instanceof Error ? err.message : 'Error deleting vacation request',
         variant: 'destructive',
       });
+      return false;
     }
   };
 

@@ -93,9 +93,11 @@ export const useVacations = () => {
     setDeleteDialogOpen(true);
   };
   
-  // Confirm delete handler - This is the function that was not being connected properly
+  // Confirm delete handler - Fixed to properly delete the vacation
   const confirmDeleteVacation = async () => {
     if (!selectedVacation) return;
+    
+    console.log("Deleting vacation:", selectedVacation.id);
     
     // Call the deleteVacation function from useVacationActions
     await deleteVacation(selectedVacation);
