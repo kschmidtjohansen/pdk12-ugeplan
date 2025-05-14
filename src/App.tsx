@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -16,16 +16,16 @@ import { NotificationProvider } from './context/NotificationContext';
 import { ThemeProvider } from "./components/theme-provider"
 
 import MainLayout from './components/Layout/MainLayout';
+import LoginPage from './pages/LoginPage'; // Import directly instead of lazy loading
 
-// Lazy load pages for better performance
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const PlannerPage = lazy(() => import('./pages/PlannerPage'));
-const EmployeesPage = lazy(() => import('./pages/EmployeesPage'));
-const CarsPage = lazy(() => import('./pages/CarsPage'));
-const VacationPage = lazy(() => import('./pages/VacationPage'));
-const AdminPage = lazy(() => import('./pages/AdminPage'));
-const AutoPublishContainer = lazy(() => import('./components/AutoPublish/AutoPublishContainer'));
+// Lazy load other pages for better performance
+const DashboardPage = React.lazy(() => import('./pages/DashboardPage'));
+const PlannerPage = React.lazy(() => import('./pages/PlannerPage'));
+const EmployeesPage = React.lazy(() => import('./pages/EmployeesPage'));
+const CarsPage = React.lazy(() => import('./pages/CarsPage'));
+const VacationPage = React.lazy(() => import('./pages/VacationPage'));
+const AdminPage = React.lazy(() => import('./pages/AdminPage'));
+const AutoPublishContainer = React.lazy(() => import('./components/AutoPublish/AutoPublishContainer'));
 
 // Create QueryClient with optimized settings
 const queryClient = new QueryClient({
