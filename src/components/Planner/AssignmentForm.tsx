@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Car } from '@/components/Cars/Car';
+import { Car } from '@/types/car';
 import { useCars } from '@/hooks/car';
 import { format } from 'date-fns';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -15,7 +16,7 @@ import { Employee } from '@/types/employee';
 import { useEmployees } from '@/hooks/useEmployees';
 
 interface AssignmentFormProps {
-  assignment: any;
+  assignment?: any;
   onSubmit: (data: any) => void;
   onCancel: () => void;
 }
