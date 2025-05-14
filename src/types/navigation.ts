@@ -8,4 +8,5 @@ export interface NavigationItem {
   adminOnly?: boolean;
   skadelederVisible?: boolean;
   translationKey: string;
+  hasNotification?: boolean;
 }

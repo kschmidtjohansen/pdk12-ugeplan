@@ -81,18 +81,19 @@ export const useVacationRequests = () => {
           description: t('vacation.adminRequestSent', { name: actualEmployeeName }),
         });
         
-        // Notify the employee - we'll use the context function instead of direct DB insert
+        // Notify the employee
         const notifyMessage = t('vacation.adminRequestedForYou', { 
           adminName: user?.name,
           from: format(startDate, 'dd.MM.yyyy'),
           to: format(endDate, 'dd.MM.yyyy')
         });
         
-        addNotification({
+        await addNotification({
           type: 'vacation',
           title: t('vacation.requestSubmittedForYou'),
           message: notifyMessage,
-          link: '/vacation'
+          link: '/vacation',
+          targetUserId: actualEmployeeId
         });
       } else {
         toast({
@@ -110,24 +111,30 @@ export const useVacationRequests = () => {
       if (adminError) {
         console.error('Error fetching admin users:', adminError);
       } else if (adminUsers) {
+        console.log(`Found ${adminUsers.length} admins to notify about vacation request`);
+        
         // For each admin, use the context to add a notification
-        adminUsers
-          .filter(admin => admin.user_id !== user?.id) // Don't notify yourself
-          .forEach(admin => {
+        for (const admin of adminUsers) {
+          // Don't notify yourself if you're an admin
+          if (admin.user_id !== user?.id) {
             const notifyMessage = t('notifications.newVacationRequestMsg', {
               name: actualEmployeeName,
               from: format(startDate, 'dd.MM.yyyy'),
               to: format(endDate, 'dd.MM.yyyy')
             });
             
+            console.log(`Sending notification to admin ${admin.user_id}`);
+            
             // Add notification using the context
-            addNotification({
+            await addNotification({
               type: 'vacation',
               title: t('notifications.newVacationRequest'),
               message: notifyMessage,
-              link: '/vacation'
+              link: '/vacation',
+              targetUserId: admin.user_id
             });
-          });
+          }
+        }
       }
       
       return true;

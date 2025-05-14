@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Bell } from 'lucide-react';
 
 const NotificationsDropdown: React.FC = () => {
-  const { unreadCount } = useNotifications();
+  const { notifications, unreadCount } = useNotifications();
   const { t } = useTranslation();
   
   return (

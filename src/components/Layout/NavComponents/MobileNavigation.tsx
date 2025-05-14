@@ -64,7 +64,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
             key={item.path}
             to={item.path}
             className={cn(
-              "block px-3 py-2 rounded-md text-base font-medium flex items-center",
+              "block px-3 py-2 rounded-md text-base font-medium flex items-center relative",
               location.pathname === item.path 
                 ? "bg-polygon-purple text-white" 
                 : "text-gray-700 hover:bg-polygon-lightgray"
@@ -73,6 +73,9 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
           >
             <span className="mr-3">{item.icon}</span>
             {item.name}
+            {item.hasNotification && (
+              <Badge className="ml-2 h-2 w-2 p-0 bg-red-500 absolute right-3 top-3" />
+            )}
           </Link>
         ))}
         
@@ -88,24 +91,27 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
               <div className="text-base font-medium text-gray-800">{user?.name}</div>
               <div className="text-sm font-medium text-gray-500">{user?.email}</div>
             </div>
-            {isAdmin && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="ml-auto flex-shrink-0 p-1"
-              >
-                <span className="sr-only">{t('notifications.title')}</span>
-                <Bell className="h-5 w-5 text-gray-500" />
-                {unreadCount > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute top-0 right-0 transform translate-x-1 -translate-y-1 flex items-center justify-center h-4 w-4 text-[10px] p-0"
-                  >
-                    {unreadCount}
-                  </Badge>
-                )}
-              </Button>
-            )}
+            {/* Notifications - show for everyone */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-auto flex-shrink-0 p-1 relative"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                // Navigate to a notifications page or show notification dropdown
+              }}
+            >
+              <span className="sr-only">{t('notifications.title')}</span>
+              <Bell className="h-5 w-5 text-gray-500" />
+              {unreadCount > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute top-0 right-0 transform translate-x-1 -translate-y-1 flex items-center justify-center h-4 w-4 text-[10px] p-0"
+                >
+                  {unreadCount}
+                </Badge>
+              )}
+            </Button>
           </div>
           
           <div className="mt-3 space-y-1 px-2">

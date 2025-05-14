@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
@@ -25,6 +25,17 @@ const TopNavbar: React.FC = () => {
   const location = useLocation();
   const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Track if there are vacation-related notifications that need attention
+  const [hasVacationNotifications, setHasVacationNotifications] = useState(false);
+  
+  // Check for vacation-related notifications
+  useEffect(() => {
+    const vacationNotifications = notifications.filter(
+      n => !n.read && (n.type === 'vacation' || n.link?.includes('/vacation'))
+    );
+    setHasVacationNotifications(vacationNotifications.length > 0);
+  }, [notifications]);
 
   const handleLogout = () => {
     logout();
@@ -53,7 +64,13 @@ const TopNavbar: React.FC = () => {
     { path: '/planner', name: t('navigation.planner'), translationKey: 'navigation.planner', icon: <Clock className="h-5 w-5" /> },
     { path: '/employees', name: t('navigation.employees'), translationKey: 'navigation.employees', icon: <Users className="h-5 w-5" /> },
     { path: '/cars', name: t('navigation.cars'), translationKey: 'navigation.cars', icon: <Car className="h-5 w-5" /> },
-    { path: '/vacation', name: t('navigation.vacation'), translationKey: 'navigation.vacation', icon: <Calendar className="h-5 w-5" /> },
+    { 
+      path: '/vacation', 
+      name: t('navigation.vacation'), 
+      translationKey: 'navigation.vacation', 
+      icon: <Calendar className="h-5 w-5" />,
+      hasNotification: hasVacationNotifications 
+    },
     { path: '/admin', name: t('navigation.admin'), translationKey: 'navigation.admin', icon: <Settings className="h-5 w-5" />, adminOnly: true },
   ];
 
@@ -94,18 +111,16 @@ const TopNavbar: React.FC = () => {
               </button>
             </div>
             
-            {/* Notifications - Desktop */}
-            {isAdmin && (
-              <div className="hidden md:flex md:items-center md:ml-2">
-                <NotificationsDropdown 
-                  notifications={notifications}
-                  unreadCount={unreadCount}
-                  markAllAsRead={markAllAsRead}
-                  handleNotificationClick={handleNotificationClick}
-                  clearNotification={deleteNotification}
-                />
-              </div>
-            )}
+            {/* Notifications - Desktop - Show for all users */}
+            <div className="hidden md:flex md:items-center md:ml-2">
+              <NotificationsDropdown 
+                notifications={notifications}
+                unreadCount={unreadCount}
+                markAllAsRead={markAllAsRead}
+                handleNotificationClick={handleNotificationClick}
+                clearNotification={deleteNotification}
+              />
+            </div>
             
             {/* User dropdown */}
             <div className="hidden md:ml-4 md:flex md:items-center">

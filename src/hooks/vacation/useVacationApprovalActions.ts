@@ -1,188 +1,128 @@
 
 import { useState } from 'react';
-import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
-import { Vacation } from '@/types/vacation';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Vacation } from '@/types/vacation';
 import { useNotifications } from '@/context/NotificationContext';
 
-export const useVacationApprovalActions = (fetchVacations: () => Promise<void>) => {
-  const { user } = useAuth();
+export const useVacationApprovalActions = (
+  fetchVacations: () => Promise<void>
+) => {
   const { toast } = useToast();
-  const { t, currentLanguage } = useTranslation();
-  const [isApproving, setIsApproving] = useState<boolean>(false);
-  const [isRejecting, setIsRejecting] = useState<boolean>(false);
+  const { user } = useAuth();
+  const { t } = useTranslation();
   const { addNotification } = useNotifications();
-
-  // Get the employee data associated with a vacation request
-  const getEmployeeForVacation = async (vacation: Vacation) => {
-    const { data: employee, error } = await supabase
-      .from('profiles')
-      .select('id, name, email')
-      .eq('id', vacation.employeeId)
-      .single();
-      
-    if (error) {
-      console.error('Error fetching employee:', error);
-      return null;
-    }
-    
-    return employee;
-  };
-
-  // Approve a vacation request
-  const approveVacation = async (vacation: Vacation, note?: string) => {
-    if (!vacation || !user) return false;
+  
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  
+  // Approve vacation request
+  const approveVacation = async (vacation: Vacation, note?: string): Promise<boolean> => {
+    if (!user) return false;
     
     try {
-      setIsApproving(true);
+      setIsLoading(true);
       
-      // Update the vacation status
+      // Update the vacation status in the database
       const { error } = await supabase
         .from('vacations')
         .update({
           status: 'approved',
-          notes: note || null
+          notes: note || null,
+          updated_at: new Date().toISOString()
         })
         .eq('id', vacation.id);
       
       if (error) throw error;
       
-      // Get the employee who requested the vacation
-      const employee = await getEmployeeForVacation(vacation);
-      
-      if (!employee) {
-        throw new Error('Could not find employee data');
-      }
+      // Refresh vacation data
+      await fetchVacations();
       
       // Show success toast
       toast({
         title: t('vacation.requestApproved'),
-        description: t('vacation.requestApprovedMsg', {
-          name: employee.name
-        })
+        description: t('vacation.requestApprovedMsg', { name: vacation.employeeName }),
       });
       
-      // Send notification to the employee
-      if (employee.id !== user.id) {
-        console.log(`Sending approval notification to employee: ${employee.id}`);
-        
-        try {
-          await addNotification({
-            type: 'vacation',
-            title: t('notifications.vacationStatusChanged'),
-            message: t('notifications.vacationApproved'),
-            link: '/vacation',
-            targetUserId: employee.id
-          });
-          
-          console.log(`Approval notification sent to employee: ${employee.id}`);
-        } catch (notifErr) {
-          console.error(`Error sending approval notification: ${notifErr}`);
-          // Don't fail the approval if notification fails
-        }
-      }
-      
-      // After approval, update any employee leave statuses based on vacation dates
-      const { useEmployeeActions } = await import('../employee/useEmployeeActions');
-      const { updateEmployeeLeaveStatusFromVacations } = useEmployeeActions(() => Promise.resolve());
-      await updateEmployeeLeaveStatusFromVacations();
-      
-      // Refresh the vacation list
-      fetchVacations();
+      // Notify the employee
+      await addNotification({
+        type: 'vacation',
+        title: t('vacation.vacationApproved'),
+        message: t('vacation.yourRequestApproved'),
+        link: '/vacation',
+        targetUserId: vacation.employeeId
+      });
       
       return true;
     } catch (err) {
       console.error('Error approving vacation request:', err);
       toast({
         title: t('common.error'),
-        description: err instanceof Error ? err.message : 'Error approving vacation request',
-        variant: 'destructive',
+        description: err instanceof Error ? err.message : 'Failed to approve vacation request',
+        variant: "destructive",
       });
       return false;
     } finally {
-      setIsApproving(false);
+      setIsLoading(false);
     }
   };
-
-  // Reject a vacation request
-  const rejectVacation = async (vacation: Vacation, reason?: string) => {
-    if (!vacation || !user) return false;
+  
+  // Reject vacation request
+  const rejectVacation = async (vacation: Vacation, reason: string): Promise<boolean> => {
+    if (!user) return false;
     
     try {
-      setIsRejecting(true);
+      setIsLoading(true);
       
-      // Update the vacation status
+      // Update the vacation status in the database
       const { error } = await supabase
         .from('vacations')
         .update({
           status: 'rejected',
-          notes: reason || null
+          notes: reason,
+          updated_at: new Date().toISOString()
         })
         .eq('id', vacation.id);
       
       if (error) throw error;
       
-      // Get the employee who requested the vacation
-      const employee = await getEmployeeForVacation(vacation);
-      
-      if (!employee) {
-        throw new Error('Could not find employee data');
-      }
+      // Refresh vacation data
+      await fetchVacations();
       
       // Show success toast
       toast({
         title: t('vacation.requestRejected'),
-        description: t('vacation.requestRejectedMsg', {
-          name: employee.name
-        })
+        description: t('vacation.requestRejectedMsg', { name: vacation.employeeName }),
       });
       
-      // Send notification to the employee
-      if (employee.id !== user.id) {
-        console.log(`Sending rejection notification to employee: ${employee.id}`);
-        
-        try {
-          await addNotification({
-            type: 'vacation',
-            title: t('notifications.vacationStatusChanged'),
-            message: t('notifications.vacationRejected', { 
-              reason: reason || t('common.noReasonProvided')
-            }),
-            link: '/vacation',
-            targetUserId: employee.id
-          });
-          
-          console.log(`Rejection notification sent to employee: ${employee.id}`);
-        } catch (notifErr) {
-          console.error(`Error sending rejection notification: ${notifErr}`);
-          // Don't fail the rejection if notification fails
-        }
-      }
-      
-      // Refresh the vacation list
-      fetchVacations();
+      // Notify the employee
+      await addNotification({
+        type: 'vacation',
+        title: t('vacation.vacationStatusChanged'),
+        message: t('vacation.yourRequestRejected', { reason: reason }),
+        link: '/vacation',
+        targetUserId: vacation.employeeId
+      });
       
       return true;
     } catch (err) {
       console.error('Error rejecting vacation request:', err);
       toast({
         title: t('common.error'),
-        description: err instanceof Error ? err.message : 'Error rejecting vacation request',
-        variant: 'destructive',
+        description: err instanceof Error ? err.message : 'Failed to reject vacation request',
+        variant: "destructive",
       });
       return false;
     } finally {
-      setIsRejecting(false);
+      setIsLoading(false);
     }
   };
-
+  
   return {
-    isApproving,
-    isRejecting,
+    isLoading,
     approveVacation,
     rejectVacation
   };
 };
+
