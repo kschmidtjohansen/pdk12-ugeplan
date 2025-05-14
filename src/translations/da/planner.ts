@@ -50,7 +50,8 @@ const planner = {
   unavailable: 'Utilgængelig',
   errorCreatingAssignment: 'Der opstod en fejl ved oprettelse af opgaven',
   errorUpdatingAssignment: 'Der opstod en fejl ved opdatering af opgaven',
-  errorDeletingAssignment: 'Der opstod en fejl ved sletning af opgaven'
+  errorDeletingAssignment: 'Der opstod en fejl ved sletning af opgaven',
+  selectDate: 'Vælg dato'
 };
 
 export default planner;

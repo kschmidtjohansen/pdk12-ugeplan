@@ -26,7 +26,9 @@ const common = {
   status: 'Status',
   saving: 'Gemmer...',
   noReasonProvided: 'Ingen årsag angivet',
-  noData: 'Ingen data tilgængelig'
+  noData: 'Ingen data tilgængelig',
+  areYouSure: 'Er du sikker?',
+  deleteWarning: 'Er du sikker på at du vil slette?'
 };
 
 export default common;

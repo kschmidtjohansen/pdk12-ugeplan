@@ -93,14 +93,24 @@ export const useVacations = () => {
     setDeleteDialogOpen(true);
   };
   
-  // Confirm delete handler
+  // Confirm delete handler - This is the function that was not being connected properly
   const confirmDeleteVacation = async () => {
     if (!selectedVacation) return;
     
+    // Call the deleteVacation function from useVacationActions
     await deleteVacation(selectedVacation);
     
+    // Close the dialog and reset state
     setDeleteDialogOpen(false);
     setSelectedVacation(null);
+  };
+
+  // Handle delete for the current vacation (from the edit dialog)
+  const handleDeleteCurrentVacation = () => {
+    if (selectedVacation) {
+      setDeleteDialogOpen(true);
+      setEditDialogOpen(false);
+    }
   };
 
   return {
@@ -130,6 +140,7 @@ export const useVacations = () => {
     handleEditVacation,
     submitEditVacation,
     handleDeleteVacation,
-    confirmDeleteVacation
+    confirmDeleteVacation,
+    handleDeleteCurrentVacation
   };
 };
