@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { NotificationType } from '@/types/notification';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +11,8 @@ export const useNotificationRealtime = (
   setUnreadCount: (updater: (prev: number) => number) => void
 ) => {
   const { toast } = useToast();
+  // Use a ref to track notifications we've already shown as toasts in this session
+  const shownNotificationsRef = useRef<Set<string>>(new Set());
 
   // Listen for real-time notifications
   useEffect(() => {
@@ -38,8 +40,9 @@ export const useNotificationRealtime = (
           
           // A new notification has been inserted
           if (payload.new) {
+            const notificationId = payload.new.id;
             const newNotification: NotificationType = {
-              id: payload.new.id,
+              id: notificationId,
               type: payload.new.type,
               title: payload.new.title,
               message: payload.new.message,
@@ -67,11 +70,19 @@ export const useNotificationRealtime = (
             if (!payload.new.read) {
               setUnreadCount((prev: number) => prev + 1);
               
-              // Show toast for new notification
-              toast({
-                title: newNotification.title,
-                description: newNotification.message,
-              });
+              // Show toast for new notification ONLY if we haven't shown it before
+              if (!shownNotificationsRef.current.has(notificationId)) {
+                shownNotificationsRef.current.add(notificationId);
+                
+                toast({
+                  title: newNotification.title,
+                  description: newNotification.message,
+                });
+                
+                console.log('Toast shown for notification:', notificationId);
+              } else {
+                console.log('Notification toast already shown, skipping:', notificationId);
+              }
             }
           }
         }

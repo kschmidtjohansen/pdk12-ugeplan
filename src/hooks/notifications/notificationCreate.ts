@@ -1,5 +1,5 @@
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { NotificationType } from '@/types/notification';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +11,8 @@ export const useNotificationCreate = (
   setUnreadCount: (count: number | ((prev: number) => number)) => void
 ) => {
   const { toast } = useToast();
+  // Track notifications we've created to avoid showing duplicate toasts
+  const createdNotificationsRef = useRef<Set<string>>(new Set());
 
   // Add a new notification
   const addNotification = useCallback(async (
@@ -60,8 +62,9 @@ export const useNotificationCreate = (
       
       // If notification is for the current user, update local state
       if (userId === user.id && data && data[0]) {
+        const notificationId = data[0].id;
         const newNotification: NotificationType = {
-          id: data[0].id,
+          id: notificationId,
           type: data[0].type,
           title: data[0].title,
           message: data[0].message,
@@ -80,11 +83,19 @@ export const useNotificationCreate = (
         // Increment unread count
         setUnreadCount((prev: number) => prev + 1);
         
-        // Show toast for new notification
-        toast({
-          title: newNotification.title,
-          description: newNotification.message,
-        });
+        // Show toast for new notification only if we haven't shown it before
+        if (!createdNotificationsRef.current.has(notificationId)) {
+          createdNotificationsRef.current.add(notificationId);
+          
+          toast({
+            title: newNotification.title,
+            description: newNotification.message,
+          });
+          
+          console.log('Toast shown for created notification:', notificationId);
+        } else {
+          console.log('Notification already shown, skipping toast:', notificationId);
+        }
       }
       
       return data?.[0]?.id;

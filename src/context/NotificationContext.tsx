@@ -55,16 +55,20 @@ export const NotificationProvider: React.FC<{
       userRole: user?.role,
       notificationCount: notifications.length,
       unreadCount,
-      loading
+      loading,
+      initialFetchDone: initialFetchDoneRef.current
     });
   }, [notifications.length, unreadCount, loading, user?.role]);
   
-  // Fetch notifications when the user changes, but only once
+  // Fetch notifications when the user changes, but only once per session
   useEffect(() => {
     if (user && !initialFetchDoneRef.current) {
-      console.log(`NotificationProvider: Fetching notifications for user ${user.id} (${user.role})`);
+      console.log(`NotificationProvider: Initial fetch for user ${user.id} (${user.role})`);
       fetchNotifications();
       initialFetchDoneRef.current = true;
+    } else if (!user) {
+      // Reset flag if user logs out
+      initialFetchDoneRef.current = false;
     }
   }, [user, fetchNotifications]);
 
