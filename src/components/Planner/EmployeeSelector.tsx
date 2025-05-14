@@ -30,12 +30,15 @@ const EmployeeSelector = ({ selectedEmployees = [], employees = [], onEmployeeTo
   const { t } = useTranslation();
   const { vacations } = useVacations();
 
+  // Ensure employees is always an array
+  const safeEmployees = Array.isArray(employees) ? employees : [];
+
   // Compute employee availability status based on vacations
   const employeeStatus = useMemo(() => {
     const status: Record<string, { onLeave: boolean, reason?: string }> = {};
 
-    if (Array.isArray(employees)) {
-      employees.forEach(employee => {
+    if (safeEmployees.length > 0) {
+      safeEmployees.forEach(employee => {
         status[employee.id] = { onLeave: employee.onLeave || false };
       });
     }
@@ -61,7 +64,7 @@ const EmployeeSelector = ({ selectedEmployees = [], employees = [], onEmployeeTo
     }
 
     return status;
-  }, [employees, vacations, t]);
+  }, [safeEmployees, vacations, t]);
 
   const [open, setOpen] = React.useState(false);
 
@@ -85,8 +88,8 @@ const EmployeeSelector = ({ selectedEmployees = [], employees = [], onEmployeeTo
           <CommandInput placeholder={t('planner.searchEmployees')} />
           <CommandEmpty>{t('planner.noEmployeesFound')}</CommandEmpty>
           <CommandGroup className="max-h-60 overflow-auto">
-            {Array.isArray(employees) && employees.length > 0 ? (
-              employees.map((employee) => {
+            {safeEmployees.length > 0 ? (
+              safeEmployees.map((employee) => {
                 const isSelected = selectedEmployees.includes(employee.id);
                 const status = employeeStatus[employee.id];
                 return (

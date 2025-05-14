@@ -23,8 +23,8 @@ interface AssignmentFormProps {
 
 const AssignmentForm: React.FC<AssignmentFormProps> = ({ assignment, onSubmit, onCancel }) => {
   const { t } = useTranslation();
-  const { cars } = useCars();
-  const { employees } = useEmployees();
+  const { cars = [] } = useCars();
+  const { employees = [] } = useEmployees();
 
   const [title, setTitle] = useState(assignment?.title || '');
   const [description, setDescription] = useState(assignment?.description || '');

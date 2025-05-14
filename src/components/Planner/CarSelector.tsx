@@ -33,9 +33,12 @@ const CarSelector: React.FC<CarSelectorProps> = ({
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
 
+  // Make sure cars is always an array
+  const safeCars = Array.isArray(cars) ? cars : [];
+  
   // Safely find the selected car, with a null check
-  const selectedCarInfo = selectedCar && cars
-    ? cars.find((car) => car.id === selectedCar)
+  const selectedCarInfo = selectedCar && safeCars.length > 0
+    ? safeCars.find((car) => car.id === selectedCar)
     : undefined;
 
   return (
@@ -62,8 +65,8 @@ const CarSelector: React.FC<CarSelectorProps> = ({
           <CommandInput placeholder={t("planner.searchCars")} />
           <CommandEmpty>{t("planner.noCarsFound")}</CommandEmpty>
           <CommandGroup className="max-h-60 overflow-auto">
-            {Array.isArray(cars) && cars.length > 0 ? (
-              cars.map((car) => (
+            {safeCars.length > 0 ? (
+              safeCars.map((car) => (
                 <CommandItem
                   key={car.id}
                   value={car.id}

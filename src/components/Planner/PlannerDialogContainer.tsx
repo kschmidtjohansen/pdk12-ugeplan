@@ -3,11 +3,6 @@ import React from 'react';
 import { Assignment } from '@/types/assignment';
 import AssignmentForm from './AssignmentForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Employee } from '@/types/employee';
-import { Car } from '@/types/car';
-import { useVacations } from '@/hooks/useVacations';
-import { useEmployees } from '@/hooks/useEmployees';
-import { useCars } from '@/hooks/car';
 import { useTranslation } from '@/context/TranslationContext';
 
 interface PlannerDialogContainerProps {
