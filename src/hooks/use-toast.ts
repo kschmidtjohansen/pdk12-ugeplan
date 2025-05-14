@@ -1,8 +1,9 @@
-// Import directly from Radix UI Toast instead of our re-export
+
 import * as React from "react"
-import { 
-  type ToastActionElement, 
-  type ToastProps 
+
+import type {
+  ToastActionElement,
+  ToastProps,
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 5
@@ -12,8 +13,10 @@ type ToasterToast = ToastProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
-  action?: ToastActionElement
+  action?: ToasterActionElement
 }
+
+type ToasterActionElement = React.ReactNode
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -53,17 +56,54 @@ interface State {
   toasts: ToasterToast[]
 }
 
+// Session storage key for tracking shown toasts
+const SHOWN_TOASTS_KEY = "polygon-shown-toast-ids";
+
+// Get already shown toast IDs from session storage
+const getShownToastIds = (): Set<string> => {
+  try {
+    const stored = localStorage.getItem(SHOWN_TOASTS_KEY);
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch (err) {
+    console.error("Error reading toast history from localStorage:", err);
+    return new Set();
+  }
+};
+
+// Save a toast ID to session storage
+const saveShownToastId = (id: string): void => {
+  try {
+    const shownIds = getShownToastIds();
+    shownIds.add(id);
+    localStorage.setItem(SHOWN_TOASTS_KEY, JSON.stringify(Array.from(shownIds)));
+  } catch (err) {
+    console.error("Error saving toast history to localStorage:", err);
+  }
+};
+
+// Check if a toast has already been shown this session
+const hasToastBeenShown = (title: string, description?: string): boolean => {
+  try {
+    const shownIds = getShownToastIds();
+    const toastKey = `${title}:${description || ''}`;
+    return shownIds.has(toastKey);
+  } catch (err) {
+    console.error("Error checking toast history:", err);
+    return false;
+  }
+};
+
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
-    case actionTypes.ADD_TOAST:
+    case "ADD_TOAST":
       return {
         ...state,
         toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
       }
 
-    case actionTypes.UPDATE_TOAST:
+    case "UPDATE_TOAST":
       return {
         ...state,
         toasts: state.toasts.map((t) =>
@@ -71,17 +111,16 @@ const reducer = (state: State, action: Action): State => {
         ),
       }
 
-    case actionTypes.DISMISS_TOAST: {
+    case "DISMISS_TOAST": {
       const { toastId } = action
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
-        addToRemoveQueue(toastId)
-      } else {
-        state.toasts.forEach((toast) => {
-          addToRemoveQueue(toast.id)
-        })
+        toastTimeouts.set(
+          toastId,
+          setTimeout(() => {
+            toastTimeouts.delete(toastId)
+          }, TOAST_REMOVE_DELAY)
+        )
       }
 
       return {
@@ -96,7 +135,7 @@ const reducer = (state: State, action: Action): State => {
         ),
       }
     }
-    case actionTypes.REMOVE_TOAST:
+    case "REMOVE_TOAST":
       if (action.toastId === undefined) {
         return {
           ...state,
@@ -121,34 +160,38 @@ function dispatch(action: Action) {
   })
 }
 
-function toast({
-  ...props
-}: Omit<ToasterToast, "id">) {
+type Toast = Omit<ToasterToast, "id">
+
+function toast({ ...props }: Toast) {
+  // Check for duplicates based on content
+  if (props.title && hasToastBeenShown(String(props.title), props.description ? String(props.description) : undefined)) {
+    console.log('Toast already shown, skipping:', props.title);
+    return {
+      id: '',
+      dismiss: () => {}
+    }
+  }
+
   const id = genId()
 
-  const update = (props: Omit<ToasterToast, "id">) =>
-    dispatch({
-      type: actionTypes.UPDATE_TOAST,
-      toast: { ...props, id },
-    })
-  const dismiss = () => dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id })
+  // Save this toast to session storage
+  if (props.title) {
+    const toastKey = `${props.title}:${props.description || ''}`;
+    saveShownToastId(toastKey);
+  }
 
   dispatch({
-    type: actionTypes.ADD_TOAST,
+    type: "ADD_TOAST",
     toast: {
       ...props,
       id,
       open: true,
-      onOpenChange: (open) => {
-        if (!open) dismiss()
-      },
     },
   })
 
   return {
-    id: id,
-    dismiss,
-    update,
+    id,
+    dismiss: () => dispatch({ type: "DISMISS_TOAST", toastId: id }),
   }
 }
 
@@ -168,24 +211,9 @@ function useToast() {
   return {
     ...state,
     toast,
-    dismiss: (toastId?: string) => dispatch({ type: actionTypes.DISMISS_TOAST, toastId }),
+    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    clear: () => dispatch({ type: "REMOVE_TOAST" }),
   }
-}
-
-function addToRemoveQueue(toastId: string) {
-  if (toastTimeouts.has(toastId)) {
-    return
-  }
-
-  const timeout = setTimeout(() => {
-    toastTimeouts.delete(toastId)
-    dispatch({
-      type: actionTypes.REMOVE_TOAST,
-      toastId,
-    })
-  }, TOAST_REMOVE_DELAY)
-
-  toastTimeouts.set(toastId, timeout)
 }
 
 export { useToast, toast }

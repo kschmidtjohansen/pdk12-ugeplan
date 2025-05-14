@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNotificationFetching } from './notifications/notificationFetching';
 import { useNotificationActions } from './notifications/notificationActions'; 
@@ -7,8 +7,30 @@ import { useNotificationCreate } from './notifications/notificationCreate';
 import { useNotificationRealtime } from './notifications/notificationRealtime';
 import { useVacationNotifications } from './notifications/vacationNotifications';
 
+// Key for tracking fetch status in localStorage
+const NOTIFICATION_SYSTEM_READY_KEY = "polygon-notification-system-ready";
+
+// Track if the notification system initialization has happened in this browser
+const isNotificationSystemReady = (): boolean => {
+  try {
+    return localStorage.getItem(NOTIFICATION_SYSTEM_READY_KEY) === 'true';
+  } catch (err) {
+    return false;
+  }
+};
+
+// Mark notification system as ready
+const markNotificationSystemReady = (): void => {
+  try {
+    localStorage.setItem(NOTIFICATION_SYSTEM_READY_KEY, 'true');
+  } catch (err) {
+    console.error("Error saving notification system status:", err);
+  }
+};
+
 export const useNotifications = () => {
   const { user } = useAuth();
+  const systemReadyRef = useRef<boolean>(isNotificationSystemReady());
   
   // Use the separate notification hooks
   const { 
@@ -34,23 +56,14 @@ export const useNotifications = () => {
   // Set up vacation notifications processing
   const { createNotificationsForPendingRequests } = useVacationNotifications(user, addNotification);
   
-  // Initial fetch on component mount
-  useEffect(() => {
-    if (user) {
-      console.log(`Initial notification fetch triggered for user ${user.id} (${user.role})`);
-      fetchNotifications();
-    } else {
-      console.log('No user, clearing notifications');
-      setNotifications([]);
-      setUnreadCount(0);
-    }
-  }, [user, fetchNotifications, setNotifications, setUnreadCount]);
-  
   // Run once after notifications are fetched to check for missing admin notifications
   useEffect(() => {
-    if (user?.role === 'administrator' && !loading && notifications.length >= 0) {
+    // Only run once per browser session/reload
+    if (user?.role === 'administrator' && !loading && notifications.length >= 0 && !systemReadyRef.current) {
       console.log('Checking for any missing admin notifications for pending vacations');
       createNotificationsForPendingRequests();
+      systemReadyRef.current = true;
+      markNotificationSystemReady();
     }
   }, [user, loading, notifications.length, createNotificationsForPendingRequests]);
   

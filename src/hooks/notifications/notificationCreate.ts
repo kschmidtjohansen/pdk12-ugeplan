@@ -5,14 +5,45 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { sortNotifications } from '@/utils/notifications';
 
+// Key for localStorage to track notifications created across browser sessions
+const NOTIFICATION_CREATED_KEY = "polygon-notification-created";
+
+// Get previously created notification content hashes
+const getCreatedNotificationHashes = (): Set<string> => {
+  try {
+    const stored = localStorage.getItem(NOTIFICATION_CREATED_KEY);
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch (err) {
+    console.error("Error reading created notification history from localStorage:", err);
+    return new Set();
+  }
+};
+
+// Save a notification content hash to localStorage
+const saveCreatedNotificationHash = (hash: string): void => {
+  try {
+    const hashes = getCreatedNotificationHashes();
+    hashes.add(hash);
+    localStorage.setItem(NOTIFICATION_CREATED_KEY, JSON.stringify(Array.from(hashes)));
+  } catch (err) {
+    console.error("Error saving notification hash to localStorage:", err);
+  }
+};
+
+// Generate a hash for notification content to identify duplicates
+const hashNotification = (notification: Omit<NotificationType, 'id' | 'read' | 'date'> & { targetUserId?: string }): string => {
+  const userId = notification.targetUserId || '';
+  return `${userId}:${notification.type}:${notification.title}:${notification.message || ''}`;
+};
+
 export const useNotificationCreate = (
   user: any | null,
   setNotifications: (notifications: NotificationType[] | ((prev: NotificationType[]) => NotificationType[])) => void,
   setUnreadCount: (count: number | ((prev: number) => number)) => void
 ) => {
   const { toast } = useToast();
-  // Track notifications we've created to avoid showing duplicate toasts
-  const createdNotificationsRef = useRef<Set<string>>(new Set());
+  // Use localStorage-backed tracking to prevent duplicate creations
+  const createdNotificationsRef = useRef<Set<string>>(getCreatedNotificationHashes());
 
   // Add a new notification
   const addNotification = useCallback(async (
@@ -26,6 +57,15 @@ export const useNotificationCreate = (
     try {
       // Use the provided target user ID or the current user's ID
       const userId = notification.targetUserId || user.id;
+      
+      // Generate a content hash to identify duplicates
+      const notificationHash = hashNotification(notification);
+      
+      // Check if we've already created this notification
+      if (createdNotificationsRef.current.has(notificationHash)) {
+        console.log('Similar notification already created, skipping:', notification);
+        return null;
+      }
       
       console.log(`Creating notification for user ${userId}:`, notification);
       
@@ -60,6 +100,10 @@ export const useNotificationCreate = (
       
       console.log('Notification created successfully:', data);
       
+      // Track that we've created this notification
+      createdNotificationsRef.current.add(notificationHash);
+      saveCreatedNotificationHash(notificationHash);
+      
       // If notification is for the current user, update local state
       if (userId === user.id && data && data[0]) {
         const notificationId = data[0].id;
@@ -83,19 +127,7 @@ export const useNotificationCreate = (
         // Increment unread count
         setUnreadCount((prev: number) => prev + 1);
         
-        // Show toast for new notification only if we haven't shown it before
-        if (!createdNotificationsRef.current.has(notificationId)) {
-          createdNotificationsRef.current.add(notificationId);
-          
-          toast({
-            title: newNotification.title,
-            description: newNotification.message,
-          });
-          
-          console.log('Toast shown for created notification:', notificationId);
-        } else {
-          console.log('Notification already shown, skipping toast:', notificationId);
-        }
+        // Toast will be handled by the realtime subscription
       }
       
       return data?.[0]?.id;

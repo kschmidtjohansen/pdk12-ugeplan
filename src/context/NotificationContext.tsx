@@ -4,6 +4,9 @@ import { NotificationType } from '@/types/notification';
 import { useNotifications as useNotificationsHook } from '@/hooks/useNotifications';
 import { useAuth } from '@/context/AuthContext';
 
+// Key for tracking initial fetch in localStorage
+const NOTIFICATION_FETCHED_KEY = "polygon-notifications-fetched";
+
 interface NotificationContextType {
   notifications: NotificationType[];
   unreadCount: number;
@@ -48,6 +51,7 @@ export const NotificationProvider: React.FC<{
   
   const { user } = useAuth();
   const initialFetchDoneRef = useRef(false);
+  const sessionFetchDoneRef = useRef(false);
   
   // Debug log when provider updates
   useEffect(() => {
@@ -56,19 +60,32 @@ export const NotificationProvider: React.FC<{
       notificationCount: notifications.length,
       unreadCount,
       loading,
-      initialFetchDone: initialFetchDoneRef.current
+      initialFetchDone: initialFetchDoneRef.current,
+      sessionFetchDone: sessionFetchDoneRef.current
     });
   }, [notifications.length, unreadCount, loading, user?.role]);
   
-  // Fetch notifications when the user changes, but only once per session
+  // Centralize notification fetching - only fetch once per session
   useEffect(() => {
-    if (user && !initialFetchDoneRef.current) {
+    if (user && !sessionFetchDoneRef.current) {
       console.log(`NotificationProvider: Initial fetch for user ${user.id} (${user.role})`);
       fetchNotifications();
-      initialFetchDoneRef.current = true;
+      
+      // Mark as fetched for this session
+      sessionFetchDoneRef.current = true;
+      
+      // Also mark as fetched across app reloads
+      if (!initialFetchDoneRef.current) {
+        try {
+          localStorage.setItem(NOTIFICATION_FETCHED_KEY, 'true');
+          initialFetchDoneRef.current = true;
+        } catch (err) {
+          console.error("Error saving notification fetch status to localStorage:", err);
+        }
+      }
     } else if (!user) {
-      // Reset flag if user logs out
-      initialFetchDoneRef.current = false;
+      // Reset session flag if user logs out
+      sessionFetchDoneRef.current = false;
     }
   }, [user, fetchNotifications]);
 

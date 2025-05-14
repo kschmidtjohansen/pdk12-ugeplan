@@ -5,32 +5,50 @@ import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { safeProperty } from '@/utils/dbHelpers';
 
+// Key for localStorage to track vacation notification processing
+const PROCESSED_VACATION_IDS_KEY = "polygon-processed-vacation-ids";
+
+// Get already processed vacation IDs from localStorage
+const getProcessedVacationIds = (): Set<string> => {
+  try {
+    const stored = localStorage.getItem(PROCESSED_VACATION_IDS_KEY);
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch (err) {
+    console.error("Error reading processed vacation IDs from localStorage:", err);
+    return new Set();
+  }
+};
+
+// Save processed vacation IDs to localStorage
+const saveProcessedVacationId = (id: string): void => {
+  try {
+    const ids = getProcessedVacationIds();
+    ids.add(id);
+    localStorage.setItem(PROCESSED_VACATION_IDS_KEY, JSON.stringify(Array.from(ids)));
+  } catch (err) {
+    console.error("Error saving processed vacation ID to localStorage:", err);
+  }
+};
+
 export const useVacationNotifications = (
   user: any | null,
   addNotification: (notification: any) => Promise<string | null>
 ) => {
   const { t, currentLanguage } = useTranslation();
-  // Use a ref to track if we've already checked for notifications in this session
-  const hasCheckedRef = useRef(false);
   
-  // Also track vacation IDs we've already processed
-  const processedVacationIdsRef = useRef<Set<string>>(new Set());
+  // Use localStorage-backed tracking to prevent duplicate notifications
+  const processedVacationIdsRef = useRef<Set<string>>(getProcessedVacationIds());
   
   // Create notifications for pending vacation requests
   const createNotificationsForPendingRequests = useCallback(async () => {
     // Only run for administrators
     if (!user || user.role !== 'administrator') {
-      return;
-    }
-    
-    // Skip if we've already checked in this session
-    if (hasCheckedRef.current) {
-      console.log('Already checked for pending vacation notifications in this session, skipping');
+      console.log('Not an admin user, skipping vacation notification check');
       return;
     }
     
     try {
-      console.log('Checking for missing admin notifications for pending vacation requests...');
+      console.log('Checking for pending vacation requests that need notifications...');
       
       const { data: pendingVacations, error } = await supabase
         .from('vacations')
@@ -51,7 +69,6 @@ export const useVacationNotifications = (
       
       if (!pendingVacations || pendingVacations.length === 0) {
         console.log('No pending vacation requests found');
-        hasCheckedRef.current = true; // Mark as checked even if none found
         return;
       }
       
@@ -93,9 +110,9 @@ export const useVacationNotifications = (
       
       // Create notifications for pending requests if needed
       for (const vacation of pendingVacations) {
-        // Skip if we've already processed this vacation in this session
+        // Skip if already processed in any previous session
         if (processedVacationIdsRef.current.has(vacation.id)) {
-          console.log(`Already processed vacation ${vacation.id} in this session, skipping`);
+          console.log(`Already processed vacation ${vacation.id}, skipping`);
           continue;
         }
         
@@ -131,8 +148,10 @@ export const useVacationNotifications = (
               link: '/vacation'
             });
             
-            // Mark as processed regardless of success to avoid spamming
+            // Mark as processed
             processedVacationIdsRef.current.add(vacation.id);
+            saveProcessedVacationId(vacation.id);
+            
             console.log(`Created notification for pending request:`, notificationId);
           } catch (notifErr) {
             console.error('Error creating notification for pending request:', notifErr);
@@ -140,24 +159,22 @@ export const useVacationNotifications = (
         } else {
           // Mark as processed to avoid checking again
           processedVacationIdsRef.current.add(vacation.id);
+          saveProcessedVacationId(vacation.id);
           console.log(`Notification already exists for vacation ${vacation.id}, skipping`);
         }
       }
-      
-      // Mark that we've checked for notifications in this session
-      hasCheckedRef.current = true;
     } catch (err) {
       console.error('Error checking for pending vacation requests:', err);
     }
   }, [user, t, currentLanguage, addNotification]);
 
-  // Run when component mounts, but only once
+  // Run when user becomes an admin
   useEffect(() => {
-    if (user?.role === 'administrator' && !hasCheckedRef.current) {
+    if (user?.role === 'administrator') {
       console.log('Admin user detected, checking for pending vacation notifications');
       createNotificationsForPendingRequests();
     }
-  }, [user, createNotificationsForPendingRequests]);
+  }, [user?.role, createNotificationsForPendingRequests]);
 
   return {
     createNotificationsForPendingRequests
