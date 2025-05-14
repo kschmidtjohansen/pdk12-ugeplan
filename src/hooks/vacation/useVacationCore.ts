@@ -4,6 +4,7 @@ import { useVacationFormState } from './useVacationFormState';
 import { useVacationEditState } from './useVacationEditState';
 import { useVacationDeleteState } from './useVacationDeleteState';
 import { useVacationActions } from './useVacationActions';
+import { useVacationRequests } from './useVacationRequests';
 import { useState } from 'react';
 import { Vacation } from '@/types/vacation';
 
@@ -72,11 +73,8 @@ export const useVacationCore = () => {
     rejectVacation,
   } = useVacationActions(fetchVacations);
 
-  // Simplified implementation to match the expected interface in VacationContext
-  const submitVacationRequest = async (e: React.FormEvent) => {
-    e.preventDefault();
-    return true;
-  };
+  // Get vacation request functionality
+  const { submitVacationRequest } = useVacationRequests();
 
   return {
     // Data
