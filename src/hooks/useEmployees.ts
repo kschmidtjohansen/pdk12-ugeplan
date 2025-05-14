@@ -2,6 +2,7 @@
 import { useEmployeeData } from './employee/useEmployeeData';
 import { useEmployeeFormState } from './employee/useEmployeeFormState';
 import { useEmployeeActions } from './employee/useEmployeeActions';
+import { Vacation } from '@/types/vacation';
 
 // Main hook combining all employee-related functionality
 export const useEmployees = () => {
@@ -21,7 +22,8 @@ export const useEmployees = () => {
     createEmployee: createEmployeeAction,
     updateEmployee: updateEmployeeAction,
     deleteEmployee: deleteEmployeeAction,
-    toggleEmployeeLeave: toggleEmployeeLeaveAction
+    toggleEmployeeLeave: toggleEmployeeLeaveAction,
+    updateEmployeeLeaveStatusFromVacations: updateEmployeeLeaveStatusAction
   } = useEmployeeActions(fetchEmployees);
 
   // Wrapper functions that use the current state from useEmployeeFormState
@@ -31,7 +33,7 @@ export const useEmployees = () => {
 
   const updateEmployee = async () => {
     if (currentEmployee) {
-      return await updateEmployeeAction(currentEmployee, formData);
+      return await updateEmployeeAction(currentEmployee.id, formData);
     }
     return false;
   };
@@ -42,6 +44,11 @@ export const useEmployees = () => {
 
   const toggleEmployeeLeave = async (employee: typeof employees[0]) => {
     return await toggleEmployeeLeaveAction(employee, employees);
+  };
+  
+  // Now we pass the vacations from outside
+  const updateEmployeeLeaveStatusFromVacations = async (vacations: Vacation[]) => {
+    return await updateEmployeeLeaveStatusAction(employees, vacations);
   };
 
   return {
@@ -58,6 +65,7 @@ export const useEmployees = () => {
     createEmployee,
     updateEmployee,
     deleteEmployee,
-    toggleEmployeeLeave
+    toggleEmployeeLeave,
+    updateEmployeeLeaveStatusFromVacations
   };
 };

@@ -1,13 +1,12 @@
 
 import { useState, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
-import { useVacations } from '@/hooks/useVacations';
+import { Vacation } from '@/types/vacation';
 
 export const useEmployeeActions = (fetchEmployees: () => void) => {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { vacations } = useVacations();
 
   // Create a new employee in the database
   const createEmployee = useCallback(async (employeeData: any) => {
@@ -107,7 +106,7 @@ export const useEmployeeActions = (fetchEmployees: () => void) => {
   }, [t, toast, fetchEmployees]);
 
   // Update employee leave status based on active vacations
-  const updateEmployeeLeaveStatusFromVacations = useCallback(async (employees: any[]) => {
+  const updateEmployeeLeaveStatusFromVacations = useCallback(async (employees: any[], vacations: Vacation[]) => {
     try {
       // Check for active vacations and update employee status accordingly
       const today = new Date();
@@ -139,7 +138,7 @@ export const useEmployeeActions = (fetchEmployees: () => void) => {
       console.error('Error updating employee leave status from vacations:', error);
       return false;
     }
-  }, [vacations, fetchEmployees]);
+  }, [fetchEmployees]);
 
   return {
     createEmployee,
