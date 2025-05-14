@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -268,7 +267,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   const requestPasswordReset = async (email: string) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      // Update to include the full URL path to the password reset page
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/password-reset',
+      });
       return { error: error ? error.message : null };
     } catch (error) {
       console.error('Password reset error:', error);

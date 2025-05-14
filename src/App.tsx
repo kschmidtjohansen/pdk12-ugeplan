@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
@@ -40,8 +39,10 @@ function App() {
       <Routes>
         {/* Public routes without layout */}
         <Route path="/login" element={<LoginPage />} />
+        
+        {/* Support both URL formats for password reset */}
         <Route path="/password-reset" element={<PasswordResetPage />} />
-        <Route path="/password-reset/:token" element={<PasswordResetPage />} />
+        <Route path="/reset-password" element={<PasswordResetPage />} />
         
         {/* Protected routes wrapped with MainLayout */}
         <Route path="/" element={
