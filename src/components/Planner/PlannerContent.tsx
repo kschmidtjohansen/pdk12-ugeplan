@@ -28,7 +28,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
 }) => {
   return (
     <AssignmentList
+      date={weekDates.start.toISOString().split('T')[0]} // Use the start date of the week
       assignments={weekAssignments}
+      canManage={true}
       onEditAssignment={onEditAssignment}
       onDeleteAssignment={onDeleteAssignment}
       onPublishAssignment={onPublishAssignment}

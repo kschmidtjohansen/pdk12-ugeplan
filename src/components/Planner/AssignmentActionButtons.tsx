@@ -12,6 +12,7 @@ interface AssignmentActionButtonsProps {
   onEdit: () => void;
   onDelete: () => void;
   onPublish?: () => void;
+  size?: 'default' | 'sm' | 'lg' | 'xs';
 }
 
 const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = ({
@@ -19,7 +20,8 @@ const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = ({
   canEdit,
   onEdit,
   onDelete,
-  onPublish
+  onPublish,
+  size = 'sm'
 }) => {
   const { canPublishTasks } = usePermissions();
   const { t } = useTranslation();
@@ -29,13 +31,13 @@ const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = ({
   
   return (
     <div className="flex gap-1">
-      <Button variant="ghost" size="sm" onClick={onEdit} className="h-8">
+      <Button variant="ghost" size={size} onClick={onEdit} className="h-8">
         <Edit className="h-4 w-4" />
       </Button>
       {canPublishTasks && !isPublished && onPublish && (
         <Button 
           variant="ghost" 
-          size="sm" 
+          size={size} 
           onClick={onPublish} 
           className="h-8"
           title={t('planner.publishAssignment')}
@@ -43,7 +45,7 @@ const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = ({
           <Send className="h-4 w-4 text-polygon-blue" />
         </Button>
       )}
-      <Button variant="ghost" size="sm" onClick={onDelete} className="h-8">
+      <Button variant="ghost" size={size} onClick={onDelete} className="h-8">
         <Trash2 className="h-4 w-4 text-red-500" />
       </Button>
     </div>

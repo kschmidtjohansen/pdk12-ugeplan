@@ -15,6 +15,15 @@ interface AssignmentListProps {
   onEdit?: (assignment: Assignment) => void;
   onDelete?: (assignment: Assignment) => void;
   onPublish?: (assignmentId: string) => void;
+  // Add these missing props to match PlannerContent usage
+  onEditAssignment?: (assignment: Assignment) => void;
+  onDeleteAssignment?: (assignmentId: string) => void;
+  onPublishAssignment?: (assignmentId: string) => void;
+  onPublishDay?: () => void;
+  onCreateAssignment?: (date: string) => void;
+  selectedWeek?: number;
+  selectedYear?: number;
+  weekDates?: ReturnType<typeof import('@/utils/weekDates').getWeekDates>;
 }
 
 const AssignmentList: React.FC<AssignmentListProps> = ({
@@ -23,7 +32,11 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   canManage,
   onEdit,
   onDelete,
-  onPublish
+  onPublish,
+  // Use the new props if provided, otherwise fall back to the old ones
+  onEditAssignment,
+  onDeleteAssignment,
+  onPublishAssignment
 }) => {
   const { t, currentLanguage } = useTranslation();
   const formattedDate = formatDateWithCapital(date, currentLanguage);
@@ -39,6 +52,31 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   const sortedAssignments = [...assignments].sort((a, b) => {
     return a.fromTime && b.fromTime ? a.fromTime.localeCompare(b.fromTime) : 0;
   });
+
+  // Handlers that will call the appropriate callback based on which props were provided
+  const handleEdit = (assignment: Assignment) => {
+    if (onEdit) {
+      onEdit(assignment);
+    } else if (onEditAssignment) {
+      onEditAssignment(assignment);
+    }
+  };
+
+  const handleDelete = (assignment: Assignment) => {
+    if (onDelete) {
+      onDelete(assignment);
+    } else if (onDeleteAssignment && assignment.id) {
+      onDeleteAssignment(assignment.id);
+    }
+  };
+
+  const handlePublish = (assignment: Assignment) => {
+    if (onPublish) {
+      onPublish(assignment.id);
+    } else if (onPublishAssignment && assignment.id) {
+      onPublishAssignment(assignment.id);
+    }
+  };
 
   return (
     <Card className="mb-6">
@@ -121,9 +159,10 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
                   <div className="mt-3 flex justify-end gap-2">
                     <AssignmentActionButtons
                       assignment={assignment}
-                      onEdit={onEdit}
-                      onDelete={onDelete}
-                      onPublish={onPublish}
+                      canEdit={canManage}
+                      onEdit={() => handleEdit(assignment)}
+                      onDelete={() => handleDelete(assignment)}
+                      onPublish={() => handlePublish(assignment)}
                       size="xs"
                     />
                   </div>

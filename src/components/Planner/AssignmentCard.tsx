@@ -13,6 +13,7 @@ import { MapPin, Clock } from 'lucide-react';
 interface AssignmentCardProps {
   assignment: Assignment;
   canManage?: boolean;
+  canEdit?: boolean; // Add this prop to match DaySection usage
   onEdit?: (assignment: Assignment) => void;
   onDelete?: (assignment: Assignment) => void;
   onPublish?: (assignmentId: string) => void;
@@ -21,6 +22,7 @@ interface AssignmentCardProps {
 const AssignmentCard: React.FC<AssignmentCardProps> = ({
   assignment,
   canManage = false,
+  canEdit = false, // Default to false
   onEdit,
   onDelete,
   onPublish
@@ -45,7 +47,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       <CardContent className="p-4">
         <div className="flex justify-between">
           <h3 className="font-medium">{assignment.title}</h3>
-          <AssignmentStatusBadge published={assignment.published} />
+          <AssignmentStatusBadge isPublished={assignment.published} />
         </div>
         
         <div className="mt-2 text-gray-700">
@@ -82,13 +84,14 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         </div>
       </CardContent>
       
-      {canManage && (
+      {(canManage || canEdit) && (
         <CardFooter className="bg-gray-50 px-4 py-2 flex justify-end gap-2">
           <AssignmentActionButtons
             assignment={assignment}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onPublish={onPublish}
+            canEdit={canEdit || canManage}
+            onEdit={() => onEdit && onEdit(assignment)}
+            onDelete={() => onDelete && onDelete(assignment)}
+            onPublish={() => onPublish && onPublish(assignment.id)}
           />
         </CardFooter>
       )}
