@@ -1,6 +1,6 @@
 
 import { Assignment } from '@/types/assignment';
-import { getWeekDates } from '@/utils/weekDates';
+import { getWeekDates } from '@/utils/dates';
 
 // Filters and groups assignments
 export const useAssignmentFilters = () => {
@@ -32,17 +32,31 @@ export const useAssignmentFilters = () => {
 
   // Filter assignments by ISO week and year
   const filterByWeek = (assignments: Assignment[], weekNumber: number, year: number) => {
-    // Get the correct date range for the ISO week
-    const { start, end } = getWeekDates(weekNumber, year);
-    
-    return assignments.filter(assignment => {
-      const assignmentDate = new Date(assignment.date);
-      // Set time to noon to avoid timezone issues
-      assignmentDate.setHours(12, 0, 0, 0);
+    try {
+      // Get the correct date range for the ISO week (Monday to Sunday)
+      const { start, end } = getWeekDates(weekNumber, year);
       
-      // Compare dates to check if assignment falls within the week
-      return assignmentDate >= start && assignmentDate <= end;
-    });
+      // Set start time to beginning of day and end time to end of day
+      const weekStart = new Date(start);
+      weekStart.setHours(0, 0, 0, 0);
+      
+      const weekEnd = new Date(end);
+      weekEnd.setHours(23, 59, 59, 999);
+      
+      return assignments.filter(assignment => {
+        // Create a date object from the assignment date string
+        const assignmentDate = new Date(assignment.date);
+        // Normalize time to noon to avoid timezone issues
+        assignmentDate.setHours(12, 0, 0, 0);
+        
+        // Compare if assignment date falls within week range
+        const isInWeek = assignmentDate >= weekStart && assignmentDate <= weekEnd;
+        return isInWeek;
+      });
+    } catch (error) {
+      console.error("Error filtering by week:", error);
+      return [];
+    }
   };
 
   return {

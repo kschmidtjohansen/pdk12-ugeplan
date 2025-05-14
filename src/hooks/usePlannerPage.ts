@@ -22,7 +22,7 @@ export const usePlannerPage = () => {
   
   // Log when the selected week/year changes
   useEffect(() => {
-    console.log(`FIXED usePlannerPage: Selected week: ${selectedWeek}, year: ${selectedYear}`);
+    console.log(`usePlannerPage: Selected week: ${selectedWeek}, year: ${selectedYear}`);
   }, [selectedWeek, selectedYear]);
 
   const { 
@@ -53,12 +53,12 @@ export const usePlannerPage = () => {
     employees: []
   });
 
-  // FIXED: Get the date range for the selected week with correct ISO week calculation
+  // Get the date range for the selected week with ISO week calculation
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // FIXED: Better log output with more details
+  // Better log output with more details
   useEffect(() => {
-    console.log("FIXED usePlannerPage: Week dates obtained:", {
+    console.log("usePlannerPage: Week dates:", {
       weekNumber: selectedWeek,
       year: selectedYear,
       start: weekDates.start.toISOString(),
@@ -68,13 +68,6 @@ export const usePlannerPage = () => {
       endDay: format(weekDates.end, 'EEEE'),
       endDayNumber: weekDates.end.getDay()
     });
-    
-    // Validate that we have Monday-Sunday (days 1-0)
-    if (weekDates.start.getDay() !== 1 || weekDates.end.getDay() !== 0) {
-      console.error("FIXED usePlannerPage ERROR: Week dates are NOT Monday-Sunday!");
-    } else {
-      console.log("FIXED usePlannerPage: Week dates are correct Monday-Sunday range");
-    }
   }, [selectedWeek, selectedYear, weekDates]);
   
   // Filter assignments for the current week

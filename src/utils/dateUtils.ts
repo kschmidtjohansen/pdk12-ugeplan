@@ -44,66 +44,39 @@ export const formatDateWithCapital = (dateString: string, locale: string = 'en')
   }
 };
 
-// COMPLETELY REWRITTEN: Get all days in a week (guaranteed Monday to Sunday)
+// Get all days in a week (Monday to Sunday following ISO standard)
 export const getAllWeekDays = (
   { start, end }: { start: Date, end: Date, weekNumber?: number, year?: number }
 ): string[] => {
   const days: string[] = [];
   
-  // Debug log week range
-  console.log(`FIXED getAllWeekDays - Incoming range: ${format(start, 'yyyy-MM-dd')} (${format(start, 'EEEE')}) to ${format(end, 'yyyy-MM-dd')} (${format(end, 'EEEE')})`);
+  // Debug incoming dates
+  console.log(`getAllWeekDays - Start: ${format(start, 'yyyy-MM-dd')} (${format(start, 'EEEE')})`);
+  console.log(`getAllWeekDays - End: ${format(end, 'yyyy-MM-dd')} (${format(end, 'EEEE')})`);
   
-  // COMPLETELY REIMPLEMENTED: Forget about the provided start/end dates
-  // Instead, use the first Monday of or before the start date as our starting point
-  // This guarantees we start on a Monday regardless of the input
-  const mondayStart = new Date(start);
+  // Ensure we have a Monday start date
+  const mondayStart = startOfISOWeek(start);
+  console.log(`getAllWeekDays - Adjusted start: ${format(mondayStart, 'yyyy-MM-dd')} (${format(mondayStart, 'EEEE')})`);
   
-  // Adjust to Monday (day 1) if not already Monday
-  while (mondayStart.getDay() !== 1) {
-    // If Sunday (0), go back 6 days, otherwise go back to previous Monday
-    if (mondayStart.getDay() === 0) {
-      mondayStart.setDate(mondayStart.getDate() - 6);
-    } else {
-      mondayStart.setDate(mondayStart.getDate() - (mondayStart.getDay() - 1));
-    }
-  }
-  
-  // Clear time portion
-  mondayStart.setHours(0, 0, 0, 0);
-  
-  console.log(`FIXED: Using Monday start date: ${format(mondayStart, 'yyyy-MM-dd')} (${format(mondayStart, 'EEEE')})`);
-  
-  // Explicitly create 7 days from Monday (1) to Sunday (0)
+  // Create 7 days starting from Monday
   const currentDate = new Date(mondayStart);
-  
-  // Add Monday through Sunday (7 days total)
   for (let i = 0; i < 7; i++) {
     const dateString = currentDate.toISOString().split('T')[0];
     days.push(dateString);
-    
-    // Debug each day we add
-    console.log(`FIXED: Adding day ${i+1}: ${dateString} (${format(currentDate, 'EEEE')}) - day of week: ${currentDate.getDay()}`);
-    
-    // Go to the next day
+    console.log(`getAllWeekDays - Day ${i+1}: ${dateString} (${format(currentDate, 'EEEE')}, day ${currentDate.getDay()})`);
     currentDate.setDate(currentDate.getDate() + 1);
   }
   
-  // Validate the resulting week
+  // Validate our week
   if (days.length === 7) {
-    // Verify we have Monday to Sunday
     const firstDayDate = new Date(days[0]);
     const lastDayDate = new Date(days[6]);
     
-    console.log(`FIXED: First day: ${format(firstDayDate, 'EEEE')} (${firstDayDate.getDay()})`);
-    console.log(`FIXED: Last day: ${format(lastDayDate, 'EEEE')} (${lastDayDate.getDay()})`);
-    
     if (firstDayDate.getDay() !== 1 || lastDayDate.getDay() !== 0) {
-      console.error(`FIXED FAILED: Week does NOT start on Monday and end on Sunday! First: ${format(firstDayDate, 'EEEE')}, Last: ${format(lastDayDate, 'EEEE')}`);
+      console.error(`ERROR: Week does not start on Monday and end on Sunday! First: ${format(firstDayDate, 'EEEE')} (${firstDayDate.getDay()}), Last: ${format(lastDayDate, 'EEEE')} (${lastDayDate.getDay()})`);
     } else {
-      console.log('FIXED SUCCESS: Created Monday to Sunday week range');
+      console.log('SUCCESS: Created Monday to Sunday week range');
     }
-  } else {
-    console.error(`FIXED FAILED: Week has incorrect length: ${days.length} days`);
   }
   
   return days;

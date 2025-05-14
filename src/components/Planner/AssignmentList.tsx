@@ -8,7 +8,7 @@ import { getAllWeekDays, getDateStatus } from '@/utils/dateUtils';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import CurrentAndFutureDays from './CurrentAndFutureDays';
 import PastAssignments from './PastAssignments';
-import { format } from 'date-fns'; // Added missing import
+import { format } from 'date-fns';
 
 interface AssignmentListProps {
   assignments: Assignment[];
@@ -50,32 +50,37 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   // Group assignments by date
   const groupedAssignments = groupByDate(visibleAssignments);
   
-  // FIXED: Create array of weekdays - ONLY if weekDates is provided
+  // Create array of weekdays if weekDates is provided
   let allWeekDays: string[] = [];
   
   if (weekDates?.start && weekDates?.end) {
-    console.log("FIXED AssignmentList: Creating week days for", 
-      format(weekDates.start, 'yyyy-MM-dd'), "to", 
-      format(weekDates.end, 'yyyy-MM-dd')
-    );
+    console.log(`AssignmentList: Creating week days for week ${selectedWeek}/${selectedYear}`);
+    console.log(`Start: ${format(weekDates.start, 'yyyy-MM-dd')} (${format(weekDates.start, 'EEEE')})`);
+    console.log(`End: ${format(weekDates.end, 'yyyy-MM-dd')} (${format(weekDates.end, 'EEEE')})`);
     
-    // FIXED: Make sure dates are proper date objects, not strings or timestamps
     allWeekDays = getAllWeekDays({ 
-      start: new Date(weekDates.start), 
-      end: new Date(weekDates.end)
+      start: weekDates.start, 
+      end: weekDates.end
     });
-  } else {
-    console.warn("FIXED AssignmentList: No weekDates provided, can't create week days");
   }
   
-  // FIXED: Better debug logging of the week days
-  console.log("FIXED AssignmentList - Week days from getAllWeekDays:", allWeekDays);
-  if (allWeekDays.length > 0) {
-    const firstDay = new Date(allWeekDays[0]);
-    const lastDay = new Date(allWeekDays[allWeekDays.length-1]);
-    console.log(`FIXED AssignmentList - First day: ${format(firstDay, 'yyyy-MM-dd')} (${format(firstDay, 'EEEE')}) - Day of week: ${firstDay.getDay()}`);
-    console.log(`FIXED AssignmentList - Last day: ${format(lastDay, 'yyyy-MM-dd')} (${format(lastDay, 'EEEE')}) - Day of week: ${lastDay.getDay()}`);
-  }
+  // Debug the week days
+  useEffect(() => {
+    if (allWeekDays.length > 0) {
+      console.log("AssignmentList - Generated week days:", allWeekDays);
+      
+      // Validate first and last days
+      const firstDay = new Date(allWeekDays[0]);
+      const lastDay = new Date(allWeekDays[allWeekDays.length-1]);
+      
+      console.log(`First day: ${format(firstDay, 'yyyy-MM-dd')} (${format(firstDay, 'EEEE')}, day ${firstDay.getDay()})`);
+      console.log(`Last day: ${format(lastDay, 'yyyy-MM-dd')} (${format(lastDay, 'EEEE')}, day ${lastDay.getDay()})`);
+      
+      if (firstDay.getDay() !== 1 || lastDay.getDay() !== 0) {
+        console.error("ERROR: Week days do not start with Monday (1) and end with Sunday (0)!");
+      }
+    }
+  }, [allWeekDays]);
 
   // Fill in any missing days from the week
   allWeekDays.forEach(dateKey => {
