@@ -64,7 +64,8 @@ const vacation = {
   employeeNotFound: 'Medarbejderen kunne ikke findes',
   currentlyOnVacation: 'Medarbejdere på ferie',
   daysRemaining: 'Dage tilbage',
-  days: 'dage'
+  days: 'dage',
+  upcoming: 'Kommende'
 };
 
 export default vacation;

@@ -208,10 +208,77 @@ export const useEmployeeActions = (refetchEmployees: () => Promise<void>) => {
     }
   };
 
+  // New function to set employee leave status automatically based on vacations
+  const updateEmployeeLeaveStatusFromVacations = async () => {
+    try {
+      // Get current date
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Get employees with approved vacations that include today
+      const { data: activeVacations, error: vacationError } = await supabase
+        .from('vacations')
+        .select(`
+          user_id,
+          start_date,
+          end_date
+        `)
+        .eq('status', 'approved')
+        .lte('start_date', today.toISOString().split('T')[0])
+        .gte('end_date', today.toISOString().split('T')[0]);
+      
+      if (vacationError) throw vacationError;
+      
+      // For each employee with active vacation, set on_leave to true
+      if (activeVacations && activeVacations.length > 0) {
+        const employeeIds = [...new Set(activeVacations.map(v => v.user_id))];
+        
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ on_leave: true })
+          .in('id', employeeIds);
+        
+        if (updateError) throw updateError;
+      }
+      
+      // For employees with vacations that ended yesterday, set on_leave to false
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      const { data: endedVacations, error: endedError } = await supabase
+        .from('vacations')
+        .select(`
+          user_id,
+          end_date
+        `)
+        .eq('status', 'approved')
+        .eq('end_date', yesterday.toISOString().split('T')[0]);
+      
+      if (endedError) throw endedError;
+      
+      if (endedVacations && endedVacations.length > 0) {
+        const employeeIds = [...new Set(endedVacations.map(v => v.user_id))];
+        
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ on_leave: false })
+          .in('id', employeeIds);
+        
+        if (updateError) throw updateError;
+      }
+      
+      return true;
+    } catch (err) {
+      console.error('Error updating employee leave status from vacations:', err);
+      return false;
+    }
+  };
+
   return {
     createEmployee,
     updateEmployee,
     deleteEmployee,
-    toggleEmployeeLeave
+    toggleEmployeeLeave,
+    updateEmployeeLeaveStatusFromVacations
   };
 };

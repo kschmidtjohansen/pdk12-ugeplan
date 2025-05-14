@@ -8,3 +8,10 @@ export interface NotificationType {
   read: boolean;
   date: Date;
 }
+
+export interface VacationNotification extends NotificationType {
+  daysRemaining?: number;
+  employeeName?: string;
+  startDate?: Date;
+  endDate?: Date;
+}

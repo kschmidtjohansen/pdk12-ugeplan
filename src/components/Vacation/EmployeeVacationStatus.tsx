@@ -15,11 +15,14 @@ interface EmployeeVacationStatusProps {
 const EmployeeVacationStatus: React.FC<EmployeeVacationStatusProps> = ({ vacations }) => {
   const { t, currentLanguage } = useTranslation();
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   
   // Filter for approved vacations that are currently active or upcoming
   const activeVacations = vacations.filter(v => 
     v.status === 'approved' && 
     new Date(v.endDate) >= today
+  ).sort((a, b) => 
+    new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
   );
   
   if (activeVacations.length === 0) {
@@ -28,6 +31,10 @@ const EmployeeVacationStatus: React.FC<EmployeeVacationStatusProps> = ({ vacatio
   
   const calculateDaysRemaining = (endDate: Date): number => {
     return differenceInDays(new Date(endDate), today) + 1;
+  };
+
+  const isCurrentlyOnVacation = (startDate: Date): boolean => {
+    return new Date(startDate) <= today;
   };
 
   const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
@@ -47,7 +54,7 @@ const EmployeeVacationStatus: React.FC<EmployeeVacationStatusProps> = ({ vacatio
               <TableHead>{t("employees.name")}</TableHead>
               <TableHead>{t("vacation.dateRange")}</TableHead>
               <TableHead>{t("vacation.reason")}</TableHead>
-              <TableHead>{t("vacation.daysRemaining")}</TableHead>
+              <TableHead>{t("vacation.status")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -59,9 +66,15 @@ const EmployeeVacationStatus: React.FC<EmployeeVacationStatusProps> = ({ vacatio
                 </TableCell>
                 <TableCell>{vacation.reason}</TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="bg-green-50">
-                    {calculateDaysRemaining(vacation.endDate)} {t("vacation.days")}
-                  </Badge>
+                  {isCurrentlyOnVacation(vacation.startDate) ? (
+                    <Badge variant="outline" className="bg-green-50">
+                      {calculateDaysRemaining(vacation.endDate)} {t("vacation.days")}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-blue-50">
+                      {t("vacation.upcoming")}
+                    </Badge>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
