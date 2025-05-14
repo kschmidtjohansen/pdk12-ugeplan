@@ -20,7 +20,7 @@ import UserMenu from './NavComponents/UserMenu';
 const TopNavbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { t, currentLanguage, setLanguage } = useTranslation();
-  const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotification } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -102,7 +102,7 @@ const TopNavbar: React.FC = () => {
                   unreadCount={unreadCount}
                   markAllAsRead={markAllAsRead}
                   handleNotificationClick={handleNotificationClick}
-                  clearNotification={clearNotification}
+                  clearNotification={deleteNotification}
                 />
               </div>
             )}
@@ -130,7 +130,7 @@ const TopNavbar: React.FC = () => {
         notifications={notifications}
         unreadCount={unreadCount}
         handleNotificationClick={handleNotificationClick}
-        clearNotification={clearNotification}
+        clearNotification={deleteNotification}
         currentLanguage={currentLanguage}
         setLanguage={setLanguage}
         handleLogout={handleLogout}

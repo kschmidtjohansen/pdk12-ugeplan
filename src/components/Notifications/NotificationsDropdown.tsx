@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useNotificationsContext } from '@/context/NotificationContext';
+import { useNotifications } from '@/context/NotificationContext';
 import { useTranslation } from '@/context/TranslationContext';
 import NotificationsList from './NotificationsList';
 import { 
@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Bell } from 'lucide-react';
 
 const NotificationsDropdown: React.FC = () => {
-  const { unreadCount } = useNotificationsContext();
+  const { unreadCount } = useNotifications();
   const { t } = useTranslation();
   
   return (

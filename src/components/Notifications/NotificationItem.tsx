@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { NotificationType } from '@/types/notification';
 import { useTranslation } from '@/context/TranslationContext';
-import { useNotificationsContext } from '@/context/NotificationContext';
+import { useNotifications } from '@/context/NotificationContext';
 import { formatNotificationDate, getNotificationIcon } from '@/utils/notifications';
 import { Check, Trash2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -14,7 +14,7 @@ interface NotificationItemProps {
 
 const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => {
   const { t, currentLanguage } = useTranslation();
-  const { markAsRead, deleteNotification } = useNotificationsContext();
+  const { markAsRead, deleteNotification } = useNotifications();
   
   const formattedDate = formatNotificationDate(notification.date, currentLanguage);
   

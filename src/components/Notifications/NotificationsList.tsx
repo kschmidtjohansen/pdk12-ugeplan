@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useNotificationsContext } from '@/context/NotificationContext';
+import { useNotifications } from '@/context/NotificationContext';
 import { useTranslation } from '@/context/TranslationContext';
 import NotificationItem from './NotificationItem';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -8,7 +8,7 @@ import { Loader2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const NotificationsList = () => {
-  const { notifications, loading, unreadCount, markAllAsRead } = useNotificationsContext();
+  const { notifications, loading, unreadCount, markAllAsRead } = useNotifications();
   const { t } = useTranslation();
   
   if (loading) {
