@@ -11,9 +11,8 @@ interface NotificationContextType {
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
   addNotification: (
-    notification: Omit<NotificationType, 'id' | 'read' | 'date'>,
-    targetUserId?: string
-  ) => Promise<void>;
+    notification: Omit<NotificationType, 'id' | 'read' | 'date'> & { targetUserId?: string }
+  ) => Promise<string | null>;
 }
 
 const NotificationContext = createContext<NotificationContextType>({
@@ -23,7 +22,7 @@ const NotificationContext = createContext<NotificationContextType>({
   markAsRead: async () => {},
   markAllAsRead: async () => {},
   deleteNotification: async () => {},
-  addNotification: async () => {}
+  addNotification: async () => null
 });
 
 // Export the hook for using the notifications context

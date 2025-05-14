@@ -103,23 +103,35 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
         });
       }
 
-      // Enhanced notification for administrators with action prompts
-      if (user.role !== 'administrator') {
+      // Fetch administrators and skadeledere
+      const { data: adminUsers, error: adminError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .in('role', ['administrator', 'skadeleder']);
+        
+      if (adminError) {
+        console.error('Error fetching admin users:', adminError);
+      } else if (adminUsers) {
         const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
         const formattedStartDate = format(date.from, dateFormat);
         const formattedEndDate = format(date.to, dateFormat);
         
-        // Enhanced notification with action request
-        addNotification({
-          type: 'vacation',
-          title: t("notifications.newVacationRequest"),
-          message: t("notifications.newVacationRequestActionRequired", {
-            name: requestEmployeeName,
-            from: formattedStartDate,
-            to: formattedEndDate
-          }),
-          link: '/vacation'
-        });
+        // Send notification to all admin users with action instructions
+        adminUsers
+          .filter(admin => admin.user_id !== user?.id) // Don't notify yourself
+          .forEach(admin => {
+            addNotification({
+              type: 'vacation',
+              title: t("notifications.newVacationRequest"),
+              message: t("notifications.newVacationRequestActionRequired", {
+                name: requestEmployeeName,
+                from: formattedStartDate,
+                to: formattedEndDate
+              }),
+              link: '/vacation',
+              targetUserId: admin.user_id
+            });
+          });
       }
       
       // Refresh the vacation list

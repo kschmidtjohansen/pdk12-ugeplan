@@ -43,11 +43,14 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                   {t("employees.contactInfo")}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t("employees.role")}
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t("employees.jobTitle")}
                 </th>
+                {/* Show role column to both admin and skadeleder */}
+                {(isAdmin || isSkadeleder) && (
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t("employees.role")}
+                  </th>
+                )}
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t("common.status")}
                 </th>
@@ -93,11 +96,14 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {t(`admin.roles.${employee.role}`)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {employee.jobTitle}
                   </td>
+                  {/* Show role to both admin and skadeleder users */}
+                  {(isAdmin || isSkadeleder) && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {t(`admin.roles.${employee.role}`)}
+                    </td>
+                  )}
                   <td className="px-6 py-4 whitespace-nowrap">
                     {employee.onLeave ? (
                       <Badge variant="outline" className="border-orange-200 bg-orange-100 text-orange-800 hover:bg-orange-100">

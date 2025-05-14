@@ -10,4 +10,5 @@ export interface Employee {
   role: UserRole;
   onLeave?: boolean;
   notes?: string;
+  onApprovedVacation?: boolean;
 }

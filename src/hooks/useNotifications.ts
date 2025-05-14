@@ -133,14 +133,13 @@ export const useNotifications = () => {
   
   // Add a new notification
   const addNotification = useCallback(async (
-    notification: Omit<NotificationType, 'id' | 'read' | 'date'>,
-    targetUserId?: string
+    notification: Omit<NotificationType, 'id' | 'read' | 'date'> & { targetUserId?: string }
   ) => {
     if (!user) return;
     
     try {
       // Use the provided target user ID or the current user's ID
-      const userId = targetUserId || user.id;
+      const userId = notification.targetUserId || user.id;
       
       const { data, error } = await supabase
         .from('notifications')
@@ -187,8 +186,10 @@ export const useNotifications = () => {
         });
       }
       
+      return data?.[0]?.id;
     } catch (err) {
       console.error('Error adding notification:', err);
+      return null;
     }
   }, [user, toast]);
   

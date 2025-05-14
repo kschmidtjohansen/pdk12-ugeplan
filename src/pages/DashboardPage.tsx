@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -17,6 +18,7 @@ import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
 import { getCurrentWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
 import AssignmentDetails from '@/components/Planner/AssignmentDetails';
+
 const DashboardPage: React.FC = () => {
   const {
     user
@@ -29,7 +31,8 @@ const DashboardPage: React.FC = () => {
     assignments
   } = usePlannerAssignments();
   const {
-    employees
+    employees, 
+    toggleEmployeeLeave
   } = useEmployees();
   const {
     cars
@@ -37,6 +40,17 @@ const DashboardPage: React.FC = () => {
   const {
     vacations
   } = useVacations();
+
+  // Update employee leave status based on vacations when dashboard loads
+  useEffect(() => {
+    const updateEmployeeStatuses = async () => {
+      // Import dynamically to avoid circular dependencies
+      const { updateEmployeeLeaveStatusFromVacations } = await import('@/hooks/employee/useEmployeeActions');
+      await updateEmployeeLeaveStatusFromVacations();
+    };
+    
+    updateEmployeeStatuses();
+  }, []);
 
   // Use the fixed getCurrentWeekNumber function
   const currentWeek = getCurrentWeekNumber();
@@ -165,4 +179,5 @@ const DashboardPage: React.FC = () => {
       </Card>
     </>;
 };
+
 export default DashboardPage;
