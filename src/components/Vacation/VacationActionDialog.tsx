@@ -75,8 +75,9 @@ const VacationActionDialog: React.FC<VacationActionDialogProps> = ({
             </Button>
             <Button 
               type="submit" 
+              variant={isRejection ? "destructive" : "default"}
               className={isRejection 
-                ? "bg-red-600 hover:bg-red-700" 
+                ? "" 
                 : "bg-green-600 hover:bg-green-700"
               }
             >
