@@ -78,9 +78,8 @@ export const getCurrentWeekInfo = () => {
  * Returns the date range for the current week
  */
 export const getCurrentWeekDates = () => {
-  const now = new Date();
-  const currentWeekInfo = getCurrentWeekInfo();
-  return getWeekDates(currentWeekInfo.week, currentWeekInfo.year);
+  const { week, year } = getCurrentWeekInfo();
+  return getWeekDates(week, year);
 };
 
 // These functions are kept for backward compatibility but may be deprecated in future
