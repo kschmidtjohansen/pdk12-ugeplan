@@ -42,7 +42,7 @@ const VacationCard: React.FC<VacationCardProps> = ({
   return (
     <Card className={cn("overflow-hidden", 
       vacation.status === 'approved' && "border-green-500", 
-      vacation.status === 'rejected' && "border-polygon-red", 
+      vacation.status === 'rejected' && "border-red-500", 
       vacation.status === 'pending' && "border-amber-500"
     )}>
       <CardHeader className={cn("pb-3", 
