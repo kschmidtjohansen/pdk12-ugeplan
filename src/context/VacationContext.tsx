@@ -62,7 +62,7 @@ export const VacationProvider: React.FC<{ children: ReactNode }> = ({ children }
   const vacationData = useVacationCore();
   
   return (
-    <VacationContext.Provider value={vacationData as VacationContextType}>
+    <VacationContext.Provider value={vacationData as unknown as VacationContextType}>
       {children}
     </VacationContext.Provider>
   );

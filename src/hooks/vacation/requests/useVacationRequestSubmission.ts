@@ -79,6 +79,29 @@ export const useVacationRequestSubmission = () => {
 
   // Submit a new vacation request
   const submitVacationRequest = useCallback(async (
+    e: React.FormEvent,
+  ) => {
+    e.preventDefault();
+    
+    // Extract form data from the form event
+    const formData = e.currentTarget as HTMLFormElement;
+    const startDateInput = formData.querySelector('input[name="startDate"]') as HTMLInputElement;
+    const endDateInput = formData.querySelector('input[name="endDate"]') as HTMLInputElement;
+    const reasonInput = formData.querySelector('textarea[name="reason"]') as HTMLTextAreaElement;
+    const employeeIdInput = formData.querySelector('select[name="employeeId"]') as HTMLSelectElement;
+    
+    // Parse the dates and extract values
+    const startDate = startDateInput ? new Date(startDateInput.value) : undefined;
+    const endDate = endDateInput ? new Date(endDateInput.value) : undefined;
+    const reason = reasonInput ? reasonInput.value : '';
+    const employeeId = employeeIdInput?.value || undefined;
+    
+    // Call the internal submission function with the extracted data
+    return internalSubmitVacationRequest(startDate, endDate, reason, employeeId);
+  }, [user, toast, t, fetchVacations]);
+
+  // Internal function that does the actual submission with parsed data
+  const internalSubmitVacationRequest = async (
     startDate: Date | undefined,
     endDate: Date | undefined,
     reason: string,
@@ -170,12 +193,13 @@ export const useVacationRequestSubmission = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [user, toast, t, fetchVacations, addNotification, notifyAdmins]);
+  };
 
   return {
     vacations,
     isSubmitting,
     fetchVacations,
-    submitVacationRequest
+    submitVacationRequest,
+    internalSubmitVacationRequest
   };
 };
