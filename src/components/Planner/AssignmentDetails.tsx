@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Car, Clock, MapPin, Users } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
@@ -8,11 +7,20 @@ interface AssignmentDetailsProps {
   assignment: Assignment;
 }
 
+// Helper function to format time to HH:MM format (remove seconds)
+const formatTime = (time: string): string => {
+  if (!time) return '';
+  // If time already has the format HH:MM, return as is
+  if (time.length === 5) return time;
+  // Otherwise, assume HH:MM:SS format and remove seconds
+  return time.substring(0, 5);
+};
+
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => {
   const { t } = useTranslation();
   
-  // Create a formatted time range string
-  const timeRange = `${assignment.fromTime} - ${assignment.toTime}`;
+  // Create a formatted time range string without seconds
+  const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-sm">

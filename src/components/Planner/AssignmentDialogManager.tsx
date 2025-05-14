@@ -40,7 +40,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
     handleInputChange,
     handleEmployeeChange,
     handleCarChange,
-    handleSubmit
+    handleSubmit: originalHandleSubmit
   } = useAssignmentFormState(
     employees,
     cars,
@@ -51,6 +51,13 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
     setDialogOpen,
     selectedDay || new Date().toISOString().split('T')[0]
   );
+
+  // Create a wrapper for handleSubmit to match the expected type
+  const handleSubmit = (data: Partial<Assignment>) => {
+    originalHandleSubmit({
+      preventDefault: () => {},
+    } as React.FormEvent);
+  };
 
   useEffect(() => {
     if (assignmentId) {

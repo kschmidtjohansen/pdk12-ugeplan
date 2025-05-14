@@ -105,7 +105,7 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="border-green-200 bg-green-100 text-green-800 hover:bg-green-100">
-                        {t("common.active")}
+                        {t("dashboard.available")}
                       </Badge>
                     )}
                   </td>
