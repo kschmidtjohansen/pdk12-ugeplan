@@ -68,17 +68,6 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   useEffect(() => {
     if (allWeekDays.length > 0) {
       console.log("AssignmentList - Generated week days:", allWeekDays);
-      
-      // Validate first and last days
-      const firstDay = new Date(allWeekDays[0]);
-      const lastDay = new Date(allWeekDays[allWeekDays.length-1]);
-      
-      console.log(`First day: ${format(firstDay, 'yyyy-MM-dd')} (${format(firstDay, 'EEEE')}, day ${firstDay.getDay()})`);
-      console.log(`Last day: ${format(lastDay, 'yyyy-MM-dd')} (${format(lastDay, 'EEEE')}, day ${lastDay.getDay()})`);
-      
-      if (firstDay.getDay() !== 1 || lastDay.getDay() !== 0) {
-        console.error("ERROR: Week days do not start with Monday (1) and end with Sunday (0)!");
-      }
     }
   }, [allWeekDays]);
 

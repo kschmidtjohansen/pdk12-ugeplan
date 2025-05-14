@@ -31,6 +31,14 @@ const PlannerPage: React.FC = () => {
     publishAssignment
   } = usePlannerPage();
 
+  // Add some debugging to see that we have the correct week dates
+  console.log("PlannerPage: Rendering with week dates", {
+    week: selectedWeek,
+    year: selectedYear,
+    start: weekDates?.start?.toISOString(),
+    end: weekDates?.end?.toISOString()
+  });
+
   return (
     <div>
       <PlannerPageHeader

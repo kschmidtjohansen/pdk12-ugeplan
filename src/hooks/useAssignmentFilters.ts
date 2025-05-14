@@ -33,6 +33,8 @@ export const useAssignmentFilters = () => {
   // Filter assignments by ISO week and year
   const filterByWeek = (assignments: Assignment[], weekNumber: number, year: number) => {
     try {
+      console.log(`Filtering assignments for week ${weekNumber}/${year}`);
+      
       // Get the correct date range for the ISO week (Monday to Sunday)
       const { start, end } = getWeekDates(weekNumber, year);
       
@@ -43,6 +45,8 @@ export const useAssignmentFilters = () => {
       const weekEnd = new Date(end);
       weekEnd.setHours(23, 59, 59, 999);
       
+      console.log(`Week boundaries - Start: ${weekStart.toISOString()}, End: ${weekEnd.toISOString()}`);
+      
       return assignments.filter(assignment => {
         // Create a date object from the assignment date string
         const assignmentDate = new Date(assignment.date);
@@ -51,6 +55,11 @@ export const useAssignmentFilters = () => {
         
         // Compare if assignment date falls within week range
         const isInWeek = assignmentDate >= weekStart && assignmentDate <= weekEnd;
+        
+        if (isInWeek) {
+          console.log(`Assignment ${assignment.id} (${assignment.date}) is in week ${weekNumber}`);
+        }
+        
         return isInWeek;
       });
     } catch (error) {

@@ -3,3 +3,6 @@
 export * from './weekCore';
 export * from './weekNavigation';
 export * from './weekFormatting';
+
+// Add console log to help debugging
+console.log("Date utilities loaded");

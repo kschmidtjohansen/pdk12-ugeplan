@@ -7,10 +7,8 @@ import {
   startOfISOWeek, 
   endOfISOWeek, 
   setISOWeek, 
-  setISOWeekYear,
-  getDay
+  setISOWeekYear
 } from "date-fns";
-import { da } from "date-fns/locale"; // Import Danish locale
 
 /**
  * Get the date range for a specific ISO week number and year
@@ -22,7 +20,7 @@ export const getWeekDates = (weekNumber: number, year: number) => {
   }
   
   try {
-    // Create a date in the specified year and week by first setting the year
+    // Create a date in the specified year
     const baseDate = new Date(year, 0, 4); // January 4th is always in week 1
     
     // Set the ISO week year first to ensure proper year context
@@ -37,10 +35,11 @@ export const getWeekDates = (weekNumber: number, year: number) => {
     // Get the end (Sunday) of that ISO week
     const end = endOfISOWeek(dateWithWeek);
     
-    console.log(`Week ${weekNumber}/${year} - Start: ${format(start, 'yyyy-MM-dd')} (${format(start, 'EEEE')}, day ${start.getDay()})`);
-    console.log(`Week ${weekNumber}/${year} - End: ${format(end, 'yyyy-MM-dd')} (${format(end, 'EEEE')}, day ${end.getDay()})`);
+    // Debug output
+    console.log(`Week ${weekNumber}/${year} - Start: ${format(start, 'yyyy-MM-dd')} (${format(start, 'EEEE')})`);
+    console.log(`Week ${weekNumber}/${year} - End: ${format(end, 'yyyy-MM-dd')} (${format(end, 'EEEE')})`);
     
-    // Validate that we have Monday (1) to Sunday (0)
+    // Verify week boundaries - Monday(1) to Sunday(0)
     if (start.getDay() !== 1) {
       console.error(`ERROR: Week start is not Monday! Got day ${start.getDay()} (${format(start, 'EEEE')})`);
     }

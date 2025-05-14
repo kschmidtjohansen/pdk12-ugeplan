@@ -1,11 +1,5 @@
 
-import { getISOWeek, getISOWeekYear, format } from "date-fns";
-import { 
-  startOfISOWeek, 
-  endOfISOWeek, 
-  setISOWeek, 
-  setISOWeekYear
-} from "date-fns";
+import { getISOWeek, getISOWeekYear, format, startOfISOWeek } from "date-fns";
 import { da } from "date-fns/locale"; // Import Danish locale
 
 // Group assignments by day (YYYY-MM-DD format)
@@ -63,7 +57,6 @@ export const getAllWeekDays = (
   for (let i = 0; i < 7; i++) {
     const dateString = currentDate.toISOString().split('T')[0];
     days.push(dateString);
-    console.log(`getAllWeekDays - Day ${i+1}: ${dateString} (${format(currentDate, 'EEEE')}, day ${currentDate.getDay()})`);
     currentDate.setDate(currentDate.getDate() + 1);
   }
   
@@ -72,11 +65,7 @@ export const getAllWeekDays = (
     const firstDayDate = new Date(days[0]);
     const lastDayDate = new Date(days[6]);
     
-    if (firstDayDate.getDay() !== 1 || lastDayDate.getDay() !== 0) {
-      console.error(`ERROR: Week does not start on Monday and end on Sunday! First: ${format(firstDayDate, 'EEEE')} (${firstDayDate.getDay()}), Last: ${format(lastDayDate, 'EEEE')} (${lastDayDate.getDay()})`);
-    } else {
-      console.log('SUCCESS: Created Monday to Sunday week range');
-    }
+    console.log(`Week days - First: ${days[0]} (${format(firstDayDate, 'EEEE')}), Last: ${days[6]} (${format(lastDayDate, 'EEEE')})`);
   }
   
   return days;
