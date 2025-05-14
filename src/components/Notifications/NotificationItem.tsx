@@ -5,7 +5,8 @@ import { NotificationType } from '@/types/notification';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { formatNotificationDate, getNotificationIcon } from '@/utils/notifications';
-import { Check, Trash2, AlertCircle, PalmTree, Calendar, Bell, Info } from 'lucide-react';
+import { Check, Trash2, AlertCircle, Calendar, Bell, Info } from 'lucide-react';
+import { TreePalm } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NotificationItemProps {
@@ -42,7 +43,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
       case 'assignment':
         return <Calendar className="h-5 w-5 text-blue-500" />;
       case 'vacation':
-        return <PalmTree className="h-5 w-5 text-green-500" />;
+        return <TreePalm className="h-5 w-5 text-green-500" />;
       case 'system':
         return <Bell className="h-5 w-5 text-yellow-500" />;
       case 'alert':
