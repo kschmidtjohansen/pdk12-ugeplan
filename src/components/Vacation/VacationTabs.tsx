@@ -16,7 +16,7 @@ const VacationTabs: React.FC<VacationTabsProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  // Show all tabs regardless of role, but servicemedarbejder will have different functionality
+  // Show all tabs for all users regardless of role
   return (
     <Tabs value={activeTab} onValueChange={onChange} className="w-full">
       <TabsList className="grid grid-cols-3 w-full max-w-md">

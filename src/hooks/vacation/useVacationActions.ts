@@ -5,14 +5,14 @@ import { useNotifications } from '@/context/NotificationContext';
 import { useVacationRequestActions } from './useVacationRequestActions';
 import { Vacation } from '@/types/vacation';
 import { supabase } from '@/integrations/supabase/client';
-import { usePermissions } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 
 export const useVacationActions = (fetchVacations: () => Promise<void>) => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
   const { submitVacationRequest } = useVacationRequestActions(fetchVacations);
-  const { isAdmin } = usePermissions();
+  const { isAdmin } = useAuth();
 
   const approveVacation = async (vacation: Vacation, note: string = '') => {
     try {
@@ -110,7 +110,8 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
     reason: string
   ) => {
     try {
-      // Allow administrators to edit any vacation, but normal users can only edit pending vacations
+      // Clear previous restriction on editing non-pending vacations for admins
+      // Allow administrators to edit any vacation regardless of status
       if (!isAdmin && vacation.status !== 'pending') {
         toast({
           title: t('common.error'),
@@ -153,7 +154,8 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
   
   const deleteVacation = async (vacation: Vacation) => {
     try {
-      // Allow administrators to delete any vacation, but normal users can only delete pending vacations
+      // Clear previous restriction on deleting non-pending vacations for admins
+      // Allow administrators to delete any vacation regardless of status
       if (!isAdmin && vacation.status !== 'pending') {
         toast({
           title: t('common.error'),

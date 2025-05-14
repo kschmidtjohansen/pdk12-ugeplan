@@ -46,14 +46,10 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
         return filtered.filter((v) => v.status === 'approved');
       case 'all':
       default:
-        // For service employees, highlight their own vacations but show all
-        if (isServicemedarbejder) {
-          // No need to filter, but we could mark the user's own vacations
-          return filtered;
-        }
+        // No filtering for the "all" tab - show all vacations
         return filtered;
     }
-  }, [vacations, tabValue, user?.id, isAdmin, isSkadeleder, isServicemedarbejder]);
+  }, [vacations, tabValue, isAdmin, isSkadeleder]);
   
   return (
     <div className="mt-6">
