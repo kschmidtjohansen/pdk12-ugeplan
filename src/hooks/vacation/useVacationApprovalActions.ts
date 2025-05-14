@@ -21,7 +21,7 @@ export const useVacationApprovalActions = (fetchVacations: () => Promise<void>) 
     const { data: employee, error } = await supabase
       .from('profiles')
       .select('id, name, email')
-      .eq('id', vacation.userId)
+      .eq('id', vacation.employeeId)
       .single();
       
     if (error) {
@@ -77,7 +77,8 @@ export const useVacationApprovalActions = (fetchVacations: () => Promise<void>) 
       }
       
       // After approval, update any employee leave statuses based on vacation dates
-      const { updateEmployeeLeaveStatusFromVacations } = await import('../employee/useEmployeeActions');
+      const { useEmployeeActions } = await import('../employee/useEmployeeActions');
+      const { updateEmployeeLeaveStatusFromVacations } = useEmployeeActions(() => Promise.resolve());
       await updateEmployeeLeaveStatusFromVacations();
       
       // Refresh the vacation list

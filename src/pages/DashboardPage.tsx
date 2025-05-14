@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -31,8 +30,7 @@ const DashboardPage: React.FC = () => {
     assignments
   } = usePlannerAssignments();
   const {
-    employees, 
-    toggleEmployeeLeave
+    employees
   } = useEmployees();
   const {
     cars
@@ -45,7 +43,8 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     const updateEmployeeStatuses = async () => {
       // Import dynamically to avoid circular dependencies
-      const { updateEmployeeLeaveStatusFromVacations } = await import('@/hooks/employee/useEmployeeActions');
+      const { useEmployeeActions } = await import('@/hooks/employee/useEmployeeActions');
+      const { updateEmployeeLeaveStatusFromVacations } = useEmployeeActions(() => Promise.resolve());
       await updateEmployeeLeaveStatusFromVacations();
     };
     

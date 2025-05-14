@@ -21,7 +21,8 @@ export const useEmployees = () => {
     createEmployee: createEmployeeAction,
     updateEmployee: updateEmployeeAction,
     deleteEmployee: deleteEmployeeAction,
-    toggleEmployeeLeave: toggleEmployeeLeaveAction
+    toggleEmployeeLeave: toggleEmployeeLeaveAction,
+    updateEmployeeLeaveStatusFromVacations
   } = useEmployeeActions(fetchEmployees);
 
   // Wrapper functions that use the current state from useEmployeeFormState
@@ -58,6 +59,7 @@ export const useEmployees = () => {
     createEmployee,
     updateEmployee,
     deleteEmployee,
-    toggleEmployeeLeave
+    toggleEmployeeLeave,
+    updateEmployeeLeaveStatusFromVacations
   };
 };

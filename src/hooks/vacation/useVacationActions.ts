@@ -38,8 +38,9 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         type: 'vacation',
         title: t('notifications.vacationStatusChanged'),
         message: t('notifications.vacationApproved'),
-        link: '/vacation'
-      }, vacation.employeeId);
+        link: '/vacation',
+        targetUserId: vacation.employeeId
+      });
       
       // After approval, update employee leave status if vacation starts today
       const today = new Date();
@@ -103,8 +104,9 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         type: 'vacation',
         title: t('notifications.vacationStatusChanged'),
         message: t('notifications.vacationRejected', { reason }),
-        link: '/vacation'
-      }, vacation.employeeId);
+        link: '/vacation',
+        targetUserId: vacation.employeeId
+      });
       
       // Refresh vacation list
       fetchVacations();
