@@ -9,13 +9,12 @@ import {
 const TOAST_LIMIT = 5
 const TOAST_REMOVE_DELAY = 1000000
 
-// Update the type to use typeof Toast instead of Toast directly
 export type ToastType = {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
-  open?: boolean
+  open: boolean
   variant?: "default" | "destructive"
 }
 
