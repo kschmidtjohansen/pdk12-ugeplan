@@ -30,7 +30,7 @@ const TopNavbar: React.FC = () => {
     logout();
     toast({
       title: t('common.success'),
-      description: t('login.success')
+      description: t('login.logoutSuccess')
     });
     // Updated to redirect to login page
     navigate('/login');
