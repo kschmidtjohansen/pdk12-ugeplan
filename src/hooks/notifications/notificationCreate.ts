@@ -85,17 +85,23 @@ export const useNotificationCreate = (
       
       if (error) {
         // Specific handling for RLS policy violations
-        if (error.message?.includes('new row violates row-level security policy')) {
+        if (error.message?.includes('violates row-level security policy')) {
           console.error('Permission denied: You do not have permission to create notifications for this user.');
-          toast({
-            title: "Permission denied",
-            description: "You don't have permission to create notifications for this user.",
-            variant: "destructive"
-          });
+          console.log('This is likely due to RLS policies. Please check that you have the correct permissions.');
+          
+          // Only show toast for user-facing operations, not background processes
+          if (!notification.targetUserId || notification.targetUserId === user.id) {
+            toast({
+              title: "Permission denied",
+              description: "You don't have permission to create notifications for this user.",
+              variant: "destructive"
+            });
+          }
+          return null;
         } else {
           console.error('Error inserting notification:', error);
         }
-        throw error;
+        return null;
       }
       
       console.log('Notification created successfully:', data);
