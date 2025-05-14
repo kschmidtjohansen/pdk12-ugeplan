@@ -54,6 +54,7 @@ const admin = {
     passwordMinLength: 'Adgangskoden skal være mindst 8 tegn lang',
     passwordChanged: 'Adgangskode ændret',
     passwordChangedMsg: 'Adgangskoden er blevet ændret.'
+    passwordTooShort: 'Adgangskode for kort. Skal indeholde 6 tegn.',
   },
   roles: {
     administrator: 'Administrator',

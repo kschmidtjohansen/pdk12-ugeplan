@@ -1,6 +1,6 @@
 
 const notifications = {
-  notifications: 'Notifikationer',
+  title: 'Notifikationer',
   noNotifications: 'Du har ingen notifikationer',
   viewAll: 'Se alle',
   markAllAsRead: 'Markér alle som læst',

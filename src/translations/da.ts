@@ -53,7 +53,7 @@ const translations = {
   },
   dashboard: {
     welcome: 'Velkommen, {name}',
-    today: 'I dag er det {date}. Vi er i Uge {week}',
+    today: 'I dag er det {date}. Vi er i uge {week}',
     quickAccess: {
       planner: {
         title: 'Ugeplan',
@@ -72,7 +72,7 @@ const translations = {
         description: 'Se og administrer afdelingens køretøjer'
       }
     },
-    weekAssignments: 'Dine opgaver - Uge {week}',
+    weekAssignments: 'Opgaver - Uge {week}',
     viewAll: 'Se alle',
     noAssignments: 'Ingen opgaver for denne uge',
     assignmentTime: '{fromTime} - {toTime}',
@@ -98,8 +98,8 @@ const translations = {
     charts: {
       assignmentDistribution: 'Opgavefordeling'
     },
-    upcomingVacations: 'Kommende Ferier',
-    noUpcomingVacations: 'Ingen kommende ferier planlagt',
+    upcomingVacations: 'Kommende/Igangværende Ferier',
+    noUpcomingVacations: 'Ingen kommende/igangværende ferier planlagt',
     vehicleStatus: 'Køretøjsstatus',
     available: 'Tilgængelig',
     inUse: 'I brug',
