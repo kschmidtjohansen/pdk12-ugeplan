@@ -12,6 +12,7 @@ interface NotificationContextType {
   notifications: NotificationType[];
   unreadCount: number;
   loading: boolean;
+  initializing: boolean;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
@@ -19,17 +20,20 @@ interface NotificationContextType {
     notification: Omit<NotificationType, 'id' | 'read' | 'date'> & { targetUserId?: string }
   ) => Promise<string | null>;
   fetchNotifications: () => Promise<void>;
+  refreshAdminNotifications: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType>({
   notifications: [],
   unreadCount: 0,
   loading: false,
+  initializing: true,
   markAsRead: async () => {},
   markAllAsRead: async () => {},
   deleteNotification: async () => {},
   addNotification: async () => null,
-  fetchNotifications: async () => {}
+  fetchNotifications: async () => {},
+  refreshAdminNotifications: async () => {}
 });
 
 // Generate a unique session ID for this browser tab
@@ -57,11 +61,13 @@ export const NotificationProvider: React.FC<{
     notifications,
     unreadCount,
     loading,
+    initializing,
     markAsRead,
     markAllAsRead,
     deleteNotification,
     addNotification,
-    fetchNotifications
+    fetchNotifications,
+    refreshAdminNotifications
   } = useNotificationsHook();
   
   const { user } = useAuth();
@@ -76,11 +82,12 @@ export const NotificationProvider: React.FC<{
       notificationCount: notifications.length,
       unreadCount,
       loading,
+      initializing,
       initialFetchDone: initialFetchDoneRef.current,
       sessionFetchDone: sessionFetchDoneRef.current,
       sessionId: sessionId.current
     });
-  }, [notifications.length, unreadCount, loading, user?.role]);
+  }, [notifications.length, unreadCount, loading, initializing, user?.role]);
   
   // Centralize notification fetching - only fetch once per session
   useEffect(() => {
@@ -112,11 +119,13 @@ export const NotificationProvider: React.FC<{
         notifications,
         unreadCount,
         loading,
+        initializing,
         markAsRead,
         markAllAsRead,
         deleteNotification,
         addNotification,
-        fetchNotifications
+        fetchNotifications,
+        refreshAdminNotifications
       }}
     >
       {children}

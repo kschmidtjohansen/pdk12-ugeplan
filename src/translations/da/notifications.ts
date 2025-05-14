@@ -15,7 +15,13 @@ const notifications = {
   vacationRejected: 'Din ferieansøgning er blevet afvist: {reason}',
   new: 'Ny',
   from: 'Fra',
-  notifications: 'Notifikationer'
+  notifications: 'Notifikationer',
+  reset: 'Nulstil notifikationer',
+  notificationsReset: 'Notifikationer er blevet nulstillet',
+  resetError: 'Der opstod en fejl under nulstilling af notifikationer',
+  resetVacationNotifications: 'Nulstil ferienotifikationer',
+  processingNotifications: 'Behandler notifikationer...',
+  processingComplete: 'Behandling af notifikationer fuldført'
 };
 
 export default notifications;

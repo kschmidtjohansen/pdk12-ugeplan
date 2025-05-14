@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { safeProperty } from '@/utils/dbHelpers';
+import { toast } from '@/hooks/use-toast';
 
 // Key for localStorage to track vacation notification processing
 const PROCESSED_VACATION_IDS_KEY = "polygon-processed-vacation-ids";
@@ -30,6 +31,16 @@ const saveProcessedVacationId = (id: string): void => {
   }
 };
 
+// Clear all processed vacation IDs
+const clearProcessedVacationIds = (): void => {
+  try {
+    localStorage.removeItem(PROCESSED_VACATION_IDS_KEY);
+    console.log("Cleared processed vacation IDs from localStorage");
+  } catch (err) {
+    console.error("Error clearing processed vacation IDs from localStorage:", err);
+  }
+};
+
 export const useVacationNotifications = (
   user: any | null,
   addNotification: (notification: any) => Promise<string | null>
@@ -40,7 +51,7 @@ export const useVacationNotifications = (
   const processedVacationIdsRef = useRef<Set<string>>(getProcessedVacationIds());
   
   // Create notifications for pending vacation requests
-  const createNotificationsForPendingRequests = useCallback(async () => {
+  const createNotificationsForPendingRequests = useCallback(async (forceRefresh: boolean = false) => {
     // Only run for administrators
     if (!user || user.role !== 'administrator') {
       console.log('Not an admin user, skipping vacation notification check');
@@ -49,6 +60,13 @@ export const useVacationNotifications = (
     
     try {
       console.log('Checking for pending vacation requests that need notifications...');
+      
+      // If force refresh is requested, clear the processed IDs
+      if (forceRefresh) {
+        clearProcessedVacationIds();
+        processedVacationIdsRef.current = new Set();
+        console.log('Forced refresh: cleared all processed vacation IDs');
+      }
       
       const { data: pendingVacations, error } = await supabase
         .from('vacations')
@@ -108,11 +126,16 @@ export const useVacationNotifications = (
       
       console.log(`Found ${existingNotifications?.length || 0} existing unread vacation notifications`);
       
+      // Track notifications we create in this batch
+      let createdCount = 0;
+      let skippedCount = 0;
+      
       // Create notifications for pending requests if needed
       for (const vacation of pendingVacations) {
         // Skip if already processed in any previous session
         if (processedVacationIdsRef.current.has(vacation.id)) {
           console.log(`Already processed vacation ${vacation.id}, skipping`);
+          skippedCount++;
           continue;
         }
         
@@ -149,10 +172,12 @@ export const useVacationNotifications = (
             });
             
             // Mark as processed
-            processedVacationIdsRef.current.add(vacation.id);
-            saveProcessedVacationId(vacation.id);
-            
-            console.log(`Created notification for pending request:`, notificationId);
+            if (notificationId) {
+              processedVacationIdsRef.current.add(vacation.id);
+              saveProcessedVacationId(vacation.id);
+              createdCount++;
+              console.log(`Created notification for pending request:`, notificationId);
+            }
           } catch (notifErr) {
             console.error('Error creating notification for pending request:', notifErr);
           }
@@ -160,8 +185,19 @@ export const useVacationNotifications = (
           // Mark as processed to avoid checking again
           processedVacationIdsRef.current.add(vacation.id);
           saveProcessedVacationId(vacation.id);
+          skippedCount++;
           console.log(`Notification already exists for vacation ${vacation.id}, skipping`);
         }
+      }
+      
+      console.log(`Vacation notification processing complete - Created: ${createdCount}, Skipped: ${skippedCount}`);
+      
+      // If we force refreshed and created new notifications, show a toast
+      if (forceRefresh && createdCount > 0) {
+        toast({
+          title: t('notifications.processingComplete'),
+          description: `${createdCount} new notification(s) created`,
+        });
       }
     } catch (err) {
       console.error('Error checking for pending vacation requests:', err);
