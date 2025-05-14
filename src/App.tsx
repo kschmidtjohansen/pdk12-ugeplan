@@ -60,10 +60,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <AuthProvider>
-          <TranslationProvider>
-            <NotificationProvider>
-              <ThemeProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <TranslationProvider>
+              <NotificationProvider>
                 <Router>
                   <Toaster />
                   <Suspense fallback={<LoadingFallback />}>
@@ -80,10 +80,10 @@ function App() {
                     </Routes>
                   </Suspense>
                 </Router>
-              </ThemeProvider>
-            </NotificationProvider>
-          </TranslationProvider>
-        </AuthProvider>
+              </NotificationProvider>
+            </TranslationProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </ToastProvider>
     </QueryClientProvider>
   );

@@ -10,7 +10,16 @@ export const useNotificationFetching = (user: any | null) => {
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
-  const { toast } = useToast();
+  
+  // Wrap toast in a try-catch to avoid errors if toast context isn't ready
+  let toast;
+  try {
+    toast = useToast().toast;
+  } catch (e) {
+    // Silent fallback if toast is not available
+    toast = () => console.log('Toast not available yet');
+  }
+  
   const { t } = useTranslation();
 
   // Fetch notifications from Supabase
@@ -60,7 +69,7 @@ export const useNotificationFetching = (user: any | null) => {
     } finally {
       setLoading(false);
     }
-  }, [user, toast, t]);
+  }, [user, t]);
 
   return {
     notifications,
