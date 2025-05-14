@@ -1,15 +1,20 @@
 
 const notifications = {
-  title: 'Notifikationer',
-  markAllAsRead: 'Marker alle som læst',
-  noNotifications: 'Ingen notifikationer',
+  notifications: 'Notifikationer',
+  noNotifications: 'Du har ingen notifikationer',
   viewAll: 'Se alle',
-  newVacationRequest: 'Ny ansøgning om fridage',
-  newVacationRequestMsg: '{name} har ansøgt om fri fra {from} til {to}',
-  newVacationRequestActionRequired: '{name} har ansøgt om fri fra {from} til {to}. Venligst godkend eller afvis denne ansøgning.',
+  markAllAsRead: 'Markér alle som læst',
+  markAsRead: 'Markér som læst',
+  delete: 'Slet',
+  unreadCount: '{count} ulæste',
+  newVacationRequest: 'Ny ferieansøgning',
+  newVacationRequestMsg: '{name} har ansøgt om ferie fra {from} til {to}',
+  newVacationRequestActionRequired: '{name} har ansøgt om ferie fra {from} til {to}. Handling kræves.',
   vacationStatusChanged: 'Status på ferieansøgning ændret',
   vacationApproved: 'Din ferieansøgning er blevet godkendt',
-  vacationRejected: 'Din ferieansøgning er blevet afvist. Årsag: {reason}'
+  vacationRejected: 'Din ferieansøgning er blevet afvist: {reason}',
+  new: 'Ny',
+  from: 'Fra'
 };
 
 export default notifications;
