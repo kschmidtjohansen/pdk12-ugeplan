@@ -8,6 +8,7 @@ const login = {
   buttonLoading: 'Logger ind...',
   failed: 'Ugyldig email eller adgangskode. Prøv igen.',
   success: 'Login gennemført',
+  logoutSuccess: 'Du er nu logget ud',
   welcomeMessage: 'Velkommen til Polygon Ugeplan',
   internalSystem: 'Afdeling 12 - Trekantsområdet',
   invalidCredentials: 'Ugyldig email eller adgangskode. Prøv igen.',
