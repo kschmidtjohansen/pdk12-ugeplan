@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
 import AssignmentFormFields from './AssignmentFormFields';
-import EmployeeSelector from './EmployeeSelector';
+import { EmployeeSelector } from './EmployeeSelector';
 import { Car } from '../../types/car';
 import { Employee } from '../../types/employee';
 import { Vacation } from '../../types/vacation';

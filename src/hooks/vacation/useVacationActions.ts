@@ -136,7 +136,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         });
         
         // For admins, show a toast explaining their special ability
-        if (vacation.status !== 'pending') {
+        if (isAdmin && vacation.status === 'approved' || vacation.status === 'rejected') {
           toast({
             title: t('vacation.adminCanEditAll'),
             description: '',
@@ -188,7 +188,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         });
         
         // For admins, show a toast explaining their special ability
-        if (vacation.status !== 'pending') {
+        if (isAdmin && vacation.status === 'approved' || vacation.status === 'rejected') {
           toast({
             title: t('vacation.adminCanDeleteAll'),
             description: '',
