@@ -1,6 +1,7 @@
 
 // Re-export from the hooks folder
-import { useToast as useToastHook, toast as toastFunction } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
-export const useToast = useToastHook;
-export const toast = toastFunction;
+export { useToast };
+export type { ToastActionElement, ToastProps };

@@ -1,11 +1,14 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useAutoPublishAssignments } from '@/hooks/useAutoPublishAssignments';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const AutoPublishHandlerContent: React.FC = () => {
   // Call the hook to set up auto-publishing
-  useAutoPublishAssignments();
+  const { lastPublishedDate } = useAutoPublishAssignments();
+  
+  // Log that the component is initialized
+  console.log('AutoPublishHandler initialized, last published:', lastPublishedDate);
   
   // Component doesn't render anything visible
   return null;

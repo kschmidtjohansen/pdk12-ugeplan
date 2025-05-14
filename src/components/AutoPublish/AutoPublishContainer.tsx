@@ -2,17 +2,18 @@
 import React from 'react';
 import AutoPublishHandler from './AutoPublishHandler';
 import VacationCleanupHandler from '../Vacation/VacationCleanupHandler';
-import { useAuth } from '@/context/AuthContext';
+
+interface AutoPublishContainerProps {
+  userId?: string | null;
+}
 
 /**
  * Container component that organizes all background process handlers
  * like auto-publishing and cleanup processes.
  */
-const AutoPublishContainer: React.FC = () => {
-  const { user } = useAuth();
-  
+const AutoPublishContainer: React.FC<AutoPublishContainerProps> = ({ userId }) => {
   // Only render these components if the user is logged in
-  if (!user) {
+  if (!userId) {
     return null;
   }
   

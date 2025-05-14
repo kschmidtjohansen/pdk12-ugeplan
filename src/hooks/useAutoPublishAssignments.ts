@@ -28,7 +28,7 @@ export const useAutoPublishAssignments = () => {
 
   // Function to check if it's time to publish
   const checkAndPublish = async () => {
-    if (publishingRef.current || loading) {
+    if (publishingRef.current || loading || !assignments?.length) {
       return; // Skip if already publishing or assignments are still loading
     }
     

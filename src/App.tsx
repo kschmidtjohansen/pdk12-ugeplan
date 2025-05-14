@@ -50,7 +50,7 @@ function App() {
             <ThemeProvider>
               <Router>
                 <Toaster />
-                <AutoPublishContainer />
+                <AutoPublishContainer userId={user?.id} />
                 <Routes>
                   <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
                   <Route path="/" element={user ? <MainLayout><DashboardPage /></MainLayout> : <Navigate to="/login" />} />
