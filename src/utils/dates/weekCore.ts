@@ -15,7 +15,8 @@ export interface WeekDates {
 export const getWeekDates = (weekNumber: number, year: number): WeekDates => {
   // Create a date in the specified week (e.g., Monday of that week)
   // This creates a date in the ISO week format (where week 1 is the week with the first Thursday)
-  const mondayOfWeek = parse(`${year}-W${weekNumber}-1`, 'YYYY-ww-e', new Date(), { locale: enUS });
+  // FIXED: Changed YYYY to yyyy to match date-fns v3 format requirements
+  const mondayOfWeek = parse(`${year}-W${weekNumber}-1`, 'yyyy-ww-e', new Date(), { locale: enUS });
   
   // Start of week is the Monday
   const start = mondayOfWeek;
@@ -70,6 +71,21 @@ export const getCurrentWeekInfo = (): { week: number; year: number } => {
     week: getWeek(now, { weekStartsOn: 1, firstWeekContainsDate: 4 }),
     year: getYear(now)
   };
+};
+
+/**
+ * Get the current week's dates
+ */
+export const getCurrentWeekDates = (): WeekDates => {
+  const { week, year } = getCurrentWeekInfo();
+  return getWeekDates(week, year);
+};
+
+/**
+ * Get the current week number
+ */
+export const getCurrentWeekNumber = (): number => {
+  return getCurrentWeekInfo().week;
 };
 
 /**
