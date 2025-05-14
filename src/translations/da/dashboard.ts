@@ -47,14 +47,15 @@ const dashboard = {
   charts: {
     assignmentDistribution: 'Opgavefordeling'
   },
-  upcomingVacations: 'Kommende Ferier',
-  noUpcomingVacations: 'Ingen kommende ferier planlagt',
+  upcomingVacations: 'Kommende/Igangværende Ferier',
+  noUpcomingVacations: 'Ingen kommende/igangværende ferier planlagt',
   vehicleStatus: 'Køretøjsstatus',
   available: 'Tilgængelig',
   inUse: 'I brug',
   availableEmployees: 'Tilgængelige Medarbejdere',
   onLeaveEmployees: 'Fraværende Medarbejdere',
   totalEmployees: 'Samlede medarbejdere: {count}',
+  totalCars: 'Samlede biler: {count}',
   availableCars: 'Tilgængelige Biler',
   todayAssignments: 'Dagens Opgaver',
   scheduledToday: 'Opgaver planlagt til i dag',

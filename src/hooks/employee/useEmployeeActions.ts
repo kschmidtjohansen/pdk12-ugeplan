@@ -22,22 +22,31 @@ export const useEmployeeActions = (refetchEmployees: () => Promise<void>) => {
 
   const createEmployee = async (formData: EmployeeFormData) => {
     try {
-      // First create the user with auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: generateRandomPassword(),
-        options: {
-          data: {
+      console.log("Creating new employee with email:", formData.email);
+      
+      // Use admin functions to create user instead of signUp to avoid session changes
+      const { data: authData, error: authError } = await supabase.functions.invoke('admin-create-user', {
+        body: { 
+          email: formData.email,
+          password: generateRandomPassword(),
+          userData: {
             name: formData.name
           }
         }
       });
       
-      if (authError) throw authError;
-      
-      if (!authData.user) {
-        throw new Error('No user returned from signup');
+      if (authError) {
+        console.error("Error creating user through admin function:", authError);
+        throw authError;
       }
+      
+      if (!authData || !authData.user) {
+        console.error("No user data returned from admin-create-user function");
+        throw new Error('No user returned from user creation');
+      }
+      
+      const userId = authData.user.id;
+      console.log("User created with ID:", userId);
       
       // Then update the profile with additional info
       const { error: profileError } = await supabase
@@ -48,9 +57,12 @@ export const useEmployeeActions = (refetchEmployees: () => Promise<void>) => {
           on_leave: formData.onLeave,
           notes: formData.notes
         })
-        .eq('id', authData.user.id);
+        .eq('id', userId);
       
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Error updating profile:", profileError);
+        throw profileError;
+      }
       
       // Then set the role
       const { error: roleError } = await supabase
@@ -58,9 +70,12 @@ export const useEmployeeActions = (refetchEmployees: () => Promise<void>) => {
         .update({
           role: formData.role
         })
-        .eq('user_id', authData.user.id);
+        .eq('user_id', userId);
       
-      if (roleError) throw roleError;
+      if (roleError) {
+        console.error("Error updating user role:", roleError);
+        throw roleError;
+      }
       
       // Refresh the employee list
       await refetchEmployees();

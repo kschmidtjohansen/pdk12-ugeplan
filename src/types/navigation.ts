@@ -6,5 +6,6 @@ export interface NavigationItem {
   name: string;
   icon: ReactNode;
   adminOnly?: boolean;
+  skadelederVisible?: boolean;
   translationKey: string;
 }

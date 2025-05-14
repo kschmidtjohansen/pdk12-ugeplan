@@ -23,23 +23,45 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
   onDelete,
   isLoading = false
 }) => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isSkadeleder } = useAuth();
   
-  // Filter vacations based on the active tab
+  // Filter vacations based on the active tab and user roles
   const filteredVacations = React.useMemo(() => {
-    if (!vacations) return [];
+    if (!vacations || !user) return [];
     
+    let filtered = [...vacations];
+    
+    // First, filter out rejected applications that aren't the user's own
+    filtered = filtered.filter(v => {
+      if (v.status === 'rejected') {
+        // Rejected vacations are only visible to the applicant
+        return v.employeeId === user.id;
+      }
+      return true;
+    });
+    
+    // Then, filter pending applications based on roles
+    filtered = filtered.filter(v => {
+      if (v.status === 'pending') {
+        // Pending applications are only visible to admins and the applicant
+        if (isAdmin) return true;
+        return v.employeeId === user.id;
+      }
+      return true;
+    });
+    
+    // Now apply tab filtering
     switch (tabValue) {
       case 'pending':
-        return vacations.filter(v => v.status === 'pending');
+        return filtered.filter(v => v.status === 'pending');
       case 'approved':
-        return vacations.filter(v => v.status === 'approved');
+        return filtered.filter(v => v.status === 'approved');
       case 'mine':
-        return vacations.filter(v => v.employeeId === user?.id);
+        return filtered.filter(v => v.employeeId === user.id);
       default: // 'all'
-        return vacations;
+        return filtered;
     }
-  }, [vacations, tabValue, user]);
+  }, [vacations, tabValue, user, isAdmin, isSkadeleder]);
 
   return (
     <div className="mt-6">
