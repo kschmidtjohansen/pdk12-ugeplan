@@ -1,6 +1,7 @@
 
 import { Assignment } from '@/types/assignment';
 import { getWeekDates } from '@/utils/dates';
+import { format } from 'date-fns';
 
 // Filters and groups assignments
 export const useAssignmentFilters = () => {
@@ -45,7 +46,8 @@ export const useAssignmentFilters = () => {
       const weekEnd = new Date(end);
       weekEnd.setHours(23, 59, 59, 999);
       
-      console.log(`Week boundaries - Start: ${weekStart.toISOString()}, End: ${weekEnd.toISOString()}`);
+      console.log(`Week boundaries for filtering - Start: ${format(weekStart, 'yyyy-MM-dd')} (${format(weekStart, 'EEEE')}, day ${weekStart.getDay()})`);
+      console.log(`Week boundaries for filtering - End: ${format(weekEnd, 'yyyy-MM-dd')} (${format(weekEnd, 'EEEE')}, day ${weekEnd.getDay()})`);
       
       return assignments.filter(assignment => {
         // Create a date object from the assignment date string

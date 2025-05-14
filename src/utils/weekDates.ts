@@ -4,3 +4,5 @@
 export * from './dates/weekCore';
 export * from './dates/weekNavigation';
 export * from './dates/weekFormatting';
+
+console.log("Legacy date utilities loaded from src/utils/weekDates.ts");

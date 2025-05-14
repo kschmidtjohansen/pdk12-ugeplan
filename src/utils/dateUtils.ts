@@ -1,5 +1,5 @@
 
-import { getISOWeek, getISOWeekYear, format, startOfISOWeek } from "date-fns";
+import { getISOWeek, getISOWeekYear, format, startOfISOWeek, endOfISOWeek, addDays } from "date-fns";
 import { da } from "date-fns/locale"; // Import Danish locale
 
 // Group assignments by day (YYYY-MM-DD format)
@@ -45,17 +45,20 @@ export const getAllWeekDays = (
   const days: string[] = [];
   
   // Debug incoming dates
-  console.log(`getAllWeekDays - Start: ${format(start, 'yyyy-MM-dd')} (${format(start, 'EEEE')})`);
-  console.log(`getAllWeekDays - End: ${format(end, 'yyyy-MM-dd')} (${format(end, 'EEEE')})`);
+  console.log(`getAllWeekDays - Start: ${format(start, 'yyyy-MM-dd')} (${format(start, 'EEEE')}) - Day: ${start.getDay()}`);
+  console.log(`getAllWeekDays - End: ${format(end, 'yyyy-MM-dd')} (${format(end, 'EEEE')}) - Day: ${end.getDay()}`);
   
-  // Ensure we have a Monday start date
-  const mondayStart = startOfISOWeek(start);
-  console.log(`getAllWeekDays - Adjusted start: ${format(mondayStart, 'yyyy-MM-dd')} (${format(mondayStart, 'EEEE')})`);
+  // We need to ensure we're working with a Monday to Sunday range
+  // ISO weeks should already start on Monday (day 1) and end on Sunday (day 0)
+  if (start.getDay() !== 1) {
+    console.warn(`Start date is not Monday! Adjusting from ${format(start, 'EEEE')} to Monday`);
+    start = startOfISOWeek(start); // Force to Monday
+  }
   
-  // Create 7 days starting from Monday
-  const currentDate = new Date(mondayStart);
+  // Create 7 days starting from Monday (day 1)
+  const currentDate = new Date(start);
   for (let i = 0; i < 7; i++) {
-    const dateString = currentDate.toISOString().split('T')[0];
+    const dateString = format(currentDate, 'yyyy-MM-dd');
     days.push(dateString);
     currentDate.setDate(currentDate.getDate() + 1);
   }
@@ -65,7 +68,17 @@ export const getAllWeekDays = (
     const firstDayDate = new Date(days[0]);
     const lastDayDate = new Date(days[6]);
     
-    console.log(`Week days - First: ${days[0]} (${format(firstDayDate, 'EEEE')}), Last: ${days[6]} (${format(lastDayDate, 'EEEE')})`);
+    console.log(`Week days - First: ${days[0]} (${format(firstDayDate, 'EEEE')}, day ${firstDayDate.getDay()})`);
+    console.log(`Week days - Last: ${days[6]} (${format(lastDayDate, 'EEEE')}, day ${lastDayDate.getDay()})`);
+    
+    // Verify we have Monday (1) to Sunday (0)
+    if (firstDayDate.getDay() !== 1) {
+      console.error(`ERROR: First day is not Monday! Got ${format(firstDayDate, 'EEEE')} (day ${firstDayDate.getDay()})`);
+    }
+    
+    if (lastDayDate.getDay() !== 0) {
+      console.error(`ERROR: Last day is not Sunday! Got ${format(lastDayDate, 'EEEE')} (day ${lastDayDate.getDay()})`);
+    }
   }
   
   return days;

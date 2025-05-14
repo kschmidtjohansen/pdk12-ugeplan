@@ -68,6 +68,15 @@ export const usePlannerPage = () => {
       endDay: format(weekDates.end, 'EEEE'),
       endDayNumber: weekDates.end.getDay()
     });
+    
+    // Validate that we have a Monday (1) to Sunday (0) range
+    if (weekDates.start.getDay() !== 1) {
+      console.error(`ERROR: Week start is not Monday! Got day ${weekDates.start.getDay()} (${format(weekDates.start, 'EEEE')})`);
+    }
+    
+    if (weekDates.end.getDay() !== 0) {
+      console.error(`ERROR: Week end is not Sunday! Got day ${weekDates.end.getDay()} (${format(weekDates.end, 'EEEE')})`);
+    }
   }, [selectedWeek, selectedYear, weekDates]);
   
   // Filter assignments for the current week

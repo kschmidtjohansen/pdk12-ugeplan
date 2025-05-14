@@ -7,7 +7,8 @@ import {
   startOfISOWeek, 
   endOfISOWeek, 
   setISOWeek, 
-  setISOWeekYear
+  setISOWeekYear,
+  addDays
 } from "date-fns";
 
 /**
@@ -33,11 +34,12 @@ export const getWeekDates = (weekNumber: number, year: number) => {
     const start = startOfISOWeek(dateWithWeek);
     
     // Get the end (Sunday) of that ISO week
+    // Using endOfISOWeek directly returns the last millisecond of Sunday
     const end = endOfISOWeek(dateWithWeek);
     
     // Debug output
-    console.log(`Week ${weekNumber}/${year} - Start: ${format(start, 'yyyy-MM-dd')} (${format(start, 'EEEE')})`);
-    console.log(`Week ${weekNumber}/${year} - End: ${format(end, 'yyyy-MM-dd')} (${format(end, 'EEEE')})`);
+    console.log(`Week ${weekNumber}/${year} - Start: ${format(start, 'yyyy-MM-dd')} (${format(start, 'EEEE')}) - Day: ${start.getDay()}`);
+    console.log(`Week ${weekNumber}/${year} - End: ${format(end, 'yyyy-MM-dd')} (${format(end, 'EEEE')}) - Day: ${end.getDay()}`);
     
     // Verify week boundaries - Monday(1) to Sunday(0)
     if (start.getDay() !== 1) {
