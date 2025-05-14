@@ -98,14 +98,15 @@ export const usePlannerPage = () => {
     setSelectedYear(year);
   }, [selectedWeek, selectedYear]);
 
-  // Handle assignment creation/editing - use the current date
+  // Handle assignment creation/editing - always use the current date
   const handleOpenCreateDialog = useCallback((date: string) => {
     setCurrentAssignment(null);
     setSelectedDay(date);
     
     // Set form data in one update to avoid race conditions
     // Always use today's date if no specific date is provided
-    const taskDate = date || format(new Date(), 'yyyy-MM-dd');
+    const currentDate = new Date();
+    const taskDate = date || format(currentDate, 'yyyy-MM-dd');
     
     setFormData({
       title: '',

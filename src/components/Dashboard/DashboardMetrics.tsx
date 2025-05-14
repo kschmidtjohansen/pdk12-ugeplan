@@ -25,9 +25,16 @@ const DashboardMetrics: React.FC = () => {
   // Show metrics only for admin and skadeleder roles
   const shouldShowMetrics = isAdmin || isSkadeleder;
 
-  // Calculate metrics
-  const availableEmployees = employees.filter(e => !e.onLeave).length;
-  const onLeaveEmployees = employees.filter(e => e.onLeave).length;
+  // Filter out admin and skadeleder users from employee counts
+  const filteredEmployees = employees.filter(e => 
+    e.role !== 'administrator' && e.role !== 'skadeleder'
+  );
+  
+  // Calculate metrics - only counting regular employees
+  const availableEmployees = filteredEmployees.filter(e => !e.onLeave).length;
+  const onLeaveEmployees = filteredEmployees.filter(e => e.onLeave).length;
+  const totalFilteredEmployees = filteredEmployees.length;
+  
   const availableCars = cars.length;
   
   const today = format(new Date(), 'yyyy-MM-dd');
@@ -47,7 +54,7 @@ const DashboardMetrics: React.FC = () => {
             <CardContent>
               <div className="text-2xl font-bold">{availableEmployees}</div>
               <p className="text-xs text-muted-foreground">
-                {t('dashboard.totalEmployees', { count: employees.length })}
+                {t('dashboard.totalEmployees', { count: totalFilteredEmployees })}
               </p>
             </CardContent>
           </Card>
@@ -62,7 +69,7 @@ const DashboardMetrics: React.FC = () => {
             <CardContent>
               <div className="text-2xl font-bold">{onLeaveEmployees}</div>
               <p className="text-xs text-muted-foreground">
-                {t('dashboard.totalEmployees', { count: employees.length })}
+                {t('dashboard.totalEmployees', { count: totalFilteredEmployees })}
               </p>
             </CardContent>
           </Card>
@@ -76,6 +83,9 @@ const DashboardMetrics: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{availableCars}</div>
+              <p className="text-xs text-muted-foreground">
+                {t('dashboard.totalCars', { count: availableCars })}
+              </p>
             </CardContent>
           </Card>
           

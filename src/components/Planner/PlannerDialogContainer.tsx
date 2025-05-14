@@ -8,6 +8,7 @@ import { Car } from '@/types/car';
 import { useVacations } from '@/hooks/useVacations';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
+import { format } from 'date-fns';
 
 interface PlannerDialogContainerProps {
   isDialogOpen: boolean;
@@ -46,6 +47,9 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   // Fetch employees and cars data
   const { employees } = useEmployees();
   const { cars } = useCars();
+  
+  // Always ensure we have today's date for the form, no matter what
+  const todayDate = format(new Date(), 'yyyy-MM-dd');
 
   // Only render the dialog when it's actually open
   if (!isDialogOpen) {
@@ -102,15 +106,15 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
         currentAssignment={currentAssignment}
         formData={formData}
         selectedEmployees={selectedEmployees}
-        cars={cars} // Pass the cars data
-        employees={employees} // Pass the employees data
+        cars={cars}
+        employees={employees}
         vacations={vacations}
         handleInputChange={handleInputChange}
         handleSelectChange={handleSelectChange}
         handleEmployeeToggle={handleEmployeeToggle}
         handleSubmit={handleSubmit}
         onClose={() => setIsDialogOpen(false)}
-        currentDate={selectedDay}
+        currentDate={currentAssignment ? (formData.date || todayDate) : todayDate}
       />
     </Dialog>
   );

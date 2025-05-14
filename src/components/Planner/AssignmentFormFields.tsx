@@ -32,9 +32,11 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     currentLanguage
   } = useTranslation();
 
+  // Always get the current date for consistently up-to-date references
+  const currentDate = new Date();
+
   // Helper function to safely handle date formatting
   const formatDate = (dateString: string | undefined | null) => {
-    const currentDate = new Date();
     if (!dateString) return format(currentDate, "yyyy-MM-dd");
     try {
       // Use Danish locale if the current language is Danish
@@ -50,7 +52,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
   // Format date for display in the calendar button
   const formatDisplayDate = (dateString: string | undefined | null) => {
-    const currentDate = new Date();
     // Always use current date when no selection is made
     if (!dateString) return format(currentDate, "d MMMM yyyy", { locale: currentLanguage === 'da' ? da : undefined });
     try {
@@ -81,6 +82,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   console.log("FormFields - Current formData:", formData);
   console.log("FormFields - Cars data:", cars?.length || 0, "cars available");
   console.log("FormFields - Employees data:", employees?.length || 0, "employees available");
+  console.log("FormFields - Current date:", format(currentDate, "yyyy-MM-dd"));
   
   // Wrap the returned JSX in a fragment to fix the React error #185
   return (
@@ -111,7 +113,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar 
               mode="single" 
-              selected={formData.date ? new Date(formData.date) : new Date()} 
+              selected={formData.date ? new Date(formData.date) : currentDate} 
               onSelect={handleDateSelect} 
               locale={currentLanguage === 'da' ? da : undefined} 
               weekStartsOn={1} // 1 means Monday is the first day
