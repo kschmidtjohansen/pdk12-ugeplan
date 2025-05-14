@@ -12,7 +12,7 @@ interface AssignmentActionButtonsProps {
   onEdit: () => void;
   onDelete: () => void;
   onPublish?: () => void;
-  size?: 'default' | 'sm' | 'lg' | 'xs';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
 }
 
 const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = ({
