@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   BrowserRouter as Router,
@@ -5,14 +6,14 @@ import {
   Route,
   Navigate
 } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from "@/components/ui/toaster"
 
 import { useAuth } from './context/AuthContext';
 import { AuthProvider } from './context/AuthContext';
 import { TranslationProvider } from './context/TranslationContext';
 import { NotificationProvider } from './context/NotificationContext';
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "./components/theme-provider"
 
 import MainLayout from './components/Layout/MainLayout';
 import LoginPage from './pages/LoginPage';
