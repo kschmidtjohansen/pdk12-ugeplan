@@ -6,6 +6,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { sortNotifications } from '@/utils/notifications';
+import { safeProperty } from '@/utils/dbHelpers';
 
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
@@ -387,7 +388,8 @@ export const useNotifications = () => {
         
         // Create notifications for pending requests if needed
         for (const vacation of pendingVacations) {
-          const employeeName = vacation.profiles?.name || 'Employee';
+          // Fix: Use the safeProperty utility to safely access the name property
+          const employeeName = safeProperty(vacation.profiles, 'name', 'Employee');
           
           // Check if we already have a notification for this vacation
           const hasNotification = existingNotifications?.some(n => 
