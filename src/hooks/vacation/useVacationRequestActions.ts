@@ -62,6 +62,15 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
         }
       }
       
+      console.log("Creating vacation record:", {
+        user_id: requestEmployeeId,
+        start_date: date.from.toISOString(),
+        end_date: date.to.toISOString(),
+        reason: reason,
+        status: 'pending',
+        isAdminRequest
+      });
+      
       // Create the vacation record
       const { data, error } = await supabase
         .from('vacations')
@@ -76,7 +85,12 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
         ])
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error inserting vacation:", error);
+        throw error;
+      }
+      
+      console.log("Vacation created successfully:", data);
       
       // Different toast messages based on whether admin is making request for someone else
       if (isAdminRequest && user.id !== requestEmployeeId) {
@@ -85,17 +99,27 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
           description: t("vacation.adminRequestSent", { name: requestEmployeeName })
         });
         
-        // Notify the employee that an admin has made a vacation request for them
-        addNotification({
-          type: 'vacation',
-          title: t("vacation.requestSubmittedForYou"),
-          message: t("vacation.adminRequestedForYou", {
-            adminName: user.name,
-            from: format(date.from, currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy'),
-            to: format(date.to, currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy')
-          }),
-          link: '/vacation'
-        });
+        try {
+          console.log("Adding notification for employee:", requestEmployeeId);
+          
+          // Notify the employee that an admin has made a vacation request for them
+          await addNotification({
+            type: 'vacation',
+            title: t("vacation.requestSubmittedForYou"),
+            message: t("vacation.adminRequestedForYou", {
+              adminName: user.name,
+              from: format(date.from, currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy'),
+              to: format(date.to, currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy')
+            }),
+            link: '/vacation',
+            targetUserId: requestEmployeeId
+          });
+          
+          console.log("Notification added for employee");
+        } catch (notifErr) {
+          console.error("Error adding notification:", notifErr);
+          // Don't throw here - we want the vacation to be successful even if notification fails
+        }
       } else {
         toast({
           title: t("vacation.requestSubmitted"),
@@ -103,35 +127,45 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
         });
       }
 
-      // Fetch administrators and skadeledere
-      const { data: adminUsers, error: adminError } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .in('role', ['administrator', 'skadeleder']);
-        
-      if (adminError) {
-        console.error('Error fetching admin users:', adminError);
-      } else if (adminUsers) {
-        const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
-        const formattedStartDate = format(date.from, dateFormat);
-        const formattedEndDate = format(date.to, dateFormat);
-        
-        // Send notification to all admin users with action instructions
-        adminUsers
-          .filter(admin => admin.user_id !== user?.id) // Don't notify yourself
-          .forEach(admin => {
-            addNotification({
-              type: 'vacation',
-              title: t("notifications.newVacationRequest"),
-              message: t("notifications.newVacationRequestActionRequired", {
-                name: requestEmployeeName,
-                from: formattedStartDate,
-                to: formattedEndDate
-              }),
-              link: '/vacation',
-              targetUserId: admin.user_id
-            });
-          });
+      try {
+        // Fetch administrators and skadeledere
+        const { data: adminUsers, error: adminError } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .in('role', ['administrator', 'skadeleder']);
+          
+        if (adminError) {
+          console.error('Error fetching admin users:', adminError);
+        } else if (adminUsers) {
+          const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
+          const formattedStartDate = format(date.from, dateFormat);
+          const formattedEndDate = format(date.to, dateFormat);
+          
+          console.log("Sending notifications to admins:", adminUsers);
+          
+          // Send notification to all admin users with action instructions
+          for (const admin of adminUsers.filter(a => a.user_id !== user?.id)) {
+            try {
+              await addNotification({
+                type: 'vacation',
+                title: t("notifications.newVacationRequest"),
+                message: t("notifications.newVacationRequestActionRequired", {
+                  name: requestEmployeeName,
+                  from: formattedStartDate,
+                  to: formattedEndDate
+                }),
+                link: '/vacation',
+                targetUserId: admin.user_id
+              });
+            } catch (notifErr) {
+              console.error('Error adding admin notification:', notifErr);
+              // Continue with other admins even if one notification fails
+            }
+          }
+        }
+      } catch (adminNotifErr) {
+        console.error('Error in admin notification process:', adminNotifErr);
+        // Don't throw here - the vacation submission itself was successful
       }
       
       // Refresh the vacation list

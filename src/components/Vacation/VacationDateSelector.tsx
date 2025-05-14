@@ -1,15 +1,11 @@
 
 import React from 'react';
-import { addDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
-import { CalendarIcon } from 'lucide-react';
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/popover";
-import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DateRange } from 'react-day-picker';
 import { useTranslation } from '@/context/TranslationContext';
@@ -55,8 +51,7 @@ const VacationDateSelector: React.FC<VacationDateSelectorProps> = ({
             initialFocus 
             numberOfMonths={2}
             locale={locale}
-            disabled={date => date < addDays(new Date(), 1)} 
-            className={cn("p-3 pointer-events-auto")} 
+            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
           />
         </PopoverContent>
       </Popover>
