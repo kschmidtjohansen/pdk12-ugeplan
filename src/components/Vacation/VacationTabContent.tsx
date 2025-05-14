@@ -1,56 +1,46 @@
 
 import React from 'react';
-import { Vacation } from '@/types/vacation';
-import { VacationStatus } from '@/types/vacation';
-import { useTranslation } from '@/context/TranslationContext';
-import { useAuth } from '@/context/AuthContext';
 import VacationList from './VacationList';
+import { Vacation } from '@/types/vacation';
+import { useAuth } from '@/context/AuthContext';
 
 interface VacationTabContentProps {
-  vacations: Vacation[];
   tabValue: string;
+  vacations: Vacation[];
   onApprove: (vacation: Vacation) => void;
   onReject: (vacation: Vacation) => void;
-  onEdit?: (vacation: Vacation) => void;
-  onDelete?: (vacation: Vacation) => void;
+  onEdit: (vacation: Vacation) => void;
+  onDelete: (vacation: Vacation) => void;
   isLoading?: boolean;
 }
 
 const VacationTabContent: React.FC<VacationTabContentProps> = ({
-  vacations,
   tabValue,
+  vacations,
   onApprove,
   onReject,
   onEdit,
   onDelete,
   isLoading = false
 }) => {
-  const { t } = useTranslation();
-  const { user, isAdmin, isSkadeleder, isServicemedarbejder } = useAuth();
+  const { user, isAdmin } = useAuth();
   
-  // Filter vacations based on tab
+  // Filter vacations based on the active tab
   const filteredVacations = React.useMemo(() => {
-    // For admin/skadeleders, filter out rejected applications except in "all" tab
-    let filtered = vacations;
+    if (!vacations) return [];
     
-    // If user is admin or skadeleder and not in "all" tab, filter out rejected ones
-    if ((isAdmin || isSkadeleder) && tabValue !== 'all') {
-      filtered = vacations.filter(v => v.status !== 'rejected');
-    }
-    
-    // Now apply tab-specific filters
     switch (tabValue) {
       case 'pending':
-        return filtered.filter((v) => v.status === 'pending');
+        return vacations.filter(v => v.status === 'pending');
       case 'approved':
-        return filtered.filter((v) => v.status === 'approved');
-      case 'all':
-      default:
-        // No filtering for the "all" tab - show all vacations
-        return filtered;
+        return vacations.filter(v => v.status === 'approved');
+      case 'mine':
+        return vacations.filter(v => v.employeeId === user?.id);
+      default: // 'all'
+        return vacations;
     }
-  }, [vacations, tabValue, isAdmin, isSkadeleder]);
-  
+  }, [vacations, tabValue, user]);
+
   return (
     <div className="mt-6">
       <VacationList 

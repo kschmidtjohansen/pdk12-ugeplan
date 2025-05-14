@@ -91,35 +91,31 @@ const VacationCard: React.FC<VacationCardProps> = ({
       </CardContent>
       
       <CardFooter className="flex justify-between border-t pt-4 pb-4">
-        {/* Owner actions - show edit & delete buttons for all statuses when owner or admin */}
-        {isOwner && (
+        {/* Admin-only edit/delete buttons */}
+        {onEdit && onDelete && (
           <div className="flex gap-2">
-            {onEdit && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="border-blue-200 hover:bg-blue-50" 
-                onClick={() => onEdit(vacation)}
-              >
-                <Edit className="mr-1 h-4 w-4" />
-                {t("common.edit")}
-              </Button>
-            )}
-            {onDelete && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-red-600 border-red-200 hover:bg-red-50"
-                onClick={() => onDelete(vacation)}
-              >
-                <Trash2 className="mr-1 h-4 w-4" />
-                {t("common.delete")}
-              </Button>
-            )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="border-blue-200 hover:bg-blue-50" 
+              onClick={() => onEdit(vacation)}
+            >
+              <Edit className="mr-1 h-4 w-4" />
+              {t("common.edit")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-red-600 border-red-200 hover:bg-red-50"
+              onClick={() => onDelete(vacation)}
+            >
+              <Trash2 className="mr-1 h-4 w-4" />
+              {t("common.delete")}
+            </Button>
           </div>
         )}
         
-        {/* Admin approval actions (for pending requests only) */}
+        {/* Admin-only approval actions (for pending requests only) */}
         {canApprove && vacation.status === 'pending' && (
           <div className="flex gap-2 ml-auto">
             <Button 

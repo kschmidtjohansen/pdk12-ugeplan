@@ -60,15 +60,19 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     setAdminDialogOpen(true);
   };
   
-  // Handle approval action
+  // Handle approval action - only allow admin
   const handleApprove = (vacation: any) => {
+    if (!isAdmin) return;
+    
     setCurrentVacation(vacation);
     setActionType("approve");
     setActionDialogOpen(true);
   };
   
-  // Handle rejection action
+  // Handle rejection action - only allow admin
   const handleReject = (vacation: any) => {
+    if (!isAdmin) return;
+    
     setCurrentVacation(vacation);
     setActionType("reject");
     setActionDialogOpen(true);
@@ -76,7 +80,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   
   // Submit approval/rejection
   const handleActionSubmit = () => {
-    if (!currentVacation) return;
+    if (!currentVacation || !isAdmin) return;
     
     if (actionType === "approve") {
       approveVacation(currentVacation, note);
@@ -88,16 +92,32 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     setNote("");
   };
   
+  // Handle edit vacation - only allow admin
+  const handleEdit = (vacation: any) => {
+    if (!isAdmin) return;
+    
+    handleEditVacation(vacation);
+  };
+  
+  // Handle delete vacation - only allow admin
+  const handleDelete = (vacation: any) => {
+    if (!isAdmin) return;
+    
+    handleDeleteVacation(vacation);
+  };
+  
   // Wrapper for delete vacation to pass to dialog with no parameters
   const handleDeleteCurrentVacation = () => {
-    if (selectedVacation) {
+    if (selectedVacation && isAdmin) {
       handleDeleteVacation(selectedVacation);
     }
   };
   
   // Handle admin vacation request submission
   const submitAdminVacationRequest = (e: React.FormEvent) => {
-    submitVacationRequest(e, true);
+    if (isAdmin) {
+      submitVacationRequest(e, true);
+    }
   };
   
   return (
@@ -118,8 +138,8 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         tabValue={activeTab}
         onApprove={handleApprove}
         onReject={handleReject}
-        onEdit={handleEditVacation}
-        onDelete={handleDeleteVacation}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
         isLoading={loading}
       />
       

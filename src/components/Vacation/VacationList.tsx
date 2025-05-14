@@ -22,10 +22,10 @@ const VacationList: React.FC<VacationListProps> = ({
   onDelete,
   isLoading = false 
 }) => {
-  const { isAdmin, isSkadeleder } = usePermissions();
+  const { isAdmin } = usePermissions();
   const { t } = useTranslation();
   
-  const canApprove = isAdmin || isSkadeleder;
+  const canApprove = isAdmin; // Only admins can approve/reject
   
   if (isLoading) {
     return (
@@ -52,8 +52,8 @@ const VacationList: React.FC<VacationListProps> = ({
           canApprove={canApprove}
           onApprove={onApprove}
           onReject={onReject}
-          onEdit={onEdit}
-          onDelete={onDelete}
+          onEdit={isAdmin ? onEdit : undefined} // Only pass onEdit if admin
+          onDelete={isAdmin ? onDelete : undefined} // Only pass onDelete if admin
         />
       ))}
     </div>

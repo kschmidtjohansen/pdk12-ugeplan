@@ -211,7 +211,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Updated to restrict fuel card access to administrators only
   const canViewFuelCardCode = isAdmin;
   const canPublishTasks = isAdmin || isSkadeleder;
-  const canApproveVacation = isAdmin;
+  const canApproveVacation = isAdmin; // Only admins can approve/reject vacations
   const canEdit = isAdmin || isSkadeleder;
   const canCreate = isAdmin || isSkadeleder;
   const canSeeUnpublishedTasks = isAdmin || isSkadeleder;
