@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
@@ -12,6 +11,7 @@ import AdminPage from './pages/AdminPage';
 import PasswordResetPage from './pages/PasswordResetPage';
 import { Toaster } from "@/components/ui/toaster";
 import MainLayout from './components/Layout/MainLayout';
+import { NotificationProvider } from './context/NotificationContext';
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -47,51 +47,65 @@ function App() {
         {/* Protected routes wrapped with MainLayout */}
         <Route path="/" element={
           <ProtectedRoute>
-            <MainLayout>
-              <DashboardPage />
-            </MainLayout>
+            <NotificationProvider>
+              <MainLayout>
+                <DashboardPage />
+              </MainLayout>
+            </NotificationProvider>
           </ProtectedRoute>
         } />
         <Route path="/dashboard" element={
           <ProtectedRoute>
-            <MainLayout>
-              <DashboardPage />
-            </MainLayout>
+            <NotificationProvider>
+              <MainLayout>
+                <DashboardPage />
+              </MainLayout>
+            </NotificationProvider>
           </ProtectedRoute>
         } />
         <Route path="/planner" element={
           <ProtectedRoute>
-            <MainLayout>
-              <PlannerPage />
-            </MainLayout>
+            <NotificationProvider>
+              <MainLayout>
+                <PlannerPage />
+              </MainLayout>
+            </NotificationProvider>
           </ProtectedRoute>
         } />
         <Route path="/vacation" element={
           <ProtectedRoute>
-            <MainLayout>
-              <VacationPage />
-            </MainLayout>
+            <NotificationProvider>
+              <MainLayout>
+                <VacationPage />
+              </MainLayout>
+            </NotificationProvider>
           </ProtectedRoute>
         } />
         <Route path="/employees" element={
           <ProtectedRoute>
-            <MainLayout>
-              <EmployeesPage />
-            </MainLayout>
+            <NotificationProvider>
+              <MainLayout>
+                <EmployeesPage />
+              </MainLayout>
+            </NotificationProvider>
           </ProtectedRoute>
         } />
         <Route path="/cars" element={
           <ProtectedRoute>
-            <MainLayout>
-              <CarsPage />
-            </MainLayout>
+            <NotificationProvider>
+              <MainLayout>
+                <CarsPage />
+              </MainLayout>
+            </NotificationProvider>
           </ProtectedRoute>
         } />
         <Route path="/admin" element={
           <ProtectedRoute>
-            <MainLayout>
-              <AdminPage />
-            </MainLayout>
+            <NotificationProvider>
+              <MainLayout>
+                <AdminPage />
+              </MainLayout>
+            </NotificationProvider>
           </ProtectedRoute>
         } />
       </Routes>
