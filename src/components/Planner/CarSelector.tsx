@@ -26,14 +26,15 @@ interface CarSelectorProps {
 }
 
 const CarSelector: React.FC<CarSelectorProps> = ({
-  cars,
+  cars = [], // Add default empty array to prevent undefined errors
   selectedCar,
   onCarSelect,
 }) => {
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
 
-  const selectedCarInfo = selectedCar
+  // Safely find the selected car, with a null check
+  const selectedCarInfo = selectedCar && cars
     ? cars.find((car) => car.id === selectedCar)
     : undefined;
 
@@ -61,37 +62,43 @@ const CarSelector: React.FC<CarSelectorProps> = ({
           <CommandInput placeholder={t("planner.searchCars")} />
           <CommandEmpty>{t("planner.noCarsFound")}</CommandEmpty>
           <CommandGroup className="max-h-60 overflow-auto">
-            {cars.map((car) => (
-              <CommandItem
-                key={car.id}
-                value={car.id}
-                onSelect={() => {
-                  onCarSelect(car.id === selectedCar ? undefined : car.id);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    selectedCar === car.id ? "opacity-100" : "opacity-0"
+            {Array.isArray(cars) && cars.length > 0 ? (
+              cars.map((car) => (
+                <CommandItem
+                  key={car.id}
+                  value={car.id}
+                  onSelect={() => {
+                    onCarSelect(car.id === selectedCar ? undefined : car.id);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedCar === car.id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <div className="flex flex-col">
+                    <span>{car.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {car.number_plate}
+                    </span>
+                  </div>
+                  {car.has_trailer_hitch && (
+                    <Badge
+                      variant="outline"
+                      className="ml-2 bg-blue-50 text-blue-600 border-blue-200"
+                    >
+                      {t("planner.hasTrailerHitch")}
+                    </Badge>
                   )}
-                />
-                <div className="flex flex-col">
-                  <span>{car.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {car.number_plate}
-                  </span>
-                </div>
-                {car.has_trailer_hitch && (
-                  <Badge
-                    variant="outline"
-                    className="ml-2 bg-blue-50 text-blue-600 border-blue-200"
-                  >
-                    {t("planner.hasTrailerHitch")}
-                  </Badge>
-                )}
+                </CommandItem>
+              ))
+            ) : (
+              <CommandItem disabled>
+                {t("planner.noCarsAvailable")}
               </CommandItem>
-            ))}
+            )}
           </CommandGroup>
         </Command>
       </PopoverContent>

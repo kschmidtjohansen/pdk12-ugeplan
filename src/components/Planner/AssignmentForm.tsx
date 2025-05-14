@@ -138,7 +138,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ assignment, onSubmit, o
       <div>
         <Label htmlFor="car">{t('planner.car')}</Label>
         <CarSelector
-          cars={cars}
+          cars={cars || []}
           selectedCar={selectedCar}
           onCarSelect={setSelectedCar}
         />
@@ -147,6 +147,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ assignment, onSubmit, o
         <Label htmlFor="employees">{t('planner.employees')}</Label>
         <EmployeeSelector
           selectedEmployees={selectedEmployees}
+          employees={employees}
           onEmployeeToggle={handleEmployeeToggle}
         />
       </div>
