@@ -1,3 +1,4 @@
+
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
@@ -164,8 +165,9 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
     try {
       console.log("Starting deletion process for vacation:", vacation.id);
       
-      // Allow administrators to delete any vacation regardless of status
-      // For regular users, allow deletion of their own vacations regardless of status      
+      // With our new RLS policies in place, this will only succeed if:
+      // 1. The authenticated user is an administrator, or
+      // 2. The authenticated user is deleting their own vacation record  
       const { error, data } = await supabase
         .from('vacations')
         .delete()
@@ -174,7 +176,12 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       
       if (error) {
         console.error("Error during vacation deletion:", error);
-        throw error;
+        toast({
+          title: t('common.error'),
+          description: error.message || t('vacation.deleteError'),
+          variant: 'destructive',
+        });
+        return false;
       }
       
       console.log("Vacation deleted successfully:", vacation.id, "Response data:", data);
@@ -220,7 +227,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         }
       }
       
-      // Refresh vacation list - use await to ensure it completes
+      // Update the local vacations state to ensure UI updates immediately
       await fetchVacations();
       
       return true;
@@ -229,7 +236,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       console.error('Error deleting vacation:', err);
       toast({
         title: t('common.error'),
-        description: err instanceof Error ? err.message : 'Error deleting vacation request',
+        description: err instanceof Error ? err.message : t('vacation.deleteError'),
         variant: 'destructive',
       });
       return false;

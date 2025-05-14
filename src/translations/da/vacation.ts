@@ -56,6 +56,7 @@ const vacation = {
   requestUpdatedMsg: 'Din ansøgning er blevet opdateret.',
   requestDeleted: 'Ansøgning om fridag slettet',
   requestDeletedMsg: 'Ansøgningen er blevet fjernet.',
+  deleteError: 'Der opstod en fejl under sletning af fraværsansøgningen',
   cannotEditNonPending: 'Kun afventende ansøgninger kan redigeres',
   cannotDeleteNonPending: 'Kun afventende ansøgninger kan slettes',
   adminCanEditAll: 'Som administrator kan du redigere alle ansøgninger',

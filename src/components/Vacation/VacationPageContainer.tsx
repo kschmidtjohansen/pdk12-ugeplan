@@ -107,6 +107,13 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     handleDeleteVacation(vacation);
   };
   
+  // Wrapper for admin vacation request submission
+  const submitAdminVacationRequest = (e: React.FormEvent) => {
+    if (isAdmin) {
+      submitVacationRequest(e, true);
+    }
+  };
+  
   return (
     <div>
       {headerComponent}
@@ -153,7 +160,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         setSelectedEmployeeId={setSelectedEmployeeId}
         actionType={actionType}
         submitVacationRequest={submitVacationRequest}
-        submitAdminVacationRequest={submitVacationRequest}
+        submitAdminVacationRequest={submitAdminVacationRequest}
         submitEditVacation={submitEditVacation}
         handleActionSubmit={handleActionSubmit}
         confirmDeleteVacation={confirmDeleteVacation}
