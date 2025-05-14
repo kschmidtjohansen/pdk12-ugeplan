@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Employee } from '@/types/employee';
 import { useToast } from '@/components/ui/use-toast';
@@ -259,12 +258,28 @@ export const useEmployeeActions = (refetchEmployees: () => Promise<void>) => {
       if (endedVacations && endedVacations.length > 0) {
         const employeeIds = [...new Set(endedVacations.map(v => v.user_id))];
         
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ on_leave: false })
-          .in('id', employeeIds);
-        
-        if (updateError) throw updateError;
+        // Before setting on_leave to false, check if the employee has any other active vacations
+        for (const employeeId of employeeIds) {
+          const { data: activeVacations, error: activeError } = await supabase
+            .from('vacations')
+            .select()
+            .eq('user_id', employeeId)
+            .eq('status', 'approved')
+            .lte('start_date', today.toISOString().split('T')[0])
+            .gte('end_date', today.toISOString().split('T')[0]);
+            
+          if (activeError) throw activeError;
+          
+          // Only set on_leave to false if the employee has no other active vacations
+          if (!activeVacations || activeVacations.length === 0) {
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ on_leave: false })
+              .eq('id', employeeId);
+            
+            if (updateError) throw updateError;
+          }
+        }
       }
       
       return true;

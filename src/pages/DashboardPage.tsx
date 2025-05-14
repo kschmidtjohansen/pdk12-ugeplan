@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -17,26 +18,29 @@ import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
 import { getCurrentWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
 import AssignmentDetails from '@/components/Planner/AssignmentDetails';
+import UpcomingVacationsWidget from '@/components/Dashboard/UpcomingVacationsWidget';
+import EmployeeVacationStatus from '@/components/Vacation/EmployeeVacationStatus';
+
 const DashboardPage: React.FC = () => {
-  const {
-    user
-  } = useAuth();
-  const {
-    t,
-    currentLanguage
-  } = useTranslation();
-  const {
-    assignments
-  } = usePlannerAssignments();
-  const {
-    employees
-  } = useEmployees();
-  const {
-    cars
-  } = useCars();
-  const {
-    vacations
-  } = useVacations();
+  const { user } = useAuth();
+  const { t, currentLanguage } = useTranslation();
+  const { assignments } = usePlannerAssignments();
+  const { employees } = useEmployees();
+  const { cars } = useCars();
+  const { vacations } = useVacations();
+
+  // Update employee leave status based on vacations when dashboard loads
+  useEffect(() => {
+    const updateEmployeeLeaveStatus = async () => {
+      const { updateEmployeeLeaveStatusFromVacations } = await import('@/hooks/employee/useEmployeeActions');
+      const update = updateEmployeeLeaveStatusFromVacations;
+      if (update) {
+        await update();
+      }
+    };
+    
+    updateEmployeeLeaveStatus();
+  }, []);
 
   // Use the fixed getCurrentWeekNumber function
   const currentWeek = getCurrentWeekNumber();
@@ -106,17 +110,18 @@ const DashboardPage: React.FC = () => {
 
   // Show dashboard metrics only for admin or skadeleder
   const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
-  return <>
-      <PageHeader title={t('dashboard.welcome', {
-      name: user?.name
-    })} description={t('dashboard.today', {
-      date: getFormattedDate(),
-      week: currentWeek
-    })} />
+  
+  return (
+    <>
+      <PageHeader 
+        title={t('dashboard.welcome', { name: user?.name })} 
+        description={t('dashboard.today', { date: getFormattedDate(), week: currentWeek })} 
+      />
 
       {/* Quick access grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {getQuickAccessItems().map((item, index) => <Link key={index} to={item.link} className="block">
+        {getQuickAccessItems().map((item, index) => (
+          <Link key={index} to={item.link} className="block">
             <Card className="h-full hover:border-polygon-blue transition-all duration-200">
               <CardHeader className="pb-2">
                 <div className="text-polygon-blue">{item.icon}</div>
@@ -126,11 +131,18 @@ const DashboardPage: React.FC = () => {
                 <p className="text-muted-foreground text-sm">{item.description}</p>
               </CardContent>
             </Card>
-          </Link>)}
+          </Link>
+        ))}
       </div>
 
       {/* Dashboard metrics for admin/skadeleder */}
       {shouldShowMetrics && <DashboardMetrics />}
+
+      {/* Show current and upcoming vacations */}
+      {vacations.length > 0 && <UpcomingVacationsWidget vacations={vacations} />}
+      
+      {/* Employees on vacation status */}
+      {vacations.length > 0 && <EmployeeVacationStatus vacations={vacations} />}
 
       {/* This week's assignments */}
       <Card className="mb-8">
@@ -163,6 +175,8 @@ const DashboardPage: React.FC = () => {
             </div>}
         </CardContent>
       </Card>
-    </>;
+    </>
+  );
 };
+
 export default DashboardPage;

@@ -65,7 +65,9 @@ const vacation = {
   currentlyOnVacation: 'Medarbejdere på ferie',
   daysRemaining: 'Dage tilbage',
   days: 'dage',
-  upcoming: 'Kommende'
+  upcoming: 'Kommende',
+  onVacation: 'På ferie',
+  rejectionReasonRequired: 'Årsag til afvisning er påkrævet'
 };
 
 export default vacation;

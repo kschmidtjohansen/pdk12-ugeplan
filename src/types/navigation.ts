@@ -8,3 +8,11 @@ export interface NavigationItem {
   adminOnly?: boolean;
   translationKey: string;
 }
+
+export interface VacationEmployeeNotification {
+  notificationId: string;
+  employeeId: string;
+  name: string;
+  from: string;
+  to: string;
+}

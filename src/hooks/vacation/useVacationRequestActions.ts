@@ -95,7 +95,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
             to: format(date.to, currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy')
           }),
           link: '/vacation'
-        });
+        }, requestEmployeeId);
       } else {
         toast({
           title: t("vacation.requestSubmitted"),
@@ -103,23 +103,33 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
         });
       }
 
-      // Enhanced notification for administrators with action prompts
-      if (user.role !== 'administrator') {
-        const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
-        const formattedStartDate = format(date.from, dateFormat);
-        const formattedEndDate = format(date.to, dateFormat);
-        
-        // Enhanced notification with action request
-        addNotification({
-          type: 'vacation',
-          title: t("notifications.newVacationRequest"),
-          message: t("notifications.newVacationRequestActionRequired", {
-            name: requestEmployeeName,
-            from: formattedStartDate,
-            to: formattedEndDate
-          }),
-          link: '/vacation'
-        });
+      // Send notification to administrators
+      const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
+      const formattedStartDate = format(date.from, dateFormat);
+      const formattedEndDate = format(date.to, dateFormat);
+      
+      // Get all administrators
+      const { data: adminUsers } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'administrator');
+      
+      if (adminUsers && adminUsers.length > 0) {
+        // Send notification to each admin
+        for (const admin of adminUsers) {
+          if (admin.user_id !== user.id) { // Don't notify yourself
+            addNotification({
+              type: 'vacation',
+              title: t("notifications.newVacationRequest"),
+              message: t("notifications.newVacationRequestActionRequired", {
+                name: requestEmployeeName,
+                from: formattedStartDate,
+                to: formattedEndDate
+              }),
+              link: '/vacation'
+            }, admin.user_id);
+          }
+        }
       }
       
       // Refresh the vacation list

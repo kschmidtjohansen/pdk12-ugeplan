@@ -9,22 +9,6 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { Employee } from '@/types/employee';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-interface USER_ROLES_TYPE {
-  value: string;
-  label: string;
-}
-
-const USER_ROLES: USER_ROLES_TYPE[] = [{
-  value: 'administrator',
-  label: 'Administrator'
-}, {
-  value: 'skadeleder',
-  label: 'Skadeleder'
-}, {
-  value: 'servicemedarbejder',
-  label: 'Servicemedarbejder'
-}];
-
 interface EmployeeTableRowProps {
   employee: Employee;
   onEdit: (employee: Employee) => void;
@@ -33,7 +17,7 @@ interface EmployeeTableRowProps {
 }
 
 const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, onDelete, onToggleLeave }) => {
-  const { isAdmin, isSkadeleder } = usePermissions();
+  const { isAdmin } = usePermissions();
   const { t } = useTranslation();
 
   // Get role variant for status badge
@@ -59,7 +43,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, o
             </StatusBadge>
           )}
         </div>
-        {(isAdmin || isSkadeleder) && employee.notes && (
+        {employee.notes && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -87,14 +71,11 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, o
         </div>
       </TableCell>
       <TableCell>{employee.jobTitle}</TableCell>
-      {/* Show role to both admin and skadeleder users */}
-      {(isAdmin || isSkadeleder) && (
-        <TableCell>
-          <StatusBadge variant={getRoleVariant(employee.role)}>
-            {USER_ROLES.find(role => role.value === employee.role)?.label}
-          </StatusBadge>
-        </TableCell>
-      )}
+      <TableCell>
+        <StatusBadge variant={getRoleVariant(employee.role)}>
+          {t(`admin.roles.${employee.role}`)}
+        </StatusBadge>
+      </TableCell>
       {isAdmin && (
         <TableCell>
           <div className="flex space-x-2">

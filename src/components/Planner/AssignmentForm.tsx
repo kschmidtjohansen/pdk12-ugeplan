@@ -1,122 +1,163 @@
-
-import React from 'react';
-import {
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
-import AssignmentFormFields from './AssignmentFormFields';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Car } from '@/components/Cars/Car';
+import { useCars } from '@/hooks/car';
+import { format } from 'date-fns';
+import { DatePicker } from '@/components/ui/date-picker';
+import { TimePicker } from '@/components/ui/time-picker';
+import CarSelector from './CarSelector';
 import { EmployeeSelector } from './EmployeeSelector';
-import { Car } from '../../types/car';
-import { Employee } from '../../types/employee';
-import { Vacation } from '../../types/vacation';
+import { Employee } from '@/types/employee';
+import { useEmployees } from '@/hooks/useEmployees';
 
 interface AssignmentFormProps {
-  currentAssignment: any | null;
-  formData: any;
-  selectedEmployees: string[];
-  cars: Car[];
-  employees: Employee[];
-  vacations: Vacation[];
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handleSelectChange: (name: string, value: string) => void;
-  handleEmployeeToggle: (employeeName: string) => void;
-  handleSubmit: (e: React.FormEvent) => void;
-  onClose: () => void;
-  currentDate: string;
+  assignment: any;
+  onSubmit: (data: any) => void;
+  onCancel: () => void;
 }
 
-const AssignmentForm: React.FC<AssignmentFormProps> = ({
-  currentAssignment,
-  formData,
-  selectedEmployees,
-  cars,
-  employees,
-  vacations,
-  handleInputChange,
-  handleSelectChange,
-  handleEmployeeToggle,
-  handleSubmit,
-  onClose,
-  currentDate,
-}) => {
+const AssignmentForm: React.FC<AssignmentFormProps> = ({ assignment, onSubmit, onCancel }) => {
   const { t } = useTranslation();
-  
-  // Create a function to handle field changes for AssignmentFormFields
-  const handleFieldChange = (field: string, value: any) => {
-    if (field === 'title' || field === 'description' || field === 'location') {
-      const event = {
-        target: {
-          name: field,
-          value: value
-        }
-      } as React.ChangeEvent<HTMLInputElement>;
-      handleInputChange(event);
-    } else {
-      handleSelectChange(field, value);
+  const { cars } = useCars();
+  const { employees } = useEmployees();
+
+  const [title, setTitle] = useState(assignment?.title || '');
+  const [description, setDescription] = useState(assignment?.description || '');
+  const [date, setDate] = useState<Date | undefined>(assignment?.date ? new Date(assignment.date) : undefined);
+  const [fromTime, setFromTime] = useState(assignment?.fromTime || '08:00');
+  const [toTime, setToTime] = useState(assignment?.toTime || '16:00');
+  const [location, setLocation] = useState(assignment?.location || '');
+  const [selectedCar, setSelectedCar] = useState<string | undefined>(assignment?.carId || undefined);
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>(assignment?.employeeIds || []);
+
+  useEffect(() => {
+    if (assignment) {
+      setTitle(assignment.title || '');
+      setDescription(assignment.description || '');
+      setDate(assignment.date ? new Date(assignment.date) : undefined);
+      setFromTime(assignment.fromTime || '08:00');
+      setToTime(assignment.toTime || '16:00');
+      setLocation(assignment.location || '');
+      setSelectedCar(assignment.carId || undefined);
+      setSelectedEmployees(assignment.employeeIds || []);
     }
+  }, [assignment]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!date) {
+      alert(t('planner.selectDate'));
+      return;
+    }
+
+    if (selectedEmployees.length === 0) {
+      alert(t('planner.selectAtLeastOneEmployee'));
+      return;
+    }
+
+    const formData = {
+      id: assignment?.id,
+      title,
+      description,
+      date: format(date, 'yyyy-MM-dd'),
+      fromTime,
+      toTime,
+      location,
+      carId: selectedCar,
+      employeeIds: selectedEmployees,
+      employees: employees
+        .filter((employee: Employee) => selectedEmployees.includes(employee.id))
+        .map((employee: Employee) => employee.name),
+      published: assignment?.published || false
+    };
+
+    onSubmit(formData);
   };
 
-  console.log("AssignmentForm - Current formData:", formData);
-  console.log("AssignmentForm - Selected employees:", selectedEmployees);
-  console.log("AssignmentForm - Cars data:", cars);
-  console.log("AssignmentForm - Employees data:", employees);
-  
+  const handleEmployeeToggle = (employeeId: string) => {
+    setSelectedEmployees((prev) =>
+      prev.includes(employeeId)
+        ? prev.filter((id) => id !== employeeId)
+        : [...prev, employeeId]
+    );
+  };
+
   return (
-    <DialogContent className="max-w-md">
-      <DialogHeader>
-        <DialogTitle>
-          {currentAssignment ? t("planner.editAssignment") : t("planner.newAssignment")}
-        </DialogTitle>
-        <DialogDescription>
-          {currentAssignment
-            ? t("planner.updateDetails")
-            : t("planner.addAssignment")}
-        </DialogDescription>
-      </DialogHeader>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <AssignmentFormFields
-          formData={formData}
-          onFieldChange={handleFieldChange}
-          cars={cars}
-          employees={employees}
+    <form onSubmit={handleSubmit} className="grid gap-4">
+      <div>
+        <Label htmlFor="title">{t('planner.assignmentTitle')}</Label>
+        <Input
+          type="text"
+          id="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
         />
-        
-        {/* Employee multi-selector */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">{t('planner.employees')}</h3>
-          <EmployeeSelector
-            employees={employees}
-            selectedEmployees={selectedEmployees}
-            onToggle={handleEmployeeToggle}
-            vacations={vacations}
-            currentDate={currentDate || formData.date}
-          />
+      </div>
+      <div>
+        <Label htmlFor="description">{t('planner.description')}</Label>
+        <Textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+        />
+      </div>
+      <div>
+        <Label>{t('planner.date')}</Label>
+        <DatePicker
+          value={date}
+          onSelect={setDate}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="from">{t('planner.from')}</Label>
+          <TimePicker value={fromTime} onChange={setFromTime} />
         </div>
-        
-        <DialogFooter>
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onClose}
-          >
-            {t("common.cancel")}
-          </Button>
-          <Button 
-            type="submit"
-            className="bg-polygon-purple hover:bg-polygon-darkpurple"
-            disabled={!selectedEmployees || selectedEmployees.length === 0}
-          >
-            {currentAssignment ? t("planner.saveChanges") : t("planner.createAssignment")}
-          </Button>
-        </DialogFooter>
-      </form>
-    </DialogContent>
+        <div>
+          <Label htmlFor="to">{t('planner.to')}</Label>
+          <TimePicker value={toTime} onChange={setToTime} />
+        </div>
+      </div>
+      <div>
+        <Label htmlFor="location">{t('planner.location')}</Label>
+        <Input
+          type="text"
+          id="location"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+        />
+      </div>
+      <div>
+        <Label htmlFor="car">{t('planner.car')}</Label>
+        <CarSelector
+          cars={cars}
+          selectedCar={selectedCar}
+          onCarSelect={setSelectedCar}
+        />
+      </div>
+      <div>
+        <Label htmlFor="employees">{t('planner.employees')}</Label>
+        <EmployeeSelector
+          selectedEmployees={selectedEmployees}
+          onEmployeeToggle={handleEmployeeToggle}
+        />
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="ghost" onClick={onCancel}>
+          {t('common.cancel')}
+        </Button>
+        <Button type="submit">
+          {assignment?.id ? t('common.save') : t('planner.createAssignment')}
+        </Button>
+      </div>
+    </form>
   );
 };
 
