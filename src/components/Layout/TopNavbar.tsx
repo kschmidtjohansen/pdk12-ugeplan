@@ -14,7 +14,7 @@ import DesktopNavigation from './NavComponents/DesktopNavigation';
 import MobileNavigation from './NavComponents/MobileNavigation';
 import NotificationsDropdown from './NavComponents/NotificationsDropdown';
 import UserMenu from './NavComponents/UserMenu';
-import NavigationItems from './NavigationItems';
+import { getNavigationItems } from './NavigationItems';
 
 const TopNavbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -93,8 +93,8 @@ const TopNavbar: React.FC = () => {
     notificationCount: notifications.length
   });
 
-  // Filter items based on user role
-  const navigationItems = NavigationItems({ hasVacationNotifications });
+  // Get navigation items and filter based on user role
+  const navigationItems = getNavigationItems(hasVacationNotifications);
   const filteredNavItems = navigationItems.filter(
     item => !item.adminOnly || user?.role === 'administrator'
   );
