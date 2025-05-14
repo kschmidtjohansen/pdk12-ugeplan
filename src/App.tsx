@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from "@/components/ui/toaster"
+import { ToastProvider } from "@/hooks/use-toast"
 
 import { useAuth } from './context/AuthContext';
 import { AuthProvider } from './context/AuthContext';
@@ -62,22 +63,24 @@ function App() {
         <TranslationProvider>
           <NotificationProvider>
             <ThemeProvider>
-              <Router>
-                <Toaster />
-                <Suspense fallback={<LoadingFallback />}>
-                  <AutoPublishContainer />
-                  <Routes>
-                    <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
-                    <Route path="/" element={user ? <MainLayout><DashboardPage /></MainLayout> : <Navigate to="/login" />} />
-                    <Route path="/planner" element={user ? <MainLayout><PlannerPage /></MainLayout> : <Navigate to="/login" />} />
-                    <Route path="/employees" element={user ? <MainLayout><EmployeesPage /></MainLayout> : <Navigate to="/login" />} />
-                    <Route path="/cars" element={user ? <MainLayout><CarsPage /></MainLayout> : <Navigate to="/login" />} />
-                    <Route path="/vacation" element={user ? <MainLayout><VacationPage /></MainLayout> : <Navigate to="/login" />} />
-                    <Route path="/admin" element={user?.role === 'administrator' ? <MainLayout><AdminPage /></MainLayout> : user ? <Navigate to="/" /> : <Navigate to="/login" />} />
-                    <Route path="*" element={<Navigate to="/" />} />
-                  </Routes>
-                </Suspense>
-              </Router>
+              <ToastProvider>
+                <Router>
+                  <Toaster />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <AutoPublishContainer />
+                    <Routes>
+                      <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
+                      <Route path="/" element={user ? <MainLayout><DashboardPage /></MainLayout> : <Navigate to="/login" />} />
+                      <Route path="/planner" element={user ? <MainLayout><PlannerPage /></MainLayout> : <Navigate to="/login" />} />
+                      <Route path="/employees" element={user ? <MainLayout><EmployeesPage /></MainLayout> : <Navigate to="/login" />} />
+                      <Route path="/cars" element={user ? <MainLayout><CarsPage /></MainLayout> : <Navigate to="/login" />} />
+                      <Route path="/vacation" element={user ? <MainLayout><VacationPage /></MainLayout> : <Navigate to="/login" />} />
+                      <Route path="/admin" element={user?.role === 'administrator' ? <MainLayout><AdminPage /></MainLayout> : user ? <Navigate to="/" /> : <Navigate to="/login" />} />
+                      <Route path="*" element={<Navigate to="/" />} />
+                    </Routes>
+                  </Suspense>
+                </Router>
+              </ToastProvider>
             </ThemeProvider>
           </NotificationProvider>
         </TranslationProvider>
