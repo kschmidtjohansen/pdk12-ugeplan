@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from '../context/TranslationContext';
@@ -150,12 +149,12 @@ const PasswordResetPage: React.FC = () => {
       return;
     }
     
-    // Check password strength
+    // Check password strength - Changed from "warning" to "default" since "warning" isn't supported
     if (passwordStrength === 'weak') {
       toast({
         title: t('common.warning'),
         description: "Your password is weak. Consider using a stronger password.",
-        variant: "warning",
+        variant: "default", // Changed from "warning" to "default"
       });
       // We can still proceed, just warning the user
     }
