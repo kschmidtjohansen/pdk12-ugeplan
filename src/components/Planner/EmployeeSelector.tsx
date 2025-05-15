@@ -56,20 +56,25 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         // Check if the employee is selected by matching their name
         const isSelected = selectedEmployees.includes(employee.name);
         const isOnVacation = isEmployeeOnVacation(employee.id, dateForComparison);
+        const isUnavailable = employee.onLeave;
+        
+        // Employee should be disabled if they're on vacation or marked as unavailable
+        const isDisabled = isOnVacation || isUnavailable;
         
         return (
           <div
             key={employee.id}
-            onClick={() => !isOnVacation && onToggle(employee.name)}
+            onClick={() => !isDisabled && onToggle(employee.name)}
             className={`
               p-2 rounded-md border cursor-pointer transition-colors
               ${isSelected ? 'bg-polygon-purple text-white' : 'bg-white text-gray-700'}
-              ${isOnVacation ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}
+              ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}
             `}
           >
             <div className="flex items-center gap-2">
               <span>{employee.name}</span>
               {isOnVacation && <Badge variant="outline">{t('planner.onVacation')}</Badge>}
+              {isUnavailable && <Badge variant="outline">{t('employees.onLeave')}</Badge>}
             </div>
           </div>
         );
