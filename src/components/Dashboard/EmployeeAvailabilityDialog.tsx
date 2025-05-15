@@ -13,9 +13,15 @@ import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Assignment } from '@/types/assignment';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar } from '@/components/ui/avatar';
-import { CalendarIcon, UserIcon, ArrowRight, Briefcase } from 'lucide-react';
-import { format, addDays } from 'date-fns';
+import { CalendarIcon, UserIcon, ArrowRight, Briefcase, ChevronLeft } from 'lucide-react';
+import { format, addDays, subDays } from 'date-fns';
+import { da } from 'date-fns/locale';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface EmployeeAvailabilityDialogProps {
   employees: Employee[];
@@ -91,6 +97,13 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
     }
   };
 
+  // Handle click for yesterday button
+  const handleViewYesterday = () => {
+    if (onViewDateChange) {
+      onViewDateChange(subDays(viewDate, 1));
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[80vh]">
@@ -100,19 +113,46 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
               {title}
               {isAvailable && onViewDateChange && (
                 <span className="ml-2 text-sm font-normal text-muted-foreground">
-                  ({format(viewDate, 'PP')})
+                  ({format(viewDate, 'PP', { locale: da })})
                 </span>
               )}
             </span>
             {isAvailable && onViewDateChange && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleViewTomorrow}
-                className="flex items-center gap-1"
-              >
-                {t('dashboard.tomorrow')} <ArrowRight className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={handleViewYesterday}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t('dashboard.yesterday')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={handleViewTomorrow}
+                      >
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t('dashboard.tomorrow')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             )}
           </DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -135,9 +175,6 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
                     key={employee.id} 
                     className="flex items-center p-3 border rounded-md bg-white hover:border-polygon-blue"
                   >
-                    <Avatar className="h-10 w-10 mr-3 bg-gray-100">
-                      <UserIcon className="h-5 w-5" />
-                    </Avatar>
                     <div className="flex-1">
                       <div className="font-medium">{employee.name}</div>
                     </div>

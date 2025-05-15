@@ -61,6 +61,7 @@ const dashboard = {
   onVacation: 'På ferie',
   onAssignment: 'På opgave',
   tomorrow: 'I morgen',
+  yesterday: 'I går',
   totalEmployees: 'Samlede medarbejdere: {count}',
   totalCars: 'Samlede biler: {count}',
   availableCars: 'Tilgængelige Biler',
