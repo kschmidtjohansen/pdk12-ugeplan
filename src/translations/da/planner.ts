@@ -75,10 +75,11 @@ const planner = {
   createAssignment: 'Opret',
   previousDays: 'Tidligere dage',
   nothingPlannedToday: 'Intet planlagt for i dag',
-  // New translations requested by user
   weekDescription: 'Denne uges opgaver',
   previousWeek: 'Forrige uge',
-  nextWeek: 'Næste uge'
+  nextWeek: 'Næste uge',
+  assignmentUpdated: 'Opgave opdateret',
+  assignmentUpdatedMsg: 'Opgaven er blevet opdateret.'
 };
 
 export default planner;
