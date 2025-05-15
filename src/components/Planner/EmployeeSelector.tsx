@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Assignment } from '@/types/assignment';
@@ -46,19 +46,47 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   };
 
   // Helper function to check if an employee is already assigned to another assignment
+  // Fixed function to properly compare dates
   const isEmployeeOnAnotherAssignment = (employeeName: string): boolean => {
-    return assignments.some(assignment => 
-      assignment.date === currentDate && 
-      assignment.employees.includes(employeeName)
-    );
+    // Create a date object from the currentDate string for proper comparison
+    const currentDateObj = new Date(currentDate);
+    currentDateObj.setHours(0, 0, 0, 0);
+    
+    console.log(`Checking if ${employeeName} has assignment on date: ${currentDate} (${currentDateObj.toISOString()})`);
+    
+    return assignments.some(assignment => {
+      // Convert assignment date to Date object for comparison
+      const assignmentDateObj = new Date(assignment.date);
+      assignmentDateObj.setHours(0, 0, 0, 0);
+      
+      const isOnDate = assignmentDateObj.getTime() === currentDateObj.getTime();
+      const isAssigned = assignment.employees.includes(employeeName);
+      
+      if (isOnDate && isAssigned) {
+        console.log(`${employeeName} is assigned to task "${assignment.title}" on ${assignment.date}`);
+      }
+      
+      return isOnDate && isAssigned;
+    });
   };
 
   // Parse the current date string into a Date object for comparison
   const dateForComparison = currentDate ? new Date(currentDate) : new Date();
   
-  // Debug the selected employees
-  console.log("EmployeeSelector - Selected employees:", selectedEmployees);
-  console.log("EmployeeSelector - Available employees:", employees.map(e => e.name));
+  // Debug the employee selection data
+  useEffect(() => {
+    console.log("EmployeeSelector - Current date:", currentDate);
+    console.log("EmployeeSelector - Selected employees:", selectedEmployees);
+    console.log("EmployeeSelector - Assignments for date:", 
+      assignments.filter(a => {
+        const aDate = new Date(a.date);
+        const cDate = new Date(currentDate);
+        aDate.setHours(0, 0, 0, 0);
+        cDate.setHours(0, 0, 0, 0);
+        return aDate.getTime() === cDate.getTime();
+      })
+    );
+  }, [currentDate, selectedEmployees, assignments]);
 
   return (
     <div className="flex flex-wrap gap-2 mt-2">

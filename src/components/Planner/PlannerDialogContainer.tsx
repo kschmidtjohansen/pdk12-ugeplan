@@ -54,10 +54,12 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
       // Debug logs
       console.log("PlannerDialogContainer - Current Assignment:", currentAssignment);
       console.log("PlannerDialogContainer - Form Data:", formData);
+      console.log("PlannerDialogContainer - Selected Day:", selectedDay);
+      console.log("PlannerDialogContainer - Selected Employees:", validEmployeeNames);
     } else {
       setSelectedEmployees([]);
     }
-  }, [formData, currentAssignment]);
+  }, [formData, currentAssignment, selectedDay]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -115,6 +117,10 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
     ? assignments.filter(a => a.id !== currentAssignment.id) 
     : assignments;
 
+  // Log the current date for debugging
+  console.log(`PlannerDialogContainer - Using current date: ${selectedDay}`);
+  console.log(`PlannerDialogContainer - Available assignments:`, otherAssignments);
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <AssignmentForm
@@ -129,7 +135,7 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
         handleEmployeeToggle={handleEmployeeToggle}
         handleSubmit={handleFormSubmit}
         onClose={handleCloseDialog}
-        currentDate={selectedDay}
+        currentDate={formData.date || selectedDay} // Ensure we prioritize the form's date
         assignments={otherAssignments} // Pass the filtered assignments
       />
     </Dialog>
