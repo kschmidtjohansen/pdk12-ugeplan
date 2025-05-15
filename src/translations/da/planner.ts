@@ -79,7 +79,15 @@ const planner = {
   previousWeek: 'Forrige uge',
   nextWeek: 'Næste uge',
   assignmentUpdated: 'Opgave opdateret',
-  assignmentUpdatedMsg: 'Opgaven er blevet opdateret.'
+  assignmentUpdatedMsg: 'Opgaven er blevet opdateret.',
+  assignmentDeleted: 'Opgave slettet',
+  assignmentDeletedMsg: 'Opgaven er blevet slettet.',
+  assignmentCreated: 'Opgave oprettet',
+  assignmentCreatedMsg: 'Opgaven er blevet oprettet.',
+  assignmentPublished: 'Opgave er blevet publiceret',
+  assignmentPublishedMsg: 'Opgaven er blevet publiceret.',
+  assignmentsPublished: 'Opgaver er blevet publiceret',
+  assignmentsPublishedMsg: 'Opgaverne er blevet publiceret.'
 };
 
 export default planner;
