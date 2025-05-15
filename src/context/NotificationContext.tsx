@@ -15,6 +15,7 @@ interface NotificationContextType {
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
+  deleteAllNotifications: () => Promise<void>;
   addNotification: (
     notification: Omit<NotificationType, 'id' | 'read' | 'date'> & { targetUserId?: string }
   ) => Promise<string | null>;
@@ -28,6 +29,7 @@ const NotificationContext = createContext<NotificationContextType>({
   markAsRead: async () => {},
   markAllAsRead: async () => {},
   deleteNotification: async () => {},
+  deleteAllNotifications: async () => {},
   addNotification: async () => null,
   fetchNotifications: async () => {}
 });
@@ -60,6 +62,7 @@ export const NotificationProvider: React.FC<{
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    deleteAllNotifications,
     addNotification,
     fetchNotifications
   } = useNotificationsHook();
@@ -115,6 +118,7 @@ export const NotificationProvider: React.FC<{
         markAsRead,
         markAllAsRead,
         deleteNotification,
+        deleteAllNotifications,
         addNotification,
         fetchNotifications
       }}

@@ -75,6 +75,17 @@ serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
     
+    // First, delete all notifications for the user
+    const { error: notificationError } = await adminAuthClient
+      .from('notifications')
+      .delete()
+      .eq('user_id', userId);
+      
+    if (notificationError) {
+      console.error('Error deleting user notifications:', notificationError);
+      // Log the error but continue with user deletion
+    }
+    
     // Delete the user
     const { error } = await adminAuthClient.auth.admin.deleteUser(userId);
     

@@ -6,6 +6,7 @@ const notifications = {
   markAllAsRead: 'Mark all as read',
   markAsRead: 'Mark as read',
   delete: 'Delete',
+  deleteAll: 'Delete all',
   unreadCount: '{count} unread',
   newVacationRequest: 'New vacation request',
   newVacationRequestMsg: '{name} has requested vacation from {from} to {to}',

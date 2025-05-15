@@ -1,12 +1,13 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import { X } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { NotificationType } from '@/types/notification';
 import { useTranslation } from '@/context/TranslationContext';
+import { useNotifications } from '@/context/NotificationContext';
 
 interface NotificationsListProps {
   notifications: NotificationType[];
@@ -20,6 +21,12 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
   onClearNotification
 }) => {
   const { t } = useTranslation();
+  const { deleteAllNotifications } = useNotifications();
+
+  const handleDeleteAll = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    deleteAllNotifications();
+  };
 
   if (notifications.length === 0) {
     return (
@@ -61,13 +68,23 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
         </div>
       ))}
       
-      <div className="px-2 py-1.5 text-center">
+      <div className="p-2 border-t flex justify-between items-center">
         <Link 
           to="/vacation" 
-          className="text-sm text-polygon-purple hover:underline"
+          className="text-xs text-polygon-purple hover:underline"
         >
           {t('notifications.viewAll')}
         </Link>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleDeleteAll}
+          className="h-7 text-xs text-destructive hover:text-destructive"
+        >
+          <Trash2 className="h-3.5 w-3.5 mr-1" />
+          {t('notifications.deleteAll')}
+        </Button>
       </div>
     </div>
   );

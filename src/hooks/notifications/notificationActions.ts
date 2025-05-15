@@ -107,9 +107,38 @@ export const useNotificationActions = (
     }
   }, [user, notifications, setNotifications, setUnreadCount]);
 
+  // Delete all notifications for the current user
+  const deleteAllNotifications = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      console.log('Deleting all notifications for user:', user.id);
+      
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', user.id);
+      
+      if (error) {
+        console.error('Error deleting all notifications:', error);
+        throw error;
+      }
+      
+      // Update local state - clear all notifications
+      setNotifications([]);
+      
+      // Reset unread count
+      setUnreadCount(0);
+      
+    } catch (err) {
+      console.error('Error deleting all notifications:', err);
+    }
+  }, [user, setNotifications, setUnreadCount]);
+
   return {
     markAsRead,
     markAllAsRead,
-    deleteNotification
+    deleteNotification,
+    deleteAllNotifications
   };
 };

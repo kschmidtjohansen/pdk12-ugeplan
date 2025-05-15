@@ -6,6 +6,7 @@ const notifications = {
   markAllAsRead: 'Markér alle som læst',
   markAsRead: 'Markér som læst',
   delete: 'Slet',
+  deleteAll: 'Slet alle',
   unreadCount: '{count} ulæste',
   newVacationRequest: 'Ny ferieansøgning',
   newVacationRequestMsg: '{name} har ansøgt om ferie fra {from} til {to}',

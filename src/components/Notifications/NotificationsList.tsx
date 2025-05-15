@@ -4,11 +4,11 @@ import { useNotifications } from '@/context/NotificationContext';
 import { useTranslation } from '@/context/TranslationContext';
 import NotificationItem from './NotificationItem';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Check } from 'lucide-react';
+import { Loader2, Check, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const NotificationsList = () => {
-  const { notifications, loading, unreadCount, markAllAsRead } = useNotifications();
+  const { notifications, loading, unreadCount, markAllAsRead, deleteAllNotifications } = useNotifications();
   const { t } = useTranslation();
   
   if (loading) {
@@ -30,6 +30,11 @@ const NotificationsList = () => {
   const handleMarkAllAsRead = (e: React.MouseEvent) => {
     e.stopPropagation();
     markAllAsRead();
+  };
+  
+  const handleDeleteAllNotifications = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    deleteAllNotifications();
   };
   
   return (
@@ -61,6 +66,20 @@ const NotificationsList = () => {
           ))}
         </ul>
       </ScrollArea>
+      
+      {notifications.length > 0 && (
+        <div className="p-2 border-t flex justify-end">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleDeleteAllNotifications}
+            className="h-7 text-xs text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-3.5 w-3.5 mr-1" />
+            {t('notifications.deleteAll')}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

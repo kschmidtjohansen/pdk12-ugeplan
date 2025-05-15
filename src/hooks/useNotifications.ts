@@ -45,7 +45,8 @@ export const useNotifications = () => {
   const { 
     markAsRead, 
     markAllAsRead, 
-    deleteNotification 
+    deleteNotification,
+    deleteAllNotifications
   } = useNotificationActions(user, notifications, setNotifications, setUnreadCount);
   
   const { addNotification } = useNotificationCreate(user, setNotifications, setUnreadCount);
@@ -75,6 +76,7 @@ export const useNotifications = () => {
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    deleteAllNotifications,
     addNotification
   };
 };
