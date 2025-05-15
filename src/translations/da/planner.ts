@@ -71,9 +71,12 @@ const planner = {
   selectCar: 'Vælg bil',
   assignmentTitle: 'Sagsnummer',
   createAssignment: 'Opret',
-  // New translations requested by user
   previousDays: 'Tidligere dage',
-  nothingPlannedToday: 'Intet planlagt for i dag'
+  nothingPlannedToday: 'Intet planlagt for i dag',
+  // New translations requested by user
+  weekDescription: 'Denne uges opgaver',
+  previousWeek: 'Forrige uge',
+  nextWeek: 'Næste uge'
 };
 
 export default planner;
