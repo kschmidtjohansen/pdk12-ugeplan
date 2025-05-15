@@ -1,5 +1,4 @@
 
-
 const admin = {
   title: 'Admin Dashboard',
   description: 'System administration og indstillinger',
@@ -24,6 +23,8 @@ const admin = {
     name: 'Navn',
     email: 'Email',
     role: 'Rolle',
+    phone: 'Telefonnummer',
+    position: 'Position',
     actions: 'Handlinger',
     editUser: 'Rediger Bruger',
     addNewUser: 'Tilføj Ny Bruger',
@@ -38,7 +39,11 @@ const admin = {
     userAddedMsg: '{name} er blevet tilføjet som {role}.',
     userDeletedMsg: '{name}\'s konto er blevet fjernet.',
     deleteConfirm: 'Er du sikker?',
-    deleteWarning: 'Du er ved at slette {name}\'s konto. Denne handling kan ikke fortrydes.'
+    deleteWarning: 'Du er ved at slette {name}\'s konto. Denne handling kan ikke fortrydes.',
+    createSuccess: 'Bruger oprettet succesfuldt',
+    updateSuccess: 'Bruger opdateret succesfuldt',
+    createError: 'Fejl ved oprettelse af bruger',
+    updateError: 'Fejl ved opdatering af bruger'
   },
   passwords: {
     changePassword: 'Skift adgangskode',
@@ -65,4 +70,3 @@ const admin = {
 };
 
 export default admin;
-

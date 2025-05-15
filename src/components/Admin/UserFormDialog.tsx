@@ -198,7 +198,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="phone" className="text-right">
-              {t('employees.phone')}
+              {t('admin.userManagement.phone')}
             </Label>
             <Input
               id="phone"
@@ -210,7 +210,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="jobTitle" className="text-right">
-              {t('employees.jobTitle')}
+              {t('admin.userManagement.position')}
             </Label>
             <Input
               id="jobTitle"

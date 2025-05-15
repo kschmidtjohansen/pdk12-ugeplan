@@ -18,6 +18,10 @@ const vacation = {
     rejected: 'Afvist'
   },
   dateRange: 'Datointerval',
+  startDate: 'Første feriedag',
+  endDate: 'Sidste feriedag',
+  selectStartDate: 'Vælg startdato',
+  selectEndDate: 'Vælg slutdato',
   reason: 'Årsag',
   notes: 'Noter',
   requestedOn: 'Anmodet d.',
