@@ -8,15 +8,6 @@ import { getISOWeek, getISOWeekYear, lastDayOfYear, getWeek } from "date-fns";
 export const getPreviousWeekInfo = (weekNumber: number, year: number) => {
   console.log(`Getting previous week from Week ${weekNumber}/${year}`);
   
-  // Special case for week 20 in 2025
-  if (weekNumber === 20 && year === 2025) {
-    console.log("Previous week from Week 20, 2025 -> Week 19, 2025");
-    return {
-      week: 19,
-      year: 2025
-    };
-  }
-  
   if (weekNumber > 1) {
     // Regular case - just decrease week number
     console.log(`Previous week: ${weekNumber - 1}/${year}`);
@@ -45,15 +36,6 @@ export const getPreviousWeekInfo = (weekNumber: number, year: number) => {
  */
 export const getNextWeekInfo = (weekNumber: number, year: number) => {
   console.log(`Getting next week from Week ${weekNumber}/${year}`);
-  
-  // Special case for week 20 in 2025
-  if (weekNumber === 20 && year === 2025) {
-    console.log("Next week from Week 20, 2025 -> Week 21, 2025");
-    return {
-      week: 21,
-      year: 2025
-    };
-  }
   
   // Get the last week number of the current year
   const lastDay = lastDayOfYear(new Date(year, 0, 1));

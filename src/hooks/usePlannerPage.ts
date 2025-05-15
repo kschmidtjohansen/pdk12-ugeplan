@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -41,6 +42,7 @@ export const usePlannerPage = () => {
 
   // Make sure we always have a valid current date for today
   const todayDate = format(new Date(), 'yyyy-MM-dd');
+  console.log("usePlannerPage: Today's date:", todayDate);
   
   // Using state for managing form data - default to today's date
   const [selectedDay, setSelectedDay] = useState<string>(todayDate);
@@ -109,6 +111,7 @@ export const usePlannerPage = () => {
     setSelectedDay(taskDate);
     
     console.log("Creating new assignment with date:", taskDate);
+    console.log("Today's date is:", todayDate);
     
     // Set form data in one update to avoid race conditions
     setFormData({
