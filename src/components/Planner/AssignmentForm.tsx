@@ -14,6 +14,7 @@ import { EmployeeSelector } from './EmployeeSelector';
 import { Car } from '../../types/car';
 import { Employee } from '../../types/employee';
 import { Vacation } from '../../types/vacation';
+import { Assignment } from '../../types/assignment';
 
 interface AssignmentFormProps {
   currentAssignment: any | null;
@@ -28,6 +29,7 @@ interface AssignmentFormProps {
   handleSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
   currentDate: string;
+  assignments?: Assignment[]; // Added this prop to make it optional
 }
 
 const AssignmentForm: React.FC<AssignmentFormProps> = ({
@@ -43,6 +45,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   handleSubmit,
   onClose,
   currentDate,
+  assignments = [], // Added default empty array
 }) => {
   const { t } = useTranslation();
   
@@ -97,6 +100,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             onToggle={handleEmployeeToggle}
             vacations={vacations}
             currentDate={currentDate || formData.date}
+            assignments={assignments} // Pass assignments to EmployeeSelector
           />
         </div>
         

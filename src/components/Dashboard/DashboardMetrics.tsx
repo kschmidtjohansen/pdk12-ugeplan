@@ -48,10 +48,10 @@ const DashboardMetrics: React.FC = () => {
     
     // Check if employee is on vacation
     const isOnVacation = vacations.some(v => 
-      v.user_id === employeeId && 
+      v.employeeId === employeeId && 
       v.status === 'approved' && 
-      v.start_date <= checkDate && 
-      v.end_date > checkDate
+      format(v.startDate, 'yyyy-MM-dd') <= checkDate && 
+      format(v.endDate, 'yyyy-MM-dd') > checkDate
     );
     
     if (isOnVacation) return false;

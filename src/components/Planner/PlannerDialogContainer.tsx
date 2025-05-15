@@ -130,7 +130,7 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
         handleSubmit={handleFormSubmit}
         onClose={handleCloseDialog}
         currentDate={selectedDay}
-        assignments={otherAssignments}
+        assignments={otherAssignments} // Pass the filtered assignments
       />
     </Dialog>
   );

@@ -50,10 +50,10 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
   // Helper function to check if an employee is on vacation for a specific date
   const isEmployeeOnVacation = (employeeId: string, checkDate: string): boolean => {
     return vacations.some(vacation => 
-      vacation.user_id === employeeId && 
+      vacation.employeeId === employeeId && 
       vacation.status === 'approved' && 
-      vacation.start_date <= checkDate && 
-      vacation.end_date > checkDate
+      format(vacation.startDate, 'yyyy-MM-dd') <= checkDate && 
+      format(vacation.endDate, 'yyyy-MM-dd') > checkDate
     );
   };
   
