@@ -1,7 +1,7 @@
 
 const dashboard = {
   welcome: 'Velkommen, {name}',
-  today: 'I dag er det {date}, vi er i Uge {week}',
+  today: 'I dag er det {date}, vi er i uge {week}',
   quickAccess: {
     planner: {
       title: 'Ugeplan',
@@ -47,14 +47,14 @@ const dashboard = {
   charts: {
     assignmentDistribution: 'Opgavefordeling'
   },
-  upcomingVacations: 'Kommende/Igangværende Ferier',
-  noUpcomingVacations: 'Ingen kommende/igangværende ferier planlagt',
+  upcomingVacations: 'Kommende/Igangværende Fridage',
+  noUpcomingVacations: 'Ingen kommende/igangværende fridage planlagt',
   vehicleStatus: 'Køretøjsstatus',
   available: 'Tilgængelig',
   inUse: 'I brug',
-  availableEmployees: 'Tilgængelige Servicemedarbejdere',
+  availableEmployees: 'Dagens tilgængelige servicemedarbejdere',
   availableEmployeesDesc: 'Medarbejdere som er klar til at blive tildelt opgaver',
-  onLeaveEmployees: 'Fraværende Servicemedarbejdere',
+  onLeaveEmployees: 'Dagens fraværende servicemedarbejdere',
   unavailableEmployeesDesc: 'Medarbejdere som ikke er tilgængelige for opgaver',
   noAvailableEmployees: 'Ingen tilgængelige medarbejdere fundet',
   noUnavailableEmployees: 'Ingen fraværende medarbejdere fundet',
