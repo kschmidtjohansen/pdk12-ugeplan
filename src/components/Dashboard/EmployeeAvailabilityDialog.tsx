@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Dialog,
@@ -12,7 +13,7 @@ import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Assignment } from '@/types/assignment';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CalendarIcon, UserIcon, ArrowRight, Briefcase, ChevronLeft } from 'lucide-react';
+import { CalendarIcon, UserIcon, ArrowRight, Briefcase } from 'lucide-react';
 import { format, addDays, subDays, isToday } from 'date-fns';
 import { da } from 'date-fns/locale';
 import {
@@ -164,7 +165,7 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
                         size="icon"
                         onClick={handleViewYesterday}
                       >
-                        <ChevronLeft className="h-4 w-4" />
+                        <ArrowRight className="h-4 w-4 transform rotate-180" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
