@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -40,12 +39,15 @@ export const usePlannerPage = () => {
 
   const { filterByWeek } = useAssignmentFilters();
 
-  // Using state for managing form data
-  const [selectedDay, setSelectedDay] = useState<string>('');
+  // Make sure we always have a valid current date for today
+  const todayDate = format(new Date(), 'yyyy-MM-dd');
+  
+  // Using state for managing form data - default to today's date
+  const [selectedDay, setSelectedDay] = useState<string>(todayDate);
   const [formData, setFormData] = useState<Partial<Assignment>>({
     title: '',
     description: '',
-    date: format(new Date(), 'yyyy-MM-dd'),
+    date: todayDate,
     fromTime: '08:00',
     toTime: '16:00',
     location: '',
@@ -98,16 +100,17 @@ export const usePlannerPage = () => {
     setSelectedYear(year);
   }, [selectedWeek, selectedYear]);
 
-  // Handle assignment creation/editing - always use the current date
+  // Handle assignment creation/editing - always use the current date if no date provided
   const handleOpenCreateDialog = useCallback((date: string) => {
     setCurrentAssignment(null);
-    setSelectedDay(date);
+    
+    // Ensure we have a valid date - use provided date or today's date
+    const taskDate = date && date.trim() !== '' ? date : todayDate;
+    setSelectedDay(taskDate);
+    
+    console.log("Creating new assignment with date:", taskDate);
     
     // Set form data in one update to avoid race conditions
-    // Always use today's date if no specific date is provided
-    const currentDate = new Date();
-    const taskDate = date || format(currentDate, 'yyyy-MM-dd');
-    
     setFormData({
       title: '',
       description: '',
@@ -120,7 +123,7 @@ export const usePlannerPage = () => {
     });
     
     setIsDialogOpen(true);
-  }, [setCurrentAssignment, setIsDialogOpen]);
+  }, [setCurrentAssignment, setIsDialogOpen, todayDate]);
 
   const handleOpenEditDialog = useCallback((assignment: Assignment) => {
     console.log("Opening edit dialog with assignment:", assignment);

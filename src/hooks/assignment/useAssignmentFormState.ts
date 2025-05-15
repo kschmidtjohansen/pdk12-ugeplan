@@ -25,9 +25,12 @@ export const useAssignmentFormState = (
   setDialogOpen: (open: boolean) => void,
   selectedDate: string
 ) => {
-  // State for form data
+  // State for form data - ensure we use the provided selectedDate or today's date
+  const todayDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+  const initialDate = selectedDate || todayDate;
+
   const [formData, setFormData] = useState<AssignmentFormData>({
-    date: selectedDate || new Date().toISOString().split('T')[0],
+    date: initialDate,
     title: '',
     description: '',
     fromTime: '08:00',
