@@ -17,6 +17,7 @@ import { ThemeProvider } from "./components/theme-provider"
 
 import MainLayout from './components/Layout/MainLayout';
 import LoginPage from './pages/LoginPage';
+import Index from './pages/Index'; // Import the Index component
 import DashboardPage from './pages/DashboardPage';
 import PlannerPage from './pages/PlannerPage';
 import EmployeesPage from './pages/EmployeesPage';
@@ -53,7 +54,9 @@ function App() {
                 <AutoPublishContainer userId={user?.id} />
                 <Routes>
                   <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
-                  <Route path="/" element={user ? <MainLayout><DashboardPage /></MainLayout> : <Navigate to="/login" />} />
+                  {/* Use the Index component for the root path instead of directly rendering DashboardPage */}
+                  <Route path="/" element={user ? <Index /> : <Navigate to="/login" />} />
+                  <Route path="/dashboard" element={user ? <MainLayout><DashboardPage /></MainLayout> : <Navigate to="/login" />} />
                   <Route path="/planner" element={user ? <MainLayout><PlannerPage /></MainLayout> : <Navigate to="/login" />} />
                   <Route path="/employees" element={user ? <MainLayout><EmployeesPage /></MainLayout> : <Navigate to="/login" />} />
                   <Route path="/cars" element={user ? <MainLayout><CarsPage /></MainLayout> : <Navigate to="/login" />} />

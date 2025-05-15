@@ -20,8 +20,8 @@ const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
           to={item.path}
           className={cn(
             "px-3 py-2 rounded-md text-sm font-medium flex items-center relative",
-            (location.pathname === item.path || 
-             location.pathname === `/${item.translationKey.toLowerCase()}`) 
+            // Simplify the path matching logic - only consider the exact path match
+            location.pathname === item.path 
               ? "bg-polygon-blue text-white" 
               : "text-gray-700 hover:bg-polygon-lightgray"
           )}
