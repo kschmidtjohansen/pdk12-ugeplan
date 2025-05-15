@@ -76,18 +76,30 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
     );
   };
   
-  // If we're viewing available employees and have date navigation capability
+  // Helper function to determine if an employee is unavailable on a specific date
+  const isEmployeeUnavailable = (employee: Employee, checkDate: string): boolean => {
+    // Employee is unavailable if they are on leave
+    if (employee.onLeave) return true;
+    
+    // Employee is unavailable if they are on vacation
+    if (isEmployeeOnVacation(employee.id, checkDate)) return true;
+    
+    return false;
+  };
+  
+  // Filter employees based on availability for the current view date
   const filteredEmployeesToShow = isAvailable && onViewDateChange ? 
     allEmployees.filter(employee => {
-      // Employee should not be on leave
-      if (employee.onLeave) return false;
-      
-      // Employee should not be on vacation
-      if (isEmployeeOnVacation(employee.id, formattedDate)) return false;
+      // For available employees view, only show employees who are NOT unavailable
+      if (isEmployeeUnavailable(employee, formattedDate)) return false;
       
       // Include both assigned and unassigned employees
       return true;
     }) : 
+    !isAvailable && onViewDateChange ?
+    // For unavailable employees view, only show employees who ARE unavailable
+    allEmployees.filter(employee => isEmployeeUnavailable(employee, formattedDate)) :
+    // Fall back to provided employees list if no date navigation
     employees;
 
   // Handle click for tomorrow button
@@ -110,7 +122,7 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>{title}</DialogTitle>
-            {isAvailable && onViewDateChange && (
+            {onViewDateChange && (
               <div className="flex items-center gap-2">
                 <TooltipProvider>
                   <Tooltip>
@@ -149,7 +161,7 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
             )}
           </div>
           
-          {isAvailable && onViewDateChange && (
+          {onViewDateChange && (
             <div className="text-sm text-muted-foreground mt-1">
               ({format(viewDate, 'PPP', { locale: da })})
             </div>
@@ -169,6 +181,7 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
             <div className="space-y-3">
               {filteredEmployeesToShow.map((employee) => {
                 const isAssigned = isAvailable && isEmployeeAssigned(employee.id, formattedDate);
+                const isVacation = isEmployeeOnVacation(employee.id, formattedDate);
                 
                 return (
                   <div 
@@ -184,10 +197,16 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
                         {t('dashboard.onAssignment')}
                       </div>
                     )}
-                    {!isAvailable && employee.onApprovedVacation && (
+                    {!isAvailable && isVacation && (
                       <div className="flex items-center text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
                         <CalendarIcon className="h-3 w-3 mr-1" />
                         {t('dashboard.onVacation')}
+                      </div>
+                    )}
+                    {!isAvailable && employee.onLeave && !isVacation && (
+                      <div className="flex items-center text-xs bg-red-50 text-red-700 px-2 py-1 rounded">
+                        <UserIcon className="h-3 w-3 mr-1" />
+                        {t('employees.onLeave')}
                       </div>
                     )}
                   </div>

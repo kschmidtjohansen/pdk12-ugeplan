@@ -27,6 +27,8 @@ const DashboardMetrics: React.FC = () => {
   const [availableEmployeesDialogOpen, setAvailableEmployeesDialogOpen] = useState(false);
   const [unavailableEmployeesDialogOpen, setUnavailableEmployeesDialogOpen] = useState(false);
   const [viewDate, setViewDate] = useState(new Date());
+  // Add a state for unavailable employees view date
+  const [unavailableViewDate, setUnavailableViewDate] = useState(new Date());
 
   // Show metrics only for admin and skadeleder roles
   const shouldShowMetrics = isAdmin || isSkadeleder;
@@ -59,6 +61,26 @@ const DashboardMetrics: React.FC = () => {
     return true;
   };
 
+  // Helper function to check if an employee is unavailable on a specific date
+  const isEmployeeUnavailableOnDate = (employeeId: string, checkDate: string): boolean => {
+    // Check if employee is on leave
+    const employee = employees.find(e => e.id === employeeId);
+    if (!employee) return false;
+    
+    // Employee is unavailable if they are on leave
+    if (employee.onLeave) return true;
+    
+    // Check if employee is on vacation
+    const isOnVacation = vacations.some(v => 
+      v.employeeId === employeeId && 
+      v.status === 'approved' && 
+      format(v.startDate, 'yyyy-MM-dd') <= checkDate && 
+      format(v.endDate, 'yyyy-MM-dd') > checkDate
+    );
+    
+    return isOnVacation;
+  };
+
   // Get all assignments for today
   const todayAssignmentsList = assignments.filter(a => a.date === today);
   
@@ -77,7 +99,13 @@ const DashboardMetrics: React.FC = () => {
     !assignedEmployeesIds.includes(e.id)
   );
   
-  const onLeaveEmployees = filteredEmployees.filter(e => e.onLeave);
+  // Get unavailable employees for the currently viewed date (for the dialog)
+  const getUnavailableEmployeesForDate = (checkDate: string) => {
+    return filteredEmployees.filter(e => isEmployeeUnavailableOnDate(e.id, checkDate));
+  };
+  
+  // Get unavailable employees for today (for the dashboard card)
+  const onLeaveEmployees = getUnavailableEmployeesForDate(today);
   
   const availableEmployeesCount = availableEmployees.length;
   const onLeaveEmployeesCount = onLeaveEmployees.length;
@@ -112,7 +140,10 @@ const DashboardMetrics: React.FC = () => {
           
           <Card 
             className="cursor-pointer hover:border-polygon-blue transition-colors"
-            onClick={() => setUnavailableEmployeesDialogOpen(true)}
+            onClick={() => {
+              setUnavailableViewDate(new Date());
+              setUnavailableEmployeesDialogOpen(true);
+            }}
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
@@ -187,6 +218,11 @@ const DashboardMetrics: React.FC = () => {
         title={t('dashboard.onLeaveEmployees')}
         description={t('dashboard.unavailableEmployeesDesc')}
         isAvailable={false}
+        viewDate={unavailableViewDate}
+        onViewDateChange={setUnavailableViewDate}
+        assignments={assignments}
+        allEmployees={filteredEmployees}
+        vacations={vacations}
       />
     </div>
   );
