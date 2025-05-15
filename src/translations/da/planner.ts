@@ -51,7 +51,7 @@ const planner = {
   noAssignmentsToday: 'Ingen opgaver i dag',
   noAssignmentsWeek: 'Ingen opgaver i denne uge',
   onVacation: 'På ferie',
-  onAnotherAssignment: 'På anden opgave', // Danish translation for "On another assignment"
+  onAnotherAssignment: 'På anden opgave',
   atLocation: 'På lokation',
   startTime: 'Starttid',
   endTime: 'Sluttid',
@@ -69,9 +69,7 @@ const planner = {
   allDay: 'Hele dagen',
   viewAssignment: 'Vis opgave',
   selectCar: 'Vælg bil',
-  addAssignment: 'Tilføj ny opgave',
   assignmentTitle: 'Sagsnummer',
-  selectCar: 'Vælg bil',
   createAssignment: 'Opret',
   // New translations requested by user
   previousDays: 'Tidligere dage',
