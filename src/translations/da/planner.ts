@@ -70,7 +70,16 @@ const planner = {
   autoPublishEnabled: 'Auto-publicering aktiveret',
   autoPublishDisabled: 'Auto-publicering deaktiveret',
   enableAutoPublish: 'Aktiver auto-publicering',
-  disableAutoPublish: 'Deaktiver auto-publicering'
+  disableAutoPublish: 'Deaktiver auto-publicering',
+  // Updated translations based on user request
+  weekDescription: 'Denne uges opgaver',
+  newAssignment: 'Ny opgave',
+  previousWeek: 'Sidste uge',
+  nextWeek: 'Næste uge',
+  addAssignment: 'Tilføj ny opgave',
+  assignmentTitle: 'Sagsnummer',
+  selectCar: 'Vælg bil',
+  createAssignment: 'Opret'
 };
 
 export default planner;
