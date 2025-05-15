@@ -108,15 +108,8 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>
-              {title}
-              {isAvailable && onViewDateChange && (
-                <span className="ml-2 text-sm font-normal text-muted-foreground">
-                  ({format(viewDate, 'PP', { locale: da })})
-                </span>
-              )}
-            </span>
+          <div className="flex items-center justify-between">
+            <DialogTitle>{title}</DialogTitle>
             {isAvailable && onViewDateChange && (
               <div className="flex items-center gap-2">
                 <TooltipProvider>
@@ -154,7 +147,14 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
                 </TooltipProvider>
               </div>
             )}
-          </DialogTitle>
+          </div>
+          
+          {isAvailable && onViewDateChange && (
+            <div className="text-sm text-muted-foreground mt-1">
+              ({format(viewDate, 'PPP', { locale: da })})
+            </div>
+          )}
+          
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
