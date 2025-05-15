@@ -13,10 +13,52 @@ export const supabase = createClient<Database>(
   SUPABASE_URL, 
   SUPABASE_PUBLISHABLE_KEY,
   {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storageKey: 'supabase.auth.token',
+    },
     realtime: {
       params: {
         eventsPerSecond: 10
       }
-    }
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'supabase-js/2.43.1'
+      },
+    },
   }
 );
+
+// Add global error handler for Supabase operations
+const handleSupabaseError = (error: any) => {
+  if (error) {
+    console.error('Supabase operation failed:', error.message || error);
+    
+    // Add specific error handling based on error types
+    if (error.code === 'PGRST301') {
+      console.error('Row-level security policy error');
+    } else if (error.code === 'P0001') {
+      console.error('Database constraint violation');
+    }
+  }
+};
+
+// Create enhanced methods with error handling
+export const enhancedSupabase = {
+  ...supabase,
+  safeQuery: async (queryFn: () => Promise<any>) => {
+    try {
+      const result = await queryFn();
+      if (result.error) {
+        handleSupabaseError(result.error);
+      }
+      return result;
+    } catch (err) {
+      handleSupabaseError(err);
+      return { data: null, error: err };
+    }
+  }
+};

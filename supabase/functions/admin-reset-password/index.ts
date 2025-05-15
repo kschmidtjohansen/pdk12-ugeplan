@@ -1,6 +1,4 @@
 
-// Follow this setup guide to integrate the Deno runtime and use Edge Functions:
-// https://docs.supabase.com/docs/guides/functions/getting-started
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -10,7 +8,7 @@ interface ResetRequest {
 }
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://www.pdk12.dk',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
@@ -30,6 +28,12 @@ serve(async (req) => {
       throw new Error('Missing Supabase credentials');
     }
 
+    // Verify JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
+    }
+
     // Create supabase client with service role key
     const supabase = createClient(
       supabaseUrl,
@@ -41,6 +45,11 @@ serve(async (req) => {
 
     if (!userId || !newPassword) {
       throw new Error('Missing required fields');
+    }
+
+    // Validate password complexity
+    if (newPassword.length < 8) {
+      throw new Error('Password must be at least 8 characters long');
     }
 
     // Use Supabase auth admin API to update the user's password
@@ -64,6 +73,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error('Password reset error:', error.message);
     return new Response(
       JSON.stringify({ 
         error: error.message || 'An unexpected error occurred'

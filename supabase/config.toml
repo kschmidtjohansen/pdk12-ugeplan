@@ -7,3 +7,12 @@ redirect_urls = ["https://www.pdk12.dk/password-reset", "https://www.pdk12.dk/re
 
 [functions.admin-create-user]
 verify_jwt = true
+
+[functions.admin-reset-password]
+verify_jwt = true
+
+[functions.admin-user-role]
+verify_jwt = true
+
+[functions.admin-user-delete]
+verify_jwt = true

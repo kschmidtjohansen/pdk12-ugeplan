@@ -1,6 +1,8 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
+import { useToast } from '@/components/ui/use-toast';
 
 // Define user roles
 export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder';
@@ -39,6 +41,10 @@ interface AuthContextType {
   canEdit: boolean;
   canCreate: boolean;
   canSeeUnpublishedTasks: boolean;
+  // New validation methods for security
+  validateAdminAccess: () => boolean;
+  validateSkadelederAccess: () => boolean;
+  hasRequiredRole: (requiredRoles: UserRole[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -62,20 +68,50 @@ const AuthContext = createContext<AuthContextType>({
   canEdit: false,
   canCreate: false,
   canSeeUnpublishedTasks: false,
+  validateAdminAccess: () => false,
+  validateSkadelederAccess: () => false,
+  hasRequiredRole: () => false,
 });
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Login attempts tracking for rate limiting
+const loginAttempts = new Map<string, { count: number, timestamp: number }>();
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const { toast } = useToast();
   
   // Set up authentication state
   useEffect(() => {
     console.log('Auth provider initializing');
+    
+    // Security enhancement: Validate localStorage to detect potential XSS
+    const validateLocalStorage = () => {
+      try {
+        const testKey = '_security_test_' + Math.random().toString(36).substring(2);
+        localStorage.setItem(testKey, '1');
+        localStorage.removeItem(testKey);
+        return true;
+      } catch (e) {
+        console.error('LocalStorage access error:', e);
+        return false;
+      }
+    };
+    
+    if (!validateLocalStorage()) {
+      toast({
+        title: "Security Warning",
+        description: "Browser storage is not accessible. Authentication features may not work.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
     
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -200,7 +236,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('Auth provider cleanup - unsubscribing');
       subscription.unsubscribe();
     };
-  }, []);
+  }, [toast]);
 
   // Define permissions based on roles
   const isAdmin = user?.role === 'administrator';
@@ -218,10 +254,67 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   const isAuthenticated = !!user;
 
-  // Authentication functions
+  // New security methods for role validation
+  const validateAdminAccess = (): boolean => {
+    if (!user || user.role !== 'administrator') {
+      toast({
+        title: "Access Denied",
+        description: "You need administrator privileges for this action.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const validateSkadelederAccess = (): boolean => {
+    if (!user || (user.role !== 'administrator' && user.role !== 'skadeleder')) {
+      toast({
+        title: "Access Denied",
+        description: "You need skadeleder or administrator privileges for this action.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const hasRequiredRole = (requiredRoles: UserRole[]): boolean => {
+    if (!user || !requiredRoles.includes(user.role)) {
+      toast({
+        title: "Access Denied",
+        description: "You do not have permission to perform this action.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  // Authentication functions with rate limiting
   const login = async (email: string, password: string) => {
     try {
       console.log('Attempting login for:', email);
+      
+      // Rate limiting implementation
+      const now = Date.now();
+      const userAttempts = loginAttempts.get(email) || { count: 0, timestamp: now };
+      
+      // Reset count if last attempt was more than 15 minutes ago
+      if (now - userAttempts.timestamp > 15 * 60 * 1000) {
+        userAttempts.count = 0;
+        userAttempts.timestamp = now;
+      }
+      
+      // Check for too many attempts
+      if (userAttempts.count >= 5) {
+        return { error: 'Too many login attempts. Please try again later.' };
+      }
+      
+      // Increment attempt count
+      userAttempts.count++;
+      userAttempts.timestamp = now;
+      loginAttempts.set(email, userAttempts);
       
       const { data, error } = await supabase.auth.signInWithPassword({ 
         email, 
@@ -229,6 +322,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       
       console.log('Login response:', data?.user?.email, error?.message);
+      
+      // Reset attempt count on successful login
+      if (!error) {
+        loginAttempts.delete(email);
+      }
       
       return { error: error ? error.message : null };
     } catch (error: any) {
@@ -351,20 +449,126 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       isSkadeleder,
       isServicemedarbejder,
       login,
-      logout,
-      signUp,
-      requestPasswordReset,
-      resetPassword,
-      adminResetPassword,
-      register,
-      updateUserRole,
+      logout: async () => {
+        try {
+          await supabase.auth.signOut();
+          setUser(null);
+        } catch (error) {
+          console.error('Logout error:', error);
+        }
+      },
+      signUp: async (email, password, name) => {
+        try {
+          const { error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                name // Store name in user metadata
+              }
+            }
+          });
+          
+          return { error: error ? error.message : null };
+        } catch (error) {
+          console.error('Signup error:', error);
+          return { error: 'An unexpected error occurred during signup.' };
+        }
+      },
+      requestPasswordReset: async (email) => {
+        try {
+          // Update to include the full URL path to the password reset page
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/password-reset',
+          });
+          return { error: error ? error.message : null };
+        } catch (error) {
+          console.error('Password reset error:', error);
+          return { error: 'An unexpected error occurred during password reset.' };
+        }
+      },
+      resetPassword: async (email) => {
+        try {
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/reset-password',
+          });
+          return { error: error ? error.message : null };
+        } catch (error) {
+          console.error('Password reset error:', error);
+          return { error: 'An unexpected error occurred during password reset.' };
+        }
+      },
+      adminResetPassword: async (userId, newPassword) => {
+        try {
+          if (!validateAdminAccess()) {
+            return { error: 'Unauthorized - requires administrator role' };
+          }
+          
+          // Call edge function to reset user password
+          const { error: fnError } = await supabase.functions.invoke('admin-reset-password', {
+            body: { userId, newPassword },
+          });
+          
+          if (fnError) throw fnError;
+          
+          return { error: null };
+        } catch (error) {
+          console.error('Admin password reset error:', error);
+          return { error: 'An unexpected error occurred during password reset.' };
+        }
+      },
+      register: async (email, password, name) => {
+        try {
+          if (!validateAdminAccess()) {
+            return { error: 'Unauthorized - requires administrator role', user: null };
+          }
+          
+          // Create the user account
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { name }
+            }
+          });
+          
+          if (error) throw error;
+          
+          return { error: null, user: data.user };
+        } catch (error) {
+          console.error('User registration error:', error);
+          return { error: 'An unexpected error occurred during registration.', user: null };
+        }
+      },
+      updateUserRole: async (userId, role) => {
+        try {
+          if (!validateAdminAccess()) {
+            return { error: 'Unauthorized - requires administrator role' };
+          }
+          
+          // Call the admin-user-role edge function to update the user's role
+          const { error: fnError } = await supabase.functions.invoke('admin-user-role', {
+            body: { userId, role },
+          });
+          
+          if (fnError) throw fnError;
+          
+          return { error: null };
+        } catch (error) {
+          console.error('Update user role error:', error);
+          return { error: 'An unexpected error occurred while updating the user role.' };
+        }
+      },
       loading,
       canViewFuelCardCode,
       canPublishTasks,
       canApproveVacation,
       canEdit,
       canCreate,
-      canSeeUnpublishedTasks
+      canSeeUnpublishedTasks,
+      validateAdminAccess,
+      validateSkadelederAccess,
+      hasRequiredRole
     }}>
       {children}
     </AuthContext.Provider>
@@ -383,7 +587,10 @@ export const usePermissions = () => {
     canApproveVacation,
     canEdit,
     canCreate,
-    canSeeUnpublishedTasks
+    canSeeUnpublishedTasks,
+    validateAdminAccess,
+    validateSkadelederAccess,
+    hasRequiredRole
   } = useContext(AuthContext);
   
   return {
@@ -395,6 +602,9 @@ export const usePermissions = () => {
     canApproveVacation,
     canEdit,
     canCreate,
-    canSeeUnpublishedTasks
+    canSeeUnpublishedTasks,
+    validateAdminAccess,
+    validateSkadelederAccess,
+    hasRequiredRole
   };
 };

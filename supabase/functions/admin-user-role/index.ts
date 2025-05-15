@@ -1,6 +1,4 @@
 
-// Follow this setup guide to integrate the Deno runtime and use Edge Functions:
-// https://docs.supabase.com/docs/guides/functions/getting-started
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -10,7 +8,7 @@ interface RoleUpdateRequest {
 }
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://www.pdk12.dk',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
@@ -30,11 +28,43 @@ serve(async (req) => {
       throw new Error('Missing Supabase credentials');
     }
 
+    // Verify JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
+    }
+
     // Create supabase client with service role key
     const supabase = createClient(
       supabaseUrl,
       supabaseServiceKey
     );
+
+    // Create authenticated client to verify the user's role
+    const authClient = createClient(
+      supabaseUrl,
+      supabaseServiceKey,
+      {
+        global: { headers: { Authorization: authHeader } }
+      }
+    );
+
+    // Get the current user's role for authorization
+    const { data: { user } } = await authClient.auth.getUser();
+    if (!user) {
+      throw new Error('Not authenticated');
+    }
+
+    // Check if user is an administrator
+    const { data: roleData } = await authClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!roleData || roleData.role !== 'administrator') {
+      throw new Error('Unauthorized - requires administrator role');
+    }
 
     // Parse request body
     const { userId, role } = await req.json() as RoleUpdateRequest;
@@ -70,6 +100,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error('User role update error:', error.message);
     return new Response(
       JSON.stringify({ 
         error: error.message || 'An unexpected error occurred'
