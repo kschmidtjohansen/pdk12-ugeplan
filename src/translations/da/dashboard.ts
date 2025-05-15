@@ -68,7 +68,9 @@ const dashboard = {
   todayAssignments: 'Dagens Opgaver',
   scheduledToday: 'Opgaver planlagt til i dag',
   upcomingAssignments: 'Kommende Opgaver',
-  noData: 'Ingen data tilgængelig'
+  noData: 'Ingen data tilgængelig',
+  todaysDate: 'Dagens dato: {date}',
+  viewingDate: 'Viser for: {date}'
 };
 
 export default dashboard;

@@ -14,7 +14,7 @@ import { Vacation } from '@/types/vacation';
 import { Assignment } from '@/types/assignment';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CalendarIcon, UserIcon, ArrowRight, Briefcase, ChevronLeft } from 'lucide-react';
-import { format, addDays, subDays } from 'date-fns';
+import { format, addDays, subDays, isToday } from 'date-fns';
 import { da } from 'date-fns/locale';
 import {
   Tooltip,
@@ -50,7 +50,7 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
   allEmployees = [],
   vacations = []
 }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const formattedDate = format(viewDate, 'yyyy-MM-dd');
   
   // Helper function to check if an employee is on vacation for a specific date
@@ -119,12 +119,42 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
     }
   };
 
+  // Format the date for display with proper locale
+  const getFormattedViewDate = () => {
+    try {
+      // Use Danish locale if the current language is Danish
+      const locale = currentLanguage === 'da' ? da : undefined;
+      const dateStr = format(viewDate, 'PPP', { locale });
+      
+      // Capitalize first letter for Danish dates
+      if (currentLanguage === 'da') {
+        return dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+      }
+      return dateStr;
+    } catch (e) {
+      console.error("Error formatting view date:", e);
+      return format(new Date(), 'PPP');
+    }
+  };
+
+  // Check if we're viewing today's date
+  const viewingToday = isToday(viewDate);
+
+  // Get the appropriate title based on whether we're viewing today or another date
+  const getDialogTitle = () => {
+    // If we're viewing today's date, add "Dagens" before the title for Danish
+    if (viewingToday && currentLanguage === 'da') {
+      return isAvailable ? 'Dagens tilgængelige servicemedarbejdere' : 'Dagens fraværende servicemedarbejdere';
+    }
+    return title;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[80vh]">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle>{title}</DialogTitle>
+            <DialogTitle>{getDialogTitle()}</DialogTitle>
             {onViewDateChange && (
               <div className="flex items-center gap-2">
                 <TooltipProvider>
@@ -166,7 +196,10 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
           
           {onViewDateChange && (
             <div className="text-sm text-muted-foreground mt-1">
-              ({format(viewDate, 'PPP', { locale: da })})
+              {viewingToday 
+                ? t('dashboard.todaysDate', { date: getFormattedViewDate() })
+                : t('dashboard.viewingDate', { date: getFormattedViewDate() })
+              }
             </div>
           )}
           
@@ -230,4 +263,3 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
 };
 
 export default EmployeeAvailabilityDialog;
-

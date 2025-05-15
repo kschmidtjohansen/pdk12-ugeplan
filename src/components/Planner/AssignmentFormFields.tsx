@@ -52,16 +52,19 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
   // Format date for display in the calendar button
   const formatDisplayDate = (dateString: string | undefined | null) => {
-    // Always use current date when no selection is made
-    if (!dateString) return format(currentDate, "d MMMM yyyy", { locale: currentLanguage === 'da' ? da : undefined });
     try {
+      // If no date is provided, or date is invalid, use current date
+      const dateToFormat = dateString ? new Date(dateString) : currentDate;
+      if (isNaN(dateToFormat.getTime())) {
+        throw new Error("Invalid date");
+      }
+      
       // Use Danish locale if the current language is Danish
       const locale = currentLanguage === 'da' ? da : undefined;
-      return format(new Date(dateString), "d MMMM yyyy", {
-        locale
-      });
+      return format(dateToFormat, "d MMMM yyyy", { locale });
     } catch (e) {
-      console.error("Invalid date format:", dateString);
+      console.error("Error formatting display date:", e);
+      // Fallback to current date with proper locale
       return format(currentDate, "d MMMM yyyy", { locale: currentLanguage === 'da' ? da : undefined });
     }
   };
@@ -83,6 +86,9 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   console.log("FormFields - Cars data:", cars?.length || 0, "cars available");
   console.log("FormFields - Employees data:", employees?.length || 0, "employees available");
   console.log("FormFields - Current date:", format(currentDate, "yyyy-MM-dd"));
+  
+  // Determine the date to display in the calendar
+  const calendarDate = formData.date ? new Date(formData.date) : currentDate;
   
   // Wrap the returned JSX in a fragment to fix the React error #185
   return (
@@ -113,7 +119,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar 
               mode="single" 
-              selected={formData.date ? new Date(formData.date) : currentDate} 
+              selected={calendarDate} 
               onSelect={handleDateSelect} 
               locale={currentLanguage === 'da' ? da : undefined} 
               weekStartsOn={1} // 1 means Monday is the first day

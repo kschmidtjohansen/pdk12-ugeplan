@@ -7,7 +7,8 @@ import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { usePermissions } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from '@/context/TranslationContext';
-import { format, addDays } from 'date-fns';
+import { format, addDays, isToday } from 'date-fns';
+import { da } from 'date-fns/locale';
 import { 
   UserCheck, CarFront, CheckSquare, UserX, ChevronRight
 } from 'lucide-react';
@@ -21,7 +22,7 @@ const DashboardMetrics: React.FC = () => {
   const { cars } = useCars();
   const { assignments } = usePlannerAssignments();
   const { isAdmin, isSkadeleder } = usePermissions();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
 
   // Add state for dialogs
   const [availableEmployeesDialogOpen, setAvailableEmployeesDialogOpen] = useState(false);
@@ -112,6 +113,33 @@ const DashboardMetrics: React.FC = () => {
   const totalFilteredEmployees = filteredEmployees.length;
   
   const availableCars = cars.length;
+
+  // Format today's date with proper locale
+  const getFormattedToday = () => {
+    try {
+      // Use Danish locale if the current language is Danish
+      const locale = currentLanguage === 'da' ? da : undefined;
+      const dateStr = format(new Date(), 'PPP', { locale });
+      
+      // Capitalize first letter for Danish dates
+      if (currentLanguage === 'da') {
+        return dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+      }
+      return dateStr;
+    } catch (e) {
+      console.error("Error formatting today's date:", e);
+      return format(new Date(), 'PPP');
+    }
+  };
+  
+  // Get the appropriate card titles based on language
+  const getAvailableEmployeesTitle = () => {
+    return currentLanguage === 'da' ? 'Dagens tilgængelige servicemedarbejdere' : t('dashboard.availableEmployees');
+  };
+  
+  const getUnavailableEmployeesTitle = () => {
+    return currentLanguage === 'da' ? 'Dagens fraværende servicemedarbejdere' : t('dashboard.onLeaveEmployees');
+  };
   
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -126,7 +154,7 @@ const DashboardMetrics: React.FC = () => {
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
-                {t('dashboard.availableEmployees')}
+                {getAvailableEmployeesTitle()}
               </CardTitle>
               <UserCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -134,6 +162,9 @@ const DashboardMetrics: React.FC = () => {
               <div className="text-2xl font-bold">{availableEmployeesCount}</div>
               <p className="text-xs text-muted-foreground">
                 {t('dashboard.totalEmployees', { count: totalFilteredEmployees })}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {t('dashboard.todaysDate', { date: getFormattedToday() })}
               </p>
             </CardContent>
           </Card>
@@ -147,7 +178,7 @@ const DashboardMetrics: React.FC = () => {
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
-                {t('dashboard.onLeaveEmployees')}
+                {getUnavailableEmployeesTitle()}
               </CardTitle>
               <UserX className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -155,6 +186,9 @@ const DashboardMetrics: React.FC = () => {
               <div className="text-2xl font-bold">{onLeaveEmployeesCount}</div>
               <p className="text-xs text-muted-foreground">
                 {t('dashboard.totalEmployees', { count: totalFilteredEmployees })}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {t('dashboard.todaysDate', { date: getFormattedToday() })}
               </p>
             </CardContent>
           </Card>
