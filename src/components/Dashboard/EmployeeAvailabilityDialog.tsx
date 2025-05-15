@@ -101,7 +101,7 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
     }) : 
     !isAvailable && onViewDateChange ?
     // For unavailable employees view, only show employees who ARE unavailable
-    allEmployees.filter(employee => isEmployeeUnavailableOnDate(employee, formattedDate)) :
+    allEmployees.filter(employee => isEmployeeUnavailable(employee, formattedDate)) :
     // Fall back to provided employees list if no date navigation
     employees;
 
