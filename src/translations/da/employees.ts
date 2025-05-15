@@ -26,7 +26,7 @@ const employees = {
   onLeave: 'Fraværende',
   markOnLeave: 'Marker som på fraværende',
   markAvailable: 'Marker som tilgængelig',
-  employeeOnLeave: 'Medarbejder sat på orlov',
+  employeeOnLeave: 'Medarbejder markeret fraværende',
   employeeAvailable: 'Medarbejder markeret tilgængelig',
   employeeOnLeaveMsg: '{name} er nu markeret som fraværende.',
   employeeAvailableMsg: '{name} er nu markeret som tilgængelig.',
@@ -34,7 +34,14 @@ const employees = {
   notesPlaceholder: 'Tilføj noter om denne medarbejder...',
   viewNotes: 'Se noter',
   viewNotesOnly: 'Du kan se men ikke redigere noter',
-  employee: 'Medarbejder'
+  employee: 'Medarbejder',
+  markOnLeaveTitle: 'Marker som fraværende',
+  markOnLeaveDescription: 'Indtast en grund til {name}\'s fravær. Dette vil være synligt for administratorer og afdelingsledere.',
+  markAvailableTitle: 'Marker som tilgængelig',
+  markAvailableDescription: 'Vil du beholde eller fjerne noterne for {name}?',
+  keepNote: 'Behold noter',
+  removeNote: 'Fjern noter',
+  updateError: 'Der opstod en fejl under opdatering af medarbejderens status.'
 };
 
 export default employees;

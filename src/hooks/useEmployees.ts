@@ -41,8 +41,8 @@ export const useEmployees = () => {
     return await deleteEmployeeAction(employeeId, employees);
   };
 
-  const toggleEmployeeLeave = async (employee: typeof employees[0]) => {
-    return await toggleEmployeeLeaveAction(employee, employees);
+  const toggleEmployeeLeave = async (employee: typeof employees[0], setOnLeave: boolean, notes: string | null = null) => {
+    return await toggleEmployeeLeaveAction(employee, setOnLeave, notes);
   };
 
   return {

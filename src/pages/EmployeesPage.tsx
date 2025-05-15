@@ -17,6 +17,9 @@ const EmployeesPage: React.FC = () => {
   const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [markLeaveDialogOpen, setMarkLeaveDialogOpen] = useState(false);
+  const [markAvailableDialogOpen, setMarkAvailableDialogOpen] = useState(false);
+  const [employeeNote, setEmployeeNote] = useState('');
   
   const {
     employees,
@@ -71,7 +74,39 @@ const EmployeesPage: React.FC = () => {
 
   const handleToggleLeave = (employee: Employee) => {
     if (!isAdmin) return;
-    toggleEmployeeLeave(employee);
+    
+    prepareForEdit(employee);
+    
+    // If employee is already on leave, show the available dialog
+    if (employee.onLeave) {
+      setMarkAvailableDialogOpen(true);
+      setEmployeeNote(employee.notes || '');
+    } else {
+      // If employee is not on leave, show the leave dialog
+      setMarkLeaveDialogOpen(true);
+      setEmployeeNote('');
+    }
+  };
+  
+  const handleConfirmMarkLeave = () => {
+    if (currentEmployee) {
+      toggleEmployeeLeave(currentEmployee, true, employeeNote);
+      setMarkLeaveDialogOpen(false);
+    }
+  };
+  
+  const handleConfirmMarkAvailableWithNote = () => {
+    if (currentEmployee) {
+      toggleEmployeeLeave(currentEmployee, false, currentEmployee.notes);
+      setMarkAvailableDialogOpen(false);
+    }
+  };
+  
+  const handleConfirmMarkAvailableWithoutNote = () => {
+    if (currentEmployee) {
+      toggleEmployeeLeave(currentEmployee, false, '');
+      setMarkAvailableDialogOpen(false);
+    }
   };
 
   return (
@@ -94,15 +129,24 @@ const EmployeesPage: React.FC = () => {
       <EmployeeDialogManager
         dialogOpen={dialogOpen}
         deleteDialogOpen={deleteDialogOpen}
+        markLeaveDialogOpen={markLeaveDialogOpen}
+        markAvailableDialogOpen={markAvailableDialogOpen}
         currentEmployee={currentEmployee}
         formData={formData}
+        employeeNote={employeeNote}
         handleInputChange={handleInputChange}
         handleSelectChange={handleSelectChange}
         handleCheckboxChange={handleCheckboxChange}
+        handleNoteChange={setEmployeeNote}
         handleSubmit={handleSubmit}
         onCloseDialog={() => setDialogOpen(false)}
         onConfirmDelete={confirmDelete}
         onCloseDeleteDialog={setDeleteDialogOpen}
+        onConfirmMarkLeave={handleConfirmMarkLeave}
+        onCancelMarkLeave={() => setMarkLeaveDialogOpen(false)}
+        onConfirmMarkAvailableWithNote={handleConfirmMarkAvailableWithNote}
+        onConfirmMarkAvailableWithoutNote={handleConfirmMarkAvailableWithoutNote}
+        onCancelMarkAvailable={() => setMarkAvailableDialogOpen(false)}
       />
     </>
   );

@@ -1,3 +1,4 @@
+
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,14 +13,17 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   /**
    * Update employee onLeave status
    */
-  const toggleEmployeeLeave = async (employee: any, allEmployees: any[]) => {
+  const toggleEmployeeLeave = async (employee: any, setOnLeave: boolean, notes: string | null = null) => {
     if (!employee?.id) return false;
     
     try {
-      // Toggle the onLeave status
+      // Update the onLeave status and optionally update notes
       const { data, error } = await supabase
         .from('profiles')
-        .update({ on_leave: !employee.onLeave })
+        .update({ 
+          on_leave: setOnLeave,
+          notes: notes || null
+        })
         .eq('id', employee.id)
         .select();
       
@@ -27,12 +31,12 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       
       // Show toast notification
       toast({
-        title: employee.onLeave 
-          ? t('employees.employeeAvailable') 
-          : t('employees.employeeOnLeave'),
-        description: employee.onLeave 
-          ? t('employees.employeeAvailableMsg', { name: employee.name }) 
-          : t('employees.employeeOnLeaveMsg', { name: employee.name })
+        title: setOnLeave 
+          ? t('employees.employeeOnLeave') 
+          : t('employees.employeeAvailable'),
+        description: setOnLeave 
+          ? t('employees.employeeOnLeaveMsg', { name: employee.name }) 
+          : t('employees.employeeAvailableMsg', { name: employee.name })
       });
       
       // Refresh the employees list after toggle
