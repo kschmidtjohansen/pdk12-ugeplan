@@ -29,7 +29,8 @@ const common = {
   noData: 'Ingen data tilgængelig',
   areYouSure: 'Er du sikker?',
   deleteWarning: 'Er du sikker på at du vil slette?',
-  close: 'Luk'
+  close: 'Luk',
+  confirm: 'Bekræft'
 };
 
 export default common;

@@ -100,17 +100,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           const { error: roleError } = await updateUserRole(userId, formData.role);
           if (roleError) throw new Error(roleError);
         }
-        
-        // Update profile with additional details
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            phone: formData.phone,
-            job_title: formData.jobTitle
-          })
-          .eq('id', userId);
-          
-        if (profileError) throw profileError;
       } else {
         // Updating an existing user
         // Update profile data
@@ -196,30 +185,37 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
               disabled={!!currentUser} // Can't change email for existing users
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="phone" className="text-right">
-              {t('admin.userManagement.phone')}
-            </Label>
-            <Input
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="jobTitle" className="text-right">
-              {t('admin.userManagement.position')}
-            </Label>
-            <Input
-              id="jobTitle"
-              name="jobTitle"
-              value={formData.jobTitle}
-              onChange={handleInputChange}
-              className="col-span-3"
-            />
-          </div>
+          
+          {/* Phone and Job Title fields - only show for editing existing users */}
+          {currentUser && (
+            <>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="phone" className="text-right">
+                  {t('admin.userManagement.phone')}
+                </Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="jobTitle" className="text-right">
+                  {t('admin.userManagement.position')}
+                </Label>
+                <Input
+                  id="jobTitle"
+                  name="jobTitle"
+                  value={formData.jobTitle}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+            </>
+          )}
+          
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="role" className="text-right">
               {t('admin.userManagement.role')}
