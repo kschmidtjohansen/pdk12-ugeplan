@@ -54,7 +54,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { t } = useTranslation();
-  const { register, updateUserRole } = useAuth();
+  const { updateUserRole } = useAuth();
   const { toast } = useToast();
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -74,28 +74,30 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           return;
         }
         
-        // Register the new user
-        const { error, user } = await register(formData.email, password, formData.name);
+        // Use the admin-create-user edge function instead of register to avoid session conflicts
+        const { data, error } = await supabase.functions.invoke('admin-create-user', {
+          body: { 
+            email: formData.email, 
+            password: password,
+            userData: {
+              name: formData.name
+            }
+          }
+        });
         
-        if (error || !user) {
+        if (error || !data?.user) {
           throw new Error(error || "Failed to create user");
         }
         
         // Wait a brief moment for the user to be created and the trigger to run
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Fetch the newly created user to get their ID
-        const { data: newUser, error: fetchError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('email', formData.email)
-          .single();
-          
-        if (fetchError) throw fetchError;
+        // Get the user ID from the returned data
+        const userId = data.user.id;
         
         // Update the user's role if it's not the default
         if (formData.role !== 'servicemedarbejder') {
-          const { error: roleError } = await updateUserRole(newUser.id, formData.role);
+          const { error: roleError } = await updateUserRole(userId, formData.role);
           if (roleError) throw new Error(roleError);
         }
         
@@ -106,7 +108,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
             phone: formData.phone,
             job_title: formData.jobTitle
           })
-          .eq('id', newUser.id);
+          .eq('id', userId);
           
         if (profileError) throw profileError;
       } else {
@@ -132,6 +134,12 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       
       // Call original submit handler for UI updates
       handleSubmit(e);
+      toast({
+        title: t('common.success'),
+        description: currentUser 
+          ? t('admin.userManagement.updateSuccess') 
+          : t('admin.userManagement.createSuccess'),
+      });
     } catch (error) {
       console.error('Error saving user:', error);
       toast({

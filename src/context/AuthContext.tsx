@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -335,88 +334,57 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Enhanced logout function to properly clear all session data
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
+      console.log("Logging out user...");
+      
+      // Use global scope to sign out from all tabs/windows
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      
+      if (error) {
+        console.error('Error during signOut:', error);
+        throw error;
+      }
+      
+      // Clear user state
       setUser(null);
+      setSession(null);
+      
+      // Clear any local storage items that might persist state
+      try {
+        // Optional: Clear specific items that might contain auth data
+        localStorage.removeItem('supabase.auth.token');
+        // Note: Don't clear everything as it might affect other app functionality
+        // localStorage.clear(); 
+      } catch (e) {
+        console.warn('Unable to clear localStorage items:', e);
+      }
+
+      console.log("Logout successful");
     } catch (error) {
       console.error('Logout error:', error);
+      // Still clear local state even if there was an API error
+      setUser(null);
+      setSession(null);
     }
   };
 
-  const signUp = async (email: string, password: string, name: string) => {
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name // Store name in user metadata
-          }
-        }
-      });
-      
-      return { error: error ? error.message : null };
-    } catch (error) {
-      console.error('Signup error:', error);
-      return { error: 'An unexpected error occurred during signup.' };
-    }
-  };
-  
-  const requestPasswordReset = async (email: string) => {
-    try {
-      // Update to include the full URL path to the password reset page
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/password-reset',
-      });
-      return { error: error ? error.message : null };
-    } catch (error) {
-      console.error('Password reset error:', error);
-      return { error: 'An unexpected error occurred during password reset.' };
-    }
-  };
+  // ... keep existing code (signUp and resetPasswordForEmail functions)
 
-  // New functions for user management
-  const resetPassword = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/reset-password',
-      });
-      return { error: error ? error.message : null };
-    } catch (error) {
-      console.error('Password reset error:', error);
-      return { error: 'An unexpected error occurred during password reset.' };
-    }
-  };
-
-  const adminResetPassword = async (userId: string, newPassword: string) => {
-    try {
-      // Call edge function to reset user password
-      const { error: fnError } = await supabase.functions.invoke('admin-reset-password', {
-        body: { userId, newPassword },
-      });
-      
-      if (fnError) throw fnError;
-      
-      return { error: null };
-    } catch (error) {
-      console.error('Admin password reset error:', error);
-      return { error: 'An unexpected error occurred during password reset.' };
-    }
-  };
-
+  // Modified register function to avoid affecting the current admin's session
   const register = async (email: string, password: string, name: string) => {
     try {
-      // Create the user account
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { name }
+      // Create the user account via the edge function instead of direct signup
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: { 
+          email, 
+          password,
+          userData: { name }
         }
       });
       
-      if (error) throw error;
+      if (error || !data?.user) throw error || new Error('Failed to create user');
       
       return { error: null, user: data.user };
     } catch (error) {
@@ -425,21 +393,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const updateUserRole = async (userId: string, role: UserRole) => {
-    try {
-      // Call the admin-user-role edge function to update the user's role
-      const { error: fnError } = await supabase.functions.invoke('admin-user-role', {
-        body: { userId, role },
-      });
-      
-      if (fnError) throw fnError;
-      
-      return { error: null };
-    } catch (error) {
-      console.error('Update user role error:', error);
-      return { error: 'An unexpected error occurred while updating the user role.' };
-    }
-  };
+  // ... keep existing code (updateUserRole and other functions)
 
   return (
     <AuthContext.Provider value={{
@@ -449,14 +403,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       isSkadeleder,
       isServicemedarbejder,
       login,
-      logout: async () => {
-        try {
-          await supabase.auth.signOut();
-          setUser(null);
-        } catch (error) {
-          console.error('Logout error:', error);
-        }
-      },
+      logout,
       signUp: async (email, password, name) => {
         try {
           const { error } = await supabase.auth.signUp({
@@ -517,29 +464,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           return { error: 'An unexpected error occurred during password reset.' };
         }
       },
-      register: async (email, password, name) => {
-        try {
-          if (!validateAdminAccess()) {
-            return { error: 'Unauthorized - requires administrator role', user: null };
-          }
-          
-          // Create the user account
-          const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: { name }
-            }
-          });
-          
-          if (error) throw error;
-          
-          return { error: null, user: data.user };
-        } catch (error) {
-          console.error('User registration error:', error);
-          return { error: 'An unexpected error occurred during registration.', user: null };
-        }
-      },
+      register,
       updateUserRole: async (userId, role) => {
         try {
           if (!validateAdminAccess()) {
