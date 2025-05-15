@@ -2,6 +2,7 @@
 import React from 'react';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
+import { Assignment } from '@/types/assignment';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '@/context/TranslationContext';
 
@@ -11,6 +12,7 @@ interface EmployeeSelectorProps {
   onToggle: (employeeId: string) => void;
   vacations: Vacation[];
   currentDate: string;
+  assignments?: Assignment[];
 }
 
 export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
@@ -18,7 +20,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   selectedEmployees,
   onToggle,
   vacations,
-  currentDate
+  currentDate,
+  assignments = []
 }) => {
   const { t } = useTranslation();
 
@@ -38,9 +41,16 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       endDate.setHours(0, 0, 0, 0);
       
       // Fix: Employee is available on the day after their vacation ends
-      // Changed from 'selectedDate <= endDate' to 'selectedDate < endDate'
       return selectedDate >= startDate && selectedDate < endDate;
     });
+  };
+
+  // Helper function to check if an employee is already assigned to another assignment
+  const isEmployeeOnAnotherAssignment = (employeeName: string): boolean => {
+    return assignments.some(assignment => 
+      assignment.date === currentDate && 
+      assignment.employees.includes(employeeName)
+    );
   };
 
   // Parse the current date string into a Date object for comparison
@@ -57,6 +67,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         const isSelected = selectedEmployees.includes(employee.name);
         const isOnVacation = isEmployeeOnVacation(employee.id, dateForComparison);
         const isUnavailable = employee.onLeave;
+        const isOnAnotherAssignment = isEmployeeOnAnotherAssignment(employee.name);
         
         // Employee should be disabled if they're on vacation or marked as unavailable
         const isDisabled = isOnVacation || isUnavailable;
@@ -75,6 +86,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               <span>{employee.name}</span>
               {isOnVacation && <Badge variant="outline">{t('planner.onVacation')}</Badge>}
               {isUnavailable && <Badge variant="outline">{t('employees.onLeave')}</Badge>}
+              {isOnAnotherAssignment && !isDisabled && (
+                <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                  {t('planner.onAnotherAssignment')}
+                </Badge>
+              )}
             </div>
           </div>
         );

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useVacations } from '@/hooks/useVacations';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
@@ -7,9 +7,9 @@ import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { usePermissions } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from '@/context/TranslationContext';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { 
-  UserCheck, CarFront, CheckSquare, UserX
+  UserCheck, CarFront, CheckSquare, UserX, ChevronRight
 } from 'lucide-react';
 
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
@@ -26,6 +26,7 @@ const DashboardMetrics: React.FC = () => {
   // Add state for dialogs
   const [availableEmployeesDialogOpen, setAvailableEmployeesDialogOpen] = useState(false);
   const [unavailableEmployeesDialogOpen, setUnavailableEmployeesDialogOpen] = useState(false);
+  const [viewDate, setViewDate] = useState(new Date());
 
   // Show metrics only for admin and skadeleder roles
   const shouldShowMetrics = isAdmin || isSkadeleder;
@@ -35,25 +36,65 @@ const DashboardMetrics: React.FC = () => {
     e.role !== 'administrator' && e.role !== 'skadeleder'
   );
   
+  // Format today's date for comparison
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const todayAssignments = assignments.filter(a => a.date === today).length;
+  
+  // Helper function to check if an employee is available on a specific date
+  const isEmployeeAvailableOnDate = (employeeId: string, checkDate: string): boolean => {
+    // Check if employee is on leave
+    const employee = employees.find(e => e.id === employeeId);
+    if (!employee || employee.onLeave) return false;
+    
+    // Check if employee is on vacation
+    const isOnVacation = vacations.some(v => 
+      v.user_id === employeeId && 
+      v.status === 'approved' && 
+      v.start_date <= checkDate && 
+      v.end_date > checkDate
+    );
+    
+    if (isOnVacation) return false;
+    
+    return true;
+  };
+
+  // Get all assignments for today
+  const todayAssignmentsList = assignments.filter(a => a.date === today);
+  
+  // Get employees who are assigned to tasks today
+  const assignedEmployeesIds = todayAssignmentsList.flatMap(a => 
+    a.employees.map(name => {
+      const employee = employees.find(e => e.name === name);
+      return employee ? employee.id : '';
+    }).filter(id => id !== '')
+  );
+  
   // Calculate metrics - only counting regular employees
-  const availableEmployees = filteredEmployees.filter(e => !e.onLeave);
+  // An employee is available if they are not on leave, not on vacation, and not assigned to a task today
+  const availableEmployees = filteredEmployees.filter(e => 
+    isEmployeeAvailableOnDate(e.id, today) && 
+    !assignedEmployeesIds.includes(e.id)
+  );
+  
   const onLeaveEmployees = filteredEmployees.filter(e => e.onLeave);
+  
   const availableEmployeesCount = availableEmployees.length;
   const onLeaveEmployeesCount = onLeaveEmployees.length;
   const totalFilteredEmployees = filteredEmployees.length;
   
   const availableCars = cars.length;
   
-  const today = format(new Date(), 'yyyy-MM-dd');
-  const todayAssignments = assignments.filter(a => a.date === today).length;
-
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {shouldShowMetrics && (
         <>
           <Card 
             className="cursor-pointer hover:border-polygon-blue transition-colors"
-            onClick={() => setAvailableEmployeesDialogOpen(true)}
+            onClick={() => {
+              setViewDate(new Date());
+              setAvailableEmployeesDialogOpen(true);
+            }}
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
@@ -132,6 +173,11 @@ const DashboardMetrics: React.FC = () => {
         title={t('dashboard.availableEmployees')}
         description={t('dashboard.availableEmployeesDesc')}
         isAvailable={true}
+        viewDate={viewDate}
+        onViewDateChange={setViewDate}
+        assignments={assignments}
+        allEmployees={filteredEmployees}
+        vacations={vacations}
       />
 
       <EmployeeAvailabilityDialog 

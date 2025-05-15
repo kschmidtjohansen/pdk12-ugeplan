@@ -30,6 +30,7 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   onSubmit,
   onDelete,
   onPublish,
+  assignments,
   selectedDay,
   onPublishDay
 }) => {
@@ -109,6 +110,11 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
     onSubmit(formData);
   };
 
+  // Filter out the current assignment from the assignments list for employee availability check
+  const otherAssignments = currentAssignment 
+    ? assignments.filter(a => a.id !== currentAssignment.id) 
+    : assignments;
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <AssignmentForm
@@ -124,6 +130,7 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
         handleSubmit={handleFormSubmit}
         onClose={handleCloseDialog}
         currentDate={selectedDay}
+        assignments={otherAssignments}
       />
     </Dialog>
   );

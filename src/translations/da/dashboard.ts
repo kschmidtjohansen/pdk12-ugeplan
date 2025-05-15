@@ -59,6 +59,8 @@ const dashboard = {
   noAvailableEmployees: 'Ingen tilgængelige medarbejdere fundet',
   noUnavailableEmployees: 'Ingen fraværende medarbejdere fundet',
   onVacation: 'På ferie',
+  onAssignment: 'På opgave',
+  tomorrow: 'I morgen',
   totalEmployees: 'Samlede medarbejdere: {count}',
   totalCars: 'Samlede biler: {count}',
   availableCars: 'Tilgængelige Biler',
