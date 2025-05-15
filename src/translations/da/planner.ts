@@ -79,7 +79,10 @@ const planner = {
   addAssignment: 'Tilføj ny opgave',
   assignmentTitle: 'Sagsnummer',
   selectCar: 'Vælg bil',
-  createAssignment: 'Opret'
+  createAssignment: 'Opret',
+  // New translations requested by user
+  previousDays: 'Tidligere dage',
+  nothingPlannedToday: 'Intet planlagt for i dag'
 };
 
 export default planner;
