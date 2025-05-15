@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useVacations } from '@/hooks/useVacations';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -132,15 +131,7 @@ const DashboardMetrics: React.FC = () => {
     }
   };
   
-  // Get the appropriate card titles based on language
-  const getAvailableEmployeesTitle = () => {
-    return currentLanguage === 'da' ? 'Dagens tilgængelige servicemedarbejdere' : t('dashboard.availableEmployees');
-  };
-  
-  const getUnavailableEmployeesTitle = () => {
-    return currentLanguage === 'da' ? 'Dagens fraværende servicemedarbejdere' : t('dashboard.onLeaveEmployees');
-  };
-  
+  // Use the translations directly from the translation context
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {shouldShowMetrics && (
@@ -154,7 +145,7 @@ const DashboardMetrics: React.FC = () => {
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
-                {getAvailableEmployeesTitle()}
+                {t('dashboard.availableEmployees')}
               </CardTitle>
               <UserCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -178,7 +169,7 @@ const DashboardMetrics: React.FC = () => {
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
-                {getUnavailableEmployeesTitle()}
+                {t('dashboard.onLeaveEmployees')}
               </CardTitle>
               <UserX className="h-4 w-4 text-muted-foreground" />
             </CardHeader>

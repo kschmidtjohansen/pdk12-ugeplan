@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Dialog,
@@ -144,7 +143,7 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
   const getDialogTitle = () => {
     // If we're viewing today's date, add "Dagens" before the title for Danish
     if (viewingToday && currentLanguage === 'da') {
-      return isAvailable ? 'Dagens tilgængelige servicemedarbejdere' : 'Dagens fraværende servicemedarbejdere';
+      return isAvailable ? 'Tilgængelige Servicemedarbejdere' : 'Fraværende Servicemedarbejdere';
     }
     return title;
   };
