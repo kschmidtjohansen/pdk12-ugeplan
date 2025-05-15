@@ -93,12 +93,15 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
       // For available employees view, only show employees who are NOT unavailable
       if (isEmployeeUnavailable(employee, formattedDate)) return false;
       
-      // Include both assigned and unassigned employees
+      // UPDATED: Also exclude employees who are assigned to tasks on this date
+      if (isEmployeeAssigned(employee.id, formattedDate)) return false;
+      
+      // Include only truly available employees (not on leave, not on vacation, not assigned)
       return true;
     }) : 
     !isAvailable && onViewDateChange ?
     // For unavailable employees view, only show employees who ARE unavailable
-    allEmployees.filter(employee => isEmployeeUnavailable(employee, formattedDate)) :
+    allEmployees.filter(employee => isEmployeeUnavailableOnDate(employee, formattedDate)) :
     // Fall back to provided employees list if no date navigation
     employees;
 
@@ -227,3 +230,4 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
 };
 
 export default EmployeeAvailabilityDialog;
+
