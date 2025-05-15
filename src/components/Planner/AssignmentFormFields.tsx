@@ -32,16 +32,16 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     currentLanguage
   } = useTranslation();
 
-  // Always get the current date for consistently up-to-date references
-  const currentDate = new Date();
-  const todayFormatted = format(currentDate, "yyyy-MM-dd");
-  console.log("[AssignmentFormFields] Current system date:", todayFormatted);
+  // Always get a fresh current date for display
+  const freshCurrentDate = new Date();
+  const todayFormatted = format(freshCurrentDate, "yyyy-MM-dd");
+  console.log("[AssignmentFormFields] Fresh current system date:", todayFormatted);
   console.log("[AssignmentFormFields] Input formData.date:", formData.date);
 
   // Helper function to safely handle date formatting
   const formatDate = (dateString: string | undefined | null) => {
     if (!dateString) {
-      console.log("[AssignmentFormFields] formatDate: No date provided, using current date");
+      console.log("[AssignmentFormFields] formatDate: No date provided, using fresh current date");
       return todayFormatted;
     }
     
@@ -59,11 +59,11 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     }
   };
 
-  // Format date for display in the calendar button
+  // Format date for display in the calendar button - always use a fresh calculation
   const formatDisplayDate = (dateString: string | undefined | null) => {
     console.log("[AssignmentFormFields] formatDisplayDate called with:", dateString);
     
-    // Ensure we have a valid date to work with
+    // Ensure we have a valid date to work with - ALWAYS try to use the provided date first
     let dateToFormat: Date;
     
     if (dateString && dateString.trim() !== '') {
@@ -74,15 +74,15 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         // Check if the date is valid
         if (isNaN(dateToFormat.getTime())) {
           console.warn("[AssignmentFormFields] formatDisplayDate: Invalid date provided:", dateString);
-          dateToFormat = currentDate; // Fallback to current date
+          dateToFormat = freshCurrentDate; // Fallback to fresh current date
         }
       } catch (e) {
         console.error("[AssignmentFormFields] formatDisplayDate: Error parsing date:", e);
-        dateToFormat = currentDate;
+        dateToFormat = freshCurrentDate;
       }
     } else {
-      console.log("[AssignmentFormFields] formatDisplayDate: No date provided, using current date");
-      dateToFormat = currentDate; // No date provided, use current date
+      console.log("[AssignmentFormFields] formatDisplayDate: No date provided, using fresh current date");
+      dateToFormat = freshCurrentDate; // No date provided, use fresh current date
     }
     
     // Use Danish locale if the current language is Danish
@@ -111,20 +111,20 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   console.log("[AssignmentFormFields] FormFields - Current formData:", formData);
   console.log("[AssignmentFormFields] FormFields - Cars data:", cars?.length || 0, "cars available");
   console.log("[AssignmentFormFields] FormFields - Employees data:", employees?.length || 0, "employees available");
-  console.log("[AssignmentFormFields] FormFields - Current date:", todayFormatted);
+  console.log("[AssignmentFormFields] FormFields - Fresh current date:", todayFormatted);
   
   // Determine the date to display in the calendar
   // If formData.date is not valid, use current date
   let calendarDate: Date;
   try {
-    calendarDate = formData.date ? new Date(formData.date) : currentDate;
+    calendarDate = formData.date ? new Date(formData.date) : freshCurrentDate;
     if (isNaN(calendarDate.getTime())) {
-      console.warn("[AssignmentFormFields] Invalid calendar date detected, using current date instead");
-      calendarDate = currentDate;
+      console.warn("[AssignmentFormFields] Invalid calendar date detected, using fresh current date instead");
+      calendarDate = freshCurrentDate;
     }
   } catch (e) {
     console.error("[AssignmentFormFields] Error parsing calendar date:", e);
-    calendarDate = currentDate;
+    calendarDate = freshCurrentDate;
   }
   
   console.log("[AssignmentFormFields] Calendar will display date:", format(calendarDate, "yyyy-MM-dd"));

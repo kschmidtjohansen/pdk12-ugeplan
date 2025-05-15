@@ -1,8 +1,9 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Car } from '@/types/car';
+import { format } from 'date-fns';
 
 export interface AssignmentFormData {
   date: string;
@@ -25,9 +26,13 @@ export const useAssignmentFormState = (
   setDialogOpen: (open: boolean) => void,
   selectedDate: string
 ) => {
-  // State for form data - ensure we use the provided selectedDate or today's date
-  const todayDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-  const initialDate = selectedDate || todayDate;
+  // Always calculate a fresh today's date when the hook is initialized
+  const getTodayDate = () => format(new Date(), 'yyyy-MM-dd');
+  const initialDate = selectedDate && selectedDate.trim() !== '' ? selectedDate : getTodayDate();
+  
+  console.log('[useAssignmentFormState] Initializing with date:', initialDate);
+  console.log('[useAssignmentFormState] Today fresh date:', getTodayDate());
+  console.log('[useAssignmentFormState] Selected date provided:', selectedDate);
 
   const [formData, setFormData] = useState<AssignmentFormData>({
     date: initialDate,
@@ -39,6 +44,17 @@ export const useAssignmentFormState = (
     car: '',
     employees: []
   });
+
+  // Update form date if selectedDate changes
+  useEffect(() => {
+    if (selectedDate && selectedDate.trim() !== '') {
+      console.log('[useAssignmentFormState] Selected date changed, updating form date:', selectedDate);
+      setFormData(prev => ({
+        ...prev,
+        date: selectedDate
+      }));
+    }
+  }, [selectedDate]);
 
   // Handle input changes for text fields
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

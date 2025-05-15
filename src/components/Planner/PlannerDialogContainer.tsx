@@ -39,12 +39,25 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   const { employees } = useEmployees();
   const { cars } = useCars();
   
-  // Get today's date as fallback - ensure it's in YYYY-MM-DD format
+  // Always get a fresh today's date for the current render
   const todayDate = format(new Date(), 'yyyy-MM-dd');
-  console.log("[PlannerDialogContainer] Using today's date:", todayDate);
+  
+  // Update selectedDay to use today's fresh date if it's not provided
+  const currentDate = (selectedDay && selectedDay.trim() !== '') ? selectedDay : todayDate;
   
   // Track selected employees separately for better UI state management
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+  
+  // Ensure we update formData.date with current date when dialog opens
+  useEffect(() => {
+    if (isDialogOpen && !currentAssignment) {
+      console.log('[PlannerDialogContainer] Dialog opened, updating form date:', currentDate);
+      setFormData(prev => ({
+        ...prev,
+        date: currentDate
+      }));
+    }
+  }, [isDialogOpen, currentAssignment, currentDate, setFormData]);
   
   // Update selected employees when the form data changes
   useEffect(() => {
@@ -60,11 +73,12 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
       console.log("[PlannerDialogContainer] Current Assignment:", currentAssignment);
       console.log("[PlannerDialogContainer] Form Data:", formData);
       console.log("[PlannerDialogContainer] Selected Day:", selectedDay || todayDate);
+      console.log("[PlannerDialogContainer] Current Date Used:", currentDate);
       console.log("[PlannerDialogContainer] Selected Employees:", validEmployeeNames);
     } else {
       setSelectedEmployees([]);
     }
-  }, [formData, currentAssignment, selectedDay, todayDate]);
+  }, [formData, currentAssignment, selectedDay, todayDate, currentDate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -122,11 +136,6 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
     ? assignments.filter(a => a.id !== currentAssignment.id) 
     : assignments;
 
-  // Use selectedDay if available, otherwise fall back to today's date
-  // Ensure we have a valid date string in YYYY-MM-DD format
-  const currentDate = (selectedDay && selectedDay.trim() !== '') ? selectedDay : todayDate;
-
-  // Log the current date for debugging
   console.log(`[PlannerDialogContainer] Final current date: ${currentDate}`);
   console.log(`[PlannerDialogContainer] Today's date: ${todayDate}`);
   console.log(`[PlannerDialogContainer] Available assignments:`, otherAssignments);

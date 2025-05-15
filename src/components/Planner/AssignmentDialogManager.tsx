@@ -10,6 +10,7 @@ import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { useCars } from '@/hooks/car';
 import { usePlannerPage } from '@/hooks/usePlannerPage';
 import PlannerDialogContainer from './PlannerDialogContainer';
+import { format } from 'date-fns';
 
 interface AssignmentDialogManagerProps {
   onClose: () => void;
@@ -24,6 +25,11 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
   const { cars } = useCars();
   const { selectedDay } = usePlannerPage();
 
+  // Always get a fresh date for today's date
+  const todayDate = format(new Date(), 'yyyy-MM-dd');
+  console.log("[AssignmentDialogManager] Fresh today date:", todayDate);
+  console.log("[AssignmentDialogManager] Selected day:", selectedDay);
+
   const {
     dialogOpen,
     setDialogOpen,
@@ -33,6 +39,9 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
     setCurrentAssignment,
     handleCloseDialog
   } = useAssignmentDialogState(assignmentId, assignments, onClose);
+
+  // Use the selectedDay or a fresh today's date
+  const currentDate = selectedDay || todayDate;
 
   const {
     formData,
@@ -49,7 +58,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
     currentAssignment,
     setCurrentAssignment,
     setDialogOpen,
-    selectedDay || new Date().toISOString().split('T')[0]
+    currentDate // Pass the fresh date here
   );
 
   // Create a wrapper for handleSubmit to match the expected type
@@ -84,8 +93,13 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
     } else {
       setIsEditing(false);
       // Reset the form when creating a new assignment
+      // Always use a fresh date calculation
+      const freshDate = format(new Date(), 'yyyy-MM-dd');
+      console.log("[AssignmentDialogManager] Reset form with fresh date:", freshDate);
+      console.log("[AssignmentDialogManager] Selected day for reset:", selectedDay);
+
       setFormData({
-        date: selectedDay || new Date().toISOString().split('T')[0],
+        date: selectedDay || freshDate,
         title: '',
         description: '',
         fromTime: '08:00',
@@ -100,6 +114,8 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
   // Debug the data flow
   console.log("AssignmentDialogManager - Employees:", employees?.length || 0);
   console.log("AssignmentDialogManager - Cars:", cars?.length || 0);
+  console.log("AssignmentDialogManager - Current form date:", formData.date);
+  console.log("AssignmentDialogManager - Current date to use:", currentDate);
 
   return (
     <PlannerDialogContainer
@@ -112,7 +128,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
       onDelete={(id) => console.log('Delete assignment with id:', id)}
       onPublish={(id) => console.log('Publish assignment with id:', id)}
       assignments={assignments}
-      selectedDay={selectedDay || new Date().toISOString().split('T')[0]}
+      selectedDay={currentDate}
       onPublishDay={() => console.log('Publish day')}
     />
   );

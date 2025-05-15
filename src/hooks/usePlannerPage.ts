@@ -40,16 +40,15 @@ export const usePlannerPage = () => {
 
   const { filterByWeek } = useAssignmentFilters();
 
-  // Make sure we always have a valid current date for today
-  const todayDate = format(new Date(), 'yyyy-MM-dd');
-  console.log("[usePlannerPage] Today's date:", todayDate);
+  // Get the current date - always calculate fresh to avoid stale dates
+  const getFreshToday = () => format(new Date(), 'yyyy-MM-dd');
   
-  // Using state for managing form data - default to today's date
-  const [selectedDay, setSelectedDay] = useState<string>(todayDate);
+  // Using state for managing form data and selected day
+  const [selectedDay, setSelectedDay] = useState<string>(getFreshToday());
   const [formData, setFormData] = useState<Partial<Assignment>>({
     title: '',
     description: '',
-    date: todayDate,
+    date: getFreshToday(),
     fromTime: '08:00',
     toTime: '16:00',
     location: '',
@@ -108,12 +107,12 @@ export const usePlannerPage = () => {
     
     // Ensure we have a valid date - use provided date or today's date
     // Force a fresh today date calculation to avoid stale dates
-    const freshTodayDate = format(new Date(), 'yyyy-MM-dd');
+    const freshTodayDate = getFreshToday();
     const taskDate = date && date.trim() !== '' ? date : freshTodayDate;
     setSelectedDay(taskDate);
     
     console.log("[usePlannerPage] Creating new assignment with date:", taskDate);
-    console.log("[usePlannerPage] Today's date is:", freshTodayDate);
+    console.log("[usePlannerPage] Fresh today's date is:", freshTodayDate);
     
     // Set form data in one update to avoid race conditions
     setFormData({
@@ -169,6 +168,22 @@ export const usePlannerPage = () => {
       publishAssignmentsByDate(selectedDay);
     }
   }, [selectedDay, publishAssignmentsByDate]);
+  
+  // Ensure dialog has the current date when opened
+  useEffect(() => {
+    if (isDialogOpen && !currentAssignment) {
+      const freshDate = getFreshToday();
+      console.log("[usePlannerPage] Dialog opened, ensuring fresh date:", freshDate);
+      
+      // Only update if the current value is not the fresh date
+      if (formData.date !== freshDate && !selectedDay) {
+        setFormData(prev => ({
+          ...prev,
+          date: freshDate
+        }));
+      }
+    }
+  }, [isDialogOpen, currentAssignment, formData.date, selectedDay]);
   
   return {
     selectedWeek,
