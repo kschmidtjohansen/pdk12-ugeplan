@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { useVacations } from '@/hooks/useVacations';
@@ -38,8 +39,9 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   const { employees } = useEmployees();
   const { cars } = useCars();
   
-  // Get today's date as fallback
+  // Get today's date as fallback - ensure it's in YYYY-MM-DD format
   const todayDate = format(new Date(), 'yyyy-MM-dd');
+  console.log("[PlannerDialogContainer] Using today's date:", todayDate);
   
   // Track selected employees separately for better UI state management
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
@@ -55,10 +57,10 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
       setSelectedEmployees(validEmployeeNames);
       
       // Debug logs
-      console.log("PlannerDialogContainer - Current Assignment:", currentAssignment);
-      console.log("PlannerDialogContainer - Form Data:", formData);
-      console.log("PlannerDialogContainer - Selected Day:", selectedDay || todayDate);
-      console.log("PlannerDialogContainer - Selected Employees:", validEmployeeNames);
+      console.log("[PlannerDialogContainer] Current Assignment:", currentAssignment);
+      console.log("[PlannerDialogContainer] Form Data:", formData);
+      console.log("[PlannerDialogContainer] Selected Day:", selectedDay || todayDate);
+      console.log("[PlannerDialogContainer] Selected Employees:", validEmployeeNames);
     } else {
       setSelectedEmployees([]);
     }
@@ -121,12 +123,13 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
     : assignments;
 
   // Use selectedDay if available, otherwise fall back to today's date
-  const currentDate = selectedDay && selectedDay.trim() !== '' ? selectedDay : todayDate;
+  // Ensure we have a valid date string in YYYY-MM-DD format
+  const currentDate = (selectedDay && selectedDay.trim() !== '') ? selectedDay : todayDate;
 
   // Log the current date for debugging
-  console.log(`PlannerDialogContainer - Using current date: ${currentDate}`);
-  console.log(`PlannerDialogContainer - Today's date: ${todayDate}`);
-  console.log(`PlannerDialogContainer - Available assignments:`, otherAssignments);
+  console.log(`[PlannerDialogContainer] Final current date: ${currentDate}`);
+  console.log(`[PlannerDialogContainer] Today's date: ${todayDate}`);
+  console.log(`[PlannerDialogContainer] Available assignments:`, otherAssignments);
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

@@ -22,7 +22,7 @@ export const usePlannerPage = () => {
   
   // Log when the selected week/year changes
   useEffect(() => {
-    console.log(`usePlannerPage: Selected week: ${selectedWeek}, year: ${selectedYear}`);
+    console.log(`[usePlannerPage] Selected week: ${selectedWeek}, year: ${selectedYear}`);
   }, [selectedWeek, selectedYear]);
 
   const { 
@@ -42,7 +42,7 @@ export const usePlannerPage = () => {
 
   // Make sure we always have a valid current date for today
   const todayDate = format(new Date(), 'yyyy-MM-dd');
-  console.log("usePlannerPage: Today's date:", todayDate);
+  console.log("[usePlannerPage] Today's date:", todayDate);
   
   // Using state for managing form data - default to today's date
   const [selectedDay, setSelectedDay] = useState<string>(todayDate);
@@ -62,7 +62,7 @@ export const usePlannerPage = () => {
   
   // Better log output with more details
   useEffect(() => {
-    console.log("usePlannerPage: Week dates:", {
+    console.log("[usePlannerPage] Week dates:", {
       weekNumber: selectedWeek,
       year: selectedYear,
       start: weekDates.start.toISOString(),
@@ -75,11 +75,11 @@ export const usePlannerPage = () => {
     
     // Validate that we have a Monday (1) to Sunday (0) range
     if (weekDates.start.getDay() !== 1) {
-      console.error(`ERROR: Week start is not Monday! Got day ${weekDates.start.getDay()} (${format(weekDates.start, 'EEEE')})`);
+      console.error(`[usePlannerPage] ERROR: Week start is not Monday! Got day ${weekDates.start.getDay()} (${format(weekDates.start, 'EEEE')})`);
     }
     
     if (weekDates.end.getDay() !== 0) {
-      console.error(`ERROR: Week end is not Sunday! Got day ${weekDates.end.getDay()} (${format(weekDates.end, 'EEEE')})`);
+      console.error(`[usePlannerPage] ERROR: Week end is not Sunday! Got day ${weekDates.end.getDay()} (${format(weekDates.end, 'EEEE')})`);
     }
   }, [selectedWeek, selectedYear, weekDates]);
   
@@ -89,7 +89,7 @@ export const usePlannerPage = () => {
   // Navigate to previous week
   const handlePreviousWeek = useCallback(() => {
     const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
-    console.log(`Going to previous week: ${week}, year: ${year}`);
+    console.log(`[usePlannerPage] Going to previous week: ${week}, year: ${year}`);
     setSelectedWeek(week);
     setSelectedYear(year);
   }, [selectedWeek, selectedYear]);
@@ -97,7 +97,7 @@ export const usePlannerPage = () => {
   // Navigate to next week
   const handleNextWeek = useCallback(() => {
     const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
-    console.log(`Going to next week: ${week}, year: ${year}`);
+    console.log(`[usePlannerPage] Going to next week: ${week}, year: ${year}`);
     setSelectedWeek(week);
     setSelectedYear(year);
   }, [selectedWeek, selectedYear]);
@@ -107,11 +107,13 @@ export const usePlannerPage = () => {
     setCurrentAssignment(null);
     
     // Ensure we have a valid date - use provided date or today's date
-    const taskDate = date && date.trim() !== '' ? date : todayDate;
+    // Force a fresh today date calculation to avoid stale dates
+    const freshTodayDate = format(new Date(), 'yyyy-MM-dd');
+    const taskDate = date && date.trim() !== '' ? date : freshTodayDate;
     setSelectedDay(taskDate);
     
-    console.log("Creating new assignment with date:", taskDate);
-    console.log("Today's date is:", todayDate);
+    console.log("[usePlannerPage] Creating new assignment with date:", taskDate);
+    console.log("[usePlannerPage] Today's date is:", freshTodayDate);
     
     // Set form data in one update to avoid race conditions
     setFormData({
@@ -126,10 +128,10 @@ export const usePlannerPage = () => {
     });
     
     setIsDialogOpen(true);
-  }, [setCurrentAssignment, setIsDialogOpen, todayDate]);
+  }, [setCurrentAssignment, setIsDialogOpen]);
 
   const handleOpenEditDialog = useCallback((assignment: Assignment) => {
-    console.log("Opening edit dialog with assignment:", assignment);
+    console.log("[usePlannerPage] Opening edit dialog with assignment:", assignment);
     setCurrentAssignment(assignment);
     setSelectedDay(assignment.date);
     
@@ -145,7 +147,7 @@ export const usePlannerPage = () => {
   }, [setCurrentAssignment, setIsDialogOpen]);
 
   const handleSubmit = useCallback((data: Partial<Assignment>) => {
-    console.log("Submitting assignment data:", data);
+    console.log("[usePlannerPage] Submitting assignment data:", data);
     
     if (currentAssignment) {
       // Set the edited assignment as unpublished
