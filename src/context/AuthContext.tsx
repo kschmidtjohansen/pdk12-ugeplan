@@ -427,7 +427,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log('Requesting password reset for:', email);
           // Update to include the full URL path to the password reset page
           const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + '/reset-password',
+            redirectTo: `${window.location.origin}/password-reset`,
           });
           console.log('Password reset request result:', error ? `Error: ${error.message}` : 'Success');
           return { error: error ? error.message : null };
@@ -441,7 +441,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log('Requesting password reset for:', email);
           // Update to include the full URL path to the password reset page
           const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + '/reset-password',
+            redirectTo: `${window.location.origin}/password-reset`,
           });
           console.log('Password reset request result:', error ? `Error: ${error.message}` : 'Success');
           return { error: error ? error.message : null };

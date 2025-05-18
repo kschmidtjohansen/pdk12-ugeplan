@@ -14,6 +14,8 @@ const PasswordResetPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [tokenCheckCompleted, setTokenCheckCompleted] = useState(false);
+  const [tokenValid, setTokenValid] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong' | null>(null);
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -83,32 +85,52 @@ const PasswordResetPage: React.FC = () => {
 
   const accessToken = getAccessToken();
 
-  // Debug info
+  // Verify token and establish session on component mount
   useEffect(() => {
     console.log('Component initialized');
     console.log('URL path:', location.pathname);
     console.log('URL search params:', Object.fromEntries(searchParams.entries()));
     console.log('URL hash:', location.hash);
     console.log('Extracted access token:', accessToken);
-  }, [searchParams, location.hash, location.pathname, accessToken]);
+    
+    const verifyTokenAndSetupSession = async () => {
+      if (!accessToken) {
+        console.log('No access token found');
+        setTokenCheckCompleted(true);
+        setTokenValid(false);
+        return;
+      }
 
-  // If no token is present, redirect to login
-  useEffect(() => {
-    if (!accessToken) {
-      console.log('No access token found, redirecting to login');
-      toast({
-        title: t('common.error'),
-        description: t('login.passwordReset.resetError'),
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
-    } else {
-      // Log success when token is found
-      console.log('Token found, password reset form will be displayed');
-    }
-  }, [accessToken, navigate, toast, t]);
+      try {
+        console.log('Verifying token validity');
+        
+        // Check if there's an active session with the token
+        const { data, error } = await supabase.auth.getUser();
+        
+        if (error) {
+          console.log('No valid session found, trying to use token directly');
+          
+          // For recovery flow tokens, we need to wait until form submission
+          // Just mark the token as valid for now if it exists
+          if (searchParams.get('type') === 'recovery') {
+            console.log('Recovery flow detected, will use token at form submission');
+            setTokenValid(true);
+            setTokenCheckCompleted(true);
+            return;
+          }
+        } else {
+          console.log('Active session found with user:', data.user);
+          setTokenValid(true);
+        }
+      } catch (err) {
+        console.error('Error verifying token:', err);
+      }
+      
+      setTokenCheckCompleted(true);
+    };
+    
+    verifyTokenAndSetupSession();
+  }, [accessToken, searchParams, location.hash, location.pathname]);
 
   // Check password strength
   useEffect(() => {
@@ -205,23 +227,48 @@ const PasswordResetPage: React.FC = () => {
     try {
       console.log('Attempting to reset password with token:', accessToken);
       
-      // Try to set the session with the token first
+      let error = null;
+      
       if (accessToken) {
-        // This approach uses the token directly instead of establishing a session first
-        const { error } = await supabase.auth.updateUser({
-          password: password
-        }, {
-          // Supabase v2 updateUser method doesn't accept accessToken in the options object
-          // Instead, we need to configure the correct headers or use other methods
-          // This will now correctly attempt to update the password with the token from the URL
+        // First try to update the user directly
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: password,
         });
         
-        if (error) {
-          console.error('Password update error:', error.message);
-          throw error;
+        // If that fails, it could be due to token issues
+        if (updateError) {
+          console.error('First password update attempt failed:', updateError.message);
+          
+          // Check if we have a recovery flow token
+          if (searchParams.get('type') === 'recovery' && accessToken) {
+            console.log('Trying password update with recovery flow token');
+            const { error: recoveryError } = await supabase.auth.verifyOtp({
+              token_hash: accessToken,
+              type: 'recovery',
+            });
+            
+            if (recoveryError) {
+              console.error('Recovery verification failed:', recoveryError.message);
+              error = recoveryError;
+            } else {
+              // After verification, try password update again
+              const { error: finalUpdateError } = await supabase.auth.updateUser({
+                password: password,
+              });
+              
+              error = finalUpdateError;
+            }
+          } else {
+            error = updateError;
+          }
         }
       } else {
-        throw new Error('No access token available for password reset');
+        error = new Error('No access token available for password reset');
+      }
+      
+      if (error) {
+        console.error('Password update error:', error.message);
+        throw error;
       }
       
       console.log('Password reset successful!');
@@ -247,13 +294,31 @@ const PasswordResetPage: React.FC = () => {
     }
   };
 
-  // If no token, redirect to login (render loading while redirecting)
-  if (!accessToken) {
+  // If token check is not complete, show loading
+  if (!tokenCheckCompleted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-polygon-lightgray p-4">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">{t('common.loading')}</h2>
+          <p>Verifying your reset link...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If token is invalid, redirect to login
+  if (!tokenValid) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-polygon-lightgray p-4">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">{t('common.error')}</h2>
           <p>{t('login.passwordReset.resetError')}</p>
+          <Button 
+            className="mt-4"
+            onClick={() => navigate('/login')}
+          >
+            {t('login.passwordReset.backToLogin')}
+          </Button>
         </div>
       </div>
     );
