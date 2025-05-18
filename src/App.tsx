@@ -25,6 +25,7 @@ import CarsPage from './pages/CarsPage';
 import VacationPage from './pages/VacationPage';
 import AdminPage from './pages/AdminPage';
 import AutoPublishContainer from './components/AutoPublish/AutoPublishContainer';
+import PasswordResetPage from './pages/PasswordResetPage'; // Import the PasswordResetPage component
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,9 @@ function App() {
                 <AutoPublishContainer userId={user?.id} />
                 <Routes>
                   <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
+                  {/* Password reset routes - both paths are accessible without authentication */}
+                  <Route path="/password-reset" element={<PasswordResetPage />} />
+                  <Route path="/reset-password" element={<PasswordResetPage />} />
                   {/* Use the Index component for the root path instead of directly rendering DashboardPage */}
                   <Route path="/" element={user ? <Index /> : <Navigate to="/login" />} />
                   <Route path="/dashboard" element={user ? <MainLayout><DashboardPage /></MainLayout> : <Navigate to="/login" />} />
