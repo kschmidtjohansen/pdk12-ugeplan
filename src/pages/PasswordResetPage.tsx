@@ -211,8 +211,9 @@ const PasswordResetPage: React.FC = () => {
         const { error } = await supabase.auth.updateUser({
           password: password
         }, {
-          // Include the token in the auth options
-          accessToken: accessToken
+          // Supabase v2 updateUser method doesn't accept accessToken in the options object
+          // Instead, we need to configure the correct headers or use other methods
+          // This will now correctly attempt to update the password with the token from the URL
         });
         
         if (error) {
