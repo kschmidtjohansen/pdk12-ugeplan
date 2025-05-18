@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from '../context/TranslationContext';
@@ -20,28 +21,63 @@ const PasswordResetPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Get token from various possible sources
+  // Enhanced token extraction logic
   const getAccessToken = (): string | null => {
-    // Try from direct access_token parameter
-    const accessToken = searchParams.get('access_token');
-    if (accessToken) return accessToken;
+    // Log full URL and parameters for debugging
+    console.log('Full URL:', window.location.href);
+    console.log('Search params:', Object.fromEntries(searchParams.entries()));
+    console.log('Hash fragment:', location.hash);
     
-    // Try from hash fragment (Supabase sometimes adds it to the URL hash)
-    const hash = location.hash;
-    if (hash && hash.includes('access_token=')) {
-      const hashParams = new URLSearchParams(hash.substring(1));
-      return hashParams.get('access_token');
+    // Check for token in URL parameters (most common in password reset links)
+    const token = searchParams.get('token');
+    if (token) {
+      console.log('Found token parameter:', token);
+      return token;
     }
-
-    // Try from type=recovery in case Supabase changed the parameter format
+    
+    // Check for access_token parameter (used in some Supabase implementations)
+    const accessToken = searchParams.get('access_token');
+    if (accessToken) {
+      console.log('Found access_token parameter:', accessToken);
+      return accessToken;
+    }
+    
+    // Check for type=recovery flow with token
     if (searchParams.get('type') === 'recovery') {
-      // The token might be in the hash
-      if (location.hash) {
-        const hashParams = new URLSearchParams(location.hash.substring(1));
-        return hashParams.get('access_token');
+      console.log('Found recovery type parameter');
+      // The token might be elsewhere in the params
+      const recoveryToken = searchParams.get('token');
+      if (recoveryToken) {
+        console.log('Found recovery token:', recoveryToken);
+        return recoveryToken;
       }
     }
     
+    // Check the hash fragment (Supabase sometimes puts tokens here)
+    if (location.hash) {
+      const hashParams = new URLSearchParams(location.hash.substring(1));
+      
+      // Try access_token in hash
+      const hashAccessToken = hashParams.get('access_token');
+      if (hashAccessToken) {
+        console.log('Found access_token in hash:', hashAccessToken);
+        return hashAccessToken;
+      }
+      
+      // Try just token in hash
+      const hashToken = hashParams.get('token');
+      if (hashToken) {
+        console.log('Found token in hash:', hashToken);
+        return hashToken;
+      }
+    }
+    
+    // If we're in a recovery flow and can't find a token, give a hint
+    if (location.pathname.includes('password-reset') || location.pathname.includes('reset-password')) {
+      console.log('On password reset page but no token found in standard locations');
+    }
+    
+    console.log('No token found in any location');
     return null;
   };
 
@@ -49,10 +85,12 @@ const PasswordResetPage: React.FC = () => {
 
   // Debug info
   useEffect(() => {
+    console.log('Component initialized');
+    console.log('URL path:', location.pathname);
     console.log('URL search params:', Object.fromEntries(searchParams.entries()));
     console.log('URL hash:', location.hash);
     console.log('Extracted access token:', accessToken);
-  }, [searchParams, location.hash, accessToken]);
+  }, [searchParams, location.hash, location.pathname, accessToken]);
 
   // If no token is present, redirect to login
   useEffect(() => {
@@ -66,6 +104,9 @@ const PasswordResetPage: React.FC = () => {
       setTimeout(() => {
         navigate('/login');
       }, 2000);
+    } else {
+      // Log success when token is found
+      console.log('Token found, password reset form will be displayed');
     }
   }, [accessToken, navigate, toast, t]);
 
@@ -154,7 +195,7 @@ const PasswordResetPage: React.FC = () => {
       toast({
         title: t('common.warning'),
         description: "Your password is weak. Consider using a stronger password.",
-        variant: "default", // Changed from "warning" to "default"
+        variant: "default",
       });
       // We can still proceed, just warning the user
     }
@@ -162,20 +203,27 @@ const PasswordResetPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // First make sure we have a session with the access token
-      if (accessToken) {
-        await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: '',
-        });
-      }
-
-      // Update the user's password
-      const { error } = await supabase.auth.updateUser({
-        password: password 
-      });
+      console.log('Attempting to reset password with token:', accessToken);
       
-      if (error) throw error;
+      // Try to set the session with the token first
+      if (accessToken) {
+        // This approach uses the token directly instead of establishing a session first
+        const { error } = await supabase.auth.updateUser({
+          password: password
+        }, {
+          // Include the token in the auth options
+          accessToken: accessToken
+        });
+        
+        if (error) {
+          console.error('Password update error:', error.message);
+          throw error;
+        }
+      } else {
+        throw new Error('No access token available for password reset');
+      }
+      
+      console.log('Password reset successful!');
       
       toast({
         title: t('common.success'),

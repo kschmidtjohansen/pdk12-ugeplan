@@ -424,10 +424,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       },
       requestPasswordReset: async (email) => {
         try {
+          console.log('Requesting password reset for:', email);
           // Update to include the full URL path to the password reset page
           const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + '/password-reset',
+            redirectTo: window.location.origin + '/reset-password',
           });
+          console.log('Password reset request result:', error ? `Error: ${error.message}` : 'Success');
           return { error: error ? error.message : null };
         } catch (error) {
           console.error('Password reset error:', error);
@@ -436,9 +438,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       },
       resetPassword: async (email) => {
         try {
+          console.log('Requesting password reset for:', email);
+          // Update to include the full URL path to the password reset page
           const { error } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: window.location.origin + '/reset-password',
           });
+          console.log('Password reset request result:', error ? `Error: ${error.message}` : 'Success');
           return { error: error ? error.message : null };
         } catch (error) {
           console.error('Password reset error:', error);

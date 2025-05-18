@@ -32,15 +32,18 @@ const PasswordResetDialog: React.FC<PasswordResetDialogProps> = ({ open, onOpenC
     setIsSubmitting(true);
     
     try {
+      console.log('Requesting password reset for email:', email);
       const { error } = await requestPasswordReset(email);
       
       if (error) {
+        console.error('Password reset request failed:', error);
         toast({
           title: t('common.error'),
           description: t('login.passwordReset.emailError'),
           variant: 'destructive',
         });
       } else {
+        console.log('Password reset email sent successfully');
         toast({
           title: t('login.passwordReset.emailSentTitle'),
           description: t('login.passwordReset.checkEmail'),
