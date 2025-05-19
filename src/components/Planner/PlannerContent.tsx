@@ -4,7 +4,9 @@ import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { groupAssignmentsByDay, getDatesInRange, parseISO, format } from '@/utils/dateUtils';
+import { groupAssignmentsByDay } from '@/utils/dateUtils';
+import { format, parseISO } from 'date-fns'; 
+import { getAllWeekDays } from '@/utils/dates';
 import CurrentAndFutureDays from './CurrentAndFutureDays';
 import PastAssignments from './PastAssignments';
 import EmptyState from './EmptyState';
@@ -35,7 +37,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   weekDates
 }) => {
   const { t } = useTranslation();
-  const { canEditPlanner, canPublishTasks } = usePermissions();
+  const { canEdit, canPublishTasks } = usePermissions();
   const isMobile = window.innerWidth < 768; // Simple mobile detection
   
   // Group assignments by day
@@ -49,7 +51,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       console.error("Missing week dates in PlannerContent");
       return [];
     }
-    return getDatesInRange(weekDates.start, weekDates.end);
+    return getAllWeekDays({ start: weekDates.start, end: weekDates.end });
   }, [weekDates]);
   
   // State to track which days are expanded
@@ -84,7 +86,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     );
   }, [weekDateStrings, today]);
 
-  if (weekAssignments.length === 0 && !canEditPlanner) {
+  if (weekAssignments.length === 0 && !canEdit) {
     return <EmptyState message={t("planner.noAssignmentsWeek")} />;
   }
 
@@ -100,7 +102,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         onDeleteAssignment={onDeleteAssignment}
         onPublishAssignment={onPublishAssignment}
         onCopyAssignment={onCopyAssignment}
-        canEdit={canEditPlanner}
+        canEdit={canEdit}
         canPublishTasks={canPublishTasks}
       />
       
@@ -114,11 +116,11 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         onDeleteAssignment={onDeleteAssignment}
         onPublishAssignment={onPublishAssignment}
         onCopyAssignment={onCopyAssignment}
-        canEdit={canEditPlanner}
+        canEdit={canEdit}
         canPublishTasks={canPublishTasks}
       />
       
-      {canEditPlanner && (
+      {canEdit && (
         <div className="mt-8">
           {!isMobile && (
             <Button 

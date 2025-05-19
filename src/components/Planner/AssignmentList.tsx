@@ -127,7 +127,12 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
 
   // Check if there are any visible assignments after filtering
   if (visibleAssignments.length === 0 && allWeekDays.length === 0) {
-    return <EmptyState onCreateNew={onCreateAssignment} canCreate={canCreate} selectedWeek={selectedWeek} />;
+    return <EmptyState 
+      message={t('planner.noAssignments')} 
+      onCreateNew={onCreateAssignment} 
+      canCreate={canCreate} 
+      selectedWeek={selectedWeek} 
+    />;
   }
 
   return (
