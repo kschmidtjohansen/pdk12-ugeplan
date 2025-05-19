@@ -29,7 +29,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     <Card className="w-full p-4 bg-white hover:border-polygon-purple transition-colors">
       <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
         <div className="flex items-center gap-2">
-          <h3 className="font-medium text-lg">{assignment.title}</h3>
+          <h3 className="font-medium text-lg">{assignment.location}</h3>
           <AssignmentStatusBadge isPublished={isPublished} />
         </div>
         

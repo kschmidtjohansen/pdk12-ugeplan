@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -9,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
 import { format, parseISO } from 'date-fns';
 import { da } from 'date-fns/locale';
-import { CalendarIcon, MapPin, Tag } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Car } from '@/types/car';
 import { useTranslation } from '@/context/TranslationContext';
@@ -71,8 +70,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     <div className="space-y-4">
       {/* Location field - now in the position of the title */}
       <div>
-        <Label htmlFor="location" className="flex items-center">
-          <MapPin className="h-4 w-4 mr-2" />
+        <Label htmlFor="location">
           {t('planner.location')}
         </Label>
         <Input 
@@ -86,8 +84,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
       {/* Title field - now in the position of the location (case number) */}
       <div>
-        <Label htmlFor="title" className="flex items-center">
-          <Tag className="h-4 w-4 mr-2" />
+        <Label htmlFor="title">
           {t('planner.title')}
         </Label>
         <Input 
