@@ -59,6 +59,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
         }
       } as React.ChangeEvent<HTMLInputElement>;
       handleInputChange(event);
+    } else if (field === 'car' && value === 'none') {
+      // Convert "none" value to empty string for backward compatibility
+      handleSelectChange(field, '');
     } else {
       handleSelectChange(field, value);
     }
@@ -99,7 +102,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           setDescription={(value) => handleFieldChange('description', value)}
           assignmentType={formData.type || ''}
           setAssignmentType={(value) => handleFieldChange('type', value)}
-          selectedCarId={formData.car || ''}
+          selectedCarId={formData.car === '' ? 'none' : formData.car || 'none'}
           setSelectedCarId={(value) => handleFieldChange('car', value)}
           cars={cars}
           assignmentId={currentAssignment?.id}

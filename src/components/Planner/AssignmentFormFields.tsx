@@ -163,7 +163,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             <SelectValue placeholder={t('planner.selectCar')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{t('common.none')}</SelectItem>
+            {/* Changed from empty string to "none" */}
+            <SelectItem value="none">{t('common.none')}</SelectItem>
             {cars
               .filter(car => car.is_available) // Only show available cars
               .map((car) => (
