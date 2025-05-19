@@ -1,14 +1,13 @@
+
 import React, { useState, useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
-import AssignmentList from './AssignmentList';
-import { useTranslation } from 'react-i18next';
-import { usePermissions } from '@/hooks/usePermissions';
-import { useMobile } from '@/hooks/useMobile';
-import { groupAssignmentsByDay, getDatesInRange, parseISO, format } from '@/utils';
-import { Button } from '@/components/Button';
-import { EmptyState } from '@/components/EmptyState';
-import { CurrentAndFutureDays } from '@/components/CurrentAndFutureDays';
-import { PastAssignments } from '@/components/PastAssignments';
+import { useTranslation } from '@/context/TranslationContext';
+import { usePermissions } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { groupAssignmentsByDay, getDatesInRange, parseISO, format } from '@/utils/dateUtils';
+import CurrentAndFutureDays from './CurrentAndFutureDays';
+import PastAssignments from './PastAssignments';
+import EmptyState from './EmptyState';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
@@ -37,7 +36,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
 }) => {
   const { t } = useTranslation();
   const { canEditPlanner, canPublishTasks } = usePermissions();
-  const isMobile = useMobile();
+  const isMobile = window.innerWidth < 768; // Simple mobile detection
   
   // Group assignments by day
   const groupedAssignments = useMemo(() => {
