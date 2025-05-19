@@ -16,8 +16,9 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true,
+      detectSessionInUrl: true, // This helps with extracting tokens from URLs
       storageKey: 'supabase.auth.token',
+      flowType: 'pkce', // Use PKCE flow for more security
     },
     realtime: {
       params: {
@@ -33,9 +34,10 @@ export const supabase = createClient<Database>(
 );
 
 // Add global error handler for Supabase operations
-const handleSupabaseError = (error: any) => {
+export const handleSupabaseError = (error: any, context?: string) => {
   if (error) {
-    console.error('Supabase operation failed:', error.message || error);
+    const errorContext = context ? `[${context}] ` : '';
+    console.error(`${errorContext}Supabase operation failed:`, error.message || error);
     
     // Add specific error handling based on error types
     if (error.code === 'PGRST301') {
@@ -46,22 +48,32 @@ const handleSupabaseError = (error: any) => {
       console.error('Authentication token issue: Refresh token not found');
     } else if (error.code === 'invalid_token') {
       console.error('Authentication token issue: Invalid token');
+    } else if (error.code === 'expired_token') {
+      console.error('Authentication token issue: Token has expired');
     }
+
+    // Return a standardized error format
+    return {
+      message: error.message || 'An unexpected error occurred',
+      code: error.code || 'unknown_error',
+      status: error.status || 500
+    };
   }
+  return null;
 };
 
-// Create enhanced methods with error handling
+// Create enhanced methods with improved error handling
 export const enhancedSupabase = {
   ...supabase,
-  safeQuery: async (queryFn: () => Promise<any>) => {
+  safeQuery: async (queryFn: () => Promise<any>, context?: string) => {
     try {
       const result = await queryFn();
       if (result.error) {
-        handleSupabaseError(result.error);
+        handleSupabaseError(result.error, context);
       }
       return result;
     } catch (err) {
-      handleSupabaseError(err);
+      handleSupabaseError(err, context);
       return { data: null, error: err };
     }
   }

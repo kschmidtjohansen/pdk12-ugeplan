@@ -20,57 +20,91 @@ const PasswordResetPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [tokenError, setTokenError] = useState<string | null>(null);
+  const [tokenDebug, setTokenDebug] = useState<string>('');
   
-  // Enhanced token extraction with better handling of Supabase formats
+  // Enhanced token extraction with multiple fallbacks and debug info
   useEffect(() => {
     const extractToken = async () => {
-      console.log("Starting enhanced token extraction...");
-      
       try {
-        // Check if the URL has the form '#access_token=xxx&refresh_token=yyy&type=zzz'
-        // which is Supabase's redirect format after password reset
+        console.log("Starting enhanced token extraction on path:", location.pathname);
+        console.log("URL hash:", location.hash);
+        console.log("URL search params:", location.search);
+        
+        // Token sources in order of priority:
+        
+        // 1. Check hash parameters (Supabase's recovery flow format)
+        let foundToken = null;
         const hashParams = location.hash ? new URLSearchParams(location.hash.substring(1)) : null;
-        const accessToken = hashParams?.get('access_token');
-        const type = hashParams?.get('type');
         
-        console.log("Hash parameters:", { accessToken: accessToken ? "exists" : "none", type });
-        
-        // If we found an access_token in the hash and the type is 'recovery', use it
-        if (accessToken && type === 'recovery') {
-          console.log("Found recovery access token in hash");
-          setToken(accessToken);
+        if (hashParams) {
+          console.log("Hash parameters found, keys:", Array.from(hashParams.keys()));
+          const accessToken = hashParams.get('access_token');
+          const type = hashParams.get('type');
           
-          // Set the access token in Supabase session
-          await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: hashParams.get('refresh_token') || '',
-          });
-          return;
+          if (accessToken && type === 'recovery') {
+            console.log("Found recovery access token in hash");
+            foundToken = accessToken;
+            setTokenDebug('From hash fragment with type=recovery');
+            
+            // Set the access token in Supabase session
+            await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: hashParams.get('refresh_token') || '',
+            });
+          }
         }
 
-        // If no token in hash, check query parameters (older Supabase format)
-        const queryParams = new URLSearchParams(location.search);
-        const queryToken = queryParams.get('token') || queryParams.get('access_token');
-        if (queryToken) {
-          console.log("Found token in query params");
-          setToken(queryToken);
-          return;
+        // 2. Check query parameters (older format or manual redirect)
+        if (!foundToken) {
+          const queryParams = new URLSearchParams(location.search);
+          const queryToken = queryParams.get('token') || queryParams.get('access_token');
+          
+          if (queryToken) {
+            console.log("Found token in query params");
+            foundToken = queryToken;
+            setTokenDebug('From URL query parameters');
+            
+            // Try to set session if we have a token
+            if (queryParams.get('refresh_token')) {
+              try {
+                await supabase.auth.setSession({
+                  access_token: queryToken,
+                  refresh_token: queryParams.get('refresh_token') || '',
+                });
+              } catch (err) {
+                console.error("Failed to set session from query params:", err);
+              }
+            }
+          }
         }
         
-        // If neither hash nor query parameters have a token, check the session
-        const { data } = await supabase.auth.getSession();
-        if (data.session?.access_token) {
-          console.log("Found token in session");
-          setToken(data.session.access_token);
-          return;
+        // 3. Check existing session as last resort
+        if (!foundToken) {
+          console.log("Checking for existing session");
+          const { data } = await supabase.auth.getSession();
+          
+          if (data.session?.access_token) {
+            console.log("Found token in existing session");
+            foundToken = data.session.access_token;
+            setTokenDebug('From existing Supabase session');
+          } else {
+            console.log("No session found", data);
+          }
         }
         
-        // If we reach this point, we couldn't find a token
-        console.log("No token found in URL or session");
-        setTokenError(t('login.invalidOrExpiredToken'));
+        // Set the token state
+        if (foundToken) {
+          console.log("Token found and set, length:", foundToken.length);
+          setToken(foundToken);
+        } else {
+          console.log("No token found in URL or session");
+          setTokenError(t('login.invalidOrExpiredToken'));
+          setTokenDebug('No token found in URL or session');
+        }
       } catch (error) {
         console.error("Error in token extraction:", error);
         setTokenError(t('login.invalidOrExpiredToken'));
+        setTokenDebug(`Error in extraction: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     };
 
@@ -100,22 +134,25 @@ const PasswordResetPage: React.FC = () => {
     setLoading(true);
     
     try {
-      console.log("Attempting to update password with token");
+      console.log("Attempting to update password with token present:", !!token);
       
       const { error, data } = await supabase.auth.updateUser({
         password: password
       });
       
-      console.log("Update password response:", { error, data });
+      console.log("Update password response:", { error, data: data ? "data exists" : "no data" });
 
       if (error) {
         console.error("Error updating password:", error);
         throw error;
       }
       
-      // Check if we have a valid session
+      // Check if we have a valid session after password update
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      console.log("Session after update:", { sessionData, sessionError });
+      console.log("Session after update:", { 
+        sessionExists: !!sessionData.session, 
+        error: sessionError ? "error exists" : "no error" 
+      });
       
       if (sessionError) {
         console.error("Error getting session after update:", sessionError);
@@ -123,7 +160,7 @@ const PasswordResetPage: React.FC = () => {
       
       toast({
         title: t('login.passwordUpdated'),
-        description: sessionData?.session ? 'You are now logged in.' : 'You can now log in with your new password.',
+        description: sessionData?.session ? t('login.passwordReset.successMessage') : t('login.passwordReset.checkEmail'),
       });
 
       // Redirect to dashboard if session exists, otherwise to login
@@ -144,7 +181,7 @@ const PasswordResetPage: React.FC = () => {
     }
   };
 
-  // If we couldn't find a token, show an error
+  // If we couldn't find a token, show an error with debug info
   if (tokenError) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
@@ -153,6 +190,20 @@ const PasswordResetPage: React.FC = () => {
             <CardTitle>{t('login.resetYourPassword')}</CardTitle>
             <CardDescription className="text-red-500">{tokenError}</CardDescription>
           </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              {t('login.passwordReset.resetError')}
+            </p>
+            {import.meta.env.DEV && (
+              <div className="bg-gray-100 p-3 rounded text-xs mt-3 font-mono">
+                <p className="font-bold">Debug Information:</p>
+                <p>{tokenDebug}</p>
+                <p>Path: {location.pathname}</p>
+                <p>Search: {location.search}</p>
+                <p>Hash: {location.hash}</p>
+              </div>
+            )}
+          </CardContent>
           <CardFooter>
             <Button className="w-full" onClick={() => navigate('/login')}>
               {t('login.backToLogin')}
