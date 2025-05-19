@@ -12,6 +12,7 @@ interface CurrentAndFutureDaysProps {
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
+  onCopyAssignment?: (assignment: Assignment) => void;
   canEdit: boolean;
   canPublishTasks: boolean;
 }
@@ -25,6 +26,7 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
   onEditAssignment,
   onDeleteAssignment,
   onPublishAssignment,
+  onCopyAssignment,
   canEdit,
   canPublishTasks
 }) => {
@@ -43,6 +45,7 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
           onEditAssignment={onEditAssignment}
           onDeleteAssignment={onDeleteAssignment}
           onPublishAssignment={onPublishAssignment}
+          onCopyAssignment={onCopyAssignment}
           canEdit={canEdit}
           canPublishTasks={canPublishTasks}
         />

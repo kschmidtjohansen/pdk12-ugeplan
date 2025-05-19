@@ -12,6 +12,7 @@ interface AssignmentCardProps {
   onEdit: (assignment: Assignment) => void;
   onDelete: () => void;
   onPublish?: () => void;
+  onCopy?: () => void;
 }
 
 const AssignmentCard: React.FC<AssignmentCardProps> = ({
@@ -19,7 +20,8 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   canEdit,
   onEdit,
   onDelete,
-  onPublish
+  onPublish,
+  onCopy
 }) => {
   const isPublished = assignment.published === true;
 
@@ -37,6 +39,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           onEdit={() => onEdit(assignment)}
           onDelete={onDelete}
           onPublish={onPublish}
+          onCopy={onCopy}
         />
       </div>
       

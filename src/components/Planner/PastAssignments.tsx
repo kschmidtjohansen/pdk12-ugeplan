@@ -13,6 +13,7 @@ interface PastAssignmentsProps {
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
+  onCopyAssignment?: (assignment: Assignment) => void;
   canEdit: boolean;
   canPublishTasks: boolean;
 }
@@ -26,6 +27,7 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
   onEditAssignment,
   onDeleteAssignment,
   onPublishAssignment,
+  onCopyAssignment,
   canEdit,
   canPublishTasks
 }) => {
@@ -50,6 +52,7 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
             onEditAssignment={onEditAssignment}
             onDeleteAssignment={onDeleteAssignment}
             onPublishAssignment={onPublishAssignment}
+            onCopyAssignment={onCopyAssignment}
             canEdit={canEdit}
             canPublishTasks={canPublishTasks}
           />

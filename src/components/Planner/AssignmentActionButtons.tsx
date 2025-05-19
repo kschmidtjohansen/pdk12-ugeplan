@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Edit, Trash2, Send } from 'lucide-react';
+import { Edit, Trash2, Send, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Assignment } from '../../types/assignment';
 import { usePermissions } from '@/context/AuthContext';
@@ -12,6 +12,7 @@ interface AssignmentActionButtonsProps {
   onEdit: () => void;
   onDelete: () => void;
   onPublish?: () => void;
+  onCopy?: () => void;
 }
 
 const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = ({
@@ -19,7 +20,8 @@ const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = ({
   canEdit,
   onEdit,
   onDelete,
-  onPublish
+  onPublish,
+  onCopy
 }) => {
   const { canPublishTasks } = usePermissions();
   const { t } = useTranslation();
@@ -32,6 +34,17 @@ const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = ({
       <Button variant="ghost" size="sm" onClick={onEdit} className="h-8">
         <Edit className="h-4 w-4" />
       </Button>
+      {onCopy && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={onCopy} 
+          className="h-8"
+          title={t('planner.copyAssignment')}
+        >
+          <Copy className="h-4 w-4 text-blue-500" />
+        </Button>
+      )}
       {canPublishTasks && !isPublished && onPublish && (
         <Button 
           variant="ghost" 

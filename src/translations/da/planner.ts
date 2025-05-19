@@ -91,7 +91,13 @@ const planner = {
   assignmentsPublishedMsg: 'Opgaverne er blevet publiceret.',
   assignmentDate: 'Opgave dato',
   notes: 'Beskrivelse',
-  notesPlaceholder: 'Beskriv opgaven.'
+  notesPlaceholder: 'Beskriv opgaven.',
+  copyAssignment: 'Kopier opgave',
+  copyToDate: 'Kopier til dato',
+  copyAssignmentSuccess: 'Opgave kopieret',
+  copyAssignmentMsg: 'Opgaven er blevet kopieret.',
+  selectDateForCopy: 'Vælg dato for kopi',
+  copyAssignmentTitle: 'Kopier opgave til ny dato'
 };
 
 export default planner;

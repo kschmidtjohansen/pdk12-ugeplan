@@ -1,7 +1,14 @@
-
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
 import AssignmentList from './AssignmentList';
+import { useTranslation } from 'react-i18next';
+import { usePermissions } from '@/hooks/usePermissions';
+import { useMobile } from '@/hooks/useMobile';
+import { groupAssignmentsByDay, getDatesInRange, parseISO, format } from '@/utils';
+import { Button } from '@/components/Button';
+import { EmptyState } from '@/components/EmptyState';
+import { CurrentAndFutureDays } from '@/components/CurrentAndFutureDays';
+import { PastAssignments } from '@/components/PastAssignments';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
@@ -10,6 +17,7 @@ interface PlannerContentProps {
   onPublishAssignment: (assignmentId: string) => void;
   onPublishDay: () => void;
   onCreateAssignment: (date: string) => void;
+  onCopyAssignment: (assignment: Assignment) => void;
   selectedWeek: number;
   selectedYear: number;
   weekDates: ReturnType<typeof import('@/utils/weekDates').getWeekDates>;
@@ -22,22 +30,109 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   onPublishAssignment,
   onPublishDay,
   onCreateAssignment,
+  onCopyAssignment,
   selectedWeek,
   selectedYear,
   weekDates
 }) => {
+  const { t } = useTranslation();
+  const { canEditPlanner, canPublishTasks } = usePermissions();
+  const isMobile = useMobile();
+  
+  // Group assignments by day
+  const groupedAssignments = useMemo(() => {
+    return groupAssignmentsByDay(weekAssignments);
+  }, [weekAssignments]);
+  
+  // Generate dates array for the week
+  const weekDateStrings = useMemo(() => {
+    if (!weekDates?.start || !weekDates?.end) {
+      console.error("Missing week dates in PlannerContent");
+      return [];
+    }
+    return getDatesInRange(weekDates.start, weekDates.end);
+  }, [weekDates]);
+  
+  // State to track which days are expanded
+  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
+  
+  // Toggle expansion of a day section
+  const handleToggleExpansion = (date: string) => {
+    setExpandedDays(prev => ({
+      ...prev,
+      [date]: !(prev[date] ?? true)
+    }));
+  };
+  
+  // Determine current date to split past and current/future days
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = format(today, 'yyyy-MM-dd');
+  
+  // Split dates into past and current/future
+  const { pastDates, currentAndFutureDates } = useMemo(() => {
+    return weekDateStrings.reduce<{ pastDates: string[], currentAndFutureDates: string[] }>(
+      (result, dateStr) => {
+        const date = parseISO(dateStr);
+        if (date < today) {
+          result.pastDates.push(dateStr);
+        } else {
+          result.currentAndFutureDates.push(dateStr);
+        }
+        return result;
+      },
+      { pastDates: [], currentAndFutureDates: [] }
+    );
+  }, [weekDateStrings, today]);
+
+  if (weekAssignments.length === 0 && !canEditPlanner) {
+    return <EmptyState message={t("planner.noAssignmentsWeek")} />;
+  }
+
   return (
-    <AssignmentList
-      assignments={weekAssignments}
-      onEditAssignment={onEditAssignment}
-      onDeleteAssignment={onDeleteAssignment}
-      onPublishAssignment={onPublishAssignment}
-      onPublishDay={onPublishDay}
-      onCreateAssignment={onCreateAssignment}
-      selectedWeek={selectedWeek}
-      selectedYear={selectedYear}
-      weekDates={weekDates}
-    />
+    <div className="space-y-6 pb-6">
+      <CurrentAndFutureDays
+        dates={currentAndFutureDates}
+        groupedAssignments={groupedAssignments}
+        expandedDays={expandedDays}
+        onToggleExpansion={handleToggleExpansion}
+        onPublishDay={onPublishDay}
+        onEditAssignment={onEditAssignment}
+        onDeleteAssignment={onDeleteAssignment}
+        onPublishAssignment={onPublishAssignment}
+        onCopyAssignment={onCopyAssignment}
+        canEdit={canEditPlanner}
+        canPublishTasks={canPublishTasks}
+      />
+      
+      <PastAssignments
+        pastDates={pastDates}
+        groupedAssignments={groupedAssignments}
+        expandedDays={expandedDays}
+        onToggleExpansion={handleToggleExpansion}
+        onPublishDay={onPublishDay}
+        onEditAssignment={onEditAssignment}
+        onDeleteAssignment={onDeleteAssignment}
+        onPublishAssignment={onPublishAssignment}
+        onCopyAssignment={onCopyAssignment}
+        canEdit={canEditPlanner}
+        canPublishTasks={canPublishTasks}
+      />
+      
+      {canEditPlanner && (
+        <div className="mt-8">
+          {!isMobile && (
+            <Button 
+              onClick={() => onCreateAssignment(todayStr)} 
+              variant="outline"
+              className="mt-4"
+            >
+              {t("planner.addAssignment")}
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 

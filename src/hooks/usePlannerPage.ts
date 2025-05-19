@@ -11,10 +11,14 @@ import {
 } from '@/utils/dates';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import { getUnpublishedAssignment } from '@/hooks/useAssignmentPublishing';
+import { useToast } from '@/components/ui/use-toast';
+import { useTranslation } from '@/context/TranslationContext';
 
 export const usePlannerPage = () => {
   // Get current week info (week number and year)
   const currentWeekInfo = getCurrentWeekInfo();
+  const { t } = useTranslation();
+  const { toast } = useToast();
   
   // State to track the selected week number and year
   const [selectedWeek, setSelectedWeek] = useState(currentWeekInfo.week);
@@ -145,6 +149,37 @@ export const usePlannerPage = () => {
     setIsDialogOpen(true);
   }, [setCurrentAssignment, setIsDialogOpen]);
 
+  // New function to handle copying an assignment
+  const handleCopyAssignment = useCallback((assignment: Assignment) => {
+    console.log("[usePlannerPage] Copying assignment:", assignment);
+    
+    // Set the assignment to be copied
+    setCurrentAssignment(null);
+    
+    // Set selected day to the current day (but this will be changed by the user)
+    const freshTodayDate = getFreshToday();
+    setSelectedDay(freshTodayDate);
+    
+    // Pre-fill the form with the assignment data but change the date to today
+    // and mark as unpublished
+    setFormData({
+      ...assignment,
+      id: undefined,  // Remove the ID to force creation of a new assignment
+      date: freshTodayDate,
+      published: false,
+      employees: Array.isArray(assignment.employees) ? [...assignment.employees] : []
+    });
+    
+    // Show a success toast
+    toast({
+      title: t('planner.copyAssignment'),
+      description: t('planner.selectDateForCopy')
+    });
+    
+    // Open the dialog to let the user select a new date
+    setIsDialogOpen(true);
+  }, [setCurrentAssignment, setIsDialogOpen, toast, t]);
+
   const handleSubmit = useCallback((data: Partial<Assignment>) => {
     console.log("[usePlannerPage] Submitting assignment data:", data);
     
@@ -153,6 +188,7 @@ export const usePlannerPage = () => {
       const unpublishedData = getUnpublishedAssignment(data as Assignment);
       updateAssignment(currentAssignment.id, unpublishedData);
     } else {
+      // This handles both new assignments and copied assignments
       createAssignment({
         ...data,
         id: Date.now().toString(),
@@ -203,6 +239,7 @@ export const usePlannerPage = () => {
     handleSubmit,
     handlePublishDay,
     deleteAssignment,
-    publishAssignment
+    publishAssignment,
+    handleCopyAssignment
   };
 };

@@ -28,7 +28,8 @@ const PlannerPage: React.FC = () => {
     handleSubmit,
     handlePublishDay,
     deleteAssignment,
-    publishAssignment
+    publishAssignment,
+    handleCopyAssignment
   } = usePlannerPage();
 
   // Add some debugging to see that we have the correct week dates
@@ -57,6 +58,7 @@ const PlannerPage: React.FC = () => {
         onPublishAssignment={publishAssignment}
         onPublishDay={handlePublishDay}
         onCreateAssignment={handleOpenCreateDialog}
+        onCopyAssignment={handleCopyAssignment}
         selectedWeek={selectedWeek}
         selectedYear={selectedYear}
         weekDates={weekDates}
