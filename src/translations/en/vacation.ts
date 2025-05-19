@@ -55,6 +55,8 @@ const vacation = {
   requestApprovedMsg: '{name}\'s request has been approved.',
   yourRequestApproved: 'Your vacation request has been approved.',
   yourRequestRejected: 'Your vacation request has been rejected. Reason: {reason}',
+  requestDeleted: 'Request has been deleted',
+  requestDeletedMsg: 'The request has now been deleted',
   error: 'Error',
   employeeNotFound: 'Employee could not be found',
   currentlyOnVacation: 'Currently on Vacation',

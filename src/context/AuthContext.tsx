@@ -425,13 +425,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       requestPasswordReset: async (email) => {
         try {
           console.log('Requesting password reset for:', email);
-          // Update to include the full URL path to the password reset page
+          // Add full URL with origin to ensure proper redirect
           const { error } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: `${window.location.origin}/password-reset`,
           });
           console.log('Password reset request result:', error ? `Error: ${error.message}` : 'Success');
           return { error: error ? error.message : null };
-        } catch (error) {
+        } catch (error: any) {
           console.error('Password reset error:', error);
           return { error: 'An unexpected error occurred during password reset.' };
         }
@@ -439,13 +439,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       resetPassword: async (email) => {
         try {
           console.log('Requesting password reset for:', email);
-          // Update to include the full URL path to the password reset page
+          // Add full URL with origin to ensure proper redirect
           const { error } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: `${window.location.origin}/password-reset`,
           });
           console.log('Password reset request result:', error ? `Error: ${error.message}` : 'Success');
           return { error: error ? error.message : null };
-        } catch (error) {
+        } catch (error: any) {
           console.error('Password reset error:', error);
           return { error: 'An unexpected error occurred during password reset.' };
         }

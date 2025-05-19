@@ -112,10 +112,12 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     handleDeleteVacation(vacation);
   };
   
-  // Wrapper for admin vacation request submission
+  // Wrapper for admin vacation request submission - Updated to close the dialog
   const submitAdminVacationRequest = (e: React.FormEvent) => {
     if (isAdmin) {
       submitVacationRequest(e, true);
+      // Close the admin dialog after submission
+      setAdminDialogOpen(false);
     }
   };
   
@@ -171,7 +173,6 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         actionType={actionType}
         submitVacationRequest={submitVacationRequest}
         submitAdminVacationRequest={submitAdminVacationRequest}
-        submitEditVacation={submitEditVacation}
         handleActionSubmit={handleActionSubmit}
         confirmDeleteVacation={confirmDeleteVacation}
         handleDeleteCurrentVacation={handleDeleteCurrentVacation}

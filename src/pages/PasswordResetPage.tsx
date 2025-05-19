@@ -23,35 +23,37 @@ const PasswordResetPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Enhanced token extraction logic
+  // Enhanced token extraction logic with better debugging
   const getAccessToken = (): string | null => {
     // Log full URL and parameters for debugging
-    console.log('Full URL:', window.location.href);
-    console.log('Search params:', Object.fromEntries(searchParams.entries()));
-    console.log('Hash fragment:', location.hash);
+    console.log('Password Reset - Full URL:', window.location.href);
+    console.log('Password Reset - Search params:', Object.fromEntries(searchParams.entries()));
+    console.log('Password Reset - Hash fragment:', location.hash);
+    
+    let token = null;
     
     // Check for token in URL parameters (most common in password reset links)
-    const token = searchParams.get('token');
-    if (token) {
+    if (searchParams.get('token')) {
+      token = searchParams.get('token');
       console.log('Found token parameter:', token);
       return token;
     }
     
     // Check for access_token parameter (used in some Supabase implementations)
-    const accessToken = searchParams.get('access_token');
-    if (accessToken) {
-      console.log('Found access_token parameter:', accessToken);
-      return accessToken;
+    if (searchParams.get('access_token')) {
+      token = searchParams.get('access_token');
+      console.log('Found access_token parameter:', token);
+      return token;
     }
     
     // Check for type=recovery flow with token
     if (searchParams.get('type') === 'recovery') {
       console.log('Found recovery type parameter');
       // The token might be elsewhere in the params
-      const recoveryToken = searchParams.get('token');
-      if (recoveryToken) {
-        console.log('Found recovery token:', recoveryToken);
-        return recoveryToken;
+      if (searchParams.get('token')) {
+        token = searchParams.get('token');
+        console.log('Found recovery token:', token);
+        return token;
       }
     }
     
@@ -60,17 +62,24 @@ const PasswordResetPage: React.FC = () => {
       const hashParams = new URLSearchParams(location.hash.substring(1));
       
       // Try access_token in hash
-      const hashAccessToken = hashParams.get('access_token');
-      if (hashAccessToken) {
-        console.log('Found access_token in hash:', hashAccessToken);
-        return hashAccessToken;
+      if (hashParams.get('access_token')) {
+        token = hashParams.get('access_token');
+        console.log('Found access_token in hash:', token);
+        return token;
       }
       
       // Try just token in hash
-      const hashToken = hashParams.get('token');
-      if (hashToken) {
-        console.log('Found token in hash:', hashToken);
-        return hashToken;
+      if (hashParams.get('token')) {
+        token = hashParams.get('token');
+        console.log('Found token in hash:', token);
+        return token;
+      }
+      
+      // Try to extract directly if the hash contains a token-like string
+      const hashContent = location.hash.substring(1);
+      if (hashContent && hashContent.length > 20 && !hashContent.includes('=')) {
+        console.log('Found possible token in raw hash:', hashContent);
+        return hashContent;
       }
     }
     
@@ -87,7 +96,7 @@ const PasswordResetPage: React.FC = () => {
 
   // Verify token and establish session on component mount
   useEffect(() => {
-    console.log('Component initialized');
+    console.log('PasswordResetPage initialized');
     console.log('URL path:', location.pathname);
     console.log('URL search params:', Object.fromEntries(searchParams.entries()));
     console.log('URL hash:', location.hash);
@@ -102,28 +111,67 @@ const PasswordResetPage: React.FC = () => {
       }
 
       try {
-        console.log('Verifying token validity');
+        console.log('Attempting to verify token validity');
         
-        // Check if there's an active session with the token
-        const { data, error } = await supabase.auth.getUser();
+        // First check if we already have an active session
+        const { data: sessionData } = await supabase.auth.getSession();
+        console.log('Current session check result:', sessionData.session ? 'Active session found' : 'No session found');
         
-        if (error) {
-          console.log('No valid session found, trying to use token directly');
-          
-          // For recovery flow tokens, we need to wait until form submission
-          // Just mark the token as valid for now if it exists
-          if (searchParams.get('type') === 'recovery') {
-            console.log('Recovery flow detected, will use token at form submission');
-            setTokenValid(true);
-            setTokenCheckCompleted(true);
-            return;
-          }
-        } else {
-          console.log('Active session found with user:', data.user);
+        if (sessionData.session) {
+          console.log('Active session exists, token is valid');
           setTokenValid(true);
+          setTokenCheckCompleted(true);
+          return;
+        }
+        
+        // Try setting session with the token directly
+        if (accessToken) {
+          console.log('No active session, attempting to set session with token');
+          
+          try {
+            // Try the new password recovery flow first - this is what Supabase's email link should use
+            const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+              token_hash: accessToken,
+              type: 'recovery',
+            });
+            
+            if (verifyError) {
+              console.log('OTP verification error:', verifyError.message);
+            } else if (verifyData.session) {
+              console.log('Successfully established session with OTP verify');
+              setTokenValid(true);
+              setTokenCheckCompleted(true);
+              return;
+            }
+          } catch (err) {
+            console.error('Error during OTP verification:', err);
+          }
+          
+          // Legacy fallback - try to use the token via URL params
+          try {
+            // Manually check for auth param in URL if session not established yet
+            if (searchParams.get('type') === 'recovery') {
+              console.log('This appears to be a recovery flow, marking token as valid');
+              setTokenValid(true);
+              setTokenCheckCompleted(true);
+              return;
+            }
+          } catch (err) {
+            console.error('Error checking recovery params:', err);
+          }
+        }
+        
+        // If we couldn't establish a session but the URL pattern looks right, still allow the user to try
+        if (location.pathname.includes('password-reset') && accessToken) {
+          console.log('Unable to verify token, but URL pattern matches password reset. Allowing attempt.');
+          setTokenValid(true);
+        } else {
+          console.log('Token verification failed');
+          setTokenValid(false);
         }
       } catch (err) {
         console.error('Error verifying token:', err);
+        setTokenValid(false);
       }
       
       setTokenCheckCompleted(true);
@@ -228,37 +276,52 @@ const PasswordResetPage: React.FC = () => {
       console.log('Attempting to reset password with token:', accessToken);
       
       let error = null;
+      let success = false;
       
-      if (accessToken) {
-        // First try to update the user directly
+      // Strategy 1: Try to update the user directly if we have an active session
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log('Current session check before password update:', sessionData.session ? 'Active session found' : 'No session found');
+      
+      if (sessionData.session) {
+        console.log('Using active session to update password');
         const { error: updateError } = await supabase.auth.updateUser({
           password: password,
         });
         
-        // If that fails, it could be due to token issues
-        if (updateError) {
-          console.error('First password update attempt failed:', updateError.message);
+        if (!updateError) {
+          console.log('Password update successful via active session');
+          success = true;
+        } else {
+          console.error('Password update failed via active session:', updateError.message);
+          error = updateError;
+        }
+      }
+      // Strategy 2: Try OTP verification if we don't have an active session
+      else if (accessToken) {
+        console.log('No active session, attempting OTP verification with token');
+        
+        // First try to establish a session with the token
+        const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+          token_hash: accessToken,
+          type: 'recovery',
+        });
+        
+        if (verifyError) {
+          console.error('OTP verification failed:', verifyError.message);
+          error = verifyError;
+        } else if (verifyData.session) {
+          console.log('OTP verification successful, updating password');
           
-          // Check if we have a recovery flow token
-          if (searchParams.get('type') === 'recovery' && accessToken) {
-            console.log('Trying password update with recovery flow token');
-            const { error: recoveryError } = await supabase.auth.verifyOtp({
-              token_hash: accessToken,
-              type: 'recovery',
-            });
-            
-            if (recoveryError) {
-              console.error('Recovery verification failed:', recoveryError.message);
-              error = recoveryError;
-            } else {
-              // After verification, try password update again
-              const { error: finalUpdateError } = await supabase.auth.updateUser({
-                password: password,
-              });
-              
-              error = finalUpdateError;
-            }
+          // Now try to update the password with the newly established session
+          const { error: updateError } = await supabase.auth.updateUser({
+            password: password,
+          });
+          
+          if (!updateError) {
+            console.log('Password update successful after OTP verification');
+            success = true;
           } else {
+            console.error('Password update failed after OTP verification:', updateError.message);
             error = updateError;
           }
         }
@@ -266,7 +329,7 @@ const PasswordResetPage: React.FC = () => {
         error = new Error('No access token available for password reset');
       }
       
-      if (error) {
+      if (error && !success) {
         console.error('Password update error:', error.message);
         throw error;
       }
@@ -282,7 +345,7 @@ const PasswordResetPage: React.FC = () => {
       setTimeout(() => {
         navigate('/login');
       }, 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Password reset error:', error);
       toast({
         title: t('common.error'),

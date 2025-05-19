@@ -25,8 +25,10 @@ const LoginPage: React.FC = () => {
 
   // If user is already logged in, redirect to dashboard
   useEffect(() => {
+    console.log("Login page - checking authentication status:", { user, isAuthenticated });
     if (user || isAuthenticated) {
-      navigate('/dashboard');
+      console.log("User is authenticated, redirecting to dashboard");
+      navigate('/dashboard', { replace: true });
     }
   }, [user, isAuthenticated, navigate]);
 
@@ -161,7 +163,12 @@ const LoginPage: React.FC = () => {
         } catch (err) {
           console.error('Error clearing session storage:', err);
         }
-        // No need to navigate here, the useEffect will handle it
+        
+        // Force navigate to dashboard after successful login
+        console.log("Login successful, forcing navigation to dashboard");
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 500);
       }
     } catch (error) {
       console.error('Login error:', error);

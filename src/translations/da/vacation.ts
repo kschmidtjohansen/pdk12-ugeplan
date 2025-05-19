@@ -55,6 +55,8 @@ const vacation = {
   requestApprovedMsg: '{name}\'s anmodning er blevet godkendt.',
   yourRequestApproved: 'Din anmodning er blevet godkendt.',
   yourRequestRejected: 'Din anmodning er blevet afvist. Årsag: {reason}',
+  requestDeleted: 'Anmodning er blevet slettet',
+  requestDeletedMsg: 'Anmodningen er nu slettet',
   error: 'Fejl',
   employeeNotFound: 'Medarbejderen kunne ikke findes',
   currentlyOnVacation: 'Medarbejdere på ferie',
