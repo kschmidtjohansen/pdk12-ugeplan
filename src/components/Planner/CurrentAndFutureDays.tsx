@@ -19,7 +19,7 @@ interface CurrentAndFutureDaysProps {
 
 const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
   dates,
-  groupedAssignments,
+  groupedAssignments = {}, // Ensure this is initialized
   expandedDays,
   onToggleExpansion,
   onPublishDay,
@@ -38,7 +38,7 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
         <DaySection 
           key={dateKey}
           dateKey={dateKey}
-          dayAssignments={groupedAssignments[dateKey]}
+          dayAssignments={groupedAssignments[dateKey] || []} // Ensure we provide an empty array if undefined
           isExpanded={expandedDays[dateKey] !== false} // Default to expanded
           onToggleExpansion={onToggleExpansion}
           onPublishDay={onPublishDay}

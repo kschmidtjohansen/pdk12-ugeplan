@@ -21,11 +21,11 @@ interface PlannerContentProps {
   onCopyAssignment: (assignment: Assignment) => void;
   selectedWeek: number;
   selectedYear: number;
-  weekDates: ReturnType<typeof import('@/utils/weekDates').getWeekDates>;
+  weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
 }
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
-  weekAssignments,
+  weekAssignments = [], // Initialize with an empty array as fallback
   onEditAssignment,
   onDeleteAssignment,
   onPublishAssignment,
@@ -42,7 +42,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   
   // Group assignments by day
   const groupedAssignments = useMemo(() => {
-    return groupAssignmentsByDay(weekAssignments);
+    return groupAssignmentsByDay(weekAssignments || []);
   }, [weekAssignments]);
   
   // Generate dates array for the week
@@ -72,13 +72,26 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   
   // Split dates into past and current/future
   const { pastDates, currentAndFutureDates } = useMemo(() => {
+    if (!Array.isArray(weekDateStrings)) {
+      return { pastDates: [], currentAndFutureDates: [] };
+    }
+    
     return weekDateStrings.reduce<{ pastDates: string[], currentAndFutureDates: string[] }>(
       (result, dateStr) => {
-        const date = parseISO(dateStr);
-        if (date < today) {
-          result.pastDates.push(dateStr);
-        } else {
-          result.currentAndFutureDates.push(dateStr);
+        if (typeof dateStr !== 'string') {
+          console.error(`Invalid date string: ${dateStr}`);
+          return result;
+        }
+        
+        try {
+          const date = parseISO(dateStr);
+          if (date < today) {
+            result.pastDates.push(dateStr);
+          } else {
+            result.currentAndFutureDates.push(dateStr);
+          }
+        } catch (error) {
+          console.error(`Error parsing date: ${dateStr}`, error);
         }
         return result;
       },
@@ -86,15 +99,15 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     );
   }, [weekDateStrings, today]);
 
-  if (weekAssignments.length === 0 && !canEdit) {
+  if ((Array.isArray(weekAssignments) && weekAssignments.length === 0) && !canEdit) {
     return <EmptyState message={t("planner.noAssignmentsWeek")} />;
   }
 
   return (
     <div className="space-y-6 pb-6">
       <CurrentAndFutureDays
-        dates={currentAndFutureDates}
-        groupedAssignments={groupedAssignments}
+        dates={currentAndFutureDates || []}
+        groupedAssignments={groupedAssignments || {}}
         expandedDays={expandedDays}
         onToggleExpansion={handleToggleExpansion}
         onPublishDay={onPublishDay}
@@ -107,8 +120,8 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       />
       
       <PastAssignments
-        pastDates={pastDates}
-        groupedAssignments={groupedAssignments}
+        pastDates={pastDates || []}
+        groupedAssignments={groupedAssignments || {}}
         expandedDays={expandedDays}
         onToggleExpansion={handleToggleExpansion}
         onPublishDay={onPublishDay}

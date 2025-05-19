@@ -20,7 +20,7 @@ interface PastAssignmentsProps {
 
 const PastAssignments: React.FC<PastAssignmentsProps> = ({
   pastDates,
-  groupedAssignments,
+  groupedAssignments = {}, // Initialize with empty object as fallback
   expandedDays,
   onToggleExpansion,
   onPublishDay,
@@ -45,7 +45,7 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
           <DaySection 
             key={dateKey}
             dateKey={dateKey}
-            dayAssignments={groupedAssignments[dateKey]}
+            dayAssignments={groupedAssignments[dateKey] || []} // Provide an empty array if undefined
             isExpanded={expandedDays[dateKey] !== false} // Default to expanded
             onToggleExpansion={onToggleExpansion}
             onPublishDay={onPublishDay}

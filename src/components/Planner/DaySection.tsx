@@ -23,7 +23,7 @@ interface DaySectionProps {
 
 const DaySection: React.FC<DaySectionProps> = ({
   dateKey,
-  dayAssignments,
+  dayAssignments = [], // Initialize with empty array as fallback
   isExpanded,
   onToggleExpansion,
   onPublishDay,
@@ -45,10 +45,13 @@ const DaySection: React.FC<DaySectionProps> = ({
   // Fix: Make sure dayAssignments is an array before calling some()
   const hasUnpublishedAssignments = Array.isArray(dayAssignments) && dayAssignments.some(a => !a.published);
 
+  // Ensure dayAssignments is an array and then get its length
+  const assignmentsCount = Array.isArray(dayAssignments) ? dayAssignments.length : 0;
+
   // Determine task text based on language and count
   const taskText = currentLanguage === 'da' 
-    ? (dayAssignments.length === 1 ? 'opgave' : 'opgaver')
-    : (dayAssignments.length === 1 ? 'task' : 'tasks');
+    ? (assignmentsCount === 1 ? 'opgave' : 'opgaver')
+    : (assignmentsCount === 1 ? 'task' : 'tasks');
 
   return (
     <div className="w-full space-y-3">
@@ -61,7 +64,7 @@ const DaySection: React.FC<DaySectionProps> = ({
             {formattedDate}
           </h3>
           <div className="ml-2 text-sm text-gray-500">
-            ({dayAssignments.length} {taskText})
+            ({assignmentsCount} {taskText})
           </div>
         </div>
         
