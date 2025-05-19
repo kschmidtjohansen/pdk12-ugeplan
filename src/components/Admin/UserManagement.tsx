@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +13,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
+import { ArrowDownAZ, ArrowUpAZ } from 'lucide-react'; // Import sorting icons
 
 // Import refactored components
 import UserTable from './UserTable';
@@ -31,6 +31,7 @@ const UserManagement: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -76,8 +77,10 @@ const UserManagement: React.FC = () => {
           role: (userRole?.role || 'servicemedarbejder') as UserRole
         };
       });
-      
-      setUsers(combinedUsers);
+
+      // Sort users by name alphabetically
+      const sortedUsers = sortUsersByName(combinedUsers, sortDirection);
+      setUsers(sortedUsers);
     } catch (err) {
       console.error('Error fetching users:', err);
       toast({
@@ -88,6 +91,27 @@ const UserManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+  
+  // Function to sort users by name
+  const sortUsersByName = (userList: AdminUser[], direction: 'asc' | 'desc'): AdminUser[] => {
+    return [...userList].sort((a, b) => {
+      const nameA = a.name.toLowerCase();
+      const nameB = b.name.toLowerCase();
+      
+      if (direction === 'asc') {
+        return nameA.localeCompare(nameB);
+      } else {
+        return nameB.localeCompare(nameA);
+      }
+    });
+  };
+
+  // Toggle sort direction and re-sort users
+  const toggleSortDirection = () => {
+    const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    setSortDirection(newDirection);
+    setUsers(sortUsersByName(users, newDirection));
   };
   
   // Load users on component mount
@@ -216,8 +240,11 @@ const UserManagement: React.FC = () => {
         
         // Update local state
         setUsers(
-          users.map((u) =>
-            u.id === currentUser.id ? { ...u, ...formData } : u
+          sortUsersByName(
+            users.map((u) =>
+              u.id === currentUser.id ? { ...u, ...formData } : u
+            ),
+            sortDirection
           )
         );
         
@@ -227,13 +254,15 @@ const UserManagement: React.FC = () => {
         });
       } else {
         // Create new user via UserFormDialog which handles the creation
-        // We just need to update local state after successful creation
+        // We need to update local state after successful creation
         const newUser: AdminUser = {
           id: Date.now().toString(), // Temporary ID, will be replaced with actual one
           ...formData
         };
         
-        setUsers([...users, newUser]);
+        // Add user to the sorted list
+        const updatedUsers = sortUsersByName([...users, newUser], sortDirection);
+        setUsers(updatedUsers);
         
         toast({
           title: t('admin.userManagement.userAdded'),
@@ -267,12 +296,26 @@ const UserManagement: React.FC = () => {
               <CardTitle>{t('admin.userManagement.title')}</CardTitle>
               <CardDescription>{t('admin.userManagement.description')}</CardDescription>
             </div>
-            <Button 
-              onClick={handleCreateUser}
-              className="bg-polygon-blue hover:bg-polygon-darkblue"
-            >
-              {t('admin.userManagement.addUser')}
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={toggleSortDirection}
+                title={sortDirection === 'asc' ? 'Sort Z-A' : 'Sort A-Z'}
+              >
+                {sortDirection === 'asc' ? (
+                  <ArrowDownAZ className="h-4 w-4" />
+                ) : (
+                  <ArrowUpAZ className="h-4 w-4" />
+                )}
+              </Button>
+              <Button 
+                onClick={handleCreateUser}
+                className="bg-polygon-blue hover:bg-polygon-darkblue"
+              >
+                {t('admin.userManagement.addUser')}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
