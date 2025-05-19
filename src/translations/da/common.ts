@@ -30,7 +30,10 @@ const common = {
   areYouSure: 'Er du sikker?',
   deleteWarning: 'Er du sikker på at du vil slette?',
   close: 'Luk',
-  confirm: 'Bekræft'
+  confirm: 'Bekræft',
+  available: 'Tilgængelig',
+  unavailable: 'Ikke tilgængelig',
+  none: 'Ingen valgt'
 };
 
 export default common;

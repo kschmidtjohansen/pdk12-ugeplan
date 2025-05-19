@@ -8,6 +8,7 @@ import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
 import { format, parseISO } from 'date-fns';
+import { da } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Car } from '@/types/car';
@@ -48,14 +49,15 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   setToTime,
   description,
   setDescription,
-  assignmentType,
-  setAssignmentType,
+  assignmentType, // kept for backward compatibility
+  setAssignmentType, // kept for backward compatibility
   selectedCarId,
   setSelectedCarId,
   cars,
   assignmentId
 }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+  const locale = currentLanguage === 'da' ? da : undefined;
 
   // Set default end time based on whether the selected date is a Friday
   React.useEffect(() => {
@@ -89,7 +91,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div>
           <Label>{t('planner.assignmentDate')}</Label>
           <Popover>
@@ -102,7 +104,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                {selectedDate ? format(selectedDate, "PPP", { locale }) : <span>{t('planner.assignmentDate')}</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
@@ -111,23 +113,11 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
                 selected={selectedDate}
                 onSelect={setSelectedDate}
                 initialFocus
+                locale={locale}
+                className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
-        </div>
-        <div>
-          <Label htmlFor="type">{t('planner.assignmentType')}</Label>
-          <Select value={assignmentType} onValueChange={setAssignmentType}>
-            <SelectTrigger>
-              <SelectValue placeholder={t('planner.assignmentType')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="waterDamage">{t('planner.typeWaterDamage')}</SelectItem>
-              <SelectItem value="fireDamage">{t('planner.typeFireDamage')}</SelectItem>
-              <SelectItem value="mold">{t('planner.typeMold')}</SelectItem>
-              <SelectItem value="other">{t('planner.typeOther')}</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
@@ -163,7 +153,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             <SelectValue placeholder={t('planner.selectCar')} />
           </SelectTrigger>
           <SelectContent>
-            {/* Changed from empty string to "none" */}
             <SelectItem value="none">{t('common.none')}</SelectItem>
             {cars
               .filter(car => car.is_available) // Only show available cars

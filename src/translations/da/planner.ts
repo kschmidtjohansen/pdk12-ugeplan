@@ -71,7 +71,8 @@ const planner = {
   allDay: 'Hele dagen',
   viewAssignment: 'Vis opgave',
   selectCar: 'Vælg bil',
-  assignmentTitle: 'Sagsnummer',
+  title: 'Sagsnummer',
+  enterLocation: 'Lokation',
   createAssignment: 'Opret',
   previousDays: 'Tidligere dage',
   nothingPlannedToday: 'Intet planlagt for i dag',
@@ -87,7 +88,10 @@ const planner = {
   assignmentPublished: 'Opgave er blevet publiceret',
   assignmentPublishedMsg: 'Opgaven er blevet publiceret.',
   assignmentsPublished: 'Opgaver er blevet publiceret',
-  assignmentsPublishedMsg: 'Opgaverne er blevet publiceret.'
+  assignmentsPublishedMsg: 'Opgaverne er blevet publiceret.',
+  assignmentDate: 'Opgave dato',
+  notes: 'Beskrivelse',
+  notesPlaceholder: 'Beskriv opgaven.'
 };
 
 export default planner;

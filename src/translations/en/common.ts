@@ -16,7 +16,7 @@ const common = {
   filter: "Filter",
   sort: "Sort",
   all: "All",
-  none: "None",
+  none: "None selected",
   selectAll: "Select All",
   deselectAll: "Deselect All",
   selected: "Selected",
