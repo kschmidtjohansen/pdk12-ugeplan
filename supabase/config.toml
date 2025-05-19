@@ -12,14 +12,27 @@ redirect_urls = [
   "http://localhost:5173",
   "http://localhost:5173/login", 
   "http://localhost:5173/password-reset", 
-  "http://localhost:5173/reset-password"
+  "http://localhost:5173/reset-password",
+  # Add additional variations for comprehensive coverage
+  "http://localhost:3000",
+  "http://localhost:3000/login",
+  "http://localhost:3000/password-reset",
+  "http://localhost:3000/reset-password",
+  "http://localhost",
+  "http://localhost/login",
+  "http://localhost/password-reset",
+  "http://localhost/reset-password",
+  # Support IP-based access
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1"
 ]
 
 [functions.admin-create-user]
 verify_jwt = true
 
 [functions.admin-reset-password]
-verify_jwt = true
+verify_jwt = false
 
 [functions.admin-user-role]
 verify_jwt = true

@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogHeader,
@@ -23,9 +25,10 @@ interface PasswordResetDialogProps {
 const PasswordResetDialog: React.FC<PasswordResetDialogProps> = ({ open, onOpenChange }) => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { requestPasswordReset } = useAuth();
+  const { resetPassword } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +36,30 @@ const PasswordResetDialog: React.FC<PasswordResetDialogProps> = ({ open, onOpenC
     
     try {
       console.log('Requesting password reset for email:', email);
-      const { error } = await requestPasswordReset(email);
+      
+      // Try to use the edge function for more reliable delivery
+      try {
+        const { error: fnError } = await supabase.functions.invoke('admin-reset-password', {
+          body: { email }
+        });
+        
+        if (!fnError) {
+          console.log('Password reset email sent via edge function');
+          toast({
+            title: t('login.passwordReset.emailSentTitle'),
+            description: t('login.passwordReset.checkEmail'),
+          });
+          onOpenChange(false);
+          return;
+        } else {
+          console.error('Edge function error, falling back to auth API:', fnError);
+        }
+      } catch (fnErr) {
+        console.error('Error calling edge function, falling back to auth API:', fnErr);
+      }
+      
+      // Fall back to regular auth API if edge function fails
+      const { error } = await resetPassword(email);
       
       if (error) {
         console.error('Password reset request failed:', error);
@@ -43,7 +69,7 @@ const PasswordResetDialog: React.FC<PasswordResetDialogProps> = ({ open, onOpenC
           variant: 'destructive',
         });
       } else {
-        console.log('Password reset email sent successfully');
+        console.log('Password reset email sent successfully via auth API');
         toast({
           title: t('login.passwordReset.emailSentTitle'),
           description: t('login.passwordReset.checkEmail'),
@@ -60,6 +86,12 @@ const PasswordResetDialog: React.FC<PasswordResetDialogProps> = ({ open, onOpenC
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Added a direct navigate to reset password page for users who have the reset link
+  const handleDirectResetPage = () => {
+    onOpenChange(false);
+    navigate('/reset-password');
   };
 
   return (
@@ -85,19 +117,28 @@ const PasswordResetDialog: React.FC<PasswordResetDialogProps> = ({ open, onOpenC
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              className="sm:order-1"
             >
               {t('login.passwordReset.backToLogin')}
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="sm:order-2">
               {isSubmitting 
                 ? t('login.passwordReset.buttonLoading') 
                 : t('login.passwordReset.sendResetEmail')
               }
+            </Button>
+            <Button 
+              type="button" 
+              variant="link" 
+              onClick={handleDirectResetPage}
+              className="sm:order-3 mt-2 sm:mt-0"
+            >
+              I already have a reset link
             </Button>
           </DialogFooter>
         </form>

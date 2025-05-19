@@ -3,13 +3,13 @@ import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 interface ResetRequest {
-  userId: string;
-  newPassword: string;
+  userId?: string;
+  newPassword?: string;
   email?: string; // Optional email field for recovery flow
 }
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // Allow requests from any origin (will be restricted by Supabase)
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
@@ -38,8 +38,9 @@ serve(async (req) => {
     // Parse request body
     const requestBody = await req.json() as ResetRequest;
     console.log("Reset password request received:", {
-      ...requestBody,
-      newPassword: requestBody.newPassword ? "[REDACTED]" : undefined
+      userId: requestBody.userId || "not provided",
+      email: requestBody.email || "not provided",
+      hasPassword: !!requestBody.newPassword
     });
 
     // Handle direct password reset with userId
@@ -84,11 +85,36 @@ serve(async (req) => {
     } 
     // Handle password reset via email
     else if (requestBody.email) {
-      console.log("Sending password reset email to:", requestBody.email);
+      const email = requestBody.email.trim();
+      console.log("Sending password reset email to:", email);
       
-      // Send password reset email
-      const { error } = await supabase.auth.resetPasswordForEmail(requestBody.email, {
-        redirectTo: `${req.headers.get('origin') || 'https://www.pdk12.dk'}/reset-password`
+      // Check if email is valid
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new Error('Invalid email format');
+      }
+
+      // Get the origin that should be used for the redirect URL
+      const origin = req.headers.get('origin') || 'https://www.pdk12.dk';
+      console.log("Using origin for redirect:", origin);
+
+      // Extract host domain for better redirect handling
+      const host = new URL(origin).host;
+      console.log("Host domain:", host);
+
+      // Determine the appropriate redirect URL based on the environment
+      let redirectUrl;
+      if (host.includes('localhost') || host.includes('127.0.0.1')) {
+        redirectUrl = `${origin}/reset-password`;
+        console.log("Using local development redirect:", redirectUrl);
+      } else {
+        redirectUrl = `${origin}/reset-password`;
+        console.log("Using production redirect:", redirectUrl);
+      }
+
+      // Send password reset email with the specified redirect URL
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl
       });
 
       if (error) {
@@ -115,7 +141,8 @@ serve(async (req) => {
     console.error('Password reset error:', error.message);
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'An unexpected error occurred'
+        error: error.message || 'An unexpected error occurred',
+        success: false
       }),
       {
         headers: {

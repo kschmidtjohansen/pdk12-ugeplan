@@ -19,6 +19,32 @@ export const supabase = createClient<Database>(
       detectSessionInUrl: true, // This helps with extracting tokens from URLs
       storageKey: 'supabase.auth.token',
       flowType: 'pkce', // Use PKCE flow for more security
+      debug: import.meta.env.DEV, // Enable debug mode in development
+      storage: {
+        getItem: (key) => {
+          try {
+            const value = localStorage.getItem(key);
+            return value;
+          } catch (error) {
+            console.error('Error accessing localStorage:', error);
+            return null;
+          }
+        },
+        setItem: (key, value) => {
+          try {
+            localStorage.setItem(key, value);
+          } catch (error) {
+            console.error('Error writing to localStorage:', error);
+          }
+        },
+        removeItem: (key) => {
+          try {
+            localStorage.removeItem(key);
+          } catch (error) {
+            console.error('Error removing from localStorage:', error);
+          }
+        },
+      },
     },
     realtime: {
       params: {
@@ -76,5 +102,45 @@ export const enhancedSupabase = {
       handleSupabaseError(err, context);
       return { data: null, error: err };
     }
+  }
+};
+
+// Helper function to verify and refresh auth tokens
+export const ensureValidSession = async () => {
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error('Session validation error:', error);
+      return false;
+    }
+    
+    if (!data.session) {
+      console.log('No active session found');
+      return false;
+    }
+    
+    // Check if token is close to expiry (within 5 minutes)
+    const expiresAt = data.session.expires_at;
+    if (expiresAt) {
+      const expiryTime = expiresAt * 1000; // Convert to milliseconds
+      const currentTime = Date.now();
+      const timeToExpiry = expiryTime - currentTime;
+      
+      // If token expires in less than 5 minutes, refresh it
+      if (timeToExpiry < 300000 && timeToExpiry > 0) {
+        console.log('Token expires soon, refreshing...');
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) {
+          console.error('Failed to refresh token:', refreshError);
+          return false;
+        }
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error ensuring valid session:', error);
+    return false;
   }
 };
