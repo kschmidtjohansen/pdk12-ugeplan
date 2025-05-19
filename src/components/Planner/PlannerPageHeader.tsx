@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { format } from 'date-fns';
 import PageHeader from '../Layout/PageHeader';
@@ -35,8 +36,13 @@ const PlannerPageHeader: React.FC<PlannerPageHeaderProps> = ({
         description={t("planner.weekDescription", { week: selectedWeek })}
       />
       
-      <div className="text-sm text-muted-foreground mb-6">
-        {dateRangeText}
+      <div className="flex flex-col space-y-1 mb-6">
+        <div className="font-medium text-md">
+          {t("planner.week")} {selectedWeek}
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {dateRangeText}
+        </div>
       </div>
 
       <PlannerHeader 

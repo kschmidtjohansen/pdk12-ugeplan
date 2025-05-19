@@ -72,7 +72,7 @@ const planner = {
   viewAssignment: 'Vis opgave',
   selectCar: 'Vælg bil',
   title: 'Sagsnummer',
-  enterLocation: 'Lokation',
+  enterLocation: 'Indtast lokation',
   createAssignment: 'Opret',
   previousDays: 'Tidligere dage',
   nothingPlannedToday: 'Intet planlagt for i dag',

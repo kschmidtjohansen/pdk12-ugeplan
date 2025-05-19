@@ -1,6 +1,6 @@
-
 import { format, isValid, formatISO, parseISO, differenceInDays, addDays, parse, isWeekend, getDay } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
+import { capitalizeFirstLetter } from '@/lib/utils';
 
 // Format a date to YYYY-MM-DD
 export const formatDateToYYYYMMDD = (date: Date): string => {
@@ -96,8 +96,34 @@ export const formatDateWithCapital = (dateString: string, language: string = 'en
     
     const locale = language === 'da' ? da : enUS;
     
-    // Format the date with day of week, day, and month
-    return format(date, 'EEEE, d MMMM', { locale });
+    // Format the date with day of week, day with period, and month
+    // For Danish: "Mandag, 26. Maj"
+    // For English: "Monday, 26th May"
+    if (language === 'da') {
+      // Format with Danish pattern
+      const formattedDate = format(date, 'EEEE, d. MMMM', { locale });
+      
+      // Capitalize first letter of day and month
+      const parts = formattedDate.split(', ');
+      if (parts.length === 2) {
+        const [day, rest] = parts;
+        const capitalizedDay = capitalizeFirstLetter(day);
+        
+        // Find the month part (after the day number and period)
+        const monthParts = rest.split('. ');
+        if (monthParts.length === 2) {
+          const [dayNum, month] = monthParts;
+          const capitalizedMonth = capitalizeFirstLetter(month);
+          return `${capitalizedDay}, ${dayNum}. ${capitalizedMonth}`;
+        }
+        
+        return `${capitalizedDay}, ${rest}`;
+      }
+      return formattedDate;
+    } else {
+      // For English, just use the default formatter
+      return format(date, 'EEEE, d MMMM', { locale });
+    }
   } catch (e) {
     console.error('Error formatting date with capital:', e);
     return dateString;

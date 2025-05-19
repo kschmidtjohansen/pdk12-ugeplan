@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
 import { format, parseISO } from 'date-fns';
 import { da } from 'date-fns/locale';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, MapPin, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Car } from '@/types/car';
 import { useTranslation } from '@/context/TranslationContext';
@@ -69,24 +69,32 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Location field - now in the position of the title */}
       <div>
-        <Label htmlFor="title">{t('planner.title')}</Label>
-        <Input 
-          id="title" 
-          value={title} 
-          onChange={(e) => setTitle(e.target.value)} 
-          placeholder={t('planner.title')}
-          required
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="location">{t('planner.location')}</Label>
+        <Label htmlFor="location" className="flex items-center">
+          <MapPin className="h-4 w-4 mr-2" />
+          {t('planner.location')}
+        </Label>
         <Input 
           id="location" 
           value={location} 
           onChange={(e) => setLocation(e.target.value)} 
           placeholder={t('planner.enterLocation')}
+          required
+        />
+      </div>
+
+      {/* Title field - now in the position of the location (case number) */}
+      <div>
+        <Label htmlFor="title" className="flex items-center">
+          <Tag className="h-4 w-4 mr-2" />
+          {t('planner.title')}
+        </Label>
+        <Input 
+          id="title" 
+          value={title} 
+          onChange={(e) => setTitle(e.target.value)} 
+          placeholder={t('planner.title')}
           required
         />
       </div>
