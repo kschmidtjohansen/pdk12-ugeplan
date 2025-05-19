@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Car, Clock, MapPin, Users } from 'lucide-react';
+import { Car, Clock, Tag, Users } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 
@@ -26,7 +27,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-sm">
       {assignment.title && (
         <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 flex-shrink-0 text-gray-500" />
+          <Tag className="w-4 h-4 flex-shrink-0 text-gray-500" />
           <span className="truncate">{assignment.title}</span>
         </div>
       )}

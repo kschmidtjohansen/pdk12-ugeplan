@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
@@ -6,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -57,6 +58,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 }) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : undefined;
+  // Add state for controlling the calendar popover
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   // Set default end time based on whether the selected date is a Friday
   React.useEffect(() => {
@@ -99,7 +102,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       <div className="grid grid-cols-1 gap-4">
         <div>
           <Label>{t('planner.assignmentDate')}</Label>
-          <Popover>
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -116,7 +119,10 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
               <Calendar
                 mode="single"
                 selected={selectedDate}
-                onSelect={setSelectedDate}
+                onSelect={(date) => {
+                  setSelectedDate(date);
+                  setCalendarOpen(false); // Close the popover when a date is selected
+                }}
                 initialFocus
                 locale={locale}
                 className="pointer-events-auto"
