@@ -42,7 +42,8 @@ const DaySection: React.FC<DaySectionProps> = ({
   // Log the formatted date for troubleshooting
   console.log(`Formatted date for ${dateKey}: ${formattedDate} (${currentLanguage})`);
   
-  const hasUnpublishedAssignments = dayAssignments.some(a => !a.published);
+  // Fix: Make sure dayAssignments is an array before calling some()
+  const hasUnpublishedAssignments = Array.isArray(dayAssignments) && dayAssignments.some(a => !a.published);
 
   // Determine task text based on language and count
   const taskText = currentLanguage === 'da' 
@@ -77,7 +78,7 @@ const DaySection: React.FC<DaySectionProps> = ({
       
       {isExpanded && (
         <div className="w-full grid grid-cols-1 gap-4">
-          {dayAssignments.length > 0 ? (
+          {Array.isArray(dayAssignments) && dayAssignments.length > 0 ? (
             dayAssignments.map((assignment) => (
               <AssignmentCard
                 key={assignment.id}
