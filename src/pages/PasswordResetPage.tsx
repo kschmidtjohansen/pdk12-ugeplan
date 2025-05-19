@@ -21,63 +21,53 @@ const PasswordResetPage: React.FC = () => {
   const [token, setToken] = useState<string | null>(null);
   const [tokenError, setTokenError] = useState<string | null>(null);
   
-  // Extract the token from the URL or query parameters
+  // Enhanced token extraction with better handling of Supabase formats
   useEffect(() => {
-    const extractToken = () => {
-      console.log("Starting token extraction...");
+    const extractToken = async () => {
+      console.log("Starting enhanced token extraction...");
       
       try {
-        // First check if we have the token in the auth state
-        supabase.auth.getSession().then(({ data }) => {
-          if (data.session?.access_token) {
-            console.log("Found token in session");
-            setToken(data.session.access_token);
-            return;
-          } else {
-            // If no token in auth state, check the URL
-            
-            // Check if we have a hash fragment in the URL (from redirect)
-            if (location.hash) {
-              console.log("Found hash fragment in URL:", location.hash);
-              try {
-                // Parse the hash fragment (remove leading #)
-                const hashParams = new URLSearchParams(location.hash.substring(1));
-                
-                // Check for different parameter names Supabase might use
-                const accessToken = 
-                  hashParams.get('access_token') || 
-                  hashParams.get('token') ||
-                  hashParams.get('refresh_token') ||
-                  hashParams.get('type');
-                  
-                if (accessToken) {
-                  console.log("Found token in hash fragment");
-                  setToken(accessToken);
-                  return;
-                }
-              } catch (error) {
-                console.error("Error parsing hash fragment:", error);
-              }
-            }
+        // Check if the URL has the form '#access_token=xxx&refresh_token=yyy&type=zzz'
+        // which is Supabase's redirect format after password reset
+        const hashParams = location.hash ? new URLSearchParams(location.hash.substring(1)) : null;
+        const accessToken = hashParams?.get('access_token');
+        const type = hashParams?.get('type');
+        
+        console.log("Hash parameters:", { accessToken: accessToken ? "exists" : "none", type });
+        
+        // If we found an access_token in the hash and the type is 'recovery', use it
+        if (accessToken && type === 'recovery') {
+          console.log("Found recovery access token in hash");
+          setToken(accessToken);
+          
+          // Set the access token in Supabase session
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: hashParams.get('refresh_token') || '',
+          });
+          return;
+        }
 
-            // Check if we have query parameters
-            try {
-              const queryParams = new URLSearchParams(location.search);
-              const queryToken = queryParams.get('token') || queryParams.get('access_token');
-              if (queryToken) {
-                console.log("Found token in query params");
-                setToken(queryToken);
-                return;
-              }
-            } catch (error) {
-              console.error("Error parsing query parameters:", error);
-            }
-            
-            // If we reach this point, we couldn't find a token
-            console.log("No token found in URL");
-            setTokenError(t('login.invalidOrExpiredToken'));
-          }
-        });
+        // If no token in hash, check query parameters (older Supabase format)
+        const queryParams = new URLSearchParams(location.search);
+        const queryToken = queryParams.get('token') || queryParams.get('access_token');
+        if (queryToken) {
+          console.log("Found token in query params");
+          setToken(queryToken);
+          return;
+        }
+        
+        // If neither hash nor query parameters have a token, check the session
+        const { data } = await supabase.auth.getSession();
+        if (data.session?.access_token) {
+          console.log("Found token in session");
+          setToken(data.session.access_token);
+          return;
+        }
+        
+        // If we reach this point, we couldn't find a token
+        console.log("No token found in URL or session");
+        setTokenError(t('login.invalidOrExpiredToken'));
       } catch (error) {
         console.error("Error in token extraction:", error);
         setTokenError(t('login.invalidOrExpiredToken'));

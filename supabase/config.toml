@@ -3,7 +3,7 @@ project_id = "cyuyrpwtkljfiqwgasmn"
 
 [auth.redirect]
 site_url = "https://www.pdk12.dk"
-redirect_urls = ["https://www.pdk12.dk/login", "https://www.pdk12.dk/password-reset", "https://www.pdk12.dk/reset-password"]
+redirect_urls = ["https://www.pdk12.dk/login", "https://www.pdk12.dk/password-reset", "https://www.pdk12.dk/reset-password", "https://www.pdk12.dk"]
 
 [functions.admin-create-user]
 verify_jwt = true

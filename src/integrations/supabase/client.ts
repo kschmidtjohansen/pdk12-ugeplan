@@ -42,6 +42,10 @@ const handleSupabaseError = (error: any) => {
       console.error('Row-level security policy error');
     } else if (error.code === 'P0001') {
       console.error('Database constraint violation');
+    } else if (error.code === 'refresh_token_not_found') {
+      console.error('Authentication token issue: Refresh token not found');
+    } else if (error.code === 'invalid_token') {
+      console.error('Authentication token issue: Invalid token');
     }
   }
 };
