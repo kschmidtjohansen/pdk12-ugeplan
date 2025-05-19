@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, getISOWeek } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Vacation } from '@/types/vacation';
@@ -37,7 +37,11 @@ const EmployeeVacationStatus: React.FC<EmployeeVacationStatusProps> = ({ vacatio
     return new Date(startDate) <= today;
   };
 
-  const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
+  // Format function for dates with week numbers
+  const formatDateWithWeek = (date: Date): string => {
+    const weekNumber = getISOWeek(date);
+    return `${format(date, currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy')} (${t('common.week')} ${weekNumber})`;
+  };
   
   return (
     <Card className="mt-8">
@@ -62,7 +66,7 @@ const EmployeeVacationStatus: React.FC<EmployeeVacationStatusProps> = ({ vacatio
               <TableRow key={vacation.id}>
                 <TableCell className="font-medium">{vacation.employeeName}</TableCell>
                 <TableCell>
-                  {format(new Date(vacation.startDate), dateFormat)} - {format(new Date(vacation.endDate), dateFormat)}
+                  {formatDateWithWeek(new Date(vacation.startDate))} - {formatDateWithWeek(new Date(vacation.endDate))}
                 </TableCell>
                 <TableCell>{vacation.reason}</TableCell>
                 <TableCell>

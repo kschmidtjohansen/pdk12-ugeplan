@@ -19,6 +19,7 @@ const da = {
     ...common,
     yes: 'Ja',
     no: 'Nej',
+    week: 'Uge',
     available: 'Tilgængelig',
     unavailable: 'Ikke tilgængelig'
   },

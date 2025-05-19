@@ -1,10 +1,10 @@
 
-import index from "./en/index";
-import navigation from "./en/navigation";
-import notifications from "./en/notifications";
-import employees from "./en/employees";
-import vacation from "./en/vacation";
-import common from "./en/common";
+import common from './en/common';
+import navigation from './en/navigation';
+import notifications from './en/notifications';
+import index from './en/index';
+import dashboard from './en/dashboard';
+import vacation from './en/vacation';
 
 const en = {
   // Common components
@@ -12,6 +12,7 @@ const en = {
     ...common,
     yes: 'Yes',
     no: 'No',
+    week: 'Week',
     available: 'Available',
     unavailable: 'Unavailable'
   },
@@ -21,207 +22,10 @@ const en = {
   notifications: notifications,
   // Index page
   index: index,
-  // Access denied
-  accessDenied: {
-    title: "Access Denied",
-    description: "You do not have the required permissions to access this page.",
-    goHome: "Go to Home"
-  },
-  // Login page
-  login: {
-    title: "Sign in",
-    description: "Enter your email below to sign in to your account",
-    email: "Email",
-    password: "Password",
-    signIn: "Sign In",
-    forgotPassword: "Forgot Password?",
-    resetPassword: "Reset Password",
-    backToLogin: "Back to Login",
-    emailPlaceholder: "Enter your email",
-    passwordPlaceholder: "Enter your password",
-    resetPasswordSuccess: "Check your email",
-    resetPasswordDescription: "We've sent you a link to reset your password.",
-    resetYourPassword: "Reset your password",
-    resetPasswordDescriptionPage: "Enter your new password below.",
-    newPassword: "New Password",
-    confirmPassword: "Confirm Password",
-    updatePassword: "Update Password",
-    passwordsDontMatch: "Passwords don't match",
-    passwordTooShort: "Password must be at least 6 characters",
-    passwordUpdated: "Password updated successfully",
-    passwordError: "Error updating password",
-    invalidOrExpiredToken: "Invalid or expired token",
-    unexpectedError: "An unexpected error occurred"
-  },
-  // Admin pages
-  admin: {
-    pageTitle: "Admin Dashboard",
-    pageDescription: "Manage users, system settings, and view system metrics",
-    createUser: "Create User",
-    addNewUser: "Add New User",
-    editUser: "Edit User",
-    userManagerDescription: "View and manage users in the system.",
-    userCreated: "User created",
-    userCreatedMessage: "The user {name} has been created. An email has been sent with initial login instructions.",
-    userUpdated: "User updated",
-    userUpdatedMessage: "The user {name} has been updated.",
-    userDeleted: "User deleted",
-    userDeletedMessage: "The user {name} has been deleted.",
-    name: "Name",
-    email: "Email",
-    jobTitle: "Job Title",
-    phone: "Phone",
-    role: "Role",
-    createPassword: "Create Password",
-    addUser: "Add User",
-    saveChanges: "Save Changes",
-    systemMetrics: "System Metrics",
-    usersMetric: "Users",
-    activeAssignments: "Active Assignments",
-    vacationCount: "Approved Vacations",
-    assignmentStats: "Assignment Statistics",
-    administrator: "Administrator",
-    skadeleder: "Skadeleder",
-    servicemedarbejder: "Servicemedarbejder",
-    passwordReset: "Reset Password",
-    passwordResetDesc: "Reset the password for {name}.",
-    passwordResetSuccess: "Password reset email sent",
-    passwordResetSuccessDesc: "An email with password reset instructions has been sent to {email}.",
-    errorCreatingUser: "Error creating user",
-    errorUpdatingUser: "Error updating user",
-    errorDeletingUser: "Error deleting user",
-    confirmUserDelete: "Delete User",
-    confirmUserDeleteDescription: "Are you sure you want to delete this user? This action cannot be undone.",
-    generateRandomPassword: "Generate Random Password",
-    deleteUser: "Delete User",
-    deleteUserDesc: "Delete the user {name} and all their data.",
-    confirmRoleChange: "Change Role",
-    confirmRoleChangeDescription: "Are you sure you want to change this user's role? This will affect what features they can access.",
-    changeRole: "Change Role"
-  },
-  // Employees page
-  employees: employees,
-  // Planner page
-  planner: {
-    pageTitle: "Planner",
-    pageDescription: "Create and manage assignments for employees",
-    createAssignment: "Create Assignment",
-    showPastAssignments: "Show Past Assignments",
-    hidePastAssignments: "Hide Past Assignments",
-    today: "Today",
-    upcomingAssignments: "Upcoming Assignments",
-    pastAssignments: "Past Assignments",
-    userAvailability: "Employee Availability",
-    available: "Available",
-    onLeave: "On Leave",
-    noAssignments: "No assignments on this day",
-    noUpcomingAssignments: "No upcoming assignments",
-    noPastAssignments: "No past assignments",
-    noEmployeesSelected: "No employees selected",
-    enterLocation: "Enter location",
-    startTime: "Start time",
-    endTime: "End time",
-    notes: "Notes",
-    notesPlaceholder: "Enter any special instructions or details",
-    selectCar: "Select Car",
-    chooseEmployees: "Choose Employees",
-    typeWaterDamage: "Water Damage",
-    typeFireDamage: "Fire Damage",
-    typeMold: "Mold",
-    typeOther: "Other",
-    created: "Created",
-    edited: "Edited",
-    deleted: "Deleted",
-    assignmentDetails: "Assignment Details",
-    showDetails: "Show Details",
-    creatingAssignment: "Create Assignment",
-    editingAssignment: "Edit Assignment",
-    createdSuccess: "Assignment created successfully",
-    updatedSuccess: "Assignment updated successfully",
-    deletedSuccess: "Assignment deleted successfully",
-    error: "Error",
-    errorCreatingAssignment: "Error creating assignment",
-    errorUpdatingAssignment: "Error updating assignment",
-    errorDeletingAssignment: "Error deleting assignment",
-    statusPending: "Pending",
-    statusPublished: "Published",
-    publish: "Publish",
-    unpublish: "Unpublish",
-    publishDesc: "Publish this assignment to make it visible to employees",
-    unpublishDesc: "Unpublish this assignment to hide it from employees",
-    publishSuccess: "Assignment published successfully",
-    unpublishSuccess: "Assignment unpublished successfully",
-    confirmPublish: "Publish Assignment",
-    confirmUnpublish: "Unpublish Assignment",
-    confirmPublishDescription: "Are you sure you want to publish this assignment? Employees will be notified.",
-    confirmUnpublishDescription: "Are you sure you want to unpublish this assignment? It will be hidden from employees.",
-    published: "Published",
-    notPublished: "Not Published",
-    assignmentDate: "Date",
-    period: "Period",
-    employeeNotAvailable: "Not available",
-    deleteAssignment: "Delete Assignment",
-    deleteAssignmentConfirmation: "Are you sure you want to delete this assignment? This action cannot be undone.",
-    assignmentType: "Type",
-    allAssignmentsPublished: "All assignments for the day have been published",
-    noAssignmentsToPublish: "No assignments to publish"
-  },
   // Dashboard
-  dashboard: {
-    pageTitle: "Dashboard",
-    pageDescription: "Overview of ongoing activities and key metrics",
-    welcomeBack: "Welcome Back, {name}",
-    todaysAssignments: "Today's Assignments",
-    upcomingVacations: "Upcoming Vacations",
-    vehicleStatus: "Vehicle Status",
-    allEmployees: "All Employees",
-    assignmentsThisWeek: "Assignments This Week",
-    approvedVacations: "Approved Vacations",
-    activeEmployees: "Active Employees",
-    assignmentDistribution: "Assignment Distribution",
-    employeeAvailability: "Employee Availability",
-    noAssignmentsToday: "No assignments scheduled for today",
-    viewAllAssignments: "View All Assignments",
-    noUpcomingVacations: "No upcoming vacations",
-    viewAllVacations: "View All Vacations",
-    available: "Available",
-    inUse: "In Use",
-    numberOfAssignments: "Number of Assignments",
-    systemMetrics: "System Metrics",
-    availableFor: "Available for work"
-  },
+  dashboard: dashboard,
   // Vacation
   vacation: vacation,
-  // Cars
-  cars: {
-    title: "Cars",
-    description: "Department vehicles and their details",
-    addVehicle: "Add Vehicle",
-    vehicleName: "Vehicle Name",
-    carNumber: "Car Number",
-    numberPlate: "License Plate",
-    fuelCardCode: "Fuel Card Code",
-    editVehicle: "Edit Vehicle",
-    addNewVehicle: "Add New Vehicle",
-    updateVehicleInfo: "Update vehicle information.",
-    addNewVehicleDesc: "Add a new vehicle to the department.",
-    vehicleUpdated: "Vehicle updated",
-    vehicleAdded: "Vehicle added",
-    vehicleDeleted: "Vehicle deleted",
-    vehicleUpdatedMsg: "{name}'s information has been updated.",
-    vehicleAddedMsg: "{name} has been added to the department.",
-    vehicleDeletedMsg: "{name} has been removed from the department.",
-    hasTrailerHitch: "Has trailer hitch",
-    isAvailable: "Is available"
-  },
-  // Delete confirmations
-  deleteConfirm: {
-    title: "Delete {item}",
-    description: "Are you sure you want to delete this {item}? This action cannot be undone.",
-    cancel: "Cancel",
-    confirm: "Delete",
-    item: "item"
-  },
 };
 
 export type EnTranslations = typeof en;

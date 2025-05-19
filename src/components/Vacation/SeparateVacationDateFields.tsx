@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { format } from 'date-fns';
+import { format, getISOWeek } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -28,6 +28,14 @@ const SeparateVacationDateFields: React.FC<SeparateVacationDateFieldsProps> = ({
   const locale = currentLanguage === 'da' ? da : undefined;
   const dateFormat = "d. MMM yyyy";
 
+  // Format date with week number
+  const formatDateWithWeek = (date: Date | undefined) => {
+    if (!date) return null;
+    
+    const weekNumber = getISOWeek(date);
+    return `${format(date, dateFormat, { locale })} (${t('common.week')} ${weekNumber})`;
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
@@ -45,7 +53,7 @@ const SeparateVacationDateFields: React.FC<SeparateVacationDateFieldsProps> = ({
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {startDate ? (
-                format(startDate, dateFormat, { locale })
+                formatDateWithWeek(startDate)
               ) : (
                 <span>{t("vacation.selectStartDate")}</span>
               )}
@@ -85,7 +93,7 @@ const SeparateVacationDateFields: React.FC<SeparateVacationDateFieldsProps> = ({
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {endDate ? (
-                format(endDate, dateFormat, { locale })
+                formatDateWithWeek(endDate)
               ) : (
                 <span>{t("vacation.selectEndDate")}</span>
               )}

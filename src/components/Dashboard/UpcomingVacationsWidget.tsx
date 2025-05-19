@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from '@/context/TranslationContext';
 import { Vacation } from '@/types/vacation';
 import { CalendarClock, User } from 'lucide-react';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, getISOWeek } from 'date-fns';
 import { da, enGB } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 
@@ -39,6 +39,12 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
     return new Date(startDate) <= today;
   };
 
+  // Format date with week number
+  const formatDateWithWeek = (date: Date): string => {
+    const week = getISOWeek(date);
+    return `${format(date, 'PPP', { locale: dateLocale })} (${t('common.week')} ${week})`;
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -65,7 +71,7 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
                     <div>
                       <p className="text-sm font-medium">{vacation.employeeName}</p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(vacation.startDate), 'PPP', { locale: dateLocale })} - {format(new Date(vacation.endDate), 'PPP', { locale: dateLocale })}
+                        {formatDateWithWeek(new Date(vacation.startDate))} - {formatDateWithWeek(new Date(vacation.endDate))}
                       </p>
                     </div>
                   </div>
