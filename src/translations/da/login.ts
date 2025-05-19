@@ -30,7 +30,19 @@ const login = {
     resetButton: 'Nulstil adgangskode',
     passwordUpdated: 'Din adgangskode er blevet opdateret!',
     resetError: 'Der opstod en fejl ved nulstilling af din adgangskode. Prøv venligst igen.'
-  }
+  },
+  resetYourPassword: 'Nulstil din adgangskode',
+  invalidOrExpiredToken: 'Ugyldigt eller udløbet token',
+  resetPasswordDescriptionPage: 'Indtast din nye adgangskode nedenfor.',
+  newPassword: 'Ny adgangskode',
+  confirmPassword: 'Bekræft adgangskode',
+  updatePassword: 'Opdater adgangskode',
+  passwordsDontMatch: 'Adgangskoderne stemmer ikke overens',
+  passwordTooShort: 'Adgangskoden skal være mindst 6 tegn',
+  passwordUpdated: 'Din adgangskode er blevet opdateret!',
+  passwordError: 'Der opstod en fejl ved opdatering af din adgangskode',
+  unexpectedError: 'Der opstod en uventet fejl',
+  backToLogin: 'Tilbage til login'
 };
 
 export default login;

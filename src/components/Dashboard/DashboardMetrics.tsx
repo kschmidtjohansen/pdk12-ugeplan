@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useVacations } from '@/hooks/useVacations';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -111,7 +112,9 @@ const DashboardMetrics: React.FC = () => {
   const onLeaveEmployeesCount = onLeaveEmployees.length;
   const totalFilteredEmployees = filteredEmployees.length;
   
-  const availableCars = cars.length;
+  // Filter cars to only include those marked as available
+  const availableCarsCount = cars.filter(car => car.is_available).length;
+  const totalCarsCount = cars.length;
 
   // Format today's date with proper locale
   const getFormattedToday = () => {
@@ -192,9 +195,9 @@ const DashboardMetrics: React.FC = () => {
               <CarFront className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{availableCars}</div>
+              <div className="text-2xl font-bold">{availableCarsCount}</div>
               <p className="text-xs text-muted-foreground">
-                {t('dashboard.totalCars', { count: availableCars })}
+                {t('dashboard.totalCars', { count: totalCarsCount })}
               </p>
             </CardContent>
           </Card>

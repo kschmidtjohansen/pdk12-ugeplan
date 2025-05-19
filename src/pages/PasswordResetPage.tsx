@@ -26,41 +26,62 @@ const PasswordResetPage: React.FC = () => {
     const extractToken = () => {
       console.log("Starting token extraction...");
       
-      // Check if we have a hash fragment in the URL (from redirect)
-      if (location.hash) {
-        console.log("Found hash fragment in URL:", location.hash);
-        try {
-          // Parse the hash fragment (remove leading #)
-          const hashParams = new URLSearchParams(location.hash.substring(1));
-          
-          // Check for 'access_token' or 'token' parameter
-          const accessToken = hashParams.get('access_token') || hashParams.get('token');
-          if (accessToken) {
-            console.log("Found token in hash fragment");
-            setToken(accessToken);
-            return;
-          }
-        } catch (error) {
-          console.error("Error parsing hash fragment:", error);
-        }
-      }
-
-      // Check if we have query parameters
       try {
-        const queryParams = new URLSearchParams(location.search);
-        const queryToken = queryParams.get('token');
-        if (queryToken) {
-          console.log("Found token in query params");
-          setToken(queryToken);
-          return;
-        }
+        // First check if we have the token in the auth state
+        supabase.auth.getSession().then(({ data }) => {
+          if (data.session?.access_token) {
+            console.log("Found token in session");
+            setToken(data.session.access_token);
+            return;
+          } else {
+            // If no token in auth state, check the URL
+            
+            // Check if we have a hash fragment in the URL (from redirect)
+            if (location.hash) {
+              console.log("Found hash fragment in URL:", location.hash);
+              try {
+                // Parse the hash fragment (remove leading #)
+                const hashParams = new URLSearchParams(location.hash.substring(1));
+                
+                // Check for different parameter names Supabase might use
+                const accessToken = 
+                  hashParams.get('access_token') || 
+                  hashParams.get('token') ||
+                  hashParams.get('refresh_token') ||
+                  hashParams.get('type');
+                  
+                if (accessToken) {
+                  console.log("Found token in hash fragment");
+                  setToken(accessToken);
+                  return;
+                }
+              } catch (error) {
+                console.error("Error parsing hash fragment:", error);
+              }
+            }
+
+            // Check if we have query parameters
+            try {
+              const queryParams = new URLSearchParams(location.search);
+              const queryToken = queryParams.get('token') || queryParams.get('access_token');
+              if (queryToken) {
+                console.log("Found token in query params");
+                setToken(queryToken);
+                return;
+              }
+            } catch (error) {
+              console.error("Error parsing query parameters:", error);
+            }
+            
+            // If we reach this point, we couldn't find a token
+            console.log("No token found in URL");
+            setTokenError(t('login.invalidOrExpiredToken'));
+          }
+        });
       } catch (error) {
-        console.error("Error parsing query parameters:", error);
+        console.error("Error in token extraction:", error);
+        setTokenError(t('login.invalidOrExpiredToken'));
       }
-      
-      // If we reach this point, we couldn't find a token
-      console.log("No token found in URL");
-      setTokenError(t('login.invalidOrExpiredToken'));
     };
 
     extractToken();
@@ -91,11 +112,6 @@ const PasswordResetPage: React.FC = () => {
     try {
       console.log("Attempting to update password with token");
       
-      if (!token) {
-        throw new Error("No token available");
-      }
-      
-      // Update the password using the token
       const { error, data } = await supabase.auth.updateUser({
         password: password
       });
