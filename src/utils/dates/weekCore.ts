@@ -82,6 +82,30 @@ export const getCurrentWeekDates = () => {
   return getWeekDates(week, year);
 };
 
+/**
+ * Get all days in the week as formatted date strings (YYYY-MM-DD)
+ * @param dateRange Object with start and end dates
+ * @returns Array of formatted date strings
+ */
+export const getAllWeekDays = (dateRange: { start: Date; end: Date }) => {
+  const { start, end } = dateRange;
+  
+  // Create an array to hold all dates
+  const allDays: string[] = [];
+  
+  // Clone the start date to avoid modifying original
+  const currentDate = new Date(start);
+  
+  // Loop through each day, adding to array
+  while (currentDate <= end) {
+    allDays.push(format(currentDate, 'yyyy-MM-dd'));
+    // Move to next day
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  return allDays;
+};
+
 // These functions are kept for backward compatibility but may be deprecated in future
 export const getCurrentWeekNumber = () => getCurrentWeekInfo().week;
 
