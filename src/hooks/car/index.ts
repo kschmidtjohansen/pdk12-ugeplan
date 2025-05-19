@@ -15,7 +15,8 @@ export const useCars = () => {
     deleteDialogOpen,
     setDeleteDialogOpen,
     handleDelete,
-    confirmDelete
+    confirmDelete,
+    toggleAvailability
   } = useCarActions(cars, setCars);
 
   const {
@@ -61,7 +62,8 @@ export const useCars = () => {
     handleInputChange,
     handleCheckboxChange,
     handleSubmit,
-    fetchCars
+    fetchCars,
+    toggleAvailability
   };
 };
 
