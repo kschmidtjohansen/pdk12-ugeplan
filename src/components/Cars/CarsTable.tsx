@@ -48,6 +48,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
               <TableHead>{t('cars.numberPlate')}</TableHead>
               {canViewFuelCardCode && <TableHead>{t('cars.fuelCardCode')}</TableHead>}
               <TableHead>{t('cars.hasTrailerHitch')}</TableHead>
+              <TableHead>{t('cars.isAvailable')}</TableHead>
               {isAdmin && <TableHead className="w-[100px]">{t('common.actions')}</TableHead>}
             </TableRow>
           </TableHeader>
@@ -77,6 +78,19 @@ const CarsTable: React.FC<CarsTableProps> = ({
                     <div className="flex items-center">
                       <X className="h-4 w-4 mr-1 text-red-500" />
                       <span>{t('common.no')}</span>
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {car.is_available ? (
+                    <div className="flex items-center">
+                      <Check className="h-4 w-4 mr-1 text-green-500" />
+                      <span>{t('common.available')}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      <X className="h-4 w-4 mr-1 text-red-500" />
+                      <span>{t('common.unavailable')}</span>
                     </div>
                   )}
                 </TableCell>

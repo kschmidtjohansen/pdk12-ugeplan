@@ -151,7 +151,6 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         setReason={setReason}
         note={note}
         setNote={setNote}
-        // Add the missing props
         startDate={startDate}
         endDate={endDate}
         setStartDate={setStartDate}

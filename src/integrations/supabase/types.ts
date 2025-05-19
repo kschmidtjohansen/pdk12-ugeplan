@@ -92,6 +92,7 @@ export type Database = {
           fuel_card_code: string
           has_trailer_hitch: boolean | null
           id: string
+          is_available: boolean
           name: string
           number_plate: string
           updated_at: string
@@ -102,6 +103,7 @@ export type Database = {
           fuel_card_code: string
           has_trailer_hitch?: boolean | null
           id?: string
+          is_available?: boolean
           name: string
           number_plate: string
           updated_at?: string
@@ -112,6 +114,7 @@ export type Database = {
           fuel_card_code?: string
           has_trailer_hitch?: boolean | null
           id?: string
+          is_available?: boolean
           name?: string
           number_plate?: string
           updated_at?: string

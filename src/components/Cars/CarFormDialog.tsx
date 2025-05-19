@@ -114,6 +114,15 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
             />
             <Label htmlFor="has_trailer_hitch">{t('cars.hasTrailerHitch')}</Label>
           </div>
+
+          <div className="flex items-center space-x-2 mt-4">
+            <Checkbox 
+              id="is_available"
+              checked={formData.is_available} 
+              onCheckedChange={(checked) => handleCheckboxChange('is_available', checked === true)}
+            />
+            <Label htmlFor="is_available">{t('cars.isAvailable')}</Label>
+          </div>
           
           <DialogFooter>
             <Button 

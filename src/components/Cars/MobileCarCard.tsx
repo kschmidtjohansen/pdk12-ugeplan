@@ -90,7 +90,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
               <code className="bg-gray-100 p-1 rounded">{car.fuel_card_code}</code>
             </div>
           )}
-          <div className="col-span-2">
+          <div className="col-span-1">
             <p className="text-muted-foreground">{t('cars.hasTrailerHitch')}:</p>
             <div className="flex items-center">
               {car.has_trailer_hitch ? (
@@ -102,6 +102,22 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                 <>
                   <X className="h-4 w-4 mr-1 text-red-500" />
                   <span>{t('common.no')}</span>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="col-span-1">
+            <p className="text-muted-foreground">{t('cars.isAvailable')}:</p>
+            <div className="flex items-center">
+              {car.is_available ? (
+                <>
+                  <Check className="h-4 w-4 mr-1 text-green-500" />
+                  <span>{t('common.available')}</span>
+                </>
+              ) : (
+                <>
+                  <X className="h-4 w-4 mr-1 text-red-500" />
+                  <span>{t('common.unavailable')}</span>
                 </>
               )}
             </div>

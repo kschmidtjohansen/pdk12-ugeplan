@@ -26,6 +26,7 @@ export const useCarFormState = ({
     number_plate: '',
     fuel_card_code: '',
     has_trailer_hitch: false,
+    is_available: true,
   });
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -38,6 +39,7 @@ export const useCarFormState = ({
       number_plate: '',
       fuel_card_code: '',
       has_trailer_hitch: false,
+      is_available: true,
     });
     setDialogOpen(true);
   };
@@ -49,6 +51,7 @@ export const useCarFormState = ({
       number_plate: car.number_plate,
       fuel_card_code: car.fuel_card_code,
       has_trailer_hitch: car.has_trailer_hitch || false,
+      is_available: car.is_available,
     });
   };
 
@@ -81,6 +84,7 @@ export const useCarFormState = ({
             number_plate: formData.number_plate,
             fuel_card_code: formData.fuel_card_code,
             has_trailer_hitch: formData.has_trailer_hitch,
+            is_available: formData.is_available,
             updated_at: new Date().toISOString()
           })
           .eq('id', currentCar.id);
@@ -109,6 +113,7 @@ export const useCarFormState = ({
               number_plate: formData.number_plate,
               fuel_card_code: formData.fuel_card_code,
               has_trailer_hitch: formData.has_trailer_hitch,
+              is_available: formData.is_available,
             }
           ])
           .select();

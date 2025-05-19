@@ -29,15 +29,21 @@ const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
     });
   };
 
+  // Function to determine if a car is available (based on is_available flag and current assignments)
+  const isCarAvailable = (car: Car): boolean => {
+    return car.is_available && !isCarInUse(car.id);
+  };
+
   // Calculate total and available based on actual cars data
   const totalVehicles = cars.length;
-  const availableVehicles = cars.filter(car => !isCarInUse(car.id)).length;
+  const availableVehicles = cars.filter(car => isCarAvailable(car)).length;
 
   // Use cars data to display actual status
   const carsToDisplay = cars && cars.length > 0 
     ? cars.map(car => ({
         ...car,
-        inUse: isCarInUse(car.id)
+        inUse: isCarInUse(car.id),
+        available: isCarAvailable(car)
       })).slice(0, 3) // Only show top 3 cars for the widget
     : [];
   
@@ -68,8 +74,12 @@ const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
                   </div>
                 </div>
                 <div>
-                  {(car as any).inUse ? (
+                  {!car.is_available ? (
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      <X className="h-3 w-3 mr-1" /> {t('common.unavailable')}
+                    </span>
+                  ) : (car as any).inUse ? (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                       <X className="h-3 w-3 mr-1" /> {t('dashboard.inUse')}
                     </span>
                   ) : (

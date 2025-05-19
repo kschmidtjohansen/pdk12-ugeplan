@@ -1,211 +1,191 @@
 
 import React from 'react';
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
-import { format } from 'date-fns';
-import { da } from 'date-fns/locale';
-import { useTranslation } from '@/context/TranslationContext';
-import { Employee } from '@/types/employee';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Calendar } from '../ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Button } from '../ui/button';
+import { format, parseISO } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Car } from '@/types/car';
+import { useTranslation } from '@/context/TranslationContext';
+import { getDefaultEndTime, isFriday } from '@/utils/dateUtils';
 
 interface AssignmentFormFieldsProps {
-  formData: any;
-  onFieldChange: (field: string, value: any) => void;
+  title: string;
+  setTitle: (value: string) => void;
+  location: string;
+  setLocation: (value: string) => void;
+  selectedDate: Date | undefined;
+  setSelectedDate: (date: Date | undefined) => void;
+  fromTime: string;
+  setFromTime: (value: string) => void;
+  toTime: string;
+  setToTime: (value: string) => void;
+  description: string;
+  setDescription: (value: string) => void;
+  assignmentType: string;
+  setAssignmentType: (value: string) => void;
+  selectedCarId: string;
+  setSelectedCarId: (value: string) => void;
   cars: Car[];
-  employees: Employee[];
+  assignmentId?: string;
 }
 
 const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
-  formData,
-  onFieldChange,
+  title,
+  setTitle,
+  location,
+  setLocation,
+  selectedDate,
+  setSelectedDate,
+  fromTime,
+  setFromTime,
+  toTime,
+  setToTime,
+  description,
+  setDescription,
+  assignmentType,
+  setAssignmentType,
+  selectedCarId,
+  setSelectedCarId,
   cars,
-  employees
+  assignmentId
 }) => {
-  const {
-    t,
-    currentLanguage
-  } = useTranslation();
+  const { t } = useTranslation();
 
-  // Always get a fresh current date for display
-  const freshCurrentDate = new Date();
-  const todayFormatted = format(freshCurrentDate, "yyyy-MM-dd");
-  console.log("[AssignmentFormFields] Fresh current system date:", todayFormatted);
-  console.log("[AssignmentFormFields] Input formData.date:", formData.date);
+  // Set default end time based on whether the selected date is a Friday
+  React.useEffect(() => {
+    if (selectedDate && (!toTime || toTime === '16:00' || toTime === '15:30')) {
+      const defaultEnd = getDefaultEndTime(selectedDate);
+      setToTime(defaultEnd);
+    }
+  }, [selectedDate, toTime, setToTime]);
 
-  // Helper function to safely handle date formatting
-  const formatDate = (dateString: string | undefined | null) => {
-    if (!dateString) {
-      console.log("[AssignmentFormFields] formatDate: No date provided, using fresh current date");
-      return todayFormatted;
-    }
-    
-    try {
-      // Use Danish locale if the current language is Danish
-      const locale = currentLanguage === 'da' ? da : undefined;
-      const formattedDate = format(new Date(dateString), "yyyy-MM-dd", {
-        locale
-      });
-      console.log(`[AssignmentFormFields] formatDate: Successfully formatted ${dateString} to ${formattedDate}`);
-      return formattedDate;
-    } catch (e) {
-      console.error("[AssignmentFormFields] formatDate: Invalid date format:", dateString, e);
-      return todayFormatted;
-    }
-  };
-
-  // Format date for display in the calendar button - always use a fresh calculation
-  const formatDisplayDate = (dateString: string | undefined | null) => {
-    console.log("[AssignmentFormFields] formatDisplayDate called with:", dateString);
-    
-    // Ensure we have a valid date to work with - ALWAYS try to use the provided date first
-    let dateToFormat: Date;
-    
-    if (dateString && dateString.trim() !== '') {
-      try {
-        // Parse the provided date string
-        dateToFormat = new Date(dateString);
-        
-        // Check if the date is valid
-        if (isNaN(dateToFormat.getTime())) {
-          console.warn("[AssignmentFormFields] formatDisplayDate: Invalid date provided:", dateString);
-          dateToFormat = freshCurrentDate; // Fallback to fresh current date
-        }
-      } catch (e) {
-        console.error("[AssignmentFormFields] formatDisplayDate: Error parsing date:", e);
-        dateToFormat = freshCurrentDate;
-      }
-    } else {
-      console.log("[AssignmentFormFields] formatDisplayDate: No date provided, using fresh current date");
-      dateToFormat = freshCurrentDate; // No date provided, use fresh current date
-    }
-    
-    // Use Danish locale if the current language is Danish
-    const locale = currentLanguage === 'da' ? da : undefined;
-    const result = format(dateToFormat, "d MMMM yyyy", { locale });
-    console.log("[AssignmentFormFields] formatDisplayDate: Returning formatted date:", result);
-    return result;
-  };
-
-  // Helper function to handle calendar date selection
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      try {
-        const formattedDate = format(date, 'yyyy-MM-dd');
-        console.log("[AssignmentFormFields] handleDateSelect: Selected date:", formattedDate);
-        onFieldChange('date', formattedDate);
-      } catch (e) {
-        console.error("[AssignmentFormFields] handleDateSelect: Error formatting date:", e);
-      }
-    } else {
-      console.log("[AssignmentFormFields] handleDateSelect: No date selected");
-    }
-  };
-
-  // Debug to see what's in formData
-  console.log("[AssignmentFormFields] FormFields - Current formData:", formData);
-  console.log("[AssignmentFormFields] FormFields - Cars data:", cars?.length || 0, "cars available");
-  console.log("[AssignmentFormFields] FormFields - Employees data:", employees?.length || 0, "employees available");
-  console.log("[AssignmentFormFields] FormFields - Fresh current date:", todayFormatted);
-  
-  // Determine the date to display in the calendar
-  // If formData.date is not valid, use current date
-  let calendarDate: Date;
-  try {
-    calendarDate = formData.date ? new Date(formData.date) : freshCurrentDate;
-    if (isNaN(calendarDate.getTime())) {
-      console.warn("[AssignmentFormFields] Invalid calendar date detected, using fresh current date instead");
-      calendarDate = freshCurrentDate;
-    }
-  } catch (e) {
-    console.error("[AssignmentFormFields] Error parsing calendar date:", e);
-    calendarDate = freshCurrentDate;
-  }
-  
-  console.log("[AssignmentFormFields] Calendar will display date:", format(calendarDate, "yyyy-MM-dd"));
-  
-  // Wrap the returned JSX in a fragment to fix the React error #185
   return (
-    <>
-      <div className="grid gap-2">
-        <Label htmlFor="title">{t('planner.assignmentTitle')}</Label>
-        <Input id="title" name="title" value={formData.title || ''} onChange={e => onFieldChange('title', e.target.value)} />
-      </div>
-      
-      <div className="grid gap-2">
-        <Label htmlFor="description">{t('planner.description')}</Label>
-        <Textarea id="description" name="description" value={formData.description || ''} onChange={e => onFieldChange('description', e.target.value)} />
-      </div>
-      
-      <div className="grid gap-2">
-        <Label htmlFor="date">{t('planner.date')}</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button 
-              type="button" 
-              variant={"outline"} 
-              className={"w-[280px] justify-start text-left font-normal text-foreground"}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {formatDisplayDate(formData.date)}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar 
-              mode="single" 
-              selected={calendarDate} 
-              onSelect={handleDateSelect} 
-              locale={currentLanguage === 'da' ? da : undefined} 
-              weekStartsOn={1} // 1 means Monday is the first day
-              className="rounded-md border p-3 pointer-events-auto" 
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="fromTime">{t('planner.from')}</Label>
-          <Input type="time" id="fromTime" name="fromTime" value={formData.fromTime || '08:00'} onChange={e => onFieldChange('fromTime', e.target.value)} />
-        </div>
-        
-        <div className="grid gap-2">
-          <Label htmlFor="toTime">{t('planner.to')}</Label>
-          <Input type="time" id="toTime" name="toTime" value={formData.toTime || '16:00'} onChange={e => onFieldChange('toTime', e.target.value)} />
-        </div>
-      </div>
-      
-      <div className="grid gap-2">
-        <Label htmlFor="location">{t('planner.location')}</Label>
-        <Input id="location" name="location" value={formData.location || ''} onChange={e => onFieldChange('location', e.target.value)} />
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="title">{t('planner.title')}</Label>
+        <Input 
+          id="title" 
+          value={title} 
+          onChange={(e) => setTitle(e.target.value)} 
+          placeholder={t('planner.title')}
+          required
+        />
       </div>
 
-      {cars && cars.length > 0 && (
-        <div className="grid gap-2">
-          <Label htmlFor="car">{t('planner.car')}</Label>
-          <Select 
-            value={typeof formData.car === 'string' ? formData.car : formData.car?.id || ''} 
-            onValueChange={value => onFieldChange('car', value)}
-          >
-            <SelectTrigger id="car">
-              <SelectValue placeholder={t('planner.selectCar')} />
+      <div>
+        <Label htmlFor="location">{t('planner.location')}</Label>
+        <Input 
+          id="location" 
+          value={location} 
+          onChange={(e) => setLocation(e.target.value)} 
+          placeholder={t('planner.enterLocation')}
+          required
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label>{t('planner.assignmentDate')}</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div>
+          <Label htmlFor="type">{t('planner.assignmentType')}</Label>
+          <Select value={assignmentType} onValueChange={setAssignmentType}>
+            <SelectTrigger>
+              <SelectValue placeholder={t('planner.assignmentType')} />
             </SelectTrigger>
             <SelectContent>
-              {cars.map(car => (
+              <SelectItem value="waterDamage">{t('planner.typeWaterDamage')}</SelectItem>
+              <SelectItem value="fireDamage">{t('planner.typeFireDamage')}</SelectItem>
+              <SelectItem value="mold">{t('planner.typeMold')}</SelectItem>
+              <SelectItem value="other">{t('planner.typeOther')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="fromTime">{t('planner.startTime')}</Label>
+          <Input
+            id="fromTime"
+            type="time"
+            value={fromTime}
+            onChange={(e) => setFromTime(e.target.value)}
+            placeholder="08:00"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="toTime">{t('planner.endTime')}</Label>
+          <Input
+            id="toTime"
+            type="time"
+            value={toTime}
+            onChange={(e) => setToTime(e.target.value)}
+            placeholder={selectedDate && isFriday(selectedDate) ? "15:30" : "16:00"}
+            required
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="car">{t('planner.selectCar')}</Label>
+        <Select value={selectedCarId} onValueChange={setSelectedCarId}>
+          <SelectTrigger>
+            <SelectValue placeholder={t('planner.selectCar')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">{t('common.none')}</SelectItem>
+            {cars
+              .filter(car => car.is_available) // Only show available cars
+              .map((car) => (
                 <SelectItem key={car.id} value={car.id}>
                   {car.car_number} - {car.name}
                 </SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-    </>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="description">{t('planner.notes')}</Label>
+        <Textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder={t('planner.notesPlaceholder')}
+          rows={3}
+        />
+      </div>
+    </div>
   );
 };
 

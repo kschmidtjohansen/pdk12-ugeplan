@@ -17,7 +17,8 @@ const cars = {
   vehicleUpdatedMsg: '{name}\'s oplysninger er blevet opdateret.',
   vehicleAddedMsg: '{name} er blevet tilføjet til afdelingen.',
   vehicleDeletedMsg: '{name} er blevet fjernet fra afdelingen.',
-  hasTrailerHitch: 'Har anhængertræk'
+  hasTrailerHitch: 'Har anhængertræk',
+  isAvailable: 'Er tilgængelig'
 };
 
 export default cars;
