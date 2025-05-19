@@ -1,5 +1,6 @@
 
 import { format, isValid, formatISO, parseISO, differenceInDays, addDays, parse, isWeekend, getDay } from 'date-fns';
+import { da, enUS } from 'date-fns/locale';
 
 // Format a date to YYYY-MM-DD
 export const formatDateToYYYYMMDD = (date: Date): string => {
@@ -87,6 +88,67 @@ export const getDefaultEndTime = (date: Date | string | null): string => {
   }
 };
 
+// Format date with capitalized first letter of day and month
+export const formatDateWithCapital = (dateString: string, language: string = 'en'): string => {
+  try {
+    const date = parseISO(dateString);
+    if (!isValid(date)) return dateString;
+    
+    const locale = language === 'da' ? da : enUS;
+    
+    // Format the date with day of week, day, and month
+    return format(date, 'EEEE, d MMMM', { locale });
+  } catch (e) {
+    console.error('Error formatting date with capital:', e);
+    return dateString;
+  }
+};
+
+// Get the status of a date: past, today, or future
+export const getDateStatus = (dateString: string): 'past' | 'today' | 'future' => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time part
+    
+    const date = parseISO(dateString);
+    if (!isValid(date)) return 'past'; // Default to past if invalid
+    
+    date.setHours(0, 0, 0, 0); // Reset time part for comparison
+    
+    if (date.getTime() < today.getTime()) return 'past';
+    if (date.getTime() === today.getTime()) return 'today';
+    return 'future';
+  } catch (e) {
+    console.error('Error getting date status:', e);
+    return 'past'; // Default to past on error
+  }
+};
+
+// Get all days of the week, used in AssignmentList.tsx
+export const getAllWeekDays = ({ start, end }: { start: Date; end: Date }) => {
+  const dates: string[] = [];
+  let currentDate = start;
+
+  while (currentDate <= end) {
+    dates.push(format(currentDate, 'yyyy-MM-dd'));
+    currentDate = addDays(currentDate, 1);
+  }
+
+  return dates;
+};
+
+// Group assignments by day, used in usePlannerAssignments.ts
+export const groupAssignmentsByDay = (assignments: any[]) => {
+  return assignments.reduce((groups: Record<string, any[]>, assignment) => {
+    const date = assignment.date;
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(assignment);
+    return groups;
+  }, {});
+};
+
 export default {
   formatDateToYYYYMMDD,
   parseYYYYMMDD,
@@ -95,4 +157,8 @@ export default {
   isWeekendDay,
   isFriday,
   getDefaultEndTime,
+  formatDateWithCapital,
+  getDateStatus,
+  getAllWeekDays,
+  groupAssignmentsByDay
 };

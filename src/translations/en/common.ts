@@ -9,7 +9,6 @@ const common = {
   remove: "Remove",
   view: "View",
   submit: "Submit",
-  confirm: "Confirm",
   back: "Back",
   next: "Next",
   close: "Close",

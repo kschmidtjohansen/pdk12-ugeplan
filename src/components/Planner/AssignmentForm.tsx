@@ -85,10 +85,24 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <AssignmentFormFields
-          formData={formData}
-          onFieldChange={handleFieldChange}
+          title={formData.title}
+          setTitle={(value) => handleFieldChange('title', value)}
+          location={formData.location}
+          setLocation={(value) => handleFieldChange('location', value)}
+          selectedDate={formData.date ? new Date(formData.date) : undefined}
+          setSelectedDate={(date) => handleSelectChange('date', date ? formatDateToYYYYMMDD(date) : '')}
+          fromTime={formData.fromTime}
+          setFromTime={(value) => handleFieldChange('fromTime', value)}
+          toTime={formData.toTime}
+          setToTime={(value) => handleFieldChange('toTime', value)}
+          description={formData.description}
+          setDescription={(value) => handleFieldChange('description', value)}
+          assignmentType={formData.type || ''}
+          setAssignmentType={(value) => handleFieldChange('type', value)}
+          selectedCarId={formData.car || ''}
+          setSelectedCarId={(value) => handleFieldChange('car', value)}
           cars={cars}
-          employees={employees}
+          assignmentId={currentAssignment?.id}
         />
         
         {/* Employee multi-selector */}
@@ -123,6 +137,14 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       </form>
     </DialogContent>
   );
+};
+
+// Helper function to format date to YYYY-MM-DD
+const formatDateToYYYYMMDD = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 export default AssignmentForm;
