@@ -173,6 +173,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         actionType={actionType}
         submitVacationRequest={submitVacationRequest}
         submitAdminVacationRequest={submitAdminVacationRequest}
+        submitEditVacation={submitEditVacation}
         handleActionSubmit={handleActionSubmit}
         confirmDeleteVacation={confirmDeleteVacation}
         handleDeleteCurrentVacation={handleDeleteCurrentVacation}
