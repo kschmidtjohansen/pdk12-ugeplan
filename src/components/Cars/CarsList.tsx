@@ -13,6 +13,7 @@ interface CarsListProps {
   isAdmin: boolean;
   onEdit: (car: CarData) => void;
   onDelete: (car: CarData) => void;
+  onToggleAvailability: (car: CarData) => void;
 }
 
 const CarsList: React.FC<CarsListProps> = ({
@@ -21,7 +22,8 @@ const CarsList: React.FC<CarsListProps> = ({
   canViewFuelCardCode,
   isAdmin,
   onEdit,
-  onDelete
+  onDelete,
+  onToggleAvailability
 }) => {
   // Sort cars by car_number
   const sortedCars = [...cars].sort((a, b) => a.car_number.localeCompare(b.car_number));
@@ -39,6 +41,7 @@ const CarsList: React.FC<CarsListProps> = ({
               isAdmin={isAdmin}
               onEdit={onEdit}
               onDelete={onDelete}
+              onToggleAvailability={onToggleAvailability}
             />
           ))}
         </div>
@@ -51,6 +54,7 @@ const CarsList: React.FC<CarsListProps> = ({
             isAdmin={isAdmin}
             onEdit={onEdit}
             onDelete={onDelete}
+            onToggleAvailability={onToggleAvailability}
           />
         </div>
       </div>

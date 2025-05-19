@@ -25,7 +25,8 @@ const CarsPage: React.FC = () => {
     confirmDelete,
     handleInputChange,
     handleCheckboxChange,
-    handleSubmit
+    handleSubmit,
+    toggleAvailability
   } = useCars();
 
   return (
@@ -51,6 +52,7 @@ const CarsPage: React.FC = () => {
           isAdmin={isAdmin}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onToggleAvailability={toggleAvailability}
         />
       )}
 

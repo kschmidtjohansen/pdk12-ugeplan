@@ -50,6 +50,41 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
     }
   };
 
+  const toggleAvailability = async (car: CarData) => {
+    try {
+      // Update the car in Supabase
+      const newAvailability = !car.is_available;
+      const { error } = await supabase
+        .from('cars')
+        .update({ is_available: newAvailability })
+        .eq('id', car.id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setCars(cars.map(c => 
+        c.id === car.id 
+          ? { ...c, is_available: newAvailability }
+          : c
+      ));
+      
+      // Show success message
+      toast({
+        title: newAvailability ? t('cars.vehicleAvailable') : t('cars.vehicleUnavailable'),
+        description: newAvailability 
+          ? t('cars.vehicleAvailableMsg', { name: car.name }) 
+          : t('cars.vehicleUnavailableMsg', { name: car.name }),
+      });
+    } catch (err) {
+      console.error('Error updating car availability:', err);
+      toast({
+        title: t('common.error'),
+        description: err instanceof Error ? err.message : 'Error updating vehicle availability',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return {
     currentCar,
     setCurrentCar,
@@ -57,6 +92,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
     setDeleteDialogOpen,
     handleEdit,
     handleDelete,
-    confirmDelete
+    confirmDelete,
+    toggleAvailability
   };
 };

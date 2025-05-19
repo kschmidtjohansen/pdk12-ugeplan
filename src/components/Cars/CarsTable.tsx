@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car, Edit, Trash2, Check, X } from 'lucide-react';
+import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight } from 'lucide-react';
 import { 
   Table,
   TableBody,
@@ -26,6 +26,7 @@ interface CarsTableProps {
   isAdmin: boolean;
   onEdit: (car: CarData) => void;
   onDelete: (car: CarData) => void;
+  onToggleAvailability: (car: CarData) => void;
 }
 
 const CarsTable: React.FC<CarsTableProps> = ({
@@ -33,7 +34,8 @@ const CarsTable: React.FC<CarsTableProps> = ({
   canViewFuelCardCode,
   isAdmin,
   onEdit,
-  onDelete
+  onDelete,
+  onToggleAvailability
 }) => {
   const { t } = useTranslation();
   
@@ -49,7 +51,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
               {canViewFuelCardCode && <TableHead>{t('cars.fuelCardCode')}</TableHead>}
               <TableHead>{t('cars.hasTrailerHitch')}</TableHead>
               <TableHead>{t('cars.isAvailable')}</TableHead>
-              {isAdmin && <TableHead className="w-[100px]">{t('common.actions')}</TableHead>}
+              {isAdmin && <TableHead className="w-[150px]">{t('common.actions')}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -97,6 +99,31 @@ const CarsTable: React.FC<CarsTableProps> = ({
                 {isAdmin && (
                   <TableCell>
                     <div className="flex space-x-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onToggleAvailability(car)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <span className="sr-only">
+                              {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
+                            </span>
+                            {car.is_available ? (
+                              <ToggleRight className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <ToggleLeft className="h-4 w-4 text-gray-400" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                      
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button

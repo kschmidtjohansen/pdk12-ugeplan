@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car, Edit, Trash2, Check, X } from 'lucide-react';
+import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CarData } from './types';
@@ -18,6 +18,7 @@ interface MobileCarCardProps {
   isAdmin: boolean;
   onEdit: (car: CarData) => void;
   onDelete: (car: CarData) => void;
+  onToggleAvailability: (car: CarData) => void;
 }
 
 const MobileCarCard: React.FC<MobileCarCardProps> = ({
@@ -25,7 +26,8 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
   canViewFuelCardCode,
   isAdmin,
   onEdit,
-  onDelete
+  onDelete,
+  onToggleAvailability
 }) => {
   const { t } = useTranslation();
   
@@ -39,6 +41,31 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
           </div>
           {isAdmin && (
             <div className="flex space-x-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onToggleAvailability(car)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <span className="sr-only">
+                      {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
+                    </span>
+                    {car.is_available ? (
+                      <ToggleRight className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <ToggleLeft className="h-4 w-4 text-gray-400" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
