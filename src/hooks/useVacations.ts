@@ -1,4 +1,3 @@
-
 import { useVacationData } from './vacation/useVacationData';
 import { useVacationFormState } from './vacation/useVacationFormState';
 import { useVacationActions } from './vacation/useVacationActions';
@@ -74,16 +73,34 @@ export const useVacations = () => {
     return result;
   };
   
-  // Edit vacation handler
+  // Handler for editing a vacation
   const handleEditVacation = (vacation: Vacation) => {
+    console.log("Setting up vacation for editing:", vacation);
     setSelectedVacation(vacation);
-    setDate({
-      from: vacation.startDate,
-      to: vacation.endDate,
+    
+    // Clear existing date values first
+    setDate({ from: undefined, to: undefined });
+    setStartDate(undefined);
+    setEndDate(undefined);
+    
+    // Then set the new values
+    // Convert string dates to Date objects
+    const vacationStartDate = new Date(vacation.startDate);
+    const vacationEndDate = new Date(vacation.endDate);
+    
+    console.log("Setting dates for editing:", {
+      startDate: vacationStartDate.toISOString(),
+      endDate: vacationEndDate.toISOString()
     });
-    // Also set the individual dates
-    setStartDate(vacation.startDate);
-    setEndDate(vacation.endDate);
+    
+    // Set both the date range and individual date fields
+    setDate({
+      from: vacationStartDate,
+      to: vacationEndDate,
+    });
+    
+    setStartDate(vacationStartDate);
+    setEndDate(vacationEndDate);
     setReason(vacation.reason);
     setEditDialogOpen(true);
   };
@@ -97,7 +114,15 @@ export const useVacations = () => {
     const editStartDate = startDate || date.from;
     const editEndDate = endDate || date.to;
     
-    if (!editStartDate || !editEndDate) return;
+    if (!editStartDate || !editEndDate) {
+      console.error("Missing start or end date when trying to edit vacation");
+      return;
+    }
+    
+    console.log("Submitting edit with dates:", {
+      startDate: editStartDate instanceof Date ? editStartDate.toISOString() : "undefined",
+      endDate: editEndDate instanceof Date ? editEndDate.toISOString() : "undefined"
+    });
     
     await editVacation(
       selectedVacation,

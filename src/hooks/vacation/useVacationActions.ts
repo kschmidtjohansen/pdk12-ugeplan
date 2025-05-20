@@ -128,9 +128,14 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
   ) => {
     try {
       console.log("Editing vacation:", vacation.id);
+      
+      // Format dates correctly
+      const formattedStartDate = startDate.toISOString().split('T')[0];
+      const formattedEndDate = endDate.toISOString().split('T')[0];
+      
       console.log("New data:", {
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate.toISOString().split('T')[0],
+        start_date: formattedStartDate,
+        end_date: formattedEndDate,
         reason
       });
       
@@ -138,8 +143,8 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       const { error } = await supabase
         .from('vacations')
         .update({
-          start_date: startDate.toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0],
+          start_date: formattedStartDate,
+          end_date: formattedEndDate,
           reason,
           updated_at: new Date().toISOString()
         })

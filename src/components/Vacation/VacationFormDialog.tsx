@@ -27,7 +27,7 @@ interface VacationFormDialogProps {
   onSubmit: (e: React.FormEvent) => void;
   isEditing?: boolean;
   onDelete?: () => void;
-  // New props for separate date fields
+  // Props for separate date fields
   startDate: Date | undefined;
   endDate: Date | undefined;
   onStartDateChange: (date: Date | undefined) => void;
@@ -45,7 +45,7 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
   onSubmit,
   isEditing = false,
   onDelete,
-  // New props for separate date fields
+  // Props for separate date fields
   startDate,
   endDate,
   onStartDateChange,
@@ -60,8 +60,8 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
       console.log("VacationFormDialog opened with props:", {
         isEditing,
         date,
-        startDate,
-        endDate,
+        startDate: startDate instanceof Date ? startDate.toISOString() : startDate,
+        endDate: endDate instanceof Date ? endDate.toISOString() : endDate,
         reason
       });
     }
@@ -71,8 +71,8 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
     e.preventDefault();
     console.log("Form submitted with data:", {
       isEditing,
-      startDate,
-      endDate,
+      startDate: startDate instanceof Date ? startDate.toISOString() : startDate,
+      endDate: endDate instanceof Date ? endDate.toISOString() : endDate,
       reason
     });
     onSubmit(e);
