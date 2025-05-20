@@ -108,7 +108,15 @@ const VacationCard: React.FC<VacationCardProps> = ({
               <Edit className="mr-1 h-4 w-4" />
               {t("common.edit")}
             </Button>
-            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="border-red-200 text-red-600 hover:bg-red-50" 
+              onClick={handleDelete}
+            >
+              <Trash2 className="mr-1 h-4 w-4" />
+              {t("common.delete")}
+            </Button>
           </div>
         )}
         

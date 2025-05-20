@@ -1,4 +1,3 @@
-
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
@@ -128,8 +127,14 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
     reason: string
   ) => {
     try {
-      // Allow administrators to edit any vacation regardless of status
-      // For regular users, allow editing of their own vacations regardless of status
+      console.log("Editing vacation:", vacation.id);
+      console.log("New data:", {
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
+        reason
+      });
+      
+      // Update the vacation record in Supabase
       const { error } = await supabase
         .from('vacations')
         .update({
@@ -140,17 +145,21 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         })
         .eq('id', vacation.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error from Supabase:", error);
+        throw error;
+      }
       
       // Display toast notification
       toast({
         title: t('vacation.requestUpdated'),
-        description: t('vacation.requestUpdatedMsg'),
+        description: t('vacation.requestUpdatedMsg')
       });
       
-      // Refresh vacation list
-      fetchVacations();
+      // Refresh vacation list to show the updated data
+      await fetchVacations();
       
+      return true;
     } catch (err) {
       console.error('Error editing vacation:', err);
       toast({
@@ -158,6 +167,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         description: err instanceof Error ? err.message : 'Error updating vacation request',
         variant: 'destructive',
       });
+      return false;
     }
   };
   

@@ -2,6 +2,7 @@
 const vacation = {
   pageDescription: 'Apply for and manage vacation time',
   applyForVacation: 'Apply for Vacation',
+  editVacationRequest: 'Edit Vacation Request',
   requestForEmployee: 'Request for Employee',
   selectEmployee: 'Select employee',
   selectEmployeeAndDates: 'Select an employee, dates and provide a reason for the absence.',
@@ -57,6 +58,8 @@ const vacation = {
   yourRequestRejected: 'Your vacation request has been rejected. Reason: {reason}',
   requestDeleted: 'Request has been deleted',
   requestDeletedMsg: 'The request has now been deleted',
+  requestUpdated: 'Request updated',
+  requestUpdatedMsg: 'Your request has been updated',
   error: 'Error',
   employeeNotFound: 'Employee could not be found',
   currentlyOnVacation: 'Currently on Vacation',

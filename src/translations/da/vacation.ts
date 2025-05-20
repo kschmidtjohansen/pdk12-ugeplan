@@ -2,6 +2,7 @@
 const vacation = {
   pageDescription: 'Ansøg om og administrer fridage',
   applyForVacation: 'Ansøg om fri',
+  editVacationRequest: 'Rediger ferieansøgning',
   requestForEmployee: 'Ansøg for medarbejder',
   selectEmployee: 'Vælg medarbejder',
   selectEmployeeAndDates: 'Vælg en medarbejder, datoer og angiv en årsag til fraværet.',
@@ -57,6 +58,8 @@ const vacation = {
   yourRequestRejected: 'Din anmodning er blevet afvist. Årsag: {reason}',
   requestDeleted: 'Anmodning er blevet slettet',
   requestDeletedMsg: 'Anmodningen er nu slettet',
+  requestUpdated: 'Anmodning opdateret',
+  requestUpdatedMsg: 'Din anmodning er blevet opdateret',
   error: 'Fejl',
   employeeNotFound: 'Medarbejderen kunne ikke findes',
   currentlyOnVacation: 'Medarbejdere på ferie',

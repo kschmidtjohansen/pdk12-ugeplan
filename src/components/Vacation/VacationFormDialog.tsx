@@ -54,6 +54,30 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
 }) => {
   const { t } = useTranslation();
 
+  // Log props when dialog is opened to debug
+  React.useEffect(() => {
+    if (open) {
+      console.log("VacationFormDialog opened with props:", {
+        isEditing,
+        date,
+        startDate,
+        endDate,
+        reason
+      });
+    }
+  }, [open, isEditing, date, startDate, endDate, reason]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Form submitted with data:", {
+      isEditing,
+      startDate,
+      endDate,
+      reason
+    });
+    onSubmit(e);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -68,7 +92,7 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>{t("vacation.dateRange")}</Label>
             
