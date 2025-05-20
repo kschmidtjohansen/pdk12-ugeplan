@@ -60,6 +60,7 @@ const VacationDateSelector: React.FC<VacationDateSelectorProps> = ({
             initialFocus 
             numberOfMonths={2}
             locale={locale}
+            weekStartsOn={1} // Ensure ISO week (starting on Monday)
             disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
           />
         </PopoverContent>

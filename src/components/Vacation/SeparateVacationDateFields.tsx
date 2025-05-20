@@ -66,6 +66,7 @@ const SeparateVacationDateFields: React.FC<SeparateVacationDateFieldsProps> = ({
               onSelect={onStartDateChange} 
               initialFocus 
               locale={locale}
+              weekStartsOn={1} // Ensure ISO week (starting on Monday)
               disabled={(date) => {
                 // Disable dates before today and after end date if selected
                 const isBeforeToday = date < new Date(new Date().setHours(0, 0, 0, 0));
@@ -106,6 +107,7 @@ const SeparateVacationDateFields: React.FC<SeparateVacationDateFieldsProps> = ({
               onSelect={onEndDateChange} 
               initialFocus 
               locale={locale}
+              weekStartsOn={1} // Ensure ISO week (starting on Monday)
               disabled={(date) => {
                 // Disable dates before today and before start date if selected
                 const isBeforeToday = date < new Date(new Date().setHours(0, 0, 0, 0));

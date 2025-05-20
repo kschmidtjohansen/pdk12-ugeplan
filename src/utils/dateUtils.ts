@@ -55,7 +55,7 @@ export const formatDateRangeWithWeeks = (
     const endFormatted = format(endDate, languageCode === 'da' ? 'd. MMM yyyy' : 'd MMM yyyy', { locale });
     
     // Check if both dates are in the same ISO week
-    const sameWeek = startWeek === endWeek;
+    const sameWeek = isSameWeek(startDate, endDate, { weekStartsOn: 1 }); // ISO weeks start on Monday (1)
     
     if (sameWeek) {
       // If same week, show week number once at the end

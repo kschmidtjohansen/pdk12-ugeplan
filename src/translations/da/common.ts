@@ -33,7 +33,8 @@ const common = {
   confirm: 'Bekræft',
   available: 'Tilgængelig',
   unavailable: 'Ikke tilgængelig',
-  none: 'Ingen valgt'
+  none: 'Ingen valgt',
+  week: 'Uge'
 };
 
 export default common;
