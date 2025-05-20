@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Vacation } from '../../types/vacation';
 import { useTranslation } from '../../context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
+import { formatDateRangeWithWeeks } from '@/utils/dateUtils';
 
 interface VacationCardProps {
   vacation: Vacation;
@@ -33,17 +34,7 @@ const VacationCard: React.FC<VacationCardProps> = ({
 
   // Set locale based on current language
   const locale = currentLanguage === 'da' ? da : undefined;
-
-  // Get week numbers for start and end dates
-  const startWeek = getISOWeek(vacation.startDate);
-  const endWeek = getISOWeek(vacation.endDate);
   
-  // Format date with week numbers
-  const formatDateWithWeek = (date: Date) => {
-    const week = getISOWeek(date);
-    return `${format(date, 'd. MMM yyyy', { locale })} (${t('common.week')} ${week})`;
-  };
-
   // Add handlers with debug logs
   const handleEdit = () => {
     console.log("Edit button clicked for vacation:", vacation.id);
@@ -79,7 +70,12 @@ const VacationCard: React.FC<VacationCardProps> = ({
           <div className="flex flex-col">
             <dt className="font-medium text-gray-500">{t("vacation.dateRange")}</dt>
             <dd>
-              {formatDateWithWeek(vacation.startDate)} - {formatDateWithWeek(vacation.endDate)}
+              {formatDateRangeWithWeeks(
+                vacation.startDate,
+                vacation.endDate,
+                currentLanguage,
+                t('common.week')
+              )}
             </dd>
           </div>
           <div className="flex flex-col">

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { format } from 'date-fns';
+import { format, getISOWeek, isSameWeek } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -9,6 +9,7 @@ import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DateRange } from 'react-day-picker';
 import { useTranslation } from '@/context/TranslationContext';
+import { formatDateRangeWithWeeks } from '@/utils/dateUtils';
 
 interface VacationDateSelectorProps {
   date: DateRange | undefined;
@@ -33,12 +34,20 @@ const VacationDateSelector: React.FC<VacationDateSelectorProps> = ({
         <PopoverTrigger asChild>
           <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !safeDate.from && "text-muted-foreground")}>
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {safeDate.from ? safeDate.to ? (
-              <>
-                {format(safeDate.from, "d. MMM yyyy", { locale })} -{" "}
-                {format(safeDate.to, "d. MMM yyyy", { locale })}
-              </>
-            ) : format(safeDate.from, "d. MMM yyyy", { locale }) : (
+            {safeDate.from ? (
+              safeDate.to ? (
+                // Both start and end date are selected
+                formatDateRangeWithWeeks(
+                  safeDate.from,
+                  safeDate.to,
+                  currentLanguage,
+                  t('common.week')
+                )
+              ) : (
+                // Only start date is selected
+                `${format(safeDate.from, currentLanguage === 'da' ? "d. MMM yyyy" : "d MMM yyyy", { locale })} (${t('common.week')} ${getISOWeek(safeDate.from)})`
+              )
+            ) : (
               <span>{t("vacation.selectVacationDates")}</span>
             )}
           </Button>

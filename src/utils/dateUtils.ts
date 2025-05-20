@@ -1,4 +1,5 @@
-import { format, isValid, formatISO, parseISO, differenceInDays, addDays, parse, isWeekend, getDay } from 'date-fns';
+
+import { format, isValid, formatISO, parseISO, differenceInDays, addDays, parse, isWeekend, getDay, getISOWeek, isSameWeek } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
 import { capitalizeFirstLetter } from '@/lib/utils';
 
@@ -30,6 +31,42 @@ export const formatDateForDisplay = (date: Date | string | null): string => {
   } catch (e) {
     console.error('Error formatting date:', e);
     return '';
+  }
+};
+
+/**
+ * Format a date range with proper week numbers
+ * - If dates are in the same week: "21. June 2025 - 27. June 2025 (Week 25)"
+ * - If dates span multiple weeks: "21. June 2025 (Week 25) - 3. July 2025 (Week 27)"
+ */
+export const formatDateRangeWithWeeks = (
+  startDate: Date, 
+  endDate: Date, 
+  languageCode: string = 'en', 
+  weekLabel: string = 'Week'
+): string => {
+  try {
+    const locale = languageCode === 'da' ? da : enUS;
+    const startWeek = getISOWeek(startDate);
+    const endWeek = getISOWeek(endDate);
+    
+    // Format individual dates
+    const startFormatted = format(startDate, languageCode === 'da' ? 'd. MMM yyyy' : 'd MMM yyyy', { locale });
+    const endFormatted = format(endDate, languageCode === 'da' ? 'd. MMM yyyy' : 'd MMM yyyy', { locale });
+    
+    // Check if both dates are in the same ISO week
+    const sameWeek = startWeek === endWeek;
+    
+    if (sameWeek) {
+      // If same week, show week number once at the end
+      return `${startFormatted} - ${endFormatted} (${weekLabel} ${startWeek})`;
+    } else {
+      // If different weeks, show week number for each date
+      return `${startFormatted} (${weekLabel} ${startWeek}) - ${endFormatted} (${weekLabel} ${endWeek})`;
+    }
+  } catch (e) {
+    console.error('Error formatting date range with weeks:', e);
+    return `${startDate} - ${endDate}`;
   }
 };
 
@@ -186,5 +223,6 @@ export default {
   formatDateWithCapital,
   getDateStatus,
   getAllWeekDays,
-  groupAssignmentsByDay
+  groupAssignmentsByDay,
+  formatDateRangeWithWeeks
 };

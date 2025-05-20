@@ -26,7 +26,7 @@ const SeparateVacationDateFields: React.FC<SeparateVacationDateFieldsProps> = ({
   
   // Set the locale based on the current language
   const locale = currentLanguage === 'da' ? da : undefined;
-  const dateFormat = "d. MMM yyyy";
+  const dateFormat = currentLanguage === 'da' ? "d. MMM yyyy" : "d MMM yyyy";
 
   // Format date with week number
   const formatDateWithWeek = (date: Date | undefined) => {

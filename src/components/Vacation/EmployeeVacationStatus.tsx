@@ -7,6 +7,7 @@ import { Vacation } from '@/types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from 'lucide-react';
+import { formatDateRangeWithWeeks } from '@/utils/dateUtils';
 
 interface EmployeeVacationStatusProps {
   vacations: Vacation[];
@@ -36,12 +37,6 @@ const EmployeeVacationStatus: React.FC<EmployeeVacationStatusProps> = ({ vacatio
   const isCurrentlyOnVacation = (startDate: Date): boolean => {
     return new Date(startDate) <= today;
   };
-
-  // Format function for dates with week numbers
-  const formatDateWithWeek = (date: Date): string => {
-    const weekNumber = getISOWeek(date);
-    return `${format(date, currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy')} (${t('common.week')} ${weekNumber})`;
-  };
   
   return (
     <Card className="mt-8">
@@ -66,7 +61,12 @@ const EmployeeVacationStatus: React.FC<EmployeeVacationStatusProps> = ({ vacatio
               <TableRow key={vacation.id}>
                 <TableCell className="font-medium">{vacation.employeeName}</TableCell>
                 <TableCell>
-                  {formatDateWithWeek(new Date(vacation.startDate))} - {formatDateWithWeek(new Date(vacation.endDate))}
+                  {formatDateRangeWithWeeks(
+                    new Date(vacation.startDate),
+                    new Date(vacation.endDate),
+                    currentLanguage,
+                    t('common.week')
+                  )}
                 </TableCell>
                 <TableCell>{vacation.reason}</TableCell>
                 <TableCell>
