@@ -29,8 +29,14 @@ const VacationCard: React.FC<VacationCardProps> = ({
   onDelete
 }) => {
   const { t, currentLanguage } = useTranslation();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const isOwner = user?.id === vacation.employeeId;
+  
+  // Determine if the user can edit/delete this vacation
+  // Admins can edit/delete any vacation
+  // Regular users can only edit/delete their own pending vacations
+  const canEditVacation = isAdmin || (isOwner && vacation.status === 'pending');
+  const canDeleteVacation = isAdmin || (isOwner && vacation.status === 'pending');
 
   // Set locale based on current language
   const locale = currentLanguage === 'da' ? da : undefined;
@@ -38,12 +44,12 @@ const VacationCard: React.FC<VacationCardProps> = ({
   // Add handlers with debug logs
   const handleEdit = () => {
     console.log("Edit button clicked for vacation:", vacation.id);
-    if (onEdit) onEdit(vacation);
+    if (onEdit && canEditVacation) onEdit(vacation);
   };
   
   const handleDelete = () => {
     console.log("Delete button clicked for vacation:", vacation.id);
-    if (onDelete) onDelete(vacation);
+    if (onDelete && canDeleteVacation) onDelete(vacation);
   };
 
   return (
@@ -96,8 +102,8 @@ const VacationCard: React.FC<VacationCardProps> = ({
       </CardContent>
       
       <CardFooter className="flex justify-between border-t pt-4 pb-4">
-        {/* Admin-only edit/delete buttons */}
-        {onEdit && onDelete && (
+        {/* Edit/delete buttons - shown based on permission checks */}
+        {onEdit && onDelete && canEditVacation && (
           <div className="flex gap-2">
             <Button 
               variant="outline" 
@@ -108,15 +114,17 @@ const VacationCard: React.FC<VacationCardProps> = ({
               <Edit className="mr-1 h-4 w-4" />
               {t("common.edit")}
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="border-red-200 text-red-600 hover:bg-red-50" 
-              onClick={handleDelete}
-            >
-              <Trash2 className="mr-1 h-4 w-4" />
-              {t("common.delete")}
-            </Button>
+            {canDeleteVacation && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-red-200 text-red-600 hover:bg-red-50" 
+                onClick={handleDelete}
+              >
+                <Trash2 className="mr-1 h-4 w-4" />
+                {t("common.delete")}
+              </Button>
+            )}
           </div>
         )}
         

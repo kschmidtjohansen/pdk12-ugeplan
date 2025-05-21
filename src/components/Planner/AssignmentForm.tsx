@@ -15,6 +15,7 @@ import { Car } from '../../types/car';
 import { Employee } from '../../types/employee';
 import { Vacation } from '../../types/vacation';
 import { Assignment } from '../../types/assignment';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AssignmentFormProps {
   currentAssignment: any | null;
@@ -75,69 +76,73 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   
   return (
     <DialogContent className="max-w-md">
-      <DialogHeader>
-        <DialogTitle>
-          {currentAssignment ? t("planner.editAssignment") : t("planner.newAssignment")}
-        </DialogTitle>
-        <DialogDescription>
-          {currentAssignment
-            ? t("planner.updateDetails")
-            : t("planner.addAssignment")}
-        </DialogDescription>
-      </DialogHeader>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <AssignmentFormFields
-          title={formData.title}
-          setTitle={(value) => handleFieldChange('title', value)}
-          location={formData.location}
-          setLocation={(value) => handleFieldChange('location', value)}
-          selectedDate={formData.date ? new Date(formData.date) : undefined}
-          setSelectedDate={(date) => handleSelectChange('date', date ? formatDateToYYYYMMDD(date) : '')}
-          fromTime={formData.fromTime}
-          setFromTime={(value) => handleFieldChange('fromTime', value)}
-          toTime={formData.toTime}
-          setToTime={(value) => handleFieldChange('toTime', value)}
-          description={formData.description}
-          setDescription={(value) => handleFieldChange('description', value)}
-          assignmentType={formData.type || ''}
-          setAssignmentType={(value) => handleFieldChange('type', value)}
-          selectedCarId={formData.car === '' ? 'none' : formData.car || 'none'}
-          setSelectedCarId={(value) => handleFieldChange('car', value)}
-          cars={cars}
-          assignmentId={currentAssignment?.id}
-        />
-        
-        {/* Employee multi-selector */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">{t('planner.employees')}</h3>
-          <EmployeeSelector
-            employees={employees}
-            selectedEmployees={selectedEmployees}
-            onToggle={handleEmployeeToggle}
-            vacations={vacations}
-            currentDate={currentDate || formData.date}
-            assignments={assignments} // Pass assignments to EmployeeSelector
-          />
+      <ScrollArea className="max-h-[80vh] pr-4">
+        <div className="p-1">
+          <DialogHeader>
+            <DialogTitle>
+              {currentAssignment ? t("planner.editAssignment") : t("planner.newAssignment")}
+            </DialogTitle>
+            <DialogDescription>
+              {currentAssignment
+                ? t("planner.updateDetails")
+                : t("planner.addAssignment")}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+            <AssignmentFormFields
+              title={formData.title}
+              setTitle={(value) => handleFieldChange('title', value)}
+              location={formData.location}
+              setLocation={(value) => handleFieldChange('location', value)}
+              selectedDate={formData.date ? new Date(formData.date) : undefined}
+              setSelectedDate={(date) => handleSelectChange('date', date ? formatDateToYYYYMMDD(date) : '')}
+              fromTime={formData.fromTime}
+              setFromTime={(value) => handleFieldChange('fromTime', value)}
+              toTime={formData.toTime}
+              setToTime={(value) => handleFieldChange('toTime', value)}
+              description={formData.description}
+              setDescription={(value) => handleFieldChange('description', value)}
+              assignmentType={formData.type || ''}
+              setAssignmentType={(value) => handleFieldChange('type', value)}
+              selectedCarId={formData.car === '' ? 'none' : formData.car || 'none'}
+              setSelectedCarId={(value) => handleFieldChange('car', value)}
+              cars={cars}
+              assignmentId={currentAssignment?.id}
+            />
+            
+            {/* Employee multi-selector */}
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">{t('planner.employees')}</h3>
+              <EmployeeSelector
+                employees={employees}
+                selectedEmployees={selectedEmployees}
+                onToggle={handleEmployeeToggle}
+                vacations={vacations}
+                currentDate={currentDate || formData.date}
+                assignments={assignments} // Pass assignments to EmployeeSelector
+              />
+            </div>
+            
+            <DialogFooter className="pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button 
+                type="submit"
+                className="bg-polygon-purple hover:bg-polygon-darkpurple"
+                disabled={!selectedEmployees || selectedEmployees.length === 0}
+              >
+                {currentAssignment ? t("planner.saveChanges") : t("planner.createAssignment")}
+              </Button>
+            </DialogFooter>
+          </form>
         </div>
-        
-        <DialogFooter>
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onClose}
-          >
-            {t("common.cancel")}
-          </Button>
-          <Button 
-            type="submit"
-            className="bg-polygon-purple hover:bg-polygon-darkpurple"
-            disabled={!selectedEmployees || selectedEmployees.length === 0}
-          >
-            {currentAssignment ? t("planner.saveChanges") : t("planner.createAssignment")}
-          </Button>
-        </DialogFooter>
-      </form>
+      </ScrollArea>
     </DialogContent>
   );
 };

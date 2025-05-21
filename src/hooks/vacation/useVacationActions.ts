@@ -139,6 +139,10 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         reason
       });
       
+      // Note: RLS policies are in place to restrict who can update which vacations
+      // - Administrators can update any vacation
+      // - Regular users can only update their own pending vacations
+      
       // Update the vacation record in Supabase
       const { error } = await supabase
         .from('vacations')
@@ -152,7 +156,18 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       
       if (error) {
         console.error("Error from Supabase:", error);
-        throw error;
+        
+        // If there's an error due to RLS policy violation, show a specific message
+        if (error.code === "42501" || error.message.includes("policy")) {
+          toast({
+            title: t('common.error'),
+            description: t('vacation.editPermissionDenied'),
+            variant: 'destructive',
+          });
+        } else {
+          throw error;
+        }
+        return false;
       }
       
       // Display toast notification
