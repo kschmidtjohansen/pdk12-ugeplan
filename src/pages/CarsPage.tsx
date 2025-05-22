@@ -4,6 +4,8 @@ import { usePermissions } from '../context/AuthContext';
 import CarsList from '@/components/Cars/CarsList';
 import CarPageHeader from '@/components/Cars/CarPageHeader';
 import CarDialogs from '@/components/Cars/CarDialogs';
+import CarMarkUnavailableDialog from '@/components/Cars/CarMarkUnavailableDialog';
+import CarMarkAvailableDialog from '@/components/Cars/CarMarkAvailableDialog';
 import { useCars } from '@/hooks/car';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
@@ -19,6 +21,10 @@ const CarsPage: React.FC = () => {
     setDialogOpen,
     deleteDialogOpen,
     setDeleteDialogOpen,
+    unavailableDialogOpen,
+    setUnavailableDialogOpen,
+    availableDialogOpen,
+    setAvailableDialogOpen,
     handleCreateNew,
     handleEdit,
     handleDelete,
@@ -26,7 +32,10 @@ const CarsPage: React.FC = () => {
     handleInputChange,
     handleCheckboxChange,
     handleSubmit,
-    toggleAvailability
+    handleToggleAvailability,
+    markCarUnavailable,
+    markCarAvailableKeepNote,
+    markCarAvailableDeleteNote
   } = useCars();
 
   return (
@@ -52,7 +61,7 @@ const CarsPage: React.FC = () => {
           isAdmin={isAdmin}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onToggleAvailability={toggleAvailability}
+          onToggleAvailability={handleToggleAvailability}
         />
       )}
 
@@ -68,6 +77,22 @@ const CarsPage: React.FC = () => {
         currentCar={currentCar}
         canViewFuelCardCode={canViewFuelCardCode}
         onConfirmDelete={confirmDelete}
+      />
+      
+      {/* New dialogs for car availability management */}
+      <CarMarkUnavailableDialog
+        open={unavailableDialogOpen}
+        onOpenChange={setUnavailableDialogOpen}
+        car={currentCar}
+        onConfirm={markCarUnavailable}
+      />
+      
+      <CarMarkAvailableDialog
+        open={availableDialogOpen}
+        onOpenChange={setAvailableDialogOpen}
+        car={currentCar}
+        onConfirmKeepNote={markCarAvailableKeepNote}
+        onConfirmDeleteNote={markCarAvailableDeleteNote}
       />
     </TooltipProvider>
   );

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/components/ui/sonner';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData } from '@/components/Cars/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +8,9 @@ import { supabase } from '@/integrations/supabase/client';
 export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.SetStateAction<CarData[]>>) => {
   const [currentCar, setCurrentCar] = useState<CarData | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
-  const { toast } = useToast();
+  const [unavailableDialogOpen, setUnavailableDialogOpen] = useState<boolean>(false);
+  const [availableDialogOpen, setAvailableDialogOpen] = useState<boolean>(false);
+  
   const { t } = useTranslation();
 
   const handleEdit = (car: CarData) => {
@@ -33,14 +35,12 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         
         setCars(cars.filter(car => car.id !== currentCar.id));
         
-        toast({
-          title: t('cars.vehicleDeleted'),
+        toast(t('cars.vehicleDeleted'), {
           description: t('cars.vehicleDeletedMsg', { name: currentCar.name }),
         });
       } catch (err) {
         console.error('Error deleting car:', err);
-        toast({
-          title: t('common.error'),
+        toast(t('common.error'), {
           description: err instanceof Error ? err.message : 'Error deleting vehicle',
           variant: 'destructive',
         });
@@ -50,13 +50,48 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
     }
   };
 
-  const toggleAvailability = async (car: CarData) => {
+  const handleToggleAvailability = (car: CarData) => {
+    // Open the appropriate dialog based on current availability state
+    if (car.is_available) {
+      // Going from available to unavailable - show unavailable dialog
+      setCurrentCar(car);
+      setUnavailableDialogOpen(true);
+    } else {
+      // Going from unavailable to available - show available dialog if notes exist
+      setCurrentCar(car);
+      if (car.notes) {
+        setAvailableDialogOpen(true);
+      } else {
+        // If no notes, directly update the availability
+        updateAvailabilityStatus(car, true, null);
+      }
+    }
+  };
+  
+  const markCarUnavailable = async (car: CarData, note: string) => {
+    updateAvailabilityStatus(car, false, note);
+    setUnavailableDialogOpen(false);
+  };
+  
+  const markCarAvailableKeepNote = async (car: CarData) => {
+    updateAvailabilityStatus(car, true, car.notes);
+    setAvailableDialogOpen(false);
+  };
+  
+  const markCarAvailableDeleteNote = async (car: CarData) => {
+    updateAvailabilityStatus(car, true, null);
+    setAvailableDialogOpen(false);
+  };
+  
+  const updateAvailabilityStatus = async (car: CarData, isAvailable: boolean, notes: string | null) => {
     try {
       // Update the car in Supabase
-      const newAvailability = !car.is_available;
       const { error } = await supabase
         .from('cars')
-        .update({ is_available: newAvailability })
+        .update({ 
+          is_available: isAvailable,
+          notes: notes 
+        })
         .eq('id', car.id);
       
       if (error) throw error;
@@ -64,21 +99,23 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
       // Update local state
       setCars(cars.map(c => 
         c.id === car.id 
-          ? { ...c, is_available: newAvailability }
+          ? { ...c, is_available: isAvailable, notes: notes }
           : c
       ));
       
       // Show success message
-      toast({
-        title: newAvailability ? t('cars.vehicleAvailable') : t('cars.vehicleUnavailable'),
-        description: newAvailability 
-          ? t('cars.vehicleAvailableMsg', { name: car.name }) 
-          : t('cars.vehicleUnavailableMsg', { name: car.name }),
-      });
+      if (isAvailable) {
+        toast(t('cars.vehicleAvailable'), {
+          description: t('cars.vehicleAvailableMsg', { name: car.name })
+        });
+      } else {
+        toast(t('cars.vehicleUnavailable'), {
+          description: t('cars.vehicleUnavailableMsg', { name: car.name })
+        });
+      }
     } catch (err) {
       console.error('Error updating car availability:', err);
-      toast({
-        title: t('common.error'),
+      toast(t('common.error'), {
         description: err instanceof Error ? err.message : 'Error updating vehicle availability',
         variant: 'destructive',
       });
@@ -90,9 +127,16 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
     setCurrentCar,
     deleteDialogOpen,
     setDeleteDialogOpen,
+    unavailableDialogOpen,
+    setUnavailableDialogOpen,
+    availableDialogOpen,
+    setAvailableDialogOpen,
     handleEdit,
     handleDelete,
     confirmDelete,
-    toggleAvailability
+    handleToggleAvailability,
+    markCarUnavailable,
+    markCarAvailableKeepNote,
+    markCarAvailableDeleteNote
   };
 };

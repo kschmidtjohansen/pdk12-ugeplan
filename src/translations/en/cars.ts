@@ -1,0 +1,36 @@
+
+const cars = {
+  title: 'Cars',
+  description: 'Department vehicles and their details',
+  addVehicle: 'Add Vehicle',
+  vehicleName: 'Vehicle Name',
+  carNumber: 'Car Number',
+  numberPlate: 'Number Plate',
+  fuelCardCode: 'Fuel Card Code',
+  editVehicle: 'Edit Vehicle',
+  addNewVehicle: 'Add New Vehicle',
+  updateVehicleInfo: 'Update vehicle information.',
+  addNewVehicleDesc: 'Add a new vehicle to the department.',
+  vehicleUpdated: 'Vehicle updated',
+  vehicleAdded: 'Vehicle added',
+  vehicleDeleted: 'Vehicle deleted',
+  vehicleUpdatedMsg: '{name}\'s information has been updated.',
+  vehicleAddedMsg: '{name} has been added to the department.',
+  vehicleDeletedMsg: '{name} has been removed from the department.',
+  hasTrailerHitch: 'Has Trailer Hitch',
+  isAvailable: 'Is Available',
+  markAvailable: 'Mark as Available',
+  markUnavailable: 'Mark as Unavailable',
+  vehicleAvailable: 'Vehicle available',
+  vehicleUnavailable: 'Vehicle unavailable',
+  vehicleAvailableMsg: '{name} is now marked as available.',
+  vehicleUnavailableMsg: '{name} is now marked as unavailable.',
+  unavailabilityReason: 'Please provide a reason why this vehicle is unavailable',
+  enterNote: 'Enter note...',
+  keepNoteQuestion: 'Do you want to keep or delete the note for this vehicle?',
+  keepNote: 'Keep Note',
+  deleteNote: 'Delete Note',
+  notes: 'Notes'
+};
+
+export default cars;

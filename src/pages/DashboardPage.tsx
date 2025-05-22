@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -10,13 +10,15 @@ import { Calendar, Users, Car, Clock, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import { getCurrentWeek } from '@/types/assignment';
 import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
+import WeekNavigation from '@/components/Dashboard/WeekNavigation';
 
 // Import assignments from planner hook to reuse the mock data
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
-import { getCurrentWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
+import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
+import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import AssignmentDetails from '@/components/Planner/AssignmentDetails';
 
 const DashboardPage: React.FC = () => {
@@ -39,6 +41,11 @@ const DashboardPage: React.FC = () => {
   const {
     vacations
   } = useVacations();
+  const { filterByWeek } = useAssignmentFilters();
+
+  // State for week navigation
+  const [selectedWeek, setSelectedWeek] = useState(getCurrentWeekNumber());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // Update employee leave status based on vacations when dashboard loads
   useEffect(() => {
@@ -63,19 +70,30 @@ const DashboardPage: React.FC = () => {
     };
   }, []);
 
-  // Use the fixed getCurrentWeekNumber function
-  const currentWeek = getCurrentWeekNumber();
-
-  // Use the new getCurrentWeekDates function that doesn't require parameters
-  const weekDates = getCurrentWeekDates();
+  // Get the dates for the selected week
+  const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
 
   // Convert start/end dates to ISO strings
   const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
   const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
 
-  // Get assignments for the current week and user
+  // Function to handle navigation to previous week
+  const handlePreviousWeek = () => {
+    const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
+    setSelectedWeek(week);
+    setSelectedYear(year);
+  };
+
+  // Function to handle navigation to next week
+  const handleNextWeek = () => {
+    const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
+    setSelectedWeek(week);
+    setSelectedYear(year);
+  };
+
+  // Get assignments for the selected week and user
   const userWeekAssignments = assignments.filter(assignment => {
-    // Check if assignment is within the current week
+    // Check if assignment is within the selected week
     const assignmentDate = assignment.date;
     const isInCurrentWeek = assignmentDate >= startDateISO && assignmentDate <= endDateISO;
 
@@ -131,12 +149,13 @@ const DashboardPage: React.FC = () => {
 
   // Show dashboard metrics only for admin or skadeleder
   const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
+  
   return <>
       <PageHeader title={t('dashboard.welcome', {
       name: user?.name
     })} description={t('dashboard.today', {
       date: getFormattedDate(),
-      week: currentWeek
+      week: getCurrentWeek()
     })} />
 
       {/* Quick access grid */}
@@ -161,11 +180,18 @@ const DashboardPage: React.FC = () => {
       <Card className="mb-8 mt-8">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
-            <span>
-              {t('dashboard.myAssignments', {
-              week: currentWeek
-            })}
-            </span>
+            <div className="flex items-center gap-2">
+              <span>
+                {t('dashboard.myAssignments', {
+                  week: selectedWeek
+                })}
+              </span>
+              <WeekNavigation 
+                onPrevious={handlePreviousWeek}
+                onNext={handleNextWeek}
+                currentWeek={selectedWeek}
+              />
+            </div>
             <Button variant="outline" size="sm" asChild>
               <Link to="/planner">{t('dashboard.viewAll')}</Link>
             </Button>

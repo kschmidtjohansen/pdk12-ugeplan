@@ -24,7 +24,13 @@ const cars = {
   vehicleAvailable: 'Køretøj tilgængeligt',
   vehicleUnavailable: 'Køretøj utilgængeligt',
   vehicleAvailableMsg: '{name} er nu markeret som tilgængelig.',
-  vehicleUnavailableMsg: '{name} er nu markeret som utilgængelig.'
+  vehicleUnavailableMsg: '{name} er nu markeret som utilgængelig.',
+  unavailabilityReason: 'Angiv venligst en årsag til hvorfor dette køretøj er utilgængeligt',
+  enterNote: 'Indtast note...',
+  keepNoteQuestion: 'Vil du beholde eller slette noten for dette køretøj?',
+  keepNote: 'Behold note',
+  deleteNote: 'Slet note',
+  notes: 'Noter'
 };
 
 export default cars;
