@@ -77,9 +77,13 @@ export const getCurrentWeekInfo = () => {
  * Get the current week dates
  * Returns the date range for the current week
  */
-export const getCurrentWeekDates = () => {
-  const { week, year } = getCurrentWeekInfo();
-  return getWeekDates(week, year);
+export const getCurrentWeekDates = (week?: number, year?: number) => {
+  if (week !== undefined && year !== undefined) {
+    return getWeekDates(week, year);
+  } else {
+    const { week: currentWeek, year: currentYear } = getCurrentWeekInfo();
+    return getWeekDates(currentWeek, currentYear);
+  }
 };
 
 /**

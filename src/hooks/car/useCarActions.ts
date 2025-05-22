@@ -42,7 +42,6 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         console.error('Error deleting car:', err);
         toast(t('common.error'), {
           description: err instanceof Error ? err.message : 'Error deleting vehicle',
-          variant: 'destructive',
         });
       } finally {
         setDeleteDialogOpen(false);
@@ -117,7 +116,6 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
       console.error('Error updating car availability:', err);
       toast(t('common.error'), {
         description: err instanceof Error ? err.message : 'Error updating vehicle availability',
-        variant: 'destructive',
       });
     }
   };

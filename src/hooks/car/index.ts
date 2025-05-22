@@ -14,9 +14,17 @@ export const useCars = () => {
     setCurrentCar,
     deleteDialogOpen,
     setDeleteDialogOpen,
+    unavailableDialogOpen,
+    setUnavailableDialogOpen,
+    availableDialogOpen,
+    setAvailableDialogOpen,
+    handleEdit,
     handleDelete,
     confirmDelete,
-    toggleAvailability
+    handleToggleAvailability,
+    markCarUnavailable,
+    markCarAvailableKeepNote,
+    markCarAvailableDeleteNote
   } = useCarActions(cars, setCars);
 
   const {
@@ -35,7 +43,7 @@ export const useCars = () => {
   });
 
   // Enhanced handleEdit to initialize form data
-  const handleEdit = (car: CarData) => {
+  const enhancedHandleEdit = (car: CarData) => {
     // Set the current car without calling handleEdit recursively
     setCurrentCar(car);
     // Initialize form with car data
@@ -55,15 +63,22 @@ export const useCars = () => {
     setDialogOpen,
     deleteDialogOpen,
     setDeleteDialogOpen,
+    unavailableDialogOpen,
+    setUnavailableDialogOpen,
+    availableDialogOpen,
+    setAvailableDialogOpen,
     handleCreateNew,
-    handleEdit,
+    handleEdit: enhancedHandleEdit,
     handleDelete,
     confirmDelete,
     handleInputChange,
     handleCheckboxChange,
     handleSubmit,
     fetchCars,
-    toggleAvailability
+    handleToggleAvailability,
+    markCarUnavailable,
+    markCarAvailableKeepNote,
+    markCarAvailableDeleteNote
   };
 };
 
