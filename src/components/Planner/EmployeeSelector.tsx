@@ -15,6 +15,12 @@ interface EmployeeSelectorProps {
   assignments?: Assignment[];
 }
 
+type EmployeeAvailabilityInfo = {
+  isAssigned: boolean;
+  availableAt?: string; // Time when employee becomes available
+  latestAssignmentEndTime?: string; // Latest end time of employee's assignments for the day
+}
+
 export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   employees,
   selectedEmployees,
@@ -45,16 +51,17 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     });
   };
 
-  // Helper function to check if an employee is already assigned to another assignment
-  // Fixed function to properly compare dates
-  const isEmployeeOnAnotherAssignment = (employeeName: string): boolean => {
+  // Enhanced function to check if an employee is already assigned to another assignment
+  // Returns detailed information about assignment times
+  const checkEmployeeAvailability = (employeeName: string): EmployeeAvailabilityInfo => {
     // Create a date object from the currentDate string for proper comparison
     const currentDateObj = new Date(currentDate);
     currentDateObj.setHours(0, 0, 0, 0);
     
     console.log(`Checking if ${employeeName} has assignment on date: ${currentDate} (${currentDateObj.toISOString()})`);
     
-    return assignments.some(assignment => {
+    // Find all assignments for this employee on the current date
+    const employeeAssignments = assignments.filter(assignment => {
       // Convert assignment date to Date object for comparison
       const assignmentDateObj = new Date(assignment.date);
       assignmentDateObj.setHours(0, 0, 0, 0);
@@ -63,11 +70,37 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       const isAssigned = assignment.employees.includes(employeeName);
       
       if (isOnDate && isAssigned) {
-        console.log(`${employeeName} is assigned to task "${assignment.title}" on ${assignment.date}`);
+        console.log(`${employeeName} is assigned to task "${assignment.title}" on ${assignment.date} (${assignment.fromTime}-${assignment.toTime})`);
       }
       
       return isOnDate && isAssigned;
     });
+    
+    // If no assignments found, employee is fully available
+    if (employeeAssignments.length === 0) {
+      return { isAssigned: false };
+    }
+    
+    // Find the latest end time among all assignments
+    let latestEndTime = "00:00";
+    employeeAssignments.forEach(assignment => {
+      if (assignment.toTime > latestEndTime) {
+        latestEndTime = assignment.toTime;
+      }
+    });
+    
+    // Check if the latest end time is the end of workday
+    // Standard work end times: Mon-Thu: 16:00, Fri: 15:30
+    const dayOfWeek = currentDateObj.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const isEndOfWorkDay = 
+      (dayOfWeek === 5 && latestEndTime === "15:30") || // Friday
+      (dayOfWeek >= 1 && dayOfWeek <= 4 && latestEndTime === "16:00"); // Mon-Thu
+    
+    return { 
+      isAssigned: true, 
+      availableAt: isEndOfWorkDay ? undefined : latestEndTime,
+      latestAssignmentEndTime: latestEndTime
+    };
   };
 
   // Parse the current date string into a Date object for comparison
@@ -95,7 +128,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         const isSelected = selectedEmployees.includes(employee.name);
         const isOnVacation = isEmployeeOnVacation(employee.id, dateForComparison);
         const isUnavailable = employee.onLeave;
-        const isOnAnotherAssignment = isEmployeeOnAnotherAssignment(employee.name);
+        const availabilityInfo = checkEmployeeAvailability(employee.name);
         
         // Employee should be disabled if they're on vacation or marked as unavailable
         const isDisabled = isOnVacation || isUnavailable;
@@ -114,9 +147,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               <span>{employee.name}</span>
               {isOnVacation && <Badge variant="outline">{t('planner.onVacation')}</Badge>}
               {isUnavailable && <Badge variant="outline">{t('employees.onLeave')}</Badge>}
-              {isOnAnotherAssignment && !isDisabled && (
+              {availabilityInfo.isAssigned && !isDisabled && (
                 <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                  {t('planner.onAnotherAssignment')}
+                  {availabilityInfo.availableAt 
+                    ? t('planner.onAnotherAssignmentUntil', { time: availabilityInfo.availableAt })
+                    : t('planner.onAnotherAssignment')}
                 </Badge>
               )}
             </div>

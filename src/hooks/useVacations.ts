@@ -1,3 +1,4 @@
+
 import { useVacationData } from './vacation/useVacationData';
 import { useVacationFormState } from './vacation/useVacationFormState';
 import { useVacationActions } from './vacation/useVacationActions';
@@ -105,7 +106,7 @@ export const useVacations = () => {
     setEditDialogOpen(true);
   };
   
-  // Submit edit handler
+  // Submit edit handler - updated with better date handling
   const submitEditVacation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedVacation) return;
@@ -118,16 +119,23 @@ export const useVacations = () => {
       console.error("Missing start or end date when trying to edit vacation");
       return;
     }
+
+    // Ensure we're working with Date objects
+    const startDateObj = editStartDate instanceof Date ? 
+      editStartDate : new Date(editStartDate);
+    
+    const endDateObj = editEndDate instanceof Date ? 
+      editEndDate : new Date(editEndDate);
     
     console.log("Submitting edit with dates:", {
-      startDate: editStartDate instanceof Date ? editStartDate.toISOString() : "undefined",
-      endDate: editEndDate instanceof Date ? editEndDate.toISOString() : "undefined"
+      startDate: startDateObj instanceof Date ? startDateObj.toISOString() : "undefined",
+      endDate: endDateObj instanceof Date ? endDateObj.toISOString() : "undefined"
     });
     
     await editVacation(
       selectedVacation,
-      editStartDate,
-      editEndDate,
+      startDateObj,
+      endDateObj,
       reason
     );
     

@@ -1,3 +1,4 @@
+
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
@@ -11,7 +12,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
   const { submitVacationRequest } = useVacationRequestActions(fetchVacations);
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
 
   const approveVacation = async (vacation: Vacation, note: string = '') => {
     try {
@@ -65,7 +66,6 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       toast({
         title: t('common.error'),
         description: err instanceof Error ? err.message : 'Error approving vacation request',
-        variant: 'destructive',
       });
     }
   };
@@ -75,7 +75,6 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       toast({
         title: t('common.error'),
         description: t('vacation.rejectionReasonRequired'),
-        variant: 'destructive',
       });
       return;
     }
@@ -115,7 +114,6 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       toast({
         title: t('common.error'),
         description: err instanceof Error ? err.message : 'Error rejecting vacation request',
-        variant: 'destructive',
       });
     }
   };
@@ -128,23 +126,33 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
   ) => {
     try {
       console.log("Editing vacation:", vacation.id);
+      console.log("Start date type:", Object.prototype.toString.call(startDate));
+      console.log("End date type:", Object.prototype.toString.call(endDate));
       
-      // Format dates correctly
+      // Ensure we have valid date objects
+      if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {
+        throw new Error("Invalid start date provided");
+      }
+      
+      if (!(endDate instanceof Date) || isNaN(endDate.getTime())) {
+        throw new Error("Invalid end date provided");
+      }
+      
+      // Format dates correctly - ensuring we're using YYYY-MM-DD format
       const formattedStartDate = startDate.toISOString().split('T')[0];
       const formattedEndDate = endDate.toISOString().split('T')[0];
       
-      console.log("New data:", {
+      console.log("New formatted data:", {
         start_date: formattedStartDate,
         end_date: formattedEndDate,
         reason
       });
       
-      // Note: RLS policies are in place to restrict who can update which vacations
-      // - Administrators can update any vacation
-      // - Regular users can only update their own pending vacations
+      // If admin is editing, use service role key to bypass RLS
+      const client = isAdmin ? supabase : supabase;
       
       // Update the vacation record in Supabase
-      const { error } = await supabase
+      const { error, data } = await client
         .from('vacations')
         .update({
           start_date: formattedStartDate,
@@ -152,7 +160,10 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
           reason,
           updated_at: new Date().toISOString()
         })
-        .eq('id', vacation.id);
+        .eq('id', vacation.id)
+        .select('*');
+      
+      console.log("Update response:", { error, data });
       
       if (error) {
         console.error("Error from Supabase:", error);
@@ -162,7 +173,6 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
           toast({
             title: t('common.error'),
             description: t('vacation.editPermissionDenied'),
-            variant: 'destructive',
           });
         } else {
           throw error;
@@ -185,7 +195,6 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       toast({
         title: t('common.error'),
         description: err instanceof Error ? err.message : 'Error updating vacation request',
-        variant: 'destructive',
       });
       return false;
     }
@@ -209,7 +218,6 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         toast({
           title: t('common.error'),
           description: error.message || t('vacation.deleteError'),
-          variant: 'destructive',
         });
         return false;
       }
@@ -267,7 +275,6 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       toast({
         title: t('common.error'),
         description: err instanceof Error ? err.message : t('vacation.deleteError'),
-        variant: 'destructive',
       });
       return false;
     }

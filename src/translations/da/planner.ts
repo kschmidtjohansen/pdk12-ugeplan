@@ -54,6 +54,7 @@ const planner = {
   noAssignmentsWeek: 'Ingen opgaver i denne uge',
   onVacation: 'På ferie',
   onAnotherAssignment: 'På anden opgave',
+  onAnotherAssignmentUntil: 'På opgave indtil {time}',
   atLocation: 'På lokation',
   startTime: 'Starttid',
   endTime: 'Sluttid',

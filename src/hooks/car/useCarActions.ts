@@ -73,7 +73,9 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
   };
   
   const markCarAvailableKeepNote = async (car: CarData) => {
-    updateAvailabilityStatus(car, true, car.notes);
+    if (car && car.notes !== undefined) {
+      updateAvailabilityStatus(car, true, car.notes);
+    }
     setAvailableDialogOpen(false);
   };
   
@@ -84,14 +86,23 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
   
   const updateAvailabilityStatus = async (car: CarData, isAvailable: boolean, notes: string | null) => {
     try {
+      console.log("Updating car availability:", {
+        car_id: car.id,
+        is_available: isAvailable,
+        notes: notes
+      });
+
       // Update the car in Supabase
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('cars')
         .update({ 
           is_available: isAvailable,
           notes: notes 
         })
-        .eq('id', car.id);
+        .eq('id', car.id)
+        .select();
+      
+      console.log("Supabase response:", { error, data });
       
       if (error) throw error;
       
