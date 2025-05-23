@@ -51,6 +51,15 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     });
   };
 
+  // Helper function to format time to HH:MM without seconds
+  const formatTimeWithoutSeconds = (time: string): string => {
+    // If time format is HH:MM:SS, remove the seconds part
+    if (time && time.length === 8 && time.includes(':')) {
+      return time.substring(0, 5);
+    }
+    return time;
+  };
+
   // Enhanced function to check if an employee is already assigned to another assignment
   // Returns detailed information about assignment times
   const checkEmployeeAvailability = (employeeName: string): EmployeeAvailabilityInfo => {
@@ -98,8 +107,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     
     return { 
       isAssigned: true, 
-      availableAt: isEndOfWorkDay ? undefined : latestEndTime,
-      latestAssignmentEndTime: latestEndTime
+      availableAt: isEndOfWorkDay ? undefined : formatTimeWithoutSeconds(latestEndTime),
+      latestAssignmentEndTime: formatTimeWithoutSeconds(latestEndTime)
     };
   };
 

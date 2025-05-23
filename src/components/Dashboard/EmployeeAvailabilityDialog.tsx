@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { CalendarIcon, UserIcon, ArrowRight, Briefcase } from 'lucide-react';
 import { format, addDays, subDays, isToday } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
 interface EmployeeAvailabilityDialogProps {
   employees: Employee[];
   title: string;
@@ -49,6 +49,15 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
     currentLanguage
   } = useTranslation();
   const formattedDate = format(viewDate, 'yyyy-MM-dd');
+
+  // Helper function to format time to HH:MM without seconds
+  const formatTimeWithoutSeconds = (time: string): string => {
+    // If time format is HH:MM:SS, remove the seconds part
+    if (time && time.length === 8 && time.includes(':')) {
+      return time.substring(0, 5);
+    }
+    return time;
+  };
 
   // Helper function to check if an employee is on vacation for a specific date
   const isEmployeeOnVacation = (employeeId: string, checkDate: string): boolean => {
@@ -90,8 +99,8 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
     
     return { 
       isAssigned: true, 
-      availableAt: isEndOfWorkDay ? undefined : latestEndTime,
-      latestEndTime: latestEndTime
+      availableAt: isEndOfWorkDay ? undefined : formatTimeWithoutSeconds(latestEndTime),
+      latestEndTime: formatTimeWithoutSeconds(latestEndTime)
     };
   };
 
@@ -169,6 +178,7 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
     }
     return title;
   };
+  
   return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[80vh]">
         <DialogHeader>

@@ -1,4 +1,3 @@
-
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
@@ -6,6 +5,7 @@ import { useVacationRequestActions } from './useVacationRequestActions';
 import { Vacation } from '@/types/vacation';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { toast } from '@/components/ui/sonner';
 
 export const useVacationActions = (fetchVacations: () => Promise<void>) => {
   const { toast } = useToast();
@@ -126,8 +126,9 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
   ) => {
     try {
       console.log("Editing vacation:", vacation.id);
-      console.log("Start date type:", Object.prototype.toString.call(startDate));
-      console.log("End date type:", Object.prototype.toString.call(endDate));
+      console.log("Start date:", startDate);
+      console.log("End date:", endDate);
+      console.log("User role - isAdmin:", isAdmin);
       
       // Ensure we have valid date objects
       if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {
@@ -138,21 +139,18 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         throw new Error("Invalid end date provided");
       }
       
-      // Format dates correctly - ensuring we're using YYYY-MM-DD format
+      // Format dates correctly - ensuring we're using YYYY-MM-DD format for Supabase
       const formattedStartDate = startDate.toISOString().split('T')[0];
       const formattedEndDate = endDate.toISOString().split('T')[0];
       
-      console.log("New formatted data:", {
+      console.log("Formatted data to be sent:", {
         start_date: formattedStartDate,
         end_date: formattedEndDate,
         reason
       });
       
-      // If admin is editing, use service role key to bypass RLS
-      const client = isAdmin ? supabase : supabase;
-      
-      // Update the vacation record in Supabase
-      const { error, data } = await client
+      // Update the vacation record in Supabase - note the column names must match the database
+      const { error, data } = await supabase
         .from('vacations')
         .update({
           start_date: formattedStartDate,
@@ -167,16 +165,10 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       
       if (error) {
         console.error("Error from Supabase:", error);
-        
-        // If there's an error due to RLS policy violation, show a specific message
-        if (error.code === "42501" || error.message.includes("policy")) {
-          toast({
-            title: t('common.error'),
-            description: t('vacation.editPermissionDenied'),
-          });
-        } else {
-          throw error;
-        }
+        toast({
+          title: t('common.error'),
+          description: error.message || t('vacation.editError'),
+        });
         return false;
       }
       

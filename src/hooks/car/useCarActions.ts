@@ -104,7 +104,44 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
       
       console.log("Supabase response:", { error, data });
       
-      if (error) throw error;
+      if (error) {
+        // Check specific error messages that might indicate a column doesn't exist
+        if (error.message && (error.message.includes("column \"notes\" does not exist") || 
+            error.message.includes("does not exist in table \"cars\""))) {
+          console.error("The 'notes' column does not exist in the cars table.");
+          
+          // Try updating only the availability status without notes
+          const { error: retryError, data: retryData } = await supabase
+            .from('cars')
+            .update({ is_available: isAvailable })
+            .eq('id', car.id)
+            .select();
+            
+          if (retryError) throw retryError;
+          
+          // Update worked without notes, update the local state
+          setCars(cars.map(c => 
+            c.id === car.id 
+              ? { ...c, is_available: isAvailable }
+              : c
+          ));
+          
+          // Show a modified success message
+          if (isAvailable) {
+            toast(t('cars.vehicleAvailable'), {
+              description: t('cars.vehicleAvailableMsg', { name: car.name })
+            });
+          } else {
+            toast(t('cars.vehicleUnavailable'), {
+              description: t('cars.vehicleUnavailableMsg', { name: car.name })
+            });
+          }
+          
+          return;
+        }
+        
+        throw error;
+      }
       
       // Update local state
       setCars(cars.map(c => 
