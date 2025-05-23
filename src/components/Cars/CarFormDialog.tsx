@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { CarFormData } from './types';
 import { useTranslation } from '@/context/TranslationContext';
 
@@ -19,7 +20,7 @@ interface CarFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   formData: CarFormData;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onCheckboxChange?: (field: string, checked: boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
   isEditing: boolean;
@@ -105,6 +106,17 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
               />
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">{t('cars.notes')}</Label>
+            <Textarea
+              id="notes"
+              name="notes"
+              value={formData.notes || ''}
+              onChange={onInputChange}
+              placeholder={t('cars.enterNote')}
+            />
+          </div>
           
           <div className="flex items-center space-x-2 mt-4">
             <Checkbox 

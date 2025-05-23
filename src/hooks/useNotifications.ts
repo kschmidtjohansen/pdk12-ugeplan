@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNotificationFetching } from './notifications/notificationFetching';
@@ -56,6 +55,35 @@ export const useNotifications = () => {
   
   // Set up vacation notifications processing
   const { createNotificationsForPendingRequests } = useVacationNotifications(user, addNotification);
+  
+  // Filter notifications based on user role
+  useEffect(() => {
+    if (user && user.role !== 'administrator' && notifications.length > 0) {
+      // Filter out notifications about other users' vacations for non-admin users
+      const filteredNotifications = notifications.filter(notification => {
+        // Keep notifications targeted specifically to this user
+        if (notification.user_id === user.id) {
+          return true;
+        }
+        
+        // If it's a vacation notification and user is not admin, only show if it's their own
+        if (notification.type === 'vacation' && !notification.message?.includes(user.name)) {
+          return false;
+        }
+        
+        return true;
+      });
+      
+      if (filteredNotifications.length !== notifications.length) {
+        console.log(`Filtered out ${notifications.length - filteredNotifications.length} notifications for non-admin user`);
+        setNotifications(filteredNotifications);
+        
+        // Update unread count
+        const unreadFiltered = filteredNotifications.filter(n => !n.read).length;
+        setUnreadCount(unreadFiltered);
+      }
+    }
+  }, [user, notifications, setNotifications, setUnreadCount]);
   
   // Run once after notifications are fetched to check for missing admin notifications
   useEffect(() => {

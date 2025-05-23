@@ -1,14 +1,14 @@
-import { useToast } from '@/components/ui/use-toast';
+
+import { useState } from 'react';
+import { toast } from '@/components/ui/sonner';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { useVacationRequestActions } from './useVacationRequestActions';
 import { Vacation } from '@/types/vacation';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
-import { toast } from '@/components/ui/sonner';
 
 export const useVacationActions = (fetchVacations: () => Promise<void>) => {
-  const { toast } = useToast();
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
   const { submitVacationRequest } = useVacationRequestActions(fetchVacations);
@@ -139,7 +139,15 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         throw new Error("Invalid end date provided");
       }
       
+      // Normalize dates to mitigate timezone issues by setting time to noon UTC
+      startDate = new Date(startDate);
+      startDate.setHours(12, 0, 0, 0);
+      
+      endDate = new Date(endDate);
+      endDate.setHours(12, 0, 0, 0);
+      
       // Format dates correctly - ensuring we're using YYYY-MM-DD format for Supabase
+      // Use EXACTLY the column names in the database: start_date and end_date
       const formattedStartDate = startDate.toISOString().split('T')[0];
       const formattedEndDate = endDate.toISOString().split('T')[0];
       
@@ -149,7 +157,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         reason
       });
       
-      // Update the vacation record in Supabase - note the column names must match the database
+      // Update the vacation record in Supabase - use the correct column names
       const { error, data } = await supabase
         .from('vacations')
         .update({

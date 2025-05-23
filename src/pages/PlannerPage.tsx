@@ -32,6 +32,21 @@ const PlannerPage: React.FC = () => {
     handleCopyAssignment
   } = usePlannerPage();
 
+  // Sort weekAssignments by date, with the latest date on top
+  const sortedWeekAssignments = React.useMemo(() => {
+    if (!weekAssignments) return [];
+    
+    // Create a copy to avoid mutating the original array
+    return [...weekAssignments].sort((a, b) => {
+      // First sort by date (descending)
+      if (a.date !== b.date) {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      }
+      // If same date, sort by fromTime (descending)
+      return b.fromTime.localeCompare(a.fromTime);
+    });
+  }, [weekAssignments]);
+
   // Add some debugging to see that we have the correct week dates
   console.log("PlannerPage: Rendering with week dates", {
     week: selectedWeek,
@@ -52,7 +67,7 @@ const PlannerPage: React.FC = () => {
       />
 
       <PlannerContent
-        weekAssignments={weekAssignments}
+        weekAssignments={sortedWeekAssignments}
         onEditAssignment={handleOpenEditDialog}
         onDeleteAssignment={deleteAssignment}
         onPublishAssignment={publishAssignment}

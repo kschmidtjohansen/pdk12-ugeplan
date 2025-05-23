@@ -19,6 +19,7 @@ type EmployeeAvailabilityInfo = {
   isAssigned: boolean;
   availableAt?: string; // Time when employee becomes available
   latestAssignmentEndTime?: string; // Latest end time of employee's assignments for the day
+  isFullyBooked: boolean; // Whether employee is booked for the full workday
 }
 
 export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
@@ -60,6 +61,75 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     return time;
   };
 
+  // Function to determine if an employee is fully booked for the workday based on their assignments
+  const isEmployeeFullyBookedForDay = (assignments: Assignment[], dayOfWeek: number): boolean => {
+    // Standard work hours: Mon-Thu: 08:00-16:00, Fri: 08:00-15:30
+    const workdayStart = "08:00";
+    const workdayEnd = dayOfWeek === 5 ? "15:30" : "16:00"; // Friday ends at 15:30, other days at 16:00
+    
+    // Check if there are assignments covering the entire workday
+    let coveredTimeSlots: [string, string][] = [];
+    
+    // Sort assignments by time
+    const sortedAssignments = [...assignments].sort((a, b) => a.fromTime.localeCompare(b.fromTime));
+    
+    // Add each assignment's time range to coveredTimeSlots
+    for (const assignment of sortedAssignments) {
+      const from = assignment.fromTime;
+      const to = assignment.toTime;
+      
+      // Check if this assignment time range fully covers the workday
+      if (from <= workdayStart && to >= workdayEnd) {
+        return true;
+      }
+      
+      // Add this time slot
+      coveredTimeSlots.push([from, to]);
+    }
+    
+    // If we have multiple assignments, check if they collectively cover the workday
+    if (coveredTimeSlots.length > 1) {
+      // Sort time slots
+      coveredTimeSlots.sort((a, b) => a[0].localeCompare(b[0]));
+      
+      // Merge overlapping time slots
+      let merged: [string, string][] = [];
+      let current = coveredTimeSlots[0];
+      
+      for (let i = 1; i < coveredTimeSlots.length; i++) {
+        if (current[1] >= coveredTimeSlots[i][0]) {
+          // Overlapping slots, merge them
+          current[1] = coveredTimeSlots[i][1] > current[1] ? coveredTimeSlots[i][1] : current[1];
+        } else {
+          // No overlap, add the current slot and move to the next one
+          merged.push(current);
+          current = coveredTimeSlots[i];
+        }
+      }
+      merged.push(current);
+      
+      // Now check if the merged slots cover the entire workday
+      for (const [from, to] of merged) {
+        if (from <= workdayStart && to >= workdayEnd) {
+          return true;
+        }
+      }
+      
+      // Check if the combined slots cover the entire workday
+      // This handles cases where multiple assignments collectively cover the day
+      if (merged.length > 0) {
+        const earliestStart = merged[0][0];
+        const latestEnd = merged[merged.length - 1][1];
+        
+        if (earliestStart <= workdayStart && latestEnd >= workdayEnd) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  };
+
   // Enhanced function to check if an employee is already assigned to another assignment
   // Returns detailed information about assignment times
   const checkEmployeeAvailability = (employeeName: string): EmployeeAvailabilityInfo => {
@@ -87,8 +157,14 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     
     // If no assignments found, employee is fully available
     if (employeeAssignments.length === 0) {
-      return { isAssigned: false };
+      return { isAssigned: false, isFullyBooked: false };
     }
+    
+    // Get the day of the week to determine workday end time
+    const dayOfWeek = currentDateObj.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    // Check if the employee is fully booked for the day
+    const fullyBooked = isEmployeeFullyBookedForDay(employeeAssignments, dayOfWeek);
     
     // Find the latest end time among all assignments
     let latestEndTime = "00:00";
@@ -100,15 +176,15 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     
     // Check if the latest end time is the end of workday
     // Standard work end times: Mon-Thu: 16:00, Fri: 15:30
-    const dayOfWeek = currentDateObj.getDay(); // 0 = Sunday, 1 = Monday, etc.
     const isEndOfWorkDay = 
       (dayOfWeek === 5 && latestEndTime === "15:30") || // Friday
       (dayOfWeek >= 1 && dayOfWeek <= 4 && latestEndTime === "16:00"); // Mon-Thu
     
     return { 
       isAssigned: true, 
-      availableAt: isEndOfWorkDay ? undefined : formatTimeWithoutSeconds(latestEndTime),
-      latestAssignmentEndTime: formatTimeWithoutSeconds(latestEndTime)
+      availableAt: isEndOfWorkDay || fullyBooked ? undefined : formatTimeWithoutSeconds(latestEndTime),
+      latestAssignmentEndTime: formatTimeWithoutSeconds(latestEndTime),
+      isFullyBooked: fullyBooked
     };
   };
 
@@ -157,11 +233,17 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               {isOnVacation && <Badge variant="outline">{t('planner.onVacation')}</Badge>}
               {isUnavailable && <Badge variant="outline">{t('employees.onLeave')}</Badge>}
               {availabilityInfo.isAssigned && !isDisabled && (
-                <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                  {availabilityInfo.availableAt 
-                    ? t('planner.onAnotherAssignmentUntil', { time: availabilityInfo.availableAt })
-                    : t('planner.onAnotherAssignment')}
-                </Badge>
+                availabilityInfo.isFullyBooked ? (
+                  <Badge className="bg-red-100 text-red-800 border-red-200">
+                    {t('planner.onAnotherAssignment')}
+                  </Badge>
+                ) : (
+                  <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                    {availabilityInfo.availableAt 
+                      ? t('planner.onAnotherAssignmentUntil', { time: availabilityInfo.availableAt })
+                      : t('planner.onAnotherAssignment')}
+                  </Badge>
+                )
               )}
             </div>
           </div>

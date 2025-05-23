@@ -69,12 +69,33 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Make sure that both start and end dates have the time set to 12:00 to avoid timezone issues
+    if (useSeparateDateFields && startDate && endDate) {
+      // Clone the dates to avoid modifying the originals
+      const normalizedStartDate = new Date(startDate.getTime());
+      normalizedStartDate.setHours(12, 0, 0, 0);
+      
+      const normalizedEndDate = new Date(endDate.getTime());
+      normalizedEndDate.setHours(12, 0, 0, 0);
+      
+      // Update the start and end dates
+      onStartDateChange(normalizedStartDate);
+      onEndDateChange(normalizedEndDate);
+      
+      console.log("Normalized dates for submission:", {
+        normalizedStartDate: normalizedStartDate.toISOString(),
+        normalizedEndDate: normalizedEndDate.toISOString()
+      });
+    }
+    
     console.log("Form submitted with data:", {
       isEditing,
       startDate: startDate instanceof Date ? startDate.toISOString() : startDate,
       endDate: endDate instanceof Date ? endDate.toISOString() : endDate,
       reason
     });
+    
     onSubmit(e);
   };
 

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ type EmployeeAssignmentInfo = {
   isAssigned: boolean;
   availableAt?: string; // Time when employee becomes available
   latestEndTime?: string; // Latest end time of assignments for the day
+  isFullyBooked: boolean; // Whether employee is booked for the full workday
 }
 
 const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
@@ -64,12 +66,85 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
     return vacations.some(vacation => vacation.employeeId === employeeId && vacation.status === 'approved' && format(vacation.startDate, 'yyyy-MM-dd') <= checkDate && format(vacation.endDate, 'yyyy-MM-dd') > checkDate);
   };
 
+  // Function to determine if an employee is fully booked for the workday based on their assignments
+  const isEmployeeFullyBookedForDay = (employeeAssignments: Assignment[], checkDate: string): boolean => {
+    // Get the day of the week for the check date
+    const dateObj = new Date(checkDate);
+    const dayOfWeek = dateObj.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    // Standard work hours: Mon-Thu: 08:00-16:00, Fri: 08:00-15:30
+    const workdayStart = "08:00";
+    const workdayEnd = dayOfWeek === 5 ? "15:30" : "16:00"; // Friday ends at 15:30, other days at 16:00
+    
+    // Check if there are assignments covering the entire workday
+    let coveredTimeSlots: [string, string][] = [];
+    
+    // Sort assignments by time
+    const sortedAssignments = [...employeeAssignments].sort((a, b) => a.fromTime.localeCompare(b.fromTime));
+    
+    // Add each assignment's time range to coveredTimeSlots
+    for (const assignment of sortedAssignments) {
+      const from = assignment.fromTime;
+      const to = assignment.toTime;
+      
+      // Check if this assignment time range fully covers the workday
+      if (from <= workdayStart && to >= workdayEnd) {
+        return true;
+      }
+      
+      // Add this time slot
+      coveredTimeSlots.push([from, to]);
+    }
+    
+    // If we have multiple assignments, check if they collectively cover the workday
+    if (coveredTimeSlots.length > 1) {
+      // Sort time slots
+      coveredTimeSlots.sort((a, b) => a[0].localeCompare(b[0]));
+      
+      // Merge overlapping time slots
+      let merged: [string, string][] = [];
+      let current = coveredTimeSlots[0];
+      
+      for (let i = 1; i < coveredTimeSlots.length; i++) {
+        if (current[1] >= coveredTimeSlots[i][0]) {
+          // Overlapping slots, merge them
+          current[1] = coveredTimeSlots[i][1] > current[1] ? coveredTimeSlots[i][1] : current[1];
+        } else {
+          // No overlap, add the current slot and move to the next one
+          merged.push(current);
+          current = coveredTimeSlots[i];
+        }
+      }
+      merged.push(current);
+      
+      // Now check if the merged slots cover the entire workday
+      for (const [from, to] of merged) {
+        if (from <= workdayStart && to >= workdayEnd) {
+          return true;
+        }
+      }
+      
+      // Check if the combined slots cover the entire workday
+      // This handles cases where multiple assignments collectively cover the day
+      if (merged.length > 0) {
+        const earliestStart = merged[0][0];
+        const latestEnd = merged[merged.length - 1][1];
+        
+        if (earliestStart <= workdayStart && latestEnd >= workdayEnd) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  };
+
   // Enhanced helper function to check if an employee is assigned to any task on a specific date
   // Returns detailed information about assignment times
   const getEmployeeAssignmentInfo = (employeeId: string, checkDate: string): EmployeeAssignmentInfo => {
     // Find the employee name
     const employee = allEmployees.find(e => e.id === employeeId);
-    if (!employee) return { isAssigned: false };
+    if (!employee) return { isAssigned: false, isFullyBooked: false };
 
     // Find all assignments for this employee on the given date
     const employeeAssignments = assignments.filter(assignment => 
@@ -78,8 +153,11 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
     
     // If no assignments found, employee is fully available
     if (employeeAssignments.length === 0) {
-      return { isAssigned: false };
+      return { isAssigned: false, isFullyBooked: false };
     }
+    
+    // Check if the employee is fully booked
+    const fullyBooked = isEmployeeFullyBookedForDay(employeeAssignments, checkDate);
     
     // Find the latest end time among all assignments
     let latestEndTime = "00:00";
@@ -98,9 +176,10 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
       (dayOfWeek >= 1 && dayOfWeek <= 4 && latestEndTime === "16:00"); // Mon-Thu
     
     return { 
-      isAssigned: true, 
-      availableAt: isEndOfWorkDay ? undefined : formatTimeWithoutSeconds(latestEndTime),
-      latestEndTime: formatTimeWithoutSeconds(latestEndTime)
+      isAssigned: true,
+      availableAt: isEndOfWorkDay || fullyBooked ? undefined : formatTimeWithoutSeconds(latestEndTime),
+      latestEndTime: formatTimeWithoutSeconds(latestEndTime),
+      isFullyBooked: fullyBooked
     };
   };
 
@@ -122,8 +201,8 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
     // Get assignment information
     const assignmentInfo = getEmployeeAssignmentInfo(employee.id, formattedDate);
     
-    // UPDATED: For available view, also exclude employees who are fully booked for the day
-    if (assignmentInfo.isAssigned && !assignmentInfo.availableAt) return false;
+    // For available view, also exclude employees who are fully booked for the day
+    if (assignmentInfo.isAssigned && assignmentInfo.isFullyBooked) return false;
 
     // Include only truly available employees or those who will be available later
     return true;
@@ -237,10 +316,15 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
                     <div className="flex-1">
                       <div className="font-medium">{employee.name}</div>
                     </div>
-                    {isAvailable && isAssigned && assignmentInfo?.availableAt && (
-                      <div className="flex items-center text-xs bg-yellow-50 text-yellow-700 px-2 py-1 rounded">
+                    {isAvailable && isAssigned && (
+                      <div className={`flex items-center text-xs ${assignmentInfo?.isFullyBooked ? 
+                        'bg-red-50 text-red-700' : 'bg-yellow-50 text-yellow-700'} px-2 py-1 rounded`}>
                         <Briefcase className="h-3 w-3 mr-1" />
-                        {t('planner.onAnotherAssignmentUntil', { time: assignmentInfo.availableAt })}
+                        {assignmentInfo?.isFullyBooked ? 
+                          t('planner.onAnotherAssignment') : 
+                          (assignmentInfo?.availableAt ? 
+                          t('planner.onAnotherAssignmentUntil', { time: assignmentInfo.availableAt }) :
+                          t('planner.onAnotherAssignment'))}
                       </div>
                     )}
                     {!isAvailable && isVacation && <div className="flex items-center text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
