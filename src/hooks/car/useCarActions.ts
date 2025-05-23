@@ -120,8 +120,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         
         // If updating with notes fails, it might mean the notes column doesn't exist
         // Show an error but still update the local state for is_available
-        toast({
-          title: t('common.warning'),
+        toast(t('common.warning'), {
           description: t('cars.notesFeatureUnavailable'),
         });
         
@@ -153,7 +152,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
     } catch (err) {
       console.error('Error updating car availability:', err);
       toast(t('common.error'), {
-        description: err instanceof Error ? err.message : 'Error updating vehicle availability',
+          description: err instanceof Error ? err.message : 'Error updating vehicle availability',
       });
     }
   };

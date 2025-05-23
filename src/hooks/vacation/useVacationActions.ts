@@ -28,8 +28,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       if (error) throw error;
 
       // Display toast notification
-      toast({
-        title: t('vacation.requestApproved'),
+      toast(t('vacation.requestApproved'), {
         description: t('vacation.requestApprovedMsg', { name: vacation.employeeName })
       });
 
@@ -63,8 +62,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
 
     } catch (err) {
       console.error('Error approving vacation:', err);
-      toast({
-        title: t('common.error'),
+      toast(t('common.error'), {
         description: err instanceof Error ? err.message : 'Error approving vacation request',
       });
     }
@@ -72,8 +70,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
 
   const rejectVacation = async (vacation: Vacation, reason: string) => {
     if (!reason.trim()) {
-      toast({
-        title: t('common.error'),
+      toast(t('common.error'), {
         description: t('vacation.rejectionReasonRequired'),
       });
       return;
@@ -92,8 +89,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       if (error) throw error;
 
       // Display toast notification
-      toast({
-        title: t('vacation.requestRejected'),
+      toast(t('vacation.requestRejected'), {
         description: t('vacation.requestRejectedMsg', { name: vacation.employeeName })
       });
 
@@ -111,8 +107,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
 
     } catch (err) {
       console.error('Error rejecting vacation:', err);
-      toast({
-        title: t('common.error'),
+      toast(t('common.error'), {
         description: err instanceof Error ? err.message : 'Error rejecting vacation request',
       });
     }
@@ -173,16 +168,14 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       
       if (error) {
         console.error("Error from Supabase:", error);
-        toast({
-          title: t('common.error'),
+        toast(t('common.error'), {
           description: error.message || t('vacation.editError'),
         });
         return false;
       }
       
       // Display toast notification
-      toast({
-        title: t('vacation.requestUpdated'),
+      toast(t('vacation.requestUpdated'), {
         description: t('vacation.requestUpdatedMsg')
       });
       
@@ -192,8 +185,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       return true;
     } catch (err) {
       console.error('Error editing vacation:', err);
-      toast({
-        title: t('common.error'),
+      toast(t('common.error'), {
         description: err instanceof Error ? err.message : 'Error updating vacation request',
       });
       return false;
@@ -215,8 +207,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       
       if (error) {
         console.error("Error during vacation deletion:", error);
-        toast({
-          title: t('common.error'),
+        toast(t('common.error'), {
           description: error.message || t('vacation.deleteError'),
         });
         return false;
@@ -225,8 +216,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       console.log("Vacation deleted successfully:", vacation.id, "Response data:", data);
       
       // Display toast notification
-      toast({
-        title: t('vacation.requestDeleted'),
+      toast(t('vacation.requestDeleted'), {
         description: t('vacation.requestDeletedMsg'),
       });
 
@@ -272,8 +262,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       
     } catch (err) {
       console.error('Error deleting vacation:', err);
-      toast({
-        title: t('common.error'),
+      toast(t('common.error'), {
         description: err instanceof Error ? err.message : t('vacation.deleteError'),
       });
       return false;

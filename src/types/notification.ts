@@ -7,6 +7,7 @@ export interface NotificationType {
   link?: string;
   read: boolean;
   date: Date;
+  targetUserId?: string;  // Added property for target user ID
 }
 
 export interface VacationNotification extends NotificationType {

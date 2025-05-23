@@ -62,7 +62,7 @@ export const useNotifications = () => {
       // Filter out notifications about other users' vacations for non-admin users
       const filteredNotifications = notifications.filter(notification => {
         // Keep notifications targeted specifically to this user
-        if (notification.user_id === user.id) {
+        if (notification.targetUserId === user.id) {
           return true;
         }
         
