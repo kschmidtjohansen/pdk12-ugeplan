@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CarData } from './types';
@@ -135,7 +135,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
           </div>
           <div className="col-span-1">
             <p className="text-muted-foreground">{t('cars.isAvailable')}:</p>
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
               {car.is_available ? (
                 <>
                   <Check className="h-4 w-4 mr-1 text-green-500" />
@@ -146,6 +146,16 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                   <X className="h-4 w-4 mr-1 text-red-500" />
                   <span>{t('common.unavailable')}</span>
                 </>
+              )}
+              {car.notes && car.notes.trim() !== '' && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-blue-500 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs whitespace-pre-wrap">{car.notes}</p>
+                  </TooltipContent>
+                </Tooltip>
               )}
             </div>
           </div>

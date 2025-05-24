@@ -21,12 +21,14 @@ export const useAssignmentPublishing = (
   const { t } = useTranslation();
 
   const publishAssignmentsByDate = async (date: string) => {
+    console.log(`[Publishing] Starting to publish assignments for date: ${date}`);
+    
     const assignmentsToUpdate = assignments.filter(a => 
       a.date === date && !a.published
     );
     
     if (assignmentsToUpdate.length === 0) {
-      console.log(`No unpublished assignments found for date ${date}`);
+      console.log(`[Publishing] No unpublished assignments found for date ${date}`);
       toast({
         title: t("planner.noAssignmentsToPublish"),
         description: t("planner.noUnpublishedAssignments"),
@@ -34,35 +36,27 @@ export const useAssignmentPublishing = (
       return false;
     }
     
-    console.log(`Publishing ${assignmentsToUpdate.length} assignments for date ${date}`);
+    console.log(`[Publishing] Publishing ${assignmentsToUpdate.length} assignments for date ${date}`);
     
     try {
-      // Update assignments directly in the database for better performance
       // Get all the assignment IDs
       const assignmentIds = assignmentsToUpdate.map(a => a.id);
       
-      console.log("Assignment IDs to update:", assignmentIds);
+      console.log("[Publishing] Assignment IDs to update:", assignmentIds);
       
       // Update all assignments in a single database operation
       const { error, data } = await supabase
         .from('assignments')
         .update({ published: true })
-        .in('id', assignmentIds);
+        .in('id', assignmentIds)
+        .select();
         
       if (error) {
-        console.error("Error updating assignments in database:", error);
+        console.error("[Publishing] Error updating assignments in database:", error);
         throw error;
       }
       
-      console.log("Supabase batch update response:", data);
-      
-      // Update the local state to reflect the changes
-      const updatedAssignments = assignments.map(a => 
-        assignmentIds.includes(a.id) ? { ...a, published: true } : a
-      );
-      
-      // Note: Since we're using the hook pattern, we don't update state directly here
-      // but rely on the component to update its own state with the latest assignments
+      console.log("[Publishing] Supabase batch update response:", data);
       
       toast({
         title: t("planner.assignmentsPublished"),
@@ -71,7 +65,7 @@ export const useAssignmentPublishing = (
       
       return true;
     } catch (error) {
-      console.error(`Error publishing assignments for date ${date}:`, error);
+      console.error(`[Publishing] Error publishing assignments for date ${date}:`, error);
       toast({
         title: t("common.error"),
         description: t("planner.errorPublishingAssignments"),
@@ -82,28 +76,33 @@ export const useAssignmentPublishing = (
   };
 
   const publishAssignments = async (assignmentIds: string[]) => {
+    console.log(`[Publishing] Publishing assignments with IDs:`, assignmentIds);
+    
     const assignmentsToUpdate = assignments.filter(a => 
       assignmentIds.includes(a.id) && !a.published
     );
     
     if (assignmentsToUpdate.length === 0) {
-      console.log(`No unpublished assignments found with IDs: ${assignmentIds.join(', ')}`);
+      console.log(`[Publishing] No unpublished assignments found with IDs: ${assignmentIds.join(', ')}`);
       return false;
     }
     
-    console.log(`Publishing ${assignmentsToUpdate.length} assignments`);
+    console.log(`[Publishing] Publishing ${assignmentsToUpdate.length} assignments`);
     
     try {
       // Update assignments directly in the database
       const { error, data } = await supabase
         .from('assignments')
         .update({ published: true })
-        .in('id', assignmentIds);
+        .in('id', assignmentIds)
+        .select();
         
       if (error) {
-        console.error("Error updating assignments in database:", error);
+        console.error("[Publishing] Error updating assignments in database:", error);
         throw error;
       }
+      
+      console.log("[Publishing] Batch update successful:", data);
       
       toast({
         title: t("planner.assignmentsPublished"),
@@ -112,7 +111,7 @@ export const useAssignmentPublishing = (
       
       return true;
     } catch (error) {
-      console.error("Error publishing assignments:", error);
+      console.error("[Publishing] Error publishing assignments:", error);
       toast({
         title: t("common.error"),
         description: t("planner.errorPublishingAssignments"),
@@ -123,28 +122,37 @@ export const useAssignmentPublishing = (
   };
 
   const publishAssignment = async (assignmentId: string) => {
+    console.log(`[Publishing] Publishing single assignment: ${assignmentId}`);
+    
     const assignmentToUpdate = assignments.find(a => 
       a.id === assignmentId && !a.published
     );
     
     if (!assignmentToUpdate) {
-      console.log(`No unpublished assignment found with ID: ${assignmentId}`);
+      console.log(`[Publishing] No unpublished assignment found with ID: ${assignmentId}`);
+      toast({
+        title: t("planner.assignmentAlreadyPublished"),
+        description: t("planner.assignmentAlreadyPublishedMsg"),
+      });
       return false;
     }
     
-    console.log(`Publishing assignment: ${assignmentToUpdate.title} (${assignmentId})`);
+    console.log(`[Publishing] Publishing assignment: ${assignmentToUpdate.title} (${assignmentId})`);
     
     try {
       // Update directly with supabase
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('assignments')
         .update({ published: true })
-        .eq('id', assignmentId);
+        .eq('id', assignmentId)
+        .select();
         
       if (error) {
-        console.error(`Error publishing assignment ${assignmentId} in database:`, error);
+        console.error(`[Publishing] Error publishing assignment ${assignmentId} in database:`, error);
         throw error;
       }
+      
+      console.log(`[Publishing] Assignment ${assignmentId} published successfully:`, data);
       
       toast({
         title: t("planner.assignmentPublished"),
@@ -153,7 +161,7 @@ export const useAssignmentPublishing = (
       
       return true;
     } catch (error) {
-      console.error(`Error publishing assignment ${assignmentId}:`, error);
+      console.error(`[Publishing] Error publishing assignment ${assignmentId}:`, error);
       toast({
         title: t("common.error"),
         description: t("planner.errorPublishingAssignment"),

@@ -219,39 +219,43 @@ const DashboardMetrics: React.FC = () => {
         </>
       )}
 
-      {/* Full width upcoming vacations for all users */}
+      {/* Full width upcoming vacations for ALL users (not just admin/skadeleder) */}
       <div className={shouldShowMetrics ? "md:col-span-2 lg:col-span-4" : "md:col-span-2 lg:col-span-4"}>
         <UpcomingVacationsWidget vacations={vacations} />
       </div>
 
       {/* Employee availability dialogs */}
-      <EmployeeAvailabilityDialog 
-        open={availableEmployeesDialogOpen}
-        onOpenChange={setAvailableEmployeesDialogOpen}
-        employees={availableEmployees}
-        title={t('dashboard.availableEmployees')}
-        description={t('dashboard.availableEmployeesDesc')}
-        isAvailable={true}
-        viewDate={viewDate}
-        onViewDateChange={setViewDate}
-        assignments={assignments}
-        allEmployees={filteredEmployees}
-        vacations={vacations}
-      />
+      {shouldShowMetrics && (
+        <>
+          <EmployeeAvailabilityDialog 
+            open={availableEmployeesDialogOpen}
+            onOpenChange={setAvailableEmployeesDialogOpen}
+            employees={availableEmployees}
+            title={t('dashboard.availableEmployees')}
+            description={t('dashboard.availableEmployeesDesc')}
+            isAvailable={true}
+            viewDate={viewDate}
+            onViewDateChange={setViewDate}
+            assignments={assignments}
+            allEmployees={filteredEmployees}
+            vacations={vacations}
+          />
 
-      <EmployeeAvailabilityDialog 
-        open={unavailableEmployeesDialogOpen}
-        onOpenChange={setUnavailableEmployeesDialogOpen}
-        employees={onLeaveEmployees}
-        title={t('dashboard.onLeaveEmployees')}
-        description={t('dashboard.unavailableEmployeesDesc')}
-        isAvailable={false}
-        viewDate={unavailableViewDate}
-        onViewDateChange={setUnavailableViewDate}
-        assignments={assignments}
-        allEmployees={filteredEmployees}
-        vacations={vacations}
-      />
+          <EmployeeAvailabilityDialog 
+            open={unavailableEmployeesDialogOpen}
+            onOpenChange={setUnavailableEmployeesDialogOpen}
+            employees={onLeaveEmployees}
+            title={t('dashboard.onLeaveEmployees')}
+            description={t('dashboard.unavailableEmployeesDesc')}
+            isAvailable={false}
+            viewDate={unavailableViewDate}
+            onViewDateChange={setUnavailableViewDate}
+            assignments={assignments}
+            allEmployees={filteredEmployees}
+            vacations={vacations}
+          />
+        </>
+      )}
     </div>
   );
 };

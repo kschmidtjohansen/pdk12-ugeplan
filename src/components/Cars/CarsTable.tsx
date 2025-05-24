@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info } from 'lucide-react';
 import { 
   Table,
   TableBody,
@@ -84,17 +84,29 @@ const CarsTable: React.FC<CarsTableProps> = ({
                   )}
                 </TableCell>
                 <TableCell>
-                  {car.is_available ? (
-                    <div className="flex items-center">
-                      <Check className="h-4 w-4 mr-1 text-green-500" />
-                      <span>{t('common.available')}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center">
-                      <X className="h-4 w-4 mr-1 text-red-500" />
-                      <span>{t('common.unavailable')}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {car.is_available ? (
+                      <div className="flex items-center">
+                        <Check className="h-4 w-4 mr-1 text-green-500" />
+                        <span>{t('common.available')}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center">
+                        <X className="h-4 w-4 mr-1 text-red-500" />
+                        <span>{t('common.unavailable')}</span>
+                      </div>
+                    )}
+                    {car.notes && car.notes.trim() !== '' && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-blue-500 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs whitespace-pre-wrap">{car.notes}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
                 </TableCell>
                 {isAdmin && (
                   <TableCell>

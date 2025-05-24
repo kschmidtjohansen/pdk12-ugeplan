@@ -104,6 +104,13 @@ const DashboardPage: React.FC = () => {
       // For regular users, show only published assignments assigned to them
       return isInCurrentWeek && assignment.published === true && assignment.employees && assignment.employees.some(employeeName => employeeName === user?.name);
     }
+  }).sort((a, b) => {
+    // Sort by date first (earliest first)
+    if (a.date !== b.date) {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    }
+    // If same date, sort by fromTime (earliest first)
+    return a.fromTime.localeCompare(b.fromTime);
   });
 
   // Format the date based on the current language
@@ -203,12 +210,12 @@ const DashboardPage: React.FC = () => {
             </p> : <div className="grid gap-4">
               {userWeekAssignments.map(assignment => <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
                   <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
-                    <h3 className="font-medium">{assignment.title}</h3>
+                    <h3 className="font-bold text-lg">{assignment.location}</h3>
                     <span className="text-sm bg-gray-100 px-2 py-1 rounded-md">
                       {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{assignment.description}</p>
+                  <p className="text-sm text-gray-600 mb-2 font-medium">{assignment.title}</p>
                   <AssignmentDetails assignment={assignment} />
                 </div>)}
             </div>}

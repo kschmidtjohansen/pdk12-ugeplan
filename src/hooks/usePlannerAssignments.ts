@@ -18,7 +18,8 @@ export const usePlannerAssignments = () => {
     error,
     createAssignment,
     updateAssignment,
-    deleteAssignment
+    deleteAssignment,
+    fetchAssignments
   } = useAssignments();
   
   // Get filter functionality
@@ -28,9 +29,12 @@ export const usePlannerAssignments = () => {
   const filteredAssignments = filterMethods.filterByPermissions(assignments, true); // Default to showing all
   
   // Get publishing functionality - adapt updateAssignment to match expected signature
-  const assignmentUpdater = useCallback((assignment: Assignment) => {
-    return updateAssignment(assignment.id, assignment);
-  }, [updateAssignment]);
+  const assignmentUpdater = useCallback(async (assignment: Assignment) => {
+    await updateAssignment(assignment.id, assignment);
+    // Trigger a data refresh after updating
+    await fetchAssignments();
+    return true;
+  }, [updateAssignment, fetchAssignments]);
   
   const { publishAssignment, publishAssignmentsByDate } = useAssignmentPublishing(assignments, assignmentUpdater);
   
@@ -60,6 +64,26 @@ export const usePlannerAssignments = () => {
     }
   }, [currentAssignment, deleteAssignment]);
   
+  // Enhanced publish assignment function that refreshes data
+  const publishAssignmentWithRefresh = useCallback(async (assignmentId: string) => {
+    const result = await publishAssignment(assignmentId);
+    if (result) {
+      // Refresh the assignments data after successful publishing
+      await fetchAssignments();
+    }
+    return result;
+  }, [publishAssignment, fetchAssignments]);
+
+  // Enhanced publish assignments by date function that refreshes data
+  const publishAssignmentsByDateWithRefresh = useCallback(async (date: string) => {
+    const result = await publishAssignmentsByDate(date);
+    if (result) {
+      // Refresh the assignments data after successful publishing
+      await fetchAssignments();
+    }
+    return result;
+  }, [publishAssignmentsByDate, fetchAssignments]);
+  
   // Group assignments by day for display - memoize calculation to avoid unnecessary re-calculations
   const groupedAssignments = groupAssignmentsByDay(filteredAssignments);
   
@@ -81,7 +105,7 @@ export const usePlannerAssignments = () => {
     createAssignment,
     updateAssignment,
     deleteAssignment,
-    publishAssignment,
-    publishAssignmentsByDate
+    publishAssignment: publishAssignmentWithRefresh,
+    publishAssignmentsByDate: publishAssignmentsByDateWithRefresh
   };
 };
