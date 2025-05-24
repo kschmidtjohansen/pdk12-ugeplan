@@ -30,7 +30,8 @@ const cars = {
   keepNoteQuestion: 'Do you want to keep or delete the note for this vehicle?',
   keepNote: 'Keep Note',
   deleteNote: 'Delete Note',
-  notes: 'Notes'
+  notes: 'Notes',
+  notesFeatureUnavailable: 'Notes feature is not fully available yet. Availability status has been updated.'
 };
 
 export default cars;

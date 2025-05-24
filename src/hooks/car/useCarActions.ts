@@ -92,18 +92,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         notes: notes
       });
 
-      // Check if the notes column exists first by trying to update only is_available
-      const { error: testError } = await supabase
-        .from('cars')
-        .update({ is_available: isAvailable })
-        .eq('id', car.id);
-
-      if (testError) {
-        console.error("Error testing car update:", testError);
-        throw testError;
-      }
-
-      // Now try to update with notes
+      // Update the car with both availability and notes
       const { error, data } = await supabase
         .from('cars')
         .update({ 
@@ -116,28 +105,16 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
       console.log("Supabase response:", { error, data });
       
       if (error) {
-        console.error("Error updating car with notes:", error);
-        
-        // If updating with notes fails, it might mean the notes column doesn't exist
-        // Show an error but still update the local state for is_available
-        toast(t('common.warning'), {
-          description: t('cars.notesFeatureUnavailable'),
-        });
-        
-        // Update local state without notes
-        setCars(cars.map(c => 
-          c.id === car.id 
-            ? { ...c, is_available: isAvailable }
-            : c
-        ));
-      } else {
-        // Update local state with all data
-        setCars(cars.map(c => 
-          c.id === car.id 
-            ? { ...c, is_available: isAvailable, notes: notes }
-            : c
-        ));
+        console.error("Error updating car:", error);
+        throw error;
       }
+      
+      // Update local state with all data
+      setCars(cars.map(c => 
+        c.id === car.id 
+          ? { ...c, is_available: isAvailable, notes: notes }
+          : c
+      ));
       
       // Show success message
       if (isAvailable) {

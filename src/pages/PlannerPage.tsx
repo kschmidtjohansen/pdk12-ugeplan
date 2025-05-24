@@ -32,18 +32,18 @@ const PlannerPage: React.FC = () => {
     handleCopyAssignment
   } = usePlannerPage();
 
-  // Sort weekAssignments by date, with the latest date on top
+  // Sort weekAssignments by date (ascending - earliest first), then by time
   const sortedWeekAssignments = React.useMemo(() => {
     if (!weekAssignments) return [];
     
     // Create a copy to avoid mutating the original array
     return [...weekAssignments].sort((a, b) => {
-      // First sort by date (descending)
+      // First sort by date (ascending - earliest first)
       if (a.date !== b.date) {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
       }
-      // If same date, sort by fromTime (descending)
-      return b.fromTime.localeCompare(a.fromTime);
+      // If same date, sort by fromTime (ascending - earliest first)
+      return a.fromTime.localeCompare(b.fromTime);
     });
   }, [weekAssignments]);
 

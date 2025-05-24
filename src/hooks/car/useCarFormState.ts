@@ -27,6 +27,7 @@ export const useCarFormState = ({
     fuel_card_code: '',
     has_trailer_hitch: false,
     is_available: true,
+    notes: '',
   });
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -40,6 +41,7 @@ export const useCarFormState = ({
       fuel_card_code: '',
       has_trailer_hitch: false,
       is_available: true,
+      notes: '',
     });
     setDialogOpen(true);
   };
@@ -52,10 +54,11 @@ export const useCarFormState = ({
       fuel_card_code: car.fuel_card_code,
       has_trailer_hitch: car.has_trailer_hitch || false,
       is_available: car.is_available,
+      notes: car.notes || '',
     });
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -85,6 +88,7 @@ export const useCarFormState = ({
             fuel_card_code: formData.fuel_card_code,
             has_trailer_hitch: formData.has_trailer_hitch,
             is_available: formData.is_available,
+            notes: formData.notes,
             updated_at: new Date().toISOString()
           })
           .eq('id', currentCar.id);
@@ -114,6 +118,7 @@ export const useCarFormState = ({
               fuel_card_code: formData.fuel_card_code,
               has_trailer_hitch: formData.has_trailer_hitch,
               is_available: formData.is_available,
+              notes: formData.notes,
             }
           ])
           .select();

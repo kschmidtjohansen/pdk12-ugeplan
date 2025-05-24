@@ -94,6 +94,7 @@ export type Database = {
           id: string
           is_available: boolean
           name: string
+          notes: string | null
           number_plate: string
           updated_at: string
         }
@@ -105,6 +106,7 @@ export type Database = {
           id?: string
           is_available?: boolean
           name: string
+          notes?: string | null
           number_plate: string
           updated_at?: string
         }
@@ -116,6 +118,7 @@ export type Database = {
           id?: string
           is_available?: boolean
           name?: string
+          notes?: string | null
           number_plate?: string
           updated_at?: string
         }
