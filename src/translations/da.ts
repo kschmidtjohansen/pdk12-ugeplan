@@ -10,7 +10,7 @@ import { employees } from './da/employees';
 import { planner } from './da/planner';
 import { dashboard } from './da/dashboard';
 import { vacation } from './da/vacation';
-import { cars } from './da/cars';
+import cars from './da/cars';
 import { deleteConfirm } from './da/deleteConfirm';
 
 const daTranslations = {
