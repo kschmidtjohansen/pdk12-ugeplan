@@ -1,5 +1,5 @@
 
-export const planner = {
+const planner = {
   title: "Sagsnummer",
   newAssignment: "Ny Opgave",
   editAssignment: "Rediger Opgave",
@@ -63,3 +63,5 @@ export const planner = {
   used: "I brug",
   enterTitle: "Indtast sagsnummer"
 };
+
+export default planner;

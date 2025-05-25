@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useVacations } from '@/hooks/useVacations';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -219,10 +218,12 @@ const DashboardMetrics: React.FC = () => {
         </>
       )}
 
-      {/* Full width upcoming vacations for ALL users (not just admin/skadeleder) */}
-      <div className={shouldShowMetrics ? "md:col-span-2 lg:col-span-4" : "md:col-span-2 lg:col-span-4"}>
-        <UpcomingVacationsWidget vacations={vacations} />
-      </div>
+      {/* Show upcoming vacations widget only for admin and skadeleder */}
+      {shouldShowMetrics && (
+        <div className="md:col-span-2 lg:col-span-4">
+          <UpcomingVacationsWidget vacations={vacations} />
+        </div>
+      )}
 
       {/* Employee availability dialogs */}
       {shouldShowMetrics && (

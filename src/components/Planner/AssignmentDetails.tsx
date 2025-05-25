@@ -1,8 +1,8 @@
-
 import React from 'react';
-import { Car, Clock, Tag, Users, MapPin } from 'lucide-react';
+import { Car, Clock, Tag, Users } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface AssignmentDetailsProps {
   assignment: Assignment;
@@ -19,9 +19,15 @@ const formatTime = (time: string): string => {
 
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
+  
+  // Determine if we should show employee names
+  // For servicemedarbejder users, only show names if the assignment is published
+  // For admin/skadeleder users, always show names
+  const shouldShowEmployeeNames = user?.role === 'administrator' || user?.role === 'skadeleder' || assignment.published;
   
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-sm">
@@ -36,13 +42,6 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
         <Clock className="w-4 h-4 flex-shrink-0 text-gray-500" />
         <span>{timeRange}</span>
       </div>
-
-      {assignment.location && (
-        <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 flex-shrink-0 text-gray-500" />
-          <span className="truncate">{assignment.location}</span>
-        </div>
-      )}
       
       {assignment.car && (
         <div className="flex items-center gap-2">
@@ -56,7 +55,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
       <div className="flex items-start gap-2">
         <Users className="w-4 h-4 flex-shrink-0 text-gray-500 mt-0.5" />
         <span>
-          {assignment.employees && assignment.employees.length > 0
+          {shouldShowEmployeeNames && assignment.employees && assignment.employees.length > 0
             ? assignment.employees.join(', ')
             : t('planner.noEmployees')}
         </span>

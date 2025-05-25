@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -101,8 +100,11 @@ const DashboardPage: React.FC = () => {
     if (user?.role === 'administrator' || user?.role === 'skadeleder') {
       return isInCurrentWeek;
     } else {
-      // For regular users, show only published assignments assigned to them
-      return isInCurrentWeek && assignment.published === true && assignment.employees && assignment.employees.some(employeeName => employeeName === user?.name);
+      // For servicemedarbejder users, show only published assignments assigned to them
+      return isInCurrentWeek && 
+             assignment.published === true && 
+             assignment.employees && 
+             assignment.employees.some(employeeName => employeeName === user?.name);
     }
   }).sort((a, b) => {
     // Sort by date first (earliest first)
@@ -157,7 +159,8 @@ const DashboardPage: React.FC = () => {
   // Show dashboard metrics only for admin or skadeleder
   const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
   
-  return <>
+  return (
+    <>
       <PageHeader title={t('dashboard.welcome', {
       name: user?.name
     })} description={t('dashboard.today', {
@@ -205,10 +208,14 @@ const DashboardPage: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {userWeekAssignments.length === 0 ? <p className="text-center py-8 text-muted-foreground">
+          {userWeekAssignments.length === 0 ? (
+            <p className="text-center py-8 text-muted-foreground">
               {t('dashboard.noAssignments')}
-            </p> : <div className="grid gap-4">
-              {userWeekAssignments.map(assignment => <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
+            </p>
+          ) : (
+            <div className="grid gap-4">
+              {userWeekAssignments.map(assignment => (
+                <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
                   <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
                     <h3 className="font-bold text-lg">{assignment.location}</h3>
                     <span className="text-sm bg-gray-100 px-2 py-1 rounded-md">
@@ -217,11 +224,14 @@ const DashboardPage: React.FC = () => {
                   </div>
                   <p className="text-sm text-gray-600 mb-2 font-medium">{assignment.title}</p>
                   <AssignmentDetails assignment={assignment} />
-                </div>)}
-            </div>}
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
-    </>;
+    </>
+  );
 };
 
 export default DashboardPage;
