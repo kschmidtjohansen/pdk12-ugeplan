@@ -2,12 +2,12 @@
 import common from './en/common';
 import navigation from './en/navigation';
 import notifications from './en/notifications';
-import index from './en/index';
+import { en } from './en/index';
 import dashboard from './en/dashboard';
 import vacation from './en/vacation';
 import employees from './en/employees';
 
-const en = {
+const enTranslations = {
   // Common components
   common: {
     ...common,
@@ -22,7 +22,7 @@ const en = {
   // Notifications
   notifications: notifications,
   // Index page
-  index: index,
+  index: en,
   // Dashboard
   dashboard: dashboard,
   // Vacation
@@ -31,6 +31,6 @@ const en = {
   employees: employees,
 };
 
-export type EnTranslations = typeof en;
+export type EnTranslations = typeof enTranslations;
 
-export default en;
+export default enTranslations;

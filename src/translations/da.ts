@@ -2,7 +2,7 @@
 import common from './da/common';
 import navigation from './da/navigation';
 import notifications from './da/notifications';
-import index from './da/index';
+import { da } from './da/index';
 import accessDenied from './da/accessDenied';
 import login from './da/login';
 import admin from './da/admin';
@@ -13,7 +13,7 @@ import vacation from './da/vacation';
 import cars from './da/cars';
 import deleteConfirm from './da/deleteConfirm';
 
-const da = {
+const daTranslations = {
   // Common components
   common: {
     ...common,
@@ -28,7 +28,7 @@ const da = {
   // Notifications
   notifications: notifications,
   // Index page
-  index: index,
+  index: da,
   // Access denied
   accessDenied: accessDenied,
   // Login page
@@ -49,6 +49,6 @@ const da = {
   deleteConfirm: deleteConfirm,
 };
 
-export type DaTranslations = typeof da;
+export type DaTranslations = typeof daTranslations;
 
-export default da;
+export default daTranslations;
