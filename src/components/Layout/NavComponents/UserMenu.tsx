@@ -1,8 +1,8 @@
 
-import React from 'react';
-import { LogIn } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { LogIn, Settings, Camera, Lock } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -15,6 +15,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { languageNames } from '../../../translations';
+import PasswordChangeDialog from '../../Profile/PasswordChangeDialog';
+import ProfilePictureDialog from '../../Profile/ProfilePictureDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UserMenuProps {
   user: any;
@@ -30,6 +33,9 @@ const UserMenu: React.FC<UserMenuProps> = ({
   handleLogout 
 }) => {
   const { t } = useTranslation();
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [profilePictureDialogOpen, setProfilePictureDialogOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   // Get user initials for avatar
   const getInitials = (name: string): string => {
@@ -40,47 +46,105 @@ const UserMenu: React.FC<UserMenuProps> = ({
       .toUpperCase()
       .substring(0, 2);
   };
+
+  // Fetch user profile data including avatar
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user?.id) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('avatar_url')
+          .eq('id', user.id)
+          .single();
+
+        if (data && !error) {
+          setAvatarUrl(data.avatar_url);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [user?.id]);
+
+  const handleAvatarUpdate = (newAvatarUrl: string | null) => {
+    setAvatarUrl(newAvatarUrl);
+  };
   
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-9 w-9 profile-avatar">
-            <AvatarFallback>{user?.name ? getInitials(user.name) : 'U'}</AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
-            <p className="text-xs leading-none text-muted-foreground capitalize">{user?.role}</p>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        
-        {/* Language Selector */}
-        <DropdownMenuLabel>{t('common.language')}</DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={currentLanguage} onValueChange={(val) => setLanguage(val as 'en' | 'da')}>
-          {Object.entries(languageNames).map(([code, name]) => (
-            <DropdownMenuRadioItem 
-              key={code} 
-              value={code}
-              className="cursor-pointer"
-            >
-              {name}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-        
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-          <LogIn className="mr-2 h-4 w-4 rotate-180" />
-          <span>{t('common.logout')}</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+            <Avatar className="h-9 w-9 profile-avatar">
+              <AvatarImage src={avatarUrl || undefined} />
+              <AvatarFallback>{user?.name ? getInitials(user.name) : 'U'}</AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none">{user?.name}</p>
+              <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+              <p className="text-xs leading-none text-muted-foreground capitalize">{user?.role}</p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          
+          {/* Profile Options */}
+          <DropdownMenuLabel>{t('profile.profileSettings')}</DropdownMenuLabel>
+          <DropdownMenuItem 
+            onClick={() => setProfilePictureDialogOpen(true)}
+            className="cursor-pointer"
+          >
+            <Camera className="mr-2 h-4 w-4" />
+            <span>{t('profile.changeProfilePicture')}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={() => setPasswordDialogOpen(true)}
+            className="cursor-pointer"
+          >
+            <Lock className="mr-2 h-4 w-4" />
+            <span>{t('profile.changePassword')}</span>
+          </DropdownMenuItem>
+          
+          <DropdownMenuSeparator />
+          
+          {/* Language Selector */}
+          <DropdownMenuLabel>{t('common.language')}</DropdownMenuLabel>
+          <DropdownMenuRadioGroup value={currentLanguage} onValueChange={(val) => setLanguage(val as 'en' | 'da')}>
+            {Object.entries(languageNames).map(([code, name]) => (
+              <DropdownMenuRadioItem 
+                key={code} 
+                value={code}
+                className="cursor-pointer"
+              >
+                {name}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+          
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+            <LogIn className="mr-2 h-4 w-4 rotate-180" />
+            <span>{t('common.logout')}</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <PasswordChangeDialog 
+        open={passwordDialogOpen}
+        onOpenChange={setPasswordDialogOpen}
+      />
+
+      <ProfilePictureDialog
+        open={profilePictureDialogOpen}
+        onOpenChange={setProfilePictureDialogOpen}
+        currentAvatarUrl={avatarUrl}
+        userName={user?.name || ''}
+        onAvatarUpdate={handleAvatarUpdate}
+      />
+    </>
   );
 };
 

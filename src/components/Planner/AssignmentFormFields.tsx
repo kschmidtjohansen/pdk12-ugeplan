@@ -12,6 +12,7 @@ import { da } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Car } from '@/types/car';
+import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 import { getDefaultEndTime, isFriday } from '@/utils/dateUtils';
 
@@ -34,6 +35,7 @@ interface AssignmentFormFieldsProps {
   setSelectedCarId: (value: string) => void;
   cars: Car[];
   assignmentId?: string;
+  assignments?: Assignment[];
 }
 
 const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
@@ -54,7 +56,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   selectedCarId,
   setSelectedCarId,
   cars,
-  assignmentId
+  assignmentId,
+  assignments = []
 }) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : undefined;
@@ -68,6 +71,27 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       setToTime(defaultEnd);
     }
   }, [selectedDate, toTime, setToTime]);
+
+  // Helper function to check if a car is used on the selected date
+  const getCarUsageInfo = (carId: string) => {
+    if (!selectedDate || !assignments) return null;
+    
+    const dateString = format(selectedDate, 'yyyy-MM-dd');
+    const carAssignments = assignments.filter(assignment => 
+      assignment.date === dateString && 
+      (typeof assignment.car === 'string' ? assignment.car === carId : assignment.car?.id === carId) &&
+      assignment.id !== assignmentId // Exclude current assignment when editing
+    );
+    
+    if (carAssignments.length === 0) return null;
+    
+    // Get the time range of the car usage
+    const timeRanges = carAssignments.map(assignment => `${assignment.fromTime}-${assignment.toTime}`);
+    return {
+      isUsed: true,
+      timeRanges: timeRanges.join(', ')
+    };
+  };
 
   return (
     <div className="space-y-4">
@@ -167,11 +191,21 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             <SelectItem value="none">{t('common.none')}</SelectItem>
             {cars
               .filter(car => car.is_available) // Only show available cars
-              .map((car) => (
-                <SelectItem key={car.id} value={car.id}>
-                  {car.car_number} - {car.name}
-                </SelectItem>
-              ))}
+              .map((car) => {
+                const usageInfo = getCarUsageInfo(car.id);
+                return (
+                  <SelectItem key={car.id} value={car.id}>
+                    <div className="flex items-center justify-between w-full">
+                      <span>{car.car_number} - {car.name}</span>
+                      {usageInfo?.isUsed && (
+                        <span className="ml-2 px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">
+                          {t('planner.used')} ({usageInfo.timeRanges})
+                        </span>
+                      )}
+                    </div>
+                  </SelectItem>
+                );
+              })}
           </SelectContent>
         </Select>
       </div>

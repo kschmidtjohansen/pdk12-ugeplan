@@ -1,30 +1,26 @@
 
-import common from './common';
-import login from './login';
-import navigation from './navigation';
-import dashboard from './dashboard';
-import planner from './planner';
-import vacation from './vacation';
-import admin from './admin';
-import notifications from './notifications';
-import accessDenied from './accessDenied';
-import cars from './cars';
-import deleteConfirm from './deleteConfirm';
-import employees from './employees';
+import { common } from './common';
+import { navigation } from './navigation';
+import { planner } from './planner';
+import { employees } from './employees';
+import { cars } from './cars';
+import { vacation } from './vacation';
+import { dashboard } from './dashboard';
+import { notifications } from './notifications';
+import { login } from './login';
+import { admin } from './admin';
+import { profile } from './profile';
 
-const translations = {
+export const da = {
   common,
-  login,
   navigation,
-  dashboard,
   planner,
-  vacation,
-  admin,
-  notifications,
-  accessDenied,
+  employees,
   cars,
-  deleteConfirm,
-  employees
+  vacation,
+  dashboard,
+  notifications,
+  login,
+  admin,
+  profile
 };
-
-export default translations;

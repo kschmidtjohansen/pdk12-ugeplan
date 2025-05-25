@@ -263,8 +263,8 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>{getDialogTitle()}</DialogTitle>
-            {onViewDateChange && <div className="flex items-center gap-2 py-[20px]">
-                <TooltipProvider>
+            {onViewDateChange && <div className="flex items-center gap-2">
+                <TooltipProvider delayDuration={300}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="outline" size="icon" onClick={handleViewYesterday}>
@@ -277,7 +277,7 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
                   </Tooltip>
                 </TooltipProvider>
                 
-                <TooltipProvider>
+                <TooltipProvider delayDuration={300}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="outline" size="icon" onClick={handleViewTomorrow}>

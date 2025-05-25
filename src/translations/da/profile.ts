@@ -1,0 +1,26 @@
+
+export const profile = {
+  profileSettings: "Profil Indstillinger",
+  changePassword: "Skift Adgangskode",
+  changePasswordDescription: "Indtast din nye adgangskode nedenfor.",
+  newPassword: "Ny Adgangskode",
+  confirmNewPassword: "Bekræft Ny Adgangskode",
+  enterNewPassword: "Indtast ny adgangskode",
+  passwordsDoNotMatch: "Adgangskoderne stemmer ikke overens",
+  passwordTooShort: "Adgangskoden skal være mindst 6 tegn",
+  passwordChanged: "Adgangskode Ændret",
+  passwordChangedSuccess: "Din adgangskode er blevet ændret",
+  passwordChangeError: "Fejl ved ændring af adgangskode",
+  changeProfilePicture: "Skift Profilbillede",
+  changeProfilePictureDescription: "Upload et nyt profilbillede eller fjern det nuværende.",
+  selectNewPicture: "Vælg Nyt Billede",
+  uploadPicture: "Upload Billede",
+  removePicture: "Fjern Billede",
+  profilePictureUpdated: "Profilbillede Opdateret",
+  profilePictureSuccess: "Dit profilbillede er blevet opdateret",
+  profilePictureRemoved: "Profilbillede Fjernet",
+  profilePictureRemovedSuccess: "Dit profilbillede er blevet fjernet",
+  profilePictureError: "Fejl ved opdatering af profilbillede",
+  invalidFileType: "Ugyldig filtype. Upload venligst et billede.",
+  fileTooLarge: "Filen er for stor. Maksimal størrelse er 5MB."
+};
