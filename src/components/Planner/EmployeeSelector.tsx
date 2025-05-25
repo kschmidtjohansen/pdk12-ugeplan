@@ -5,6 +5,7 @@ import { Vacation } from '@/types/vacation';
 import { Assignment } from '@/types/assignment';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface EmployeeSelectorProps {
   employees: Employee[];
@@ -31,6 +32,19 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   assignments = []
 }) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+
+  // Filter employees based on user role
+  // For servicemedarbejdere, show all employees except admin/skadeleder
+  // For admin/skadeleder, show all employees
+  const filteredEmployees = employees.filter(employee => {
+    if (user?.role === 'administrator' || user?.role === 'skadeleder') {
+      return true; // Show all employees
+    } else {
+      // For servicemedarbejdere, show all employees except admin/skadeleder
+      return employee.role !== 'administrator' && employee.role !== 'skadeleder';
+    }
+  });
 
   // Helper function to check if an employee is on vacation
   const isEmployeeOnVacation = (employeeId: string, selectedDate: Date) => {
@@ -195,6 +209,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   useEffect(() => {
     console.log("EmployeeSelector - Current date:", currentDate);
     console.log("EmployeeSelector - Selected employees:", selectedEmployees);
+    console.log("EmployeeSelector - User role:", user?.role);
+    console.log("EmployeeSelector - Filtered employees count:", filteredEmployees.length);
     console.log("EmployeeSelector - Assignments for date:", 
       assignments.filter(a => {
         const aDate = new Date(a.date);
@@ -204,11 +220,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         return aDate.getTime() === cDate.getTime();
       })
     );
-  }, [currentDate, selectedEmployees, assignments]);
+  }, [currentDate, selectedEmployees, assignments, user?.role, filteredEmployees.length]);
 
   return (
     <div className="flex flex-wrap gap-2 mt-2">
-      {employees.map(employee => {
+      {filteredEmployees.map(employee => {
         // Check if the employee is selected by matching their name
         const isSelected = selectedEmployees.includes(employee.name);
         const isOnVacation = isEmployeeOnVacation(employee.id, dateForComparison);
@@ -240,7 +256,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 ) : (
                   <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
                     {availabilityInfo.availableAt 
-                      ? t('planner.onAnotherAssignmentUntil', { time: availabilityInfo.availableAt })
+                      ? `På anden opgave til (${availabilityInfo.availableAt})`
                       : t('planner.onAnotherAssignment')}
                   </Badge>
                 )

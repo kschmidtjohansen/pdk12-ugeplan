@@ -1,3 +1,4 @@
+
 const planner = {
   header: 'Week Plan',
   week: 'Week',
@@ -75,8 +76,8 @@ const planner = {
   enterLocation: 'Enter Location',
   createAssignment: 'Create',
   previousDays: 'Previous Days',
-  nothingPlannedToday: 'Nothing planned for today',
-  weekDescription: "This week's assignments",
+  nothingPlannedToday: 'Nothing planned for today.',
+  weekDescription: 'View the plans for this week.',
   previousWeek: 'Previous Week',
   nextWeek: 'Next Week',
   assignmentUpdated: 'Assignment updated',
@@ -97,7 +98,8 @@ const planner = {
   copyAssignmentSuccess: 'Assignment copied',
   copyAssignmentMsg: 'The assignment has been copied.',
   selectDateForCopy: 'Select date for copy',
-  copyAssignmentTitle: 'Copy assignment to new date'
+  copyAssignmentTitle: 'Copy assignment to new date',
+  noAssignmentsWeek: 'There is no assignments planned for this week.'
 };
 
 export default planner;

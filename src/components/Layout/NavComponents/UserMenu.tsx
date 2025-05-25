@@ -54,20 +54,15 @@ const UserMenu: React.FC<UserMenuProps> = ({
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('*')
+            .select('avatar_url')
             .eq('id', user.id)
             .single();
 
-          if (data && !error) {
-            // Safely access avatar_url if it exists
-            const profileData = data as any;
-            if (profileData?.avatar_url && typeof profileData.avatar_url === 'string') {
-              setAvatarUrl(profileData.avatar_url);
-            }
+          if (data && !error && data.avatar_url) {
+            setAvatarUrl(data.avatar_url);
           }
         } catch (err) {
-          // Silently handle the case where avatar_url column doesn't exist yet
-          console.log('Avatar URL column not yet available');
+          console.log('Error fetching user profile:', err);
         }
       }
     };

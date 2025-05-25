@@ -55,5 +55,6 @@ export const common = {
   logout: "Log ud",
   uploading: "Uploader...",
   tryAgain: "Prøv igen",
-  refresh: "Opdater"
+  refresh: "Opdater",
+  password: "Adgangskode"
 };

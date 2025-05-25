@@ -7,11 +7,12 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload, X } from 'lucide-react';
+import ImageCropper from './ImageCropper';
 
 interface ProfilePictureDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currentAvatarUrl?: string;
+  currentAvatarUrl?: string | null;
   userName: string;
   onAvatarUpdate: (avatarUrl: string | null) => void;
 }
@@ -26,8 +27,8 @@ const ProfilePictureDialog: React.FC<ProfilePictureDialogProps> = ({
   const { t } = useTranslation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(currentAvatarUrl || null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getInitials = (name: string): string => {
@@ -63,32 +64,39 @@ const ProfilePictureDialog: React.FC<ProfilePictureDialogProps> = ({
       return;
     }
 
-    setSelectedFile(file);
-    
-    // Create preview URL
+    // Create preview URL and show cropper
     const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    setSelectedImageSrc(url);
+    setShowCropper(true);
   };
 
-  const handleUpload = async () => {
-    if (!selectedFile) return;
-
+  const handleCropComplete = async (croppedBlob: Blob) => {
     setIsLoading(true);
+    setShowCropper(false);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
 
       // Create unique filename
-      const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/avatar-${Date.now()}.jpg`;
 
-      // Upload file to Supabase Storage
+      // Delete old avatar if exists
+      if (currentAvatarUrl) {
+        const oldFileName = currentAvatarUrl.split('/').pop();
+        if (oldFileName) {
+          await supabase.storage
+            .from('avatars')
+            .remove([`${user.id}/${oldFileName}`]);
+        }
+      }
+
+      // Upload new file to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, selectedFile, {
+        .upload(fileName, croppedBlob, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true
         });
 
       if (uploadError) throw uploadError;
@@ -98,33 +106,18 @@ const ProfilePictureDialog: React.FC<ProfilePictureDialogProps> = ({
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Try to update user profile with avatar URL
-      try {
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ avatar_url: data.publicUrl } as any)
-          .eq('id', user.id);
+      // Update user profile with avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: data.publicUrl })
+        .eq('id', user.id);
 
-        if (updateError) {
-          // If avatar_url column doesn't exist, show a message but still allow the upload
-          console.warn('Avatar URL column not available yet:', updateError.message);
-          toast({
-            title: t('profile.profilePictureUpdated'),
-            description: 'Profile picture uploaded. Database will be updated when migration is applied.',
-          });
-        } else {
-          toast({
-            title: t('profile.profilePictureUpdated'),
-            description: t('profile.profilePictureSuccess'),
-          });
-        }
-      } catch (dbError) {
-        // Handle case where avatar_url column doesn't exist
-        toast({
-          title: t('profile.profilePictureUpdated'),
-          description: 'Profile picture uploaded. Database migration needed for full functionality.',
-        });
-      }
+      if (updateError) throw updateError;
+
+      toast({
+        title: t('profile.profilePictureUpdated'),
+        description: t('profile.profilePictureSuccess'),
+      });
 
       onAvatarUpdate(data.publicUrl);
       onOpenChange(false);
@@ -137,6 +130,10 @@ const ProfilePictureDialog: React.FC<ProfilePictureDialogProps> = ({
       });
     } finally {
       setIsLoading(false);
+      if (selectedImageSrc) {
+        URL.revokeObjectURL(selectedImageSrc);
+        setSelectedImageSrc(null);
+      }
     }
   };
 
@@ -147,20 +144,23 @@ const ProfilePictureDialog: React.FC<ProfilePictureDialogProps> = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
 
-      // Try to update user profile to remove avatar URL
-      try {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ avatar_url: null } as any)
-          .eq('id', user.id);
-
-        if (error) {
-          console.warn('Avatar URL column not available yet:', error.message);
+      // Delete from storage if exists
+      if (currentAvatarUrl) {
+        const fileName = currentAvatarUrl.split('/').pop();
+        if (fileName) {
+          await supabase.storage
+            .from('avatars')
+            .remove([`${user.id}/${fileName}`]);
         }
-      } catch (dbError) {
-        // Handle case where avatar_url column doesn't exist
-        console.log('Database migration needed for avatar URL functionality');
       }
+
+      // Update user profile to remove avatar URL
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: null })
+        .eq('id', user.id);
+
+      if (error) throw error;
 
       toast({
         title: t('profile.profilePictureRemoved'),
@@ -168,8 +168,6 @@ const ProfilePictureDialog: React.FC<ProfilePictureDialogProps> = ({
       });
 
       onAvatarUpdate(null);
-      setPreviewUrl(null);
-      setSelectedFile(null);
       onOpenChange(false);
     } catch (error: any) {
       console.error('Error removing avatar:', error);
@@ -184,9 +182,20 @@ const ProfilePictureDialog: React.FC<ProfilePictureDialogProps> = ({
   };
 
   const handleClose = () => {
-    setSelectedFile(null);
-    setPreviewUrl(currentAvatarUrl || null);
+    setShowCropper(false);
+    if (selectedImageSrc) {
+      URL.revokeObjectURL(selectedImageSrc);
+      setSelectedImageSrc(null);
+    }
     onOpenChange(false);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    if (selectedImageSrc) {
+      URL.revokeObjectURL(selectedImageSrc);
+      setSelectedImageSrc(null);
+    }
   };
 
   return (
@@ -199,72 +208,69 @@ const ProfilePictureDialog: React.FC<ProfilePictureDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="flex justify-center">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src={previewUrl || undefined} />
-              <AvatarFallback className="text-lg">
-                {getInitials(userName)}
-              </AvatarFallback>
-            </Avatar>
-          </div>
+        {showCropper && selectedImageSrc ? (
+          <ImageCropper
+            imageSrc={selectedImageSrc}
+            onCropComplete={handleCropComplete}
+            onCancel={handleCropCancel}
+          />
+        ) : (
+          <div className="space-y-4">
+            <div className="flex justify-center">
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={currentAvatarUrl || undefined} />
+                <AvatarFallback className="text-lg">
+                  {getInitials(userName)}
+                </AvatarFallback>
+              </Avatar>
+            </div>
 
-          <div className="space-y-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-            
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              {t('profile.selectNewPicture')}
-            </Button>
-          </div>
-
-          <div className="flex justify-between space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={isLoading}
-            >
-              {t('common.cancel')}
-            </Button>
-            
-            {(currentAvatarUrl || previewUrl) && (
+            <div className="space-y-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleRemove}
+                className="w-full"
+                onClick={() => fileInputRef.current?.click()}
                 disabled={isLoading}
-                className="text-destructive hover:text-destructive"
               >
-                <X className="h-4 w-4 mr-2" />
-                {t('profile.removePicture')}
+                <Upload className="h-4 w-4 mr-2" />
+                {t('profile.selectNewPicture')}
               </Button>
-            )}
-            
-            {selectedFile && (
+            </div>
+
+            <div className="flex justify-between space-x-2">
               <Button
                 type="button"
-                onClick={handleUpload}
+                variant="outline"
+                onClick={handleClose}
                 disabled={isLoading}
-                className="bg-polygon-purple hover:bg-polygon-darkpurple"
               >
-                {isLoading ? t('common.uploading') : t('profile.uploadPicture')}
+                {t('common.cancel')}
               </Button>
-            )}
+              
+              {currentAvatarUrl && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleRemove}
+                  disabled={isLoading}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  {t('profile.removePicture')}
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );

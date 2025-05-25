@@ -61,7 +61,11 @@ const planner = {
   assignmentCopiedMsg: "Opgaven er kopieret til næste dag",
   errorCopyingAssignment: "Fejl ved kopiering af opgave",
   used: "I brug",
-  enterTitle: "Indtast sagsnummer"
+  enterTitle: "Indtast sagsnummer",
+  previousDays: "Forrige Dage",
+  nothingPlannedToday: "Intet planlagt i dag.",
+  weekDescription: "Se planerne for denne uge.",
+  noAssignmentsWeek: "Der er ingen opgaver planlagt for denne uge."
 };
 
 export default planner;

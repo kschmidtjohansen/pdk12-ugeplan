@@ -20,10 +20,8 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -52,13 +50,12 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
     setIsLoading(true);
 
     try {
+      // Update user password
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
         title: t('profile.passwordChanged'),
@@ -66,7 +63,6 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       });
 
       // Reset form and close dialog
-      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       onOpenChange(false);
@@ -83,7 +79,6 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
   };
 
   const handleClose = () => {
-    setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
     onOpenChange(false);
