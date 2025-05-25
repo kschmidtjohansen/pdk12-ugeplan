@@ -1,11 +1,11 @@
 
-import { common } from './en/common';
-import { navigation } from './en/navigation';
-import { notifications } from './en/notifications';
+import common from './en/common';
+import navigation from './en/navigation';
+import notifications from './en/notifications';
 import { en } from './en/index';
-import { dashboard } from './en/dashboard';
-import { vacation } from './en/vacation';
-import { employees } from './en/employees';
+import dashboard from './en/dashboard';
+import vacation from './en/vacation';
+import employees from './en/employees';
 
 const enTranslations = {
   // Common components
