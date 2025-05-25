@@ -59,9 +59,10 @@ const UserMenu: React.FC<UserMenuProps> = ({
             .single();
 
           if (data && !error) {
-            // Check if avatar_url exists in the response and set it properly
-            if (data.avatar_url && typeof data.avatar_url === 'string') {
-              setAvatarUrl(data.avatar_url);
+            // Safely access avatar_url if it exists
+            const profileData = data as any;
+            if (profileData?.avatar_url && typeof profileData.avatar_url === 'string') {
+              setAvatarUrl(profileData.avatar_url);
             }
           }
         } catch (err) {
