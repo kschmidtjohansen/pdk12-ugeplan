@@ -1,15 +1,15 @@
 
-import common from './common';
-import navigation from './navigation';
-import planner from './planner';
-import employees from './employees';
-import cars from './cars';
-import vacation from './vacation';
-import dashboard from './dashboard';
-import notifications from './notifications';
-import login from './login';
+import { common } from './common';
+import { navigation } from './navigation';
+import { planner } from './planner';
+import { employees } from './employees';
+import { cars } from './cars';
+import { vacation } from './vacation';
+import { dashboard } from './dashboard';
+import { notifications } from './notifications';
+import { login } from './login';
 import { admin } from './admin';
-import profile from './profile';
+import { profile } from './profile';
 
 export const da = {
   common,
