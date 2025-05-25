@@ -1,6 +1,6 @@
 
 export const planner = {
-  title: "Planlægger",
+  title: "Sagsnummer",
   newAssignment: "Ny Opgave",
   editAssignment: "Rediger Opgave",
   updateDetails: "Opdater opgaveoplysninger",
@@ -61,6 +61,5 @@ export const planner = {
   assignmentCopiedMsg: "Opgaven er kopieret til næste dag",
   errorCopyingAssignment: "Fejl ved kopiering af opgave",
   used: "I brug",
-  title: "Sagsnummer",
   enterTitle: "Indtast sagsnummer"
 };

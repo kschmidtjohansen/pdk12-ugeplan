@@ -1,0 +1,70 @@
+
+export const admin = {
+  title: 'Admin Dashboard',
+  description: 'System administration and settings',
+  tabs: {
+    metrics: 'Metrics',
+    users: 'User Management'
+  },
+  systemMetrics: {
+    totalUsers: 'Total Users',
+    totalUsersDesc: '{count} active today',
+    vehicles: 'Vehicles',
+    vehiclesDesc: '{count} in use now',
+    vacationRequests: 'Vacation Requests',
+    vacationRequestsDesc: 'pending approval',
+    scheduledTasks: 'Scheduled Tasks',
+    scheduledTasksDesc: 'Tasks this week'
+  },
+  userManagement: {
+    title: 'User Management',
+    description: 'Manage system users and their permissions',
+    addUser: 'Add User',
+    name: 'Name',
+    email: 'Email',
+    role: 'Role',
+    phone: 'Phone Number',
+    position: 'Position',
+    actions: 'Actions',
+    editUser: 'Edit User',
+    addNewUser: 'Add New User',
+    updateInfo: 'Update user information and permissions.',
+    createAccount: 'Create a new user account.',
+    fullName: 'Full Name',
+    selectRole: 'Select a role',
+    userUpdated: 'User updated',
+    userAdded: 'User added',
+    userDeleted: 'User deleted',
+    userUpdateMsg: '{name}\'s information has been updated.',
+    userAddedMsg: '{name} has been added as {role}.',
+    userDeletedMsg: '{name}\'s account has been removed.',
+    deleteConfirm: 'Are you sure?',
+    deleteWarning: 'You are about to delete {name}\'s account. This action cannot be undone.',
+    createSuccess: 'User created successfully',
+    updateSuccess: 'User updated successfully',
+    createError: 'Error creating user',
+    updateError: 'Error updating user'
+  },
+  passwords: {
+    changePassword: 'Change password',
+    resetPasswordFor: 'Reset password for this employee',
+    enterNewPassword: 'Enter new password for this employee',
+    newPassword: 'New password',
+    confirmPassword: 'Confirm password',
+    resetPassword: 'Reset password',
+    resetting: 'Resetting...',
+    resetSuccess: 'Password reset',
+    resetDescription: '{name}\'s password has been reset',
+    resetError: 'Error. Could not reset password. Try again.',
+    passwordMismatch: 'Passwords do not match',
+    passwordMinLength: 'Password must be at least 8 characters long',
+    passwordChanged: 'Password changed',
+    passwordChangedMsg: 'The password has been changed.',
+    passwordTooShort: 'Password too short. Must contain 6 characters.'
+  },
+  roles: {
+    administrator: 'Administrator',
+    skadeleder: 'Damage Manager',
+    servicemedarbejder: 'Service Employee'
+  }
+};
