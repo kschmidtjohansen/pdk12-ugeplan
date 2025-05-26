@@ -35,7 +35,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  // Allow servicemedarbejdere to see all employees now
+  // FIXED: Show all employees for all user types - remove the filtering that was hiding employees from servicemedarbejdere
   const filteredEmployees = employees;
 
   // Helper function to check if an employee is on vacation
@@ -246,11 +246,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               {isUnavailable && <Badge variant="outline">{t('employees.onLeave')}</Badge>}
               {availabilityInfo.isAssigned && !isDisabled && (
                 availabilityInfo.isFullyBooked ? (
-                  <Badge className={`${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-100 text-red-800 border-red-200' : 'bg-red-100 text-red-800 border-red-200'}`}>
+                  <Badge className={`${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-500 text-white border-red-600' : 'bg-red-100 text-red-800 border-red-200'}`}>
                     {t('planner.onAnotherAssignment')}
                   </Badge>
                 ) : (
-                  <Badge className={`${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-100 text-red-800 border-red-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>
+                  <Badge className={`${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-500 text-white border-red-600' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>
                     {availabilityInfo.availableAt 
                       ? `På anden opgave til ${availabilityInfo.availableAt}`
                       : t('planner.onAnotherAssignment')}
@@ -267,4 +267,3 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 
 // Add a default export for compatibility
 export default EmployeeSelector;
-

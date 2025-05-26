@@ -1,5 +1,4 @@
 
-
 const planner = {
   title: "Sagsnummer",
   newAssignment: "Ny Opgave",
@@ -66,8 +65,8 @@ const planner = {
   previousDays: "Forrige Dage",
   nothingPlannedToday: "Intet planlagt i dag.",
   weekDescription: "Se planerne for denne uge.",
-  noAssignmentsWeek: "Der er ingen opgaver planlagt for denne uge."
+  noAssignmentsWeek: "Der er ingen opgaver planlagt for denne uge.",
+  unassigned: "Ikke tildelt"
 };
 
 export default planner;
-

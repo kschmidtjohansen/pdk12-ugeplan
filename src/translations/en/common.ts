@@ -1,5 +1,4 @@
 
-
 export const common = {
   loading: "Loading...",
   error: "Error",
@@ -59,4 +58,3 @@ export const common = {
   refresh: "Refresh",
   password: "Password"
 };
-

@@ -109,9 +109,9 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ imageSrc, onCropComplete, o
           onMouseLeave={handleMouseUp}
         />
         
-        {/* Crop overlay */}
+        {/* Crop overlay - changed from blue to transparent with border */}
         <div
-          className="absolute border-2 border-polygon-purple bg-polygon-purple bg-opacity-20 cursor-move"
+          className="absolute border-2 border-gray-600 bg-transparent cursor-move"
           style={{
             left: cropArea.x,
             top: cropArea.y,

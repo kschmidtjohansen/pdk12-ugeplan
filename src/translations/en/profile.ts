@@ -1,5 +1,4 @@
 
-
 export const profile = {
   profileSettings: "Profile Settings",
   changePassword: "Change Password",
@@ -25,4 +24,3 @@ export const profile = {
   invalidFileType: "Invalid file type. Please upload an image.",
   fileTooLarge: "File is too large. Maximum size is 5MB."
 };
-

@@ -216,7 +216,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
                       {usageInfo?.isUsed && (
                         <span className={`ml-2 px-2 py-1 text-xs rounded ${
                           usageInfo.hasEndTimeAtSixteen 
-                            ? 'bg-red-100 text-red-800' 
+                            ? 'bg-red-500 text-white' 
                             : 'bg-yellow-100 text-yellow-800'
                         }`}>
                           {t('planner.used')} ({usageInfo.timeRanges})
@@ -245,4 +245,3 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 };
 
 export default AssignmentFormFields;
-
