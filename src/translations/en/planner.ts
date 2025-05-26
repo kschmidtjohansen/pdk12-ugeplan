@@ -1,5 +1,4 @@
 
-
 const planner = {
   header: 'Week Plan',
   week: 'Week',
@@ -52,7 +51,6 @@ const planner = {
   saturday: 'Saturday',
   sunday: 'Sunday',
   noAssignmentsToday: 'No assignments today',
-  noAssignmentsWeek: 'No assignments this week',
   onVacation: 'On vacation',
   onAnotherAssignment: 'On another assignment',
   onAnotherAssignmentUntil: 'On assignment until {time}',
@@ -104,4 +102,3 @@ const planner = {
 };
 
 export default planner;
-
