@@ -18,10 +18,10 @@ interface EmployeeSelectorProps {
 
 type EmployeeAvailabilityInfo = {
   isAssigned: boolean;
-  availableAt?: string; // Time when employee becomes available
-  latestAssignmentEndTime?: string; // Latest end time of employee's assignments for the day
-  isFullyBooked: boolean; // Whether employee is booked for the full workday
-  hasEndTimeAtSixteen: boolean; // Whether employee has assignment ending at 16:00
+  availableAt?: string;
+  latestAssignmentEndTime?: string;
+  isFullyBooked: boolean;
+  hasEndTimeAtSixteen: boolean;
 }
 
 export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
@@ -35,7 +35,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  // FIXED: Show all employees for all user types - remove the filtering that was hiding employees from servicemedarbejdere
+  // Show all employees for all user types
   const filteredEmployees = employees;
 
   // Helper function to check if an employee is on vacation
@@ -48,81 +48,63 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       const startDate = new Date(vacation.startDate);
       const endDate = new Date(vacation.endDate);
       
-      // Normalize dates to avoid time comparison issues
       selectedDate.setHours(0, 0, 0, 0);
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(0, 0, 0, 0);
       
-      // Fix: Employee is available on the day after their vacation ends
       return selectedDate >= startDate && selectedDate < endDate;
     });
   };
 
   // Helper function to format time to HH:MM without seconds
   const formatTimeWithoutSeconds = (time: string): string => {
-    // If time format is HH:MM:SS, remove the seconds part
     if (time && time.length === 8 && time.includes(':')) {
       return time.substring(0, 5);
     }
     return time;
   };
 
-  // Function to determine if an employee is fully booked for the workday based on their assignments
+  // Function to determine if an employee is fully booked for the workday
   const isEmployeeFullyBookedForDay = (assignments: Assignment[], dayOfWeek: number): boolean => {
-    // Standard work hours: Mon-Thu: 08:00-16:00, Fri: 08:00-15:30
     const workdayStart = "08:00";
-    const workdayEnd = dayOfWeek === 5 ? "15:30" : "16:00"; // Friday ends at 15:30, other days at 16:00
+    const workdayEnd = dayOfWeek === 5 ? "15:30" : "16:00";
     
-    // Check if there are assignments covering the entire workday
     let coveredTimeSlots: [string, string][] = [];
-    
-    // Sort assignments by time
     const sortedAssignments = [...assignments].sort((a, b) => a.fromTime.localeCompare(b.fromTime));
     
-    // Add each assignment's time range to coveredTimeSlots
     for (const assignment of sortedAssignments) {
       const from = assignment.fromTime;
       const to = assignment.toTime;
       
-      // Check if this assignment time range fully covers the workday
       if (from <= workdayStart && to >= workdayEnd) {
         return true;
       }
       
-      // Add this time slot
       coveredTimeSlots.push([from, to]);
     }
     
-    // If we have multiple assignments, check if they collectively cover the workday
     if (coveredTimeSlots.length > 1) {
-      // Sort time slots
       coveredTimeSlots.sort((a, b) => a[0].localeCompare(b[0]));
       
-      // Merge overlapping time slots
       let merged: [string, string][] = [];
       let current = coveredTimeSlots[0];
       
       for (let i = 1; i < coveredTimeSlots.length; i++) {
         if (current[1] >= coveredTimeSlots[i][0]) {
-          // Overlapping slots, merge them
           current[1] = coveredTimeSlots[i][1] > current[1] ? coveredTimeSlots[i][1] : current[1];
         } else {
-          // No overlap, add the current slot and move to the next one
           merged.push(current);
           current = coveredTimeSlots[i];
         }
       }
       merged.push(current);
       
-      // Now check if the merged slots cover the entire workday
       for (const [from, to] of merged) {
         if (from <= workdayStart && to >= workdayEnd) {
           return true;
         }
       }
       
-      // Check if the combined slots cover the entire workday
-      // This handles cases where multiple assignments collectively cover the day
       if (merged.length > 0) {
         const earliestStart = merged[0][0];
         const latestEnd = merged[merged.length - 1][1];
@@ -136,46 +118,29 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     return false;
   };
 
-  // Enhanced function to check if an employee is already assigned to another assignment
-  // Returns detailed information about assignment times
+  // Enhanced function to check employee availability
   const checkEmployeeAvailability = (employeeName: string): EmployeeAvailabilityInfo => {
-    // Create a date object from the currentDate string for proper comparison
     const currentDateObj = new Date(currentDate);
     currentDateObj.setHours(0, 0, 0, 0);
     
-    console.log(`Checking if ${employeeName} has assignment on date: ${currentDate} (${currentDateObj.toISOString()})`);
-    
-    // Find all assignments for this employee on the current date
     const employeeAssignments = assignments.filter(assignment => {
-      // Convert assignment date to Date object for comparison
       const assignmentDateObj = new Date(assignment.date);
       assignmentDateObj.setHours(0, 0, 0, 0);
       
       const isOnDate = assignmentDateObj.getTime() === currentDateObj.getTime();
       const isAssigned = assignment.employees.includes(employeeName);
       
-      if (isOnDate && isAssigned) {
-        console.log(`${employeeName} is assigned to task "${assignment.title}" on ${assignment.date} (${assignment.fromTime}-${assignment.toTime})`);
-      }
-      
       return isOnDate && isAssigned;
     });
     
-    // If no assignments found, employee is fully available
     if (employeeAssignments.length === 0) {
       return { isAssigned: false, isFullyBooked: false, hasEndTimeAtSixteen: false };
     }
     
-    // Check if any assignment ends at 16:00
     const hasEndTimeAtSixteen = employeeAssignments.some(assignment => assignment.toTime === "16:00");
-    
-    // Get the day of the week to determine workday end time
-    const dayOfWeek = currentDateObj.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    
-    // Check if the employee is fully booked for the day
+    const dayOfWeek = currentDateObj.getDay();
     const fullyBooked = isEmployeeFullyBookedForDay(employeeAssignments, dayOfWeek);
     
-    // Find the latest end time among all assignments
     let latestEndTime = "00:00";
     employeeAssignments.forEach(assignment => {
       if (assignment.toTime > latestEndTime) {
@@ -183,11 +148,9 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       }
     });
     
-    // Check if the latest end time is the end of workday
-    // Standard work end times: Mon-Thu: 16:00, Fri: 15:30
     const isEndOfWorkDay = 
-      (dayOfWeek === 5 && latestEndTime === "15:30") || // Friday
-      (dayOfWeek >= 1 && dayOfWeek <= 4 && latestEndTime === "16:00"); // Mon-Thu
+      (dayOfWeek === 5 && latestEndTime === "15:30") ||
+      (dayOfWeek >= 1 && dayOfWeek <= 4 && latestEndTime === "16:00");
     
     return { 
       isAssigned: true, 
@@ -198,36 +161,23 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     };
   };
 
-  // Parse the current date string into a Date object for comparison
   const dateForComparison = currentDate ? new Date(currentDate) : new Date();
   
-  // Debug the employee selection data
   useEffect(() => {
     console.log("EmployeeSelector - Current date:", currentDate);
     console.log("EmployeeSelector - Selected employees:", selectedEmployees);
     console.log("EmployeeSelector - User role:", user?.role);
     console.log("EmployeeSelector - Filtered employees count:", filteredEmployees.length);
-    console.log("EmployeeSelector - Assignments for date:", 
-      assignments.filter(a => {
-        const aDate = new Date(a.date);
-        const cDate = new Date(currentDate);
-        aDate.setHours(0, 0, 0, 0);
-        cDate.setHours(0, 0, 0, 0);
-        return aDate.getTime() === cDate.getTime();
-      })
-    );
   }, [currentDate, selectedEmployees, assignments, user?.role, filteredEmployees.length]);
 
   return (
     <div className="flex flex-wrap gap-2 mt-2">
       {filteredEmployees.map(employee => {
-        // Check if the employee is selected by matching their name
         const isSelected = selectedEmployees.includes(employee.name);
         const isOnVacation = isEmployeeOnVacation(employee.id, dateForComparison);
         const isUnavailable = employee.onLeave;
         const availabilityInfo = checkEmployeeAvailability(employee.name);
         
-        // Employee should be disabled if they're on vacation or marked as unavailable
         const isDisabled = isOnVacation || isUnavailable;
         
         return (
@@ -252,7 +202,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 ) : (
                   <Badge className={`${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-500 text-white border-red-600' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>
                     {availabilityInfo.availableAt 
-                      ? `På anden opgave til ${availabilityInfo.availableAt}`
+                      ? t('planner.onAnotherAssignmentUntil', { time: availabilityInfo.availableAt })
                       : t('planner.onAnotherAssignment')}
                   </Badge>
                 )
@@ -265,5 +215,4 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   );
 };
 
-// Add a default export for compatibility
 export default EmployeeSelector;

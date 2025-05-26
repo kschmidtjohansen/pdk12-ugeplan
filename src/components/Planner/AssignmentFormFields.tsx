@@ -51,8 +51,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   setToTime,
   description,
   setDescription,
-  assignmentType, // kept for backward compatibility
-  setAssignmentType, // kept for backward compatibility
+  assignmentType,
+  setAssignmentType,
   selectedCarId,
   setSelectedCarId,
   cars,
@@ -61,7 +61,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 }) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : undefined;
-  // Add state for controlling the calendar popover
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   // Set default end time based on whether the selected date is a Friday
@@ -74,7 +73,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
   // Helper function to format time to HH:MM without seconds
   const formatTimeWithoutSeconds = (time: string): string => {
-    // If time format is HH:MM:SS, remove the seconds part
     if (time && time.length === 8 && time.includes(':')) {
       return time.substring(0, 5);
     }
@@ -89,15 +87,13 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     const carAssignments = assignments.filter(assignment => 
       assignment.date === dateString && 
       (typeof assignment.car === 'string' ? assignment.car === carId : assignment.car?.id === carId) &&
-      assignment.id !== assignmentId // Exclude current assignment when editing
+      assignment.id !== assignmentId
     );
     
     if (carAssignments.length === 0) return null;
     
-    // Check if any assignment ends at 16:00
     const hasEndTimeAtSixteen = carAssignments.some(assignment => assignment.toTime === "16:00");
     
-    // Get the time range of the car usage
     const timeRanges = carAssignments.map(assignment => 
       `${formatTimeWithoutSeconds(assignment.fromTime)}-${formatTimeWithoutSeconds(assignment.toTime)}`
     );
@@ -111,7 +107,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Location field - now in the position of the title */}
       <div>
         <Label htmlFor="location">
           {t('planner.location')}
@@ -125,7 +120,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       </div>
 
-      {/* Title field - now in the position of the location (case number) */}
       <div>
         <Label htmlFor="title">
           {t('planner.title')}
@@ -161,7 +155,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
                 selected={selectedDate}
                 onSelect={(date) => {
                   setSelectedDate(date);
-                  setCalendarOpen(false); // Close the popover when a date is selected
+                  setCalendarOpen(false);
                 }}
                 initialFocus
                 locale={locale}
@@ -206,7 +200,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
           <SelectContent>
             <SelectItem value="none">{t('common.none')}</SelectItem>
             {cars
-              .filter(car => car.is_available) // Only show available cars
+              .filter(car => car.is_available)
               .map((car) => {
                 const usageInfo = getCarUsageInfo(car.id);
                 return (

@@ -24,7 +24,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // FIXED: Always show employee names for all users - remove the filtering that was preventing servicemedarbejdere from seeing names
+  // Always show employee names for all users
   const shouldShowEmployeeNames = true;
   
   return (
@@ -53,14 +53,14 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
       <div className="flex items-start gap-2">
         <Users className="w-4 h-4 flex-shrink-0 text-gray-500 mt-0.5" />
         <span>
-          {assignment.employees && assignment.employees.length > 0
+          {shouldShowEmployeeNames && assignment.employees && assignment.employees.length > 0
             ? assignment.employees.join(', ')
             : t('planner.unassigned')}
         </span>
       </div>
 
       {assignment.description && (
-        <div className="flex items-start gap-2 col-span-1 sm:col-span-2">
+        <div className="flex items-start gap-2 col-span-1 sm:grid-cols-2">
           <span className="text-gray-600">{assignment.description}</span>
         </div>
       )}
