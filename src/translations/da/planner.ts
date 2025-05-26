@@ -1,4 +1,5 @@
 
+
 const planner = {
   title: "Sagsnummer",
   newAssignment: "Ny Opgave",
@@ -52,7 +53,7 @@ const planner = {
   notAvailable: "Ikke tilgængelig",
   partiallyAvailable: "Delvist tilgængelig",
   onAnotherAssignment: "På anden opgave",
-  onAnotherAssignmentUntil: "På anden opgave til {{time}}",
+  onAnotherAssignmentUntil: "På anden opgave til {time}",
   fullyBooked: "Fuldt booket",
   availableAfter: "Tilgængelig efter {{time}}",
   copy: "Kopier",
@@ -69,3 +70,4 @@ const planner = {
 };
 
 export default planner;
+

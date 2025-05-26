@@ -72,6 +72,15 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     }
   }, [selectedDate, toTime, setToTime]);
 
+  // Helper function to format time to HH:MM without seconds
+  const formatTimeWithoutSeconds = (time: string): string => {
+    // If time format is HH:MM:SS, remove the seconds part
+    if (time && time.length === 8 && time.includes(':')) {
+      return time.substring(0, 5);
+    }
+    return time;
+  };
+
   // Helper function to check if a car is used on the selected date
   const getCarUsageInfo = (carId: string) => {
     if (!selectedDate || !assignments) return null;
@@ -85,11 +94,18 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     
     if (carAssignments.length === 0) return null;
     
+    // Check if any assignment ends at 16:00
+    const hasEndTimeAtSixteen = carAssignments.some(assignment => assignment.toTime === "16:00");
+    
     // Get the time range of the car usage
-    const timeRanges = carAssignments.map(assignment => `${assignment.fromTime}-${assignment.toTime}`);
+    const timeRanges = carAssignments.map(assignment => 
+      `${formatTimeWithoutSeconds(assignment.fromTime)}-${formatTimeWithoutSeconds(assignment.toTime)}`
+    );
+    
     return {
       isUsed: true,
-      timeRanges: timeRanges.join(', ')
+      timeRanges: timeRanges.join(', '),
+      hasEndTimeAtSixteen
     };
   };
 
@@ -198,7 +214,11 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
                     <div className="flex items-center justify-between w-full">
                       <span>{car.car_number} - {car.name}</span>
                       {usageInfo?.isUsed && (
-                        <span className="ml-2 px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">
+                        <span className={`ml-2 px-2 py-1 text-xs rounded ${
+                          usageInfo.hasEndTimeAtSixteen 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
                           {t('planner.used')} ({usageInfo.timeRanges})
                         </span>
                       )}
@@ -225,3 +245,4 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 };
 
 export default AssignmentFormFields;
+

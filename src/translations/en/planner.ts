@@ -99,7 +99,8 @@ const planner = {
   copyAssignmentSuccess: 'Assignment copied',
   copyAssignmentMsg: 'The assignment has been copied.',
   selectDateForCopy: 'Select date for copy',
-  copyAssignmentTitle: 'Copy assignment to new date'
+  copyAssignmentTitle: 'Copy assignment to new date',
+  noAssignmentsWeek: 'There are no assignments planned for this week.'
 };
 
 export default planner;

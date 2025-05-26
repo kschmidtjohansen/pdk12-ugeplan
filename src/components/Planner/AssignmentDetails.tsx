@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Car, Clock, Tag, Users } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
@@ -24,10 +25,8 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // Determine if we should show employee names
-  // For servicemedarbejder users, only show names if the assignment is published
-  // For admin/skadeleder users, always show names
-  const shouldShowEmployeeNames = user?.role === 'administrator' || user?.role === 'skadeleder' || assignment.published;
+  // Always show employee names for all users now
+  const shouldShowEmployeeNames = true;
   
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-sm">
@@ -60,8 +59,15 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
             : t('planner.noEmployees')}
         </span>
       </div>
+
+      {assignment.description && (
+        <div className="flex items-start gap-2 col-span-1 sm:col-span-2">
+          <span className="text-gray-600">{assignment.description}</span>
+        </div>
+      )}
     </div>
   );
 };
 
 export default AssignmentDetails;
+

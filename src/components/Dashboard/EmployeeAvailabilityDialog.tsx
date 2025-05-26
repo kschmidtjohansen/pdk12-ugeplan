@@ -31,6 +31,7 @@ type EmployeeAssignmentInfo = {
   availableAt?: string; // Time when employee becomes available
   latestEndTime?: string; // Latest end time of assignments for the day
   isFullyBooked: boolean; // Whether employee is booked for the full workday
+  hasEndTimeAtSixteen: boolean; // Whether employee has assignment ending at 16:00
 }
 
 const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
@@ -144,7 +145,7 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
   const getEmployeeAssignmentInfo = (employeeId: string, checkDate: string): EmployeeAssignmentInfo => {
     // Find the employee name
     const employee = allEmployees.find(e => e.id === employeeId);
-    if (!employee) return { isAssigned: false, isFullyBooked: false };
+    if (!employee) return { isAssigned: false, isFullyBooked: false, hasEndTimeAtSixteen: false };
 
     // Find all assignments for this employee on the given date
     const employeeAssignments = assignments.filter(assignment => 
@@ -153,8 +154,11 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
     
     // If no assignments found, employee is fully available
     if (employeeAssignments.length === 0) {
-      return { isAssigned: false, isFullyBooked: false };
+      return { isAssigned: false, isFullyBooked: false, hasEndTimeAtSixteen: false };
     }
+    
+    // Check if any assignment ends at 16:00
+    const hasEndTimeAtSixteen = employeeAssignments.some(assignment => assignment.toTime === "16:00");
     
     // Check if the employee is fully booked
     const fullyBooked = isEmployeeFullyBookedForDay(employeeAssignments, checkDate);
@@ -179,7 +183,8 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
       isAssigned: true,
       availableAt: isEndOfWorkDay || fullyBooked ? undefined : formatTimeWithoutSeconds(latestEndTime),
       latestEndTime: formatTimeWithoutSeconds(latestEndTime),
-      isFullyBooked: fullyBooked
+      isFullyBooked: fullyBooked,
+      hasEndTimeAtSixteen
     };
   };
 
@@ -312,18 +317,23 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
             const assignmentInfo = isAvailable ? getEmployeeAssignmentInfo(employee.id, formattedDate) : null;
             const isAssigned = assignmentInfo && assignmentInfo.isAssigned;
             const isVacation = isEmployeeOnVacation(employee.id, formattedDate);
+            const hasEndTimeAtSixteen = assignmentInfo?.hasEndTimeAtSixteen || false;
+            
             return <div key={employee.id} className="flex items-center p-3 border rounded-md bg-white hover:border-polygon-blue">
                     <div className="flex-1">
                       <div className="font-medium">{employee.name}</div>
                     </div>
                     {isAvailable && isAssigned && (
-                      <div className={`flex items-center text-xs ${assignmentInfo?.isFullyBooked ? 
-                        'bg-red-50 text-red-700' : 'bg-yellow-50 text-yellow-700'} px-2 py-1 rounded`}>
+                      <div className={`flex items-center text-xs ${
+                        hasEndTimeAtSixteen ? 'bg-red-100 text-red-800 border-red-200' : 
+                        assignmentInfo?.isFullyBooked ? 'bg-red-100 text-red-800 border-red-200' : 
+                        'bg-yellow-100 text-yellow-800 border-yellow-200'
+                      } px-2 py-1 rounded`}>
                         <Briefcase className="h-3 w-3 mr-1" />
                         {assignmentInfo?.isFullyBooked ? 
                           t('planner.onAnotherAssignment') : 
                           (assignmentInfo?.availableAt ? 
-                          t('planner.onAnotherAssignmentUntil', { time: assignmentInfo.availableAt }) :
+                          `På anden opgave til ${assignmentInfo.availableAt}` :
                           t('planner.onAnotherAssignment'))}
                       </div>
                     )}
@@ -350,3 +360,4 @@ const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
 };
 
 export default EmployeeAvailabilityDialog;
+

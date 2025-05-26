@@ -21,6 +21,7 @@ type EmployeeAvailabilityInfo = {
   availableAt?: string; // Time when employee becomes available
   latestAssignmentEndTime?: string; // Latest end time of employee's assignments for the day
   isFullyBooked: boolean; // Whether employee is booked for the full workday
+  hasEndTimeAtSixteen: boolean; // Whether employee has assignment ending at 16:00
 }
 
 export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
@@ -34,17 +35,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  // Filter employees based on user role
-  // For servicemedarbejdere, show all employees except admin/skadeleder
-  // For admin/skadeleder, show all employees
-  const filteredEmployees = employees.filter(employee => {
-    if (user?.role === 'administrator' || user?.role === 'skadeleder') {
-      return true; // Show all employees
-    } else {
-      // For servicemedarbejdere, show all employees except admin/skadeleder
-      return employee.role !== 'administrator' && employee.role !== 'skadeleder';
-    }
-  });
+  // Allow servicemedarbejdere to see all employees now
+  const filteredEmployees = employees;
 
   // Helper function to check if an employee is on vacation
   const isEmployeeOnVacation = (employeeId: string, selectedDate: Date) => {
@@ -171,8 +163,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     
     // If no assignments found, employee is fully available
     if (employeeAssignments.length === 0) {
-      return { isAssigned: false, isFullyBooked: false };
+      return { isAssigned: false, isFullyBooked: false, hasEndTimeAtSixteen: false };
     }
+    
+    // Check if any assignment ends at 16:00
+    const hasEndTimeAtSixteen = employeeAssignments.some(assignment => assignment.toTime === "16:00");
     
     // Get the day of the week to determine workday end time
     const dayOfWeek = currentDateObj.getDay(); // 0 = Sunday, 1 = Monday, etc.
@@ -198,7 +193,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       isAssigned: true, 
       availableAt: isEndOfWorkDay || fullyBooked ? undefined : formatTimeWithoutSeconds(latestEndTime),
       latestAssignmentEndTime: formatTimeWithoutSeconds(latestEndTime),
-      isFullyBooked: fullyBooked
+      isFullyBooked: fullyBooked,
+      hasEndTimeAtSixteen
     };
   };
 
@@ -250,13 +246,13 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               {isUnavailable && <Badge variant="outline">{t('employees.onLeave')}</Badge>}
               {availabilityInfo.isAssigned && !isDisabled && (
                 availabilityInfo.isFullyBooked ? (
-                  <Badge className="bg-red-100 text-red-800 border-red-200">
+                  <Badge className={`${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-100 text-red-800 border-red-200' : 'bg-red-100 text-red-800 border-red-200'}`}>
                     {t('planner.onAnotherAssignment')}
                   </Badge>
                 ) : (
-                  <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                  <Badge className={`${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-100 text-red-800 border-red-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>
                     {availabilityInfo.availableAt 
-                      ? `På anden opgave til (${availabilityInfo.availableAt})`
+                      ? `På anden opgave til ${availabilityInfo.availableAt}`
                       : t('planner.onAnotherAssignment')}
                   </Badge>
                 )
@@ -271,3 +267,4 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 
 // Add a default export for compatibility
 export default EmployeeSelector;
+
