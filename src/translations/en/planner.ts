@@ -1,4 +1,5 @@
 
+
 const planner = {
   header: 'Week Plan',
   week: 'Week',
@@ -98,8 +99,8 @@ const planner = {
   copyAssignmentSuccess: 'Assignment copied',
   copyAssignmentMsg: 'The assignment has been copied.',
   selectDateForCopy: 'Select date for copy',
-  copyAssignmentTitle: 'Copy assignment to new date',
-  noAssignmentsWeek: 'There is no assignments planned for this week.'
+  copyAssignmentTitle: 'Copy assignment to new date'
 };
 
 export default planner;
+
