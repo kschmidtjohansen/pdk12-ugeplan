@@ -1,5 +1,6 @@
 
 export const profile = {
+  title: "Profil",
   profileSettings: "Profil Indstillinger",
   changePassword: "Skift Adgangskode",
   changePasswordDescription: "Skift din adgangskode.",
@@ -22,5 +23,10 @@ export const profile = {
   profilePictureRemovedSuccess: "Dit profilbillede er blevet fjernet",
   profilePictureError: "Fejl ved opdatering af profilbillede",
   invalidFileType: "Ugyldig filtype. Upload venligst et billede.",
-  fileTooLarge: "Filen er for stor. Maksimal størrelse er 5MB."
+  fileTooLarge: "Filen er for stor. Maksimal størrelse er 5MB.",
+  personalInfo: "Personlige Oplysninger",
+  editProfile: "Rediger Profil",
+  saveChanges: "Gem Ændringer",
+  profileUpdated: "Profil opdateret",
+  profileUpdateError: "Fejl ved opdatering af profil"
 };

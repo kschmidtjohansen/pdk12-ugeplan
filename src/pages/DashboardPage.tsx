@@ -40,7 +40,7 @@ const DashboardPage: React.FC = () => {
   const {
     vacations
   } = useVacations();
-  const { filterByWeek } = useAssignmentFilters();
+  const { filterForDashboard } = useAssignmentFilters();
 
   // State for week navigation
   const [selectedWeek, setSelectedWeek] = useState(getCurrentWeekNumber());
@@ -90,22 +90,11 @@ const DashboardPage: React.FC = () => {
     setSelectedYear(year);
   };
 
-  // Get assignments for the selected week and user
-  const userWeekAssignments = assignments.filter(assignment => {
+  // Get assignments for the selected week and user using dashboard filter
+  const userWeekAssignments = filterForDashboard(assignments).filter(assignment => {
     // Check if assignment is within the selected week
     const assignmentDate = assignment.date;
-    const isInCurrentWeek = assignmentDate >= startDateISO && assignmentDate <= endDateISO;
-
-    // For administrators and skadeledere, show all assignments for the week
-    if (user?.role === 'administrator' || user?.role === 'skadeleder') {
-      return isInCurrentWeek;
-    } else {
-      // For servicemedarbejder users, show only published assignments assigned to them
-      return isInCurrentWeek && 
-             assignment.published === true && 
-             assignment.employees && 
-             assignment.employees.some(employeeName => employeeName === user?.name);
-    }
+    return assignmentDate >= startDateISO && assignmentDate <= endDateISO;
   }).sort((a, b) => {
     // Sort by date first (earliest first)
     if (a.date !== b.date) {

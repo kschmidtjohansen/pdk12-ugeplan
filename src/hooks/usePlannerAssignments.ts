@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useAssignments } from './useAssignments';
 import { useAssignmentFilters } from './useAssignmentFilters';
@@ -22,11 +21,11 @@ export const usePlannerAssignments = () => {
     fetchAssignments
   } = useAssignments();
   
-  // Get filter functionality
-  const filterMethods = useAssignmentFilters();
+  // Get filter functionality - using the standard planner filter
+  const { filterByPermissions } = useAssignmentFilters();
   
-  // Filter assignments
-  const filteredAssignments = filterMethods.filterByPermissions(assignments, true); // Default to showing all
+  // Filter assignments for planner view (servicemedarbejdere see all published assignments)
+  const filteredAssignments = filterByPermissions(assignments, true);
   
   // Get publishing functionality - adapt updateAssignment to match expected signature
   const assignmentUpdater = useCallback(async (assignment: Assignment) => {

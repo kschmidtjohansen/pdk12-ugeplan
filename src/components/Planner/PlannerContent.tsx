@@ -10,6 +10,9 @@ import { getAllWeekDays } from '@/utils/dates';
 import CurrentAndFutureDays from './CurrentAndFutureDays';
 import PastAssignments from './PastAssignments';
 import EmptyState from './EmptyState';
+import UnassignedResourcesSection from './UnassignedResourcesSection';
+import { useEmployees } from '@/hooks/useEmployees';
+import { useCars } from '@/hooks/car';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
@@ -25,7 +28,7 @@ interface PlannerContentProps {
 }
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
-  weekAssignments = [], // Initialize with an empty array as fallback
+  weekAssignments = [],
   onEditAssignment,
   onDeleteAssignment,
   onPublishAssignment,
@@ -38,7 +41,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
 }) => {
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
-  const isMobile = window.innerWidth < 768; // Simple mobile detection
+  const { employees } = useEmployees();
+  const { cars } = useCars();
+  const isMobile = window.innerWidth < 768;
   
   // Group assignments by day
   const groupedAssignments = useMemo(() => {
@@ -105,6 +110,15 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
 
   return (
     <div className="space-y-6 pb-6">
+      {/* Unassigned Resources Section for admin/skadeleder only */}
+      {(canEdit || canPublishTasks) && (
+        <UnassignedResourcesSection
+          assignments={weekAssignments}
+          employees={employees}
+          cars={cars}
+        />
+      )}
+      
       <CurrentAndFutureDays
         dates={currentAndFutureDates || []}
         groupedAssignments={groupedAssignments || {}}

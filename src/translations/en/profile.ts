@@ -16,5 +16,17 @@ export const profile = {
   editProfile: 'Edit Profile',
   saveChanges: 'Save Changes',
   profileUpdated: 'Profile updated successfully',
-  profileUpdateError: 'Error updating profile'
+  profileUpdateError: 'Error updating profile',
+  passwordsDoNotMatch: 'Passwords do not match',
+  passwordTooShort: 'Password must be at least 6 characters',
+  passwordChanged: 'Password Changed',
+  passwordChangedSuccess: 'Your password has been changed',
+  passwordChangeError: 'Error changing password',
+  profilePictureUpdated: 'Profile Picture Updated',
+  profilePictureSuccess: 'Your profile picture has been updated',
+  profilePictureRemoved: 'Profile Picture Removed',
+  profilePictureRemovedSuccess: 'Your profile picture has been removed',
+  profilePictureError: 'Error updating profile picture',
+  invalidFileType: 'Invalid file type. Please upload an image.',
+  fileTooLarge: 'File is too large. Maximum size is 5MB.'
 };

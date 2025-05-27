@@ -14,8 +14,24 @@ export const useAssignmentFilters = () => {
         return showUnpublished || assignment.published;
       }
       
+      // Servicemedarbejdere can see ALL published assignments with ALL employee names
+      if (user?.role === 'servicemedarbejder') {
+        return assignment.published === true;
+      }
+      
+      return false;
+    });
+  };
+
+  // Dashboard-specific filter - servicemedarbejdere only see their own assignments
+  const filterForDashboard = (assignments: Assignment[], showUnpublished: boolean = false) => {
+    return assignments.filter(assignment => {
+      // Administrators and skadeledere can see all assignments
+      if (user?.role === 'administrator' || user?.role === 'skadeleder') {
+        return showUnpublished || assignment.published;
+      }
+      
       // Servicemedarbejdere can only see published assignments assigned to them
-      // But they should be able to see all employee names in those assignments
       if (user?.role === 'servicemedarbejder') {
         return assignment.published === true && 
                assignment.employees && 
@@ -68,6 +84,7 @@ export const useAssignmentFilters = () => {
 
   return {
     filterByPermissions,
+    filterForDashboard,
     filterByDateRange,
     filterByWeek,
     groupByDate

@@ -1,9 +1,7 @@
-
 import React from 'react';
 import { Car, Clock, Tag, Users } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
-import { useAuth } from '@/context/AuthContext';
 
 interface AssignmentDetailsProps {
   assignment: Assignment;
@@ -20,12 +18,11 @@ const formatTime = (time: string): string => {
 
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
   
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // Show all employee names for all user types
+  // Show all employee names for all user types - no restrictions
   const displayEmployees = () => {
     if (assignment.employees && assignment.employees.length > 0) {
       return assignment.employees.join(', ');
