@@ -98,7 +98,28 @@ const planner = {
   copyAssignmentMsg: 'The assignment has been copied.',
   selectDateForCopy: 'Select date for copy',
   copyAssignmentTitle: 'Copy assignment to new date',
-  noAssignmentsWeek: 'There are no assignments planned for this week.'
+  noAssignmentsWeek: 'There are no assignments planned for this week.',
+  used: 'In use',
+  enterTitle: 'Enter case number',
+  copy: 'Copy',
+  assignmentCopied: 'Assignment copied',
+  assignmentCopiedMsg: 'Assignment has been copied to the next day',
+  errorCopyingAssignment: 'Error copying assignment',
+  fullyBooked: 'Fully booked',
+  availableAfter: 'Available after {time}',
+  partiallyAvailable: 'Partially available',
+  notAvailable: 'Not available',
+  onLeave: 'On leave',
+  noEmployees: 'No employees available',
+  selectEmployee: 'Select employee',
+  assignedTo: 'Assigned to',
+  noAssignmentsToPublish: 'No assignments to publish',
+  noUnpublishedAssignments: 'All assignments for this day are already published',
+  assignmentAlreadyPublished: 'Assignment already published',
+  assignmentAlreadyPublishedMsg: 'This assignment is already published',
+  errorPublishingAssignment: 'Error publishing assignment',
+  errorPublishingAssignments: 'Error publishing assignments',
+  assignmentTime: 'Assignment time'
 };
 
 export default planner;

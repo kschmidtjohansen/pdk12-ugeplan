@@ -128,7 +128,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       assignmentDateObj.setHours(0, 0, 0, 0);
       
       const isOnDate = assignmentDateObj.getTime() === currentDateObj.getTime();
-      const isAssigned = assignment.employees.includes(employeeName);
+      const isAssigned = assignment.employees && assignment.employees.includes(employeeName);
       
       return isOnDate && isAssigned;
     });
