@@ -196,11 +196,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               {isUnavailable && <Badge variant="outline">{t('employees.onLeave')}</Badge>}
               {availabilityInfo.isAssigned && !isDisabled && (
                 availabilityInfo.isFullyBooked ? (
-                  <Badge className={`${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-500 text-white border-red-600' : 'bg-red-100 text-red-800 border-red-200'}`}>
+                  <Badge className={`${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-600 text-white border-red-700' : 'bg-red-100 text-red-800 border-red-200'}`}>
                     {t('planner.onAnotherAssignment')}
                   </Badge>
                 ) : (
-                  <Badge className={`${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-500 text-white border-red-600' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>
+                  <Badge className={`${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-600 text-white border-red-700' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>
                     {availabilityInfo.availableAt 
                       ? t('planner.onAnotherAssignmentUntil', { time: availabilityInfo.availableAt })
                       : t('planner.onAnotherAssignment')}

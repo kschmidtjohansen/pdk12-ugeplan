@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useVacations } from '@/hooks/useVacations';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -14,6 +15,7 @@ import {
 
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
+import UnassignedResourcesWidget from './UnassignedResourcesWidget';
 
 const DashboardMetrics: React.FC = () => {
   const { vacations } = useVacations();
@@ -135,94 +137,103 @@ const DashboardMetrics: React.FC = () => {
   
   // Use the translations directly from the translation context
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {shouldShowMetrics && (
+          <>
+            <Card 
+              className="cursor-pointer hover:border-polygon-blue transition-colors"
+              onClick={() => {
+                setViewDate(new Date());
+                setAvailableEmployeesDialogOpen(true);
+              }}
+            >
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {t('dashboard.availableEmployees')}
+                </CardTitle>
+                <UserCheck className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{availableEmployeesCount}</div>
+                <p className="text-xs text-muted-foreground">
+                  {t('dashboard.totalEmployees', { count: totalFilteredEmployees })}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t('dashboard.todaysDate', { date: getFormattedToday() })}
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card 
+              className="cursor-pointer hover:border-polygon-blue transition-colors"
+              onClick={() => {
+                setUnavailableViewDate(new Date());
+                setUnavailableEmployeesDialogOpen(true);
+              }}
+            >
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {t('dashboard.onLeaveEmployees')}
+                </CardTitle>
+                <UserX className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{onLeaveEmployeesCount}</div>
+                <p className="text-xs text-muted-foreground">
+                  {t('dashboard.totalEmployees', { count: totalFilteredEmployees })}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t('dashboard.todaysDate', { date: getFormattedToday() })}
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {t('dashboard.availableCars')}
+                </CardTitle>
+                <CarFront className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{availableCarsCount}</div>
+                <p className="text-xs text-muted-foreground">
+                  {t('dashboard.totalCars', { count: totalCarsCount })}
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {t('dashboard.todayAssignments')}
+                </CardTitle>
+                <CheckSquare className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{todayAssignments}</div>
+                <p className="text-xs text-muted-foreground">
+                  {t('dashboard.scheduledToday')}
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        )}
+      </div>
+
+      {/* Show unassigned resources widget only for admin and skadeleder */}
       {shouldShowMetrics && (
-        <>
-          <Card 
-            className="cursor-pointer hover:border-polygon-blue transition-colors"
-            onClick={() => {
-              setViewDate(new Date());
-              setAvailableEmployeesDialogOpen(true);
-            }}
-          >
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                {t('dashboard.availableEmployees')}
-              </CardTitle>
-              <UserCheck className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{availableEmployeesCount}</div>
-              <p className="text-xs text-muted-foreground">
-                {t('dashboard.totalEmployees', { count: totalFilteredEmployees })}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {t('dashboard.todaysDate', { date: getFormattedToday() })}
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card 
-            className="cursor-pointer hover:border-polygon-blue transition-colors"
-            onClick={() => {
-              setUnavailableViewDate(new Date());
-              setUnavailableEmployeesDialogOpen(true);
-            }}
-          >
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                {t('dashboard.onLeaveEmployees')}
-              </CardTitle>
-              <UserX className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{onLeaveEmployeesCount}</div>
-              <p className="text-xs text-muted-foreground">
-                {t('dashboard.totalEmployees', { count: totalFilteredEmployees })}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {t('dashboard.todaysDate', { date: getFormattedToday() })}
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                {t('dashboard.availableCars')}
-              </CardTitle>
-              <CarFront className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{availableCarsCount}</div>
-              <p className="text-xs text-muted-foreground">
-                {t('dashboard.totalCars', { count: totalCarsCount })}
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                {t('dashboard.todayAssignments')}
-              </CardTitle>
-              <CheckSquare className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{todayAssignments}</div>
-              <p className="text-xs text-muted-foreground">
-                {t('dashboard.scheduledToday')}
-              </p>
-            </CardContent>
-          </Card>
-        </>
+        <UnassignedResourcesWidget 
+          assignments={assignments}
+          employees={filteredEmployees}
+          cars={cars}
+        />
       )}
 
       {/* Show upcoming vacations widget only for admin and skadeleder */}
       {shouldShowMetrics && (
-        <div className="md:col-span-2 lg:col-span-4">
-          <UpcomingVacationsWidget vacations={vacations} />
-        </div>
+        <UpcomingVacationsWidget vacations={vacations} />
       )}
 
       {/* Employee availability dialogs */}

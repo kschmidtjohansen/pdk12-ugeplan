@@ -1,78 +1,75 @@
 
+import { useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
-import { getWeekDates } from '@/utils/dates';
-import { format } from 'date-fns';
+import { useAuth } from '@/context/AuthContext';
 
-// Filters and groups assignments
 export const useAssignmentFilters = () => {
+  const { user } = useAuth();
+
   // Filter assignments based on user permissions
-  const filterByPermissions = (assignments: Assignment[], canSeeUnpublishedTasks: boolean) => {
-    if (canSeeUnpublishedTasks) {
-      // Admin or skadeleder can see all
-      return assignments;
-    } else {
-      // Others can only see published tasks
-      return assignments.filter(a => a.published);
-    }
+  const filterByPermissions = (assignments: Assignment[], showUnpublished: boolean = true) => {
+    return assignments.filter(assignment => {
+      // Administrators and skadeledere can see all assignments
+      if (user?.role === 'administrator' || user?.role === 'skadeleder') {
+        return showUnpublished || assignment.published;
+      }
+      
+      // Servicemedarbejdere can only see published assignments assigned to them
+      // But they should be able to see all employee names in those assignments
+      if (user?.role === 'servicemedarbejder') {
+        return assignment.published === true && 
+               assignment.employees && 
+               assignment.employees.some(employeeName => employeeName === user?.name);
+      }
+      
+      return false;
+    });
+  };
+
+  // Filter assignments by date range
+  const filterByDateRange = (assignments: Assignment[], startDate: string, endDate: string) => {
+    return assignments.filter(assignment => {
+      const assignmentDate = assignment.date;
+      return assignmentDate >= startDate && assignmentDate <= endDate;
+    });
+  };
+
+  // Filter assignments by week
+  const filterByWeek = (assignments: Assignment[], weekNumber: number, year: number) => {
+    return assignments.filter(assignment => {
+      const assignmentDate = new Date(assignment.date);
+      const assignmentYear = assignmentDate.getFullYear();
+      const assignmentWeek = getWeekNumber(assignmentDate);
+      
+      return assignmentYear === year && assignmentWeek === weekNumber;
+    });
   };
 
   // Group assignments by date
   const groupByDate = (assignments: Assignment[]) => {
-    const grouped: Record<string, Assignment[]> = {};
-    
-    assignments.forEach(assignment => {
+    return assignments.reduce((groups: Record<string, Assignment[]>, assignment) => {
       const date = assignment.date;
-      if (!grouped[date]) {
-        grouped[date] = [];
+      if (!groups[date]) {
+        groups[date] = [];
       }
-      grouped[date].push(assignment);
-    });
-    
-    return grouped;
+      groups[date].push(assignment);
+      return groups;
+    }, {});
   };
 
-  // Filter assignments by ISO week and year
-  const filterByWeek = (assignments: Assignment[], weekNumber: number, year: number) => {
-    try {
-      console.log(`Filtering assignments for week ${weekNumber}/${year}`);
-      
-      // Get the correct date range for the ISO week (Monday to Sunday)
-      const { start, end } = getWeekDates(weekNumber, year);
-      
-      // Set start time to beginning of day and end time to end of day
-      const weekStart = new Date(start);
-      weekStart.setHours(0, 0, 0, 0);
-      
-      const weekEnd = new Date(end);
-      weekEnd.setHours(23, 59, 59, 999);
-      
-      console.log(`Week boundaries for filtering - Start: ${format(weekStart, 'yyyy-MM-dd')} (${format(weekStart, 'EEEE')}, day ${weekStart.getDay()})`);
-      console.log(`Week boundaries for filtering - End: ${format(weekEnd, 'yyyy-MM-dd')} (${format(weekEnd, 'EEEE')}, day ${weekEnd.getDay()})`);
-      
-      return assignments.filter(assignment => {
-        // Create a date object from the assignment date string
-        const assignmentDate = new Date(assignment.date);
-        // Normalize time to noon to avoid timezone issues
-        assignmentDate.setHours(12, 0, 0, 0);
-        
-        // Compare if assignment date falls within week range
-        const isInWeek = assignmentDate >= weekStart && assignmentDate <= weekEnd;
-        
-        if (isInWeek) {
-          console.log(`Assignment ${assignment.id} (${assignment.date}) is in week ${weekNumber}`);
-        }
-        
-        return isInWeek;
-      });
-    } catch (error) {
-      console.error("Error filtering by week:", error);
-      return [];
-    }
+  // Helper function to get week number
+  const getWeekNumber = (date: Date): number => {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
   };
 
   return {
     filterByPermissions,
-    groupByDate,
-    filterByWeek
+    filterByDateRange,
+    filterByWeek,
+    groupByDate
   };
 };

@@ -208,10 +208,10 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
                     <div className="flex items-center justify-between w-full">
                       <span>{car.car_number} - {car.name}</span>
                       {usageInfo?.isUsed && (
-                        <span className={`ml-2 px-2 py-1 text-xs rounded ${
+                        <span className={`ml-2 px-2 py-1 text-xs rounded font-medium ${
                           usageInfo.hasEndTimeAtSixteen 
-                            ? 'bg-red-500 text-white' 
-                            : 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-red-600 text-white border border-red-700' 
+                            : 'bg-yellow-100 text-yellow-800 border border-yellow-300'
                         }`}>
                           {t('planner.used')} ({usageInfo.timeRanges})
                         </span>
