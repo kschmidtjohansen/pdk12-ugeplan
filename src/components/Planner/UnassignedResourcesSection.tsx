@@ -23,6 +23,8 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   const { t, currentLanguage } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showAllEmployees, setShowAllEmployees] = useState(false);
+  const [showAllCars, setShowAllCars] = useState(false);
 
   const formatDate = (date: Date) => {
     const locale = currentLanguage === 'da' ? da : undefined;
@@ -77,13 +79,16 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     setSelectedDate(new Date());
   };
 
+  const displayedEmployees = showAllEmployees ? unassignedEmployees : unassignedEmployees.slice(0, 3);
+  const displayedCars = showAllCars ? unassignedCars : unassignedCars.slice(0, 3);
+
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-blue-600" />
           <h3 className="font-semibold text-blue-800">
-            Unassigned Resources ({unassignedEmployees.length + unassignedCars.length})
+            {t('planner.unassignedResources')} ({unassignedEmployees.length + unassignedCars.length})
           </h3>
         </div>
         <Button
@@ -101,7 +106,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handleToday}>
-                Today
+                {t('planner.today')}
               </Button>
               <Button variant="outline" size="sm" onClick={handlePreviousDay}>
                 ←
@@ -119,21 +124,29 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Users className="h-4 w-4 text-blue-600" />
-                <span className="font-medium text-sm">Employees ({unassignedEmployees.length})</span>
+                <span className="font-medium text-sm">{t('planner.employees')} ({unassignedEmployees.length})</span>
               </div>
               {unassignedEmployees.length === 0 ? (
-                <p className="text-xs text-gray-500">All employees assigned</p>
+                <p className="text-xs text-gray-500">{t('planner.allEmployeesAssigned')}</p>
               ) : (
                 <div className="space-y-1">
-                  {unassignedEmployees.slice(0, 3).map(employee => (
+                  {displayedEmployees.map(employee => (
                     <div key={employee.id} className="text-xs bg-white p-2 rounded border">
                       {employee.name}
                     </div>
                   ))}
                   {unassignedEmployees.length > 3 && (
-                    <div className="text-xs text-gray-500">
-                      +{unassignedEmployees.length - 3} more
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAllEmployees(!showAllEmployees)}
+                      className="text-xs text-blue-600 hover:text-blue-800 p-1 h-auto"
+                    >
+                      {showAllEmployees 
+                        ? t('planner.showLess')
+                        : `+${unassignedEmployees.length - 3} ${t('planner.showMore')}`
+                      }
+                    </Button>
                   )}
                 </div>
               )}
@@ -142,21 +155,29 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Car className="h-4 w-4 text-green-600" />
-                <span className="font-medium text-sm">Cars ({unassignedCars.length})</span>
+                <span className="font-medium text-sm">{t('planner.unassignedCars')} ({unassignedCars.length})</span>
               </div>
               {unassignedCars.length === 0 ? (
-                <p className="text-xs text-gray-500">All cars assigned</p>
+                <p className="text-xs text-gray-500">{t('planner.allCarsAssigned')}</p>
               ) : (
                 <div className="space-y-1">
-                  {unassignedCars.slice(0, 3).map(car => (
+                  {displayedCars.map(car => (
                     <div key={car.id} className="text-xs bg-white p-2 rounded border">
                       {car.car_number} - {car.name}
                     </div>
                   ))}
                   {unassignedCars.length > 3 && (
-                    <div className="text-xs text-gray-500">
-                      +{unassignedCars.length - 3} more
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAllCars(!showAllCars)}
+                      className="text-xs text-blue-600 hover:text-blue-800 p-1 h-auto"
+                    >
+                      {showAllCars 
+                        ? t('planner.showLess')
+                        : `+${unassignedCars.length - 3} ${t('planner.showMore')}`
+                      }
+                    </Button>
                   )}
                 </div>
               )}

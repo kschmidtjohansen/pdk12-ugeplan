@@ -1,70 +1,63 @@
 
-import React, { useState, useEffect } from 'react';
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate
-} from "react-router-dom";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from "@/components/ui/sonner"
-
-import { useAuth } from './context/AuthContext';
-import { ThemeProvider } from "./components/theme-provider"
-
+import { AuthProvider } from './context/AuthContext';
+import { TranslationProvider } from './context/TranslationContext';
+import { NotificationProvider } from './context/NotificationContext';
+import { ThemeProvider } from './components/theme-provider';
+import { Toaster } from './components/ui/toaster';
 import MainLayout from './components/Layout/MainLayout';
+import Index from './pages/Index';
 import LoginPage from './pages/LoginPage';
-import Index from './pages/Index'; 
+import PasswordResetPage from './pages/PasswordResetPage';
 import DashboardPage from './pages/DashboardPage';
 import PlannerPage from './pages/PlannerPage';
 import EmployeesPage from './pages/EmployeesPage';
 import CarsPage from './pages/CarsPage';
 import VacationPage from './pages/VacationPage';
 import AdminPage from './pages/AdminPage';
-import AutoPublishContainer from './components/AutoPublish/AutoPublishContainer';
-import PasswordResetPage from './pages/PasswordResetPage';
+import ScreenDisplayPage from './pages/ScreenDisplayPage';
+import NotFound from './pages/NotFound';
+import ErrorBoundary from './components/ErrorBoundary';
+import './App.css';
 
 const queryClient = new QueryClient();
 
 function App() {
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      setLoading(false);
-    };
-    checkAuth();
-  }, [user]);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <Router>
-          <Toaster />
-          <AutoPublishContainer userId={user?.id} />
-          <Routes>
-            <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
-            {/* Password reset routes - both paths are accessible without authentication */}
-            <Route path="/password-reset" element={<PasswordResetPage />} />
-            <Route path="/reset-password" element={<PasswordResetPage />} />
-            {/* Use the Index component for the root path instead of directly rendering DashboardPage */}
-            <Route path="/" element={user ? <Index /> : <Navigate to="/login" />} />
-            <Route path="/dashboard" element={user ? <MainLayout><DashboardPage /></MainLayout> : <Navigate to="/login" />} />
-            <Route path="/planner" element={user ? <MainLayout><PlannerPage /></MainLayout> : <Navigate to="/login" />} />
-            <Route path="/employees" element={user ? <MainLayout><EmployeesPage /></MainLayout> : <Navigate to="/login" />} />
-            <Route path="/cars" element={user ? <MainLayout><CarsPage /></MainLayout> : <Navigate to="/login" />} />
-            <Route path="/vacation" element={user ? <MainLayout><VacationPage /></MainLayout> : <Navigate to="/login" />} />
-            <Route path="/admin" element={user?.role === 'administrator' ? <MainLayout><AdminPage /></MainLayout> : user ? <Navigate to="/" /> : <Navigate to="/login" />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </Router>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="light" storageKey="polygon-theme">
+          <TranslationProvider>
+            <NotificationProvider>
+              <AuthProvider>
+                <Router>
+                  <div className="App">
+                    <Routes>
+                      <Route path="/login" element={<LoginPage />} />
+                      <Route path="/password-reset" element={<PasswordResetPage />} />
+                      <Route path="/screen-display" element={<ScreenDisplayPage />} />
+                      <Route path="/" element={<MainLayout />}>
+                        <Route index element={<Index />} />
+                        <Route path="dashboard" element={<DashboardPage />} />
+                        <Route path="planner" element={<PlannerPage />} />
+                        <Route path="employees" element={<EmployeesPage />} />
+                        <Route path="cars" element={<CarsPage />} />
+                        <Route path="vacation" element={<VacationPage />} />
+                        <Route path="admin" element={<AdminPage />} />
+                      </Route>
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                    <Toaster />
+                  </div>
+                </Router>
+              </AuthProvider>
+            </NotificationProvider>
+          </TranslationProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -1,61 +1,69 @@
+
 export const common = {
-  // Buttons
+  // Basic actions
   save: 'Save',
   cancel: 'Cancel',
-  edit: 'Edit',
   delete: 'Delete',
-  confirm: 'Confirm',
-  close: 'Close',
+  edit: 'Edit',
+  create: 'Create',
+  update: 'Update',
   back: 'Back',
   next: 'Next',
   previous: 'Previous',
-  add: 'Add',
-  remove: 'Remove',
-  update: 'Update',
-  create: 'Create',
-  submit: 'Submit',
-  
-  // Status
-  loading: 'Loading...',
-  error: 'Error',
-  success: 'Success',
-  warning: 'Warning',
-  info: 'Information',
-  
-  // Generic
-  yes: 'Yes',
-  no: 'No',
-  none: 'None',
-  all: 'All',
-  select: 'Select',
+  close: 'Close',
+  open: 'Open',
+  view: 'View',
   search: 'Search',
   filter: 'Filter',
   sort: 'Sort',
-  actions: 'Actions',
+  refresh: 'Refresh',
+  loading: 'Loading...',
   
-  // Time & Date
-  today: 'Today',
-  yesterday: 'Yesterday',
-  tomorrow: 'Tomorrow',
-  week: 'Week',
-  date: 'Date',
-  time: 'Time',
+  // Status messages
+  success: 'Success',
+  error: 'Error',
+  warning: 'Warning',
+  info: 'Information',
   
-  // Other common terms
+  // Common labels
   name: 'Name',
   email: 'Email',
   phone: 'Phone',
   address: 'Address',
-  description: 'Description',
-  notes: 'Notes',
+  date: 'Date',
+  time: 'Time',
   status: 'Status',
   type: 'Type',
-  category: 'Category',
+  description: 'Description',
+  notes: 'Notes',
   
-  // Password related
-  password: 'Password',
+  // Form validation
+  required: 'Required',
+  optional: 'Optional',
+  invalid: 'Invalid',
   
-  // Availability
-  available: 'Available',
-  unavailable: 'Unavailable'
+  // Confirmation
+  confirm: 'Confirm',
+  confirmDelete: 'Confirm deletion',
+  areYouSure: 'Are you sure?',
+  
+  // Navigation
+  home: 'Home',
+  dashboard: 'Dashboard',
+  profile: 'Profile',
+  settings: 'Settings',
+  
+  // Time
+  today: 'Today',
+  yesterday: 'Yesterday',
+  tomorrow: 'Tomorrow',
+  
+  // Generic
+  all: 'All',
+  none: 'None',
+  other: 'Other',
+  unknown: 'Unknown',
+  
+  yes: 'Yes',
+  no: 'No'
 };

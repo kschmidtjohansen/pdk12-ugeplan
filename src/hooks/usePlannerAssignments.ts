@@ -1,6 +1,7 @@
+
 import { useState, useCallback } from 'react';
 import { useAssignments } from './useAssignments';
-import { useAssignmentFilters } from './useAssignmentFilters';
+import { useViewSpecificFilters } from './useViewSpecificFilters';
 import { Assignment } from '@/types/assignment';
 import { useAssignmentPublishing } from './useAssignmentPublishing';
 import { groupAssignmentsByDay } from '@/utils/dateUtils';
@@ -21,11 +22,11 @@ export const usePlannerAssignments = () => {
     fetchAssignments
   } = useAssignments();
   
-  // Get filter functionality - using the standard planner filter
-  const { filterByPermissions } = useAssignmentFilters();
+  // Get filter functionality - using the planner-specific filter
+  const { filterForPlanner } = useViewSpecificFilters();
   
   // Filter assignments for planner view (servicemedarbejdere see all published assignments)
-  const filteredAssignments = filterByPermissions(assignments, true);
+  const filteredAssignments = filterForPlanner(assignments, true);
   
   // Get publishing functionality - adapt updateAssignment to match expected signature
   const assignmentUpdater = useCallback(async (assignment: Assignment) => {

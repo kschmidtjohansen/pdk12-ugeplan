@@ -4,6 +4,7 @@ import { useVacations } from '@/hooks/useVacations';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
+import { useViewSpecificFilters } from '@/hooks/useViewSpecificFilters';
 import { usePermissions } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from '@/context/TranslationContext';
@@ -22,6 +23,7 @@ const DashboardMetrics: React.FC = () => {
   const { employees } = useEmployees();
   const { cars } = useCars();
   const { assignments } = usePlannerAssignments();
+  const { filterForDashboard } = useViewSpecificFilters();
   const { isAdmin, isSkadeleder } = usePermissions();
   const { t, currentLanguage } = useTranslation();
 
@@ -35,6 +37,9 @@ const DashboardMetrics: React.FC = () => {
   // Show metrics only for admin and skadeleder roles
   const shouldShowMetrics = isAdmin || isSkadeleder;
 
+  // Filter assignments using dashboard-specific filter
+  const filteredAssignments = filterForDashboard(assignments, false);
+
   // Filter out admin and skadeleder users from employee counts
   const filteredEmployees = employees.filter(e => 
     e.role !== 'administrator' && e.role !== 'skadeleder'
@@ -42,7 +47,7 @@ const DashboardMetrics: React.FC = () => {
   
   // Format today's date for comparison
   const today = format(new Date(), 'yyyy-MM-dd');
-  const todayAssignments = assignments.filter(a => a.date === today).length;
+  const todayAssignments = filteredAssignments.filter(a => a.date === today).length;
   
   // Helper function to check if an employee is available on a specific date
   const isEmployeeAvailableOnDate = (employeeId: string, checkDate: string): boolean => {
@@ -83,8 +88,8 @@ const DashboardMetrics: React.FC = () => {
     return isOnVacation;
   };
 
-  // Get all assignments for today
-  const todayAssignmentsList = assignments.filter(a => a.date === today);
+  // Get all assignments for today (using filtered assignments for dashboard view)
+  const todayAssignmentsList = filteredAssignments.filter(a => a.date === today);
   
   // Get employees who are assigned to tasks today
   const assignedEmployeesIds = todayAssignmentsList.flatMap(a => 
@@ -244,7 +249,7 @@ const DashboardMetrics: React.FC = () => {
             isAvailable={true}
             viewDate={viewDate}
             onViewDateChange={setViewDate}
-            assignments={assignments}
+            assignments={filteredAssignments}
             allEmployees={filteredEmployees}
             vacations={vacations}
           />
@@ -258,7 +263,7 @@ const DashboardMetrics: React.FC = () => {
             isAvailable={false}
             viewDate={unavailableViewDate}
             onViewDateChange={setUnavailableViewDate}
-            assignments={assignments}
+            assignments={filteredAssignments}
             allEmployees={filteredEmployees}
             vacations={vacations}
           />

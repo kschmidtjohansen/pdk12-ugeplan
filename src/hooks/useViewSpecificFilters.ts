@@ -24,7 +24,7 @@ export const useViewSpecificFilters = () => {
     });
   };
 
-  // Filter for planner - servicemedarbejdere can see all published assignments
+  // Filter for planner - servicemedarbejdere can see all published assignments with all employee names
   const filterForPlanner = (assignments: Assignment[], showUnpublished: boolean = true) => {
     return assignments.filter(assignment => {
       // Administrators and skadeledere can see all assignments
@@ -33,6 +33,7 @@ export const useViewSpecificFilters = () => {
       }
       
       // Servicemedarbejdere can see ALL published assignments (not just their own)
+      // This allows them to see all assignments and all employee names in the planner
       if (user?.role === 'servicemedarbejder') {
         return assignment.published === true;
       }

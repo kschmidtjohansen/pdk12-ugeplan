@@ -2,12 +2,13 @@
 import React from 'react';
 import PageHeader from '../Layout/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Monitor } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { getWeekDates } from '@/utils/dates';
 import { da } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 
 interface PlannerHeaderProps {
   currentWeek: number;
@@ -26,6 +27,7 @@ const PlannerHeader: React.FC<PlannerHeaderProps> = ({
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { canCreate } = usePermissions();
+  const navigate = useNavigate();
   
   // Get the first day of the current week
   const { start } = getWeekDates(currentWeek, currentYear);
@@ -42,6 +44,11 @@ const PlannerHeader: React.FC<PlannerHeaderProps> = ({
     const dateString = format(start, 'yyyy-MM-dd');
     onCreateNew(dateString);
   };
+
+  // Navigate to screen display page
+  const handleShowOnScreen = () => {
+    navigate('/screen-display');
+  };
   
   return (
     <div className="flex flex-col md:flex-row justify-between items-center w-full mb-6">
@@ -51,6 +58,9 @@ const PlannerHeader: React.FC<PlannerHeaderProps> = ({
             <Plus className="mr-2 h-4 w-4" /> {t("planner.newAssignment")}
           </Button>
         }
+        <Button onClick={handleShowOnScreen} variant="outline">
+          <Monitor className="mr-2 h-4 w-4" /> {t("planner.showOnScreen")}
+        </Button>
       </div>
       
       <div className="flex space-x-4">

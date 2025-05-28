@@ -119,7 +119,15 @@ const planner = {
   assignmentAlreadyPublishedMsg: 'This assignment is already published',
   errorPublishingAssignment: 'Error publishing assignment',
   errorPublishingAssignments: 'Error publishing assignments',
-  assignmentTime: 'Assignment time'
+  assignmentTime: 'Assignment time',
+  showOnScreen: 'Show on Screen',
+  unassignedResources: 'Unassigned Resources',
+  unassignedEmployees: 'Unassigned Employees',
+  unassignedCars: 'Unassigned Cars',
+  allEmployeesAssigned: 'All employees assigned',
+  allCarsAssigned: 'All cars assigned',
+  showMore: 'Show more',
+  showLess: 'Show less'
 };
 
 export default planner;

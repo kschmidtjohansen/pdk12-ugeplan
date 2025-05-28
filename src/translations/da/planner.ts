@@ -26,8 +26,10 @@ const planner = {
   deleteWarning: "Denne handling kan ikke fortrydes.",
   publish: "Publicer",
   publishDay: "Publicer Dag",
+  publishDayTasks: "Publicer Dag",
   published: "Publiceret",
   unpublished: "Ikke publiceret",
+  notPublished: "Ikke publiceret",
   assignmentPublished: "Opgave publiceret",
   assignmentPublishedMsg: "Opgaven er nu tilgængelig for servicemedarbejdere",
   assignmentsPublished: "Opgaver publiceret",
@@ -66,7 +68,15 @@ const planner = {
   nothingPlannedToday: "Intet planlagt i dag.",
   weekDescription: "Se planerne for denne uge.",
   noAssignmentsWeek: "Der er ingen opgaver planlagt for denne uge.",
-  unassigned: "Ikke tildelt"
+  unassigned: "Ikke tildelt",
+  showOnScreen: "Vis på skærm",
+  unassignedResources: "Ikke-tildelte ressourcer",
+  unassignedEmployees: "Ikke-tildelte medarbejdere",
+  unassignedCars: "Ikke-tildelte biler",
+  allEmployeesAssigned: "Alle medarbejdere tildelt",
+  allCarsAssigned: "Alle biler tildelt",
+  showMore: "Vis flere",
+  showLess: "Vis færre"
 };
 
 export default planner;
