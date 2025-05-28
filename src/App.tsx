@@ -19,7 +19,7 @@ import VacationPage from './pages/VacationPage';
 import AdminPage from './pages/AdminPage';
 import ScreenDisplayPage from './pages/ScreenDisplayPage';
 import NotFound from './pages/NotFound';
-import ErrorBoundary from './components/ErrorBoundary';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import './App.css';
 
 const queryClient = new QueryClient();
