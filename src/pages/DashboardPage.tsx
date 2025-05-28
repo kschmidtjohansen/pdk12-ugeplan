@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -166,7 +167,7 @@ const DashboardPage: React.FC = () => {
                 <CardTitle className="mt-2">{item.title}</CardTitle>
               </CardHeader>
               <CardContent className="pb-2">
-                <p className="text-muted-foreground text-sm">{item.description}</p>
+                <p className="text-muted-foreground text-sm text-left">{item.description}</p>
               </CardContent>
             </Card>
           </Link>)}
@@ -198,7 +199,7 @@ const DashboardPage: React.FC = () => {
         </CardHeader>
         <CardContent>
           {userWeekAssignments.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">
+            <p className="text-left py-8 text-muted-foreground">
               {t('dashboard.noAssignments')}
             </p>
           ) : (
@@ -206,12 +207,12 @@ const DashboardPage: React.FC = () => {
               {userWeekAssignments.map(assignment => (
                 <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
                   <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
-                    <h3 className="font-bold text-lg">{assignment.location}</h3>
+                    <h3 className="font-bold text-lg text-left">{assignment.location}</h3>
                     <span className="text-sm bg-gray-100 px-2 py-1 rounded-md">
                       {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2 font-medium">{assignment.title}</p>
+                  <p className="text-sm text-gray-600 mb-2 font-medium text-left">{assignment.title}</p>
                   <AssignmentDetails assignment={assignment} />
                 </div>
               ))}

@@ -1,4 +1,3 @@
-
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -62,23 +61,31 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
         }
       }
       
+      // FIXED: Ensure dates are in the correct format and timezone
+      // Use the selected dates as they are (they're already Date objects)
+      // Convert to ISO string but keep the local date (don't convert to UTC)
+      const startDateFormatted = format(date.from, 'yyyy-MM-dd');
+      const endDateFormatted = format(date.to, 'yyyy-MM-dd');
+      
       console.log("Creating vacation record:", {
         user_id: requestEmployeeId,
-        start_date: date.from.toISOString(),
-        end_date: date.to.toISOString(),
+        start_date: startDateFormatted,
+        end_date: endDateFormatted,
         reason: reason,
         status: 'pending',
-        isAdminRequest
+        isAdminRequest,
+        originalFromDate: date.from,
+        originalToDate: date.to
       });
       
-      // Create the vacation record
+      // Create the vacation record using formatted date strings
       const { data, error } = await supabase
         .from('vacations')
         .insert([
           {
             user_id: requestEmployeeId,
-            start_date: date.from.toISOString(),
-            end_date: date.to.toISOString(),
+            start_date: startDateFormatted,
+            end_date: endDateFormatted,
             reason: reason,
             status: 'pending'
           }

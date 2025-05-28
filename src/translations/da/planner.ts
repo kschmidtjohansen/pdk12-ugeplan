@@ -12,6 +12,7 @@ const planner = {
   startTime: "Starttidspunkt",
   endTime: "Sluttidspunkt",
   selectCar: "Vælg bil",
+  car: "Bil",
   employees: "Servicemedarbejdere",
   description: "Beskrivelse",
   notes: "Noter",

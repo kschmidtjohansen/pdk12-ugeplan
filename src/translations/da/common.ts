@@ -18,6 +18,7 @@ export const common = {
   sort: 'Sorter',
   refresh: 'Opdater',
   loading: 'Indlæser...',
+  logout: 'Log ud',
   
   // Status messages
   success: 'Succes',
@@ -46,6 +47,7 @@ export const common = {
   confirm: 'Bekræft',
   confirmDelete: 'Bekræft sletning',
   areYouSure: 'Er du sikker?',
+  deleteWarning: 'Er du sikker på, at du vil slette?',
   
   // Navigation
   home: 'Hjem',

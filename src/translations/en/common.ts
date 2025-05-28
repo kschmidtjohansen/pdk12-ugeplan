@@ -18,6 +18,7 @@ export const common = {
   sort: 'Sort',
   refresh: 'Refresh',
   loading: 'Loading...',
+  logout: 'Logout',
   
   // Status messages
   success: 'Success',
@@ -46,6 +47,7 @@ export const common = {
   confirm: 'Confirm',
   confirmDelete: 'Confirm deletion',
   areYouSure: 'Are you sure?',
+  deleteWarning: 'Are you sure you want to delete?',
   
   // Navigation
   home: 'Home',

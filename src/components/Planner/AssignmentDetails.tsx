@@ -31,7 +31,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   };
   
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-sm">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-sm text-left">
       {assignment.title && (
         <div className="flex items-center gap-2">
           <Tag className="w-4 h-4 flex-shrink-0 text-gray-500" />
@@ -59,12 +59,6 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
           {displayEmployees()}
         </span>
       </div>
-
-      {assignment.description && (
-        <div className="flex items-start gap-2 col-span-1 sm:col-span-2">
-          <span className="text-gray-600">{assignment.description}</span>
-        </div>
-      )}
     </div>
   );
 };
