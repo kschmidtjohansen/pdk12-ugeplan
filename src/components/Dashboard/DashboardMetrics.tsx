@@ -222,13 +222,9 @@ const DashboardMetrics: React.FC = () => {
         )}
       </div>
 
-      {/* Show unassigned resources widget only for admin and skadeleder */}
+      {/* Unassigned resources widget is now moved to planner page */}
       {shouldShowMetrics && (
-        <UnassignedResourcesWidget 
-          assignments={assignments}
-          employees={filteredEmployees}
-          cars={cars}
-        />
+        <UnassignedResourcesWidget />
       )}
 
       {/* Show upcoming vacations widget only for admin and skadeleder */}
