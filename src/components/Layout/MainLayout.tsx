@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import TopNavbar from './TopNavbar';
 
-const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const MainLayout: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // Don't show layout for login page or password reset page
   if (location.pathname === "/login" || location.pathname === "/password-reset") {
-    return <>{children}</>;
+    return <Outlet />;
   }
 
   if (!isAuthenticated) {
@@ -38,7 +38,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       
       {/* Main Content - Adjusted to ensure full width and proper padding for navbar */}
       <main className="flex-1 page-container w-full max-w-full mt-16 px-4 pt-6">
-        {children}
+        <Outlet />
       </main>
     </div>
   );
