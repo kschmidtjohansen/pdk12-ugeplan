@@ -83,105 +83,105 @@ const ScreenDisplayPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      {/* Header */}
-      <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-200">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      {/* Compressed Header */}
+      <div className="bg-white rounded-xl shadow-lg p-4 mb-4 border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
             <Link to="/planner">
-              <Button variant="outline" size="lg" className="hover:bg-gray-50">
-                <Home className="h-5 w-5 mr-2" />
+              <Button variant="outline" size="sm" className="hover:bg-gray-50">
+                <Home className="h-4 w-4 mr-1" />
                 {t('common.back')}
               </Button>
             </Link>
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
                 {t('planner.title')}
               </h1>
-              <div className="flex items-center gap-3 text-xl text-gray-600">
-                <Calendar className="h-6 w-6" />
+              <div className="flex items-center gap-2 text-lg text-gray-600">
+                <Calendar className="h-5 w-5" />
                 {formatDate(selectedDate)}
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-2xl font-bold text-gray-900">
               {format(currentTime, 'HH:mm')}
             </div>
-            <div className="text-lg text-gray-600">
+            <div className="text-sm text-gray-600">
               {format(currentTime, 'EEEE', { locale: currentLanguage === 'da' ? da : undefined })}
             </div>
           </div>
         </div>
 
-        {/* Date Navigation */}
-        <div className="flex items-center justify-center gap-4">
-          <Button onClick={handlePreviousDay} variant="outline" size="lg" className="px-6">
-            <ChevronLeft className="h-5 w-5 mr-2" />
-            {currentLanguage === 'da' ? 'Forrige dag' : 'Previous day'}
+        {/* Compressed Date Navigation */}
+        <div className="flex items-center justify-center gap-3">
+          <Button onClick={handlePreviousDay} variant="outline" size="sm" className="px-4">
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            {currentLanguage === 'da' ? 'Forrige' : 'Previous'}
           </Button>
-          <Button onClick={handleToday} variant="default" size="lg" className="px-8 bg-blue-600 hover:bg-blue-700">
+          <Button onClick={handleToday} variant="default" size="sm" className="px-6 bg-blue-600 hover:bg-blue-700">
             {t('planner.today')}
           </Button>
-          <Button onClick={handleNextDay} variant="outline" size="lg" className="px-6">
-            {currentLanguage === 'da' ? 'Næste dag' : 'Next day'}
-            <ChevronRight className="h-5 w-5 ml-2" />
+          <Button onClick={handleNextDay} variant="outline" size="sm" className="px-4">
+            {currentLanguage === 'da' ? 'Næste' : 'Next'}
+            <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
       </div>
 
-      {/* Assignments Display */}
+      {/* Compressed Assignments Display */}
       {todayAssignments.length === 0 ? (
-        <Card className="bg-white rounded-2xl shadow-xl border border-gray-200">
-          <CardContent className="p-16 text-center">
-            <div className="text-8xl mb-6">📅</div>
-            <h2 className="text-4xl font-semibold text-gray-600 mb-4">
+        <Card className="bg-white rounded-xl shadow-lg border border-gray-200">
+          <CardContent className="p-8 text-center">
+            <div className="text-4xl mb-4">📅</div>
+            <h2 className="text-2xl font-semibold text-gray-600 mb-2">
               {t('planner.nothingPlannedToday')}
             </h2>
-            <p className="text-xl text-gray-500">
+            <p className="text-lg text-gray-500">
               {currentLanguage === 'da' ? 'Ingen opgaver planlagt for denne dag' : 'No assignments scheduled for this day'}
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-3">
           {todayAssignments.map((assignment, index) => {
             const status = getTimeStatus(assignment);
             return (
-              <Card key={assignment.id} className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden hover:shadow-2xl transition-shadow duration-300">
-                <CardContent className="p-8">
-                  <div className="flex items-start justify-between mb-6">
+              <Card key={assignment.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
-                      <div className="flex items-center gap-4 mb-4">
-                        <h3 className="text-3xl font-bold text-gray-900">
+                      <div className="flex items-center gap-3 mb-3">
+                        <h3 className="text-xl font-bold text-gray-900">
                           {assignment.title}
                         </h3>
-                        <div className={`px-4 py-2 rounded-full text-white text-sm font-medium ${getStatusColor(status)}`}>
+                        <div className={`px-3 py-1 rounded-full text-white text-xs font-medium ${getStatusColor(status)}`}>
                           {getStatusText(status)}
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                        <div className="flex items-center gap-3">
-                          <div className="bg-blue-100 p-3 rounded-full">
-                            <Clock className="h-6 w-6 text-blue-600" />
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="bg-blue-100 p-2 rounded-full">
+                            <Clock className="h-4 w-4 text-blue-600" />
                           </div>
                           <div>
-                            <p className="text-sm text-gray-500">{t('planner.assignmentTime')}</p>
-                            <p className="text-lg font-semibold text-gray-900">
+                            <p className="text-xs text-gray-500">{t('planner.assignmentTime')}</p>
+                            <p className="text-sm font-semibold text-gray-900">
                               {formatTime(assignment.fromTime)} - {formatTime(assignment.toTime)}
                             </p>
                           </div>
                         </div>
 
                         {assignment.location && (
-                          <div className="flex items-center gap-3">
-                            <div className="bg-green-100 p-3 rounded-full">
-                              <MapPin className="h-6 w-6 text-green-600" />
+                          <div className="flex items-center gap-2">
+                            <div className="bg-green-100 p-2 rounded-full">
+                              <MapPin className="h-4 w-4 text-green-600" />
                             </div>
                             <div>
-                              <p className="text-sm text-gray-500">{t('planner.location')}</p>
-                              <p className="text-lg font-semibold text-gray-900">
+                              <p className="text-xs text-gray-500">{t('planner.location')}</p>
+                              <p className="text-sm font-semibold text-gray-900 truncate">
                                 {assignment.location}
                               </p>
                             </div>
@@ -189,13 +189,13 @@ const ScreenDisplayPage: React.FC = () => {
                         )}
 
                         {assignment.employees && assignment.employees.length > 0 && (
-                          <div className="flex items-center gap-3">
-                            <div className="bg-purple-100 p-3 rounded-full">
-                              <Users className="h-6 w-6 text-purple-600" />
+                          <div className="flex items-center gap-2">
+                            <div className="bg-purple-100 p-2 rounded-full">
+                              <Users className="h-4 w-4 text-purple-600" />
                             </div>
                             <div>
-                              <p className="text-sm text-gray-500">{t('planner.employees')}</p>
-                              <p className="text-lg font-semibold text-gray-900">
+                              <p className="text-xs text-gray-500">{t('planner.employees')}</p>
+                              <p className="text-sm font-semibold text-gray-900 truncate">
                                 {assignment.employees.join(', ')}
                               </p>
                             </div>
@@ -203,13 +203,13 @@ const ScreenDisplayPage: React.FC = () => {
                         )}
 
                         {assignment.car && (
-                          <div className="flex items-center gap-3">
-                            <div className="bg-orange-100 p-3 rounded-full">
-                              <Car className="h-6 w-6 text-orange-600" />
+                          <div className="flex items-center gap-2">
+                            <div className="bg-orange-100 p-2 rounded-full">
+                              <Car className="h-4 w-4 text-orange-600" />
                             </div>
                             <div>
-                              <p className="text-sm text-gray-500">{t('planner.car')}</p>
-                              <p className="text-lg font-semibold text-gray-900">
+                              <p className="text-xs text-gray-500">{t('planner.car')}</p>
+                              <p className="text-sm font-semibold text-gray-900 truncate">
                                 {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
                               </p>
                             </div>
@@ -218,11 +218,11 @@ const ScreenDisplayPage: React.FC = () => {
                       </div>
 
                       {assignment.description && (
-                        <div className="bg-gray-50 p-6 rounded-xl">
-                          <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                        <div className="bg-gray-50 p-3 rounded-lg">
+                          <h4 className="text-sm font-semibold text-gray-900 mb-1">
                             {t('planner.description')}:
                           </h4>
-                          <p className="text-lg text-gray-700 leading-relaxed">
+                          <p className="text-sm text-gray-700 leading-relaxed">
                             {assignment.description}
                           </p>
                         </div>

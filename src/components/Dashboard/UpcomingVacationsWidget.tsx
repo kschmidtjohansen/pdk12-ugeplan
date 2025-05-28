@@ -50,7 +50,7 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
       </CardHeader>
       <CardContent>
         {relevantVacations.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-2">
+          <p className="text-sm text-muted-foreground text-left py-2">
             {t('dashboard.noUpcomingVacations')}
           </p>
         ) : (
@@ -63,9 +63,9 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
                     <div className="h-9 w-9 rounded-full bg-polygon-light flex items-center justify-center mr-3">
                       <User className="h-4 w-4 text-polygon-blue" />
                     </div>
-                    <div>
-                      <p className="text-sm font-medium">{vacation.employeeName}</p>
-                      <p className="text-xs text-muted-foreground">
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-left">{vacation.employeeName}</p>
+                      <p className="text-xs text-muted-foreground text-left">
                         {formatDateRangeWithWeeks(
                           new Date(vacation.startDate),
                           new Date(vacation.endDate),

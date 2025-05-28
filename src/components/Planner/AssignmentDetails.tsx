@@ -39,23 +39,23 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
         </div>
       )}
       
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 text-left">
         <Clock className="w-4 h-4 flex-shrink-0 text-gray-500" />
-        <span>{timeRange}</span>
+        <span className="text-left">{timeRange}</span>
       </div>
       
       {assignment.car && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 text-left">
           <Car className="w-4 h-4 flex-shrink-0 text-gray-500" />
-          <span className="truncate">
+          <span className="truncate text-left">
             {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
           </span>
         </div>
       )}
       
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-2 text-left">
         <Users className="w-4 h-4 flex-shrink-0 text-gray-500 mt-0.5" />
-        <span>
+        <span className="text-left">
           {displayEmployees()}
         </span>
       </div>
