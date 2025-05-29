@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
@@ -37,7 +38,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   // Show all employees for all user types
   const filteredEmployees = employees;
 
-  // Helper function to check if an employee is on vacation
+  // Helper function to check if an employee is on vacation - FIXED to include end date
   const isEmployeeOnVacation = (employeeId: string, selectedDate: Date) => {
     return vacations.some(vacation => {
       if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
@@ -51,7 +52,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(0, 0, 0, 0);
       
-      // Fixed: Include the end date in vacation period
+      // FIXED: Include the end date in vacation period (was < endDate, now <= endDate)
       return selectedDate >= startDate && selectedDate <= endDate;
     });
   };

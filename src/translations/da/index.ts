@@ -10,6 +10,8 @@ import notifications from './notifications';
 import login from './login';
 import admin from './admin';
 import { profile } from './profile';
+import accessDenied from './accessDenied';
+import deleteConfirm from './deleteConfirm';
 
 export const da = {
   common,
@@ -22,5 +24,7 @@ export const da = {
   notifications,
   login,
   admin,
-  profile
+  profile,
+  accessDenied,
+  deleteConfirm
 };
