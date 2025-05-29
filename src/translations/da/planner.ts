@@ -21,6 +21,7 @@ const planner = {
   saveChanges: "Gem Ændringer",
   assignmentCreated: "Opgave oprettet",
   assignmentUpdated: "Opgave opdateret",
+  assignmentUpdatedMsg: "Opgaven er blevet opdateret",
   assignmentDeleted: "Opgave slettet",
   deleteAssignment: "Slet Opgave",
   deleteConfirmation: "Er du sikker på, at du vil slette denne opgave?",

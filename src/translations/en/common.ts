@@ -19,6 +19,7 @@ export const common = {
   refresh: 'Refresh',
   loading: 'Loading...',
   logout: 'Logout',
+  login: 'Login',
   
   // Status messages
   success: 'Success',

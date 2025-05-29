@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
@@ -52,7 +51,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(0, 0, 0, 0);
       
-      return selectedDate >= startDate && selectedDate < endDate;
+      // Fixed: Include the end date in vacation period
+      return selectedDate >= startDate && selectedDate <= endDate;
     });
   };
 
