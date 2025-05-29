@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useVacations } from '@/hooks/useVacations';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -243,29 +242,21 @@ const DashboardMetrics: React.FC = () => {
           <EmployeeAvailabilityDialog 
             open={availableEmployeesDialogOpen}
             onOpenChange={setAvailableEmployeesDialogOpen}
-            employees={availableEmployees}
-            title={t('dashboard.availableEmployees')}
-            description={t('dashboard.availableEmployeesDesc')}
-            isAvailable={true}
-            viewDate={viewDate}
-            onViewDateChange={setViewDate}
+            employees={filteredEmployees}
             assignments={filteredAssignments}
-            allEmployees={filteredEmployees}
             vacations={vacations}
+            selectedDate={format(viewDate, 'yyyy-MM-dd')}
+            title={t('dashboard.availableEmployees')}
           />
 
           <EmployeeAvailabilityDialog 
             open={unavailableEmployeesDialogOpen}
             onOpenChange={setUnavailableEmployeesDialogOpen}
-            employees={onLeaveEmployees}
-            title={t('dashboard.onLeaveEmployees')}
-            description={t('dashboard.unavailableEmployeesDesc')}
-            isAvailable={false}
-            viewDate={unavailableViewDate}
-            onViewDateChange={setUnavailableViewDate}
+            employees={filteredEmployees}
             assignments={filteredAssignments}
-            allEmployees={filteredEmployees}
             vacations={vacations}
+            selectedDate={format(unavailableViewDate, 'yyyy-MM-dd')}
+            title={t('dashboard.onLeaveEmployees')}
           />
         </>
       )}
