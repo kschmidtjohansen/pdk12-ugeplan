@@ -52,7 +52,9 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       return isOnDate && isAssigned;
     });
     
+    // Check for 16:00 end time - this is the key fix
     const hasEndTimeAtSixteen = carAssignments.some(assignment => assignment.toTime === "16:00");
+    console.log(`[CarSelector] Car ${carId} has 16:00 end time:`, hasEndTimeAtSixteen);
     
     return { 
       isAssigned: carAssignments.length > 0, 
@@ -85,15 +87,19 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
             const isUnavailable = !car.is_available;
             const carUsage = isCarInUse(car.id);
             
+            // Enhanced red styling for 16:00 end times
+            const hasRedStyling = carUsage.hasEndTimeAtSixteen;
+            console.log(`[CarSelector] Car ${car.name} red styling:`, hasRedStyling);
+            
             return (
               <SelectItem 
                 key={car.id} 
                 value={car.id}
                 disabled={isUnavailable}
-                className={carUsage.hasEndTimeAtSixteen ? 'text-red-600 font-medium' : ''}
+                className={hasRedStyling ? 'bg-red-50 border-l-4 border-red-600' : ''}
               >
                 <div className="flex items-center justify-between w-full">
-                  <span className={carUsage.hasEndTimeAtSixteen ? 'text-red-600 font-medium' : ''}>
+                  <span className={hasRedStyling ? 'text-red-600 font-bold' : ''}>
                     {car.name}
                   </span>
                   <div className="flex gap-1 ml-2">
@@ -104,8 +110,8 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                     )}
                     {carUsage.isAssigned && !isUnavailable && (
                       <Badge 
-                        className={`text-xs ${
-                          carUsage.hasEndTimeAtSixteen 
+                        className={`text-xs font-medium ${
+                          hasRedStyling 
                             ? 'bg-red-600 text-white border-red-700' 
                             : 'bg-yellow-100 text-yellow-800 border-yellow-200'
                         }`}

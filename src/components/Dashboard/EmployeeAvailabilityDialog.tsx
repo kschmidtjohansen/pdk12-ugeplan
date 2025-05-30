@@ -55,12 +55,14 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     const previousDay = subDays(currentDate, 1);
     const previousDateStr = format(previousDay, 'yyyy-MM-dd');
     setViewedDate(previousDateStr);
+    console.log('[EmployeeAvailabilityDialog] Previous day:', previousDateStr);
   };
 
   const handleNextDay = () => {
     const nextDay = addDays(currentDate, 1);
     const nextDateStr = format(nextDay, 'yyyy-MM-dd');
     setViewedDate(nextDateStr);
+    console.log('[EmployeeAvailabilityDialog] Next day:', nextDateStr);
   };
 
   // Format date for display
@@ -104,8 +106,8 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     const isOnVacation = isEmployeeOnVacation(employee.id, viewedDate);
     const isOnLeave = employee.onLeave;
     
-    if (isOnVacation) return { status: 'vacation', label: t('dashboard.onVacation'), color: 'bg-orange-100 text-orange-800' };
-    if (isOnLeave) return { status: 'leave', label: t('dashboard.onLeave'), color: 'bg-red-100 text-red-800' };
+    if (isOnVacation) return { status: 'vacation', label: t('dashboard.onVacation'), color: 'bg-orange-100 text-orange-800', hasEndTimeAtSixteen: false };
+    if (isOnLeave) return { status: 'leave', label: t('dashboard.onLeave'), color: 'bg-red-100 text-red-800', hasEndTimeAtSixteen: false };
 
     const employeeAssignments = assignments.filter(assignment => {
       const assignmentDate = new Date(assignment.date);
@@ -119,14 +121,15 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     });
 
     if (employeeAssignments.length === 0) {
-      return { status: 'available', label: t('dashboard.available'), color: 'bg-green-100 text-green-800' };
+      return { status: 'available', label: t('dashboard.available'), color: 'bg-green-100 text-green-800', hasEndTimeAtSixteen: false };
     }
 
-    // Check if employee has assignment ending at 16:00 (should be red)
+    // Check if employee has assignment ending at 16:00 (should be red) - KEY FIX
     const hasEndTimeAtSixteen = employeeAssignments.some(assignment => assignment.toTime === "16:00");
+    console.log(`[EmployeeAvailabilityDialog] Employee ${employee.name} has 16:00 end time:`, hasEndTimeAtSixteen);
     
     if (hasEndTimeAtSixteen) {
-      return { status: 'fullyBooked', label: t('dashboard.fullyBooked'), color: 'bg-red-600 text-white border-red-700' };
+      return { status: 'fullyBooked', label: t('dashboard.fullyBooked'), color: 'bg-red-600 text-white border-red-700', hasEndTimeAtSixteen: true };
     }
 
     // Get the latest end time to show when they'll be available
@@ -155,7 +158,7 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     }
 
     if (totalCoverage) {
-      return { status: 'fullyBooked', label: t('dashboard.fullyBooked'), color: 'bg-red-100 text-red-800' };
+      return { status: 'fullyBooked', label: t('dashboard.fullyBooked'), color: 'bg-red-100 text-red-800', hasEndTimeAtSixteen: false };
     }
 
     // Show available after time instead of generic "partially available"
@@ -163,7 +166,8 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     return { 
       status: 'partiallyAvailable', 
       label: t('dashboard.availableAfter', { time: formattedTime }), 
-      color: 'bg-yellow-100 text-yellow-800' 
+      color: 'bg-yellow-100 text-yellow-800',
+      hasEndTimeAtSixteen: false
     };
   };
 
@@ -201,12 +205,17 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
           <div className="space-y-2">
             {employees.map((employee) => {
               const status = getEmployeeStatus(employee);
+              
               return (
                 <div
                   key={employee.id}
-                  className="flex items-center justify-between p-2 rounded-lg border"
+                  className={`flex items-center justify-between p-2 rounded-lg border ${
+                    status.hasEndTimeAtSixteen ? 'border-red-300 bg-red-50' : ''
+                  }`}
                 >
-                  <span className="font-medium">{employee.name}</span>
+                  <span className={`font-medium ${status.hasEndTimeAtSixteen ? 'text-red-600 font-bold' : ''}`}>
+                    {employee.name}
+                  </span>
                   <Badge className={status.color}>
                     {status.label}
                   </Badge>

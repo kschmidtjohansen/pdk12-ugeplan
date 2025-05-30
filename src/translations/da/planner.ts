@@ -1,4 +1,5 @@
 
+
 const planner = {
   title: "Sagsnummer",
   newAssignment: "Ny Opgave",
@@ -94,3 +95,4 @@ const planner = {
 };
 
 export default planner;
+

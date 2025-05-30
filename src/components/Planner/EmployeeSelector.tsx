@@ -148,7 +148,10 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       return { isAssigned: false, isFullyBooked: false, hasEndTimeAtSixteen: false };
     }
     
+    // Check for 16:00 end time - this is the key fix
     const hasEndTimeAtSixteen = employeeAssignments.some(assignment => assignment.toTime === "16:00");
+    console.log(`[EmployeeSelector] Employee ${employeeName} has 16:00 end time:`, hasEndTimeAtSixteen);
+    
     const dayOfWeek = currentDateObj.getDay();
     const fullyBooked = isEmployeeFullyBookedForDay(employeeAssignments, dayOfWeek);
     
@@ -209,12 +212,16 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             
             const isDisabled = isOnVacation || isUnavailable;
             
+            // Enhanced red styling for 16:00 end times
+            const hasRedStyling = availabilityInfo.hasEndTimeAtSixteen;
+            console.log(`[EmployeeSelector] Employee ${employee.name} red styling:`, hasRedStyling);
+            
             return (
               <DropdownMenuItem
                 key={employee.id}
                 className={`flex items-center space-x-2 p-2 ${
                   isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                } ${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-50' : ''}`}
+                } ${hasRedStyling ? 'bg-red-50 border-l-4 border-red-600' : ''}`}
                 onSelect={(e) => {
                   e.preventDefault();
                   if (!isDisabled) {
@@ -230,7 +237,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className={`font-medium ${availabilityInfo.hasEndTimeAtSixteen ? 'text-red-600' : ''}`}>
+                    <span className={`font-medium ${hasRedStyling ? 'text-red-600 font-bold' : ''}`}>
                       {employee.name}
                     </span>
                     <div className="flex gap-1 ml-2 flex-shrink-0">
@@ -245,14 +252,14 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                         </Badge>
                       )}
                       {availabilityInfo.isAssigned && !isDisabled && (
-                        availabilityInfo.isFullyBooked ? (
-                          <Badge className={`text-xs ${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-600 text-white border-red-700' : 'bg-red-100 text-red-800 border-red-200'}`}>
-                            {t('planner.onAnotherAssignment')}
+                        availabilityInfo.isFullyBooked || hasRedStyling ? (
+                          <Badge className={`text-xs font-medium ${hasRedStyling ? 'bg-red-600 text-white border-red-700' : 'bg-red-100 text-red-800 border-red-200'}`}>
+                            {t('planner.fullyBooked')}
                           </Badge>
                         ) : (
-                          <Badge className={`text-xs ${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-600 text-white border-red-700' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>
+                          <Badge className={`text-xs ${hasRedStyling ? 'bg-red-600 text-white border-red-700' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>
                             {availabilityInfo.availableAt 
-                              ? t('planner.onAnotherAssignmentUntil', { time: availabilityInfo.availableAt })
+                              ? t('planner.availableAfter', { time: availabilityInfo.availableAt })
                               : t('planner.onAnotherAssignment')}
                           </Badge>
                         )

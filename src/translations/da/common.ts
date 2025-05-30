@@ -1,4 +1,5 @@
 
+
 export const common = {
   // Basic actions
   save: 'Gem',
@@ -75,3 +76,4 @@ export const common = {
   yes: 'Ja',
   no: 'Nej'
 };
+
