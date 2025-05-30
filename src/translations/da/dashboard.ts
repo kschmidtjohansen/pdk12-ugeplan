@@ -16,7 +16,7 @@ const dashboard = {
   availableEmployees: "Tilgængelige medarbejdere",
   unavailableEmployees: "Ikke tilgængelige medarbejdere",
   onVacation: "På ferie",
-  onLeave: "På orlov",
+  onLeave: "Ikke på arbejde",
   fullyBooked: "Fuldt booket",
   partiallyAvailable: "Delvist tilgængelig",
   available: "Tilgængelig",
@@ -24,7 +24,7 @@ const dashboard = {
   totalEmployees: "{count} medarbejdere i alt",
   totalCars: "{count} biler i alt",
   todaysDate: "{date}",
-  onLeaveEmployees: "Medarbejdere på orlov",
+  onLeaveEmployees: "Medarbejdere fraværende",
   availableCars: "Tilgængelige biler",
   todayAssignments: "Dagens opgaver",
   scheduledToday: "Planlagt i dag",
@@ -33,7 +33,7 @@ const dashboard = {
   quickAccess: {
     title: "Hurtig adgang",
     planner: {
-      title: "Planner",
+      title: "Ugeplan",
       description: "Se opgaver for ugen og tilføj nye opgaver."
     },
     vacation: {

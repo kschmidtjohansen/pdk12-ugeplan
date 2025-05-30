@@ -20,6 +20,7 @@ export const common = {
   loading: 'Loading...',
   logout: 'Logout',
   login: 'Login',
+  password: 'Password',
   
   // Status messages
   success: 'Success',
@@ -60,12 +61,16 @@ export const common = {
   today: 'Today',
   yesterday: 'Yesterday',
   tomorrow: 'Tomorrow',
+  week: 'Week',
   
   // Generic
   all: 'All',
   none: 'None',
   other: 'Other',
   unknown: 'Unknown',
+  available: 'Available',
+  unavailable: 'Unavailable',
+  selectDate: 'Select date',
   
   yes: 'Yes',
   no: 'No'

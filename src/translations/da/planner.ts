@@ -1,5 +1,4 @@
 
-
 const planner = {
   title: "Sagsnummer",
   newAssignment: "Ny Opgave",
@@ -53,7 +52,7 @@ const planner = {
   selectEmployee: "Vælg servicemedarbejder",
   assignedTo: "Tildelt til",
   onVacation: "På ferie",
-  onLeave: "På orlov",
+  onLeave: "Fraværende",
   notAvailable: "Ikke tilgængelig",
   partiallyAvailable: "Delvist tilgængelig",
   onAnotherAssignment: "På anden opgave",

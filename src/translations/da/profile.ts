@@ -17,7 +17,7 @@ export const profile = {
   selectNewPicture: "Vælg et billede.",
   uploadPicture: "Upload",
   removePicture: "Fjern",
-  profilePictureUpdated: "Profilbillede Opdateret",
+  profilePictureUpdated: "Profilbillede opdateret",
   profilePictureSuccess: "Dit profilbillede er blevet opdateret",
   profilePictureRemoved: "Profilbillede Fjernet",
   profilePictureRemovedSuccess: "Dit profilbillede er blevet fjernet",
