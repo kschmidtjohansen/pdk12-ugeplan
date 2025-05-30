@@ -138,7 +138,33 @@ const DashboardMetrics: React.FC = () => {
       return format(new Date(), 'PPP');
     }
   };
-  
+
+  // Helper function to handle date changes for available employees dialog
+  const handleAvailableDateChange = (direction: 'prev' | 'next') => {
+    setViewDate(prevDate => {
+      const newDate = new Date(prevDate);
+      if (direction === 'prev') {
+        newDate.setDate(newDate.getDate() - 1);
+      } else {
+        newDate.setDate(newDate.getDate() + 1);
+      }
+      return newDate;
+    });
+  };
+
+  // Helper function to handle date changes for unavailable employees dialog
+  const handleUnavailableDateChange = (direction: 'prev' | 'next') => {
+    setUnavailableViewDate(prevDate => {
+      const newDate = new Date(prevDate);
+      if (direction === 'prev') {
+        newDate.setDate(newDate.getDate() - 1);
+      } else {
+        newDate.setDate(newDate.getDate() + 1);
+      }
+      return newDate;
+    });
+  };
+
   // Use the translations directly from the translation context
   return (
     <div className="space-y-6">

@@ -1,11 +1,20 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Assignment } from '@/types/assignment';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { ChevronDown } from 'lucide-react';
 
 interface EmployeeSelectorProps {
   employees: Employee[];
@@ -34,6 +43,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
   // Show all employees for all user types
   const filteredEmployees = employees;
@@ -164,6 +174,16 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 
   const dateForComparison = currentDate ? new Date(currentDate) : new Date();
   
+  const getDisplayText = () => {
+    if (selectedEmployees.length === 0) {
+      return t('employees.selectEmployees');
+    }
+    if (selectedEmployees.length === 1) {
+      return selectedEmployees[0];
+    }
+    return `${selectedEmployees.length} ${t('employees.selected')}`;
+  };
+
   useEffect(() => {
     console.log("EmployeeSelector - Current date:", currentDate);
     console.log("EmployeeSelector - Selected employees:", selectedEmployees);
@@ -172,46 +192,79 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   }, [currentDate, selectedEmployees, assignments, user?.role, filteredEmployees.length]);
 
   return (
-    <div className="flex flex-wrap gap-2 mt-2">
-      {filteredEmployees.map(employee => {
-        const isSelected = selectedEmployees.includes(employee.name);
-        const isOnVacation = isEmployeeOnVacation(employee.id, dateForComparison);
-        const isUnavailable = employee.onLeave;
-        const availabilityInfo = checkEmployeeAvailability(employee.name);
-        
-        const isDisabled = isOnVacation || isUnavailable;
-        
-        return (
-          <div
-            key={employee.id}
-            onClick={() => !isDisabled && onToggle(employee.name)}
-            className={`
-              p-2 rounded-md border cursor-pointer transition-colors
-              ${isSelected ? 'bg-polygon-purple text-white' : 'bg-white text-gray-700'}
-              ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}
-            `}
-          >
-            <div className="flex items-center gap-2">
-              <span>{employee.name}</span>
-              {isOnVacation && <Badge variant="outline">{t('planner.onVacation')}</Badge>}
-              {isUnavailable && <Badge variant="outline">{t('employees.onLeave')}</Badge>}
-              {availabilityInfo.isAssigned && !isDisabled && (
-                availabilityInfo.isFullyBooked ? (
-                  <Badge className={`${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-600 text-white border-red-700' : 'bg-red-100 text-red-800 border-red-200'}`}>
-                    {t('planner.onAnotherAssignment')}
-                  </Badge>
-                ) : (
-                  <Badge className={`${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-600 text-white border-red-700' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>
-                    {availabilityInfo.availableAt 
-                      ? t('planner.onAnotherAssignmentUntil', { time: availabilityInfo.availableAt })
-                      : t('planner.onAnotherAssignment')}
-                  </Badge>
-                )
-              )}
-            </div>
-          </div>
-        );
-      })}
+    <div className="space-y-2">
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="w-full justify-between">
+            <span className="truncate">{getDisplayText()}</span>
+            <ChevronDown className="h-4 w-4 opacity-50" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto">
+          {filteredEmployees.map(employee => {
+            const isSelected = selectedEmployees.includes(employee.name);
+            const isOnVacation = isEmployeeOnVacation(employee.id, dateForComparison);
+            const isUnavailable = employee.onLeave;
+            const availabilityInfo = checkEmployeeAvailability(employee.name);
+            
+            const isDisabled = isOnVacation || isUnavailable;
+            
+            return (
+              <DropdownMenuItem
+                key={employee.id}
+                className={`flex items-center space-x-2 p-2 ${
+                  isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                } ${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-50' : ''}`}
+                onSelect={(e) => {
+                  e.preventDefault();
+                  if (!isDisabled) {
+                    onToggle(employee.name);
+                  }
+                }}
+              >
+                <Checkbox
+                  checked={isSelected}
+                  onChange={() => !isDisabled && onToggle(employee.name)}
+                  disabled={isDisabled}
+                  className="mr-2"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className={`font-medium ${availabilityInfo.hasEndTimeAtSixteen ? 'text-red-600' : ''}`}>
+                      {employee.name}
+                    </span>
+                    <div className="flex gap-1 ml-2 flex-shrink-0">
+                      {isOnVacation && (
+                        <Badge variant="outline" className="text-xs">
+                          {t('planner.onVacation')}
+                        </Badge>
+                      )}
+                      {isUnavailable && (
+                        <Badge variant="outline" className="text-xs">
+                          {t('employees.onLeave')}
+                        </Badge>
+                      )}
+                      {availabilityInfo.isAssigned && !isDisabled && (
+                        availabilityInfo.isFullyBooked ? (
+                          <Badge className={`text-xs ${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-600 text-white border-red-700' : 'bg-red-100 text-red-800 border-red-200'}`}>
+                            {t('planner.onAnotherAssignment')}
+                          </Badge>
+                        ) : (
+                          <Badge className={`text-xs ${availabilityInfo.hasEndTimeAtSixteen ? 'bg-red-600 text-white border-red-700' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>
+                            {availabilityInfo.availableAt 
+                              ? t('planner.onAnotherAssignmentUntil', { time: availabilityInfo.availableAt })
+                              : t('planner.onAnotherAssignment')}
+                          </Badge>
+                        )
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

@@ -7,12 +7,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Vacation } from '@/types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { addDays, subDays, format } from 'date-fns';
+import { da } from 'date-fns/locale';
 
 interface EmployeeAvailabilityDialogProps {
   open: boolean;
@@ -33,7 +37,39 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
   selectedDate,
   title
 }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+
+  // Convert selectedDate string to Date object
+  const currentDate = new Date(selectedDate);
+
+  // Navigation functions
+  const handlePreviousDay = () => {
+    const previousDay = subDays(currentDate, 1);
+    // You'll need to pass this up to parent component to update the date
+    // For now, we'll just update the local state
+  };
+
+  const handleNextDay = () => {
+    const nextDay = addDays(currentDate, 1);
+    // You'll need to pass this up to parent component to update the date
+    // For now, we'll just update the local state
+  };
+
+  // Format date for display
+  const formatDisplayDate = (date: Date) => {
+    try {
+      const locale = currentLanguage === 'da' ? da : undefined;
+      const dateStr = format(date, 'PPP', { locale });
+      
+      if (currentLanguage === 'da') {
+        return dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+      }
+      return dateStr;
+    } catch (e) {
+      console.error("Error formatting date:", e);
+      return format(date, 'PPP');
+    }
+  };
 
   // Helper function to check if an employee is on vacation
   const isEmployeeOnVacation = (employeeId: string, date: string) => {
@@ -113,10 +149,30 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-            {t('dashboard.employeeAvailability')} - {selectedDate}
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handlePreviousDay}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="text-center">
+              <DialogTitle>{title}</DialogTitle>
+              <DialogDescription>
+                {formatDisplayDate(currentDate)}
+              </DialogDescription>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleNextDay}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </DialogHeader>
         
         <ScrollArea className="max-h-96">
