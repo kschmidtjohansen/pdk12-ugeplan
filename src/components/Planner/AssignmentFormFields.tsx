@@ -61,12 +61,12 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   const { t, currentLanguage } = useTranslation();
 
   const assignmentTypes = [
-    { value: 'ordinary_damage', label: 'Almindelig skade' },
-    { value: 'flood_damage', label: 'Vandskade' },
-    { value: 'roof_damage', label: 'Tagskade' },
-    { value: 'storm_damage', label: 'Stormskade' },
-    { value: 'fire_damage', label: 'Brandskade' },
-    { value: 'other', label: 'Andet' }
+    { value: 'ordinary_damage', label: t('planner.assignmentTypes.ordinary_damage') },
+    { value: 'flood_damage', label: t('planner.assignmentTypes.flood_damage') },
+    { value: 'roof_damage', label: t('planner.assignmentTypes.roof_damage') },
+    { value: 'storm_damage', label: t('planner.assignmentTypes.storm_damage') },
+    { value: 'fire_damage', label: t('planner.assignmentTypes.fire_damage') },
+    { value: 'other', label: t('planner.assignmentTypes.other') }
   ];
 
   const currentDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';

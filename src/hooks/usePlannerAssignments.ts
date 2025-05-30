@@ -25,8 +25,10 @@ export const usePlannerAssignments = () => {
   // Get filter functionality - using the planner-specific filter
   const { filterForPlanner } = useViewSpecificFilters();
   
-  // Filter assignments for planner view (servicemedarbejdere see all published assignments)
+  // Filter assignments for planner view - this should show ALL published assignments for servicemedarbejdere
+  console.log("[usePlannerAssignments] Raw assignments:", assignments.length);
   const filteredAssignments = filterForPlanner(assignments, true);
+  console.log("[usePlannerAssignments] Filtered assignments for planner:", filteredAssignments.length);
   
   // Get publishing functionality - adapt updateAssignment to match expected signature
   const assignmentUpdater = useCallback(async (assignment: Assignment) => {

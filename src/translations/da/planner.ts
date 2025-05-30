@@ -81,7 +81,16 @@ const planner = {
   showLess: "Vis færre",
   type: "Type",
   selectType: "Vælg type",
-  selectDateForCopy: "Vælg dato for kopieret opgave"
+  selectDateForCopy: "Vælg dato for kopieret opgave",
+  // Assignment types
+  assignmentTypes: {
+    ordinary_damage: "Almindelig skade",
+    flood_damage: "Vandskade", 
+    roof_damage: "Tagskade",
+    storm_damage: "Stormskade",
+    fire_damage: "Brandskade",
+    other: "Andet"
+  }
 };
 
 export default planner;

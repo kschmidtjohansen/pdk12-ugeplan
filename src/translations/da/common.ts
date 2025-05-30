@@ -61,6 +61,7 @@ export const common = {
   today: 'I dag',
   yesterday: 'I går',
   tomorrow: 'I morgen',
+  week: 'Uge',
   
   // Generic
   all: 'Alle',
