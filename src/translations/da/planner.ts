@@ -58,7 +58,7 @@ const planner = {
   onAnotherAssignment: "På anden opgave",
   onAnotherAssignmentUntil: "På anden opgave til {time}",
   fullyBooked: "Fuldt booket",
-  availableAfter: "Tilgængelig efter {{time}}",
+  availableAfter: "Tilgængelig efter kl. {time}",
   copy: "Kopier",
   copyAssignment: "Kopier Opgave",
   assignmentCopied: "Opgave kopieret",
@@ -78,7 +78,10 @@ const planner = {
   allEmployeesAssigned: "Alle medarbejdere tildelt",
   allCarsAssigned: "Alle biler tildelt",
   showMore: "Vis flere",
-  showLess: "Vis færre"
+  showLess: "Vis færre",
+  type: "Type",
+  selectType: "Vælg type",
+  selectDateForCopy: "Vælg dato for kopieret opgave"
 };
 
 export default planner;

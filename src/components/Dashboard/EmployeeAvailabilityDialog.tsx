@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -38,21 +38,29 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
   title
 }) => {
   const { t, currentLanguage } = useTranslation();
+  
+  // Local state for the viewed date
+  const [viewedDate, setViewedDate] = useState<string>(selectedDate);
 
-  // Convert selectedDate string to Date object
-  const currentDate = new Date(selectedDate);
+  // Update local state when selectedDate prop changes
+  React.useEffect(() => {
+    setViewedDate(selectedDate);
+  }, [selectedDate]);
+
+  // Convert viewedDate string to Date object
+  const currentDate = new Date(viewedDate);
 
   // Navigation functions
   const handlePreviousDay = () => {
     const previousDay = subDays(currentDate, 1);
-    // You'll need to pass this up to parent component to update the date
-    // For now, we'll just update the local state
+    const previousDateStr = format(previousDay, 'yyyy-MM-dd');
+    setViewedDate(previousDateStr);
   };
 
   const handleNextDay = () => {
     const nextDay = addDays(currentDate, 1);
-    // You'll need to pass this up to parent component to update the date
-    // For now, we'll just update the local state
+    const nextDateStr = format(nextDay, 'yyyy-MM-dd');
+    setViewedDate(nextDateStr);
   };
 
   // Format date for display
@@ -93,7 +101,7 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
 
   // Helper function to get employee assignment status
   const getEmployeeStatus = (employee: Employee) => {
-    const isOnVacation = isEmployeeOnVacation(employee.id, selectedDate);
+    const isOnVacation = isEmployeeOnVacation(employee.id, viewedDate);
     const isOnLeave = employee.onLeave;
     
     if (isOnVacation) return { status: 'vacation', label: t('dashboard.onVacation'), color: 'bg-orange-100 text-orange-800' };
@@ -101,7 +109,7 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
 
     const employeeAssignments = assignments.filter(assignment => {
       const assignmentDate = new Date(assignment.date);
-      const selectedDateObj = new Date(selectedDate);
+      const selectedDateObj = new Date(viewedDate);
       assignmentDate.setHours(0, 0, 0, 0);
       selectedDateObj.setHours(0, 0, 0, 0);
       
@@ -111,7 +119,7 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     });
 
     if (employeeAssignments.length === 0) {
-      return { status: 'available', label: t('common.available'), color: 'bg-green-100 text-green-800' };
+      return { status: 'available', label: t('dashboard.available'), color: 'bg-green-100 text-green-800' };
     }
 
     // Check if employee has assignment ending at 16:00 (should be red)
@@ -121,8 +129,16 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
       return { status: 'fullyBooked', label: t('dashboard.fullyBooked'), color: 'bg-red-600 text-white border-red-700' };
     }
 
+    // Get the latest end time to show when they'll be available
+    let latestEndTime = "00:00";
+    employeeAssignments.forEach(assignment => {
+      if (assignment.toTime > latestEndTime) {
+        latestEndTime = assignment.toTime;
+      }
+    });
+
     // Check if fully booked
-    const dayOfWeek = new Date(selectedDate).getDay();
+    const dayOfWeek = new Date(viewedDate).getDay();
     const workdayEnd = dayOfWeek === 5 ? "15:30" : "16:00";
     
     let totalCoverage = false;
@@ -142,7 +158,13 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
       return { status: 'fullyBooked', label: t('dashboard.fullyBooked'), color: 'bg-red-100 text-red-800' };
     }
 
-    return { status: 'partiallyAvailable', label: t('dashboard.partiallyAvailable'), color: 'bg-yellow-100 text-yellow-800' };
+    // Show available after time instead of generic "partially available"
+    const formattedTime = latestEndTime.substring(0, 5); // Remove seconds if present
+    return { 
+      status: 'partiallyAvailable', 
+      label: t('dashboard.availableAfter', { time: formattedTime }), 
+      color: 'bg-yellow-100 text-yellow-800' 
+    };
   };
 
   return (

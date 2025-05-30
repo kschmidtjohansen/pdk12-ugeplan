@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
+import { da } from 'date-fns/locale';
 import { Textarea } from '@/components/ui/textarea';
 import { Car } from '@/types/car';
 import { Assignment } from '@/types/assignment';
@@ -57,7 +58,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   assignmentId,
   assignments = []
 }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
 
   const assignmentTypes = [
     { value: 'ordinary_damage', label: 'Almindelig skade' },
@@ -69,6 +70,17 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   ];
 
   const currentDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
+
+  // Format date with Danish locale
+  const formatDateDisplay = (date: Date) => {
+    try {
+      const locale = currentLanguage === 'da' ? da : undefined;
+      return format(date, "PPP", { locale });
+    } catch (e) {
+      console.error("Error formatting date:", e);
+      return format(date, "PPP");
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -106,7 +118,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
               className="w-full justify-start text-left font-normal"
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {selectedDate ? format(selectedDate, "PPP") : t('common.selectDate')}
+              {selectedDate ? formatDateDisplay(selectedDate) : t('common.selectDate')}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -115,6 +127,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
               selected={selectedDate}
               onSelect={setSelectedDate}
               initialFocus
+              locale={currentLanguage === 'da' ? da : undefined}
             />
           </PopoverContent>
         </Popover>

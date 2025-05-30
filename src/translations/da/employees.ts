@@ -35,7 +35,9 @@ const employees = {
   employeeMarkedAvailable: "Medarbejder markeret som tilgængelig",
   noNotes: "Ingen noter",
   selectEmployees: "Vælg medarbejdere",
-  selected: "valgt"
+  selected: "valgt",
+  contactinfo: "Kontaktoplysninger",
+  jobtitle: "Stillingsbetegnelse"
 };
 
 export default employees;

@@ -20,6 +20,7 @@ export const common = {
   loading: 'Indlæser...',
   logout: 'Log ud',
   login: 'Log ind',
+  password: 'Adgangskode',
   
   // Status messages
   success: 'Succes',
@@ -66,6 +67,9 @@ export const common = {
   none: 'Ingen',
   other: 'Andet',
   unknown: 'Ukendt',
+  available: 'Tilgængelig',
+  unavailable: 'Ikke tilgængelig',
+  selectDate: 'Vælg dato',
   
   yes: 'Ja',
   no: 'Nej'

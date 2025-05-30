@@ -19,6 +19,8 @@ const dashboard = {
   onLeave: "På orlov",
   fullyBooked: "Fuldt booket",
   partiallyAvailable: "Delvist tilgængelig",
+  available: "Tilgængelig",
+  availableAfter: "Tilgængelig efter kl. {time}",
   totalEmployees: "{count} medarbejdere i alt",
   totalCars: "{count} biler i alt",
   todaysDate: "{date}",
@@ -27,7 +29,26 @@ const dashboard = {
   todayAssignments: "Dagens opgaver",
   scheduledToday: "Planlagt i dag",
   myAssignments: "Mine opgaver (uge {week})",
-  noAssignments: "Ingen opgaver denne uge"
+  noAssignments: "Ingen opgaver denne uge",
+  quickAccess: {
+    title: "Hurtig adgang",
+    planner: {
+      title: "Planner",
+      description: "Se opgaver for ugen og tilføj nye opgaver."
+    },
+    vacation: {
+      title: "Ferie",
+      description: "Administrer og se ferier."
+    },
+    employees: {
+      title: "Medarbejdere",
+      description: "Administrer og se medarbejdere."
+    },
+    cars: {
+      title: "Biler",
+      description: "Se biler"
+    }
+  }
 };
 
 export default dashboard;
