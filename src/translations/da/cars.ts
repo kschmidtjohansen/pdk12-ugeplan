@@ -18,7 +18,7 @@ const cars = {
   vehicleAddedMsg: '{name} er blevet tilføjet til afdelingen.',
   vehicleDeletedMsg: '{name} er blevet slettet fra afdelingen.',
   hasTrailerHitch: 'Har anhængertræk',
-  isAvailable: 'Er Tilgængelig',
+  isAvailable: 'Tilgængelighed',
   markAvailable: 'Marker som Tilgængelig',
   markUnavailable: 'Marker som Utilgængelig',
   vehicleAvailable: 'Bil Tilgængelig',
