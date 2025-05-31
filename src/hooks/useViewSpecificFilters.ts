@@ -8,6 +8,7 @@ export const useViewSpecificFilters = () => {
   // Filter assignments for the planner view
   const filterForPlanner = (assignments: Assignment[], includeUnpublished = false) => {
     console.log('[useViewSpecificFilters] filterForPlanner - User role:', user?.role);
+    console.log('[useViewSpecificFilters] filterForPlanner - User name:', user?.name);
     console.log('[useViewSpecificFilters] filterForPlanner - Include unpublished:', includeUnpublished);
     console.log('[useViewSpecificFilters] filterForPlanner - Total assignments:', assignments.length);
     
@@ -17,14 +18,14 @@ export const useViewSpecificFilters = () => {
     }
 
     const filtered = assignments.filter(assignment => {
-      // FIXED: For servicemedarbejdere, show assignments they are assigned to (published OR unpublished)
+      // For servicemedarbejdere, show ALL published assignments OR assignments they are assigned to (even if unpublished)
       if (user.role === 'servicemedarbejder') {
         const isAssignedToUser = assignment.employees && assignment.employees.includes(user.name);
-        console.log(`[useViewSpecificFilters] Assignment ${assignment.id} - User ${user.name} assigned: ${isAssignedToUser}`);
+        console.log(`[useViewSpecificFilters] Assignment ${assignment.id} - Published: ${assignment.published}, User ${user.name} assigned: ${isAssignedToUser}`);
         
-        // Show published assignments OR assignments they are assigned to
+        // FIXED: Show ALL published assignments (not just those assigned to them) + their own unpublished assignments
         const shouldShow = assignment.published || isAssignedToUser;
-        console.log(`[useViewSpecificFilters] Assignment ${assignment.id} - Should show: ${shouldShow} (published: ${assignment.published}, assigned: ${isAssignedToUser})`);
+        console.log(`[useViewSpecificFilters] Assignment ${assignment.id} - Should show: ${shouldShow}`);
         
         return shouldShow;
       }
@@ -39,6 +40,12 @@ export const useViewSpecificFilters = () => {
     });
     
     console.log('[useViewSpecificFilters] filterForPlanner - Filtered assignments:', filtered.length);
+    console.log('[useViewSpecificFilters] filterForPlanner - Filtered assignment details:', filtered.map(a => ({
+      id: a.id,
+      title: a.title,
+      published: a.published,
+      employees: a.employees
+    })));
     return filtered;
   };
 

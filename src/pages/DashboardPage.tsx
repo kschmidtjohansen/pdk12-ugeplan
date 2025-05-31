@@ -19,28 +19,14 @@ import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
 import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
-import AssignmentDetails from '@/components/Planner/AssignmentDetails';
 
 const DashboardPage: React.FC = () => {
-  const {
-    user
-  } = useAuth();
-  const {
-    t,
-    currentLanguage
-  } = useTranslation();
-  const {
-    assignments
-  } = usePlannerAssignments();
-  const {
-    employees
-  } = useEmployees();
-  const {
-    cars
-  } = useCars();
-  const {
-    vacations
-  } = useVacations();
+  const { user } = useAuth();
+  const { t, currentLanguage } = useTranslation();
+  const { assignments } = usePlannerAssignments();
+  const { employees } = useEmployees();
+  const { cars } = useCars();
+  const { vacations } = useVacations();
   const { filterForDashboard } = useAssignmentFilters();
 
   // State for week navigation
@@ -212,8 +198,42 @@ const DashboardPage: React.FC = () => {
                       {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
                     </span>
                   </div>
+                  
+                  {/* FIXED: Correct order for servicemedarbejdere - description, then case number, car, time, employees */}
+                  {assignment.description && (
+                    <p className="text-sm text-gray-600 mb-2 text-left">{assignment.description}</p>
+                  )}
                   <p className="text-sm text-gray-600 mb-2 font-medium text-left">{assignment.title}</p>
-                  <AssignmentDetails assignment={assignment} />
+                  
+                  <div className="space-y-2">
+                    {/* Car */}
+                    {assignment.car && (
+                      <div className="flex items-center gap-2">
+                        <Car className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm text-gray-700">
+                          {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Time */}
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm text-gray-700">
+                        {assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}
+                      </span>
+                    </div>
+                    
+                    {/* Employees */}
+                    {assignment.employees && assignment.employees.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm text-gray-700">
+                          {assignment.employees.join(', ')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

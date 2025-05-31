@@ -36,8 +36,8 @@ const DashboardMetrics: React.FC = () => {
   // Show metrics only for admin and skadeleder roles
   const shouldShowMetrics = isAdmin || isSkadeleder;
 
-  // Filter assignments using dashboard-specific filter
-  const filteredAssignments = filterForDashboard(assignments, false);
+  // Filter assignments using dashboard-specific filter - FIXED: Only pass assignments
+  const filteredAssignments = filterForDashboard(assignments);
 
   // Filter out admin and skadeleder users from employee counts
   const filteredEmployees = employees.filter(e => 
