@@ -61,13 +61,23 @@ const TopNavbar: React.FC = () => {
     setHasVacationNotifications(hasVacation);
   }, [notifications]);
 
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: t('common.success'),
-      description: t('login.logoutSuccess')
-    });
-    navigate('/login');
+  // FIXED: Enhanced logout function with proper redirect handling
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: t('common.success'),
+        description: t('login.logoutSuccess')
+      });
+      // Use replace: true to prevent going back to protected pages
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: t('common.error'),
+        description: 'Logout failed'
+      });
+    }
   };
 
   const handleNotificationClick = (notification: NotificationType) => {

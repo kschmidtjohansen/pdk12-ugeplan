@@ -101,7 +101,25 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     });
   };
 
-  // Helper function to get employee assignment status
+  // ENHANCED: Improved time normalization function
+  const normalizeTime = (time: string): string => {
+    if (!time) return '';
+    
+    // Remove seconds if present (HH:MM:SS -> HH:MM)
+    if (time.length === 8 && time.includes(':')) {
+      time = time.substring(0, 5);
+    }
+    
+    // Ensure we have HH:MM format
+    if (time.length === 5 && time.includes(':')) {
+      return time;
+    }
+    
+    // Handle edge cases
+    return time.trim();
+  };
+
+  // ENHANCED: Much improved function to get employee assignment status with proper 16:00 detection
   const getEmployeeStatus = (employee: Employee) => {
     const isOnVacation = isEmployeeOnVacation(employee.id, viewedDate);
     const isOnLeave = employee.onLeave;
@@ -124,19 +142,38 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
       return { status: 'available', label: t('dashboard.available'), color: 'bg-green-100 text-green-800', hasEndTimeAtSixteen: false };
     }
 
-    // Check if employee has assignment ending at 16:00 (should be red) - KEY FIX
-    const hasEndTimeAtSixteen = employeeAssignments.some(assignment => assignment.toTime === "16:00");
-    console.log(`[EmployeeAvailabilityDialog] Employee ${employee.name} has 16:00 end time:`, hasEndTimeAtSixteen);
+    // ENHANCED: Much better 16:00 detection - this should take priority over all other status checks
+    const hasEndTimeAtSixteen = employeeAssignments.some(assignment => {
+      const originalTime = assignment.toTime;
+      const normalizedEndTime = normalizeTime(originalTime);
+      const exactMatch = normalizedEndTime === "16:00";
+      
+      console.log(`[EmployeeAvailabilityDialog] Assignment ${assignment.id} for ${employee.name}:`);
+      console.log(`  - Original time: "${originalTime}"`);
+      console.log(`  - Normalized time: "${normalizedEndTime}"`);
+      console.log(`  - Exact 16:00 match: ${exactMatch}`);
+      
+      return exactMatch;
+    });
     
+    console.log(`[EmployeeAvailabilityDialog] Employee ${employee.name} has 16:00 end time: ${hasEndTimeAtSixteen}`);
+    
+    // FIXED: 16:00 end time should take priority and show red styling
     if (hasEndTimeAtSixteen) {
-      return { status: 'fullyBooked', label: t('dashboard.fullyBooked'), color: 'bg-red-600 text-white border-red-700', hasEndTimeAtSixteen: true };
+      return { 
+        status: 'fullyBooked', 
+        label: t('dashboard.fullyBooked'), 
+        color: '!bg-red-600 !text-white !border-red-700', 
+        hasEndTimeAtSixteen: true 
+      };
     }
 
     // Get the latest end time to show when they'll be available
     let latestEndTime = "00:00";
     employeeAssignments.forEach(assignment => {
-      if (assignment.toTime > latestEndTime) {
-        latestEndTime = assignment.toTime;
+      const normalizedTime = normalizeTime(assignment.toTime);
+      if (normalizedTime > latestEndTime) {
+        latestEndTime = normalizedTime;
       }
     });
 
@@ -149,8 +186,8 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     
     // Simple check for full day coverage
     if (sortedAssignments.length > 0) {
-      const firstStart = sortedAssignments[0].fromTime;
-      const lastEnd = sortedAssignments[sortedAssignments.length - 1].toTime;
+      const firstStart = normalizeTime(sortedAssignments[0].fromTime);
+      const lastEnd = normalizeTime(sortedAssignments[sortedAssignments.length - 1].toTime);
       
       if (firstStart <= "08:00" && lastEnd >= workdayEnd) {
         totalCoverage = true;
@@ -213,7 +250,7 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
                     status.hasEndTimeAtSixteen ? 'border-red-300 bg-red-50' : ''
                   }`}
                 >
-                  <span className={`font-medium ${status.hasEndTimeAtSixteen ? 'text-red-600 font-bold' : ''}`}>
+                  <span className={`font-medium ${status.hasEndTimeAtSixteen ? '!text-red-600 !font-bold' : ''}`}>
                     {employee.name}
                   </span>
                   <Badge className={status.color}>

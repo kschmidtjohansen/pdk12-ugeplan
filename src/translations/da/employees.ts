@@ -41,7 +41,9 @@ const employees = {
   markAvailableDescription: 'Vil du beholde eller fjerne noten fra {name}?',
   keepNote: 'Behold note',
   removeNote: 'Fjern note',
-  updateError: 'En fejl er opstået ved ændring af medarbejderen\'s status.'
+  updateError: 'En fejl er opstået ved ændring af medarbejderen\'s status.',
+  selectEmployees: 'Vælg servicemedarbejdere',
+  selected: 'valgt'
 };
 
 export default employees;

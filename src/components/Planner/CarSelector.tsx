@@ -31,7 +31,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  // Helper function to normalize time format
+  // ENHANCED: Improved time normalization function
   const normalizeTime = (time: string): string => {
     if (!time) return '';
     
@@ -45,10 +45,11 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       return time;
     }
     
-    return time;
+    // Handle edge cases
+    return time.trim();
   };
 
-  // Helper function to check if a car is in use on the current date
+  // ENHANCED: Much improved function to check if a car is in use on the current date
   const isCarInUse = (carId: string): { isAssigned: boolean; hasEndTimeAtSixteen: boolean } => {
     const currentDateObj = new Date(currentDate);
     currentDateObj.setHours(0, 0, 0, 0);
@@ -71,14 +72,21 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
     
     console.log(`[CarSelector] Car ${carId} assignments on ${currentDate}:`, carAssignments);
     
-    // FIXED: Better 16:00 end time detection with normalized time comparison
+    // ENHANCED: Much better 16:00 end time detection with robust normalization
     const hasEndTimeAtSixteen = carAssignments.some(assignment => {
-      const normalizedEndTime = normalizeTime(assignment.toTime);
-      console.log(`[CarSelector] Checking assignment ${assignment.id} end time: "${assignment.toTime}" normalized to: "${normalizedEndTime}"`);
-      return normalizedEndTime === "16:00";
+      const originalTime = assignment.toTime;
+      const normalizedEndTime = normalizeTime(originalTime);
+      const exactMatch = normalizedEndTime === "16:00";
+      
+      console.log(`[CarSelector] Assignment ${assignment.id} for car ${carId}:`);
+      console.log(`  - Original time: "${originalTime}"`);
+      console.log(`  - Normalized time: "${normalizedEndTime}"`);
+      console.log(`  - Exact 16:00 match: ${exactMatch}`);
+      
+      return exactMatch;
     });
     
-    console.log(`[CarSelector] Car ${carId} has 16:00 end time:`, hasEndTimeAtSixteen);
+    console.log(`[CarSelector] Car ${carId} has 16:00 end time: ${hasEndTimeAtSixteen}`);
     
     return { 
       isAssigned: carAssignments.length > 0, 
@@ -111,19 +119,19 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
             const isUnavailable = !car.is_available;
             const carUsage = isCarInUse(car.id);
             
-            // FIXED: Enhanced red styling for 16:00 end times with better class application
+            // ENHANCED: Stronger red styling for 16:00 end times with higher CSS specificity
             const hasRedStyling = carUsage.hasEndTimeAtSixteen;
-            console.log(`[CarSelector] Car ${car.name} red styling applied:`, hasRedStyling);
+            console.log(`[CarSelector] Car ${car.name} red styling applied: ${hasRedStyling}`);
             
             return (
               <SelectItem 
                 key={car.id} 
                 value={car.id}
                 disabled={isUnavailable}
-                className={hasRedStyling ? 'bg-red-50 border-l-4 border-red-600 hover:bg-red-100' : ''}
+                className={hasRedStyling ? '!bg-red-50 !border-l-4 !border-red-600 hover:!bg-red-100' : ''}
               >
                 <div className="flex items-center justify-between w-full">
-                  <span className={hasRedStyling ? 'text-red-700 font-bold' : ''}>
+                  <span className={hasRedStyling ? '!text-red-700 !font-bold' : ''}>
                     {car.name}
                   </span>
                   <div className="flex gap-1 ml-2">
@@ -136,7 +144,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                       <Badge 
                         className={`text-xs font-medium ${
                           hasRedStyling 
-                            ? 'bg-red-600 text-white border-red-700 hover:bg-red-700' 
+                            ? '!bg-red-600 !text-white !border-red-700 hover:!bg-red-700' 
                             : 'bg-yellow-100 text-yellow-800 border-yellow-200'
                         }`}
                       >
