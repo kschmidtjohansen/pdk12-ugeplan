@@ -25,11 +25,11 @@ const employees = {
   deleteWarning: 'Du er i gang med at slette {name}. Denne handling kan ikke fortrydes.',
   onLeave: 'Fraværende',
   markOnLeave: 'Marker som Fraværende',
-  markAvailable: 'Marker som Tilgængelig',
+  markAvailable: 'Marker som Ledig',
   employeeOnLeave: 'Medarbejder markeret som fraværende.',
-  employeeAvailable: 'Medarbejder markeret som tilgængelig.',
+  employeeAvailable: 'Medarbejder markeret som ledig.',
   employeeOnLeaveMsg: '{name} er nu markeret som fraværende.',
-  employeeAvailableMsg: '{name} er nu markeret som tilgængelig.',
+  employeeAvailableMsg: '{name} er nu markeret som ledig.',
   notes: 'Noter',
   notesPlaceholder: 'Tilføj en note til medarbejderen...',
   viewNotes: 'Se noter',
@@ -37,13 +37,13 @@ const employees = {
   employee: 'Medarbejder',
   markOnLeaveTitle: 'Marker som Fraværende',
   markOnLeaveDescription: 'Indtast en grund for {name}\'s fravær. Dette vil være synligt for Skadeledere.',
-  markAvailableTitle: 'Marker som Tilgængelig.',
+  markAvailableTitle: 'Marker som Ledig.',
   markAvailableDescription: 'Vil du beholde eller fjerne noten fra {name}?',
   keepNote: 'Behold note',
   removeNote: 'Fjern note',
   updateError: 'En fejl er opstået ved ændring af medarbejderen\'s status.',
   selectEmployees: 'Vælg servicemedarbejdere',
-  selected: 'valgt'
+  selected: 'valgt',
 };
 
 export default employees;

@@ -57,6 +57,8 @@ export const common = {
   dashboard: 'Dashboard',
   profile: 'Profil',
   settings: 'Indstillinger',
+  actions: 'Handlinger',
+  language: 'Sprog',
   
   // Time
   today: 'I dag',

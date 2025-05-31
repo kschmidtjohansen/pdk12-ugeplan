@@ -42,6 +42,8 @@ const employees = {
   keepNote: 'Keep notes',
   removeNote: 'Remove notes',
   updateError: 'An error occurred while updating the employee\'s status.'
+  selectEmployees: 'Select employees.',
+  selected: 'Selected',
 };
 
 export default employees;

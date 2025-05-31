@@ -32,6 +32,8 @@ const cars = {
   deleteNote: 'Delete Note',
   notes: 'Notes',
   notesFeatureUnavailable: 'Notes feature is not fully available yet. Availability status has been updated.'
+  noCar: 'No car selected',
+  inUse: 'In use until {time}.',
 };
 
 export default cars;

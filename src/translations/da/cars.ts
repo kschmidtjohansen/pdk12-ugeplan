@@ -19,11 +19,11 @@ const cars = {
   vehicleDeletedMsg: '{name} er blevet slettet fra afdelingen.',
   hasTrailerHitch: 'Har anhængertræk',
   isAvailable: 'Tilgængelighed',
-  markAvailable: 'Marker som Tilgængelig',
+  markAvailable: 'Marker som Ledig',
   markUnavailable: 'Marker som Utilgængelig',
-  vehicleAvailable: 'Bil Tilgængelig',
+  vehicleAvailable: 'Bil Ledig',
   vehicleUnavailable: 'Bil Utilgængelig',
-  vehicleAvailableMsg: '{name} er nu markeret som tilgængelig.',
+  vehicleAvailableMsg: '{name} er nu markeret som ledig.',
   vehicleUnavailableMsg: '{name} er nu markeret som utilgængelig.',
   unavailabilityReason: 'Skriv en årsag til gvorfor bilen er utilgængelig..',
   enterNote: 'Skriv note...',
@@ -32,6 +32,8 @@ const cars = {
   deleteNote: 'Slet Note',
   notes: 'Noter',
   notesFeatureUnavailable: 'Funktionen for notater er ikke klar. Bilens tilgængelighed er opdateret.'
+  noCar: 'Ingen bil valgt',
+  inUse: 'I brug indtil {time}.',
 };
 
 export default cars;

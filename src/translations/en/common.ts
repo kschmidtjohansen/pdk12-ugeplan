@@ -56,6 +56,8 @@ export const common = {
   dashboard: 'Dashboard',
   profile: 'Profile',
   settings: 'Settings',
+  actions: 'Actions',
+  language: 'Language',
   
   // Time
   today: 'Today',
