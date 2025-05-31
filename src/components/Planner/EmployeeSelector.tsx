@@ -31,6 +31,9 @@ type EmployeeAvailabilityInfo = {
   latestAssignmentEndTime?: string;
   isFullyBooked: boolean;
   hasEndTimeAtSixteen: boolean;
+  status: 'available' | 'partiallyBooked' | 'fullyBooked';
+  statusText: string;
+  badgeColor: string;
 }
 
 export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
@@ -139,7 +142,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     return false;
   };
 
-  // ENHANCED: Much improved function to check employee availability with better 16:00 detection
+  // FIXED: Much improved function to check employee availability with proper status determination
   const checkEmployeeAvailability = (employeeName: string): EmployeeAvailabilityInfo => {
     const currentDateObj = new Date(currentDate);
     currentDateObj.setHours(0, 0, 0, 0);
@@ -158,10 +161,17 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     console.log(`[EmployeeSelector] Employee ${employeeName} assignments on ${currentDate}:`, employeeAssignments);
     
     if (employeeAssignments.length === 0) {
-      return { isAssigned: false, isFullyBooked: false, hasEndTimeAtSixteen: false };
+      return { 
+        isAssigned: false, 
+        isFullyBooked: false, 
+        hasEndTimeAtSixteen: false,
+        status: 'available',
+        statusText: t('dashboard.available'),
+        badgeColor: 'bg-green-100 text-green-800 border-green-200'
+      };
     }
     
-    // ENHANCED: Much better 16:00 detection with robust normalization
+    // Check if employee ends at exactly 16:00
     const hasEndTimeAtSixteen = employeeAssignments.some(assignment => {
       const originalTime = assignment.toTime;
       const normalizedEndTime = normalizeTime(originalTime);
@@ -177,9 +187,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     
     console.log(`[EmployeeSelector] Employee ${employeeName} has 16:00 end time: ${hasEndTimeAtSixteen}`);
     
-    const dayOfWeek = currentDateObj.getDay();
-    const fullyBooked = isEmployeeFullyBookedForDay(employeeAssignments, dayOfWeek);
-    
+    // Get the latest end time
     let latestEndTime = "00:00";
     employeeAssignments.forEach(assignment => {
       const normalizedTime = normalizeTime(assignment.toTime);
@@ -188,16 +196,47 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       }
     });
     
-    const isEndOfWorkDay = 
-      (dayOfWeek === 5 && latestEndTime === "15:30") ||
-      (dayOfWeek >= 1 && dayOfWeek <= 4 && latestEndTime === "16:00");
+    // PRIORITY 1: Red for exactly 16:00 end time
+    if (hasEndTimeAtSixteen) {
+      return { 
+        isAssigned: true, 
+        availableAt: undefined,
+        latestAssignmentEndTime: latestEndTime,
+        isFullyBooked: true,
+        hasEndTimeAtSixteen: true,
+        status: 'fullyBooked',
+        statusText: t('planner.fullyBooked'),
+        badgeColor: '!bg-red-600 !text-white !border-red-700'
+      };
+    }
     
+    // PRIORITY 2: Check if fully booked for the workday
+    const dayOfWeek = currentDateObj.getDay();
+    const fullyBooked = isEmployeeFullyBookedForDay(employeeAssignments, dayOfWeek);
+    
+    if (fullyBooked) {
+      return { 
+        isAssigned: true, 
+        availableAt: undefined,
+        latestAssignmentEndTime: latestEndTime,
+        isFullyBooked: true,
+        hasEndTimeAtSixteen: false,
+        status: 'fullyBooked',
+        statusText: t('planner.fullyBooked'),
+        badgeColor: 'bg-red-100 text-red-800 border-red-200'
+      };
+    }
+    
+    // PRIORITY 3: Yellow for partially booked (booked until a specific time)
     return { 
       isAssigned: true, 
-      availableAt: isEndOfWorkDay || fullyBooked ? undefined : latestEndTime,
+      availableAt: latestEndTime,
       latestAssignmentEndTime: latestEndTime,
-      isFullyBooked: fullyBooked,
-      hasEndTimeAtSixteen
+      isFullyBooked: false,
+      hasEndTimeAtSixteen: false,
+      status: 'partiallyBooked',
+      statusText: `Booket til kl. ${latestEndTime}`,
+      badgeColor: 'bg-yellow-100 text-yellow-800 border-yellow-200'
     };
   };
 
@@ -239,7 +278,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             
             const isDisabled = isOnVacation || isUnavailable;
             
-            // ENHANCED: Stronger red styling for 16:00 end times with higher CSS specificity
+            // Apply red styling for 16:00 end times with higher CSS specificity
             const hasRedStyling = availabilityInfo.hasEndTimeAtSixteen;
             console.log(`[EmployeeSelector] Employee ${employee.name} red styling applied: ${hasRedStyling}`);
             
@@ -279,25 +318,9 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                         </Badge>
                       )}
                       {availabilityInfo.isAssigned && !isDisabled && (
-                        availabilityInfo.isFullyBooked || hasRedStyling ? (
-                          <Badge className={`text-xs font-medium ${
-                            hasRedStyling 
-                              ? '!bg-red-600 !text-white !border-red-700 hover:!bg-red-700' 
-                              : 'bg-red-100 text-red-800 border-red-200'
-                          }`}>
-                            {t('planner.fullyBooked')}
-                          </Badge>
-                        ) : (
-                          <Badge className={`text-xs ${
-                            hasRedStyling 
-                              ? '!bg-red-600 !text-white !border-red-700 hover:!bg-red-700' 
-                              : 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                          }`}>
-                            {availabilityInfo.availableAt 
-                              ? t('planner.availableAfter', { time: availabilityInfo.availableAt })
-                              : t('planner.onAnotherAssignment')}
-                          </Badge>
-                        )
+                        <Badge className={`text-xs font-medium ${availabilityInfo.badgeColor}`}>
+                          {availabilityInfo.statusText}
+                        </Badge>
                       )}
                     </div>
                   </div>

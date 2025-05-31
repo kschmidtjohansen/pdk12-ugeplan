@@ -59,6 +59,7 @@ const planner = {
   onAnotherAssignmentUntil: "På anden opgave til {time}",
   fullyBooked: "Fuldt booket",
   availableAfter: "Tilgængelig efter kl. {time}",
+  bookedUntil: "Booket til kl. {time}",
   copy: "Kopier",
   copyAssignment: "Kopier Opgave",
   assignmentCopied: "Opgave kopieret",
@@ -94,4 +95,3 @@ const planner = {
 };
 
 export default planner;
-

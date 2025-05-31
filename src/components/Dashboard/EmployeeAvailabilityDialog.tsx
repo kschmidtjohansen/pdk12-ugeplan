@@ -119,7 +119,29 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     return time.trim();
   };
 
-  // ENHANCED: Much improved function to get employee assignment status with proper 16:00 detection
+  // Function to determine if an employee is fully booked for the workday
+  const isEmployeeFullyBookedForDay = (assignments: Assignment[], dayOfWeek: number): boolean => {
+    const workdayStart = "08:00";
+    const workdayEnd = dayOfWeek === 5 ? "15:30" : "16:00";
+    
+    let coveredTimeSlots: [string, string][] = [];
+    const sortedAssignments = [...assignments].sort((a, b) => a.fromTime.localeCompare(b.fromTime));
+    
+    for (const assignment of sortedAssignments) {
+      const from = normalizeTime(assignment.fromTime);
+      const to = normalizeTime(assignment.toTime);
+      
+      if (from <= workdayStart && to >= workdayEnd) {
+        return true;
+      }
+      
+      coveredTimeSlots.push([from, to]);
+    }
+    
+    return false;
+  };
+
+  // FIXED: Much improved function to get employee assignment status with proper priority
   const getEmployeeStatus = (employee: Employee) => {
     const isOnVacation = isEmployeeOnVacation(employee.id, viewedDate);
     const isOnLeave = employee.onLeave;
@@ -142,7 +164,7 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
       return { status: 'available', label: t('dashboard.available'), color: 'bg-green-100 text-green-800', hasEndTimeAtSixteen: false };
     }
 
-    // ENHANCED: Much better 16:00 detection - this should take priority over all other status checks
+    // PRIORITY 1: Check for exact 16:00 end time - this should be RED
     const hasEndTimeAtSixteen = employeeAssignments.some(assignment => {
       const originalTime = assignment.toTime;
       const normalizedEndTime = normalizeTime(originalTime);
@@ -158,7 +180,7 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     
     console.log(`[EmployeeAvailabilityDialog] Employee ${employee.name} has 16:00 end time: ${hasEndTimeAtSixteen}`);
     
-    // FIXED: 16:00 end time should take priority and show red styling
+    // RED: 16:00 end time takes highest priority
     if (hasEndTimeAtSixteen) {
       return { 
         status: 'fullyBooked', 
@@ -177,32 +199,19 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
       }
     });
 
-    // Check if fully booked
+    // PRIORITY 2: Check if fully booked for entire workday
     const dayOfWeek = new Date(viewedDate).getDay();
-    const workdayEnd = dayOfWeek === 5 ? "15:30" : "16:00";
+    const fullyBooked = isEmployeeFullyBookedForDay(employeeAssignments, dayOfWeek);
     
-    let totalCoverage = false;
-    const sortedAssignments = [...employeeAssignments].sort((a, b) => a.fromTime.localeCompare(b.fromTime));
-    
-    // Simple check for full day coverage
-    if (sortedAssignments.length > 0) {
-      const firstStart = normalizeTime(sortedAssignments[0].fromTime);
-      const lastEnd = normalizeTime(sortedAssignments[sortedAssignments.length - 1].toTime);
-      
-      if (firstStart <= "08:00" && lastEnd >= workdayEnd) {
-        totalCoverage = true;
-      }
-    }
-
-    if (totalCoverage) {
+    if (fullyBooked) {
       return { status: 'fullyBooked', label: t('dashboard.fullyBooked'), color: 'bg-red-100 text-red-800', hasEndTimeAtSixteen: false };
     }
 
-    // Show available after time instead of generic "partially available"
+    // PRIORITY 3: YELLOW - Partially booked (show "booket til kl. XX:XX")
     const formattedTime = latestEndTime.substring(0, 5); // Remove seconds if present
     return { 
       status: 'partiallyAvailable', 
-      label: t('dashboard.availableAfter', { time: formattedTime }), 
+      label: `Booket til kl. ${formattedTime}`, 
       color: 'bg-yellow-100 text-yellow-800',
       hasEndTimeAtSixteen: false
     };

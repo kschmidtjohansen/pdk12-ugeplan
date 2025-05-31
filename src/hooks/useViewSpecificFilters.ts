@@ -5,69 +5,71 @@ import { useAuth } from '@/context/AuthContext';
 export const useViewSpecificFilters = () => {
   const { user } = useAuth();
 
-  // Filter for dashboard - servicemedarbejdere only see their own assignments
-  const filterForDashboard = (assignments: Assignment[], showUnpublished: boolean = false) => {
-    console.log("[useViewSpecificFilters] Dashboard filter - User:", user?.name, "Role:", user?.role);
-    console.log("[useViewSpecificFilters] Dashboard filter - Total assignments:", assignments.length);
+  // Filter assignments for the planner view
+  const filterForPlanner = (assignments: Assignment[], includeUnpublished = false) => {
+    console.log('[useViewSpecificFilters] filterForPlanner - User role:', user?.role);
+    console.log('[useViewSpecificFilters] filterForPlanner - Include unpublished:', includeUnpublished);
+    console.log('[useViewSpecificFilters] filterForPlanner - Total assignments:', assignments.length);
     
+    if (!user) {
+      console.log('[useViewSpecificFilters] filterForPlanner - No user, returning empty array');
+      return [];
+    }
+
     const filtered = assignments.filter(assignment => {
-      // Administrators and skadeledere can see all assignments
-      if (user?.role === 'administrator' || user?.role === 'skadeleder') {
-        const isVisible = showUnpublished || assignment.published;
-        console.log(`[Dashboard] Admin/Skadeleder - Assignment ${assignment.id}: published=${assignment.published}, visible=${isVisible}`);
-        return isVisible;
+      // FIXED: For servicemedarbejdere, show assignments they are assigned to (published OR unpublished)
+      if (user.role === 'servicemedarbejder') {
+        const isAssignedToUser = assignment.employees && assignment.employees.includes(user.name);
+        console.log(`[useViewSpecificFilters] Assignment ${assignment.id} - User ${user.name} assigned: ${isAssignedToUser}`);
+        
+        // Show published assignments OR assignments they are assigned to
+        const shouldShow = assignment.published || isAssignedToUser;
+        console.log(`[useViewSpecificFilters] Assignment ${assignment.id} - Should show: ${shouldShow} (published: ${assignment.published}, assigned: ${isAssignedToUser})`);
+        
+        return shouldShow;
       }
       
-      // Servicemedarbejdere can only see published assignments assigned to them
-      if (user?.role === 'servicemedarbejder') {
-        const isPublished = assignment.published === true;
-        const isAssigned = assignment.employees && assignment.employees.some(employeeName => employeeName === user?.name);
-        const isVisible = isPublished && isAssigned;
-        console.log(`[Dashboard] Servicemedarbejder - Assignment ${assignment.id}: published=${isPublished}, assigned=${isAssigned}, visible=${isVisible}`);
-        console.log(`[Dashboard] Assignment employees:`, assignment.employees);
-        return isVisible;
+      // For skadeleder and administrator, show based on includeUnpublished flag
+      if (user.role === 'skadeleder' || user.role === 'administrator') {
+        return includeUnpublished || assignment.published;
       }
       
-      return false;
+      // Default: only show published assignments
+      return assignment.published;
     });
     
-    console.log("[useViewSpecificFilters] Dashboard filtered assignments:", filtered.length);
+    console.log('[useViewSpecificFilters] filterForPlanner - Filtered assignments:', filtered.length);
     return filtered;
   };
 
-  // Filter for planner - servicemedarbejdere can see ALL published assignments (not just their own)
-  const filterForPlanner = (assignments: Assignment[], showUnpublished: boolean = true) => {
-    console.log("[useViewSpecificFilters] Planner filter - User:", user?.name, "Role:", user?.role);
-    console.log("[useViewSpecificFilters] Planner filter - Total assignments:", assignments.length);
-    console.log("[useViewSpecificFilters] Planner filter - Show unpublished:", showUnpublished);
+  // Filter assignments for the dashboard view
+  const filterForDashboard = (assignments: Assignment[]) => {
+    console.log('[useViewSpecificFilters] filterForDashboard - User role:', user?.role);
     
-    const filtered = assignments.filter(assignment => {
-      // Administrators and skadeledere can see all assignments (published and unpublished)
-      if (user?.role === 'administrator' || user?.role === 'skadeleder') {
-        const isVisible = showUnpublished || assignment.published;
-        console.log(`[Planner] Admin/Skadeleder - Assignment ${assignment.id}: published=${assignment.published}, visible=${isVisible}`);
-        return isVisible;
-      }
-      
-      // Servicemedarbejdere can see ALL published assignments (this allows them to see all employee names and assignments)
-      if (user?.role === 'servicemedarbejder') {
-        const isVisible = assignment.published === true;
-        console.log(`[Planner] Servicemedarbejder - Assignment ${assignment.id}: published=${assignment.published}, visible=${isVisible}`);
-        if (isVisible && assignment.employees) {
-          console.log(`[Planner] Assignment employees:`, assignment.employees);
-        }
-        return isVisible;
-      }
-      
-      return false;
-    });
+    if (!user) return [];
+
+    // For dashboard, servicemedarbejdere should only see their own published assignments
+    if (user.role === 'servicemedarbejder') {
+      return assignments.filter(assignment => 
+        assignment.published && 
+        assignment.employees && 
+        assignment.employees.includes(user.name)
+      );
+    }
     
-    console.log("[useViewSpecificFilters] Planner filtered assignments:", filtered.length);
-    return filtered;
+    // For skadeleder and administrator, show all published assignments
+    return assignments.filter(assignment => assignment.published);
+  };
+
+  // Filter assignments for the screen display
+  const filterForScreenDisplay = (assignments: Assignment[]) => {
+    // Screen display should only show published assignments for all users
+    return assignments.filter(assignment => assignment.published);
   };
 
   return {
+    filterForPlanner,
     filterForDashboard,
-    filterForPlanner
+    filterForScreenDisplay
   };
 };
