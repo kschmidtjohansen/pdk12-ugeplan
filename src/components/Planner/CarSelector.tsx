@@ -31,6 +31,23 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
 }) => {
   const { t } = useTranslation();
 
+  // Helper function to normalize time format
+  const normalizeTime = (time: string): string => {
+    if (!time) return '';
+    
+    // Remove seconds if present (HH:MM:SS -> HH:MM)
+    if (time.length === 8 && time.includes(':')) {
+      time = time.substring(0, 5);
+    }
+    
+    // Ensure we have HH:MM format
+    if (time.length === 5 && time.includes(':')) {
+      return time;
+    }
+    
+    return time;
+  };
+
   // Helper function to check if a car is in use on the current date
   const isCarInUse = (carId: string): { isAssigned: boolean; hasEndTimeAtSixteen: boolean } => {
     const currentDateObj = new Date(currentDate);
@@ -52,8 +69,15 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       return isOnDate && isAssigned;
     });
     
-    // Check for 16:00 end time - this is the key fix
-    const hasEndTimeAtSixteen = carAssignments.some(assignment => assignment.toTime === "16:00");
+    console.log(`[CarSelector] Car ${carId} assignments on ${currentDate}:`, carAssignments);
+    
+    // FIXED: Better 16:00 end time detection with normalized time comparison
+    const hasEndTimeAtSixteen = carAssignments.some(assignment => {
+      const normalizedEndTime = normalizeTime(assignment.toTime);
+      console.log(`[CarSelector] Checking assignment ${assignment.id} end time: "${assignment.toTime}" normalized to: "${normalizedEndTime}"`);
+      return normalizedEndTime === "16:00";
+    });
+    
     console.log(`[CarSelector] Car ${carId} has 16:00 end time:`, hasEndTimeAtSixteen);
     
     return { 
@@ -87,19 +111,19 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
             const isUnavailable = !car.is_available;
             const carUsage = isCarInUse(car.id);
             
-            // Enhanced red styling for 16:00 end times
+            // FIXED: Enhanced red styling for 16:00 end times with better class application
             const hasRedStyling = carUsage.hasEndTimeAtSixteen;
-            console.log(`[CarSelector] Car ${car.name} red styling:`, hasRedStyling);
+            console.log(`[CarSelector] Car ${car.name} red styling applied:`, hasRedStyling);
             
             return (
               <SelectItem 
                 key={car.id} 
                 value={car.id}
                 disabled={isUnavailable}
-                className={hasRedStyling ? 'bg-red-50 border-l-4 border-red-600' : ''}
+                className={hasRedStyling ? 'bg-red-50 border-l-4 border-red-600 hover:bg-red-100' : ''}
               >
                 <div className="flex items-center justify-between w-full">
-                  <span className={hasRedStyling ? 'text-red-600 font-bold' : ''}>
+                  <span className={hasRedStyling ? 'text-red-700 font-bold' : ''}>
                     {car.name}
                   </span>
                   <div className="flex gap-1 ml-2">
@@ -112,7 +136,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                       <Badge 
                         className={`text-xs font-medium ${
                           hasRedStyling 
-                            ? 'bg-red-600 text-white border-red-700' 
+                            ? 'bg-red-600 text-white border-red-700 hover:bg-red-700' 
                             : 'bg-yellow-100 text-yellow-800 border-yellow-200'
                         }`}
                       >

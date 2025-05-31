@@ -67,11 +67,20 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     });
   };
 
-  // Helper function to format time to HH:MM without seconds
-  const formatTimeWithoutSeconds = (time: string): string => {
-    if (time && time.length === 8 && time.includes(':')) {
-      return time.substring(0, 5);
+  // Helper function to format time to HH:MM without seconds and normalize
+  const normalizeTime = (time: string): string => {
+    if (!time) return '';
+    
+    // Remove seconds if present (HH:MM:SS -> HH:MM)
+    if (time.length === 8 && time.includes(':')) {
+      time = time.substring(0, 5);
     }
+    
+    // Ensure we have HH:MM format
+    if (time.length === 5 && time.includes(':')) {
+      return time;
+    }
+    
     return time;
   };
 
@@ -84,8 +93,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     const sortedAssignments = [...assignments].sort((a, b) => a.fromTime.localeCompare(b.fromTime));
     
     for (const assignment of sortedAssignments) {
-      const from = assignment.fromTime;
-      const to = assignment.toTime;
+      const from = normalizeTime(assignment.fromTime);
+      const to = normalizeTime(assignment.toTime);
       
       if (from <= workdayStart && to >= workdayEnd) {
         return true;
@@ -129,11 +138,12 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     return false;
   };
 
-  // Enhanced function to check employee availability
+  // Enhanced function to check employee availability with better 16:00 detection
   const checkEmployeeAvailability = (employeeName: string): EmployeeAvailabilityInfo => {
     const currentDateObj = new Date(currentDate);
     currentDateObj.setHours(0, 0, 0, 0);
     
+    // Filter assignments for this employee on the current date
     const employeeAssignments = assignments.filter(assignment => {
       const assignmentDateObj = new Date(assignment.date);
       assignmentDateObj.setHours(0, 0, 0, 0);
@@ -144,12 +154,19 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       return isOnDate && isAssigned;
     });
     
+    console.log(`[EmployeeSelector] Employee ${employeeName} assignments on ${currentDate}:`, employeeAssignments);
+    
     if (employeeAssignments.length === 0) {
       return { isAssigned: false, isFullyBooked: false, hasEndTimeAtSixteen: false };
     }
     
-    // Check for 16:00 end time - this is the key fix
-    const hasEndTimeAtSixteen = employeeAssignments.some(assignment => assignment.toTime === "16:00");
+    // FIXED: Better 16:00 detection with normalized time comparison
+    const hasEndTimeAtSixteen = employeeAssignments.some(assignment => {
+      const normalizedEndTime = normalizeTime(assignment.toTime);
+      console.log(`[EmployeeSelector] Checking assignment ${assignment.id} end time: "${assignment.toTime}" normalized to: "${normalizedEndTime}"`);
+      return normalizedEndTime === "16:00";
+    });
+    
     console.log(`[EmployeeSelector] Employee ${employeeName} has 16:00 end time:`, hasEndTimeAtSixteen);
     
     const dayOfWeek = currentDateObj.getDay();
@@ -157,8 +174,9 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     
     let latestEndTime = "00:00";
     employeeAssignments.forEach(assignment => {
-      if (assignment.toTime > latestEndTime) {
-        latestEndTime = assignment.toTime;
+      const normalizedTime = normalizeTime(assignment.toTime);
+      if (normalizedTime > latestEndTime) {
+        latestEndTime = normalizedTime;
       }
     });
     
@@ -168,8 +186,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     
     return { 
       isAssigned: true, 
-      availableAt: isEndOfWorkDay || fullyBooked ? undefined : formatTimeWithoutSeconds(latestEndTime),
-      latestAssignmentEndTime: formatTimeWithoutSeconds(latestEndTime),
+      availableAt: isEndOfWorkDay || fullyBooked ? undefined : latestEndTime,
+      latestAssignmentEndTime: latestEndTime,
       isFullyBooked: fullyBooked,
       hasEndTimeAtSixteen
     };
@@ -192,6 +210,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     console.log("EmployeeSelector - Selected employees:", selectedEmployees);
     console.log("EmployeeSelector - User role:", user?.role);
     console.log("EmployeeSelector - Filtered employees count:", filteredEmployees.length);
+    console.log("EmployeeSelector - All assignments:", assignments);
   }, [currentDate, selectedEmployees, assignments, user?.role, filteredEmployees.length]);
 
   return (
@@ -212,16 +231,16 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             
             const isDisabled = isOnVacation || isUnavailable;
             
-            // Enhanced red styling for 16:00 end times
+            // FIXED: Enhanced red styling for 16:00 end times with better class application
             const hasRedStyling = availabilityInfo.hasEndTimeAtSixteen;
-            console.log(`[EmployeeSelector] Employee ${employee.name} red styling:`, hasRedStyling);
+            console.log(`[EmployeeSelector] Employee ${employee.name} red styling applied:`, hasRedStyling);
             
             return (
               <DropdownMenuItem
                 key={employee.id}
                 className={`flex items-center space-x-2 p-2 ${
                   isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                } ${hasRedStyling ? 'bg-red-50 border-l-4 border-red-600' : ''}`}
+                } ${hasRedStyling ? 'bg-red-50 border-l-4 border-red-600 hover:bg-red-100' : ''}`}
                 onSelect={(e) => {
                   e.preventDefault();
                   if (!isDisabled) {
@@ -237,7 +256,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className={`font-medium ${hasRedStyling ? 'text-red-600 font-bold' : ''}`}>
+                    <span className={`font-medium ${hasRedStyling ? 'text-red-700 font-bold' : ''}`}>
                       {employee.name}
                     </span>
                     <div className="flex gap-1 ml-2 flex-shrink-0">
@@ -253,11 +272,19 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                       )}
                       {availabilityInfo.isAssigned && !isDisabled && (
                         availabilityInfo.isFullyBooked || hasRedStyling ? (
-                          <Badge className={`text-xs font-medium ${hasRedStyling ? 'bg-red-600 text-white border-red-700' : 'bg-red-100 text-red-800 border-red-200'}`}>
+                          <Badge className={`text-xs font-medium ${
+                            hasRedStyling 
+                              ? 'bg-red-600 text-white border-red-700 hover:bg-red-700' 
+                              : 'bg-red-100 text-red-800 border-red-200'
+                          }`}>
                             {t('planner.fullyBooked')}
                           </Badge>
                         ) : (
-                          <Badge className={`text-xs ${hasRedStyling ? 'bg-red-600 text-white border-red-700' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>
+                          <Badge className={`text-xs ${
+                            hasRedStyling 
+                              ? 'bg-red-600 text-white border-red-700 hover:bg-red-700' 
+                              : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                          }`}>
                             {availabilityInfo.availableAt 
                               ? t('planner.availableAfter', { time: availabilityInfo.availableAt })
                               : t('planner.onAnotherAssignment')}
