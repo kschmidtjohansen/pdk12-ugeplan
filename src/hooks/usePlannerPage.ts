@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
 import { usePlannerAssignments } from './usePlannerAssignments';
@@ -24,11 +24,6 @@ export const usePlannerPage = () => {
   const [selectedWeek, setSelectedWeek] = useState(currentWeekInfo.week);
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   
-  // Log when the selected week/year changes
-  useEffect(() => {
-    console.log(`[usePlannerPage] Selected week: ${selectedWeek}, year: ${selectedYear}`);
-  }, [selectedWeek, selectedYear]);
-
   const { 
     assignments, 
     createAssignment, 
@@ -44,8 +39,15 @@ export const usePlannerPage = () => {
 
   const { filterByWeek } = useAssignmentFilters();
 
-  // Get the current date - always calculate fresh to avoid stale dates
-  const getFreshToday = () => format(new Date(), 'yyyy-MM-dd');
+  // FIXED: Get the current date - always calculate fresh with proper timezone handling
+  const getFreshToday = () => {
+    const now = new Date();
+    // Ensure we get the local date properly formatted
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
   
   // Using state for managing form data and selected day
   const [selectedDay, setSelectedDay] = useState<string>(getFreshToday());
@@ -62,29 +64,6 @@ export const usePlannerPage = () => {
 
   // Get the date range for the selected week with ISO week calculation
   const weekDates = getWeekDates(selectedWeek, selectedYear);
-  
-  // Better log output with more details
-  useEffect(() => {
-    console.log("[usePlannerPage] Week dates:", {
-      weekNumber: selectedWeek,
-      year: selectedYear,
-      start: weekDates.start.toISOString(),
-      end: weekDates.end.toISOString(),
-      startDay: format(weekDates.start, 'EEEE'),
-      startDayNumber: weekDates.start.getDay(),
-      endDay: format(weekDates.end, 'EEEE'),
-      endDayNumber: weekDates.end.getDay()
-    });
-    
-    // Validate that we have a Monday (1) to Sunday (0) range
-    if (weekDates.start.getDay() !== 1) {
-      console.error(`[usePlannerPage] ERROR: Week start is not Monday! Got day ${weekDates.start.getDay()} (${format(weekDates.start, 'EEEE')})`);
-    }
-    
-    if (weekDates.end.getDay() !== 0) {
-      console.error(`[usePlannerPage] ERROR: Week end is not Sunday! Got day ${weekDates.end.getDay()} (${format(weekDates.end, 'EEEE')})`);
-    }
-  }, [selectedWeek, selectedYear, weekDates]);
   
   // Filter assignments for the current week
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
@@ -109,8 +88,7 @@ export const usePlannerPage = () => {
   const handleOpenCreateDialog = useCallback((date: string) => {
     setCurrentAssignment(null);
     
-    // Ensure we have a valid date - use provided date or today's date
-    // Force a fresh today date calculation to avoid stale dates
+    // FIXED: Ensure we have a valid date - use provided date or today's date with fresh calculation
     const freshTodayDate = getFreshToday();
     const taskDate = date && date.trim() !== '' ? date : freshTodayDate;
     setSelectedDay(taskDate);
@@ -204,22 +182,6 @@ export const usePlannerPage = () => {
       publishAssignmentsByDate(selectedDay);
     }
   }, [selectedDay, publishAssignmentsByDate]);
-  
-  // Ensure dialog has the current date when opened
-  useEffect(() => {
-    if (isDialogOpen && !currentAssignment) {
-      const freshDate = getFreshToday();
-      console.log("[usePlannerPage] Dialog opened, ensuring fresh date:", freshDate);
-      
-      // Only update if the current value is not the fresh date
-      if (formData.date !== freshDate && !selectedDay) {
-        setFormData(prev => ({
-          ...prev,
-          date: freshDate
-        }));
-      }
-    }
-  }, [isDialogOpen, currentAssignment, formData.date, selectedDay]);
   
   return {
     selectedWeek,

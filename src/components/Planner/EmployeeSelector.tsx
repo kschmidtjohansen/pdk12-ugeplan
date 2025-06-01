@@ -144,16 +144,36 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 
   // FIXED: Much improved function to check employee availability with proper status determination
   const checkEmployeeAvailability = (employeeName: string): EmployeeAvailabilityInfo => {
-    const currentDateObj = new Date(currentDate);
-    currentDateObj.setHours(0, 0, 0, 0);
+    // FIXED: Ensure we parse the currentDate correctly and normalize it
+    const currentDateObj = new Date(currentDate + 'T00:00:00');
+    if (isNaN(currentDateObj.getTime())) {
+      console.error(`[EmployeeSelector] Invalid currentDate: ${currentDate}`);
+      return {
+        isAssigned: false,
+        isFullyBooked: false,
+        hasEndTimeAtSixteen: false,
+        status: 'available',
+        statusText: t('dashboard.available'),
+        badgeColor: 'bg-green-100 text-green-800 border-green-200'
+      };
+    }
     
-    // Filter assignments for this employee on the current date
+    // Filter assignments for this employee on the current date with better date comparison
     const employeeAssignments = assignments.filter(assignment => {
-      const assignmentDateObj = new Date(assignment.date);
-      assignmentDateObj.setHours(0, 0, 0, 0);
+      const assignmentDate = assignment.date;
       
-      const isOnDate = assignmentDateObj.getTime() === currentDateObj.getTime();
+      // Normalize both dates to YYYY-MM-DD format for comparison
+      const normalizedAssignmentDate = assignmentDate.split('T')[0]; // Remove time part if present
+      const normalizedCurrentDate = currentDate.split('T')[0]; // Remove time part if present
+      
+      const isOnDate = normalizedAssignmentDate === normalizedCurrentDate;
       const isAssigned = assignment.employees && assignment.employees.includes(employeeName);
+      
+      console.log(`[EmployeeSelector] Assignment ${assignment.id} for ${employeeName}:`);
+      console.log(`  - Assignment date: "${assignmentDate}" -> normalized: "${normalizedAssignmentDate}"`);
+      console.log(`  - Current date: "${currentDate}" -> normalized: "${normalizedCurrentDate}"`);
+      console.log(`  - Date match: ${isOnDate}`);
+      console.log(`  - Employee assigned: ${isAssigned}`);
       
       return isOnDate && isAssigned;
     });
@@ -240,7 +260,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     };
   };
 
-  const dateForComparison = currentDate ? new Date(currentDate) : new Date();
+  // FIXED: Better date parsing for vacation check
+  const dateForComparison = currentDate ? new Date(currentDate + 'T00:00:00') : new Date();
   
   const getDisplayText = () => {
     if (selectedEmployees.length === 0) {
@@ -258,7 +279,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     console.log("EmployeeSelector - User role:", user?.role);
     console.log("EmployeeSelector - Filtered employees count:", filteredEmployees.length);
     console.log("EmployeeSelector - All assignments:", assignments);
-  }, [currentDate, selectedEmployees, assignments, user?.role, filteredEmployees.length]);
+    console.log("EmployeeSelector - Date for comparison:", dateForComparison);
+  }, [currentDate, selectedEmployees, assignments, user?.role, filteredEmployees.length, dateForComparison]);
 
   return (
     <div className="space-y-2">

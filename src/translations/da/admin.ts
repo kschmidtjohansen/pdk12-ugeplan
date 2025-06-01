@@ -3,8 +3,39 @@ const admin = {
   title: 'Admin Dashboard',
   description: 'System administration og indstillinger',
   tabs: {
-    metrics: 'Metrikker',
+    overview: 'System Oversigt',
     users: 'Brugeradministration'
+  },
+  systemOverview: {
+    title: 'System Oversigt',
+    description: 'Omfattende systemadministration og overvågning'
+  },
+  quickStats: {
+    totalUsers: 'Brugere i alt',
+    vehicles: 'Køretøjer',
+    pendingVacations: 'Afventende Ferier',
+    todaysTasks: 'Dagens Opgaver',
+    active: 'aktive',
+    available: 'tilgængelige',
+    approved: 'godkendte',
+    total: 'i alt'
+  },
+  systemHealth: {
+    title: 'System Status',
+    assignmentPublishing: 'Opgave Publicering',
+    vehicleUtilization: 'Køretøj Udnyttelse',
+    staffAvailability: 'Medarbejder Tilgængelighed',
+    allAssignmentsPublished: 'Alle opgaver publiceret',
+    unpublishedTasks: '{count} upublicerede',
+    vehiclesInUse: '{inUse}/{total} køretøjer i brug',
+    staffAvailable: '{available}/{total} medarbejdere tilgængelige'
+  },
+  quickActions: {
+    title: 'Hurtige Handlinger',
+    viewPlanner: 'Se Planner',
+    manageStaff: 'Administrer Medarbejdere',
+    fleetManagement: 'Flåde Administration',
+    vacationRequests: 'Ferieansøgninger'
   },
   systemMetrics: {
     totalUsers: 'Antal Brugere',

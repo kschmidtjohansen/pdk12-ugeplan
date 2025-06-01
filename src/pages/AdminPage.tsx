@@ -6,7 +6,6 @@ import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNavigate } from 'react-router-dom';
 import UserManagement from '@/components/Admin/UserManagement';
-import SystemMetrics from '@/components/Admin/SystemMetrics';
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
@@ -75,36 +74,36 @@ const AdminPage: React.FC = () => {
   // Quick stats for overview
   const quickStats = [
     {
-      title: 'Total Users',
+      title: t('admin.quickStats.totalUsers'),
       value: usersCount,
-      subtitle: `${activeUsersCount} active`,
+      subtitle: `${activeUsersCount} ${t('admin.quickStats.active')}`,
       icon: <Users className="h-6 w-6" />,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
       onClick: () => setActiveTab("users")
     },
     {
-      title: 'Vehicles',
+      title: t('admin.quickStats.vehicles'),
       value: vehiclesCount,
-      subtitle: `${availableVehiclesCount} available`,
+      subtitle: `${availableVehiclesCount} ${t('admin.quickStats.available')}`,
       icon: <Car className="h-6 w-6" />,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
       onClick: () => navigate('/cars')
     },
     {
-      title: 'Pending Vacations',
+      title: t('admin.quickStats.pendingVacations'),
       value: pendingVacationCount,
-      subtitle: `${approvedVacationCount} approved`,
+      subtitle: `${approvedVacationCount} ${t('admin.quickStats.approved')}`,
       icon: <Calendar className="h-6 w-6" />,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
       onClick: () => navigate('/vacation')
     },
     {
-      title: 'Today\'s Tasks',
+      title: t('admin.quickStats.todaysTasks'),
       value: todayAssignments,
-      subtitle: `${totalAssignments} total`,
+      subtitle: `${totalAssignments} ${t('admin.quickStats.total')}`,
       icon: <ClipboardCheck className="h-6 w-6" />,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
@@ -115,21 +114,21 @@ const AdminPage: React.FC = () => {
   // System health indicators
   const systemHealth = [
     {
-      title: 'Assignment Publishing',
+      title: t('admin.systemHealth.assignmentPublishing'),
       status: unpublishedAssignments === 0 ? 'good' : 'warning',
-      message: unpublishedAssignments === 0 ? 'All assignments published' : `${unpublishedAssignments} unpublished`,
+      message: unpublishedAssignments === 0 ? t('admin.systemHealth.allAssignmentsPublished') : t('admin.systemHealth.unpublishedTasks', { count: unpublishedAssignments }),
       icon: unpublishedAssignments === 0 ? <CheckCircle className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />
     },
     {
-      title: 'Vehicle Utilization',
+      title: t('admin.systemHealth.vehicleUtilization'),
       status: inUseVehiclesCount > 0 ? 'good' : 'info',
-      message: `${inUseVehiclesCount}/${vehiclesCount} vehicles in use`,
+      message: t('admin.systemHealth.vehiclesInUse', { inUse: inUseVehiclesCount, total: vehiclesCount }),
       icon: <Activity className="h-5 w-5" />
     },
     {
-      title: 'Staff Availability',
+      title: t('admin.systemHealth.staffAvailability'),
       status: activeUsersCount > usersCount * 0.8 ? 'good' : 'warning',
-      message: `${activeUsersCount}/${usersCount} staff available`,
+      message: t('admin.systemHealth.staffAvailable', { available: activeUsersCount, total: usersCount }),
       icon: <UserCheck className="h-5 w-5" />
     }
   ];
@@ -147,14 +146,13 @@ const AdminPage: React.FC = () => {
     <>
       <PageHeader
         title={t('admin.title')}
-        description="Comprehensive system administration and monitoring"
+        description={t('admin.systemOverview.description')}
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">System Overview</TabsTrigger>
-          <TabsTrigger value="metrics">Detailed Metrics</TabsTrigger>
-          <TabsTrigger value="users">User Management</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="overview">{t('admin.tabs.overview')}</TabsTrigger>
+          <TabsTrigger value="users">{t('admin.tabs.users')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="mt-6 space-y-6">
@@ -187,7 +185,7 @@ const AdminPage: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
-                System Health
+                {t('admin.systemHealth.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -212,7 +210,7 @@ const AdminPage: React.FC = () => {
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle>{t('admin.quickActions.title')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -221,45 +219,32 @@ const AdminPage: React.FC = () => {
                   className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
                 >
                   <ClipboardCheck className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
-                  <p className="text-sm font-medium">View Planner</p>
+                  <p className="text-sm font-medium">{t('admin.quickActions.viewPlanner')}</p>
                 </button>
                 <button 
                   onClick={() => navigate('/employees')}
                   className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
                 >
                   <Users className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
-                  <p className="text-sm font-medium">Manage Staff</p>
+                  <p className="text-sm font-medium">{t('admin.quickActions.manageStaff')}</p>
                 </button>
                 <button 
                   onClick={() => navigate('/cars')}
                   className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
                 >
                   <Car className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
-                  <p className="text-sm font-medium">Fleet Management</p>
+                  <p className="text-sm font-medium">{t('admin.quickActions.fleetManagement')}</p>
                 </button>
                 <button 
                   onClick={() => navigate('/vacation')}
                   className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
                 >
                   <Calendar className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
-                  <p className="text-sm font-medium">Vacation Requests</p>
+                  <p className="text-sm font-medium">{t('admin.quickActions.vacationRequests')}</p>
                 </button>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="metrics" className="mt-6">
-          <SystemMetrics 
-            onUsersClick={() => setActiveTab("users")}
-            onVehiclesClick={() => navigate('/cars')}
-            onVacationClick={() => navigate('/vacation')}
-            usersCount={usersCount}
-            vehiclesCount={vehiclesCount}
-            pendingVacationCount={pendingVacationCount}
-            activeUsersCount={activeUsersCount}
-            inUseVehiclesCount={inUseVehiclesCount}
-          />
         </TabsContent>
         
         <TabsContent value="users" className="mt-6">
