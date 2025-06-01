@@ -1,4 +1,5 @@
 
+
 const cars = {
   title: 'Cars',
   description: 'Department vehicles and their details',
@@ -31,9 +32,10 @@ const cars = {
   keepNote: 'Keep Note',
   deleteNote: 'Delete Note',
   notes: 'Notes',
-  notesFeatureUnavailable: 'Notes feature is not fully available yet. Availability status has been updated.'
+  notesFeatureUnavailable: 'Notes feature is not fully available yet. Availability status has been updated.',
   noCar: 'No car selected',
   inUse: 'In use until {time}.',
 };
 
 export default cars;
+

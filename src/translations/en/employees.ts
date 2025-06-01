@@ -1,4 +1,5 @@
 
+
 const employees = {
   title: 'Employees',
   description: 'Department employees and their roles',
@@ -41,9 +42,10 @@ const employees = {
   markAvailableDescription: 'Do you want to keep or remove the notes for {name}?',
   keepNote: 'Keep notes',
   removeNote: 'Remove notes',
-  updateError: 'An error occurred while updating the employee\'s status.'
+  updateError: 'An error occurred while updating the employee\'s status.',
   selectEmployees: 'Select employees.',
   selected: 'Selected',
 };
 
 export default employees;
+

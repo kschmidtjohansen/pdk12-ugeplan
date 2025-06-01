@@ -1,4 +1,5 @@
 
+
 const cars = {
   title: "Biler",
   description: "Administrer biler og deres status",
@@ -31,9 +32,10 @@ const cars = {
   keepNote: 'Behold Note',
   deleteNote: 'Slet Note',
   notes: 'Noter',
-  notesFeatureUnavailable: 'Funktionen for notater er ikke klar. Bilens tilgængelighed er opdateret.'
+  notesFeatureUnavailable: 'Funktionen for notater er ikke klar. Bilens tilgængelighed er opdateret.',
   noCar: 'Ingen bil valgt',
   inUse: 'I brug indtil {time}.',
 };
 
 export default cars;
+

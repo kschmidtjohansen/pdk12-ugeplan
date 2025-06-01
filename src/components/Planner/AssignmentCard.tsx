@@ -35,7 +35,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         
         <AssignmentActionButtons 
           assignment={assignment}
-          canEdit={canEdit}
           onEdit={() => onEdit(assignment)}
           onDelete={onDelete}
           onPublish={onPublish}
