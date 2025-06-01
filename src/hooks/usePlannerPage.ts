@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -39,15 +38,12 @@ export const usePlannerPage = () => {
 
   const { filterByWeek } = useAssignmentFilters();
 
-  // FIXED: Get the current date - always calculate fresh with proper timezone handling
-  const getFreshToday = () => {
+  // FIXED: Always get a fresh today's date - recalculate each time to ensure it updates daily
+  const getFreshToday = useCallback(() => {
     const now = new Date();
-    // Ensure we get the local date properly formatted
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+    // Force fresh calculation and proper timezone handling
+    return format(now, 'yyyy-MM-dd');
+  }, []);
   
   // Using state for managing form data and selected day
   const [selectedDay, setSelectedDay] = useState<string>(getFreshToday());
@@ -61,6 +57,13 @@ export const usePlannerPage = () => {
     car: '',
     employees: []
   });
+
+  // Update formData.date daily to ensure it always reflects the current date
+  React.useEffect(() => {
+    const today = getFreshToday();
+    setFormData(prev => ({ ...prev, date: today }));
+    setSelectedDay(today);
+  }, [getFreshToday]);
 
   // Get the date range for the selected week with ISO week calculation
   const weekDates = getWeekDates(selectedWeek, selectedYear);
@@ -88,7 +91,7 @@ export const usePlannerPage = () => {
   const handleOpenCreateDialog = useCallback((date: string) => {
     setCurrentAssignment(null);
     
-    // FIXED: Ensure we have a valid date - use provided date or today's date with fresh calculation
+    // FIXED: Ensure we have a valid date - use provided date or fresh today's date
     const freshTodayDate = getFreshToday();
     const taskDate = date && date.trim() !== '' ? date : freshTodayDate;
     setSelectedDay(taskDate);
@@ -109,7 +112,7 @@ export const usePlannerPage = () => {
     });
     
     setIsDialogOpen(true);
-  }, [setCurrentAssignment, setIsDialogOpen]);
+  }, [setCurrentAssignment, setIsDialogOpen, getFreshToday]);
 
   const handleOpenEditDialog = useCallback((assignment: Assignment) => {
     console.log("[usePlannerPage] Opening edit dialog with assignment:", assignment);
@@ -156,7 +159,7 @@ export const usePlannerPage = () => {
     
     // Open the dialog to let the user select a new date
     setIsDialogOpen(true);
-  }, [setCurrentAssignment, setIsDialogOpen, toast, t]);
+  }, [setCurrentAssignment, setIsDialogOpen, toast, t, getFreshToday]);
 
   const handleSubmit = useCallback((data: Partial<Assignment>) => {
     console.log("[usePlannerPage] Submitting assignment data:", data);

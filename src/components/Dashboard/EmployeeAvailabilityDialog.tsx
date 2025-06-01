@@ -141,13 +141,26 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     return false;
   };
 
-  // FIXED: Much improved function to get employee assignment status with proper priority
+  // ENHANCED: Comprehensive function to get employee status with all required labels
   const getEmployeeStatus = (employee: Employee) => {
     const isOnVacation = isEmployeeOnVacation(employee.id, viewedDate);
     const isOnLeave = employee.onLeave;
     
-    if (isOnVacation) return { status: 'vacation', label: t('dashboard.onVacation'), color: 'bg-orange-100 text-orange-800', hasEndTimeAtSixteen: false };
-    if (isOnLeave) return { status: 'leave', label: t('dashboard.onLeave'), color: 'bg-red-100 text-red-800', hasEndTimeAtSixteen: false };
+    // PRIORITY 1: Vacation status (orange)
+    if (isOnVacation) return { 
+      status: 'vacation', 
+      label: 'Holder fri', 
+      color: 'bg-orange-100 text-orange-800 border-orange-200', 
+      hasEndTimeAtSixteen: false 
+    };
+    
+    // PRIORITY 2: Unavailable/On leave status (red)
+    if (isOnLeave) return { 
+      status: 'leave', 
+      label: 'Fraværende', 
+      color: 'bg-red-100 text-red-800 border-red-200', 
+      hasEndTimeAtSixteen: false 
+    };
 
     const employeeAssignments = assignments.filter(assignment => {
       const assignmentDate = new Date(assignment.date);
@@ -160,11 +173,17 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
              assignment.employees.includes(employee.name);
     });
 
+    // PRIORITY 3: No assignments (green)
     if (employeeAssignments.length === 0) {
-      return { status: 'available', label: t('dashboard.available'), color: 'bg-green-100 text-green-800', hasEndTimeAtSixteen: false };
+      return { 
+        status: 'available', 
+        label: 'Ledig', 
+        color: 'bg-green-100 text-green-800 border-green-200', 
+        hasEndTimeAtSixteen: false 
+      };
     }
 
-    // PRIORITY 1: Check for exact 16:00 end time - this should be RED
+    // PRIORITY 4: Check for exact 16:00 end time - this should be RED
     const hasEndTimeAtSixteen = employeeAssignments.some(assignment => {
       const originalTime = assignment.toTime;
       const normalizedEndTime = normalizeTime(originalTime);
@@ -184,7 +203,7 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     if (hasEndTimeAtSixteen) {
       return { 
         status: 'fullyBooked', 
-        label: t('dashboard.fullyBooked'), 
+        label: 'Ikke ledig', 
         color: '!bg-red-600 !text-white !border-red-700', 
         hasEndTimeAtSixteen: true 
       };
@@ -199,20 +218,25 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
       }
     });
 
-    // PRIORITY 2: Check if fully booked for entire workday
+    // PRIORITY 5: Check if fully booked for entire workday
     const dayOfWeek = new Date(viewedDate).getDay();
     const fullyBooked = isEmployeeFullyBookedForDay(employeeAssignments, dayOfWeek);
     
     if (fullyBooked) {
-      return { status: 'fullyBooked', label: t('dashboard.fullyBooked'), color: 'bg-red-100 text-red-800', hasEndTimeAtSixteen: false };
+      return { 
+        status: 'fullyBooked', 
+        label: 'Ikke ledig', 
+        color: 'bg-red-100 text-red-800 border-red-200', 
+        hasEndTimeAtSixteen: false 
+      };
     }
 
-    // PRIORITY 3: YELLOW - Partially booked (show "booket til kl. XX:XX")
+    // PRIORITY 6: YELLOW - Partially booked (show "Ledig fra kl. XX:XX")
     const formattedTime = latestEndTime.substring(0, 5); // Remove seconds if present
     return { 
       status: 'partiallyAvailable', 
-      label: `Booket til kl. ${formattedTime}`, 
-      color: 'bg-yellow-100 text-yellow-800',
+      label: `Ledig fra kl. ${formattedTime}`, 
+      color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
       hasEndTimeAtSixteen: false
     };
   };

@@ -50,7 +50,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
   };
 
   // ENHANCED: Much improved function to check if a car is in use on the current date
-  const isCarInUse = (carId: string): { isAssigned: boolean; hasEndTimeAtSixteen: boolean } => {
+  const isCarInUse = (carId: string): { isAssigned: boolean; hasEndTimeAtSixteen: boolean; latestEndTime: string } => {
     const currentDateObj = new Date(currentDate);
     currentDateObj.setHours(0, 0, 0, 0);
     
@@ -72,6 +72,15 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
     
     console.log(`[CarSelector] Car ${carId} assignments on ${currentDate}:`, carAssignments);
     
+    // Get the latest end time for this car
+    let latestEndTime = "00:00";
+    carAssignments.forEach(assignment => {
+      const normalizedTime = normalizeTime(assignment.toTime);
+      if (normalizedTime > latestEndTime) {
+        latestEndTime = normalizedTime;
+      }
+    });
+    
     // ENHANCED: Much better 16:00 end time detection with robust normalization
     const hasEndTimeAtSixteen = carAssignments.some(assignment => {
       const originalTime = assignment.toTime;
@@ -87,10 +96,12 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
     });
     
     console.log(`[CarSelector] Car ${carId} has 16:00 end time: ${hasEndTimeAtSixteen}`);
+    console.log(`[CarSelector] Car ${carId} latest end time: ${latestEndTime}`);
     
     return { 
       isAssigned: carAssignments.length > 0, 
-      hasEndTimeAtSixteen 
+      hasEndTimeAtSixteen,
+      latestEndTime
     };
   };
 
@@ -148,7 +159,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                             : 'bg-yellow-100 text-yellow-800 border-yellow-200'
                         }`}
                       >
-                        {t('cars.inUse')}
+                        {t('cars.inUse', { time: carUsage.latestEndTime })}
                       </Badge>
                     )}
                   </div>

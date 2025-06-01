@@ -1,41 +1,52 @@
 
-
 const cars = {
-  title: "Biler",
-  description: "Administrer biler og deres status",
-  addVehicle: "Tilføj bil",
-  vehicleName: "Navn",
-  carNumber: 'Bil nummer',
-  numberPlate: 'Nummerplade',
-  fuelCardCode: 'Tankkort kode',
-  editVehicle: 'Rediger bil',
-  addNewVehicle: 'Tilføj Ny Bil',
-  updateVehicleInfo: 'Opdater bilens informationer.',
-  addNewVehicleDesc: 'Tilføj en ny bil til afdelingen.',
-  vehicleUpdated: 'Bil opdateret',
-  vehicleAdded: 'Bil tilføjet',
-  vehicleDeleted: 'Bilen er slettet.',
-  vehicleUpdatedMsg: '{name}\'s informationer er opdateret.',
-  vehicleAddedMsg: '{name} er blevet tilføjet til afdelingen.',
-  vehicleDeletedMsg: '{name} er blevet slettet fra afdelingen.',
-  hasTrailerHitch: 'Har anhængertræk',
-  isAvailable: 'Tilgængelighed',
-  markAvailable: 'Marker som Ledig',
+  title: 'Bil Administration',
+  description: 'Administrer firmaets køretøjer og deres tilgængelighed',
+  addNewCar: 'Tilføj Ny Bil',
+  editCar: 'Rediger Bil',
+  deleteCar: 'Slet Bil',
+  markAvailable: 'Marker som Tilgængelig',
   markUnavailable: 'Marker som Utilgængelig',
-  vehicleAvailable: 'Bil Ledig',
-  vehicleUnavailable: 'Bil Utilgængelig',
-  vehicleAvailableMsg: '{name} er nu markeret som ledig.',
-  vehicleUnavailableMsg: '{name} er nu markeret som utilgængelig.',
-  unavailabilityReason: 'Skriv en årsag til gvorfor bilen er utilgængelig..',
-  enterNote: 'Skriv note...',
-  keepNoteQuestion: 'Vil du beholde denne note eller slette den?',
-  keepNote: 'Behold Note',
-  deleteNote: 'Slet Note',
+  confirmDelete: 'Bekræft Sletning',
+  deleteWarning: 'Er du sikker på, at du vil slette denne bil? Denne handling kan ikke fortrydes.',
+  availabilityWarning: 'Er du sikker på, at du vil ændre tilgængeligheden af denne bil?',
+  
+  // Form fields
+  carName: 'Bil Navn',
+  carNumber: 'Bil Nummer',
+  numberPlate: 'Nummerplade',
+  fuelCardCode: 'Tankkortkode',
+  hasTrailerHitch: 'Har Anhængertræk',
   notes: 'Noter',
-  notesFeatureUnavailable: 'Funktionen for notater er ikke klar. Bilens tilgængelighed er opdateret.',
-  noCar: 'Ingen bil valgt',
-  inUse: 'I brug indtil {time}.',
+  
+  // Status
+  available: 'Tilgængelig',
+  unavailable: 'Utilgængelig',
+  inUse: 'I brug ind til {time}',
+  
+  // Actions
+  save: 'Gem',
+  cancel: 'Annuller',
+  delete: 'Slet',
+  edit: 'Rediger',
+  
+  // Messages
+  carAdded: 'Bil tilføjet',
+  carUpdated: 'Bil opdateret',
+  carDeleted: 'Bil slettet',
+  carMarkedAvailable: 'Bil markeret som tilgængelig',
+  carMarkedUnavailable: 'Bil markeret som utilgængelig',
+  
+  // Placeholders
+  enterCarName: 'Indtast bil navn',
+  enterCarNumber: 'Indtast bil nummer',
+  enterNumberPlate: 'Indtast nummerplade',
+  enterFuelCardCode: 'Indtast tankkortkode',
+  enterNotes: 'Indtast noter (valgfrit)',
+  
+  // Selection
+  selectCar: 'Vælg en bil',
+  noCar: 'Ingen bil'
 };
 
 export default cars;
-

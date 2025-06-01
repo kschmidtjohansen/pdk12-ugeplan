@@ -1,4 +1,5 @@
 
+
 const admin = {
   title: 'Admin Dashboard',
   description: 'System administration og indstillinger',
@@ -23,8 +24,8 @@ const admin = {
   systemHealth: {
     title: 'System Status',
     assignmentPublishing: 'Opgave Publicering',
-    vehicleUtilization: 'Køretøj Udnyttelse',
-    staffAvailability: 'Medarbejder Tilgængelighed',
+    vehicleUtilization: 'Køretøjer',
+    staffAvailability: 'Medarbejdere',
     allAssignmentsPublished: 'Alle opgaver publiceret',
     unpublishedTasks: '{count} upublicerede',
     vehiclesInUse: '{inUse}/{total} køretøjer i brug',
@@ -32,9 +33,9 @@ const admin = {
   },
   quickActions: {
     title: 'Hurtige Handlinger',
-    viewPlanner: 'Se Planner',
+    viewPlanner: 'Ugeplan',
     manageStaff: 'Administrer Medarbejdere',
-    fleetManagement: 'Flåde Administration',
+    fleetManagement: 'Administrer Biler',
     vacationRequests: 'Ferieansøgninger'
   },
   systemMetrics: {
@@ -101,3 +102,4 @@ const admin = {
 };
 
 export default admin;
+

@@ -1,292 +1,162 @@
-import React, { useState, useEffect } from 'react';
-import { useVacations } from '@/hooks/useVacations';
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Calendar, Users, Car, Clock } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
+import { useVacations } from '@/hooks/useVacations';
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
-import { useViewSpecificFilters } from '@/hooks/useViewSpecificFilters';
-import { usePermissions } from '@/context/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from '@/context/TranslationContext';
-import { format, addDays, isToday } from 'date-fns';
-import { da } from 'date-fns/locale';
-import { 
-  UserCheck, CarFront, CheckSquare, UserX, ChevronRight
-} from 'lucide-react';
-
-import UpcomingVacationsWidget from './UpcomingVacationsWidget';
+import { usePermissions } from '@/context/AuthContext';
+import { format } from 'date-fns';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
-import UnassignedResourcesWidget from './UnassignedResourcesWidget';
 
 const DashboardMetrics: React.FC = () => {
-  const { vacations } = useVacations();
+  const { isAdmin, isSkadeleder } = usePermissions();
+  const { t } = useTranslation();
   const { employees } = useEmployees();
   const { cars } = useCars();
+  const { vacations } = useVacations();
   const { assignments } = usePlannerAssignments();
-  const { filterForDashboard } = useViewSpecificFilters();
-  const { isAdmin, isSkadeleder } = usePermissions();
-  const { t, currentLanguage } = useTranslation();
-
-  // Add state for dialogs
-  const [availableEmployeesDialogOpen, setAvailableEmployeesDialogOpen] = useState(false);
-  const [unavailableEmployeesDialogOpen, setUnavailableEmployeesDialogOpen] = useState(false);
-  const [viewDate, setViewDate] = useState(new Date());
-  // Add a state for unavailable employees view date
-  const [unavailableViewDate, setUnavailableViewDate] = useState(new Date());
-
-  // Show metrics only for admin and skadeleder roles
-  const shouldShowMetrics = isAdmin || isSkadeleder;
-
-  // Filter assignments using dashboard-specific filter - FIXED: Only pass assignments
-  const filteredAssignments = filterForDashboard(assignments);
-
-  // Filter out admin and skadeleder users from employee counts
-  const filteredEmployees = employees.filter(e => 
-    e.role !== 'administrator' && e.role !== 'skadeleder'
-  );
   
-  // Format today's date for comparison
+  const [availabilityDialogOpen, setAvailabilityDialogOpen] = useState(false);
+  const [unavailableDialogOpen, setUnavailableDialogOpen] = useState(false);
+
+  // Only show for admin or skadeleder
+  if (!isAdmin && !isSkadeleder) {
+    return null;
+  }
+
   const today = format(new Date(), 'yyyy-MM-dd');
-  const todayAssignments = filteredAssignments.filter(a => a.date === today).length;
-  
-  // Helper function to check if an employee is available on a specific date
-  const isEmployeeAvailableOnDate = (employeeId: string, checkDate: string): boolean => {
-    // Check if employee is on leave
-    const employee = employees.find(e => e.id === employeeId);
-    if (!employee || employee.onLeave) return false;
-    
-    // Check if employee is on vacation
-    const isOnVacation = vacations.some(v => 
-      v.employeeId === employeeId && 
-      v.status === 'approved' && 
-      format(v.startDate, 'yyyy-MM-dd') <= checkDate && 
-      format(v.endDate, 'yyyy-MM-dd') > checkDate
-    );
-    
-    if (isOnVacation) return false;
-    
-    return true;
-  };
 
-  // Helper function to check if an employee is unavailable on a specific date
-  const isEmployeeUnavailableOnDate = (employeeId: string, checkDate: string): boolean => {
-    // Check if employee is on leave
-    const employee = employees.find(e => e.id === employeeId);
-    if (!employee) return false;
+  // Helper function to check if an employee is on vacation today
+  const isEmployeeOnVacationToday = (employeeId: string) => {
+    const todayDate = new Date(today);
+    todayDate.setHours(0, 0, 0, 0);
     
-    // Employee is unavailable if they are on leave
-    if (employee.onLeave) return true;
-    
-    // Check if employee is on vacation
-    const isOnVacation = vacations.some(v => 
-      v.employeeId === employeeId && 
-      v.status === 'approved' && 
-      format(v.startDate, 'yyyy-MM-dd') <= checkDate && 
-      format(v.endDate, 'yyyy-MM-dd') > checkDate
-    );
-    
-    return isOnVacation;
-  };
-
-  // Get all assignments for today (using filtered assignments for dashboard view)
-  const todayAssignmentsList = filteredAssignments.filter(a => a.date === today);
-  
-  // Get employees who are assigned to tasks today
-  const assignedEmployeesIds = todayAssignmentsList.flatMap(a => 
-    a.employees.map(name => {
-      const employee = employees.find(e => e.name === name);
-      return employee ? employee.id : '';
-    }).filter(id => id !== '')
-  );
-  
-  // Calculate metrics - only counting regular employees
-  // An employee is available if they are not on leave, not on vacation, and not assigned to a task today
-  const availableEmployees = filteredEmployees.filter(e => 
-    isEmployeeAvailableOnDate(e.id, today) && 
-    !assignedEmployeesIds.includes(e.id)
-  );
-  
-  // Get unavailable employees for the currently viewed date (for the dialog)
-  const getUnavailableEmployeesForDate = (checkDate: string) => {
-    return filteredEmployees.filter(e => isEmployeeUnavailableOnDate(e.id, checkDate));
-  };
-  
-  // Get unavailable employees for today (for the dashboard card)
-  const onLeaveEmployees = getUnavailableEmployeesForDate(today);
-  
-  const availableEmployeesCount = availableEmployees.length;
-  const onLeaveEmployeesCount = onLeaveEmployees.length;
-  const totalFilteredEmployees = filteredEmployees.length;
-  
-  // Filter cars to only include those marked as available
-  const availableCarsCount = cars.filter(car => car.is_available).length;
-  const totalCarsCount = cars.length;
-
-  // Format today's date with proper locale
-  const getFormattedToday = () => {
-    try {
-      // Use Danish locale if the current language is Danish
-      const locale = currentLanguage === 'da' ? da : undefined;
-      const dateStr = format(new Date(), 'PPP', { locale });
+    return vacations.some(vacation => {
+      if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
+        return false;
+      }
       
-      // Capitalize first letter for Danish dates
-      if (currentLanguage === 'da') {
-        return dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+      const startDate = new Date(vacation.startDate);
+      const endDate = new Date(vacation.endDate);
+      
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+      
+      return todayDate >= startDate && todayDate <= endDate;
+    });
+  };
+
+  // Calculate available employees (not on leave and not on vacation)
+  const availableEmployees = employees.filter(employee => 
+    !employee.onLeave && !isEmployeeOnVacationToday(employee.id)
+  );
+
+  // FIXED: Calculate unavailable employees (only those on leave or on vacation)
+  const unavailableEmployees = employees.filter(employee => 
+    employee.onLeave || isEmployeeOnVacationToday(employee.id)
+  );
+
+  // Calculate cars in use today
+  const carsInUseToday = assignments
+    .filter(a => a.date === today && a.car)
+    .reduce((uniqueCars, assignment) => {
+      const carId = typeof assignment.car === 'string' ? assignment.car : assignment.car?.id;
+      if (carId && !uniqueCars.includes(carId)) {
+        uniqueCars.push(carId);
       }
-      return dateStr;
-    } catch (e) {
-      console.error("Error formatting today's date:", e);
-      return format(new Date(), 'PPP');
+      return uniqueCars;
+    }, [] as string[]).length;
+
+  const availableCars = cars.filter(car => car.is_available).length;
+
+  const metrics = [
+    {
+      title: t('dashboard.metrics.availableEmployees'),
+      value: availableEmployees.length,
+      subtitle: `${employees.length} ${t('admin.quickStats.total')}`,
+      icon: <Users className="h-6 w-6" />,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      onClick: () => setAvailabilityDialogOpen(true)
+    },
+    {
+      title: t('dashboard.metrics.unavailableEmployees'),
+      value: unavailableEmployees.length,
+      subtitle: t('dashboard.metrics.unavailableSubtitle'),
+      icon: <Users className="h-6 w-6" />,
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+      onClick: () => setUnavailableDialogOpen(true)
+    },
+    {
+      title: t('dashboard.metrics.availableCars'),
+      value: availableCars,
+      subtitle: `${cars.length} ${t('admin.quickStats.total')}`,
+      icon: <Car className="h-6 w-6" />,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50'
+    },
+    {
+      title: t('dashboard.metrics.carsInUse'),
+      value: carsInUseToday,
+      subtitle: t('dashboard.metrics.carsInUseSubtitle'),
+      icon: <Car className="h-6 w-6" />,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50'
     }
-  };
+  ];
 
-  // Helper function to handle date changes for available employees dialog
-  const handleAvailableDateChange = (direction: 'prev' | 'next') => {
-    setViewDate(prevDate => {
-      const newDate = new Date(prevDate);
-      if (direction === 'prev') {
-        newDate.setDate(newDate.getDate() - 1);
-      } else {
-        newDate.setDate(newDate.getDate() + 1);
-      }
-      return newDate;
-    });
-  };
-
-  // Helper function to handle date changes for unavailable employees dialog
-  const handleUnavailableDateChange = (direction: 'prev' | 'next') => {
-    setUnavailableViewDate(prevDate => {
-      const newDate = new Date(prevDate);
-      if (direction === 'prev') {
-        newDate.setDate(newDate.getDate() - 1);
-      } else {
-        newDate.setDate(newDate.getDate() + 1);
-      }
-      return newDate;
-    });
-  };
-
-  // Use the translations directly from the translation context
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {shouldShowMetrics && (
-          <>
-            <Card 
-              className="cursor-pointer hover:border-polygon-blue transition-colors"
-              onClick={() => {
-                setViewDate(new Date());
-                setAvailableEmployeesDialogOpen(true);
-              }}
-            >
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t('dashboard.availableEmployees')}
-                </CardTitle>
-                <UserCheck className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{availableEmployeesCount}</div>
-                <p className="text-xs text-muted-foreground">
-                  {t('dashboard.totalEmployees', { count: totalFilteredEmployees })}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t('dashboard.todaysDate', { date: getFormattedToday() })}
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card 
-              className="cursor-pointer hover:border-polygon-blue transition-colors"
-              onClick={() => {
-                setUnavailableViewDate(new Date());
-                setUnavailableEmployeesDialogOpen(true);
-              }}
-            >
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t('dashboard.onLeaveEmployees')}
-                </CardTitle>
-                <UserX className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{onLeaveEmployeesCount}</div>
-                <p className="text-xs text-muted-foreground">
-                  {t('dashboard.totalEmployees', { count: totalFilteredEmployees })}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t('dashboard.todaysDate', { date: getFormattedToday() })}
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t('dashboard.availableCars')}
-                </CardTitle>
-                <CarFront className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{availableCarsCount}</div>
-                <p className="text-xs text-muted-foreground">
-                  {t('dashboard.totalCars', { count: totalCarsCount })}
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t('dashboard.todayAssignments')}
-                </CardTitle>
-                <CheckSquare className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{todayAssignments}</div>
-                <p className="text-xs text-muted-foreground">
-                  {t('dashboard.scheduledToday')}
-                </p>
-              </CardContent>
-            </Card>
-          </>
-        )}
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {metrics.map((metric, index) => (
+          <Card 
+            key={index}
+            className={`${metric.onClick ? 'cursor-pointer hover:shadow-md transition-all duration-200 hover:border-polygon-blue' : ''}`}
+            onClick={metric.onClick}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">{metric.title}</p>
+                  <p className="text-2xl font-bold">{metric.value}</p>
+                  <p className="text-xs text-muted-foreground">{metric.subtitle}</p>
+                </div>
+                <div className={`p-3 rounded-full ${metric.bgColor} ${metric.color}`}>
+                  {metric.icon}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Unassigned resources widget is now moved to planner page */}
-      {shouldShowMetrics && (
-        <UnassignedResourcesWidget />
-      )}
+      {/* Employee Availability Dialog */}
+      <EmployeeAvailabilityDialog
+        open={availabilityDialogOpen}
+        onOpenChange={setAvailabilityDialogOpen}
+        employees={availableEmployees}
+        assignments={assignments}
+        vacations={vacations}
+        selectedDate={today}
+        title={t('dashboard.metrics.availableEmployees')}
+      />
 
-      {/* Show upcoming vacations widget only for admin and skadeleder */}
-      {shouldShowMetrics && (
-        <UpcomingVacationsWidget vacations={vacations} />
-      )}
-
-      {/* Employee availability dialogs */}
-      {shouldShowMetrics && (
-        <>
-          <EmployeeAvailabilityDialog 
-            open={availableEmployeesDialogOpen}
-            onOpenChange={setAvailableEmployeesDialogOpen}
-            employees={filteredEmployees}
-            assignments={filteredAssignments}
-            vacations={vacations}
-            selectedDate={format(viewDate, 'yyyy-MM-dd')}
-            title={t('dashboard.availableEmployees')}
-          />
-
-          <EmployeeAvailabilityDialog 
-            open={unavailableEmployeesDialogOpen}
-            onOpenChange={setUnavailableEmployeesDialogOpen}
-            employees={filteredEmployees}
-            assignments={filteredAssignments}
-            vacations={vacations}
-            selectedDate={format(unavailableViewDate, 'yyyy-MM-dd')}
-            title={t('dashboard.onLeaveEmployees')}
-          />
-        </>
-      )}
-    </div>
+      {/* Unavailable Employees Dialog */}
+      <EmployeeAvailabilityDialog
+        open={unavailableDialogOpen}
+        onOpenChange={setUnavailableDialogOpen}
+        employees={unavailableEmployees}
+        assignments={assignments}
+        vacations={vacations}
+        selectedDate={today}
+        title={t('dashboard.metrics.unavailableEmployees')}
+      />
+    </>
   );
 };
 
