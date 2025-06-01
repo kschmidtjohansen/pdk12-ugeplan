@@ -1,12 +1,5 @@
-
 import React from 'react';
-import {
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
 import { EmployeeSelector } from './EmployeeSelector';
@@ -25,7 +18,6 @@ import { Employee } from '../../types/employee';
 import { Vacation } from '../../types/vacation';
 import { Assignment } from '../../types/assignment';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
 interface AssignmentFormProps {
   currentAssignment: any | null;
   formData: any;
@@ -41,7 +33,6 @@ interface AssignmentFormProps {
   currentDate: string;
   assignments?: Assignment[];
 }
-
 const AssignmentForm: React.FC<AssignmentFormProps> = ({
   currentAssignment,
   formData,
@@ -55,10 +46,13 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   handleSubmit,
   onClose,
   currentDate,
-  assignments = [],
+  assignments = []
 }) => {
-  const { t, currentLanguage } = useTranslation();
-  
+  const {
+    t,
+    currentLanguage
+  } = useTranslation();
+
   // Create a function to handle field changes
   const handleFieldChange = (field: string, value: any) => {
     if (field === 'title' || field === 'location') {
@@ -84,37 +78,45 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       handleSelectChange(field, value);
     }
   };
-
-  const assignmentTypes = [
-    { value: 'ordinary_damage', label: t('planner.assignmentTypes.ordinary_damage') },
-    { value: 'flood_damage', label: t('planner.assignmentTypes.flood_damage') },
-    { value: 'roof_damage', label: t('planner.assignmentTypes.roof_damage') },
-    { value: 'storm_damage', label: t('planner.assignmentTypes.storm_damage') },
-    { value: 'fire_damage', label: t('planner.assignmentTypes.fire_damage') },
-    { value: 'other', label: t('planner.assignmentTypes.other') }
-  ];
+  const assignmentTypes = [{
+    value: 'ordinary_damage',
+    label: t('planner.assignmentTypes.ordinary_damage')
+  }, {
+    value: 'flood_damage',
+    label: t('planner.assignmentTypes.flood_damage')
+  }, {
+    value: 'roof_damage',
+    label: t('planner.assignmentTypes.roof_damage')
+  }, {
+    value: 'storm_damage',
+    label: t('planner.assignmentTypes.storm_damage')
+  }, {
+    value: 'fire_damage',
+    label: t('planner.assignmentTypes.fire_damage')
+  }, {
+    value: 'other',
+    label: t('planner.assignmentTypes.other')
+  }];
 
   // Format date with Danish locale
   const formatDateDisplay = (date: Date) => {
     try {
       const locale = currentLanguage === 'da' ? da : undefined;
-      return format(date, "PPP", { locale });
+      return format(date, "PPP", {
+        locale
+      });
     } catch (e) {
       console.error("Error formatting date:", e);
       return format(date, "PPP");
     }
   };
-
   const selectedDate = formData.date ? new Date(formData.date) : undefined;
-
   console.log("AssignmentForm - Current formData:", formData);
   console.log("AssignmentForm - Selected employees:", selectedEmployees);
   console.log("AssignmentForm - Cars data:", cars);
   console.log("AssignmentForm - Employees data:", employees);
   console.log("AssignmentForm - Current date:", currentDate);
-  
-  return (
-    <DialogContent className="max-w-md">
+  return <DialogContent className="max-w-md">
       <ScrollArea className="max-h-[80vh] pr-4">
         <div className="p-1">
           <DialogHeader>
@@ -122,9 +124,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               {currentAssignment ? t("planner.editAssignment") : t("planner.newAssignment")}
             </DialogTitle>
             <DialogDescription>
-              {currentAssignment
-                ? t("planner.updateDetails")
-                : t("planner.addAssignment")}
+              {currentAssignment ? t("planner.updateDetails") : t("planner.addAssignment")}
             </DialogDescription>
           </DialogHeader>
           
@@ -133,25 +133,13 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             {/* Title Field */}
             <div className="space-y-2">
               <Label htmlFor="title">{t('planner.enterTitle')}</Label>
-              <Input
-                id="title"
-                value={formData.title || ''}
-                onChange={(e) => handleFieldChange('title', e.target.value)}
-                placeholder={t('planner.enterTitle')}
-                required
-              />
+              <Input id="title" value={formData.title || ''} onChange={e => handleFieldChange('title', e.target.value)} placeholder={t('planner.enterTitle')} required />
             </div>
 
             {/* Location Field */}
             <div className="space-y-2">
               <Label htmlFor="location">{t('planner.location')}</Label>
-              <Input
-                id="location"
-                value={formData.location || ''}
-                onChange={(e) => handleFieldChange('location', e.target.value)}
-                placeholder={t('planner.enterLocation')}
-                required
-              />
+              <Input id="location" value={formData.location || ''} onChange={e => handleFieldChange('location', e.target.value)} placeholder={t('planner.enterLocation')} required />
             </div>
 
             {/* Date Field */}
@@ -159,22 +147,13 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               <Label>{t('planner.assignmentDate')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
+                  <Button variant="outline" className="w-full justify-start text-left font-normal">
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {selectedDate ? formatDateDisplay(selectedDate) : t('common.selectDate')}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => handleFieldChange('date', date ? format(date, 'yyyy-MM-dd') : '')}
-                    initialFocus
-                    locale={currentLanguage === 'da' ? da : undefined}
-                  />
+                  <Calendar mode="single" selected={selectedDate} onSelect={date => handleFieldChange('date', date ? format(date, 'yyyy-MM-dd') : '')} initialFocus locale={currentLanguage === 'da' ? da : undefined} />
                 </PopoverContent>
               </Popover>
             </div>
@@ -183,102 +162,46 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="fromTime">{t('planner.startTime')}</Label>
-                <Input
-                  id="fromTime"
-                  type="time"
-                  value={formData.fromTime || ''}
-                  onChange={(e) => handleFieldChange('fromTime', e.target.value)}
-                  required
-                />
+                <Input id="fromTime" type="time" value={formData.fromTime || ''} onChange={e => handleFieldChange('fromTime', e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="toTime">{t('planner.endTime')}</Label>
-                <Input
-                  id="toTime"
-                  type="time"
-                  value={formData.toTime || ''}
-                  onChange={(e) => handleFieldChange('toTime', e.target.value)}
-                  required
-                />
+                <Input id="toTime" type="time" value={formData.toTime || ''} onChange={e => handleFieldChange('toTime', e.target.value)} required />
               </div>
             </div>
 
             {/* Assignment Type */}
-            <div className="space-y-2">
-              <Label>{t('planner.type')}</Label>
-              <Select value={formData.type || ''} onValueChange={(value) => handleFieldChange('type', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('planner.selectType')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {assignmentTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            
 
             {/* REORDERED: Employee selector moved up */}
             <div className="space-y-2">
               <h3 className="text-sm font-medium">{t('planner.employees')}</h3>
-              <EmployeeSelector
-                employees={employees}
-                selectedEmployees={selectedEmployees}
-                onToggle={handleEmployeeToggle}
-                vacations={vacations}
-                currentDate={currentDate || formData.date}
-                assignments={assignments}
-              />
+              <EmployeeSelector employees={employees} selectedEmployees={selectedEmployees} onToggle={handleEmployeeToggle} vacations={vacations} currentDate={currentDate || formData.date} assignments={assignments} />
             </div>
 
             {/* REORDERED: Car selector after employee selector */}
             <div className="space-y-2">
               <Label>{t('planner.selectCar')}</Label>
-              <CarSelector
-                cars={cars}
-                selectedCarId={formData.car === '' ? 'none' : formData.car || 'none'}
-                onCarSelect={(value) => handleFieldChange('car', value)}
-                currentDate={formData.date ? format(new Date(formData.date), 'yyyy-MM-dd') : currentDate}
-                assignments={assignments}
-                currentAssignmentId={currentAssignment?.id}
-              />
+              <CarSelector cars={cars} selectedCarId={formData.car === '' ? 'none' : formData.car || 'none'} onCarSelect={value => handleFieldChange('car', value)} currentDate={formData.date ? format(new Date(formData.date), 'yyyy-MM-dd') : currentDate} assignments={assignments} currentAssignmentId={currentAssignment?.id} />
             </div>
 
             {/* REORDERED: Description Field moved to bottom */}
             <div className="space-y-2">
               <Label htmlFor="description">{t('planner.description')}</Label>
-              <Textarea
-                id="description"
-                value={formData.description || ''}
-                onChange={(e) => handleFieldChange('description', e.target.value)}
-                placeholder={t('planner.notesPlaceholder')}
-                rows={3}
-              />
+              <Textarea id="description" value={formData.description || ''} onChange={e => handleFieldChange('description', e.target.value)} placeholder={t('planner.notesPlaceholder')} rows={3} />
             </div>
             
             <DialogFooter className="pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onClose}
-              >
+              <Button type="button" variant="outline" onClick={onClose}>
                 {t("common.cancel")}
               </Button>
-              <Button 
-                type="submit"
-                className="bg-polygon-purple hover:bg-polygon-darkpurple"
-                disabled={!selectedEmployees || selectedEmployees.length === 0}
-              >
+              <Button type="submit" className="bg-polygon-purple hover:bg-polygon-darkpurple" disabled={!selectedEmployees || selectedEmployees.length === 0}>
                 {currentAssignment ? t("planner.saveChanges") : t("planner.createAssignment")}
               </Button>
             </DialogFooter>
           </form>
         </div>
       </ScrollArea>
-    </DialogContent>
-  );
+    </DialogContent>;
 };
-
 export default AssignmentForm;
