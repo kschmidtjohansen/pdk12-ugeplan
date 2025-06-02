@@ -22,11 +22,11 @@ export const useViewSpecificFilters = () => {
       // AND their own unpublished assignments
       if (user.role === 'servicemedarbejder') {
         const isAssignedToUser = assignment.employees && assignment.employees.includes(user.name);
-        console.log(`[useViewSpecificFilters] Assignment ${assignment.id} (${assignment.location}) - Published: ${assignment.published}, User ${user.name} assigned: ${isAssignedToUser}, Employees: [${assignment.employees?.join(', ') || 'none'}]`);
+        console.log(`[useViewSpecificFilters] Assignment ${assignment.id} (${assignment.location}) - Published: ${assignment.published}, User ${user.name} assigned: ${isAssignedToUser}, All employees: [${assignment.employees?.join(', ') || 'none'}]`);
         
-        // Show ALL published assignments (so they can see all published tasks with all employee names)
+        // FIXED: Show ALL published assignments (so they can see all published tasks with all employee names)
         // PLUS any unpublished assignments they are assigned to
-        const shouldShow = assignment.published || isAssignedToUser;
+        const shouldShow = assignment.published || (isAssignedToUser && !assignment.published);
         console.log(`[useViewSpecificFilters] Assignment ${assignment.id} (${assignment.location}) - Should show: ${shouldShow}`);
         
         return shouldShow;

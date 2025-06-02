@@ -21,7 +21,7 @@ export const useAssignmentData = () => {
       
       console.log('[useAssignmentData] Starting to fetch assignments...');
       
-      // Get all assignments with car information
+      // Get all assignments with car information and employee data in one query
       const { data, error } = await supabase
         .from('assignments')
         .select(`
@@ -36,112 +36,67 @@ export const useAssignmentData = () => {
           published,
           created_at,
           updated_at,
-          cars:car_id (id, name, car_number)
+          cars:car_id (id, name, car_number),
+          assignments_employees!inner (
+            user_id,
+            profiles!inner (id, name)
+          )
         `);
       
       if (error) throw error;
       
+      console.log('[useAssignmentData] Raw Supabase response:', data);
+      
       if (data) {
-        console.log('[useAssignmentData] Fetched raw assignments:', data.length);
+        // Group assignments by ID and aggregate employee names
+        const assignmentMap = new Map<string, any>();
         
-        // Now fetch the employees for each assignment with enhanced logging
-        const assignmentsWithEmployees = await Promise.all(data.map(async (assignment) => {
-          console.log(`[useAssignmentData] Processing assignment ${assignment.id} - ${assignment.location}`);
+        data.forEach(row => {
+          const assignmentId = row.id;
           
-          // For each assignment, get associated employees
-          try {
-            const { data: employeeJoins, error: empJoinError } = await supabase
-              .from('assignments_employees')
-              .select('user_id')
-              .eq('assignment_id', assignment.id);
-              
-            if (empJoinError) {
-              throw empJoinError;
-            }
-            
-            console.log(`[useAssignmentData] Assignment ${assignment.id} has ${employeeJoins?.length || 0} employee joins`);
-            
-            // Extract user IDs
-            const userIds = employeeJoins?.map(join => join.user_id) || [];
-            
-            // Get employee names if there are user IDs
-            let employeeNames: string[] = [];
-            
-            if (userIds.length > 0) {
-              const { data: empData, error: empError } = await supabase
-                .from('profiles')
-                .select('id, name')
-                .in('id', userIds);
-                
-              if (empError) {
-                throw empError;
-              }
-              
-              // Store complete employee names for consistent handling
-              employeeNames = empData?.map(emp => emp.name) || [];
-              console.log(`[useAssignmentData] Assignment ${assignment.id} (${assignment.location}) employees:`, employeeNames);
-            } else {
-              console.log(`[useAssignmentData] Assignment ${assignment.id} (${assignment.location}) has NO employees assigned`);
-            }
-            
-            // Return formatted assignment with employee names
-            const formattedAssignment = {
-              id: assignment.id,
-              title: assignment.title,
-              description: assignment.description || '',
-              date: assignment.assignment_date,
-              fromTime: assignment.from_time,
-              toTime: assignment.to_time,
-              location: assignment.location,
-              car: assignment.cars ? {
-                id: assignment.cars.id,
-                name: assignment.cars.name,
-                car_number: assignment.cars.car_number
-              } : null,
-              employees: employeeNames,
-              published: assignment.published || false
-            };
-            
-            console.log(`[useAssignmentData] Final formatted assignment ${assignment.id}:`, {
-              location: formattedAssignment.location,
-              published: formattedAssignment.published,
-              employeeCount: formattedAssignment.employees.length,
-              employees: formattedAssignment.employees
-            });
-            
-            return formattedAssignment;
-          } catch (empError) {
-            console.error(`[useAssignmentData] Error fetching employees for assignment ${assignment.id}:`, empError);
-            // Return assignment without employees on error
-            return {
-              id: assignment.id,
-              title: assignment.title,
-              description: assignment.description || '',
-              date: assignment.assignment_date,
-              fromTime: assignment.from_time,
-              toTime: assignment.to_time,
-              location: assignment.location,
-              car: assignment.cars ? {
-                id: assignment.cars.id,
-                name: assignment.cars.name,
-                car_number: assignment.cars.car_number
+          if (!assignmentMap.has(assignmentId)) {
+            assignmentMap.set(assignmentId, {
+              id: row.id,
+              title: row.title,
+              description: row.description || '',
+              date: row.assignment_date,
+              fromTime: row.from_time,
+              toTime: row.to_time,
+              location: row.location,
+              car: row.cars ? {
+                id: row.cars.id,
+                name: row.cars.name,
+                car_number: row.cars.car_number
               } : null,
               employees: [],
-              published: assignment.published || false
-            };
+              published: row.published || false
+            });
           }
-        }));
+          
+          // Add employee name if it exists and isn't already added
+          if (row.assignments_employees?.profiles?.name) {
+            const assignment = assignmentMap.get(assignmentId);
+            const employeeName = row.assignments_employees.profiles.name;
+            
+            if (!assignment.employees.includes(employeeName)) {
+              assignment.employees.push(employeeName);
+            }
+          }
+        });
         
-        console.log('[useAssignmentData] Final processed assignments with employees:', assignmentsWithEmployees.length);
-        console.log('[useAssignmentData] Assignment details:', assignmentsWithEmployees.map(a => ({
+        const processedAssignments = Array.from(assignmentMap.values());
+        
+        console.log('[useAssignmentData] Processed assignments with aggregated employees:', processedAssignments.map(a => ({
           id: a.id,
           location: a.location,
           published: a.published,
-          employeeCount: a.employees.length,
           employees: a.employees
         })));
         
-        setAssignments(assignmentsWithEmployees);
+        setAssignments(processedAssignments);
+      } else {
+        console.log('[useAssignmentData] No assignment data returned');
+        setAssignments([]);
       }
     } catch (err) {
       console.error('[useAssignmentData] Error fetching assignments:', err);
@@ -174,7 +129,7 @@ export const useAssignmentData = () => {
         },
         () => {
           console.log('[useAssignmentData] Assignment table changed, refreshing...');
-          fetchAssignments(); // Refresh when changes occur
+          fetchAssignments();
         }
       )
       .on(
@@ -186,7 +141,7 @@ export const useAssignmentData = () => {
         },
         () => {
           console.log('[useAssignmentData] Assignment employees table changed, refreshing...');
-          fetchAssignments(); // Refresh when employee assignments change
+          fetchAssignments();
         }
       )
       .subscribe();

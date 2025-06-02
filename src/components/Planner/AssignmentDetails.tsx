@@ -23,7 +23,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // ENHANCED: Always show all employee names for ALL assignments (no role-based filtering)
+  // FIXED: Always show all employee names for ALL assignments (no role-based filtering)
   const displayEmployees = () => {
     console.log(`[AssignmentDetails] Displaying employees for assignment ${assignment.id} (${assignment.location}):`, {
       employees: assignment.employees,
@@ -32,7 +32,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
     });
     
     if (assignment.employees && assignment.employees.length > 0) {
-      // ALWAYS show all employee names - removed all role-based filtering
+      // ALWAYS show all employee names - no filtering based on user role or assignment status
       const allEmployees = assignment.employees.join(', ');
       console.log(`[AssignmentDetails] Showing all employees: "${allEmployees}"`);
       return allEmployees;
