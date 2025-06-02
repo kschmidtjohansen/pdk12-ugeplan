@@ -199,7 +199,7 @@ const DashboardPage: React.FC = () => {
                     </span>
                   </div>
                   
-                  {/* FIXED: Correct order for servicemedarbejdere - description, then case number, car, time, employees */}
+                  {/* Description */}
                   {assignment.description && (
                     <p className="text-sm text-gray-600 mb-2 text-left">{assignment.description}</p>
                   )}
@@ -224,7 +224,7 @@ const DashboardPage: React.FC = () => {
                       </span>
                     </div>
                     
-                    {/* Employees */}
+                    {/* FIXED: Always show ALL employees for dashboard Mine opgaver */}
                     {assignment.employees && assignment.employees.length > 0 && (
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-gray-500" />

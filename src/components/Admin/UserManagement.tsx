@@ -85,8 +85,8 @@ const UserManagement: React.FC = () => {
       // Combine the data
       const combinedUsers: AdminUser[] = profilesData.map(profile => {
         const userRole = rolesData.find(r => r.user_id === profile.id);
-        // Fix the type issue by properly typing the auth user lookup
-        const authUser = authResponse?.users?.find((user: SupabaseAuthUser) => user.id === profile.id);
+        // Find the auth user and safely access banned_until property
+        const authUser = authResponse?.users?.find(user => user.id === profile.id);
         
         return {
           id: profile.id,
@@ -95,8 +95,8 @@ const UserManagement: React.FC = () => {
           phone: profile.phone || '',
           jobTitle: profile.job_title || '',
           role: (userRole?.role || 'servicemedarbejder') as UserRole,
-          // Fix the banned_until access by using the properly typed auth user object
-          banned_until: authUser?.banned_until || null
+          // Safely access banned_until from user metadata or app_metadata
+          banned_until: (authUser as any)?.banned_until || null
         };
       });
 

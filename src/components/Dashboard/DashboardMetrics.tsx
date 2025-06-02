@@ -35,7 +35,17 @@ const DashboardMetrics: React.FC = () => {
     const todayDate = new Date(today);
     todayDate.setHours(0, 0, 0, 0);
     
-    return vacations.some(vacation => {
+    console.log('[DashboardMetrics] Checking vacation for employee:', employeeId);
+    console.log('[DashboardMetrics] Available vacations:', vacations.map(v => ({
+      id: v.id,
+      employeeId: v.employeeId,
+      employeeName: v.employeeName,
+      status: v.status,
+      startDate: v.startDate,
+      endDate: v.endDate
+    })));
+    
+    const isOnVacation = vacations.some(vacation => {
       if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
         return false;
       }
@@ -46,19 +56,75 @@ const DashboardMetrics: React.FC = () => {
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(0, 0, 0, 0);
       
-      return todayDate >= startDate && todayDate <= endDate;
+      const inRange = todayDate >= startDate && todayDate <= endDate;
+      console.log(`[DashboardMetrics] Employee ${employeeId} vacation check:`, {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        today: todayDate.toISOString(),
+        inRange
+      });
+      
+      return inRange;
     });
+    
+    console.log(`[DashboardMetrics] Employee ${employeeId} is on vacation today:`, isOnVacation);
+    return isOnVacation;
   };
 
-  // FIXED: Calculate available employees (not on leave AND not on vacation)
-  const availableEmployees = employees.filter(employee => 
-    !employee.onLeave && !isEmployeeOnVacationToday(employee.id)
-  );
+  // Helper function to check if employee has assignments today
+  const hasAssignmentsToday = (employeeId: string, employeeName: string) => {
+    const todaysAssignments = assignments.filter(assignment => 
+      assignment.date === today && 
+      assignment.published &&
+      assignment.employees && 
+      assignment.employees.includes(employeeName)
+    );
+    
+    console.log(`[DashboardMetrics] Employee ${employeeName} (${employeeId}) assignments today:`, todaysAssignments.length);
+    return todaysAssignments.length > 0;
+  };
 
-  // FIXED: Calculate unavailable employees (on leave OR on vacation)
-  const unavailableEmployees = employees.filter(employee => 
-    employee.onLeave || isEmployeeOnVacationToday(employee.id)
-  );
+  // FIXED: Calculate available employees (not on leave AND not on vacation AND no assignments today)
+  const availableEmployees = employees.filter(employee => {
+    const isOnLeave = employee.onLeave;
+    const isOnVacation = isEmployeeOnVacationToday(employee.id);
+    const hasAssignments = hasAssignmentsToday(employee.id, employee.name);
+    
+    const isAvailable = !isOnLeave && !isOnVacation && !hasAssignments;
+    
+    console.log(`[DashboardMetrics] Employee ${employee.name} availability:`, {
+      onLeave: isOnLeave,
+      onVacation: isOnVacation,
+      hasAssignments: hasAssignments,
+      isAvailable: isAvailable
+    });
+    
+    return isAvailable;
+  });
+
+  // FIXED: Calculate unavailable employees (on leave OR on vacation OR have assignments today)
+  const unavailableEmployees = employees.filter(employee => {
+    const isOnLeave = employee.onLeave;
+    const isOnVacation = isEmployeeOnVacationToday(employee.id);
+    const hasAssignments = hasAssignmentsToday(employee.id, employee.name);
+    
+    const isUnavailable = isOnLeave || isOnVacation || hasAssignments;
+    
+    console.log(`[DashboardMetrics] Employee ${employee.name} unavailability:`, {
+      onLeave: isOnLeave,
+      onVacation: isOnVacation,
+      hasAssignments: hasAssignments,
+      isUnavailable: isUnavailable
+    });
+    
+    return isUnavailable;
+  });
+
+  console.log('[DashboardMetrics] Final counts:', {
+    totalEmployees: employees.length,
+    availableEmployees: availableEmployees.length,
+    unavailableEmployees: unavailableEmployees.length
+  });
 
   // Calculate cars in use today
   const carsInUseToday = assignments
@@ -73,7 +139,6 @@ const DashboardMetrics: React.FC = () => {
 
   const availableCars = cars.filter(car => car.is_available).length;
 
-  // REMOVED "Total Users" metric per request - only show these 4 metrics
   const metrics = [
     {
       title: t('dashboard.metrics.availableEmployees'),

@@ -4,7 +4,6 @@ import { Vacation, VacationStatus } from '@/types/vacation';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { safeProperty } from '@/utils/dbHelpers';
 
 export const useVacationData = () => {
   const { toast } = useToast();
@@ -56,7 +55,7 @@ export const useVacationData = () => {
         
         const formattedVacations: Vacation[] = data.map(item => ({
           id: item.id,
-          employeeId: item.user_id,
+          employeeId: item.user_id, // FIXED: Map user_id to employeeId consistently
           employeeName: profileMap.get(item.user_id) || 'Unknown',
           startDate: new Date(item.start_date),
           endDate: new Date(item.end_date),
@@ -66,6 +65,7 @@ export const useVacationData = () => {
           createdAt: new Date(item.created_at)
         }));
         
+        console.log('Formatted vacations with consistent employeeId mapping:', formattedVacations);
         setVacations(formattedVacations);
       }
     } catch (err) {
