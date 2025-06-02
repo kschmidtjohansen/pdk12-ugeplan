@@ -141,7 +141,7 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     return false;
   };
 
-  // ENHANCED: Comprehensive function to get employee status with all required labels
+  // ENHANCED: Comprehensive function to get employee status with updated Danish labels
   const getEmployeeStatus = (employee: Employee) => {
     const isOnVacation = isEmployeeOnVacation(employee.id, viewedDate);
     const isOnLeave = employee.onLeave;
@@ -203,7 +203,7 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     if (hasEndTimeAtSixteen) {
       return { 
         status: 'fullyBooked', 
-        label: 'Ikke ledig', 
+        label: 'Ikke ledig', // Updated label
         color: '!bg-red-600 !text-white !border-red-700', 
         hasEndTimeAtSixteen: true 
       };
@@ -225,17 +225,17 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     if (fullyBooked) {
       return { 
         status: 'fullyBooked', 
-        label: 'Ikke ledig', 
+        label: 'Ikke ledig', // Updated label
         color: 'bg-red-100 text-red-800 border-red-200', 
         hasEndTimeAtSixteen: false 
       };
     }
 
-    // PRIORITY 6: YELLOW - Partially booked (show "Ledig fra kl. XX:XX")
+    // PRIORITY 6: YELLOW - Partially booked (show "Ledig efter kl. XX:XX")
     const formattedTime = latestEndTime.substring(0, 5); // Remove seconds if present
     return { 
       status: 'partiallyAvailable', 
-      label: `Ledig fra kl. ${formattedTime}`, 
+      label: `Ledig efter kl. ${formattedTime}`, // Updated label format
       color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
       hasEndTimeAtSixteen: false
     };

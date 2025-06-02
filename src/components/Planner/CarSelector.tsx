@@ -49,28 +49,66 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
     return time.trim();
   };
 
-  // ENHANCED: Much improved function to check if a car is in use on the current date
+  // COMPREHENSIVE FIX: Improved function to check if a car is in use with consistent date parsing
   const isCarInUse = (carId: string): { isAssigned: boolean; hasEndTimeAtSixteen: boolean; latestEndTime: string } => {
-    const currentDateObj = new Date(currentDate);
-    currentDateObj.setHours(0, 0, 0, 0);
+    // ROBUST date parsing - handle both YYYY-MM-DD and DD/MM/YYYY formats
+    let targetDateStr: string;
+    try {
+      // Convert currentDate to consistent YYYY-MM-DD format
+      if (currentDate.includes('/')) {
+        // Handle DD/MM/YYYY format
+        const [day, month, year] = currentDate.split('/');
+        targetDateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      } else if (currentDate.includes('T')) {
+        // Handle ISO datetime format
+        targetDateStr = currentDate.split('T')[0];
+      } else {
+        // Assume YYYY-MM-DD format
+        targetDateStr = currentDate;
+      }
+      
+      console.log(`[CarSelector] Date conversion: "${currentDate}" -> "${targetDateStr}"`);
+    } catch (e) {
+      console.error(`[CarSelector] Error parsing currentDate: ${currentDate}`, e);
+      targetDateStr = new Date().toISOString().split('T')[0]; // Fallback to today
+    }
     
     const carAssignments = assignments.filter(assignment => {
       if (currentAssignmentId && assignment.id === currentAssignmentId) {
         return false; // Exclude current assignment being edited
       }
       
-      const assignmentDateObj = new Date(assignment.date);
-      assignmentDateObj.setHours(0, 0, 0, 0);
+      // Normalize assignment date to YYYY-MM-DD format
+      let assignmentDateStr: string;
+      try {
+        if (assignment.date.includes('T')) {
+          assignmentDateStr = assignment.date.split('T')[0];
+        } else if (assignment.date.includes('/')) {
+          const [day, month, year] = assignment.date.split('/');
+          assignmentDateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        } else {
+          assignmentDateStr = assignment.date;
+        }
+      } catch (e) {
+        console.error(`[CarSelector] Error parsing assignment date: ${assignment.date}`, e);
+        assignmentDateStr = assignment.date;
+      }
       
-      const isOnDate = assignmentDateObj.getTime() === currentDateObj.getTime();
+      const isOnDate = assignmentDateStr === targetDateStr;
       const isAssigned = assignment.car && (
         typeof assignment.car === 'string' ? assignment.car === carId : assignment.car.id === carId
       );
       
+      console.log(`[CarSelector] Assignment ${assignment.id} for car ${carId}:`);
+      console.log(`  - Assignment date: "${assignment.date}" -> normalized: "${assignmentDateStr}"`);
+      console.log(`  - Target date: "${targetDateStr}"`);
+      console.log(`  - Date match: ${isOnDate}`);
+      console.log(`  - Car assigned: ${isAssigned}`);
+      
       return isOnDate && isAssigned;
     });
     
-    console.log(`[CarSelector] Car ${carId} assignments on ${currentDate}:`, carAssignments);
+    console.log(`[CarSelector] Car ${carId} assignments on ${targetDateStr}:`, carAssignments);
     
     // Get the latest end time for this car
     let latestEndTime = "00:00";

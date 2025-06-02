@@ -73,6 +73,7 @@ const DashboardMetrics: React.FC = () => {
 
   const availableCars = cars.filter(car => car.is_available).length;
 
+  // REMOVED "Total Users" metric per request
   const metrics = [
     {
       title: t('dashboard.metrics.availableEmployees'),

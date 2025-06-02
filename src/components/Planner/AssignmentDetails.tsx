@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Car, Clock, Tag, Users } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
@@ -22,9 +23,10 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // Show all employee names for all user types - no restrictions
+  // FIXED: Show all employee names for ALL user types including servicemedarbejder
   const displayEmployees = () => {
     if (assignment.employees && assignment.employees.length > 0) {
+      // Always show employee names - no role restrictions
       return assignment.employees.join(', ');
     }
     return t('planner.unassigned');

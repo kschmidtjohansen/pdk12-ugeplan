@@ -49,6 +49,15 @@ const dashboard = {
       title: "Biler",
       description: "Se biler"
     }
+  },
+  // Add comprehensive metrics translations
+  metrics: {
+    availableEmployees: "Ledige medarbejdere",
+    unavailableEmployees: "Ikke ledige medarbejdere",
+    unavailableSubtitle: "På ferie eller fraværende",
+    availableCars: "Tilgængelige biler",
+    carsInUse: "Biler i brug",
+    carsInUseSubtitle: "I dag"
   }
 };
 

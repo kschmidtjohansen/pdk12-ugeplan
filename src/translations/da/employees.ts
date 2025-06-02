@@ -44,6 +44,9 @@ const employees = {
   updateError: 'En fejl er opstået ved ændring af medarbejderen\'s status.',
   selectEmployees: 'Vælg servicemedarbejdere',
   selected: 'valgt',
+  // Updated employee status labels
+  fullyBooked: 'Ikke ledig',
+  availableAfter: 'Ledig efter kl. {time}'
 };
 
 export default employees;

@@ -44,7 +44,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   currentDate,
   assignments = []
 }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -110,33 +110,47 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     return false;
   };
 
-  // FIXED: Much improved function to check employee availability with proper status determination
+  // COMPREHENSIVE FIX: Improved function to check employee availability with consistent date parsing
   const checkEmployeeAvailability = (employeeName: string): EmployeeAvailabilityInfo => {
-    // FIXED: Better date parsing with proper timezone handling
-    let currentDateObj: Date;
+    // ROBUST date parsing - handle both YYYY-MM-DD and DD/MM/YYYY formats
+    let targetDateStr: string;
     try {
-      // Parse the date properly to avoid timezone issues
-      const dateStr = currentDate.includes('T') ? currentDate.split('T')[0] : currentDate;
-      currentDateObj = new Date(dateStr + 'T12:00:00'); // Use noon to avoid timezone edge cases
-      
-      console.log(`[EmployeeSelector] Parsing date: "${currentDate}" -> "${dateStr}" -> ${currentDateObj.toISOString()}`);
-      
-      if (isNaN(currentDateObj.getTime())) {
-        console.error(`[EmployeeSelector] Invalid currentDate: ${currentDate}`);
-        currentDateObj = new Date(); // Fallback to today
+      // Convert currentDate to consistent YYYY-MM-DD format
+      if (currentDate.includes('/')) {
+        // Handle DD/MM/YYYY format
+        const [day, month, year] = currentDate.split('/');
+        targetDateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      } else if (currentDate.includes('T')) {
+        // Handle ISO datetime format
+        targetDateStr = currentDate.split('T')[0];
+      } else {
+        // Assume YYYY-MM-DD format
+        targetDateStr = currentDate;
       }
+      
+      console.log(`[EmployeeSelector] Date conversion: "${currentDate}" -> "${targetDateStr}"`);
     } catch (e) {
       console.error(`[EmployeeSelector] Error parsing currentDate: ${currentDate}`, e);
-      currentDateObj = new Date(); // Fallback to today
+      targetDateStr = new Date().toISOString().split('T')[0]; // Fallback to today
     }
     
-    // FIXED: Better date comparison using normalized date strings
-    const targetDateStr = currentDateObj.toISOString().split('T')[0]; // YYYY-MM-DD format
-    
-    // Filter assignments for this employee on the current date with improved date comparison
+    // Filter assignments for this employee on the target date with robust date comparison
     const employeeAssignments = assignments.filter(assignment => {
       // Normalize assignment date to YYYY-MM-DD format
-      const assignmentDateStr = assignment.date.includes('T') ? assignment.date.split('T')[0] : assignment.date;
+      let assignmentDateStr: string;
+      try {
+        if (assignment.date.includes('T')) {
+          assignmentDateStr = assignment.date.split('T')[0];
+        } else if (assignment.date.includes('/')) {
+          const [day, month, year] = assignment.date.split('/');
+          assignmentDateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        } else {
+          assignmentDateStr = assignment.date;
+        }
+      } catch (e) {
+        console.error(`[EmployeeSelector] Error parsing assignment date: ${assignment.date}`, e);
+        assignmentDateStr = assignment.date;
+      }
       
       const isOnDate = assignmentDateStr === targetDateStr;
       const isAssigned = assignment.employees && assignment.employees.includes(employeeName);
@@ -197,29 +211,35 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         isFullyBooked: true,
         hasEndTimeAtSixteen: true,
         status: 'fullyBooked',
-        statusText: t('planner.fullyBooked'),
+        statusText: t('employees.fullyBooked'), // Updated translation key
         badgeColor: '!bg-red-600 !text-white !border-red-700'
       };
     }
     
     // PRIORITY 2: Check if fully booked for the workday
-    const dayOfWeek = currentDateObj.getDay();
-    const fullyBooked = isEmployeeFullyBookedForDay(employeeAssignments, dayOfWeek);
-    
-    if (fullyBooked) {
-      return { 
-        isAssigned: true, 
-        availableAt: undefined,
-        latestAssignmentEndTime: latestEndTime,
-        isFullyBooked: true,
-        hasEndTimeAtSixteen: false,
-        status: 'fullyBooked',
-        statusText: t('planner.fullyBooked'),
-        badgeColor: 'bg-red-100 text-red-800 border-red-200'
-      };
+    try {
+      const targetDate = new Date(targetDateStr + 'T12:00:00');
+      const dayOfWeek = targetDate.getDay();
+      const fullyBooked = isEmployeeFullyBookedForDay(employeeAssignments, dayOfWeek);
+      
+      if (fullyBooked) {
+        return { 
+          isAssigned: true, 
+          availableAt: undefined,
+          latestAssignmentEndTime: latestEndTime,
+          isFullyBooked: true,
+          hasEndTimeAtSixteen: false,
+          status: 'fullyBooked',
+          statusText: t('employees.fullyBooked'), // Updated translation key
+          badgeColor: 'bg-red-100 text-red-800 border-red-200'
+        };
+      }
+    } catch (e) {
+      console.error('Error checking if fully booked:', e);
     }
     
-    // PRIORITY 3: Yellow for partially booked (booked until a specific time)
+    // PRIORITY 3: YELLOW - Partially booked (show "Ledig efter kl. XX:XX")
+    const formattedTime = latestEndTime.substring(0, 5); // Remove seconds if present
     return { 
       isAssigned: true, 
       availableAt: latestEndTime,
@@ -227,15 +247,23 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       isFullyBooked: false,
       hasEndTimeAtSixteen: false,
       status: 'partiallyBooked',
-      statusText: `Booket til kl. ${latestEndTime}`,
+      statusText: t('employees.availableAfter', { time: formattedTime }), // Updated translation key
       badgeColor: 'bg-yellow-100 text-yellow-800 border-yellow-200'
     };
   };
 
-  // FIXED: Better date parsing for vacation check
+  // ROBUST date parsing for vacation check
   const dateForComparison = (() => {
     try {
-      const dateStr = currentDate.includes('T') ? currentDate.split('T')[0] : currentDate;
+      let dateStr: string;
+      if (currentDate.includes('/')) {
+        const [day, month, year] = currentDate.split('/');
+        dateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      } else if (currentDate.includes('T')) {
+        dateStr = currentDate.split('T')[0];
+      } else {
+        dateStr = currentDate;
+      }
       return new Date(dateStr + 'T12:00:00');
     } catch (e) {
       console.error('Error parsing date for vacation check:', e);
