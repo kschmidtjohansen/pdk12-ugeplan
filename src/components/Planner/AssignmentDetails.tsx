@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Car, Clock, Tag, Users } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
@@ -22,12 +23,22 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // FIXED: Always show all employee names for published assignments
+  // ENHANCED: Always show all employee names for ALL assignments (no role-based filtering)
   const displayEmployees = () => {
+    console.log(`[AssignmentDetails] Displaying employees for assignment ${assignment.id} (${assignment.location}):`, {
+      employees: assignment.employees,
+      employeeCount: assignment.employees?.length || 0,
+      published: assignment.published
+    });
+    
     if (assignment.employees && assignment.employees.length > 0) {
-      // For published assignments, ALWAYS show all employee names - no filtering based on user role
-      return assignment.employees.join(', ');
+      // ALWAYS show all employee names - removed all role-based filtering
+      const allEmployees = assignment.employees.join(', ');
+      console.log(`[AssignmentDetails] Showing all employees: "${allEmployees}"`);
+      return allEmployees;
     }
+    
+    console.log(`[AssignmentDetails] No employees found, showing unassigned`);
     return t('planner.unassigned');
   };
   

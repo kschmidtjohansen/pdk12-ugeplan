@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -77,11 +76,22 @@ const DashboardPage: React.FC = () => {
     setSelectedYear(year);
   };
 
-  // Get assignments for the selected week and user using dashboard filter
+  // ENHANCED: Get assignments for the selected week and user using dashboard filter with better logging
   const userWeekAssignments = filterForDashboard(assignments).filter(assignment => {
     // Check if assignment is within the selected week
     const assignmentDate = assignment.date;
-    return assignmentDate >= startDateISO && assignmentDate <= endDateISO;
+    const isInWeek = assignmentDate >= startDateISO && assignmentDate <= endDateISO;
+    
+    console.log(`[DashboardPage] Assignment ${assignment.id} (${assignment.location}):`, {
+      date: assignmentDate,
+      weekStart: startDateISO,
+      weekEnd: endDateISO,
+      isInWeek: isInWeek,
+      employees: assignment.employees,
+      userRole: user?.role
+    });
+    
+    return isInWeek;
   }).sort((a, b) => {
     // Sort by date first (earliest first)
     if (a.date !== b.date) {
@@ -90,6 +100,13 @@ const DashboardPage: React.FC = () => {
     // If same date, sort by fromTime (earliest first)
     return a.fromTime.localeCompare(b.fromTime);
   });
+
+  console.log(`[DashboardPage] Final user week assignments for ${user?.name}:`, userWeekAssignments.map(a => ({
+    id: a.id,
+    location: a.location,
+    employees: a.employees,
+    date: a.date
+  })));
 
   // Format the date based on the current language
   const getFormattedDate = () => {
@@ -190,52 +207,56 @@ const DashboardPage: React.FC = () => {
             </p>
           ) : (
             <div className="grid gap-4">
-              {userWeekAssignments.map(assignment => (
-                <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
-                  <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
-                    <h3 className="font-bold text-lg text-left">{assignment.location}</h3>
-                    <span className="text-sm bg-gray-100 px-2 py-1 rounded-md">
-                      {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
-                    </span>
-                  </div>
-                  
-                  {/* Description */}
-                  {assignment.description && (
-                    <p className="text-sm text-gray-600 mb-2 text-left">{assignment.description}</p>
-                  )}
-                  <p className="text-sm text-gray-600 mb-2 font-medium text-left">{assignment.title}</p>
-                  
-                  <div className="space-y-2">
-                    {/* Car */}
-                    {assignment.car && (
-                      <div className="flex items-center gap-2">
-                        <Car className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-700">
-                          {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {/* Time */}
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">
-                        {assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}
+              {userWeekAssignments.map(assignment => {
+                console.log(`[DashboardPage] Rendering assignment ${assignment.id} (${assignment.location}) with employees:`, assignment.employees);
+                
+                return (
+                  <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
+                    <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
+                      <h3 className="font-bold text-lg text-left">{assignment.location}</h3>
+                      <span className="text-sm bg-gray-100 px-2 py-1 rounded-md">
+                        {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
                       </span>
                     </div>
                     
-                    {/* FIXED: Always show ALL employees for dashboard Mine opgaver */}
-                    {assignment.employees && assignment.employees.length > 0 && (
+                    {/* Description */}
+                    {assignment.description && (
+                      <p className="text-sm text-gray-600 mb-2 text-left">{assignment.description}</p>
+                    )}
+                    <p className="text-sm text-gray-600 mb-2 font-medium text-left">{assignment.title}</p>
+                    
+                    <div className="space-y-2">
+                      {/* Car */}
+                      {assignment.car && (
+                        <div className="flex items-center gap-2">
+                          <Car className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm text-gray-700">
+                            {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {/* Time */}
                       <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-gray-500" />
+                        <Clock className="h-4 w-4 text-gray-500" />
                         <span className="text-sm text-gray-700">
-                          {assignment.employees.join(', ')}
+                          {assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}
                         </span>
                       </div>
-                    )}
+                      
+                      {/* ENHANCED: Always show ALL employees for dashboard "Mine opgaver" */}
+                      {assignment.employees && assignment.employees.length > 0 && (
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm text-gray-700">
+                            {assignment.employees.join(', ')}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>

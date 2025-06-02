@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useAuth } from '@/context/AuthContext';
@@ -23,19 +22,38 @@ export const useAssignmentFilters = () => {
     });
   };
 
-  // Dashboard-specific filter - servicemedarbejdere only see their own assignments
+  // ENHANCED: Dashboard-specific filter - servicemedarbejdere only see their own assignments BUT WITH ALL team member names visible
   const filterForDashboard = (assignments: Assignment[], showUnpublished: boolean = false) => {
+    console.log('[useAssignmentFilters] filterForDashboard called with:', {
+      userRole: user?.role,
+      userName: user?.name,
+      totalAssignments: assignments.length,
+      showUnpublished
+    });
+    
     return assignments.filter(assignment => {
       // Administrators and skadeledere can see all assignments
       if (user?.role === 'administrator' || user?.role === 'skadeleder') {
-        return showUnpublished || assignment.published;
+        const shouldShow = showUnpublished || assignment.published;
+        console.log(`[useAssignmentFilters] Admin/Skadeleder - Assignment ${assignment.id} (${assignment.location}) - Should show: ${shouldShow}`);
+        return shouldShow;
       }
       
       // Servicemedarbejdere can only see published assignments assigned to them
+      // BUT they will see ALL team member names on those assignments (not filtered out)
       if (user?.role === 'servicemedarbejder') {
-        return assignment.published === true && 
-               assignment.employees && 
-               assignment.employees.some(employeeName => employeeName === user?.name);
+        const isAssigned = assignment.published === true && 
+                          assignment.employees && 
+                          assignment.employees.some(employeeName => employeeName === user?.name);
+        
+        console.log(`[useAssignmentFilters] Servicemedarbejder - Assignment ${assignment.id} (${assignment.location}):`, {
+          published: assignment.published,
+          employees: assignment.employees,
+          userAssigned: isAssigned,
+          allEmployeesWillBeVisible: assignment.employees
+        });
+        
+        return isAssigned;
       }
       
       return false;

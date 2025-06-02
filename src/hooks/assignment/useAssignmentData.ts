@@ -19,6 +19,8 @@ export const useAssignmentData = () => {
       setLoading(true);
       setError(null);
       
+      console.log('[useAssignmentData] Starting to fetch assignments...');
+      
       // Get all assignments with car information
       const { data, error } = await supabase
         .from('assignments')
@@ -40,10 +42,12 @@ export const useAssignmentData = () => {
       if (error) throw error;
       
       if (data) {
-        console.log("Fetched assignments data:", data);
+        console.log('[useAssignmentData] Fetched raw assignments:', data.length);
         
-        // Now fetch the employees for each assignment
+        // Now fetch the employees for each assignment with enhanced logging
         const assignmentsWithEmployees = await Promise.all(data.map(async (assignment) => {
+          console.log(`[useAssignmentData] Processing assignment ${assignment.id} - ${assignment.location}`);
+          
           // For each assignment, get associated employees
           try {
             const { data: employeeJoins, error: empJoinError } = await supabase
@@ -54,6 +58,8 @@ export const useAssignmentData = () => {
             if (empJoinError) {
               throw empJoinError;
             }
+            
+            console.log(`[useAssignmentData] Assignment ${assignment.id} has ${employeeJoins?.length || 0} employee joins`);
             
             // Extract user IDs
             const userIds = employeeJoins?.map(join => join.user_id) || [];
@@ -73,11 +79,13 @@ export const useAssignmentData = () => {
               
               // Store complete employee names for consistent handling
               employeeNames = empData?.map(emp => emp.name) || [];
-              console.log(`Assignment ${assignment.id} has employees:`, employeeNames);
+              console.log(`[useAssignmentData] Assignment ${assignment.id} (${assignment.location}) employees:`, employeeNames);
+            } else {
+              console.log(`[useAssignmentData] Assignment ${assignment.id} (${assignment.location}) has NO employees assigned`);
             }
             
             // Return formatted assignment with employee names
-            return {
+            const formattedAssignment = {
               id: assignment.id,
               title: assignment.title,
               description: assignment.description || '',
@@ -93,8 +101,17 @@ export const useAssignmentData = () => {
               employees: employeeNames,
               published: assignment.published || false
             };
+            
+            console.log(`[useAssignmentData] Final formatted assignment ${assignment.id}:`, {
+              location: formattedAssignment.location,
+              published: formattedAssignment.published,
+              employeeCount: formattedAssignment.employees.length,
+              employees: formattedAssignment.employees
+            });
+            
+            return formattedAssignment;
           } catch (empError) {
-            console.error('Error fetching employees for assignment:', empError);
+            console.error(`[useAssignmentData] Error fetching employees for assignment ${assignment.id}:`, empError);
             // Return assignment without employees on error
             return {
               id: assignment.id,
@@ -115,11 +132,19 @@ export const useAssignmentData = () => {
           }
         }));
         
-        console.log("Processed assignments with employees:", assignmentsWithEmployees);
+        console.log('[useAssignmentData] Final processed assignments with employees:', assignmentsWithEmployees.length);
+        console.log('[useAssignmentData] Assignment details:', assignmentsWithEmployees.map(a => ({
+          id: a.id,
+          location: a.location,
+          published: a.published,
+          employeeCount: a.employees.length,
+          employees: a.employees
+        })));
+        
         setAssignments(assignmentsWithEmployees);
       }
     } catch (err) {
-      console.error('Error fetching assignments:', err);
+      console.error('[useAssignmentData] Error fetching assignments:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch assignments');
       toast({
         title: t('common.error'),
@@ -148,6 +173,7 @@ export const useAssignmentData = () => {
           table: 'assignments'
         },
         () => {
+          console.log('[useAssignmentData] Assignment table changed, refreshing...');
           fetchAssignments(); // Refresh when changes occur
         }
       )
@@ -159,6 +185,7 @@ export const useAssignmentData = () => {
           table: 'assignments_employees'
         },
         () => {
+          console.log('[useAssignmentData] Assignment employees table changed, refreshing...');
           fetchAssignments(); // Refresh when employee assignments change
         }
       )
