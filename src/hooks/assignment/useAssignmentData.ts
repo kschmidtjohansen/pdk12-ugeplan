@@ -44,28 +44,46 @@ export const useAssignmentData = () => {
       console.log('[useAssignmentData] Raw assignments response:', assignmentsData);
       
       if (assignmentsData) {
-        // Then get assignment-employee relationships with profile data
-        const { data: employeeAssignments, error: employeeError } = await supabase
+        // Get assignment-employee relationships
+        const { data: assignmentEmployees, error: employeeError } = await supabase
           .from('assignments_employees')
-          .select(`
-            assignment_id,
-            user_id,
-            profiles!inner (id, name)
-          `);
+          .select('assignment_id, user_id');
         
         if (employeeError) throw employeeError;
         
-        console.log('[useAssignmentData] Employee assignments response:', employeeAssignments);
+        console.log('[useAssignmentData] Assignment employees response:', assignmentEmployees);
+        
+        // Get all profiles for the users in assignments
+        const userIds = assignmentEmployees?.map(ae => ae.user_id) || [];
+        let profilesData: any[] = [];
+        
+        if (userIds.length > 0) {
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, name')
+            .in('id', userIds);
+          
+          if (profilesError) throw profilesError;
+          profilesData = profiles || [];
+        }
+        
+        console.log('[useAssignmentData] Profiles response:', profilesData);
         
         // Process and combine the data
         const processedAssignments = assignmentsData.map(assignment => {
           // Find all employees for this assignment
-          const assignmentEmployees = employeeAssignments
+          const assignmentEmployeeIds = assignmentEmployees
             ?.filter(emp => emp.assignment_id === assignment.id)
-            ?.map(emp => emp.profiles?.name)
-            ?.filter(name => name) || [];
+            ?.map(emp => emp.user_id) || [];
           
-          console.log(`[useAssignmentData] Assignment ${assignment.id} (${assignment.location}) employees:`, assignmentEmployees);
+          const assignmentEmployeeNames = assignmentEmployeeIds
+            .map(userId => {
+              const profile = profilesData.find(p => p.id === userId);
+              return profile?.name;
+            })
+            .filter(name => name) || [];
+          
+          console.log(`[useAssignmentData] Assignment ${assignment.id} (${assignment.location}) employees:`, assignmentEmployeeNames);
           
           return {
             id: assignment.id,
@@ -80,7 +98,7 @@ export const useAssignmentData = () => {
               name: assignment.cars.name,
               car_number: assignment.cars.car_number
             } : null,
-            employees: assignmentEmployees,
+            employees: assignmentEmployeeNames,
             published: assignment.published || false
           };
         });
