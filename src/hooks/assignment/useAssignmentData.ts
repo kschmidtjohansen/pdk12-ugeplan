@@ -21,9 +21,8 @@ export const useAssignmentData = () => {
       
       console.log('[useAssignmentData] Starting to fetch assignments...');
       
-      // Get all assignments with car information and employee data in one query
-      // Fixed the join to properly reference the user_id relationship
-      const { data, error } = await supabase
+      // First, get all assignments with car information
+      const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('assignments')
         .select(`
           id,
@@ -37,59 +36,56 @@ export const useAssignmentData = () => {
           published,
           created_at,
           updated_at,
-          cars:car_id (id, name, car_number),
-          assignments_employees!inner (
-            user_id,
-            profiles!assignments_employees_user_id_fkey (id, name)
-          )
+          cars:car_id (id, name, car_number)
         `);
       
-      if (error) throw error;
+      if (assignmentsError) throw assignmentsError;
       
-      console.log('[useAssignmentData] Raw Supabase response:', data);
+      console.log('[useAssignmentData] Raw assignments response:', assignmentsData);
       
-      if (data) {
-        // Group assignments by ID and aggregate employee names
-        const assignmentMap = new Map<string, any>();
+      if (assignmentsData) {
+        // Then get assignment-employee relationships with profile data
+        const { data: employeeAssignments, error: employeeError } = await supabase
+          .from('assignments_employees')
+          .select(`
+            assignment_id,
+            user_id,
+            profiles!inner (id, name)
+          `);
         
-        data.forEach(row => {
-          const assignmentId = row.id;
+        if (employeeError) throw employeeError;
+        
+        console.log('[useAssignmentData] Employee assignments response:', employeeAssignments);
+        
+        // Process and combine the data
+        const processedAssignments = assignmentsData.map(assignment => {
+          // Find all employees for this assignment
+          const assignmentEmployees = employeeAssignments
+            ?.filter(emp => emp.assignment_id === assignment.id)
+            ?.map(emp => emp.profiles?.name)
+            ?.filter(name => name) || [];
           
-          if (!assignmentMap.has(assignmentId)) {
-            assignmentMap.set(assignmentId, {
-              id: row.id,
-              title: row.title,
-              description: row.description || '',
-              date: row.assignment_date,
-              fromTime: row.from_time,
-              toTime: row.to_time,
-              location: row.location,
-              car: row.cars ? {
-                id: row.cars.id,
-                name: row.cars.name,
-                car_number: row.cars.car_number
-              } : null,
-              employees: [],
-              published: row.published || false
-            });
-          }
+          console.log(`[useAssignmentData] Assignment ${assignment.id} (${assignment.location}) employees:`, assignmentEmployees);
           
-          // Add employee name if it exists and isn't already added
-          if (row.assignments_employees?.profiles?.name) {
-            const assignment = assignmentMap.get(assignmentId);
-            const employeeName = row.assignments_employees.profiles.name;
-            
-            console.log(`[useAssignmentData] Processing assignment ${assignmentId} (${assignment.location}) - Adding employee: ${employeeName}`);
-            
-            if (!assignment.employees.includes(employeeName)) {
-              assignment.employees.push(employeeName);
-            }
-          }
+          return {
+            id: assignment.id,
+            title: assignment.title,
+            description: assignment.description || '',
+            date: assignment.assignment_date,
+            fromTime: assignment.from_time,
+            toTime: assignment.to_time,
+            location: assignment.location,
+            car: assignment.cars ? {
+              id: assignment.cars.id,
+              name: assignment.cars.name,
+              car_number: assignment.cars.car_number
+            } : null,
+            employees: assignmentEmployees,
+            published: assignment.published || false
+          };
         });
         
-        const processedAssignments = Array.from(assignmentMap.values());
-        
-        console.log('[useAssignmentData] Processed assignments with aggregated employees:', processedAssignments.map(a => ({
+        console.log('[useAssignmentData] Final processed assignments:', processedAssignments.map(a => ({
           id: a.id,
           location: a.location,
           published: a.published,
