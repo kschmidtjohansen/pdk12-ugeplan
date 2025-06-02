@@ -14,6 +14,7 @@ import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowDownAZ, ArrowUpAZ } from 'lucide-react';
+import type { User } from '@supabase/supabase-js';
 
 // Import refactored components
 import UserTable from './UserTable';
@@ -23,11 +24,9 @@ import PasswordChangeDialog from './PasswordChangeDialog';
 import UserStatusDialog from './UserStatusDialog';
 import { AdminUser } from './UserTableRow';
 
-// Define interface for Supabase auth user with banned_until property
-interface SupabaseAuthUser {
-  id: string;
+// Extended interface for Supabase auth user with banned_until property
+interface ExtendedUser extends User {
   banned_until?: string | null;
-  [key: string]: any;
 }
 
 const UserManagement: React.FC = () => {
@@ -85,9 +84,25 @@ const UserManagement: React.FC = () => {
       // Combine the data
       const combinedUsers: AdminUser[] = profilesData.map(profile => {
         const userRole = rolesData.find(r => r.user_id === profile.id);
-        // Find the auth user and safely access banned_until property from user metadata
-        const authUser = authResponse?.users?.find(user => user.id === profile.id);
+        // Find the auth user and safely access banned_until property
+        const authUser = authResponse?.users?.find((user: ExtendedUser) => user.id === profile.id);
         
+        // Helper function to extract banned_until from various sources
+        const getBannedUntil = (user: ExtendedUser | undefined): string | null => {
+          if (!user) return null;
+          
+          // Check direct property first
+          if (user.banned_until) return user.banned_until;
+          
+          // Check user_metadata
+          if (user.user_metadata?.banned_until) return user.user_metadata.banned_until;
+          
+          // Check app_metadata
+          if (user.app_metadata?.banned_until) return user.app_metadata.banned_until;
+          
+          return null;
+        };
+
         return {
           id: profile.id,
           name: profile.name,
@@ -95,8 +110,7 @@ const UserManagement: React.FC = () => {
           phone: profile.phone || '',
           jobTitle: profile.job_title || '',
           role: (userRole?.role || 'servicemedarbejder') as UserRole,
-          // Access banned_until from user metadata or app_metadata where Supabase stores it
-          banned_until: authUser?.banned_until || authUser?.user_metadata?.banned_until || authUser?.app_metadata?.banned_until || null
+          banned_until: getBannedUntil(authUser)
         };
       });
 
