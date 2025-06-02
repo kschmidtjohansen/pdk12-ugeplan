@@ -22,6 +22,7 @@ export const useAssignmentData = () => {
       console.log('[useAssignmentData] Starting to fetch assignments...');
       
       // Get all assignments with car information and employee data in one query
+      // Fixed the join to properly reference the user_id relationship
       const { data, error } = await supabase
         .from('assignments')
         .select(`
@@ -39,7 +40,7 @@ export const useAssignmentData = () => {
           cars:car_id (id, name, car_number),
           assignments_employees!inner (
             user_id,
-            profiles!inner (id, name)
+            profiles!assignments_employees_user_id_fkey (id, name)
           )
         `);
       
@@ -77,6 +78,8 @@ export const useAssignmentData = () => {
           if (row.assignments_employees?.profiles?.name) {
             const assignment = assignmentMap.get(assignmentId);
             const employeeName = row.assignments_employees.profiles.name;
+            
+            console.log(`[useAssignmentData] Processing assignment ${assignmentId} (${assignment.location}) - Adding employee: ${employeeName}`);
             
             if (!assignment.employees.includes(employeeName)) {
               assignment.employees.push(employeeName);
