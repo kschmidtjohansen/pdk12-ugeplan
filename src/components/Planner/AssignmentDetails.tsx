@@ -23,10 +23,14 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // FIXED: Show all employee names for ALL user types including servicemedarbejder
+  // FIXED: Always show all employee names for published assignments regardless of user role
   const displayEmployees = () => {
     if (assignment.employees && assignment.employees.length > 0) {
-      // Always show employee names - no role restrictions
+      // For published assignments, always show all employee names
+      if (assignment.published) {
+        return assignment.employees.join(', ');
+      }
+      // For unpublished assignments, still show the names (admin/skadeleder can see these)
       return assignment.employees.join(', ');
     }
     return t('planner.unassigned');

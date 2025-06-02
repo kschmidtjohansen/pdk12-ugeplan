@@ -13,13 +13,14 @@ import { useToast } from '@/components/ui/use-toast';
 import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowDownAZ, ArrowUpAZ } from 'lucide-react'; // Import sorting icons
+import { ArrowDownAZ, ArrowUpAZ } from 'lucide-react';
 
 // Import refactored components
 import UserTable from './UserTable';
 import UserFormDialog from './UserFormDialog';
 import UserDeleteDialog from './UserDeleteDialog';
 import PasswordChangeDialog from './PasswordChangeDialog';
+import UserStatusDialog from './UserStatusDialog';
 import { AdminUser } from './UserTableRow';
 
 const UserManagement: React.FC = () => {
@@ -30,8 +31,10 @@ const UserManagement: React.FC = () => {
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [isActivating, setIsActivating] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -65,16 +68,26 @@ const UserManagement: React.FC = () => {
         
       if (rolesError) throw rolesError;
       
+      // Get auth user data to check banned_until status
+      const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        console.warn('Could not fetch auth data:', authError);
+      }
+      
       // Combine the data
       const combinedUsers: AdminUser[] = profilesData.map(profile => {
         const userRole = rolesData.find(r => r.user_id === profile.id);
+        const authUser = authData?.users?.find(u => u.id === profile.id);
+        
         return {
           id: profile.id,
           name: profile.name,
           email: profile.email,
           phone: profile.phone || '',
           jobTitle: profile.job_title || '',
-          role: (userRole?.role || 'servicemedarbejder') as UserRole
+          role: (userRole?.role || 'servicemedarbejder') as UserRole,
+          banned_until: authUser?.banned_until || null
         };
       });
 
@@ -166,6 +179,52 @@ const UserManagement: React.FC = () => {
   const handleResetPassword = (user: AdminUser) => {
     setCurrentUser(user);
     setPasswordDialogOpen(true);
+  };
+
+  const handleToggleUserStatus = (user: AdminUser) => {
+    setCurrentUser(user);
+    const isCurrentlyActive = !user.banned_until || new Date(user.banned_until) <= new Date();
+    setIsActivating(!isCurrentlyActive);
+    setStatusDialogOpen(true);
+  };
+
+  const confirmToggleUserStatus = async () => {
+    if (!currentUser) return;
+
+    try {
+      const isCurrentlyActive = !currentUser.banned_until || new Date(currentUser.banned_until) <= new Date();
+      
+      const { error } = await supabase.functions.invoke('admin-user-status', {
+        body: { 
+          userId: currentUser.id, 
+          active: !isCurrentlyActive 
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: isCurrentlyActive 
+          ? t('admin.userManagement.userDeactivated')
+          : t('admin.userManagement.userActivated'),
+        description: isCurrentlyActive 
+          ? t('admin.userManagement.userDeactivatedMsg', { name: currentUser.name })
+          : t('admin.userManagement.userActivatedMsg', { name: currentUser.name }),
+      });
+      
+      // Refresh users list
+      await fetchUsers();
+      setStatusDialogOpen(false);
+    } catch (err) {
+      console.error('Error toggling user status:', err);
+      toast({
+        title: t('common.error'),
+        description: isActivating 
+          ? t('admin.userManagement.activateError')
+          : t('admin.userManagement.deactivateError'),
+        variant: 'destructive',
+      });
+    }
   };
 
   const confirmDeleteUser = async () => {
@@ -329,6 +388,7 @@ const UserManagement: React.FC = () => {
               onEditUser={handleEditUser}
               onDeleteUser={handleDeleteUser}
               onResetPassword={handleResetPassword}
+              onToggleUserStatus={handleToggleUserStatus}
               getRoleLabel={getRoleLabel}
               getInitials={getInitials}
             />
@@ -363,6 +423,15 @@ const UserManagement: React.FC = () => {
           onClose={() => setPasswordDialogOpen(false)}
         />
       </Dialog>
+
+      {/* User Status Toggle Dialog */}
+      <UserStatusDialog
+        open={statusDialogOpen}
+        onOpenChange={setStatusDialogOpen}
+        user={currentUser}
+        onConfirm={confirmToggleUserStatus}
+        isActivating={isActivating}
+      />
     </>
   );
 };

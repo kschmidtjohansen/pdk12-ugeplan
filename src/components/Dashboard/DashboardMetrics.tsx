@@ -50,12 +50,12 @@ const DashboardMetrics: React.FC = () => {
     });
   };
 
-  // Calculate available employees (not on leave and not on vacation)
+  // FIXED: Calculate available employees (not on leave AND not on vacation)
   const availableEmployees = employees.filter(employee => 
     !employee.onLeave && !isEmployeeOnVacationToday(employee.id)
   );
 
-  // FIXED: Calculate unavailable employees (only those on leave or on vacation)
+  // FIXED: Calculate unavailable employees (on leave OR on vacation)
   const unavailableEmployees = employees.filter(employee => 
     employee.onLeave || isEmployeeOnVacationToday(employee.id)
   );
@@ -73,7 +73,7 @@ const DashboardMetrics: React.FC = () => {
 
   const availableCars = cars.filter(car => car.is_available).length;
 
-  // REMOVED "Total Users" metric per request
+  // REMOVED "Total Users" metric per request - only show these 4 metrics
   const metrics = [
     {
       title: t('dashboard.metrics.availableEmployees'),

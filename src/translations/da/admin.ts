@@ -1,105 +1,87 @@
 
-
 const admin = {
-  title: 'Admin Dashboard',
-  description: 'System administration og indstillinger',
-  tabs: {
-    overview: 'System Oversigt',
-    users: 'Brugeradministration'
-  },
+  title: "Administration",
+  description: "Administrer brugere og systemindstillinger",
   systemOverview: {
-    title: 'System Oversigt',
-    description: 'Omfattende systemadministration og overvågning'
+    title: "Systemoversigt",
+    description: "Oversigt over systemets tilstand og ydeevne"
   },
-  quickStats: {
-    totalUsers: 'Brugere i alt',
-    vehicles: 'Køretøjer',
-    pendingVacations: 'Afventende Ferier',
-    todaysTasks: 'Dagens Opgaver',
-    active: 'aktive',
-    available: 'tilgængelige',
-    approved: 'godkendte',
-    total: 'i alt'
-  },
-  systemHealth: {
-    title: 'System Status',
-    assignmentPublishing: 'Opgave Publicering',
-    vehicleUtilization: 'Køretøjer',
-    staffAvailability: 'Medarbejdere',
-    allAssignmentsPublished: 'Alle opgaver publiceret',
-    unpublishedTasks: '{count} upublicerede',
-    vehiclesInUse: '{inUse}/{total} køretøjer i brug',
-    staffAvailable: '{available}/{total} medarbejdere tilgængelige'
-  },
-  quickActions: {
-    title: 'Hurtige Handlinger',
-    viewPlanner: 'Ugeplan',
-    manageStaff: 'Administrer Medarbejdere',
-    fleetManagement: 'Administrer Biler',
-    vacationRequests: 'Ferieansøgninger'
-  },
-  systemMetrics: {
-    totalUsers: 'Antal Brugere',
-    totalUsersDesc: '{count} aktive i dag',
-    vehicles: 'Køretøjer',
-    vehiclesDesc: '{count} i brug nu',
-    vacationRequests: 'Ferieansøgninger',
-    vacationRequestsDesc: 'afventer godkendelse',
-    scheduledTasks: 'Planlagte Opgaver',
-    scheduledTasksDesc: 'Opgaver for denne uge'
+  tabs: {
+    overview: "Oversigt",
+    users: "Brugere"
   },
   userManagement: {
-    title: 'Brugeradministration',
-    description: 'Administrer systembrugere og deres tilladelser',
-    addUser: 'Tilføj Bruger',
-    name: 'Navn',
-    email: 'Email',
-    role: 'Rolle',
-    phone: 'Telefonnummer',
-    position: 'Position',
-    actions: 'Handlinger',
-    editUser: 'Rediger Bruger',
-    addNewUser: 'Tilføj Ny Bruger',
-    updateInfo: 'Opdater brugeroplysninger og tilladelser.',
-    createAccount: 'Opret en ny brugerkonto.',
-    fullName: 'Fulde Navn',
-    selectRole: 'Vælg en rolle',
-    userUpdated: 'Bruger opdateret',
-    userAdded: 'Bruger tilføjet',
-    userDeleted: 'Bruger slettet',
-    userUpdateMsg: '{name}\'s oplysninger er blevet opdateret.',
-    userAddedMsg: '{name} er blevet tilføjet som {role}.',
-    userDeletedMsg: '{name}\'s konto er blevet fjernet.',
-    deleteConfirm: 'Er du sikker?',
-    deleteWarning: 'Du er ved at slette {name}\'s konto. Denne handling kan ikke fortrydes.',
-    createSuccess: 'Bruger oprettet succesfuldt',
-    updateSuccess: 'Bruger opdateret succesfuldt',
-    createError: 'Fejl ved oprettelse af bruger',
-    updateError: 'Fejl ved opdatering af bruger'
-  },
-  passwords: {
-    changePassword: 'Skift adgangskode',
-    resetPasswordFor: 'Rediger adgangskode for denne medarbejder',
-    enterNewPassword: 'Indtast ny adgangskode for denne medarbejder',
-    newPassword: 'Ny adgangskode',
-    confirmPassword: 'Bekræft adgangskode',
-    resetPassword: 'Nulstil adgangskode',
-    resetting: 'Nulstiller...',
-    resetSuccess: 'Adgangskode nustillet',
-    resetDescription: '{name}\'s adgangskode er nu nulstillet',
-    resetError: 'Fejl. Kunne ikke nulstille adgangskoden. Prøv igen.',
-    passwordMismatch: 'Adgangskoderne stemmer ikke overens',
-    passwordMinLength: 'Adgangskoden skal være mindst 8 tegn lang',
-    passwordChanged: 'Adgangskode ændret',
-    passwordChangedMsg: 'Adgangskoden er blevet ændret.',
-    passwordTooShort: 'Adgangskode for kort. Skal indeholde 6 tegn.'
+    title: "Brugerstyring",
+    description: "Administrer brugere, roller og tilladelser",
+    addUser: "Tilføj Bruger",
+    editUser: "Rediger Bruger",
+    deleteUser: "Slet Bruger",
+    name: "Navn",
+    email: "Email",
+    role: "Rolle",
+    actions: "Handlinger",
+    fetchError: "Fejl ved indlæsning af brugere",
+    userAdded: "Bruger tilføjet",
+    userUpdated: "Bruger opdateret",
+    userDeleted: "Bruger slettet",
+    userAddedMsg: "{name} blev tilføjet som {role}",
+    userUpdateMsg: "{name}s oplysninger blev opdateret",
+    createError: "Fejl ved oprettelse af bruger",
+    updateError: "Fejl ved opdatering af bruger",
+    deleteError: "Fejl ved sletning af bruger",
+    deactivateUser: "Deaktiver Bruger",
+    activateUser: "Aktiver Bruger",
+    userDeactivated: "Bruger deaktiveret",
+    userActivated: "Bruger aktiveret",
+    userDeactivatedMsg: "{name} kan ikke længere logge ind",
+    userActivatedMsg: "{name} kan nu logge ind igen",
+    deactivateError: "Fejl ved deaktivering af bruger",
+    activateError: "Fejl ved aktivering af bruger",
+    confirmDeactivate: "Er du sikker på, at du vil deaktivere {name}?",
+    confirmActivate: "Er du sikker på, at du vil aktivere {name}?",
+    deactivateWarning: "Brugeren vil ikke kunne logge ind, indtil de aktiveres igen.",
+    active: "Aktiv",
+    inactive: "Inaktiv"
   },
   roles: {
-    administrator: 'Administrator',
-    skadeleder: 'Skadeleder',
-    servicemedarbejder: 'Servicemedarbejder'
+    administrator: "Administrator",
+    skadeleder: "Skadeleder",
+    servicemedarbejder: "Servicemedarbejder"
+  },
+  passwords: {
+    resetPassword: "Nulstil Adgangskode",
+    resetPasswordFor: "Nulstil adgangskode for {name}",
+    passwordReset: "Adgangskode nulstillet",
+    passwordResetMsg: "En ny adgangskode er sendt til {email}",
+    resetError: "Fejl ved nulstilling af adgangskode"
+  },
+  quickStats: {
+    totalUsers: "Medarbejdere",
+    vehicles: "Køretøjer",
+    pendingVacations: "Afventende ferier",
+    todaysTasks: "Dagens opgaver",
+    active: "aktive",
+    available: "tilgængelige",
+    approved: "godkendte",
+    total: "i alt"
+  },
+  systemHealth: {
+    title: "Systemstatus",
+    assignmentPublishing: "Opgave Publicering",
+    vehicleUtilization: "Køretøj Anvendelse",
+    staffAvailability: "Medarbejder Tilgængelighed",
+    allAssignmentsPublished: "Alle opgaver er publiceret",
+    unpublishedTasks: "{count} opgaver er ikke publiceret",
+    vehiclesInUse: "{inUse} af {total} køretøjer er i brug",
+    staffAvailable: "{available} af {total} medarbejdere er tilgængelige"
+  },
+  quickActions: {
+    title: "Hurtige handlinger",
+    viewPlanner: "Se planlægger",
+    manageStaff: "Administrer personale",
+    fleetManagement: "Flådestyring",
+    vacationRequests: "Ferieansøgninger"
   }
 };
 
 export default admin;
-

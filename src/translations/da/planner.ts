@@ -26,6 +26,8 @@ const planner = {
   deleteAssignment: "Slet Opgave",
   deleteConfirmation: "Er du sikker på, at du vil slette denne opgave?",
   deleteWarning: "Denne handling kan ikke fortrydes.",
+  deleteConfirm: "Slet",
+  cancel: "Annuller",
   publish: "Publicer",
   publishDay: "Publicer Dag",
   publishDayTasks: "Publicer Dag",
