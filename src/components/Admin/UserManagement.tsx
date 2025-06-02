@@ -85,8 +85,8 @@ const UserManagement: React.FC = () => {
       // Combine the data
       const combinedUsers: AdminUser[] = profilesData.map(profile => {
         const userRole = rolesData.find(r => r.user_id === profile.id);
-        // Find the auth user and safely access banned_until property
-        const authUser = authResponse?.users?.find((user: SupabaseAuthUser) => user.id === profile.id);
+        // Find the auth user and safely access banned_until property from user metadata
+        const authUser = authResponse?.users?.find(user => user.id === profile.id);
         
         return {
           id: profile.id,
@@ -95,8 +95,8 @@ const UserManagement: React.FC = () => {
           phone: profile.phone || '',
           jobTitle: profile.job_title || '',
           role: (userRole?.role || 'servicemedarbejder') as UserRole,
-          // Safely access banned_until from user metadata or app_metadata
-          banned_until: authUser?.banned_until || null
+          // Access banned_until from user metadata or app_metadata where Supabase stores it
+          banned_until: authUser?.banned_until || authUser?.user_metadata?.banned_until || authUser?.app_metadata?.banned_until || null
         };
       });
 
