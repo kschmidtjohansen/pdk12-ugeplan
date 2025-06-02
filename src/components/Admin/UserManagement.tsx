@@ -79,7 +79,7 @@ const UserManagement: React.FC = () => {
       const combinedUsers: AdminUser[] = profilesData.map(profile => {
         const userRole = rolesData.find(r => r.user_id === profile.id);
         // Fix the type issue by properly handling the auth user lookup
-        const authUser = authResponse?.users?.find(u => u.id === profile.id);
+        const authUser = authResponse?.users?.find((user: any) => user.id === profile.id);
         
         return {
           id: profile.id,
