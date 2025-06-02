@@ -69,7 +69,7 @@ const UserManagement: React.FC = () => {
       if (rolesError) throw rolesError;
       
       // Get auth user data to check banned_until status
-      const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
+      const { data: authResponse, error: authError } = await supabase.auth.admin.listUsers();
       
       if (authError) {
         console.warn('Could not fetch auth data:', authError);
@@ -78,7 +78,8 @@ const UserManagement: React.FC = () => {
       // Combine the data
       const combinedUsers: AdminUser[] = profilesData.map(profile => {
         const userRole = rolesData.find(r => r.user_id === profile.id);
-        const authUser = authData?.users?.find(u => u.id === profile.id);
+        // Fix the type issue by properly handling the auth user lookup
+        const authUser = authResponse?.users?.find(u => u.id === profile.id);
         
         return {
           id: profile.id,
@@ -87,6 +88,7 @@ const UserManagement: React.FC = () => {
           phone: profile.phone || '',
           jobTitle: profile.job_title || '',
           role: (userRole?.role || 'servicemedarbejder') as UserRole,
+          // Fix the banned_until access by using the proper auth user object
           banned_until: authUser?.banned_until || null
         };
       });
