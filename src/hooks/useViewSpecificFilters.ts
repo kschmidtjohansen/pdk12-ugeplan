@@ -18,12 +18,14 @@ export const useViewSpecificFilters = () => {
     }
 
     const filtered = assignments.filter(assignment => {
-      // For servicemedarbejdere, show ALL published assignments OR assignments they are assigned to (even if unpublished)
+      // For servicemedarbejdere, show ALL published assignments (they can see everyone's assignments)
+      // AND their own unpublished assignments
       if (user.role === 'servicemedarbejder') {
         const isAssignedToUser = assignment.employees && assignment.employees.includes(user.name);
         console.log(`[useViewSpecificFilters] Assignment ${assignment.id} - Published: ${assignment.published}, User ${user.name} assigned: ${isAssignedToUser}`);
         
-        // FIXED: Show ALL published assignments (not just those assigned to them) + their own unpublished assignments
+        // Show ALL published assignments (so they can see all published tasks with all employee names)
+        // PLUS any unpublished assignments they are assigned to
         const shouldShow = assignment.published || isAssignedToUser;
         console.log(`[useViewSpecificFilters] Assignment ${assignment.id} - Should show: ${shouldShow}`);
         
@@ -55,7 +57,7 @@ export const useViewSpecificFilters = () => {
     
     if (!user) return [];
 
-    // For dashboard, servicemedarbejdere should only see their own published assignments
+    // For dashboard, servicemedarbejdere should see their own assignments but with ALL team member names visible
     if (user.role === 'servicemedarbejder') {
       return assignments.filter(assignment => 
         assignment.published && 

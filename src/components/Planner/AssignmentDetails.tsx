@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Car, Clock, Tag, Users } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
@@ -23,14 +22,10 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // FIXED: Always show all employee names for published assignments regardless of user role
+  // FIXED: Always show all employee names for published assignments
   const displayEmployees = () => {
     if (assignment.employees && assignment.employees.length > 0) {
-      // For published assignments, always show all employee names
-      if (assignment.published) {
-        return assignment.employees.join(', ');
-      }
-      // For unpublished assignments, still show the names (admin/skadeleder can see these)
+      // For published assignments, ALWAYS show all employee names - no filtering based on user role
       return assignment.employees.join(', ');
     }
     return t('planner.unassigned');

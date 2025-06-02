@@ -18,15 +18,18 @@ const MainLayout: React.FC = () => {
     return <Outlet />;
   }
 
+  // If not authenticated, redirect to login instead of showing access denied
   if (!isAuthenticated) {
+    React.useEffect(() => {
+      navigate('/login', { replace: true });
+    }, [navigate]);
+    
+    // Show a loading state while redirecting
     return (
       <div className="flex items-center justify-center min-h-screen bg-polygon-lightgray">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">{t('accessDenied.title')}</h1>
-          <p className="mb-4">{t('accessDenied.message')}</p>
-          <Button onClick={() => navigate('/login')}>
-            <LogIn className="mr-2 h-4 w-4" /> {t('common.login')}
-          </Button>
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-polygon-blue mx-auto mb-4"></div>
+          <p>{t('common.loading')}</p>
         </div>
       </div>
     );

@@ -23,6 +23,13 @@ import PasswordChangeDialog from './PasswordChangeDialog';
 import UserStatusDialog from './UserStatusDialog';
 import { AdminUser } from './UserTableRow';
 
+// Define interface for Supabase auth user with banned_until property
+interface SupabaseAuthUser {
+  id: string;
+  banned_until?: string | null;
+  [key: string]: any;
+}
+
 const UserManagement: React.FC = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -78,8 +85,8 @@ const UserManagement: React.FC = () => {
       // Combine the data
       const combinedUsers: AdminUser[] = profilesData.map(profile => {
         const userRole = rolesData.find(r => r.user_id === profile.id);
-        // Fix the type issue by properly handling the auth user lookup
-        const authUser = authResponse?.users?.find((user: any) => user.id === profile.id);
+        // Fix the type issue by properly typing the auth user lookup
+        const authUser = authResponse?.users?.find((user: SupabaseAuthUser) => user.id === profile.id);
         
         return {
           id: profile.id,
@@ -88,7 +95,7 @@ const UserManagement: React.FC = () => {
           phone: profile.phone || '',
           jobTitle: profile.job_title || '',
           role: (userRole?.role || 'servicemedarbejder') as UserRole,
-          // Fix the banned_until access by using the proper auth user object
+          // Fix the banned_until access by using the properly typed auth user object
           banned_until: authUser?.banned_until || null
         };
       });
