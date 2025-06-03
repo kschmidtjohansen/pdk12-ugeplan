@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -31,6 +30,7 @@ export const usePlannerPage = () => {
     deleteAssignment,
     publishAssignment,
     publishAssignmentsByDate,
+    publishAllUnpublishedAssignments,
     isDialogOpen,
     setIsDialogOpen,
     currentAssignment,
@@ -186,6 +186,11 @@ export const usePlannerPage = () => {
       publishAssignmentsByDate(selectedDay);
     }
   }, [selectedDay, publishAssignmentsByDate]);
+
+  // New function to publish all unpublished assignments
+  const handlePublishAllUnpublished = useCallback(() => {
+    publishAllUnpublishedAssignments();
+  }, [publishAllUnpublishedAssignments]);
   
   return {
     selectedWeek,
@@ -204,6 +209,7 @@ export const usePlannerPage = () => {
     handleOpenEditDialog,
     handleSubmit,
     handlePublishDay,
+    handlePublishAllUnpublished,
     deleteAssignment,
     publishAssignment,
     handleCopyAssignment

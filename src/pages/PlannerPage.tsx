@@ -27,6 +27,7 @@ const PlannerPage: React.FC = () => {
     handleOpenEditDialog,
     handleSubmit,
     handlePublishDay,
+    handlePublishAllUnpublished,
     deleteAssignment,
     publishAssignment,
     handleCopyAssignment
@@ -64,6 +65,7 @@ const PlannerPage: React.FC = () => {
         onPreviousWeek={handlePreviousWeek}
         onNextWeek={handleNextWeek}
         onCreateNew={handleOpenCreateDialog}
+        onPublishAllUnpublished={handlePublishAllUnpublished}
       />
 
       <PlannerContent

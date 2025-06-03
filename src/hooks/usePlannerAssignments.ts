@@ -87,7 +87,7 @@ export const usePlannerAssignments = () => {
     return true;
   }, [updateAssignment, fetchAssignments]);
   
-  const { publishAssignment, publishAssignmentsByDate } = useAssignmentPublishing(assignments, assignmentUpdater);
+  const { publishAssignment, publishAssignmentsByDate, publishAllUnpublishedAssignments } = useAssignmentPublishing(assignments, assignmentUpdater);
   
   // Open dialog for creating a new assignment - use useCallback to prevent unnecessary re-renders
   const handleCreate = useCallback(() => {
@@ -134,6 +134,16 @@ export const usePlannerAssignments = () => {
     }
     return result;
   }, [publishAssignmentsByDate, fetchAssignments]);
+
+  // Enhanced publish all unpublished assignments function that refreshes data
+  const publishAllUnpublishedAssignmentsWithRefresh = useCallback(async () => {
+    const result = await publishAllUnpublishedAssignments();
+    if (result) {
+      // Refresh the assignments data after successful publishing
+      await fetchAssignments();
+    }
+    return result;
+  }, [publishAllUnpublishedAssignments, fetchAssignments]);
   
   // Group assignments by day for display - memoize calculation to avoid unnecessary re-calculations
   const groupedAssignments = groupAssignmentsByDay(filteredAssignments);
@@ -170,6 +180,7 @@ export const usePlannerAssignments = () => {
     updateAssignment,
     deleteAssignment,
     publishAssignment: publishAssignmentWithRefresh,
-    publishAssignmentsByDate: publishAssignmentsByDateWithRefresh
+    publishAssignmentsByDate: publishAssignmentsByDateWithRefresh,
+    publishAllUnpublishedAssignments: publishAllUnpublishedAssignmentsWithRefresh
   };
 };
