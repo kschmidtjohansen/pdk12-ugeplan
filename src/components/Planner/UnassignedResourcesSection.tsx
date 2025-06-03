@@ -8,17 +8,20 @@ import { da } from 'date-fns/locale';
 import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Car as CarType } from '@/types/car';
+import { Vacation } from '@/types/vacation';
 
 interface UnassignedResourcesSectionProps {
   assignments: Assignment[];
   employees: Employee[];
   cars: CarType[];
+  vacations: Vacation[];
 }
 
 const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   assignments,
   employees,
-  cars
+  cars,
+  vacations
 }) => {
   const { t, currentLanguage } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -44,6 +47,25 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     }
   };
 
+  // Helper function to check if an employee is on vacation for a specific date
+  const isEmployeeOnVacation = (employeeId: string, selectedDate: Date) => {
+    return vacations.some(vacation => {
+      if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
+        return false;
+      }
+      
+      const startDate = new Date(vacation.startDate);
+      const endDate = new Date(vacation.endDate);
+      
+      selectedDate.setHours(0, 0, 0, 0);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+      
+      // Include the end date in vacation period
+      return selectedDate >= startDate && selectedDate <= endDate;
+    });
+  };
+
   const getUnassignedEmployees = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayAssignments = assignments.filter(a => a.date === dateStr);
@@ -55,7 +77,8 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     return employees.filter(employee => 
       employee.role === 'servicemedarbejder' && 
       !assignedEmployeeNames.has(employee.name) &&
-      !employee.onLeave
+      !employee.onLeave &&
+      !isEmployeeOnVacation(employee.id, date)
     );
   };
 
@@ -140,11 +163,11 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                 <span className="font-medium text-sm">{t('planner.employees')} ({unassignedEmployees.length})</span>
               </div>
               {unassignedEmployees.length === 0 ? (
-                <p className="text-xs text-gray-500">{t('planner.allEmployeesAssigned')}</p>
+                <p className="text-sm text-gray-500">{t('planner.allEmployeesAssigned')}</p>
               ) : (
                 <div className="space-y-1">
                   {displayedEmployees.map(employee => (
-                    <div key={employee.id} className="text-xs bg-white p-2 rounded border">
+                    <div key={employee.id} className="text-sm bg-white p-2 rounded border">
                       {employee.name}
                     </div>
                   ))}
@@ -153,7 +176,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowAllEmployees(!showAllEmployees)}
-                      className="text-xs text-blue-600 hover:text-blue-800 p-1 h-auto"
+                      className="text-sm text-blue-600 hover:text-blue-800 p-1 h-auto"
                     >
                       {showAllEmployees 
                         ? t('planner.showLess')
@@ -171,11 +194,11 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                 <span className="font-medium text-sm">{t('planner.unassignedCars')} ({unassignedCars.length})</span>
               </div>
               {unassignedCars.length === 0 ? (
-                <p className="text-xs text-gray-500">{t('planner.allCarsAssigned')}</p>
+                <p className="text-sm text-gray-500">{t('planner.allCarsAssigned')}</p>
               ) : (
                 <div className="space-y-1">
                   {displayedCars.map(car => (
-                    <div key={car.id} className="text-xs bg-white p-2 rounded border">
+                    <div key={car.id} className="text-sm bg-white p-2 rounded border">
                       {car.car_number} - {car.name}
                     </div>
                   ))}
@@ -184,7 +207,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowAllCars(!showAllCars)}
-                      className="text-xs text-blue-600 hover:text-blue-800 p-1 h-auto"
+                      className="text-sm text-blue-600 hover:text-blue-800 p-1 h-auto"
                     >
                       {showAllCars 
                         ? t('planner.showLess')
