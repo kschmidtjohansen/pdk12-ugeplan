@@ -1,5 +1,4 @@
 
-
 const cars = {
   title: 'Cars',
   description: 'Department vehicles and their details',
@@ -38,4 +37,3 @@ const cars = {
 };
 
 export default cars;
-

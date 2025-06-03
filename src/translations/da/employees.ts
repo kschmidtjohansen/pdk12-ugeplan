@@ -23,6 +23,9 @@ const employees = {
   selected: "valgt",
   fullyBooked: "Ikke ledig",
   availableAfter: "Ledig efter kl. {time}",
+  description: "Beskrivelse",
+  contactinfo: "Kontaktoplysninger",
+  jobtitle: "Jobtitel",
   roles: {
     administrator: "Administrator",
     skadeleder: "Skadeleder", 

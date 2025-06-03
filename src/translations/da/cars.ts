@@ -13,10 +13,12 @@ const cars = {
   
   // Form fields
   carName: 'Bil Navn',
+  vehicleName: 'Køretøj Navn',
   carNumber: 'Bil Nummer',
   numberPlate: 'Nummerplade',
   fuelCardCode: 'Tankkortkode',
   hasTrailerHitch: 'Har Anhængertræk',
+  isAvailable: 'Er Tilgængelig',
   notes: 'Noter',
   
   // Status

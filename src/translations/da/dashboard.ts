@@ -30,7 +30,7 @@ const dashboard = {
   availableCars: "Tilgængelige biler",
   todayAssignments: "Dagens opgaver",
   scheduledToday: "Planlagt i dag",
-  myAssignments: "Mine opgaver (uge {week})",
+  myAssignments: "Mine Opgaver (uge {week})",
   noAssignments: "Ingen opgaver denne uge",
   quickAccess: {
     title: "Hurtig adgang",
