@@ -10,6 +10,7 @@ import { Calendar, Users, Car, Clock, MapPin, ArrowRight } from 'lucide-react';
 import { format, getISOWeek, getISOWeekYear } from 'date-fns';
 import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import WeekNavigation from '@/components/Dashboard/WeekNavigation';
+import AssignmentDetailsDialog from '@/components/Dashboard/AssignmentDetailsDialog';
 
 // Import assignments from planner hook to reuse the mock data
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
@@ -18,6 +19,7 @@ import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
 import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
+import { Assignment } from '@/types/assignment';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -34,6 +36,8 @@ const DashboardPage: React.FC = () => {
   
   const [selectedWeek, setSelectedWeek] = useState(todayISOWeek);
   const [selectedYear, setSelectedYear] = useState(todayISOYear);
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
+  const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
 
   // Update employee leave status based on vacations when dashboard loads
   useEffect(() => {
@@ -71,6 +75,12 @@ const DashboardPage: React.FC = () => {
     const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
     setSelectedWeek(week);
     setSelectedYear(year);
+  };
+
+  // Handle assignment click
+  const handleAssignmentClick = (assignment: Assignment) => {
+    setSelectedAssignment(assignment);
+    setIsAssignmentDialogOpen(true);
   };
 
   // Get assignments for the selected week and user
@@ -258,8 +268,9 @@ const DashboardPage: React.FC = () => {
               {userWeekAssignments.map((assignment, index) => (
                 <div 
                   key={assignment.id} 
-                  className="border rounded-xl p-6 bg-gradient-to-r from-white to-gray-50 hover:shadow-medium transition-all duration-200 hover-lift animate-scale-in"
+                  className="border rounded-xl p-6 bg-gradient-to-r from-white to-gray-50 hover:shadow-medium transition-all duration-200 hover-lift animate-scale-in cursor-pointer"
                   style={{ animationDelay: `${index * 0.1}s` }}
+                  onClick={() => handleAssignmentClick(assignment)}
                 >
                   <div className="flex flex-wrap justify-between items-start gap-2 mb-4">
                     <h3 className="font-bold text-xl text-left">{assignment.location}</h3>
@@ -311,6 +322,13 @@ const DashboardPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Assignment Details Dialog */}
+      <AssignmentDetailsDialog
+        assignment={selectedAssignment}
+        isOpen={isAssignmentDialogOpen}
+        onClose={() => setIsAssignmentDialogOpen(false)}
+      />
     </div>
   );
 };

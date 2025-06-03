@@ -19,6 +19,7 @@ export type Database = {
           id: string
           location: string
           published: boolean | null
+          responsible_user_id: string | null
           title: string
           to_time: string
           type: Database["public"]["Enums"]["assignment_type"] | null
@@ -33,6 +34,7 @@ export type Database = {
           id?: string
           location: string
           published?: boolean | null
+          responsible_user_id?: string | null
           title: string
           to_time: string
           type?: Database["public"]["Enums"]["assignment_type"] | null
@@ -47,6 +49,7 @@ export type Database = {
           id?: string
           location?: string
           published?: boolean | null
+          responsible_user_id?: string | null
           title?: string
           to_time?: string
           type?: Database["public"]["Enums"]["assignment_type"] | null
@@ -58,6 +61,13 @@ export type Database = {
             columns: ["car_id"]
             isOneToOne: false
             referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignments_responsible_user_id_fkey"
+            columns: ["responsible_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

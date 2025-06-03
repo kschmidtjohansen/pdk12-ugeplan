@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
+import { usePermissions } from '@/context/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Car } from '@/types/car';
 import { Assignment } from '@/types/assignment';
 import { CarSelector } from './CarSelector';
+import ResponsibleUserSelector from './ResponsibleUserSelector';
 
 interface AssignmentFormFieldsProps {
   title: string;
@@ -32,6 +34,8 @@ interface AssignmentFormFieldsProps {
   setAssignmentType: (value: string) => void;
   selectedCarId: string;
   setSelectedCarId: (value: string) => void;
+  selectedResponsibleUserId: string;
+  setSelectedResponsibleUserId: (value: string) => void;
   cars: Car[];
   assignmentId?: string;
   assignments?: Assignment[];
@@ -54,11 +58,14 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   setAssignmentType,
   selectedCarId,
   setSelectedCarId,
+  selectedResponsibleUserId,
+  setSelectedResponsibleUserId,
   cars,
   assignmentId,
   assignments = []
 }) => {
   const { t, currentLanguage } = useTranslation();
+  const { isAdmin, isSkadeleder } = usePermissions();
 
   const assignmentTypes = [
     { value: 'ordinary_damage', label: t('planner.assignmentTypes.ordinary_damage') },
@@ -81,6 +88,9 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       return format(date, "PPP");
     }
   };
+
+  // Show responsible user field only for admin and skadeleder
+  const canAssignResponsibleUser = isAdmin || isSkadeleder;
 
   return (
     <div className="space-y-4">
@@ -173,6 +183,14 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
           </SelectContent>
         </Select>
       </div>
+
+      {/* Responsible User Selector - Only for Admin and Skadeleder */}
+      {canAssignResponsibleUser && (
+        <ResponsibleUserSelector
+          selectedUserId={selectedResponsibleUserId}
+          onUserSelect={setSelectedResponsibleUserId}
+        />
+      )}
 
       {/* Car Selector */}
       <div className="space-y-2">

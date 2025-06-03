@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Edit, Trash2, AlertCircle, Mail, Phone, UserCheck, UserMinus } from 'lucide-react';
 import { Employee } from '@/types/employee';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Tooltip,
   TooltipContent,
@@ -28,6 +29,15 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
 }) => {
   const { t } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part.charAt(0))
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
   return (
     <TooltipProvider>
@@ -66,6 +76,15 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                 <tr key={employee.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
+                      <Avatar className="h-10 w-10 mr-4">
+                        <AvatarImage 
+                          src={employee.avatar_url || undefined} 
+                          alt={employee.name}
+                        />
+                        <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                          {getInitials(employee.name)}
+                        </AvatarFallback>
+                      </Avatar>
                       <div>
                         <div className="flex items-center">
                           <span className="text-sm font-medium text-gray-900">

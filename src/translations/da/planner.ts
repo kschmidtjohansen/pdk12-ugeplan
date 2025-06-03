@@ -88,6 +88,9 @@ const planner = {
   type: "Type",
   selectType: "Vælg type",
   selectDateForCopy: "Vælg dato for kopieret opgave",
+  responsibleUser: "Sagsansvarlig",
+  selectResponsibleUser: "Vælg sagsansvarlig",
+  noResponsibleUser: "Ingen sagsansvarlig",
   // Assignment types
   assignmentTypes: {
     ordinary_damage: "Almindelig skade",
