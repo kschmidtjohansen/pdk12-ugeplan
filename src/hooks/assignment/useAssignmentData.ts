@@ -77,12 +77,28 @@ export const useAssignmentData = () => {
         const processedAssignments = assignmentsData.map(assignment => {
           console.log(`[useAssignmentData] === PROCESSING ASSIGNMENT ${assignment.id} (${assignment.location}) ===`);
           
+          // Special debugging for the "Fyn" assignment
+          if (assignment.location === 'Fyn') {
+            console.log(`[useAssignmentData] 🔍 DEBUGGING FYN ASSIGNMENT:`, {
+              assignmentId: assignment.id,
+              location: assignment.location,
+              published: assignment.published,
+              rawAssignment: assignment
+            });
+          }
+          
           // Find all employees for this assignment
           const assignmentEmployeeIds = assignmentEmployees
             ?.filter(emp => emp.assignment_id === assignment.id)
             ?.map(emp => emp.user_id) || [];
           
           console.log(`  - Employee IDs from junction table: [${assignmentEmployeeIds.join(', ')}]`);
+          
+          // Special debugging for the "Fyn" assignment
+          if (assignment.location === 'Fyn') {
+            console.log(`[useAssignmentData] 🔍 FYN - Employee IDs found: [${assignmentEmployeeIds.join(', ')}]`);
+            console.log(`[useAssignmentData] 🔍 FYN - Available profiles:`, profilesData.map(p => ({ id: p.id, name: p.name })));
+          }
           
           // Map employee IDs to names with proper validation and error handling
           const assignmentEmployeeNames: string[] = [];
@@ -91,18 +107,51 @@ export const useAssignmentData = () => {
             const profile = profilesData.find(p => p.id === userId);
             console.log(`    - Looking for user ${userId}, found profile:`, profile);
             
+            // Special debugging for the "Fyn" assignment
+            if (assignment.location === 'Fyn') {
+              console.log(`[useAssignmentData] 🔍 FYN - Looking for user ${userId}:`, {
+                profile: profile,
+                profileName: profile?.name,
+                isValidName: profile?.name && typeof profile.name === 'string' && profile.name.trim() !== ''
+              });
+            }
+            
             if (profile?.name && typeof profile.name === 'string' && profile.name.trim() !== '') {
               const trimmedName = profile.name.trim();
               assignmentEmployeeNames.push(trimmedName);
               console.log(`    - ✓ Added employee name: "${trimmedName}"`);
+              
+              // Special debugging for the "Fyn" assignment
+              if (assignment.location === 'Fyn') {
+                console.log(`[useAssignmentData] 🔍 FYN - ✓ Successfully added employee: "${trimmedName}"`);
+              }
             } else {
               console.log(`    - ✗ Skipped invalid employee name for user ${userId}:`, profile?.name);
+              
+              // Special debugging for the "Fyn" assignment
+              if (assignment.location === 'Fyn') {
+                console.log(`[useAssignmentData] 🔍 FYN - ✗ Failed to add employee for user ${userId}:`, {
+                  profile: profile,
+                  profileName: profile?.name,
+                  reason: !profile ? 'No profile found' : !profile.name ? 'No name in profile' : 'Invalid name format'
+                });
+              }
             }
           });
           
           console.log(`  - Employee Names resolved: [${assignmentEmployeeNames.join(', ')}]`);
           console.log(`  - Final employee array length: ${assignmentEmployeeNames.length}`);
           console.log(`  - Published status: ${assignment.published}`);
+          
+          // Special debugging for the "Fyn" assignment
+          if (assignment.location === 'Fyn') {
+            console.log(`[useAssignmentData] 🔍 FYN - FINAL RESULT:`, {
+              employeeNames: assignmentEmployeeNames,
+              employeeCount: assignmentEmployeeNames.length,
+              published: assignment.published,
+              willShowUnassigned: assignmentEmployeeNames.length === 0
+            });
+          }
           
           const processedAssignment: Assignment = {
             id: assignment.id,
@@ -129,12 +178,28 @@ export const useAssignmentData = () => {
             published: processedAssignment.published
           });
           
+          // Special debugging for the "Fyn" assignment
+          if (assignment.location === 'Fyn') {
+            console.log(`[useAssignmentData] 🔍 FYN - FINAL PROCESSED ASSIGNMENT:`, processedAssignment);
+          }
+          
           return processedAssignment;
         });
         
         console.log('[useAssignmentData] === ALL FINAL PROCESSED ASSIGNMENTS ===');
         processedAssignments.forEach((assignment, index) => {
           console.log(`${index + 1}. ${assignment.location}: employees=[${assignment.employees.join(', ')}], published=${assignment.published}`);
+          
+          // Extra logging for Fyn assignment
+          if (assignment.location === 'Fyn') {
+            console.log(`[useAssignmentData] 🔍 FYN - FINAL IN LIST:`, {
+              location: assignment.location,
+              employees: assignment.employees,
+              employeeCount: assignment.employees.length,
+              published: assignment.published,
+              shouldShowUnassigned: assignment.employees.length === 0
+            });
+          }
         });
         
         setAssignments(processedAssignments);

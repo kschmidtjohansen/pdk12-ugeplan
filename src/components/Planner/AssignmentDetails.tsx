@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Car, Clock, Tag, Users } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
@@ -22,13 +23,26 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // FIXED: Simplified and more robust employee display logic
+  // ENHANCED: Simplified and more robust employee display logic with special debugging for Fyn
   const displayEmployees = () => {
     console.log(`[AssignmentDetails] Processing employees for assignment ${assignment.id} (${assignment.location}):`);
     console.log(`  - Assignment object:`, assignment);
     console.log(`  - Employees property:`, assignment.employees);
     console.log(`  - Employees type:`, typeof assignment.employees);
     console.log(`  - Is array:`, Array.isArray(assignment.employees));
+    
+    // Special debugging for Fyn assignment
+    if (assignment.location === 'Fyn') {
+      console.log(`[AssignmentDetails] 🔍 FYN ASSIGNMENT DEBUGGING:`, {
+        assignmentId: assignment.id,
+        location: assignment.location,
+        employees: assignment.employees,
+        employeesType: typeof assignment.employees,
+        isArray: Array.isArray(assignment.employees),
+        length: assignment.employees?.length || 0,
+        published: assignment.published
+      });
+    }
     
     // Ensure we have the assignment object
     if (!assignment) {
@@ -39,6 +53,16 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
     // Check if employees property exists and is an array
     if (!assignment.employees || !Array.isArray(assignment.employees)) {
       console.log(`  - No valid employees array, returning unassigned`);
+      
+      // Special debugging for Fyn assignment
+      if (assignment.location === 'Fyn') {
+        console.log(`[AssignmentDetails] 🔍 FYN - No valid employees array:`, {
+          employees: assignment.employees,
+          isArray: Array.isArray(assignment.employees),
+          willReturn: 'Ikke tildelt'
+        });
+      }
+      
       return t('planner.unassigned');
     }
     
@@ -46,19 +70,56 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
     const validEmployees = assignment.employees.filter(emp => {
       const isValidString = emp && typeof emp === 'string' && emp.trim() !== '';
       console.log(`    - Employee "${emp}" is valid: ${isValidString}`);
+      
+      // Special debugging for Fyn assignment
+      if (assignment.location === 'Fyn') {
+        console.log(`[AssignmentDetails] 🔍 FYN - Checking employee "${emp}":`, {
+          employee: emp,
+          type: typeof emp,
+          isEmpty: !emp,
+          trimmed: emp?.trim?.(),
+          isValid: isValidString
+        });
+      }
+      
       return isValidString;
     });
     
     console.log(`  - Valid employees after filtering:`, validEmployees);
     
+    // Special debugging for Fyn assignment
+    if (assignment.location === 'Fyn') {
+      console.log(`[AssignmentDetails] 🔍 FYN - Valid employees after filtering:`, {
+        originalEmployees: assignment.employees,
+        validEmployees: validEmployees,
+        validCount: validEmployees.length,
+        willShowUnassigned: validEmployees.length === 0
+      });
+    }
+    
     if (validEmployees.length === 0) {
       console.log(`  - No valid employees found, returning unassigned`);
+      
+      // Special debugging for Fyn assignment
+      if (assignment.location === 'Fyn') {
+        console.log(`[AssignmentDetails] 🔍 FYN - No valid employees found, will show "Ikke tildelt"`);
+      }
+      
       return t('planner.unassigned');
     }
     
     // Join employee names with comma and space
     const employeeDisplay = validEmployees.join(', ');
     console.log(`  - Final employee display: "${employeeDisplay}"`);
+    
+    // Special debugging for Fyn assignment
+    if (assignment.location === 'Fyn') {
+      console.log(`[AssignmentDetails] 🔍 FYN - FINAL DISPLAY:`, {
+        employeeDisplay: employeeDisplay,
+        willShow: employeeDisplay
+      });
+    }
+    
     return employeeDisplay;
   };
   

@@ -18,6 +18,17 @@ export const useViewSpecificFilters = () => {
       console.log(`  - Employees: [${assignment.employees?.join(', ') || 'none'}]`);
       console.log(`  - Published: ${assignment.published}`);
       console.log(`  - Employee count: ${assignment.employees?.length || 0}`);
+      
+      // Special debugging for Fyn assignment
+      if (assignment.location === 'Fyn') {
+        console.log(`[useViewSpecificFilters] 🔍 FYN - Input to planner filter:`, {
+          location: assignment.location,
+          employees: assignment.employees,
+          employeeCount: assignment.employees?.length || 0,
+          published: assignment.published,
+          userRole: user?.role
+        });
+      }
     });
     
     if (!user) {
@@ -39,6 +50,17 @@ export const useViewSpecificFilters = () => {
         console.log(`  - Employees: [${safeAssignment.employees.join(', ')}]`);
         console.log(`  - Employee count: ${safeAssignment.employees.length}`);
         console.log(`  - Will be shown: ${shouldShow}`);
+        
+        // Special debugging for Fyn assignment
+        if (assignment.location === 'Fyn') {
+          console.log(`[useViewSpecificFilters] 🔍 FYN - Servicemedarbejder filter:`, {
+            published: safeAssignment.published,
+            employees: safeAssignment.employees,
+            employeeCount: safeAssignment.employees.length,
+            shouldShow: shouldShow,
+            reason: shouldShow ? 'Published' : 'Not published'
+          });
+        }
         
         // Show ALL published assignments - servicemedarbejdere can see all published tasks in planner
         // IMPORTANT: We do NOT filter out employee names here - they should see all team members
@@ -68,6 +90,17 @@ export const useViewSpecificFilters = () => {
       console.log(`  - Employees: [${assignment.employees?.join(', ') || 'none'}]`);
       console.log(`  - Published: ${assignment.published}`);
       console.log(`  - Employee count: ${assignment.employees?.length || 0}`);
+      
+      // Special debugging for Fyn assignment
+      if (assignment.location === 'Fyn') {
+        console.log(`[useViewSpecificFilters] 🔍 FYN - Output from planner filter:`, {
+          location: assignment.location,
+          employees: assignment.employees,
+          employeeCount: assignment.employees?.length || 0,
+          published: assignment.published,
+          passedFilter: true
+        });
+      }
     });
     
     // IMPORTANT: Return assignments with ALL original employee data intact
@@ -80,6 +113,19 @@ export const useViewSpecificFilters = () => {
     console.log('[useViewSpecificFilters] filterForDashboard - User role:', user?.role);
     console.log('[useViewSpecificFilters] filterForDashboard - User name:', user?.name);
     console.log('[useViewSpecificFilters] filterForDashboard - Total assignments:', assignments.length);
+    
+    // Special debugging for Fyn assignment in dashboard filter
+    const fynAssignment = assignments.find(a => a.location === 'Fyn');
+    if (fynAssignment) {
+      console.log(`[useViewSpecificFilters] 🔍 FYN - Dashboard filter input:`, {
+        location: fynAssignment.location,
+        employees: fynAssignment.employees,
+        employeeCount: fynAssignment.employees?.length || 0,
+        published: fynAssignment.published,
+        userRole: user?.role,
+        userName: user?.name
+      });
+    }
     
     if (!user) return [];
 
@@ -99,6 +145,23 @@ export const useViewSpecificFilters = () => {
           userAssigned: isAssigned,
           allEmployeesWillBeShown: employeeArray
         });
+        
+        // Special debugging for Fyn assignment in dashboard filter
+        if (assignment.location === 'Fyn') {
+          console.log(`[useViewSpecificFilters] 🔍 FYN - Dashboard filter result:`, {
+            published: assignment.published,
+            employees: employeeArray,
+            employeeCount: employeeArray.length,
+            userIncluded: employeeArray.includes(user.name),
+            userName: user.name,
+            isAssigned: isAssigned,
+            reason: !isAssigned ? (
+              !assignment.published ? 'Not published' :
+              employeeArray.length === 0 ? 'No employees' :
+              !employeeArray.includes(user.name) ? 'User not assigned' : 'Unknown'
+            ) : 'User assigned'
+          });
+        }
         
         return isAssigned;
       });
