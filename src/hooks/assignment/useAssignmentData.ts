@@ -5,6 +5,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { supabase } from '@/integrations/supabase/client';
 import { safeProperty } from '@/utils/dbHelpers';
+import { useAuth } from '@/context/AuthContext';
 
 export const useAssignmentData = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -12,6 +13,7 @@ export const useAssignmentData = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   // Fetch assignments from Supabase
   const fetchAssignments = async () => {
@@ -19,7 +21,7 @@ export const useAssignmentData = () => {
       setLoading(true);
       setError(null);
       
-      console.log('[useAssignmentData] Starting to fetch assignments...');
+      console.log(`[useAssignmentData] Starting fetch for user: ${user?.name} (${user?.role})`);
       
       // First, get all assignments with car information
       const { data: assignmentsData, error: assignmentsError } = await supabase
@@ -41,7 +43,7 @@ export const useAssignmentData = () => {
       
       if (assignmentsError) throw assignmentsError;
       
-      console.log('[useAssignmentData] Raw assignments response:', assignmentsData);
+      console.log(`[useAssignmentData] Raw assignments response (${assignmentsData?.length || 0} assignments):`, assignmentsData);
       
       if (assignmentsData) {
         // Get assignment-employee relationships
@@ -51,7 +53,7 @@ export const useAssignmentData = () => {
         
         if (employeeError) throw employeeError;
         
-        console.log('[useAssignmentData] Assignment employees response:', assignmentEmployees);
+        console.log(`[useAssignmentData] Assignment employees (${assignmentEmployees?.length || 0} relationships):`, assignmentEmployees);
         
         // Get all profiles for the users in assignments
         const userIds = assignmentEmployees?.map(ae => ae.user_id) || [];
@@ -67,9 +69,9 @@ export const useAssignmentData = () => {
           profilesData = profiles || [];
         }
         
-        console.log('[useAssignmentData] Profiles response:', profilesData);
+        console.log(`[useAssignmentData] Profiles data (${profilesData.length} profiles):`, profilesData);
         
-        // Process and combine the data
+        // Process and combine the data with detailed logging
         const processedAssignments = assignmentsData.map(assignment => {
           // Find all employees for this assignment
           const assignmentEmployeeIds = assignmentEmployees
@@ -83,7 +85,12 @@ export const useAssignmentData = () => {
             })
             .filter(name => name) || [];
           
-          console.log(`[useAssignmentData] Assignment ${assignment.id} (${assignment.location}) employees:`, assignmentEmployeeNames);
+          console.log(`[useAssignmentData] Processing assignment ${assignment.id} (${assignment.location}):`, {
+            assignmentEmployeeIds,
+            assignmentEmployeeNames,
+            published: assignment.published,
+            date: assignment.assignment_date
+          });
           
           return {
             id: assignment.id,
@@ -103,12 +110,15 @@ export const useAssignmentData = () => {
           };
         });
         
-        console.log('[useAssignmentData] Final processed assignments:', processedAssignments.map(a => ({
-          id: a.id,
-          location: a.location,
-          published: a.published,
-          employees: a.employees
-        })));
+        console.log(`[useAssignmentData] Final processed assignments for ${user?.name} (${user?.role}):`, 
+          processedAssignments.map(a => ({
+            id: a.id,
+            location: a.location,
+            published: a.published,
+            employees: a.employees,
+            date: a.date
+          }))
+        );
         
         setAssignments(processedAssignments);
       } else {
@@ -131,7 +141,7 @@ export const useAssignmentData = () => {
   // Load assignments on component mount
   useEffect(() => {
     fetchAssignments();
-  }, []);
+  }, [user?.id]); // Add user.id dependency to refetch when user changes
   
   // Subscribe to assignment changes
   useEffect(() => {
@@ -166,7 +176,7 @@ export const useAssignmentData = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user?.id]);
 
   return {
     assignments,

@@ -22,7 +22,7 @@ import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNext
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { t, currentLanguage } = useTranslation();
-  const { getAssignmentsForWeek, loading: assignmentsLoading } = useDashboardAssignments();
+  const { getAssignmentsForWeek, loading: assignmentsLoading, forceRefresh } = useDashboardAssignments();
   const { employees } = useEmployees();
   const { cars } = useCars();
   const { vacations } = useVacations();
@@ -61,6 +61,7 @@ const DashboardPage: React.FC = () => {
   const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
   const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
 
+  console.log(`[DashboardPage] User: ${user?.name} (${user?.role})`);
   console.log(`[DashboardPage] Selected week: ${selectedWeek}/${selectedYear}`);
   console.log(`[DashboardPage] Week dates: ${startDateISO} to ${endDateISO}`);
 
@@ -161,18 +162,58 @@ const DashboardPage: React.FC = () => {
       {/* Dashboard metrics for admin/skadeleder */}
       <DashboardMetrics />
 
-      {/* Debug navigation - helpful for testing */}
+      {/* Debug navigation and controls */}
       {user?.role !== 'servicemedarbejder' && (
         <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
           <p className="text-sm text-yellow-800 mb-2">Debug Navigation:</p>
-          <Button 
-            onClick={navigateToTestWeek} 
-            variant="outline" 
-            size="sm"
-            className="text-yellow-800 border-yellow-300"
-          >
-            Go to Week 23, 2025 (Test Data)
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={navigateToTestWeek} 
+              variant="outline" 
+              size="sm"
+              className="text-yellow-800 border-yellow-300"
+            >
+              Go to Week 23, 2025 (Test Data)
+            </Button>
+            <Button 
+              onClick={forceRefresh} 
+              variant="outline" 
+              size="sm"
+              className="text-yellow-800 border-yellow-300"
+            >
+              Force Refresh Data
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* DEBUG: Add debugging info for servicemedarbejder */}
+      {user?.role === 'servicemedarbejder' && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <p className="text-sm text-blue-800 mb-2">Debug Info for {user.name}:</p>
+          <div className="flex gap-2 mb-2">
+            <Button 
+              onClick={navigateToTestWeek} 
+              variant="outline" 
+              size="sm"
+              className="text-blue-800 border-blue-300"
+            >
+              Go to Week 23, 2025
+            </Button>
+            <Button 
+              onClick={forceRefresh} 
+              variant="outline" 
+              size="sm"
+              className="text-blue-800 border-blue-300"
+            >
+              Refresh Data
+            </Button>
+          </div>
+          <p className="text-xs text-blue-600">
+            Current week: {selectedWeek}/{selectedYear} | 
+            Assignments this week: {userWeekAssignments.length} |
+            Check console for detailed logs
+          </p>
         </div>
       )}
 
@@ -211,16 +252,18 @@ const DashboardPage: React.FC = () => {
               <p className="text-sm">
                 Current week: {selectedWeek}/{selectedYear} ({startDateISO} to {endDateISO})
               </p>
-              {user?.role !== 'servicemedarbejder' && (
-                <p className="text-sm mt-2">
-                  Try navigating to Week 23, 2025 to see test assignments.
-                </p>
-              )}
+              <p className="text-sm mt-2">
+                Try navigating to Week 23, 2025 to see test assignments.
+              </p>
             </div>
           ) : (
             <div className="grid gap-4">
               {userWeekAssignments.map(assignment => {
-                console.log(`[DashboardPage] Rendering assignment ${assignment.id} (${assignment.location}) with employees:`, assignment.employees);
+                console.log(`[DashboardPage] Rendering assignment ${assignment.id} (${assignment.location}) for ${user?.name}:`, {
+                  employees: assignment.employees,
+                  employeeCount: assignment.employees?.length || 0,
+                  allEmployeeNames: assignment.employees?.join(', ')
+                });
                 
                 return (
                   <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
@@ -256,13 +299,19 @@ const DashboardPage: React.FC = () => {
                         </span>
                       </div>
                       
-                      {/* ENHANCED: Always show ALL employees for dashboard "Mine opgaver" */}
+                      {/* CRITICAL: Always show ALL employees for dashboard assignments */}
                       {assignment.employees && assignment.employees.length > 0 && (
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-gray-500" />
                           <span className="text-sm text-gray-700">
                             {assignment.employees.join(', ')}
                           </span>
+                          {/* DEBUG: Show employee count for servicemedarbejder */}
+                          {user?.role === 'servicemedarbejder' && (
+                            <span className="text-xs text-blue-500 ml-1">
+                              ({assignment.employees.length} people)
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
