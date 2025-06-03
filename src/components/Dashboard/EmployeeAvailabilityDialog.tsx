@@ -1,12 +1,5 @@
-
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -17,7 +10,6 @@ import { useTranslation } from '@/context/TranslationContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { addDays, subDays, format } from 'date-fns';
 import { da } from 'date-fns/locale';
-
 interface EmployeeAvailabilityDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -27,7 +19,6 @@ interface EmployeeAvailabilityDialogProps {
   selectedDate: string;
   title: string;
 }
-
 export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
   open,
   onOpenChange,
@@ -37,8 +28,11 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
   selectedDate,
   title
 }) => {
-  const { t, currentLanguage } = useTranslation();
-  
+  const {
+    t,
+    currentLanguage
+  } = useTranslation();
+
   // Local state for the viewed date
   const [viewedDate, setViewedDate] = useState<string>(selectedDate);
 
@@ -57,7 +51,6 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     setViewedDate(previousDateStr);
     console.log('[EmployeeAvailabilityDialog] Previous day:', previousDateStr);
   };
-
   const handleNextDay = () => {
     const nextDay = addDays(currentDate, 1);
     const nextDateStr = format(nextDay, 'yyyy-MM-dd');
@@ -69,8 +62,9 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
   const formatDisplayDate = (date: Date) => {
     try {
       const locale = currentLanguage === 'da' ? da : undefined;
-      const dateStr = format(date, 'PPP', { locale });
-      
+      const dateStr = format(date, 'PPP', {
+        locale
+      });
       if (currentLanguage === 'da') {
         return dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
       }
@@ -85,18 +79,14 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
   const isEmployeeOnVacation = (employeeId: string, date: string) => {
     const checkDate = new Date(date);
     checkDate.setHours(0, 0, 0, 0);
-    
     return vacations.some(vacation => {
       if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
         return false;
       }
-      
       const startDate = new Date(vacation.startDate);
       const endDate = new Date(vacation.endDate);
-      
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(0, 0, 0, 0);
-      
       return checkDate >= startDate && checkDate <= endDate;
     });
   };
@@ -104,17 +94,17 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
   // ENHANCED: Improved time normalization function
   const normalizeTime = (time: string): string => {
     if (!time) return '';
-    
+
     // Remove seconds if present (HH:MM:SS -> HH:MM)
     if (time.length === 8 && time.includes(':')) {
       time = time.substring(0, 5);
     }
-    
+
     // Ensure we have HH:MM format
     if (time.length === 5 && time.includes(':')) {
       return time;
     }
-    
+
     // Handle edge cases
     return time.trim();
   };
@@ -123,21 +113,16 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
   const isEmployeeFullyBookedForDay = (assignments: Assignment[], dayOfWeek: number): boolean => {
     const workdayStart = "08:00";
     const workdayEnd = dayOfWeek === 5 ? "15:30" : "16:00";
-    
     let coveredTimeSlots: [string, string][] = [];
     const sortedAssignments = [...assignments].sort((a, b) => a.fromTime.localeCompare(b.fromTime));
-    
     for (const assignment of sortedAssignments) {
       const from = normalizeTime(assignment.fromTime);
       const to = normalizeTime(assignment.toTime);
-      
       if (from <= workdayStart && to >= workdayEnd) {
         return true;
       }
-      
       coveredTimeSlots.push([from, to]);
     }
-    
     return false;
   };
 
@@ -145,41 +130,37 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
   const getEmployeeStatus = (employee: Employee) => {
     const isOnVacation = isEmployeeOnVacation(employee.id, viewedDate);
     const isOnLeave = employee.onLeave;
-    
+
     // PRIORITY 1: Vacation status (orange)
-    if (isOnVacation) return { 
-      status: 'vacation', 
-      label: 'Holder fri', 
-      color: 'bg-orange-100 text-orange-800 border-orange-200', 
-      hasEndTimeAtSixteen: false 
-    };
-    
-    // PRIORITY 2: Unavailable/On leave status (red)
-    if (isOnLeave) return { 
-      status: 'leave', 
-      label: 'Fraværende', 
-      color: 'bg-red-100 text-red-800 border-red-200', 
-      hasEndTimeAtSixteen: false 
+    if (isOnVacation) return {
+      status: 'vacation',
+      label: 'Holder fri',
+      color: 'bg-orange-100 text-orange-800 border-orange-200',
+      hasEndTimeAtSixteen: false
     };
 
+    // PRIORITY 2: Unavailable/On leave status (red)
+    if (isOnLeave) return {
+      status: 'leave',
+      label: 'Fraværende',
+      color: 'bg-red-100 text-red-800 border-red-200',
+      hasEndTimeAtSixteen: false
+    };
     const employeeAssignments = assignments.filter(assignment => {
       const assignmentDate = new Date(assignment.date);
       const selectedDateObj = new Date(viewedDate);
       assignmentDate.setHours(0, 0, 0, 0);
       selectedDateObj.setHours(0, 0, 0, 0);
-      
-      return assignmentDate.getTime() === selectedDateObj.getTime() &&
-             assignment.employees &&
-             assignment.employees.includes(employee.name);
+      return assignmentDate.getTime() === selectedDateObj.getTime() && assignment.employees && assignment.employees.includes(employee.name);
     });
 
     // PRIORITY 3: No assignments (green)
     if (employeeAssignments.length === 0) {
-      return { 
-        status: 'available', 
-        label: 'Ledig', 
-        color: 'bg-green-100 text-green-800 border-green-200', 
-        hasEndTimeAtSixteen: false 
+      return {
+        status: 'available',
+        label: 'Ledig',
+        color: 'bg-green-100 text-green-800 border-green-200',
+        hasEndTimeAtSixteen: false
       };
     }
 
@@ -188,24 +169,22 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
       const originalTime = assignment.toTime;
       const normalizedEndTime = normalizeTime(originalTime);
       const exactMatch = normalizedEndTime === "16:00";
-      
       console.log(`[EmployeeAvailabilityDialog] Assignment ${assignment.id} for ${employee.name}:`);
       console.log(`  - Original time: "${originalTime}"`);
       console.log(`  - Normalized time: "${normalizedEndTime}"`);
       console.log(`  - Exact 16:00 match: ${exactMatch}`);
-      
       return exactMatch;
     });
-    
     console.log(`[EmployeeAvailabilityDialog] Employee ${employee.name} has 16:00 end time: ${hasEndTimeAtSixteen}`);
-    
+
     // RED: 16:00 end time takes highest priority
     if (hasEndTimeAtSixteen) {
-      return { 
-        status: 'fullyBooked', 
-        label: 'Ikke ledig', // Updated label
-        color: '!bg-red-600 !text-white !border-red-700', 
-        hasEndTimeAtSixteen: true 
+      return {
+        status: 'fullyBooked',
+        label: 'Ikke ledig',
+        // Updated label
+        color: '!bg-red-600 !text-white !border-red-700',
+        hasEndTimeAtSixteen: true
       };
     }
 
@@ -221,37 +200,31 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     // PRIORITY 5: Check if fully booked for entire workday
     const dayOfWeek = new Date(viewedDate).getDay();
     const fullyBooked = isEmployeeFullyBookedForDay(employeeAssignments, dayOfWeek);
-    
     if (fullyBooked) {
-      return { 
-        status: 'fullyBooked', 
-        label: 'Ikke ledig', // Updated label
-        color: 'bg-red-100 text-red-800 border-red-200', 
-        hasEndTimeAtSixteen: false 
+      return {
+        status: 'fullyBooked',
+        label: 'Ikke ledig',
+        // Updated label
+        color: 'bg-red-100 text-red-800 border-red-200',
+        hasEndTimeAtSixteen: false
       };
     }
 
     // PRIORITY 6: YELLOW - Partially booked (show "Ledig efter kl. XX:XX")
     const formattedTime = latestEndTime.substring(0, 5); // Remove seconds if present
-    return { 
-      status: 'partiallyAvailable', 
-      label: `Ledig efter kl. ${formattedTime}`, // Updated label format
+    return {
+      status: 'partiallyAvailable',
+      label: `Ledig efter kl. ${formattedTime}`,
+      // Updated label format
       color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
       hasEndTimeAtSixteen: false
     };
   };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+  return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handlePreviousDay}
-              className="h-8 w-8 p-0"
-            >
+          <div className="flex items-center justify-between py-[19px]">
+            <Button variant="ghost" size="sm" onClick={handlePreviousDay} className="h-8 w-8 p-0">
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <div className="text-center">
@@ -260,12 +233,7 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
                 {formatDisplayDate(currentDate)}
               </DialogDescription>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleNextDay}
-              className="h-8 w-8 p-0"
-            >
+            <Button variant="ghost" size="sm" onClick={handleNextDay} className="h-8 w-8 p-0">
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -273,30 +241,20 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
         
         <ScrollArea className="max-h-96">
           <div className="space-y-2">
-            {employees.map((employee) => {
-              const status = getEmployeeStatus(employee);
-              
-              return (
-                <div
-                  key={employee.id}
-                  className={`flex items-center justify-between p-2 rounded-lg border ${
-                    status.hasEndTimeAtSixteen ? 'border-red-300 bg-red-50' : ''
-                  }`}
-                >
+            {employees.map(employee => {
+            const status = getEmployeeStatus(employee);
+            return <div key={employee.id} className={`flex items-center justify-between p-2 rounded-lg border ${status.hasEndTimeAtSixteen ? 'border-red-300 bg-red-50' : ''}`}>
                   <span className={`font-medium ${status.hasEndTimeAtSixteen ? '!text-red-600 !font-bold' : ''}`}>
                     {employee.name}
                   </span>
                   <Badge className={status.color}>
                     {status.label}
                   </Badge>
-                </div>
-              );
-            })}
+                </div>;
+          })}
           </div>
         </ScrollArea>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
-
 export default EmployeeAvailabilityDialog;
