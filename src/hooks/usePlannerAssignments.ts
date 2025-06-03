@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useAssignments } from './useAssignments';
 import { useViewSpecificFilters } from './useViewSpecificFilters';
@@ -25,26 +24,60 @@ export const usePlannerAssignments = () => {
   // Get filter functionality - using the planner-specific filter
   const { filterForPlanner } = useViewSpecificFilters();
   
-  // ENHANCED DEBUGGING: Filter assignments for planner view
+  // ENHANCED DEBUGGING: Track data flow through hooks
+  console.log("[usePlannerAssignments] === DATA FLOW DEBUGGING ===");
   console.log("[usePlannerAssignments] Raw assignments from useAssignments:", assignments.length);
   console.log("[usePlannerAssignments] Raw assignments details:", assignments.map(a => ({
     id: a.id,
     location: a.location,
     published: a.published,
     employees: a.employees,
-    employeeCount: a.employees?.length || 0
+    employeeCount: a.employees?.length || 0,
+    employeesType: typeof a.employees,
+    isEmployeesArray: Array.isArray(a.employees)
   })));
+  
+  // Log each assignment's employee data in detail
+  assignments.forEach((assignment, index) => {
+    console.log(`[usePlannerAssignments] Assignment ${index + 1} (${assignment.location}) employee details:`);
+    console.log(`  - Employees:`, assignment.employees);
+    console.log(`  - Type:`, typeof assignment.employees);
+    console.log(`  - Is Array:`, Array.isArray(assignment.employees));
+    console.log(`  - Length:`, assignment.employees?.length || 0);
+    if (Array.isArray(assignment.employees)) {
+      assignment.employees.forEach((emp, empIndex) => {
+        console.log(`    - Employee ${empIndex}: "${emp}" (type: ${typeof emp})`);
+      });
+    }
+  });
   
   const filteredAssignments = filterForPlanner(assignments, true);
   
+  console.log("[usePlannerAssignments] === AFTER FILTERING ===");
   console.log("[usePlannerAssignments] Filtered assignments for planner:", filteredAssignments.length);
   console.log("[usePlannerAssignments] Filtered assignments details:", filteredAssignments.map(a => ({
     id: a.id,
     location: a.location,
     published: a.published,
     employees: a.employees,
-    employeeCount: a.employees?.length || 0
+    employeeCount: a.employees?.length || 0,
+    employeesType: typeof a.employees,
+    isEmployeesArray: Array.isArray(a.employees)
   })));
+  
+  // Log each filtered assignment's employee data in detail
+  filteredAssignments.forEach((assignment, index) => {
+    console.log(`[usePlannerAssignments] Filtered Assignment ${index + 1} (${assignment.location}) employee details:`);
+    console.log(`  - Employees:`, assignment.employees);
+    console.log(`  - Type:`, typeof assignment.employees);
+    console.log(`  - Is Array:`, Array.isArray(assignment.employees));
+    console.log(`  - Length:`, assignment.employees?.length || 0);
+    if (Array.isArray(assignment.employees)) {
+      assignment.employees.forEach((emp, empIndex) => {
+        console.log(`    - Employee ${empIndex}: "${emp}" (type: ${typeof emp})`);
+      });
+    }
+  });
   
   // Get publishing functionality - adapt updateAssignment to match expected signature
   const assignmentUpdater = useCallback(async (assignment: Assignment) => {
@@ -105,6 +138,7 @@ export const usePlannerAssignments = () => {
   // Group assignments by day for display - memoize calculation to avoid unnecessary re-calculations
   const groupedAssignments = groupAssignmentsByDay(filteredAssignments);
   
+  console.log("[usePlannerAssignments] === FINAL GROUPED ASSIGNMENTS ===");
   console.log("[usePlannerAssignments] Final grouped assignments:", Object.keys(groupedAssignments).length, "days");
   console.log("[usePlannerAssignments] Grouped assignments summary:", Object.entries(groupedAssignments).map(([date, assignments]) => ({
     date,

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
@@ -12,6 +13,7 @@ import EmptyState from './EmptyState';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
+
 interface PlannerContentProps {
   weekAssignments: Assignment[];
   onEditAssignment: (assignment: Assignment) => void;
@@ -24,6 +26,7 @@ interface PlannerContentProps {
   selectedYear: number;
   weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
 }
+
 const PlannerContent: React.FC<PlannerContentProps> = ({
   weekAssignments = [],
   onEditAssignment,
@@ -36,24 +39,40 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   selectedYear,
   weekDates
 }) => {
-  const {
-    t
-  } = useTranslation();
-  const {
-    canEdit,
-    canPublishTasks
-  } = usePermissions();
-  const {
-    employees
-  } = useEmployees();
-  const {
-    cars
-  } = useCars();
+  const { t } = useTranslation();
+  const { canEdit, canPublishTasks } = usePermissions();
+  const { employees } = useEmployees();
+  const { cars } = useCars();
+
+  // DEBUGGING: Log assignments received by PlannerContent
+  console.log(`[PlannerContent] Received ${weekAssignments.length} week assignments:`);
+  weekAssignments.forEach((assignment, index) => {
+    console.log(`  Assignment ${index + 1}: ${assignment.location}`);
+    console.log(`    - ID: ${assignment.id}`);
+    console.log(`    - Employees:`, assignment.employees);
+    console.log(`    - Employee count:`, assignment.employees?.length || 0);
+    console.log(`    - Published:`, assignment.published);
+    console.log(`    - Assignment object:`, assignment);
+  });
+
   const isMobile = window.innerWidth < 768;
 
   // Group assignments by day
   const groupedAssignments = useMemo(() => {
-    return groupAssignmentsByDay(weekAssignments || []);
+    const grouped = groupAssignmentsByDay(weekAssignments || []);
+    
+    // DEBUGGING: Log grouped assignments
+    console.log(`[PlannerContent] Grouped assignments:`, grouped);
+    Object.entries(grouped).forEach(([date, assignments]) => {
+      console.log(`  Date ${date}: ${assignments.length} assignments`);
+      assignments.forEach((assignment, index) => {
+        console.log(`    Assignment ${index + 1}: ${assignment.location}`);
+        console.log(`      - Employees:`, assignment.employees);
+        console.log(`      - Employee count:`, assignment.employees?.length || 0);
+      });
+    });
+    
+    return grouped;
   }, [weekAssignments]);
 
   // Generate dates array for the week
@@ -85,10 +104,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   const todayStr = format(today, 'yyyy-MM-dd');
 
   // Split dates into past and current/future
-  const {
-    pastDates,
-    currentAndFutureDates
-  } = useMemo(() => {
+  const { pastDates, currentAndFutureDates } = useMemo(() => {
     if (!Array.isArray(weekDateStrings)) {
       return {
         pastDates: [],
@@ -119,18 +135,51 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       currentAndFutureDates: []
     });
   }, [weekDateStrings, today]);
+
   if (Array.isArray(weekAssignments) && weekAssignments.length === 0 && !canEdit) {
     return <EmptyState message={t("planner.noAssignmentsWeek")} />;
   }
-  return <div className="space-y-6 pb-6">
+
+  return (
+    <div className="space-y-6 pb-6">
       {/* Unassigned Resources Section for admin/skadeleder only */}
-      {(canEdit || canPublishTasks) && <UnassignedResourcesSection assignments={weekAssignments} employees={employees} cars={cars} />}
+      {(canEdit || canPublishTasks) && (
+        <UnassignedResourcesSection 
+          assignments={weekAssignments} 
+          employees={employees} 
+          cars={cars} 
+        />
+      )}
       
-      <CurrentAndFutureDays dates={currentAndFutureDates || []} groupedAssignments={groupedAssignments || {}} expandedDays={expandedDays} onToggleExpansion={handleToggleExpansion} onPublishDay={onPublishDay} onEditAssignment={onEditAssignment} onDeleteAssignment={onDeleteAssignment} onPublishAssignment={onPublishAssignment} onCopyAssignment={onCopyAssignment} canEdit={canEdit} canPublishTasks={canPublishTasks} />
+      <CurrentAndFutureDays 
+        dates={currentAndFutureDates || []} 
+        groupedAssignments={groupedAssignments || {}} 
+        expandedDays={expandedDays} 
+        onToggleExpansion={handleToggleExpansion} 
+        onPublishDay={onPublishDay} 
+        onEditAssignment={onEditAssignment} 
+        onDeleteAssignment={onDeleteAssignment} 
+        onPublishAssignment={onPublishAssignment} 
+        onCopyAssignment={onCopyAssignment} 
+        canEdit={canEdit} 
+        canPublishTasks={canPublishTasks} 
+      />
       
-      <PastAssignments pastDates={pastDates || []} groupedAssignments={groupedAssignments || {}} expandedDays={expandedDays} onToggleExpansion={handleToggleExpansion} onPublishDay={onPublishDay} onEditAssignment={onEditAssignment} onDeleteAssignment={onDeleteAssignment} onPublishAssignment={onPublishAssignment} onCopyAssignment={onCopyAssignment} canEdit={canEdit} canPublishTasks={canPublishTasks} />
-      
-      {canEdit}
-    </div>;
+      <PastAssignments 
+        pastDates={pastDates || []} 
+        groupedAssignments={groupedAssignments || {}} 
+        expandedDays={expandedDays} 
+        onToggleExpansion={handleToggleExpansion} 
+        onPublishDay={onPublishDay} 
+        onEditAssignment={onEditAssignment} 
+        onDeleteAssignment={onDeleteAssignment} 
+        onPublishAssignment={onPublishAssignment} 
+        onCopyAssignment={onCopyAssignment} 
+        canEdit={canEdit} 
+        canPublishTasks={canPublishTasks} 
+      />
+    </div>
+  );
 };
+
 export default PlannerContent;

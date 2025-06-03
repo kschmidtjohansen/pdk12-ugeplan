@@ -23,26 +23,44 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // Enhanced employee display with comprehensive validation
+  // ENHANCED DEBUGGING: Track the complete employee processing flow
   const displayEmployees = () => {
+    console.log(`[AssignmentDetails] === DETAILED EMPLOYEE PROCESSING ===`);
     console.log(`[AssignmentDetails] Processing employees for assignment ${assignment.id} (${assignment.location}):`);
-    console.log(`  - Assignment object:`, assignment);
-    console.log(`  - Assignment.employees:`, assignment.employees);
+    console.log(`  - Assignment object received:`, assignment);
+    console.log(`  - Assignment.employees received:`, assignment.employees);
     console.log(`  - Type of employees:`, typeof assignment.employees);
     console.log(`  - Is array:`, Array.isArray(assignment.employees));
     console.log(`  - Length:`, assignment.employees?.length || 0);
     console.log(`  - Published:`, assignment.published);
     
+    // Check if assignment is properly defined
+    if (!assignment) {
+      console.log(`  - ERROR: Assignment object is null/undefined`);
+      return t('planner.unassigned');
+    }
+    
+    // Check if employees property exists
+    if (!assignment.hasOwnProperty('employees')) {
+      console.log(`  - ERROR: Assignment has no 'employees' property`);
+      console.log(`  - Assignment keys:`, Object.keys(assignment));
+      return t('planner.unassigned');
+    }
+    
     // Ensure we have a valid array of employees
     if (!assignment.employees || !Array.isArray(assignment.employees)) {
       console.log(`  - No valid employees array, showing unassigned`);
+      console.log(`  - assignment.employees value:`, assignment.employees);
+      console.log(`  - assignment.employees type:`, typeof assignment.employees);
       return t('planner.unassigned');
     }
+    
+    console.log(`  - Raw employees array:`, assignment.employees);
     
     // Filter out any invalid entries and ensure we have strings
     const validEmployees = assignment.employees.filter(emp => {
       const isValid = emp && typeof emp === 'string' && emp.trim() !== '';
-      console.log(`    - Employee "${emp}" is valid:`, isValid);
+      console.log(`    - Employee "${emp}" is valid:`, isValid, `(type: ${typeof emp})`);
       return isValid;
     });
     
@@ -50,7 +68,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
     console.log(`  - Valid employee count:`, validEmployees.length);
     
     if (validEmployees.length === 0) {
-      console.log(`  - No valid employees found, showing unassigned`);
+      console.log(`  - No valid employees found after filtering, showing unassigned`);
       return t('planner.unassigned');
     }
     
@@ -60,7 +78,9 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   };
   
   const employeeDisplay = displayEmployees();
+  console.log(`[AssignmentDetails] === FINAL RESULT ===`);
   console.log(`[AssignmentDetails] FINAL employee display for ${assignment.location}: "${employeeDisplay}"`);
+  console.log(`[AssignmentDetails] Will show "Ikke tildelt": ${employeeDisplay === t('planner.unassigned')}`);
   
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-sm text-left">

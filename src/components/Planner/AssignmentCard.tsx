@@ -23,6 +23,24 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   onPublish,
   onCopy
 }) => {
+  // DEBUGGING: Log assignment data received by the card
+  console.log(`[AssignmentCard] Rendering assignment card for ${assignment.location}:`);
+  console.log(`  - Assignment ID: ${assignment.id}`);
+  console.log(`  - Assignment object:`, assignment);
+  console.log(`  - Employees array:`, assignment.employees);
+  console.log(`  - Employees length:`, assignment.employees?.length || 0);
+  console.log(`  - Employees type:`, typeof assignment.employees);
+  console.log(`  - Is employees array:`, Array.isArray(assignment.employees));
+  console.log(`  - Published status:`, assignment.published);
+  
+  if (assignment.employees && Array.isArray(assignment.employees)) {
+    assignment.employees.forEach((emp, index) => {
+      console.log(`    - Employee ${index}: "${emp}" (type: ${typeof emp})`);
+    });
+  } else {
+    console.log(`    - No valid employees array found`);
+  }
+
   const isPublished = assignment.published === true;
 
   return (
