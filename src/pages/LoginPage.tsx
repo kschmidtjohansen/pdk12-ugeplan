@@ -9,7 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import PasswordResetDialog from '@/components/Auth/PasswordResetDialog';
 import { AlertCircle } from 'lucide-react';
-
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -196,17 +195,12 @@ const LoginPage: React.FC = () => {
     const seconds = Math.floor(diffMs % (1000 * 60) / 1000);
     return `${minutes}m ${seconds}s`;
   };
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+  return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
       <div className="w-full max-w-md space-y-8">
         {/* Logo and Welcome Section */}
         <div className="text-center">
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
-            <img 
-              src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" 
-              alt="Polygon Logo" 
-              className="mx-auto mb-4 h-12" 
-            />
+            <img src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" alt="Polygon Logo" className="mx-auto mb-4 h-12" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               {t('login.welcomeMessage')}
             </h1>
@@ -245,13 +239,7 @@ const LoginPage: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="password">{t('common.password')}</Label>
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
-                    className="text-sm text-polygon-blue hover:text-polygon-darkblue transition-colors"
-                  >
-                    {t('login.passwordReset.forgotPassword')}
-                  </button>
+                  
                 </div>
                 <Input id="password" type="password" placeholder={t('login.passwordPlaceholder')} value={password} onChange={e => setPassword(e.target.value)} required className="border-2" disabled={isLoading || lockedUntil && lockedUntil > new Date()} />
               </div>
@@ -263,11 +251,7 @@ const LoginPage: React.FC = () => {
                 </div>}
             </CardContent>
             <CardFooter className="pt-4">
-              <Button 
-                className="w-full bg-polygon-blue hover:bg-polygon-darkblue text-white font-medium py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md" 
-                type="submit" 
-                disabled={isLoading || lockedUntil && lockedUntil > new Date() || !email || !password}
-              >
+              <Button className="w-full bg-polygon-blue hover:bg-polygon-darkblue text-white font-medium py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md" type="submit" disabled={isLoading || lockedUntil && lockedUntil > new Date() || !email || !password}>
                 {isLoading ? t('login.buttonLoading') : t('login.button')}
               </Button>
             </CardFooter>
@@ -276,8 +260,6 @@ const LoginPage: React.FC = () => {
       </div>
 
       <PasswordResetDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen} />
-    </div>
-  );
+    </div>;
 };
-
 export default LoginPage;
