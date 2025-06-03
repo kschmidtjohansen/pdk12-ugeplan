@@ -18,7 +18,7 @@ const vacation = {
     approved: 'Godkendt',
     rejected: 'Afvist'
   },
-  dateRange: 'Datointerval',
+  dateRange: 'Dato',
   startDate: 'Første fridag',
   endDate: 'Sidste fridag',
   selectStartDate: 'Vælg startdato',

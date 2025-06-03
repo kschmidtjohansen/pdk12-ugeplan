@@ -20,7 +20,7 @@ export const useEmployeeData = () => {
       setLoading(true);
       setError(null);
       
-      // First get all profiles
+      // First get all profiles including avatar_url
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -30,7 +30,8 @@ export const useEmployeeData = () => {
           phone,
           job_title,
           on_leave,
-          notes
+          notes,
+          avatar_url
         `)
         .order('name');
       
@@ -87,7 +88,8 @@ export const useEmployeeData = () => {
             role: userRole ? userRole.role as UserRole : 'servicemedarbejder',
             onLeave: onLeave || false,
             notes: item.notes || '',
-            onApprovedVacation: isOnApprovedVacation || false
+            onApprovedVacation: isOnApprovedVacation || false,
+            avatar_url: item.avatar_url || undefined
           };
         });
         
