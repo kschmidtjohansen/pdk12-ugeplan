@@ -172,10 +172,11 @@ const DashboardPage: React.FC = () => {
     return baseItems;
   };
   const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
-  return <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
+  return (
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
         {/* Enhanced Welcome Header with Glassmorphism */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 text-white shadow-2xl animate-fade-in-up">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 text-white shadow-2xl animate-fade-in-up">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent py-0"></div>
           <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
@@ -210,17 +211,23 @@ const DashboardPage: React.FC = () => {
         </div>
 
         {/* Enhanced Quick Access Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-in-right">
-          {getQuickAccessItems().map((item, index) => <Link key={index} to={item.link} className="block group">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-in-right">
+          {getQuickAccessItems().map((item, index) => (
+            <Link key={index} to={item.link} className="block group">
               <Card className="h-full border-2">
-                <CardContent className="p-8 py-[16px] px-[33px]">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className={`p-4 rounded-2xl ${item.color === 'blue' ? 'bg-blue-50 text-blue-600' : item.color === 'green' ? 'bg-green-50 text-green-600' : item.color === 'purple' ? 'bg-purple-50 text-purple-600' : 'bg-orange-50 text-orange-600'}`}>
-                      {item.icon}
+                <CardContent className="p-4 py-[12px] px-[20px]">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`p-3 rounded-2xl ${
+                      item.color === 'blue' ? 'bg-blue-50 text-blue-600' :
+                      item.color === 'green' ? 'bg-green-50 text-green-600' :
+                      item.color === 'purple' ? 'bg-purple-50 text-purple-600' :
+                      'bg-orange-50 text-orange-600'
+                    }`}>
+                      {React.cloneElement(item.icon, { className: "h-6 w-6" })}
                     </div>
-                    <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   </div>
-                  <h3 className="font-bold text-lg mb-3">
+                  <h3 className="font-bold text-base mb-2">
                     {item.title}
                   </h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
@@ -228,34 +235,38 @@ const DashboardPage: React.FC = () => {
                   </p>
                 </CardContent>
               </Card>
-            </Link>)}
+            </Link>
+          ))}
         </div>
 
         {/* Enhanced Dashboard Metrics */}
-        {shouldShowMetrics && <div className="animate-fade-in-up" style={{
-        animationDelay: '0.2s'
-      }}>
+        {shouldShowMetrics && (
+          <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <DashboardMetrics />
-          </div>}
+          </div>
+        )}
 
         {/* Enhanced Weekly Assignments */}
-        <Card style={{
-        animationDelay: '0.4s'
-      }} className="border-2 border-border/50 bg-gradient-to-br from-card to-card">
-          <CardHeader className="pb-6">
+        <Card 
+          style={{ animationDelay: '0.4s' }}
+          className="border-2 border-border/50 bg-gradient-to-br from-card to-card"
+        >
+          <CardHeader className="pb-4">
             <CardTitle className="flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20">
-                  <Clock className="h-6 w-6 text-primary" />
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-2xl bg-primary/10 border border-primary/20">
+                  <Clock className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold">
-                    {t('dashboard.myAssignments', {
-                    week: selectedWeek
-                  })}
+                  <h2 className="text-xl font-bold">
+                    {t('dashboard.myAssignments', { week: selectedWeek })}
                   </h2>
                 </div>
-                <WeekNavigation onPrevious={handlePreviousWeek} onNext={handleNextWeek} currentWeek={selectedWeek} />
+                <WeekNavigation 
+                  onPrevious={handlePreviousWeek} 
+                  onNext={handleNextWeek} 
+                  currentWeek={selectedWeek} 
+                />
               </div>
               <Button variant="gradient" size="sm" asChild className="shadow-lg">
                 <Link to="/planner">
@@ -266,75 +277,96 @@ const DashboardPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {userWeekAssignments.length === 0 ? <div className="text-center py-16">
-                <div className="p-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
-                  <Clock className="h-10 w-10 text-gray-400" />
+            {userWeekAssignments.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="p-4 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <Clock className="h-8 w-8 text-gray-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-muted-foreground mb-2">
+                <h3 className="text-lg font-semibold text-muted-foreground mb-2">
                   {t('dashboard.noAssignments')}
                 </h3>
                 <p className="text-muted-foreground">
                   No assignments scheduled for this week
                 </p>
-              </div> : <div className="grid gap-6">
-                {userWeekAssignments.map((assignment, index) => <div key={assignment.id} style={{
-              animationDelay: `${index * 0.1}s`
-            }} onClick={() => handleAssignmentClick(assignment)} className="border-2 border-border/50 rounded-2xl p-8 bg-gradient-to-br from-card to-card/50 cursor-pointer animate-scale-in relative overflow-hidden py-[30px]">
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {userWeekAssignments.map((assignment, index) => (
+                  <div 
+                    key={assignment.id}
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                    onClick={() => handleAssignmentClick(assignment)}
+                    className="border-2 border-border/50 rounded-2xl p-4 bg-gradient-to-br from-card to-card/50 cursor-pointer animate-scale-in relative overflow-hidden py-[16px]"
+                  >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
                     
-                    <div className="relative z-10 py-[5px]">
-                      <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
-                        <h3 className="font-bold text-2xl text-left">
+                    <div className="relative z-10">
+                      <div className="flex flex-wrap justify-between items-start gap-3 mb-4">
+                        <h3 className="font-bold text-xl text-left">
                           {assignment.location}
                         </h3>
-                        <div className="px-4 py-2 bg-primary/10 text-primary rounded-full font-semibold text-sm border border-primary/20">
+                        <div className="px-3 py-1 bg-primary/10 text-primary rounded-full font-semibold text-sm border border-primary/20">
                           {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
                         </div>
                       </div>
                       
-                      {assignment.description && <p className="text-muted-foreground mb-4 text-left leading-relaxed">
+                      {assignment.description && (
+                        <p className="text-muted-foreground mb-3 text-left leading-relaxed">
                           {assignment.description}
-                        </p>}
-                      <p className="text-foreground mb-6 font-medium text-left text-lg">
+                        </p>
+                      )}
+                      <p className="text-foreground mb-4 font-medium text-left text-base">
                         {assignment.title}
                       </p>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {assignment.car && <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
-                              <Car className="h-5 w-5 text-blue-600" />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {assignment.car && (
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-xl bg-blue-50 border border-blue-200">
+                              <Car className="h-4 w-4 text-blue-600" />
                             </div>
                             <span className="text-foreground font-medium">
                               {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
                             </span>
-                          </div>}
+                          </div>
+                        )}
                         
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 rounded-xl bg-green-50 border border-green-200">
-                            <Clock className="h-5 w-5 text-green-600" />
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-xl bg-green-50 border border-green-200">
+                            <Clock className="h-4 w-4 text-green-600" />
                           </div>
                           <span className="text-foreground font-medium">
                             {assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}
                           </span>
                         </div>
                         
-                        {assignment.employees && assignment.employees.length > 0 && <div className="flex items-center gap-4 sm:col-span-2">
-                            <div className="p-3 rounded-xl bg-purple-50 border border-purple-200">
-                              <Users className="h-5 w-5 text-purple-600" />
+                        {assignment.employees && assignment.employees.length > 0 && (
+                          <div className="flex items-center gap-3 sm:col-span-2">
+                            <div className="p-2 rounded-xl bg-purple-50 border border-purple-200">
+                              <Users className="h-4 w-4 text-purple-600" />
                             </div>
                             <span className="text-foreground font-medium">
                               {assignment.employees.join(', ')}
                             </span>
-                          </div>}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>)}
-              </div>}
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        <AssignmentDetailsDialog assignment={selectedAssignment} isOpen={isAssignmentDialogOpen} onClose={() => setIsAssignmentDialogOpen(false)} />
+        <AssignmentDetailsDialog 
+          assignment={selectedAssignment}
+          isOpen={isAssignmentDialogOpen}
+          onClose={() => setIsAssignmentDialogOpen(false)}
+        />
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default DashboardPage;
