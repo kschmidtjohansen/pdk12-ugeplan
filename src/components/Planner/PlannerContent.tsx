@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
@@ -13,6 +14,7 @@ import UnassignedResourcesSection from './UnassignedResourcesSection';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
+import { Monitor } from 'lucide-react';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
@@ -25,6 +27,7 @@ interface PlannerContentProps {
   selectedWeek: number;
   selectedYear: number;
   weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
+  handleShowOnScreen: () => void;
 }
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
@@ -37,7 +40,8 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   onCopyAssignment,
   selectedWeek,
   selectedYear,
-  weekDates
+  weekDates,
+  handleShowOnScreen
 }) => {
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
@@ -151,6 +155,20 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
           cars={cars}
           vacations={vacations}
         />
+      )}
+      
+      {/* Show on Screen Button */}
+      {canPublishTasks && (
+        <div className="flex justify-center mb-4">
+          <Button 
+            onClick={handleShowOnScreen} 
+            size="sm" 
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+          >
+            <Monitor className="h-4 w-4" />
+            {t('planner.showOnScreen')}
+          </Button>
+        </div>
       )}
       
       <CurrentAndFutureDays 

@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { useTranslation } from '../context/TranslationContext';
 import { usePlannerPage } from '../hooks/usePlannerPage';
 import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
-import { Clock, ChevronLeft, ChevronRight, Plus, Monitor } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
 const PlannerPage: React.FC = () => {
@@ -98,11 +99,6 @@ const PlannerPage: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="flex gap-2">
-                {canPublishTasks && <Button onClick={handleShowOnScreen} size="sm" className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-lg" variant="outline">
-                    <Monitor className="h-4 w-4" />
-                    {t('planner.showOnScreen')}
-                  </Button>}
-                
                 {canCreate && <Button onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} size="sm" className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-lg" variant="outline">
                     <Plus className="h-4 w-4" />
                     {t('planner.createNew')}
@@ -115,7 +111,19 @@ const PlannerPage: React.FC = () => {
         {/* Planner Content */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
           <div className="p-6">
-            <PlannerContent weekAssignments={sortedWeekAssignments} onEditAssignment={handleOpenEditDialog} onDeleteAssignment={deleteAssignment} onPublishAssignment={publishAssignment} onPublishDay={handlePublishDay} onCreateAssignment={handleOpenCreateDialog} onCopyAssignment={handleCopyAssignment} selectedWeek={selectedWeek} selectedYear={selectedYear} weekDates={weekDates} />
+            <PlannerContent 
+              weekAssignments={sortedWeekAssignments} 
+              onEditAssignment={handleOpenEditDialog} 
+              onDeleteAssignment={deleteAssignment} 
+              onPublishAssignment={publishAssignment} 
+              onPublishDay={handlePublishDay} 
+              onCreateAssignment={handleOpenCreateDialog} 
+              onCopyAssignment={handleCopyAssignment} 
+              selectedWeek={selectedWeek} 
+              selectedYear={selectedYear} 
+              weekDates={weekDates}
+              handleShowOnScreen={handleShowOnScreen}
+            />
           </div>
         </div>
 
