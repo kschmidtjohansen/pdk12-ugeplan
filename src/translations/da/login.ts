@@ -12,6 +12,7 @@ const login = {
   welcomeMessage: 'Velkommen til Polygon Ugeplan',
   internalSystem: 'Afdeling 12 - Trekantsområdet',
   invalidCredentials: 'Ugyldig email eller adgangskode. Prøv igen.',
+  tooManyRequests: 'For mange login-forsøg. Vent venligst før du prøver igen.',
   passwordReset: {
     forgotPassword: 'Glemt adgangskode?',
     title: 'Nulstil adgangskode',

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import PageHeader from '../components/Layout/PageHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,7 +19,8 @@ import {
   Activity,
   UserCheck,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Settings
 } from 'lucide-react';
 
 const AdminPage: React.FC = () => {
@@ -169,115 +169,136 @@ const AdminPage: React.FC = () => {
   };
 
   return (
-    <>
-      <PageHeader
-        title={t('admin.title')}
-        description={t('admin.systemOverview.description')}
-      />
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="overview">{t('admin.tabs.overview')}</TabsTrigger>
-          <TabsTrigger value="users">{t('admin.tabs.users')}</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overview" className="mt-6 space-y-6">
-          {/* Quick Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {quickStats.map((stat, index) => (
-              <Card 
-                key={index} 
-                className="cursor-pointer hover:shadow-md transition-all duration-200 hover:border-polygon-blue"
-                onClick={stat.onClick}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                      <p className="text-2xl font-bold">{stat.value}</p>
-                      <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
-                    </div>
-                    <div className={`p-3 rounded-full ${stat.bgColor} ${stat.color}`}>
-                      {stat.icon}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+    <div className="min-h-screen bg-gray-50/30">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Modern Page Header */}
+        <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold text-gray-900">
+                {t('admin.title')}
+              </h1>
+              <p className="text-sm text-gray-600">
+                {t('admin.systemOverview.description')}
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
+                <Settings className="h-6 w-6 text-primary" />
+              </div>
+            </div>
           </div>
+        </div>
 
-          {/* System Health */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                {t('admin.systemHealth.title')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {systemHealth.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-full ${getStatusColor(item.status)}`}>
-                        {item.icon}
-                      </div>
-                      <div>
-                        <p className="font-medium">{item.title}</p>
-                        <p className="text-sm text-muted-foreground">{item.message}</p>
-                      </div>
+        {/* Admin Content */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="p-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="overview">{t('admin.tabs.overview')}</TabsTrigger>
+                <TabsTrigger value="users">{t('admin.tabs.users')}</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview" className="mt-6 space-y-6">
+                {/* Quick Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {quickStats.map((stat, index) => (
+                    <Card 
+                      key={index} 
+                      className="cursor-pointer hover:shadow-md transition-all duration-200 hover:border-polygon-blue"
+                      onClick={stat.onClick}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                            <p className="text-2xl font-bold">{stat.value}</p>
+                            <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
+                          </div>
+                          <div className={`p-3 rounded-full ${stat.bgColor} ${stat.color}`}>
+                            {stat.icon}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* System Health */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      {t('admin.systemHealth.title')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {systemHealth.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-full ${getStatusColor(item.status)}`}>
+                              {item.icon}
+                            </div>
+                            <div>
+                              <p className="font-medium">{item.title}</p>
+                              <p className="text-sm text-muted-foreground">{item.message}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  </CardContent>
+                </Card>
 
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('admin.quickActions.title')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <button 
-                  onClick={() => navigate('/planner')}
-                  className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
-                >
-                  <ClipboardCheck className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
-                  <p className="text-sm font-medium">{t('admin.quickActions.viewPlanner')}</p>
-                </button>
-                <button 
-                  onClick={() => navigate('/employees')}
-                  className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
-                >
-                  <UserCheck className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
-                  <p className="text-sm font-medium">{t('admin.quickActions.manageStaff')}</p>
-                </button>
-                <button 
-                  onClick={() => navigate('/cars')}
-                  className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
-                >
-                  <Car className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
-                  <p className="text-sm font-medium">{t('admin.quickActions.fleetManagement')}</p>
-                </button>
-                <button 
-                  onClick={() => navigate('/vacation')}
-                  className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
-                >
-                  <Calendar className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
-                  <p className="text-sm font-medium">{t('admin.quickActions.vacationRequests')}</p>
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="users" className="mt-6">
-          <UserManagement />
-        </TabsContent>
-      </Tabs>
-    </>
+                {/* Quick Actions */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t('admin.quickActions.title')}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <button 
+                        onClick={() => navigate('/planner')}
+                        className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
+                      >
+                        <ClipboardCheck className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
+                        <p className="text-sm font-medium">{t('admin.quickActions.viewPlanner')}</p>
+                      </button>
+                      <button 
+                        onClick={() => navigate('/employees')}
+                        className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
+                      >
+                        <UserCheck className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
+                        <p className="text-sm font-medium">{t('admin.quickActions.manageStaff')}</p>
+                      </button>
+                      <button 
+                        onClick={() => navigate('/cars')}
+                        className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
+                      >
+                        <Car className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
+                        <p className="text-sm font-medium">{t('admin.quickActions.fleetManagement')}</p>
+                      </button>
+                      <button 
+                        onClick={() => navigate('/vacation')}
+                        className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
+                      >
+                        <Calendar className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
+                        <p className="text-sm font-medium">{t('admin.quickActions.vacationRequests')}</p>
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="users" className="mt-6">
+                <UserManagement />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
