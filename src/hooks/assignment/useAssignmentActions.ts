@@ -5,6 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
+import { isValidUUID, safeUUID } from '@/utils/uuidValidation';
 
 // This hook provides actions for managing assignments
 export const useAssignmentActions = (
@@ -17,6 +18,11 @@ export const useAssignmentActions = (
   // Helper function to get profile ID by name
   const getProfileIdByName = async (name: string): Promise<string | null> => {
     try {
+      if (!name || typeof name !== 'string') {
+        console.warn('Invalid name provided for profile lookup:', name);
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('id')
@@ -28,7 +34,14 @@ export const useAssignmentActions = (
         return null;
       }
       
-      return data?.id || null;
+      // Validate the returned ID
+      const profileId = safeUUID(data?.id);
+      if (!profileId) {
+        console.warn('Invalid UUID returned for profile:', name, data?.id);
+        return null;
+      }
+      
+      return profileId;
     } catch (err) {
       console.error('Exception getting profile by name:', err);
       return null;
@@ -44,10 +57,10 @@ export const useAssignmentActions = (
       let carId = null;
       if (assignmentData.car) {
         if (typeof assignmentData.car === 'string') {
-          carId = assignmentData.car;
+          carId = safeUUID(assignmentData.car);
         } else if (typeof assignmentData.car === 'object') {
           // If car is already an object, use its ID
-          carId = (assignmentData.car as Car).id;
+          carId = safeUUID((assignmentData.car as Car).id);
         }
       }
       
@@ -71,7 +84,7 @@ export const useAssignmentActions = (
       if (error) throw error;
       
       // If there are employees, link them to the assignment
-      if (assignmentData.employees && assignmentData.employees.length > 0 && newAssignment) {
+      if (assignmentData.employees && assignmentData.employees.length > 0 && newAssignment?.id) {
         console.log("Assignment created, now linking employees:", assignmentData.employees);
         // Get profile IDs for each employee name
         const employeeInserts = [];
@@ -90,7 +103,7 @@ export const useAssignmentActions = (
               user_id: profileId
             });
           } else {
-            console.warn(`Could not find profile ID for employee: ${employeeName}`);
+            console.warn(`Could not find valid profile ID for employee: ${employeeName}`);
           }
         }
         
@@ -126,16 +139,20 @@ export const useAssignmentActions = (
   // Update an existing assignment
   const updateAssignment = useCallback(async (id: string, assignmentData: Partial<Assignment>) => {
     try {
+      if (!isValidUUID(id)) {
+        throw new Error('Invalid assignment ID provided');
+      }
+
       console.log("Updating assignment with data:", assignmentData);
       
       // Format car information for storage
       let carId = null;
       if (assignmentData.car) {
         if (typeof assignmentData.car === 'string') {
-          carId = assignmentData.car;
+          carId = safeUUID(assignmentData.car);
         } else if (typeof assignmentData.car === 'object') {
           // If car is already an object, use its ID
-          carId = (assignmentData.car as Car).id;
+          carId = safeUUID((assignmentData.car as Car).id);
         }
       }
       
@@ -187,7 +204,7 @@ export const useAssignmentActions = (
               user_id: profileId
             });
           } else {
-            console.warn(`Could not find profile ID for employee: ${employeeName}`);
+            console.warn(`Could not find valid profile ID for employee: ${employeeName}`);
           }
         }
         
@@ -225,6 +242,10 @@ export const useAssignmentActions = (
   // Delete an assignment
   const deleteAssignment = useCallback(async (id: string) => {
     try {
+      if (!isValidUUID(id)) {
+        throw new Error('Invalid assignment ID provided');
+      }
+
       // First delete associated employee assignments
       const { error: empError } = await supabase
         .from('assignments_employees')

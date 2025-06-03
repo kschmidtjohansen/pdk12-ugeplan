@@ -19,6 +19,7 @@ import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNext
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import { Assignment } from '@/types/assignment';
 import { getDailyQuote } from '@/utils/dailyQuotes';
+import { isValidUUID } from '@/utils/uuidValidation';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -44,24 +45,30 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     const updateEmployeeStatuses = async () => {
       try {
-        if (user?.id) {
+        // Only update if user is authenticated and has a valid ID
+        if (user?.id && isValidUUID(user.id)) {
           console.log('Updating employee leave status from vacations...');
           await updateEmployeeLeaveStatusFromVacations();
+        } else {
+          console.log('Skipping employee status update - user not authenticated or invalid ID:', user?.id);
         }
       } catch (error) {
         console.error('Failed to update employee statuses:', error);
       }
     };
     
-    updateEmployeeStatuses();
-    
-    const intervalId = setInterval(() => {
+    // Only run if user is authenticated
+    if (user?.id && isValidUUID(user.id)) {
       updateEmployeeStatuses();
-    }, 30 * 60 * 1000); // 30 minutes
+      
+      const intervalId = setInterval(() => {
+        updateEmployeeStatuses();
+      }, 30 * 60 * 1000); // 30 minutes
 
-    return () => {
-      clearInterval(intervalId);
-    };
+      return () => {
+        clearInterval(intervalId);
+      };
+    }
   }, [user?.id, updateEmployeeLeaveStatusFromVacations]);
 
   // Get the dates for the selected week

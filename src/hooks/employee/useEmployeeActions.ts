@@ -4,6 +4,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useNotifications } from '@/context/NotificationContext';
 import { safeProperty } from '@/utils/dbHelpers';
+import { isValidUUID, validateUUID, safeUUID } from '@/utils/uuidValidation';
 
 export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   const { toast } = useToast();
@@ -14,8 +15,14 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
    * Update employee onLeave status
    */
   const toggleEmployeeLeave = async (employee: any, setOnLeave: boolean, notes: string | null = null) => {
-    if (!employee?.id) {
-      console.error('Employee ID is missing');
+    // Validate employee ID
+    if (!employee?.id || !isValidUUID(employee.id)) {
+      console.error('Invalid employee ID provided:', employee?.id);
+      toast({
+        title: t('common.error'),
+        description: 'Invalid employee ID',
+        variant: 'destructive',
+      });
       return false;
     }
     
@@ -84,7 +91,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       
       // Filter out any vacations with invalid user_id
       const validActiveVacations = (activeVacations || []).filter(vacation => 
-        vacation.user_id && vacation.user_id !== 'undefined' && vacation.user_id.length > 0
+        isValidUUID(vacation.user_id)
       );
       
       // Create a set of user IDs who are on active vacations
@@ -112,7 +119,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       // Process each employee
       for (const employee of employees || []) {
         // Skip employees with invalid IDs
-        if (!employee.id || employee.id === 'undefined') {
+        if (!isValidUUID(employee.id)) {
           console.warn('Skipping employee with invalid ID:', employee);
           continue;
         }
@@ -125,7 +132,6 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         }
         
         // If employee is not on vacation but is marked as on leave due to vacation 
-        // (we'll need to check if they were marked as on leave due to a vacation)
         if (!isOnVacation && employee.on_leave) {
           // Check if they were marked as on leave due to a vacation that has ended
           const { data: recentVacations, error: recentError } = await supabase
@@ -217,8 +223,8 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       
       console.log('Employee created:', data);
       
-      // Update the profile with additional fields
-      if (data.id && data.id !== 'undefined') {
+      // Update the profile with additional fields if we have a valid ID
+      if (data.id && isValidUUID(data.id)) {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
@@ -233,6 +239,8 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
           console.error('Error updating profile:', profileError);
           throw profileError;
         }
+      } else {
+        console.warn('Invalid or missing user ID returned from creation:', data.id);
       }
       
       toast({
@@ -262,8 +270,13 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
    * Update an existing employee
    */
   const updateEmployee = async (employee: any, formData: any) => {
-    if (!employee?.id || employee.id === 'undefined') {
-      console.error('Invalid employee ID');
+    if (!isValidUUID(employee?.id)) {
+      console.error('Invalid employee ID for update:', employee?.id);
+      toast({
+        title: t('common.error'),
+        description: 'Invalid employee ID',
+        variant: 'destructive',
+      });
       return false;
     }
     
@@ -321,8 +334,13 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
    * Delete an employee
    */
   const deleteEmployee = async (employeeId: string, allEmployees: any[]) => {
-    if (!employeeId || employeeId === 'undefined') {
-      console.error('Invalid employee ID');
+    if (!isValidUUID(employeeId)) {
+      console.error('Invalid employee ID for deletion:', employeeId);
+      toast({
+        title: t('common.error'),
+        description: 'Invalid employee ID',
+        variant: 'destructive',
+      });
       return false;
     }
     
