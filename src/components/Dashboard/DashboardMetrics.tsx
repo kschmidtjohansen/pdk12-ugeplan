@@ -29,6 +29,9 @@ const DashboardMetrics: React.FC = () => {
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
+  // Filter employees to only include servicemedarbejder role
+  const serviceEmployees = employees.filter(employee => employee.role === 'servicemedarbejder');
+
   // Helper function to check if an employee is on vacation today
   const isEmployeeOnVacationToday = (employeeId: string) => {
     const todayDate = new Date(today);
@@ -63,8 +66,8 @@ const DashboardMetrics: React.FC = () => {
     return todaysAssignments.length > 0;
   };
 
-  // Calculate available employees
-  const availableEmployees = employees.filter(employee => {
+  // Calculate available employees (filtered to servicemedarbejder only)
+  const availableEmployees = serviceEmployees.filter(employee => {
     const isOnLeave = employee.onLeave;
     const isOnVacation = isEmployeeOnVacationToday(employee.id);
     const hasAssignments = hasAssignmentsToday(employee.id, employee.name);
@@ -72,8 +75,8 @@ const DashboardMetrics: React.FC = () => {
     return !isOnLeave && !isOnVacation && !hasAssignments;
   });
 
-  // Calculate unavailable employees
-  const unavailableEmployees = employees.filter(employee => {
+  // Calculate unavailable employees (filtered to servicemedarbejder only)
+  const unavailableEmployees = serviceEmployees.filter(employee => {
     const isOnLeave = employee.onLeave;
     const isOnVacation = isEmployeeOnVacationToday(employee.id);
     const hasAssignments = hasAssignmentsToday(employee.id, employee.name);
@@ -100,7 +103,7 @@ const DashboardMetrics: React.FC = () => {
         <MetricCard
           title={t('dashboard.metrics.availableEmployees')}
           value={availableEmployees.length}
-          subtitle={`${employees.length} ${t('admin.quickStats.total')}`}
+          subtitle={`${serviceEmployees.length} ${t('admin.quickStats.total')}`}
           icon={Users}
           color="green"
           onClick={() => setAvailabilityDialogOpen(true)}

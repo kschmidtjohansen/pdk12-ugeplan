@@ -59,8 +59,22 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
       case 'mine':
         return filtered.filter(v => v.employeeId === user.id);
       default: // 'all'
-        return filtered;
+        filtered = filtered;
     }
+
+    // Sort vacations to always show pending applications first
+    return filtered.sort((a, b) => {
+      // If one is pending and the other is not, pending comes first
+      if (a.status === 'pending' && b.status !== 'pending') {
+        return -1;
+      }
+      if (a.status !== 'pending' && b.status === 'pending') {
+        return 1;
+      }
+      
+      // If both have the same status, sort by creation date (newest first)
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
   }, [vacations, tabValue, user, isAdmin, isSkadeleder]);
 
   return (
