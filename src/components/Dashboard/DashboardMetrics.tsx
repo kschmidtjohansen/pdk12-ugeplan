@@ -1,8 +1,6 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Calendar, Users, Car, Clock } from 'lucide-react';
+import { Users, Car } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
@@ -11,6 +9,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
+import MetricCard from './MetricCard';
 
 const DashboardMetrics: React.FC = () => {
   const { isAdmin, isSkadeleder } = usePermissions();
@@ -35,16 +34,6 @@ const DashboardMetrics: React.FC = () => {
     const todayDate = new Date(today);
     todayDate.setHours(0, 0, 0, 0);
     
-    console.log('[DashboardMetrics] Checking vacation for employee:', employeeId);
-    console.log('[DashboardMetrics] Available vacations:', vacations.map(v => ({
-      id: v.id,
-      employeeId: v.employeeId,
-      employeeName: v.employeeName,
-      status: v.status,
-      startDate: v.startDate,
-      endDate: v.endDate
-    })));
-    
     const isOnVacation = vacations.some(vacation => {
       if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
         return false;
@@ -56,18 +45,9 @@ const DashboardMetrics: React.FC = () => {
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(0, 0, 0, 0);
       
-      const inRange = todayDate >= startDate && todayDate <= endDate;
-      console.log(`[DashboardMetrics] Employee ${employeeId} vacation check:`, {
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        today: todayDate.toISOString(),
-        inRange
-      });
-      
-      return inRange;
+      return todayDate >= startDate && todayDate <= endDate;
     });
     
-    console.log(`[DashboardMetrics] Employee ${employeeId} is on vacation today:`, isOnVacation);
     return isOnVacation;
   };
 
@@ -80,50 +60,25 @@ const DashboardMetrics: React.FC = () => {
       assignment.employees.includes(employeeName)
     );
     
-    console.log(`[DashboardMetrics] Employee ${employeeName} (${employeeId}) assignments today:`, todaysAssignments.length);
     return todaysAssignments.length > 0;
   };
 
-  // FIXED: Calculate available employees (not on leave AND not on vacation AND no assignments today)
+  // Calculate available employees
   const availableEmployees = employees.filter(employee => {
     const isOnLeave = employee.onLeave;
     const isOnVacation = isEmployeeOnVacationToday(employee.id);
     const hasAssignments = hasAssignmentsToday(employee.id, employee.name);
     
-    const isAvailable = !isOnLeave && !isOnVacation && !hasAssignments;
-    
-    console.log(`[DashboardMetrics] Employee ${employee.name} availability:`, {
-      onLeave: isOnLeave,
-      onVacation: isOnVacation,
-      hasAssignments: hasAssignments,
-      isAvailable: isAvailable
-    });
-    
-    return isAvailable;
+    return !isOnLeave && !isOnVacation && !hasAssignments;
   });
 
-  // FIXED: Calculate unavailable employees (on leave OR on vacation OR have assignments today)
+  // Calculate unavailable employees
   const unavailableEmployees = employees.filter(employee => {
     const isOnLeave = employee.onLeave;
     const isOnVacation = isEmployeeOnVacationToday(employee.id);
     const hasAssignments = hasAssignmentsToday(employee.id, employee.name);
     
-    const isUnavailable = isOnLeave || isOnVacation || hasAssignments;
-    
-    console.log(`[DashboardMetrics] Employee ${employee.name} unavailability:`, {
-      onLeave: isOnLeave,
-      onVacation: isOnVacation,
-      hasAssignments: hasAssignments,
-      isUnavailable: isUnavailable
-    });
-    
-    return isUnavailable;
-  });
-
-  console.log('[DashboardMetrics] Final counts:', {
-    totalEmployees: employees.length,
-    availableEmployees: availableEmployees.length,
-    unavailableEmployees: unavailableEmployees.length
+    return isOnLeave || isOnVacation || hasAssignments;
   });
 
   // Calculate cars in use today
@@ -139,66 +94,42 @@ const DashboardMetrics: React.FC = () => {
 
   const availableCars = cars.filter(car => car.is_available).length;
 
-  const metrics = [
-    {
-      title: t('dashboard.metrics.availableEmployees'),
-      value: availableEmployees.length,
-      subtitle: `${employees.length} ${t('admin.quickStats.total')}`,
-      icon: <Users className="h-6 w-6" />,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      onClick: () => setAvailabilityDialogOpen(true)
-    },
-    {
-      title: t('dashboard.metrics.unavailableEmployees'),
-      value: unavailableEmployees.length,
-      subtitle: t('dashboard.metrics.unavailableSubtitle'),
-      icon: <Users className="h-6 w-6" />,
-      color: 'text-red-600',
-      bgColor: 'bg-red-50',
-      onClick: () => setUnavailableDialogOpen(true)
-    },
-    {
-      title: t('dashboard.metrics.availableCars'),
-      value: availableCars,
-      subtitle: `${cars.length} ${t('admin.quickStats.total')}`,
-      icon: <Car className="h-6 w-6" />,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
-    },
-    {
-      title: t('dashboard.metrics.carsInUse'),
-      value: carsInUseToday,
-      subtitle: t('dashboard.metrics.carsInUseSubtitle'),
-      icon: <Car className="h-6 w-6" />,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50'
-    }
-  ];
-
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {metrics.map((metric, index) => (
-          <Card 
-            key={index}
-            className={`${metric.onClick ? 'cursor-pointer hover:shadow-md transition-all duration-200 hover:border-polygon-blue' : ''}`}
-            onClick={metric.onClick}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{metric.title}</p>
-                  <p className="text-2xl font-bold">{metric.value}</p>
-                  <p className="text-xs text-muted-foreground">{metric.subtitle}</p>
-                </div>
-                <div className={`p-3 rounded-full ${metric.bgColor} ${metric.color}`}>
-                  {metric.icon}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <MetricCard
+          title={t('dashboard.metrics.availableEmployees')}
+          value={availableEmployees.length}
+          subtitle={`${employees.length} ${t('admin.quickStats.total')}`}
+          icon={Users}
+          color="green"
+          onClick={() => setAvailabilityDialogOpen(true)}
+        />
+        
+        <MetricCard
+          title={t('dashboard.metrics.unavailableEmployees')}
+          value={unavailableEmployees.length}
+          subtitle={t('dashboard.metrics.unavailableSubtitle')}
+          icon={Users}
+          color="red"
+          onClick={() => setUnavailableDialogOpen(true)}
+        />
+        
+        <MetricCard
+          title={t('dashboard.metrics.availableCars')}
+          value={availableCars}
+          subtitle={`${cars.length} ${t('admin.quickStats.total')}`}
+          icon={Car}
+          color="blue"
+        />
+        
+        <MetricCard
+          title={t('dashboard.metrics.carsInUse')}
+          value={carsInUseToday}
+          subtitle={t('dashboard.metrics.carsInUseSubtitle')}
+          icon={Car}
+          color="orange"
+        />
       </div>
 
       {/* Employee Availability Dialog */}

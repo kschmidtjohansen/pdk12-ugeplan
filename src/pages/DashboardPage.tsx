@@ -1,13 +1,13 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import PageHeader from '../components/Layout/PageHeader';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Users, Car, Clock, MapPin } from 'lucide-react';
+import { Calendar, Users, Car, Clock, MapPin, ArrowRight } from 'lucide-react';
 import { format, getISOWeek, getISOWeekYear } from 'date-fns';
-import { getCurrentWeek } from '@/types/assignment';
 import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import WeekNavigation from '@/components/Dashboard/WeekNavigation';
 
@@ -28,39 +28,26 @@ const DashboardPage: React.FC = () => {
   const { vacations } = useVacations();
   const { filterForDashboard } = useAssignmentFilters();
 
-  // Debug: Verify current week calculation with proper ISO week functions
   const today = new Date();
   const todayISOWeek = getISOWeek(today);
   const todayISOYear = getISOWeekYear(today);
   
-  console.log('[DashboardPage] === CURRENT WEEK VERIFICATION ===');
-  console.log(`[DashboardPage] Today's date: ${today.toDateString()} (${format(today, 'yyyy-MM-dd')})`);
-  console.log(`[DashboardPage] ISO Week from getISOWeek(): ${todayISOWeek}`);
-  console.log(`[DashboardPage] ISO Year from getISOWeekYear(): ${todayISOYear}`);
-  console.log(`[DashboardPage] Legacy getCurrentWeekNumber(): ${getCurrentWeekNumber()}`);
-  console.log(`[DashboardPage] Should be week 23 for June 3rd, 2025`);
-
-  // State for week navigation - use proper ISO week calculation
   const [selectedWeek, setSelectedWeek] = useState(todayISOWeek);
   const [selectedYear, setSelectedYear] = useState(todayISOYear);
 
   // Update employee leave status based on vacations when dashboard loads
   useEffect(() => {
     const updateEmployeeStatuses = async () => {
-      // Import dynamically to avoid circular dependencies
       const { useEmployeeActions } = await import('@/hooks/employee/useEmployeeActions');
       const { updateEmployeeLeaveStatusFromVacations } = useEmployeeActions(() => Promise.resolve());
       await updateEmployeeLeaveStatusFromVacations();
     };
     
-    // Update status on load
     updateEmployeeStatuses();
     
-    // Also set up an interval to periodically check for employee status changes
-    // This ensures employees are properly marked as available when their vacation ends
     const intervalId = setInterval(() => {
       updateEmployeeStatuses();
-    }, 30 * 60 * 1000); // Check every 30 minutes
+    }, 30 * 60 * 1000);
     
     return () => {
       clearInterval(intervalId);
@@ -69,8 +56,6 @@ const DashboardPage: React.FC = () => {
 
   // Get the dates for the selected week
   const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
-
-  // Convert start/end dates to ISO strings
   const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
   const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
 
@@ -88,27 +73,14 @@ const DashboardPage: React.FC = () => {
     setSelectedYear(year);
   };
 
-  // ENHANCED: Get assignments for the selected week and user using dashboard filter with better logging
+  // Get assignments for the selected week and user
   const userWeekAssignments = filterForDashboard(assignments).filter(assignment => {
-    // Check if assignment is within the selected week
     const assignmentDate = assignment.date;
     const isInWeek = assignmentDate >= startDateISO && assignmentDate <= endDateISO;
-    
-    console.log(`[DashboardPage] Assignment ${assignment.id} (${assignment.location}):`, {
-      date: assignmentDate,
-      weekStart: startDateISO,
-      weekEnd: endDateISO,
-      isInWeek: isInWeek,
-      employees: assignment.employees,
-      userRole: user?.role
-    });
-    
     return isInWeek;
   }).sort((a, b) => {
-    // Get today's date in YYYY-MM-DD format
     const today = format(new Date(), 'yyyy-MM-dd');
     
-    // Priority sorting: today first, then future dates, then past dates
     const aIsToday = a.date === today;
     const bIsToday = b.date === today;
     const aIsFuture = a.date > today;
@@ -116,38 +88,24 @@ const DashboardPage: React.FC = () => {
     const aIsPast = a.date < today;
     const bIsPast = b.date < today;
     
-    // Today's assignments at the top
     if (aIsToday && !bIsToday) return -1;
     if (!aIsToday && bIsToday) return 1;
     
-    // Future assignments before past assignments
     if (aIsFuture && bIsPast) return -1;
     if (aIsPast && bIsFuture) return 1;
     
-    // Within the same category (today, future, or past), sort by date and time
     if (a.date !== b.date) {
-      // For future dates, sort earliest first
       if (aIsFuture && bIsFuture) {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       }
-      // For past dates, sort latest first (most recent past dates first)
       if (aIsPast && bIsPast) {
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       }
-      // Default date comparison
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     }
     
-    // If same date, sort by fromTime (earliest first)
     return a.fromTime.localeCompare(b.fromTime);
   });
-
-  console.log(`[DashboardPage] Final user week assignments for ${user?.name}:`, userWeekAssignments.map(a => ({
-    id: a.id,
-    location: a.location,
-    employees: a.employees,
-    date: a.date
-  })));
 
   // Format the date based on the current language
   const getFormattedDate = () => {
@@ -163,72 +121,113 @@ const DashboardPage: React.FC = () => {
   const getQuickAccessItems = () => {
     const baseItems = [{
       title: t('dashboard.quickAccess.planner.title'),
-      icon: <Clock className="h-10 w-10" />,
+      icon: <Clock className="h-8 w-8" />,
       description: t('dashboard.quickAccess.planner.description'),
-      link: '/planner'
+      link: '/planner',
+      color: 'blue'
     }, {
       title: t('dashboard.quickAccess.vacation.title'),
-      icon: <Calendar className="h-10 w-10 text-polygon-blue" />,
+      icon: <Calendar className="h-8 w-8" />,
       description: t('dashboard.quickAccess.vacation.description'),
-      link: '/vacation'
+      link: '/vacation',
+      color: 'green'
     }];
 
-    // Add role-specific items
     if (user?.role === 'administrator' || user?.role === 'skadeleder') {
       baseItems.push({
         title: t('dashboard.quickAccess.employees.title'),
-        icon: <Users className="h-10 w-10" />,
+        icon: <Users className="h-8 w-8" />,
         description: t('dashboard.quickAccess.employees.description'),
-        link: '/employees'
+        link: '/employees',
+        color: 'purple'
       }, {
         title: t('dashboard.quickAccess.cars.title'),
-        icon: <Car className="h-10 w-10" />,
+        icon: <Car className="h-8 w-8" />,
         description: t('dashboard.quickAccess.cars.description'),
-        link: '/cars'
+        link: '/cars',
+        color: 'orange'
       });
     }
     return baseItems;
   };
 
-  // Show dashboard metrics only for admin or skadeleder
   const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
   
   return (
-    <>
-      <PageHeader title={t('dashboard.welcome', {
-      name: user?.name
-    })} description={t('dashboard.today', {
-      date: getFormattedDate(),
-      week: todayISOWeek // Use proper ISO week here
-    })} />
+    <div className="space-y-8">
+      {/* Enhanced Page Header */}
+      <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-8 text-white shadow-large animate-fade-in-up">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              {t('dashboard.welcome', { name: user?.name })}
+            </h1>
+            <p className="text-blue-100 text-lg">
+              {t('dashboard.today', {
+                date: getFormattedDate(),
+                week: todayISOWeek
+              })}
+            </p>
+          </div>
+          <div className="hidden md:block">
+            <div className="text-right">
+              <p className="text-blue-100 text-sm uppercase tracking-wide font-medium">
+                {t('dashboard.week')} {todayISOWeek}
+              </p>
+              <p className="text-2xl font-bold">
+                {format(new Date(), 'dd/MM')}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      {/* Quick access grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {getQuickAccessItems().map((item, index) => <Link key={index} to={item.link} className="block">
-            <Card className="h-full hover:border-polygon-blue transition-all duration-200">
-              <CardHeader className="pb-2">
-                <div className="text-polygon-blue">{item.icon}</div>
-                <CardTitle className="mt-2">{item.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="pb-2">
-                <p className="text-muted-foreground text-sm text-left">{item.description}</p>
+      {/* Quick access grid with enhanced cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-in-right">
+        {getQuickAccessItems().map((item, index) => (
+          <Link key={index} to={item.link} className="block group">
+            <Card className="h-full hover:shadow-large transition-all duration-300 border-0 shadow-soft hover-lift bg-gradient-to-br from-white to-gray-50">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`p-3 rounded-xl ${
+                    item.color === 'blue' ? 'bg-blue-50 text-blue-600' :
+                    item.color === 'green' ? 'bg-green-50 text-green-600' :
+                    item.color === 'purple' ? 'bg-purple-50 text-purple-600' :
+                    'bg-orange-50 text-orange-600'
+                  }`}>
+                    {item.icon}
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+                  {item.title}
+                </h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {item.description}
+                </p>
               </CardContent>
             </Card>
-          </Link>)}
+          </Link>
+        ))}
       </div>
 
       {/* Dashboard metrics for admin/skadeleder */}
-      <DashboardMetrics />
+      {shouldShowMetrics && (
+        <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <DashboardMetrics />
+        </div>
+      )}
 
-      {/* This week's assignments */}
-      <Card className="mb-8 mt-8">
-        <CardHeader>
+      {/* This week's assignments with enhanced design */}
+      <Card className="shadow-medium border-0 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+        <CardHeader className="pb-4">
           <CardTitle className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <span>
-                {t('dashboard.myAssignments', {
-                  week: selectedWeek
-                })}
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Clock className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-xl">
+                {t('dashboard.myAssignments', { week: selectedWeek })}
               </span>
               <WeekNavigation 
                 onPrevious={handlePreviousWeek}
@@ -236,73 +235,83 @@ const DashboardPage: React.FC = () => {
                 currentWeek={selectedWeek}
               />
             </div>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/planner">{t('dashboard.viewAll')}</Link>
+            <Button variant="outline" size="sm" asChild className="hover:bg-primary hover:text-white transition-colors">
+              <Link to="/planner">
+                {t('dashboard.viewAll')}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {userWeekAssignments.length === 0 ? (
-            <p className="text-left py-8 text-muted-foreground">
-              {t('dashboard.noAssignments')}
-            </p>
+            <div className="text-center py-12">
+              <div className="p-4 rounded-full bg-gray-100 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Clock className="h-8 w-8 text-gray-400" />
+              </div>
+              <p className="text-muted-foreground text-lg">
+                {t('dashboard.noAssignments')}
+              </p>
+            </div>
           ) : (
             <div className="grid gap-4">
-              {userWeekAssignments.map(assignment => {
-                console.log(`[DashboardPage] Rendering assignment ${assignment.id} (${assignment.location}) with employees:`, assignment.employees);
-                
-                return (
-                  <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
-                    <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
-                      <h3 className="font-bold text-lg text-left">{assignment.location}</h3>
-                      <span className="text-sm bg-gray-100 px-2 py-1 rounded-md">
-                        {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
+              {userWeekAssignments.map((assignment, index) => (
+                <div 
+                  key={assignment.id} 
+                  className="border rounded-xl p-6 bg-gradient-to-r from-white to-gray-50 hover:shadow-medium transition-all duration-200 hover-lift animate-scale-in"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div className="flex flex-wrap justify-between items-start gap-2 mb-4">
+                    <h3 className="font-bold text-xl text-left">{assignment.location}</h3>
+                    <span className="text-sm bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
+                      {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
+                    </span>
+                  </div>
+                  
+                  {assignment.description && (
+                    <p className="text-sm text-gray-600 mb-3 text-left">{assignment.description}</p>
+                  )}
+                  <p className="text-sm text-gray-700 mb-4 font-medium text-left">{assignment.title}</p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {assignment.car && (
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-blue-50">
+                          <Car className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <span className="text-sm text-gray-700 font-medium">
+                          {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-green-50">
+                        <Clock className="h-4 w-4 text-green-600" />
+                      </div>
+                      <span className="text-sm text-gray-700 font-medium">
+                        {assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}
                       </span>
                     </div>
                     
-                    {/* Description */}
-                    {assignment.description && (
-                      <p className="text-sm text-gray-600 mb-2 text-left">{assignment.description}</p>
-                    )}
-                    <p className="text-sm text-gray-600 mb-2 font-medium text-left">{assignment.title}</p>
-                    
-                    <div className="space-y-2">
-                      {/* Car */}
-                      {assignment.car && (
-                        <div className="flex items-center gap-2">
-                          <Car className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm text-gray-700">
-                            {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
-                          </span>
+                    {assignment.employees && assignment.employees.length > 0 && (
+                      <div className="flex items-center gap-3 sm:col-span-2">
+                        <div className="p-2 rounded-lg bg-purple-50">
+                          <Users className="h-4 w-4 text-purple-600" />
                         </div>
-                      )}
-                      
-                      {/* Time */}
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-700">
-                          {assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}
+                        <span className="text-sm text-gray-700 font-medium">
+                          {assignment.employees.join(', ')}
                         </span>
                       </div>
-                      
-                      {/* ENHANCED: Always show ALL employees for dashboard "Mine opgaver" */}
-                      {assignment.employees && assignment.employees.length > 0 && (
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm text-gray-700">
-                            {assignment.employees.join(', ')}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 };
 
