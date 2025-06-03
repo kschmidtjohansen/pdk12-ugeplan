@@ -14,7 +14,10 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
    * Update employee onLeave status
    */
   const toggleEmployeeLeave = async (employee: any, setOnLeave: boolean, notes: string | null = null) => {
-    if (!employee?.id) return false;
+    if (!employee?.id) {
+      console.error('Employee ID is missing');
+      return false;
+    }
     
     try {
       // Update the onLeave status and optionally update notes
@@ -79,9 +82,14 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         return false;
       }
       
+      // Filter out any vacations with invalid user_id
+      const validActiveVacations = (activeVacations || []).filter(vacation => 
+        vacation.user_id && vacation.user_id !== 'undefined' && vacation.user_id.length > 0
+      );
+      
       // Create a set of user IDs who are on active vacations
       const employeesOnVacation = new Set(
-        activeVacations?.map(vacation => vacation.user_id) || []
+        validActiveVacations.map(vacation => vacation.user_id)
       );
       
       console.log(`Found ${employeesOnVacation.size} employees on active vacation`);
@@ -89,7 +97,8 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       // 2. Find all employees and update their status if necessary
       const { data: employees, error: employeesError } = await supabase
         .from('profiles')
-        .select('id, on_leave');
+        .select('id, on_leave')
+        .not('id', 'is', null);
       
       if (employeesError) {
         console.error('Error fetching employees:', employeesError);
@@ -102,6 +111,12 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       
       // Process each employee
       for (const employee of employees || []) {
+        // Skip employees with invalid IDs
+        if (!employee.id || employee.id === 'undefined') {
+          console.warn('Skipping employee with invalid ID:', employee);
+          continue;
+        }
+        
         const isOnVacation = employeesOnVacation.has(employee.id);
         
         // If employee is on vacation but not marked as on leave, mark them on leave
@@ -178,13 +193,18 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
    */
   const createEmployee = async (formData: any) => {
     try {
+      // Validate required fields
+      if (!formData.email || !formData.password || !formData.name) {
+        throw new Error('Email, password, and name are required');
+      }
+
       // Call the admin-create-user function to create a new user
       const { data, error } = await supabase.functions.invoke('admin-create-user', {
         body: {
           email: formData.email,
           password: formData.password,
           name: formData.name,
-          role: formData.role
+          role: formData.role || 'servicemedarbejder'
         }
       });
       
@@ -198,7 +218,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       console.log('Employee created:', data);
       
       // Update the profile with additional fields
-      if (data.id) {
+      if (data.id && data.id !== 'undefined') {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
@@ -242,7 +262,10 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
    * Update an existing employee
    */
   const updateEmployee = async (employee: any, formData: any) => {
-    if (!employee?.id) return false;
+    if (!employee?.id || employee.id === 'undefined') {
+      console.error('Invalid employee ID');
+      return false;
+    }
     
     try {
       // Update the profile data
@@ -298,7 +321,10 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
    * Delete an employee
    */
   const deleteEmployee = async (employeeId: string, allEmployees: any[]) => {
-    if (!employeeId) return false;
+    if (!employeeId || employeeId === 'undefined') {
+      console.error('Invalid employee ID');
+      return false;
+    }
     
     try {
       // Find employee name before deletion

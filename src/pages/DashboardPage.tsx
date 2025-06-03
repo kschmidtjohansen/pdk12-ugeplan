@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -18,29 +19,16 @@ import { useVacations } from '@/hooks/useVacations';
 import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import { Assignment } from '@/types/assignment';
+
 const DashboardPage: React.FC = () => {
-  const {
-    user
-  } = useAuth();
-  const {
-    t,
-    currentLanguage
-  } = useTranslation();
-  const {
-    assignments
-  } = usePlannerAssignments();
-  const {
-    employees
-  } = useEmployees();
-  const {
-    cars
-  } = useCars();
-  const {
-    vacations
-  } = useVacations();
-  const {
-    filterForDashboard
-  } = useAssignmentFilters();
+  const { user } = useAuth();
+  const { t, currentLanguage } = useTranslation();
+  const { assignments } = usePlannerAssignments();
+  const { employees, updateEmployeeLeaveStatusFromVacations } = useEmployees();
+  const { cars } = useCars();
+  const { vacations } = useVacations();
+  const { filterForDashboard } = useAssignmentFilters();
+  
   const today = new Date();
   const todayISOWeek = getISOWeek(today);
   const todayISOYear = getISOWeekYear(today);
@@ -52,22 +40,26 @@ const DashboardPage: React.FC = () => {
   // Update employee leave status based on vacations when dashboard loads
   useEffect(() => {
     const updateEmployeeStatuses = async () => {
-      const {
-        useEmployeeActions
-      } = await import('@/hooks/employee/useEmployeeActions');
-      const {
-        updateEmployeeLeaveStatusFromVacations
-      } = useEmployeeActions(() => Promise.resolve());
-      await updateEmployeeLeaveStatusFromVacations();
+      try {
+        if (user?.id) {
+          console.log('Updating employee leave status from vacations...');
+          await updateEmployeeLeaveStatusFromVacations();
+        }
+      } catch (error) {
+        console.error('Failed to update employee statuses:', error);
+      }
     };
+    
     updateEmployeeStatuses();
+    
     const intervalId = setInterval(() => {
       updateEmployeeStatuses();
-    }, 30 * 60 * 1000);
+    }, 30 * 60 * 1000); // 30 minutes
+
     return () => {
       clearInterval(intervalId);
     };
-  }, []);
+  }, [user?.id, updateEmployeeLeaveStatusFromVacations]);
 
   // Get the dates for the selected week
   const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
@@ -76,20 +68,14 @@ const DashboardPage: React.FC = () => {
 
   // Function to handle navigation to previous week
   const handlePreviousWeek = () => {
-    const {
-      week,
-      year
-    } = getPreviousWeekInfo(selectedWeek, selectedYear);
+    const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
     setSelectedWeek(week);
     setSelectedYear(year);
   };
 
   // Function to handle navigation to next week
   const handleNextWeek = () => {
-    const {
-      week,
-      year
-    } = getNextWeekInfo(selectedWeek, selectedYear);
+    const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
     setSelectedWeek(week);
     setSelectedYear(year);
   };
@@ -100,11 +86,16 @@ const DashboardPage: React.FC = () => {
     setIsAssignmentDialogOpen(true);
   };
 
-  // Get assignments for the selected week and user
+  // Get assignments for the selected week and user with proper error handling
   const userWeekAssignments = filterForDashboard(assignments).filter(assignment => {
-    const assignmentDate = assignment.date;
-    const isInWeek = assignmentDate >= startDateISO && assignmentDate <= endDateISO;
-    return isInWeek;
+    try {
+      const assignmentDate = assignment.date;
+      const isInWeek = assignmentDate >= startDateISO && assignmentDate <= endDateISO;
+      return isInWeek;
+    } catch (error) {
+      console.error('Error filtering assignment:', error, assignment);
+      return false;
+    }
   }).sort((a, b) => {
     const today = format(new Date(), 'yyyy-MM-dd');
     const aIsToday = a.date === today;
@@ -113,6 +104,7 @@ const DashboardPage: React.FC = () => {
     const bIsFuture = b.date > today;
     const aIsPast = a.date < today;
     const bIsPast = b.date < today;
+    
     if (aIsToday && !bIsToday) return -1;
     if (!aIsToday && bIsToday) return 1;
     if (aIsFuture && bIsPast) return -1;
@@ -143,27 +135,28 @@ const DashboardPage: React.FC = () => {
   const getQuickAccessItems = () => {
     const baseItems = [{
       title: t('dashboard.quickAccess.planner.title'),
-      icon: <Clock className="h-8 w-8" />,
+      icon: <Clock className="h-6 w-6" />,
       description: t('dashboard.quickAccess.planner.description'),
       link: '/planner',
       color: 'blue'
     }, {
       title: t('dashboard.quickAccess.vacation.title'),
-      icon: <Calendar className="h-8 w-8" />,
+      icon: <Calendar className="h-6 w-6" />,
       description: t('dashboard.quickAccess.vacation.description'),
       link: '/vacation',
       color: 'green'
     }];
+    
     if (user?.role === 'administrator' || user?.role === 'skadeleder') {
       baseItems.push({
         title: t('dashboard.quickAccess.employees.title'),
-        icon: <Users className="h-8 w-8" />,
+        icon: <Users className="h-6 w-6" />,
         description: t('dashboard.quickAccess.employees.description'),
         link: '/employees',
         color: 'purple'
       }, {
         title: t('dashboard.quickAccess.cars.title'),
-        icon: <Car className="h-8 w-8" />,
+        icon: <Car className="h-6 w-6" />,
         description: t('dashboard.quickAccess.cars.description'),
         link: '/cars',
         color: 'orange'
@@ -171,7 +164,9 @@ const DashboardPage: React.FC = () => {
     }
     return baseItems;
   };
+  
   const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
+  
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
@@ -185,7 +180,7 @@ const DashboardPage: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold tracking-tight">
-                  Velkommen {user?.name}
+                  Velkommen {user?.name || 'Bruger'}
                 </h1>
               </div>
               <p className="text-blue-100 text-lg font-medium">
@@ -223,7 +218,7 @@ const DashboardPage: React.FC = () => {
                       item.color === 'purple' ? 'bg-purple-50 text-purple-600' :
                       'bg-orange-50 text-orange-600'
                     }`}>
-                      {React.cloneElement(item.icon, { className: "h-6 w-6" })}
+                      {item.icon}
                     </div>
                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   </div>
@@ -290,19 +285,19 @@ const DashboardPage: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid gap-4">
+              <div className="grid gap-3">
                 {userWeekAssignments.map((assignment, index) => (
                   <div 
                     key={assignment.id}
                     style={{ animationDelay: `${index * 0.1}s` }}
                     onClick={() => handleAssignmentClick(assignment)}
-                    className="border-2 border-border/50 rounded-2xl p-4 bg-gradient-to-br from-card to-card/50 cursor-pointer animate-scale-in relative overflow-hidden py-[16px]"
+                    className="border-2 border-border/50 rounded-2xl p-4 bg-gradient-to-br from-card to-card/50 cursor-pointer animate-scale-in relative overflow-hidden py-[12px]"
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
                     
                     <div className="relative z-10">
-                      <div className="flex flex-wrap justify-between items-start gap-3 mb-4">
-                        <h3 className="font-bold text-xl text-left">
+                      <div className="flex flex-wrap justify-between items-start gap-3 mb-3">
+                        <h3 className="font-bold text-lg text-left">
                           {assignment.location}
                         </h3>
                         <div className="px-3 py-1 bg-primary/10 text-primary rounded-full font-semibold text-sm border border-primary/20">
@@ -311,41 +306,41 @@ const DashboardPage: React.FC = () => {
                       </div>
                       
                       {assignment.description && (
-                        <p className="text-muted-foreground mb-3 text-left leading-relaxed">
+                        <p className="text-muted-foreground mb-2 text-left leading-relaxed text-sm">
                           {assignment.description}
                         </p>
                       )}
-                      <p className="text-foreground mb-4 font-medium text-left text-base">
+                      <p className="text-foreground mb-3 font-medium text-left text-sm">
                         {assignment.title}
                       </p>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {assignment.car && (
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-xl bg-blue-50 border border-blue-200">
-                              <Car className="h-4 w-4 text-blue-600" />
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-200">
+                              <Car className="h-3.5 w-3.5 text-blue-600" />
                             </div>
-                            <span className="text-foreground font-medium">
+                            <span className="text-foreground font-medium text-sm">
                               {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
                             </span>
                           </div>
                         )}
                         
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-xl bg-green-50 border border-green-200">
-                            <Clock className="h-4 w-4 text-green-600" />
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 rounded-lg bg-green-50 border border-green-200">
+                            <Clock className="h-3.5 w-3.5 text-green-600" />
                           </div>
-                          <span className="text-foreground font-medium">
+                          <span className="text-foreground font-medium text-sm">
                             {assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}
                           </span>
                         </div>
                         
                         {assignment.employees && assignment.employees.length > 0 && (
-                          <div className="flex items-center gap-3 sm:col-span-2">
-                            <div className="p-2 rounded-xl bg-purple-50 border border-purple-200">
-                              <Users className="h-4 w-4 text-purple-600" />
+                          <div className="flex items-center gap-2 sm:col-span-2">
+                            <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
+                              <Users className="h-3.5 w-3.5 text-purple-600" />
                             </div>
-                            <span className="text-foreground font-medium">
+                            <span className="text-foreground font-medium text-sm">
                               {assignment.employees.join(', ')}
                             </span>
                           </div>
