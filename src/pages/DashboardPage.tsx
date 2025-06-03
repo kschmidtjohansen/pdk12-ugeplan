@@ -164,7 +164,7 @@ const DashboardPage: React.FC = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-25 via-background to-gray-50">
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
+      <div className="w-full p-6 space-y-8">
         {/* Enhanced Welcome Header with Glassmorphism */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 text-white shadow-2xl animate-fade-in-up">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
@@ -287,7 +287,7 @@ const DashboardPage: React.FC = () => {
                 {userWeekAssignments.map((assignment, index) => (
                   <div 
                     key={assignment.id} 
-                    className="group border-2 border-border/50 rounded-2xl p-8 bg-gradient-to-br from-card to-card/50 hover:shadow-xl transition-all duration-300 hover:scale-[1.01] hover:border-primary/30 cursor-pointer animate-scale-in relative overflow-hidden"
+                    className="border-2 border-border/50 rounded-2xl p-8 bg-gradient-to-br from-card to-card/50 transition-all duration-300 cursor-pointer animate-scale-in relative overflow-hidden"
                     style={{ animationDelay: `${index * 0.1}s` }}
                     onClick={() => handleAssignmentClick(assignment)}
                   >
@@ -295,7 +295,7 @@ const DashboardPage: React.FC = () => {
                     
                     <div className="relative z-10">
                       <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
-                        <h3 className="font-bold text-2xl text-left group-hover:text-primary transition-colors">
+                        <h3 className="font-bold text-2xl text-left transition-colors">
                           {assignment.location}
                         </h3>
                         <div className="px-4 py-2 bg-primary/10 text-primary rounded-full font-semibold text-sm border border-primary/20">
