@@ -75,7 +75,7 @@ export const useAssignmentData = () => {
         
         // Process and combine the data with enhanced debugging
         const processedAssignments = assignmentsData.map(assignment => {
-          console.log(`[useAssignmentData] Processing assignment ${assignment.id} (${assignment.location}):`);
+          console.log(`[useAssignmentData] === PROCESSING ASSIGNMENT ${assignment.id} (${assignment.location}) ===`);
           
           // Find all employees for this assignment
           const assignmentEmployeeIds = assignmentEmployees
@@ -92,10 +92,11 @@ export const useAssignmentData = () => {
             console.log(`    - Looking for user ${userId}, found profile:`, profile);
             
             if (profile?.name && typeof profile.name === 'string' && profile.name.trim() !== '') {
-              assignmentEmployeeNames.push(profile.name.trim());
-              console.log(`    - Added employee name: "${profile.name.trim()}"`);
+              const trimmedName = profile.name.trim();
+              assignmentEmployeeNames.push(trimmedName);
+              console.log(`    - ✓ Added employee name: "${trimmedName}"`);
             } else {
-              console.log(`    - Skipped invalid employee name for user ${userId}:`, profile?.name);
+              console.log(`    - ✗ Skipped invalid employee name for user ${userId}:`, profile?.name);
             }
           });
           
@@ -119,6 +120,7 @@ export const useAssignmentData = () => {
             published: assignment.published || false
           };
           
+          console.log(`  - FINAL processed assignment employees: [${processedAssignment.employees.join(', ')}]`);
           console.log(`  - FINAL processed assignment:`, {
             id: processedAssignment.id,
             location: processedAssignment.location,
@@ -130,13 +132,10 @@ export const useAssignmentData = () => {
           return processedAssignment;
         });
         
-        console.log('[useAssignmentData] ALL FINAL processed assignments summary:', processedAssignments.map(a => ({
-          id: a.id,
-          location: a.location,
-          published: a.published,
-          employees: a.employees,
-          employeeCount: a.employees.length
-        })));
+        console.log('[useAssignmentData] === ALL FINAL PROCESSED ASSIGNMENTS ===');
+        processedAssignments.forEach((assignment, index) => {
+          console.log(`${index + 1}. ${assignment.location}: employees=[${assignment.employees.join(', ')}], published=${assignment.published}`);
+        });
         
         setAssignments(processedAssignments);
       } else {

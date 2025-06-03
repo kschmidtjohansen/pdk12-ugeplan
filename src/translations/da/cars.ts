@@ -46,7 +46,11 @@ const cars = {
   
   // Selection
   selectCar: 'Vælg en bil',
-  noCar: 'Ingen bil'
+  noCar: 'Ingen bil',
+  
+  // Missing translations that were causing issues
+  unavailabilityReason: 'Årsag til utilgængelighed',
+  enterNote: 'Indtast note'
 };
 
 export default cars;

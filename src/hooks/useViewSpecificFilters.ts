@@ -7,20 +7,21 @@ export const useViewSpecificFilters = () => {
 
   // Filter assignments for the planner view
   const filterForPlanner = (assignments: Assignment[], includeUnpublished = false) => {
-    console.log('[useViewSpecificFilters] filterForPlanner - User role:', user?.role);
-    console.log('[useViewSpecificFilters] filterForPlanner - User name:', user?.name);
-    console.log('[useViewSpecificFilters] filterForPlanner - Include unpublished:', includeUnpublished);
-    console.log('[useViewSpecificFilters] filterForPlanner - Total assignments:', assignments.length);
-    console.log('[useViewSpecificFilters] filterForPlanner - Raw assignments data:', assignments.map(a => ({
-      id: a.id,
-      location: a.location,
-      published: a.published,
-      employees: a.employees,
-      employeeCount: a.employees?.length || 0
-    })));
+    console.log('[useViewSpecificFilters] === PLANNER FILTER DEBUGGING ===');
+    console.log('[useViewSpecificFilters] User role:', user?.role);
+    console.log('[useViewSpecificFilters] User name:', user?.name);
+    console.log('[useViewSpecificFilters] Include unpublished:', includeUnpublished);
+    console.log('[useViewSpecificFilters] Total assignments received:', assignments.length);
+    
+    assignments.forEach((assignment, index) => {
+      console.log(`[useViewSpecificFilters] Input Assignment ${index + 1}: ${assignment.location}`);
+      console.log(`  - Employees: [${assignment.employees?.join(', ') || 'none'}]`);
+      console.log(`  - Published: ${assignment.published}`);
+      console.log(`  - Employee count: ${assignment.employees?.length || 0}`);
+    });
     
     if (!user) {
-      console.log('[useViewSpecificFilters] filterForPlanner - No user, returning empty array');
+      console.log('[useViewSpecificFilters] No user, returning empty array');
       return [];
     }
 
@@ -32,22 +33,26 @@ export const useViewSpecificFilters = () => {
       // For servicemedarbejdere, show ALL published assignments with ALL employee names
       // They should see all published tasks in the planner with complete team information
       if (user.role === 'servicemedarbejder') {
-        console.log(`[useViewSpecificFilters] Servicemedarbejder filter - Assignment ${safeAssignment.id} (${safeAssignment.location}):`, {
-          published: safeAssignment.published,
-          employees: safeAssignment.employees,
-          employeeCount: safeAssignment.employees.length,
-          willBeShown: safeAssignment.published
-        });
+        const shouldShow = safeAssignment.published;
+        console.log(`[useViewSpecificFilters] Servicemedarbejder filter - Assignment ${safeAssignment.id} (${safeAssignment.location}):`);
+        console.log(`  - Published: ${safeAssignment.published}`);
+        console.log(`  - Employees: [${safeAssignment.employees.join(', ')}]`);
+        console.log(`  - Employee count: ${safeAssignment.employees.length}`);
+        console.log(`  - Will be shown: ${shouldShow}`);
         
         // Show ALL published assignments - servicemedarbejdere can see all published tasks in planner
         // IMPORTANT: We do NOT filter out employee names here - they should see all team members
-        return safeAssignment.published;
+        return shouldShow;
       }
       
       // For skadeleder and administrator, show based on includeUnpublished flag
       if (user.role === 'skadeleder' || user.role === 'administrator') {
         const shouldShow = includeUnpublished || safeAssignment.published;
-        console.log(`[useViewSpecificFilters] Admin/Skadeleder - Assignment ${safeAssignment.id} (${safeAssignment.location}) - Should show: ${shouldShow}`);
+        console.log(`[useViewSpecificFilters] Admin/Skadeleder - Assignment ${safeAssignment.id} (${safeAssignment.location}):`);
+        console.log(`  - Published: ${safeAssignment.published}`);
+        console.log(`  - Include unpublished: ${includeUnpublished}`);
+        console.log(`  - Should show: ${shouldShow}`);
+        console.log(`  - Employees: [${safeAssignment.employees.join(', ')}]`);
         return shouldShow;
       }
       
@@ -56,14 +61,14 @@ export const useViewSpecificFilters = () => {
       return safeAssignment.published;
     });
     
-    console.log('[useViewSpecificFilters] filterForPlanner - Filtered assignments:', filtered.length);
-    console.log('[useViewSpecificFilters] filterForPlanner - Filtered assignment details:', filtered.map(a => ({
-      id: a.id,
-      location: a.location,
-      published: a.published,
-      employees: a.employees,
-      employeeCount: a.employees?.length || 0
-    })));
+    console.log('[useViewSpecificFilters] === FILTER RESULTS ===');
+    console.log('[useViewSpecificFilters] Filtered assignments count:', filtered.length);
+    filtered.forEach((assignment, index) => {
+      console.log(`[useViewSpecificFilters] Output Assignment ${index + 1}: ${assignment.location}`);
+      console.log(`  - Employees: [${assignment.employees?.join(', ') || 'none'}]`);
+      console.log(`  - Published: ${assignment.published}`);
+      console.log(`  - Employee count: ${assignment.employees?.length || 0}`);
+    });
     
     // IMPORTANT: Return assignments with ALL original employee data intact
     // Do NOT modify the employees array - servicemedarbejdere should see all team member names
