@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +18,7 @@ import { useVacations } from '@/hooks/useVacations';
 import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import { Assignment } from '@/types/assignment';
+import { getDailyQuote } from '@/utils/dailyQuotes';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -36,6 +36,9 @@ const DashboardPage: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(todayISOYear);
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
+
+  // Get the daily motivational quote
+  const dailyQuote = getDailyQuote();
 
   // Update employee leave status based on vacations when dashboard loads
   useEffect(() => {
@@ -180,10 +183,13 @@ const DashboardPage: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold tracking-tight">
-                  Velkommen {user?.name || 'Bruger'}
+                  Hej {user?.name || 'Bruger'}! 👋
                 </h1>
               </div>
-              <p className="text-blue-100 text-lg font-medium">
+              <p className="text-blue-100 text-lg font-medium max-w-2xl">
+                {dailyQuote}
+              </p>
+              <p className="text-blue-200 text-sm">
                 {t('dashboard.today', {
                 date: getFormattedDate(),
                 week: todayISOWeek
