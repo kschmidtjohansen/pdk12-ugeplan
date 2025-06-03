@@ -5,10 +5,10 @@ import { usePlannerPage } from '../hooks/usePlannerPage';
 import PlannerPageHeader from '../components/Planner/PlannerPageHeader';
 import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
-import { getUnpublishedAssignment } from '../hooks/useAssignmentPublishing';
+import { Clock } from 'lucide-react';
 
 const PlannerPage: React.FC = () => {
-  const { currentLanguage } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   
   const {
     selectedWeek,
@@ -37,49 +37,68 @@ const PlannerPage: React.FC = () => {
   const sortedWeekAssignments = React.useMemo(() => {
     if (!weekAssignments) return [];
     
-    // Create a copy to avoid mutating the original array
     return [...weekAssignments].sort((a, b) => {
-      // First sort by date (ascending - earliest first)
       if (a.date !== b.date) {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       }
-      // If same date, sort by fromTime (ascending - earliest first)
       return a.fromTime.localeCompare(b.fromTime);
     });
   }, [weekAssignments]);
 
-  // Add some debugging to see that we have the correct week dates
-  console.log("PlannerPage: Rendering with week dates", {
-    week: selectedWeek,
-    year: selectedYear,
-    start: weekDates?.start?.toISOString(),
-    end: weekDates?.end?.toISOString()
-  });
-
   return (
-    <div>
-      <PlannerPageHeader
-        selectedWeek={selectedWeek}
-        selectedYear={selectedYear}
-        weekDates={weekDates}
-        onPreviousWeek={handlePreviousWeek}
-        onNextWeek={handleNextWeek}
-        onCreateNew={handleOpenCreateDialog}
-        onPublishAllUnpublished={handlePublishAllUnpublished}
-      />
+    <div className="space-y-8">
+      {/* Enhanced Page Header */}
+      <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-8 text-white shadow-large animate-fade-in-up">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              {t("navigation.planner")}
+            </h1>
+            <p className="text-blue-100 text-lg">
+              {t('planner.weekView', { 
+                week: selectedWeek, 
+                year: selectedYear,
+                start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
+                end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
+              })}
+            </p>
+          </div>
+          <div className="hidden md:block">
+            <div className="p-3 rounded-xl bg-white/10">
+              <Clock className="h-8 w-8" />
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <PlannerContent
-        weekAssignments={sortedWeekAssignments}
-        onEditAssignment={handleOpenEditDialog}
-        onDeleteAssignment={deleteAssignment}
-        onPublishAssignment={publishAssignment}
-        onPublishDay={handlePublishDay}
-        onCreateAssignment={handleOpenCreateDialog}
-        onCopyAssignment={handleCopyAssignment}
-        selectedWeek={selectedWeek}
-        selectedYear={selectedYear}
-        weekDates={weekDates}
-      />
+      {/* Planner Header with Actions */}
+      <div className="animate-slide-in-right">
+        <PlannerPageHeader
+          selectedWeek={selectedWeek}
+          selectedYear={selectedYear}
+          weekDates={weekDates}
+          onPreviousWeek={handlePreviousWeek}
+          onNextWeek={handleNextWeek}
+          onCreateNew={handleOpenCreateDialog}
+          onPublishAllUnpublished={handlePublishAllUnpublished}
+        />
+      </div>
+
+      {/* Planner Content */}
+      <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <PlannerContent
+          weekAssignments={sortedWeekAssignments}
+          onEditAssignment={handleOpenEditDialog}
+          onDeleteAssignment={deleteAssignment}
+          onPublishAssignment={publishAssignment}
+          onPublishDay={handlePublishDay}
+          onCreateAssignment={handleOpenCreateDialog}
+          onCopyAssignment={handleCopyAssignment}
+          selectedWeek={selectedWeek}
+          selectedYear={selectedYear}
+          weekDates={weekDates}
+        />
+      </div>
 
       <PlannerDialogContainer
         isDialogOpen={isDialogOpen}

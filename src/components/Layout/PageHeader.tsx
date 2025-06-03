@@ -1,33 +1,32 @@
 
 import React from 'react';
-import { cn } from '@/lib/utils';
 
 interface PageHeaderProps {
   title: string;
   description?: string;
-  className?: string;
   children?: React.ReactNode;
 }
 
-const PageHeader: React.FC<PageHeaderProps> = ({
-  title,
-  description,
-  className,
-  children,
-}) => {
+const PageHeader: React.FC<PageHeaderProps> = ({ title, description, children }) => {
   return (
-    <div className={cn("mb-6 flex flex-col md:flex-row md:items-center md:justify-between", className)}>
-      <div>
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">{title}</h1>
-        {description && (
-          <p className="mt-1 text-sm md:text-base text-gray-500">{description}</p>
+    <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 shadow-soft animate-fade-in-up">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">
+            {title}
+          </h1>
+          {description && (
+            <p className="text-gray-600">
+              {description}
+            </p>
+          )}
+        </div>
+        {children && (
+          <div className="flex items-center gap-3">
+            {children}
+          </div>
         )}
       </div>
-      {children && (
-        <div className="mt-4 md:mt-0 flex-shrink-0">
-          {children}
-        </div>
-      )}
     </div>
   );
 };

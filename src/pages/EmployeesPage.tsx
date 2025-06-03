@@ -4,7 +4,7 @@ import PageHeader from '../components/Layout/PageHeader';
 import { usePermissions } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Users } from 'lucide-react';
 
 // Import custom components and hooks
 import EmployeesList from '../components/Employees/EmployeesList';
@@ -62,10 +62,8 @@ const EmployeesPage: React.FC = () => {
     e.preventDefault();
     
     if (currentEmployee) {
-      // Update existing
       updateEmployee();
     } else {
-      // Create new
       createEmployee();
     }
     
@@ -77,12 +75,10 @@ const EmployeesPage: React.FC = () => {
     
     prepareForEdit(employee);
     
-    // If employee is already on leave, show the available dialog
     if (employee.onLeave) {
       setMarkAvailableDialogOpen(true);
       setEmployeeNote(employee.notes || '');
     } else {
-      // If employee is not on leave, show the leave dialog
       setMarkLeaveDialogOpen(true);
       setEmployeeNote('');
     }
@@ -110,21 +106,46 @@ const EmployeesPage: React.FC = () => {
   };
 
   return (
-    <>
-      <PageHeader title={t("employees.title")} description={t("employees.description")}>
-        {isAdmin && (
-          <Button onClick={handleCreateNew} className="bg-polygon-blue hover:bg-polygon-darkblue">
-            <Plus className="mr-2 h-4 w-4" /> {t("employees.addEmployee")}
-          </Button>
-        )}
-      </PageHeader>
+    <div className="space-y-8">
+      {/* Enhanced Page Header */}
+      <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-8 text-white shadow-large animate-fade-in-up">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              {t("employees.title")}
+            </h1>
+            <p className="text-blue-100 text-lg">
+              {t("employees.description")}
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            {isAdmin && (
+              <Button 
+                onClick={handleCreateNew} 
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 hover:border-white/50 transition-all duration-200"
+                variant="outline"
+              >
+                <Plus className="mr-2 h-4 w-4" /> {t("employees.addEmployee")}
+              </Button>
+            )}
+            <div className="hidden md:block">
+              <div className="p-3 rounded-xl bg-white/10">
+                <Users className="h-8 w-8" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <EmployeesList 
-        employees={employees} 
-        onEdit={handleEdit} 
-        onDelete={handleDelete}
-        onToggleLeave={handleToggleLeave}
-      />
+      {/* Employees Content */}
+      <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <EmployeesList 
+          employees={employees} 
+          onEdit={handleEdit} 
+          onDelete={handleDelete}
+          onToggleLeave={handleToggleLeave}
+        />
+      </div>
 
       <EmployeeDialogManager
         dialogOpen={dialogOpen}
@@ -148,7 +169,7 @@ const EmployeesPage: React.FC = () => {
         onConfirmMarkAvailableWithoutNote={handleConfirmMarkAvailableWithoutNote}
         onCancelMarkAvailable={() => setMarkAvailableDialogOpen(false)}
       />
-    </>
+    </div>
   );
 };
 
