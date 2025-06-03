@@ -84,14 +84,14 @@ export const useAssignmentData = () => {
           
           console.log(`  - Employee IDs from junction table: [${assignmentEmployeeIds.join(', ')}]`);
           
-          // Map employee IDs to names
+          // Map employee IDs to names with validation
           const assignmentEmployeeNames = assignmentEmployeeIds
             .map(userId => {
               const profile = profilesData.find(p => p.id === userId);
               console.log(`    - Looking for user ${userId}, found profile:`, profile);
               return profile?.name;
             })
-            .filter(name => name && name.trim() !== '') || [];
+            .filter(name => name && typeof name === 'string' && name.trim() !== '') || [];
           
           console.log(`  - Employee Names resolved: [${assignmentEmployeeNames.join(', ')}]`);
           console.log(`  - Final employee array length: ${assignmentEmployeeNames.length}`);
@@ -107,10 +107,9 @@ export const useAssignmentData = () => {
             location: assignment.location,
             car: assignment.cars ? {
               id: assignment.cars.id,
-              name: assignment.cars.name,
-              car_number: assignment.cars.car_number
+              name: assignment.cars.name
             } : null,
-            employees: assignmentEmployeeNames, // This should be the array of employee names
+            employees: assignmentEmployeeNames, // Ensure this is always an array of strings
             published: assignment.published || false
           };
           
