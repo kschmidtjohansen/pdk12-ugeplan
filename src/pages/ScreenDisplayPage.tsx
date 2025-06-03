@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
-import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
+import { useAssignments } from '@/hooks/useAssignments';
+import { useViewSpecificFilters } from '@/hooks/useViewSpecificFilters';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight, Home, Calendar, Clock, MapPin, Users, Car } from 'lucide-react';
@@ -12,9 +13,13 @@ import { Link } from 'react-router-dom';
 
 const ScreenDisplayPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
-  const { assignments } = usePlannerAssignments();
+  const { assignments } = useAssignments();
+  const { filterForScreenDisplay } = useViewSpecificFilters();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Filter assignments for screen display (only published assignments)
+  const filteredAssignments = filterForScreenDisplay(assignments);
 
   // Update current time every minute
   useEffect(() => {
@@ -35,7 +40,7 @@ const ScreenDisplayPage: React.FC = () => {
   };
 
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
-  const todayAssignments = assignments.filter(a => a.date === selectedDateStr && a.published).sort((a, b) => a.fromTime.localeCompare(b.fromTime));
+  const todayAssignments = filteredAssignments.filter(a => a.date === selectedDateStr && a.published).sort((a, b) => a.fromTime.localeCompare(b.fromTime));
 
   const handlePreviousDay = () => {
     setSelectedDate(prev => subDays(prev, 1));
