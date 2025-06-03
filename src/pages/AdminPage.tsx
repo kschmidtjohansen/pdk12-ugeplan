@@ -13,7 +13,6 @@ import { useVacations } from '@/hooks/useVacations';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
-  Users, 
   Car, 
   Calendar, 
   ClipboardCheck, 
@@ -41,14 +40,50 @@ const AdminPage: React.FC = () => {
     }
   }, [isAdmin, navigate]);
 
-  // Calculate comprehensive metrics
-  const usersCount = employees.length;
-  const activeUsersCount = employees.filter(e => !e.onLeave).length;
-  const vehiclesCount = cars.length;
-  const availableVehiclesCount = cars.filter(c => c.is_available).length;
-  
   // Get today's date in YYYY-MM-DD format
   const today = format(new Date(), 'yyyy-MM-dd');
+
+  // Helper function to check if an employee is on vacation today
+  const isEmployeeOnVacationToday = (employeeId: string) => {
+    const todayDate = new Date(today);
+    todayDate.setHours(0, 0, 0, 0);
+    
+    return vacations.some(vacation => {
+      if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
+        return false;
+      }
+      
+      const startDate = new Date(vacation.startDate);
+      const endDate = new Date(vacation.endDate);
+      
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+      
+      return todayDate >= startDate && todayDate <= endDate;
+    });
+  };
+
+  // Helper function to check if employee has assignments today
+  const hasAssignmentsToday = (employeeId: string, employeeName: string) => {
+    return assignments.some(assignment => 
+      assignment.date === today && 
+      assignment.published &&
+      assignment.employees && 
+      assignment.employees.includes(employeeName)
+    );
+  };
+
+  // Calculate actually available employees (not on leave, not on vacation, no assignments today)
+  const availableEmployees = employees.filter(employee => {
+    const isOnLeave = employee.onLeave;
+    const isOnVacation = isEmployeeOnVacationToday(employee.id);
+    const hasAssignments = hasAssignmentsToday(employee.id, employee.name);
+    
+    return !isOnLeave && !isOnVacation && !hasAssignments;
+  });
+
+  const vehiclesCount = cars.length;
+  const availableVehiclesCount = cars.filter(c => c.is_available).length;
   
   // Count vehicles in use today
   const inUseVehiclesCount = assignments
@@ -71,17 +106,8 @@ const AdminPage: React.FC = () => {
   const unpublishedAssignments = totalAssignments - publishedAssignments;
   const todayAssignments = assignments.filter(a => a.date === today).length;
 
-  // Quick stats for overview
+  // Quick stats for overview - removed employee count metric
   const quickStats = [
-    {
-      title: t('admin.quickStats.totalUsers'),
-      value: usersCount,
-      subtitle: `${activeUsersCount} ${t('admin.quickStats.active')}`,
-      icon: <Users className="h-6 w-6" />,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      onClick: () => setActiveTab("users")
-    },
     {
       title: t('admin.quickStats.vehicles'),
       value: vehiclesCount,
@@ -127,8 +153,8 @@ const AdminPage: React.FC = () => {
     },
     {
       title: t('admin.systemHealth.staffAvailability'),
-      status: activeUsersCount > usersCount * 0.8 ? 'good' : 'warning',
-      message: t('admin.systemHealth.staffAvailable', { available: activeUsersCount, total: usersCount }),
+      status: availableEmployees.length > employees.length * 0.5 ? 'good' : 'warning',
+      message: t('admin.systemHealth.staffAvailable', { available: availableEmployees.length, total: employees.length }),
       icon: <UserCheck className="h-5 w-5" />
     }
   ];
@@ -157,7 +183,7 @@ const AdminPage: React.FC = () => {
         
         <TabsContent value="overview" className="mt-6 space-y-6">
           {/* Quick Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {quickStats.map((stat, index) => (
               <Card 
                 key={index} 
@@ -225,7 +251,7 @@ const AdminPage: React.FC = () => {
                   onClick={() => navigate('/employees')}
                   className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
                 >
-                  <Users className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
+                  <UserCheck className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
                   <p className="text-sm font-medium">{t('admin.quickActions.manageStaff')}</p>
                 </button>
                 <button 

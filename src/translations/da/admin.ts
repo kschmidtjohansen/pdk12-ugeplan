@@ -67,8 +67,8 @@ const admin = {
   },
   systemHealth: {
     title: "Systemstatus",
-    assignmentPublishing: "Opgave Publicering",
-    vehicleUtilization: "Køretøj Anvendelse",
+    assignmentPublishing: "Publicering",
+    vehicleUtilization: "Køretøjer",
     staffAvailability: "Medarbejder Tilgængelighed",
     allAssignmentsPublished: "Alle opgaver er publiceret",
     unpublishedTasks: "{count} opgaver er ikke publiceret",
@@ -77,9 +77,9 @@ const admin = {
   },
   quickActions: {
     title: "Hurtige handlinger",
-    viewPlanner: "Se planlægger",
+    viewPlanner: "Se ugeplan",
     manageStaff: "Administrer personale",
-    fleetManagement: "Flådestyring",
+    fleetManagement: "Administrer biler",
     vacationRequests: "Ferieansøgninger"
   }
 };

@@ -25,28 +25,34 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   
   // ENHANCED DEBUGGING: Always show all employee names for ALL assignments
   const displayEmployees = () => {
-    console.log(`[AssignmentDetails] Displaying employees for assignment ${assignment.id} (${assignment.location}):`);
-    console.log(`  - Assignment object:`, assignment);
-    console.log(`  - Employees array:`, assignment.employees);
-    console.log(`  - Employee count:`, assignment.employees?.length || 0);
+    console.log(`[AssignmentDetails] DETAILED: Displaying employees for assignment ${assignment.id} (${assignment.location}):`);
+    console.log(`  - Full assignment object:`, assignment);
+    console.log(`  - Assignment.employees type:`, typeof assignment.employees);
+    console.log(`  - Assignment.employees value:`, assignment.employees);
+    console.log(`  - Assignment.employees is array:`, Array.isArray(assignment.employees));
+    console.log(`  - Assignment.employees length:`, assignment.employees?.length || 0);
     console.log(`  - Published status:`, assignment.published);
-    console.log(`  - Assignment type:`, typeof assignment.employees);
+    console.log(`  - Assignment ID:`, assignment.id);
     
     if (assignment.employees && Array.isArray(assignment.employees) && assignment.employees.length > 0) {
       // ALWAYS show all employee names - no filtering based on user role or assignment status
       const allEmployees = assignment.employees.join(', ');
-      console.log(`[AssignmentDetails] Showing all employees: "${allEmployees}"`);
+      console.log(`[AssignmentDetails] SUCCESS: Showing all employees: "${allEmployees}"`);
       console.log(`[AssignmentDetails] Individual employees:`, assignment.employees);
       return allEmployees;
     }
     
-    console.log(`[AssignmentDetails] No valid employees found:`, {
+    console.log(`[AssignmentDetails] ERROR: No valid employees found:`, {
       employees: assignment.employees,
       isArray: Array.isArray(assignment.employees),
-      length: assignment.employees?.length
+      length: assignment.employees?.length,
+      type: typeof assignment.employees
     });
     return t('planner.unassigned');
   };
+  
+  const employeeDisplay = displayEmployees();
+  console.log(`[AssignmentDetails] Final employee display for ${assignment.location}: "${employeeDisplay}"`);
   
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-sm text-left">
@@ -74,7 +80,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
       <div className="flex items-start gap-2 text-left">
         <Users className="w-4 h-4 flex-shrink-0 text-gray-500 mt-0.5" />
         <span className="text-left">
-          {displayEmployees()}
+          {employeeDisplay}
         </span>
       </div>
     </div>
