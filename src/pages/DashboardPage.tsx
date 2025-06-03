@@ -228,11 +228,11 @@ const DashboardPage: React.FC = () => {
                   <p className="text-blue-100 text-sm uppercase tracking-wider font-semibold">
                     {headerDate.dayName}
                   </p>
-                  <p className="text-blue-100 text-sm uppercase tracking-wider font-semibold">
-                    Uge {headerDate.weekNumber}
-                  </p>
                   <p className="text-2xl font-bold">
                     {headerDate.dateString}
+                  </p>
+                  <p className="text-blue-100 text-sm uppercase tracking-wider font-semibold">
+                    Uge {headerDate.weekNumber}
                   </p>
                 </div>
               </div>
@@ -244,7 +244,7 @@ const DashboardPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-in-right">
           {getQuickAccessItems().map((item, index) => (
             <Link key={index} to={item.link} className="block group">
-              <Card className="h-full border-2 hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
+              <Card className="h-full border-2 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
                 <CardContent className="p-4 py-[12px] px-[20px]">
                   <div className="flex items-start justify-between mb-4">
                     <div className={`p-3 rounded-2xl ${
