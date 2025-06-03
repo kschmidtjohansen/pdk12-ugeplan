@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -11,24 +12,22 @@ import { getCurrentWeek } from '@/types/assignment';
 import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import WeekNavigation from '@/components/Dashboard/WeekNavigation';
 
-// Import assignments from planner hook to reuse the mock data
-import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
+// Use the new dedicated dashboard assignments hook
+import { useDashboardAssignments } from '@/hooks/useDashboardAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
 import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
-import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { t, currentLanguage } = useTranslation();
-  const { assignments } = usePlannerAssignments();
+  const { getAssignmentsForWeek, loading: assignmentsLoading } = useDashboardAssignments();
   const { employees } = useEmployees();
   const { cars } = useCars();
   const { vacations } = useVacations();
-  const { filterForDashboard } = useAssignmentFilters();
 
-  // State for week navigation
+  // State for week navigation - start with current week but allow navigation to future weeks
   const [selectedWeek, setSelectedWeek] = useState(getCurrentWeekNumber());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -62,9 +61,13 @@ const DashboardPage: React.FC = () => {
   const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
   const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
 
+  console.log(`[DashboardPage] Selected week: ${selectedWeek}/${selectedYear}`);
+  console.log(`[DashboardPage] Week dates: ${startDateISO} to ${endDateISO}`);
+
   // Function to handle navigation to previous week
   const handlePreviousWeek = () => {
     const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
+    console.log(`[DashboardPage] Navigating to previous week: ${week}/${year}`);
     setSelectedWeek(week);
     setSelectedYear(year);
   };
@@ -72,41 +75,20 @@ const DashboardPage: React.FC = () => {
   // Function to handle navigation to next week
   const handleNextWeek = () => {
     const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
+    console.log(`[DashboardPage] Navigating to next week: ${week}/${year}`);
     setSelectedWeek(week);
     setSelectedYear(year);
   };
 
-  // ENHANCED: Get assignments for the selected week and user using dashboard filter with better logging
-  const userWeekAssignments = filterForDashboard(assignments).filter(assignment => {
-    // Check if assignment is within the selected week
-    const assignmentDate = assignment.date;
-    const isInWeek = assignmentDate >= startDateISO && assignmentDate <= endDateISO;
-    
-    console.log(`[DashboardPage] Assignment ${assignment.id} (${assignment.location}):`, {
-      date: assignmentDate,
-      weekStart: startDateISO,
-      weekEnd: endDateISO,
-      isInWeek: isInWeek,
-      employees: assignment.employees,
-      userRole: user?.role
-    });
-    
-    return isInWeek;
-  }).sort((a, b) => {
-    // Sort by date first (earliest first)
-    if (a.date !== b.date) {
-      return new Date(a.date).getTime() - new Date(b.date).getTime();
-    }
-    // If same date, sort by fromTime (earliest first)
-    return a.fromTime.localeCompare(b.fromTime);
-  });
+  // Function to navigate to Week 23, 2025 (where test assignments are located)
+  const navigateToTestWeek = () => {
+    console.log(`[DashboardPage] Navigating to test week: 23/2025`);
+    setSelectedWeek(23);
+    setSelectedYear(2025);
+  };
 
-  console.log(`[DashboardPage] Final user week assignments for ${user?.name}:`, userWeekAssignments.map(a => ({
-    id: a.id,
-    location: a.location,
-    employees: a.employees,
-    date: a.date
-  })));
+  // Get assignments for the selected week using the new hook
+  const userWeekAssignments = getAssignmentsForWeek(startDateISO, endDateISO);
 
   // Format the date based on the current language
   const getFormattedDate = () => {
@@ -179,6 +161,21 @@ const DashboardPage: React.FC = () => {
       {/* Dashboard metrics for admin/skadeleder */}
       <DashboardMetrics />
 
+      {/* Debug navigation - helpful for testing */}
+      {user?.role !== 'servicemedarbejder' && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+          <p className="text-sm text-yellow-800 mb-2">Debug Navigation:</p>
+          <Button 
+            onClick={navigateToTestWeek} 
+            variant="outline" 
+            size="sm"
+            className="text-yellow-800 border-yellow-300"
+          >
+            Go to Week 23, 2025 (Test Data)
+          </Button>
+        </div>
+      )}
+
       {/* This week's assignments */}
       <Card className="mb-8 mt-8">
         <CardHeader>
@@ -188,6 +185,9 @@ const DashboardPage: React.FC = () => {
                 {t('dashboard.myAssignments', {
                   week: selectedWeek
                 })}
+              </span>
+              <span className="text-sm text-gray-500">
+                ({selectedYear})
               </span>
               <WeekNavigation 
                 onPrevious={handlePreviousWeek}
@@ -201,10 +201,22 @@ const DashboardPage: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {userWeekAssignments.length === 0 ? (
+          {assignmentsLoading ? (
             <p className="text-left py-8 text-muted-foreground">
-              {t('dashboard.noAssignments')}
+              Loading assignments...
             </p>
+          ) : userWeekAssignments.length === 0 ? (
+            <div className="text-left py-8 text-muted-foreground">
+              <p className="mb-2">{t('dashboard.noAssignments')}</p>
+              <p className="text-sm">
+                Current week: {selectedWeek}/{selectedYear} ({startDateISO} to {endDateISO})
+              </p>
+              {user?.role !== 'servicemedarbejder' && (
+                <p className="text-sm mt-2">
+                  Try navigating to Week 23, 2025 to see test assignments.
+                </p>
+              )}
+            </div>
           ) : (
             <div className="grid gap-4">
               {userWeekAssignments.map(assignment => {
