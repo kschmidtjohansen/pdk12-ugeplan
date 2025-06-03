@@ -84,14 +84,20 @@ export const useAssignmentData = () => {
           
           console.log(`  - Employee IDs from junction table: [${assignmentEmployeeIds.join(', ')}]`);
           
-          // Map employee IDs to names with validation
-          const assignmentEmployeeNames = assignmentEmployeeIds
-            .map(userId => {
-              const profile = profilesData.find(p => p.id === userId);
-              console.log(`    - Looking for user ${userId}, found profile:`, profile);
-              return profile?.name;
-            })
-            .filter(name => name && typeof name === 'string' && name.trim() !== '') || [];
+          // Map employee IDs to names with proper validation and error handling
+          const assignmentEmployeeNames: string[] = [];
+          
+          assignmentEmployeeIds.forEach(userId => {
+            const profile = profilesData.find(p => p.id === userId);
+            console.log(`    - Looking for user ${userId}, found profile:`, profile);
+            
+            if (profile?.name && typeof profile.name === 'string' && profile.name.trim() !== '') {
+              assignmentEmployeeNames.push(profile.name.trim());
+              console.log(`    - Added employee name: "${profile.name.trim()}"`);
+            } else {
+              console.log(`    - Skipped invalid employee name for user ${userId}:`, profile?.name);
+            }
+          });
           
           console.log(`  - Employee Names resolved: [${assignmentEmployeeNames.join(', ')}]`);
           console.log(`  - Final employee array length: ${assignmentEmployeeNames.length}`);
@@ -109,7 +115,7 @@ export const useAssignmentData = () => {
               id: assignment.cars.id,
               name: assignment.cars.name
             } : null,
-            employees: assignmentEmployeeNames, // Ensure this is always an array of strings
+            employees: assignmentEmployeeNames, // This is now guaranteed to be an array of valid strings
             published: assignment.published || false
           };
           

@@ -23,7 +23,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // Enhanced employee display with detailed debugging
+  // Enhanced employee display with comprehensive validation
   const displayEmployees = () => {
     console.log(`[AssignmentDetails] Processing employees for assignment ${assignment.id} (${assignment.location}):`);
     console.log(`  - Assignment object:`, assignment);
@@ -33,23 +33,30 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
     console.log(`  - Length:`, assignment.employees?.length || 0);
     console.log(`  - Published:`, assignment.published);
     
-    // Check if employees array exists and has valid entries
-    if (assignment.employees && Array.isArray(assignment.employees) && assignment.employees.length > 0) {
-      // Filter out any empty or invalid entries
-      const validEmployees = assignment.employees.filter(emp => emp && typeof emp === 'string' && emp.trim() !== '');
-      
-      console.log(`  - Valid employees after filtering:`, validEmployees);
-      console.log(`  - Valid employee count:`, validEmployees.length);
-      
-      if (validEmployees.length > 0) {
-        const employeeDisplay = validEmployees.join(', ');
-        console.log(`  - Final employee display: "${employeeDisplay}"`);
-        return employeeDisplay;
-      }
+    // Ensure we have a valid array of employees
+    if (!assignment.employees || !Array.isArray(assignment.employees)) {
+      console.log(`  - No valid employees array, showing unassigned`);
+      return t('planner.unassigned');
     }
     
-    console.log(`  - No valid employees found, showing unassigned`);
-    return t('planner.unassigned');
+    // Filter out any invalid entries and ensure we have strings
+    const validEmployees = assignment.employees.filter(emp => {
+      const isValid = emp && typeof emp === 'string' && emp.trim() !== '';
+      console.log(`    - Employee "${emp}" is valid:`, isValid);
+      return isValid;
+    });
+    
+    console.log(`  - Valid employees after filtering:`, validEmployees);
+    console.log(`  - Valid employee count:`, validEmployees.length);
+    
+    if (validEmployees.length === 0) {
+      console.log(`  - No valid employees found, showing unassigned`);
+      return t('planner.unassigned');
+    }
+    
+    const employeeDisplay = validEmployees.join(', ');
+    console.log(`  - Final employee display: "${employeeDisplay}"`);
+    return employeeDisplay;
   };
   
   const employeeDisplay = displayEmployees();

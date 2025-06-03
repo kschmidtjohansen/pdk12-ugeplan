@@ -25,31 +25,35 @@ export const useViewSpecificFilters = () => {
     }
 
     const filtered = assignments.filter(assignment => {
+      // Ensure employees is always an array before processing
+      const employeeArray = Array.isArray(assignment.employees) ? assignment.employees : [];
+      const safeAssignment = { ...assignment, employees: employeeArray };
+      
       // For servicemedarbejdere, show ALL published assignments with ALL employee names
       // They should see all published tasks in the planner with complete team information
       if (user.role === 'servicemedarbejder') {
-        console.log(`[useViewSpecificFilters] Servicemedarbejder filter - Assignment ${assignment.id} (${assignment.location}):`, {
-          published: assignment.published,
-          employees: assignment.employees,
-          employeeCount: assignment.employees?.length || 0,
-          willBeShown: assignment.published
+        console.log(`[useViewSpecificFilters] Servicemedarbejder filter - Assignment ${safeAssignment.id} (${safeAssignment.location}):`, {
+          published: safeAssignment.published,
+          employees: safeAssignment.employees,
+          employeeCount: safeAssignment.employees.length,
+          willBeShown: safeAssignment.published
         });
         
         // Show ALL published assignments - servicemedarbejdere can see all published tasks in planner
         // IMPORTANT: We do NOT filter out employee names here - they should see all team members
-        return assignment.published;
+        return safeAssignment.published;
       }
       
       // For skadeleder and administrator, show based on includeUnpublished flag
       if (user.role === 'skadeleder' || user.role === 'administrator') {
-        const shouldShow = includeUnpublished || assignment.published;
-        console.log(`[useViewSpecificFilters] Admin/Skadeleder - Assignment ${assignment.id} (${assignment.location}) - Should show: ${shouldShow}`);
+        const shouldShow = includeUnpublished || safeAssignment.published;
+        console.log(`[useViewSpecificFilters] Admin/Skadeleder - Assignment ${safeAssignment.id} (${safeAssignment.location}) - Should show: ${shouldShow}`);
         return shouldShow;
       }
       
       // Default: only show published assignments
-      console.log(`[useViewSpecificFilters] Default - Assignment ${assignment.id} (${assignment.location}) - Published: ${assignment.published}`);
-      return assignment.published;
+      console.log(`[useViewSpecificFilters] Default - Assignment ${safeAssignment.id} (${safeAssignment.location}) - Published: ${safeAssignment.published}`);
+      return safeAssignment.published;
     });
     
     console.log('[useViewSpecificFilters] filterForPlanner - Filtered assignments:', filtered.length);
@@ -77,15 +81,18 @@ export const useViewSpecificFilters = () => {
     // For dashboard, servicemedarbejdere should see their own assignments but WITH ALL team member names visible
     if (user.role === 'servicemedarbejder') {
       const filtered = assignments.filter(assignment => {
+        // Ensure employees is always an array
+        const employeeArray = Array.isArray(assignment.employees) ? assignment.employees : [];
+        
         const isAssigned = assignment.published && 
-                          assignment.employees && 
-                          assignment.employees.includes(user.name);
+                          employeeArray.length > 0 && 
+                          employeeArray.includes(user.name);
         
         console.log(`[useViewSpecificFilters] Dashboard filter - Assignment ${assignment.id} (${assignment.location}):`, {
           published: assignment.published,
-          employees: assignment.employees,
+          employees: employeeArray,
           userAssigned: isAssigned,
-          allEmployeesWillBeShown: assignment.employees
+          allEmployeesWillBeShown: employeeArray
         });
         
         return isAssigned;

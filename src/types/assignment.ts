@@ -8,7 +8,7 @@ export interface Assignment {
   toTime: string;
   location: string;
   car: string | { id: string; name: string } | null;
-  employees: string[]; // Array of employee names as strings
+  employees: string[]; // Guaranteed array of employee names as strings
   published: boolean;
 }
 
