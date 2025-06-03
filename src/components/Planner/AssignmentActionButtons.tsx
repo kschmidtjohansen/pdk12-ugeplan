@@ -33,7 +33,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
   // Only show action buttons for administrators and skadeledere
   const canPerformActions = user?.role === 'administrator' || user?.role === 'skadeleder';
   
-  // Only show screen display button for administrators and skadeledere (more restrictive than general actions)
+  // Screen display button should be available for administrators and skadeledere
   const canShowOnScreen = user?.role === 'administrator' || user?.role === 'skadeleder';
 
   if (!canPerformActions) {
@@ -52,6 +52,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         size="sm"
         onClick={() => onEdit(assignment)}
         className="h-7 w-7 p-0"
+        title={t('planner.editAssignment')}
       >
         <Edit3 className="h-3 w-3" />
       </Button>
@@ -61,6 +62,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         size="sm"
         onClick={() => onCopy(assignment)}
         className="h-7 w-7 p-0"
+        title={t('planner.copyAssignment')}
       >
         <Copy className="h-3 w-3" />
       </Button>
@@ -71,28 +73,28 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
           size="sm"
           onClick={() => onPublish(assignment.id)}
           className="h-7 w-7 p-0"
+          title={t('planner.publish')}
         >
           <Eye className="h-3 w-3" />
-        </Button>
-      )}
-      
-      {canShowOnScreen && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleShowOnScreen}
-          className="h-7 w-7 p-0"
-          title={t('planner.showOnScreen')}
-        >
-          <Monitor className="h-3 w-3" />
         </Button>
       )}
       
       <Button
         variant="ghost"
         size="sm"
+        onClick={handleShowOnScreen}
+        className="h-7 w-7 p-0"
+        title={t('planner.showOnScreen')}
+      >
+        <Monitor className="h-3 w-3" />
+      </Button>
+      
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={() => onDelete(assignment.id)}
         className="h-7 w-7 p-0 text-red-600 hover:text-red-700"
+        title={t('planner.deleteAssignment')}
       >
         <Trash2 className="h-3 w-3" />
       </Button>
