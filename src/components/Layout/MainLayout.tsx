@@ -37,8 +37,8 @@ const MainLayout: React.FC = () => {
     <div className="flex flex-col min-h-screen w-full">
       <TopNavbar />
       
-      {/* Main Content with full width */}
-      <main className="flex-1 w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
+      {/* Main Content with top padding to account for fixed navbar */}
+      <main className="flex-1 w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 pt-20">
         <div className="animate-fade-in-up w-full">
           <Outlet />
         </div>
