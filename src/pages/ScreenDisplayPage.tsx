@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
-import { usePlannerAssignments } from '@/hooks/usePlannerAssignments'; // Changed from useAssignments
+import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { useViewSpecificFilters } from '@/hooks/useViewSpecificFilters';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 
 const ScreenDisplayPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
-  const { assignments } = usePlannerAssignments(); // Changed to use correct hook
+  const { assignments } = usePlannerAssignments();
   const { filterForScreenDisplay } = useViewSpecificFilters();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -167,7 +167,6 @@ const ScreenDisplayPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
             {todayAssignments.map((assignment, index) => {
               const status = getTimeStatus(assignment);
-              console.log('Assignment employees:', assignment.employees); // Debug log
               
               return (
                 <Card 
