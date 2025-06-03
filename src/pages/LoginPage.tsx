@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +10,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import PasswordResetDialog from '@/components/Auth/PasswordResetDialog';
 import { AlertCircle } from 'lucide-react';
+
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -94,6 +96,7 @@ const LoginPage: React.FC = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, [lockedUntil]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -181,6 +184,7 @@ const LoginPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+
   const handleForgotPassword = () => {
     setResetDialogOpen(true);
   };
@@ -195,53 +199,93 @@ const LoginPage: React.FC = () => {
     const seconds = Math.floor(diffMs % (1000 * 60) / 1000);
     return `${minutes}m ${seconds}s`;
   };
-  return <div className="min-h-screen flex items-center justify-center bg-polygon-lightgray p-4">
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-white p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <img src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" alt="Polygon Logo" className="mx-auto mb-6 h-16" />
-          <h1 className="text-2xl font-bold text-gray-800">{t('login.welcomeMessage')}</h1>
-          <p className="text-gray-600">{t('login.internalSystem')}</p>
+          <img 
+            src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" 
+            alt="Polygon Logo" 
+            className="mx-auto mb-6 h-16" 
+          />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {t('login.welcomeMessage')}
+          </h1>
+          <p className="text-gray-600">
+            {t('login.internalSystem')}
+          </p>
         </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('login.title')}</CardTitle>
-            <CardDescription>
+        <Card className="shadow-large border-0">
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="text-xl font-semibold text-gray-900">
+              {t('login.title')}
+            </CardTitle>
+            <CardDescription className="text-gray-600">
               {t('login.description')}
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
-              {lockedUntil && lockedUntil > new Date() && <div className="bg-red-50 p-3 rounded border border-red-200 flex items-start">
-                  <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
+            <CardContent className="space-y-6">
+              {lockedUntil && lockedUntil > new Date() && (
+                <div className="bg-red-50 p-4 rounded-xl border border-red-200 flex items-start">
+                  <AlertCircle className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-red-800 font-medium">Account temporarily locked</p>
-                    <p className="text-red-700 text-sm">
+                    <p className="text-red-700 text-sm mt-1">
                       Too many failed login attempts. Please try again in {getRemainingLockoutTime()}.
                     </p>
                   </div>
-                </div>}
+                </div>
+              )}
               
               <div className="space-y-2">
-                <Label htmlFor="email">{t('common.email')}</Label>
-                <Input id="email" type="email" placeholder={t('login.emailPlaceholder')} value={email} onChange={e => setEmail(e.target.value)} required className="border-2" disabled={isLoading || lockedUntil && lockedUntil > new Date()} />
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  {t('common.email')}
+                </Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder={t('login.emailPlaceholder')} 
+                  value={email} 
+                  onChange={e => setEmail(e.target.value)} 
+                  required 
+                  className="h-11 border-gray-300 focus:border-primary focus:ring-primary"
+                  disabled={isLoading || (lockedUntil && lockedUntil > new Date())} 
+                />
               </div>
+              
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="password">{t('common.password')}</Label>
-                  
-                </div>
-                <Input id="password" type="password" placeholder={t('login.passwordPlaceholder')} value={password} onChange={e => setPassword(e.target.value)} required className="border-2" disabled={isLoading || lockedUntil && lockedUntil > new Date()} />
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                  {t('common.password')}
+                </Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder={t('login.passwordPlaceholder')} 
+                  value={password} 
+                  onChange={e => setPassword(e.target.value)} 
+                  required 
+                  className="h-11 border-gray-300 focus:border-primary focus:ring-primary"
+                  disabled={isLoading || (lockedUntil && lockedUntil > new Date())} 
+                />
               </div>
               
               {/* Show warning after 3 failed attempts */}
-              {failedAttempts >= 3 && failedAttempts < 5 && <div className="text-amber-600 text-sm flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
+              {failedAttempts >= 3 && failedAttempts < 5 && (
+                <div className="text-amber-600 text-sm flex items-center bg-amber-50 p-3 rounded-xl border border-amber-200">
+                  <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
                   Warning: {5 - failedAttempts} attempts remaining before temporary lockout
-                </div>}
+                </div>
+              )}
             </CardContent>
             <CardFooter>
-              <Button className="w-full bg-polygon-blue hover:bg-polygon-darkblue" type="submit" disabled={isLoading || lockedUntil && lockedUntil > new Date() || !email || !password}>
+              <Button 
+                className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-medium shadow-soft hover:shadow-medium transition-all duration-200" 
+                type="submit" 
+                disabled={isLoading || (lockedUntil && lockedUntil > new Date()) || !email || !password}
+              >
                 {isLoading ? t('login.buttonLoading') : t('login.button')}
               </Button>
             </CardFooter>
@@ -250,6 +294,8 @@ const LoginPage: React.FC = () => {
       </div>
 
       <PasswordResetDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen} />
-    </div>;
+    </div>
+  );
 };
+
 export default LoginPage;

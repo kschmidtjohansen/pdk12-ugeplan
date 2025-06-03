@@ -119,15 +119,6 @@ const EmployeesPage: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            {isAdmin && (
-              <Button 
-                onClick={handleCreateNew} 
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 hover:border-white/50 transition-all duration-200"
-                variant="outline"
-              >
-                <Plus className="mr-2 h-4 w-4" /> {t("employees.addEmployee")}
-              </Button>
-            )}
             <div className="hidden md:block">
               <div className="p-3 rounded-xl bg-white/10">
                 <Users className="h-8 w-8" />
