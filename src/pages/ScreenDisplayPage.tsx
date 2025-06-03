@@ -6,20 +6,44 @@ import { useViewSpecificFilters } from '@/hooks/useViewSpecificFilters';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight, Home, Calendar, Clock, MapPin, Users, Car } from 'lucide-react';
-import { format, addDays, subDays } from 'date-fns';
+import { format, addDays, subDays, parseISO } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Assignment } from '@/types/assignment';
 import { Link } from 'react-router-dom';
 
 const ScreenDisplayPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
-  const { assignments } = usePlannerAssignments();
+  const { assignments, loading } = usePlannerAssignments();
   const { filterForScreenDisplay } = useViewSpecificFilters();
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Parse date from URL parameters or default to today
+  const getInitialDate = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const dateParam = urlParams.get('date');
+    
+    if (dateParam) {
+      try {
+        // Parse the date from the URL parameter
+        const parsedDate = parseISO(dateParam);
+        console.log('[ScreenDisplayPage] Using date from URL:', dateParam, 'parsed as:', parsedDate);
+        return parsedDate;
+      } catch (error) {
+        console.error('[ScreenDisplayPage] Error parsing date from URL:', dateParam, error);
+      }
+    }
+    
+    console.log('[ScreenDisplayPage] No valid date in URL, using today');
+    return new Date();
+  };
+
+  const [selectedDate, setSelectedDate] = useState(getInitialDate);
 
   // Filter assignments for screen display (only published assignments)
   const filteredAssignments = filterForScreenDisplay(assignments);
+
+  console.log('[ScreenDisplayPage] Assignments loaded:', filteredAssignments.length);
+  console.log('[ScreenDisplayPage] Selected date:', format(selectedDate, 'yyyy-MM-dd'));
 
   // Update current time every minute
   useEffect(() => {
@@ -27,6 +51,21 @@ const ScreenDisplayPage: React.FC = () => {
       setCurrentTime(new Date());
     }, 60000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Listen for URL parameter changes (in case the URL is updated after mount)
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const newDate = getInitialDate();
+      setSelectedDate(newDate);
+    };
+
+    // Listen for popstate events (back/forward navigation)
+    window.addEventListener('popstate', handleUrlChange);
+    
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+    };
   }, []);
 
   const formatDate = (date: Date) => {
@@ -44,16 +83,39 @@ const ScreenDisplayPage: React.FC = () => {
     .filter(a => a.date === selectedDateStr && a.published)
     .sort((a, b) => a.fromTime.localeCompare(b.fromTime));
 
+  console.log('[ScreenDisplayPage] Assignments for selected date:', todayAssignments.length);
+  console.log('[ScreenDisplayPage] Assignment details:', todayAssignments.map(a => ({
+    id: a.id,
+    location: a.location,
+    date: a.date,
+    employees: a.employees
+  })));
+
   const handlePreviousDay = () => {
-    setSelectedDate(prev => subDays(prev, 1));
+    const newDate = subDays(selectedDate, 1);
+    setSelectedDate(newDate);
+    // Update URL to reflect the new date
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('date', format(newDate, 'yyyy-MM-dd'));
+    window.history.replaceState({}, '', newUrl.toString());
   };
 
   const handleNextDay = () => {
-    setSelectedDate(prev => addDays(prev, 1));
+    const newDate = addDays(selectedDate, 1);
+    setSelectedDate(newDate);
+    // Update URL to reflect the new date
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('date', format(newDate, 'yyyy-MM-dd'));
+    window.history.replaceState({}, '', newUrl.toString());
   };
 
   const handleToday = () => {
-    setSelectedDate(new Date());
+    const today = new Date();
+    setSelectedDate(today);
+    // Update URL to reflect today's date
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('date', format(today, 'yyyy-MM-dd'));
+    window.history.replaceState({}, '', newUrl.toString());
   };
 
   const getTimeStatus = (assignment: Assignment) => {
@@ -92,6 +154,18 @@ const ScreenDisplayPage: React.FC = () => {
         return currentLanguage === 'da' ? 'Planlagt' : 'Scheduled';
     }
   };
+
+  // Show loading state while assignments are being fetched
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg text-muted-foreground">Indlæser opgaver...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
