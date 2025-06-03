@@ -35,16 +35,14 @@ const VacationTable: React.FC<VacationTableProps> = ({
   
   const canApprove = isAdmin;
 
-  const formatDateRange = (startDate: string, endDate: string) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+  const formatDateRange = (startDate: Date, endDate: Date) => {
     const locale = currentLanguage === 'da' ? 'da-DK' : 'en-GB';
     
-    if (start.toDateString() === end.toDateString()) {
-      return start.toLocaleDateString(locale);
+    if (startDate.toDateString() === endDate.toDateString()) {
+      return startDate.toLocaleDateString(locale);
     }
     
-    return `${start.toLocaleDateString(locale)} - ${end.toLocaleDateString(locale)}`;
+    return `${startDate.toLocaleDateString(locale)} - ${endDate.toLocaleDateString(locale)}`;
   };
 
   const getStatusBadge = (status: string) => {
@@ -91,7 +89,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
           {vacations.map((vacation) => (
             <TableRow key={vacation.id}>
               <TableCell className="font-medium">
-                {vacation.employee?.name || 'Unknown Employee'}
+                {vacation.employeeName || 'Unknown Employee'}
               </TableCell>
               <TableCell>
                 {formatDateRange(vacation.startDate, vacation.endDate)}
@@ -105,7 +103,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
                 {getStatusBadge(vacation.status)}
               </TableCell>
               <TableCell>
-                {new Date(vacation.createdAt).toLocaleDateString(
+                {vacation.createdAt.toLocaleDateString(
                   currentLanguage === 'da' ? 'da-DK' : 'en-GB'
                 )}
               </TableCell>
