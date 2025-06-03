@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -19,20 +18,32 @@ import { useVacations } from '@/hooks/useVacations';
 import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import { Assignment } from '@/types/assignment';
-
 const DashboardPage: React.FC = () => {
-  const { user } = useAuth();
-  const { t, currentLanguage } = useTranslation();
-  const { assignments } = usePlannerAssignments();
-  const { employees } = useEmployees();
-  const { cars } = useCars();
-  const { vacations } = useVacations();
-  const { filterForDashboard } = useAssignmentFilters();
-
+  const {
+    user
+  } = useAuth();
+  const {
+    t,
+    currentLanguage
+  } = useTranslation();
+  const {
+    assignments
+  } = usePlannerAssignments();
+  const {
+    employees
+  } = useEmployees();
+  const {
+    cars
+  } = useCars();
+  const {
+    vacations
+  } = useVacations();
+  const {
+    filterForDashboard
+  } = useAssignmentFilters();
   const today = new Date();
   const todayISOWeek = getISOWeek(today);
   const todayISOYear = getISOWeekYear(today);
-  
   const [selectedWeek, setSelectedWeek] = useState(todayISOWeek);
   const [selectedYear, setSelectedYear] = useState(todayISOYear);
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
@@ -41,17 +52,18 @@ const DashboardPage: React.FC = () => {
   // Update employee leave status based on vacations when dashboard loads
   useEffect(() => {
     const updateEmployeeStatuses = async () => {
-      const { useEmployeeActions } = await import('@/hooks/employee/useEmployeeActions');
-      const { updateEmployeeLeaveStatusFromVacations } = useEmployeeActions(() => Promise.resolve());
+      const {
+        useEmployeeActions
+      } = await import('@/hooks/employee/useEmployeeActions');
+      const {
+        updateEmployeeLeaveStatusFromVacations
+      } = useEmployeeActions(() => Promise.resolve());
       await updateEmployeeLeaveStatusFromVacations();
     };
-    
     updateEmployeeStatuses();
-    
     const intervalId = setInterval(() => {
       updateEmployeeStatuses();
     }, 30 * 60 * 1000);
-    
     return () => {
       clearInterval(intervalId);
     };
@@ -64,14 +76,20 @@ const DashboardPage: React.FC = () => {
 
   // Function to handle navigation to previous week
   const handlePreviousWeek = () => {
-    const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
+    const {
+      week,
+      year
+    } = getPreviousWeekInfo(selectedWeek, selectedYear);
     setSelectedWeek(week);
     setSelectedYear(year);
   };
 
   // Function to handle navigation to next week
   const handleNextWeek = () => {
-    const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
+    const {
+      week,
+      year
+    } = getNextWeekInfo(selectedWeek, selectedYear);
     setSelectedWeek(week);
     setSelectedYear(year);
   };
@@ -89,20 +107,16 @@ const DashboardPage: React.FC = () => {
     return isInWeek;
   }).sort((a, b) => {
     const today = format(new Date(), 'yyyy-MM-dd');
-    
     const aIsToday = a.date === today;
     const bIsToday = b.date === today;
     const aIsFuture = a.date > today;
     const bIsFuture = b.date > today;
     const aIsPast = a.date < today;
     const bIsPast = b.date < today;
-    
     if (aIsToday && !bIsToday) return -1;
     if (!aIsToday && bIsToday) return 1;
-    
     if (aIsFuture && bIsPast) return -1;
     if (aIsPast && bIsFuture) return 1;
-    
     if (a.date !== b.date) {
       if (aIsFuture && bIsFuture) {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
@@ -112,7 +126,6 @@ const DashboardPage: React.FC = () => {
       }
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     }
-    
     return a.fromTime.localeCompare(b.fromTime);
   });
 
@@ -141,7 +154,6 @@ const DashboardPage: React.FC = () => {
       link: '/vacation',
       color: 'green'
     }];
-
     if (user?.role === 'administrator' || user?.role === 'skadeleder') {
       baseItems.push({
         title: t('dashboard.quickAccess.employees.title'),
@@ -159,11 +171,8 @@ const DashboardPage: React.FC = () => {
     }
     return baseItems;
   };
-
   const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
-  
-  return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
+  return <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
         {/* Enhanced Welcome Header with Glassmorphism */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 text-white shadow-2xl animate-fade-in-up">
@@ -178,14 +187,16 @@ const DashboardPage: React.FC = () => {
                   <Sparkles className="h-6 w-6" />
                 </div>
                 <h1 className="text-3xl font-bold tracking-tight">
-                  {t('dashboard.welcome', { name: user?.name })}
+                  {t('dashboard.welcome', {
+                  name: user?.name
+                })}
                 </h1>
               </div>
               <p className="text-blue-100 text-lg font-medium">
                 {t('dashboard.today', {
-                  date: getFormattedDate(),
-                  week: todayISOWeek
-                })}
+                date: getFormattedDate(),
+                week: todayISOWeek
+              })}
               </p>
             </div>
             <div className="hidden md:block">
@@ -205,17 +216,11 @@ const DashboardPage: React.FC = () => {
 
         {/* Enhanced Quick Access Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-in-right">
-          {getQuickAccessItems().map((item, index) => (
-            <Link key={index} to={item.link} className="block group">
+          {getQuickAccessItems().map((item, index) => <Link key={index} to={item.link} className="block group">
               <Card className="h-full border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] bg-gradient-to-br from-card to-card/50">
                 <CardContent className="p-8">
                   <div className="flex items-start justify-between mb-6">
-                    <div className={`p-4 rounded-2xl transition-all duration-300 group-hover:scale-110 ${
-                      item.color === 'blue' ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' :
-                      item.color === 'green' ? 'bg-green-50 text-green-600 group-hover:bg-green-100' :
-                      item.color === 'purple' ? 'bg-purple-50 text-purple-600 group-hover:bg-purple-100' :
-                      'bg-orange-50 text-orange-600 group-hover:bg-orange-100'
-                    }`}>
+                    <div className={`p-4 rounded-2xl transition-all duration-300 group-hover:scale-110 ${item.color === 'blue' ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' : item.color === 'green' ? 'bg-green-50 text-green-600 group-hover:bg-green-100' : item.color === 'purple' ? 'bg-purple-50 text-purple-600 group-hover:bg-purple-100' : 'bg-orange-50 text-orange-600 group-hover:bg-orange-100'}`}>
                       {item.icon}
                     </div>
                     <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-all duration-300 group-hover:translate-x-1" />
@@ -228,19 +233,20 @@ const DashboardPage: React.FC = () => {
                   </p>
                 </CardContent>
               </Card>
-            </Link>
-          ))}
+            </Link>)}
         </div>
 
         {/* Enhanced Dashboard Metrics */}
-        {shouldShowMetrics && (
-          <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        {shouldShowMetrics && <div className="animate-fade-in-up" style={{
+        animationDelay: '0.2s'
+      }}>
             <DashboardMetrics />
-          </div>
-        )}
+          </div>}
 
         {/* Enhanced Weekly Assignments */}
-        <Card className="border-2 border-border/50 shadow-2xl bg-gradient-to-br from-card to-card/50 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+        <Card className="border-2 border-border/50 shadow-2xl bg-gradient-to-br from-card to-card/50 animate-fade-in-up" style={{
+        animationDelay: '0.4s'
+      }}>
           <CardHeader className="pb-6">
             <CardTitle className="flex justify-between items-center">
               <div className="flex items-center gap-4">
@@ -249,17 +255,13 @@ const DashboardPage: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold">
-                    {t('dashboard.myAssignments', { week: selectedWeek })}
+                    {t('dashboard.myAssignments', {
+                    week: selectedWeek
+                  })}
                   </h2>
-                  <p className="text-muted-foreground text-sm mt-1">
-                    Manage your weekly schedule and assignments
-                  </p>
+                  
                 </div>
-                <WeekNavigation 
-                  onPrevious={handlePreviousWeek}
-                  onNext={handleNextWeek}
-                  currentWeek={selectedWeek}
-                />
+                <WeekNavigation onPrevious={handlePreviousWeek} onNext={handleNextWeek} currentWeek={selectedWeek} />
               </div>
               <Button variant="gradient" size="sm" asChild className="shadow-lg hover:shadow-xl">
                 <Link to="/planner">
@@ -270,8 +272,7 @@ const DashboardPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {userWeekAssignments.length === 0 ? (
-              <div className="text-center py-16">
+            {userWeekAssignments.length === 0 ? <div className="text-center py-16">
                 <div className="p-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
                   <Clock className="h-10 w-10 text-gray-400" />
                 </div>
@@ -281,16 +282,10 @@ const DashboardPage: React.FC = () => {
                 <p className="text-muted-foreground">
                   No assignments scheduled for this week
                 </p>
-              </div>
-            ) : (
-              <div className="grid gap-6">
-                {userWeekAssignments.map((assignment, index) => (
-                  <div 
-                    key={assignment.id} 
-                    className="border-2 border-border/50 rounded-2xl p-8 bg-gradient-to-br from-card to-card/50 cursor-pointer animate-scale-in relative overflow-hidden"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                    onClick={() => handleAssignmentClick(assignment)}
-                  >
+              </div> : <div className="grid gap-6">
+                {userWeekAssignments.map((assignment, index) => <div key={assignment.id} className="border-2 border-border/50 rounded-2xl p-8 bg-gradient-to-br from-card to-card/50 cursor-pointer animate-scale-in relative overflow-hidden" style={{
+              animationDelay: `${index * 0.1}s`
+            }} onClick={() => handleAssignmentClick(assignment)}>
                     <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
                     
                     <div className="relative z-10">
@@ -303,22 +298,18 @@ const DashboardPage: React.FC = () => {
                         </div>
                       </div>
                       
-                      {assignment.description && (
-                        <p className="text-muted-foreground mb-4 text-left leading-relaxed">{assignment.description}</p>
-                      )}
+                      {assignment.description && <p className="text-muted-foreground mb-4 text-left leading-relaxed">{assignment.description}</p>}
                       <p className="text-foreground mb-6 font-medium text-left text-lg">{assignment.title}</p>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {assignment.car && (
-                          <div className="flex items-center gap-4">
+                        {assignment.car && <div className="flex items-center gap-4">
                             <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
                               <Car className="h-5 w-5 text-blue-600" />
                             </div>
                             <span className="text-foreground font-medium">
                               {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
                             </span>
-                          </div>
-                        )}
+                          </div>}
                         
                         <div className="flex items-center gap-4">
                           <div className="p-3 rounded-xl bg-green-50 border border-green-200">
@@ -329,33 +320,23 @@ const DashboardPage: React.FC = () => {
                           </span>
                         </div>
                         
-                        {assignment.employees && assignment.employees.length > 0 && (
-                          <div className="flex items-center gap-4 sm:col-span-2">
+                        {assignment.employees && assignment.employees.length > 0 && <div className="flex items-center gap-4 sm:col-span-2">
                             <div className="p-3 rounded-xl bg-purple-50 border border-purple-200">
                               <Users className="h-5 w-5 text-purple-600" />
                             </div>
                             <span className="text-foreground font-medium">
                               {assignment.employees.join(', ')}
                             </span>
-                          </div>
-                        )}
+                          </div>}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  </div>)}
+              </div>}
           </CardContent>
         </Card>
 
-        <AssignmentDetailsDialog
-          assignment={selectedAssignment}
-          isOpen={isAssignmentDialogOpen}
-          onClose={() => setIsAssignmentDialogOpen(false)}
-        />
+        <AssignmentDetailsDialog assignment={selectedAssignment} isOpen={isAssignmentDialogOpen} onClose={() => setIsAssignmentDialogOpen(false)} />
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default DashboardPage;
