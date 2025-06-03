@@ -25,10 +25,26 @@ export const usePlannerAssignments = () => {
   // Get filter functionality - using the planner-specific filter
   const { filterForPlanner } = useViewSpecificFilters();
   
-  // Filter assignments for planner view - this should show ALL published assignments for servicemedarbejdere
-  console.log("[usePlannerAssignments] Raw assignments:", assignments.length);
+  // ENHANCED DEBUGGING: Filter assignments for planner view
+  console.log("[usePlannerAssignments] Raw assignments from useAssignments:", assignments.length);
+  console.log("[usePlannerAssignments] Raw assignments details:", assignments.map(a => ({
+    id: a.id,
+    location: a.location,
+    published: a.published,
+    employees: a.employees,
+    employeeCount: a.employees?.length || 0
+  })));
+  
   const filteredAssignments = filterForPlanner(assignments, true);
+  
   console.log("[usePlannerAssignments] Filtered assignments for planner:", filteredAssignments.length);
+  console.log("[usePlannerAssignments] Filtered assignments details:", filteredAssignments.map(a => ({
+    id: a.id,
+    location: a.location,
+    published: a.published,
+    employees: a.employees,
+    employeeCount: a.employees?.length || 0
+  })));
   
   // Get publishing functionality - adapt updateAssignment to match expected signature
   const assignmentUpdater = useCallback(async (assignment: Assignment) => {
@@ -88,6 +104,18 @@ export const usePlannerAssignments = () => {
   
   // Group assignments by day for display - memoize calculation to avoid unnecessary re-calculations
   const groupedAssignments = groupAssignmentsByDay(filteredAssignments);
+  
+  console.log("[usePlannerAssignments] Final grouped assignments:", Object.keys(groupedAssignments).length, "days");
+  console.log("[usePlannerAssignments] Grouped assignments summary:", Object.entries(groupedAssignments).map(([date, assignments]) => ({
+    date,
+    count: assignments.length,
+    assignments: assignments.map(a => ({
+      id: a.id,
+      location: a.location,
+      employees: a.employees,
+      employeeCount: a.employees?.length || 0
+    }))
+  })));
   
   return {
     assignments: filteredAssignments,

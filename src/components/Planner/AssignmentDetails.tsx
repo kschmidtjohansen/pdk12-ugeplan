@@ -23,22 +23,28 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // FIXED: Always show all employee names for ALL assignments (no role-based filtering)
+  // ENHANCED DEBUGGING: Always show all employee names for ALL assignments
   const displayEmployees = () => {
-    console.log(`[AssignmentDetails] Displaying employees for assignment ${assignment.id} (${assignment.location}):`, {
-      employees: assignment.employees,
-      employeeCount: assignment.employees?.length || 0,
-      published: assignment.published
-    });
+    console.log(`[AssignmentDetails] Displaying employees for assignment ${assignment.id} (${assignment.location}):`);
+    console.log(`  - Assignment object:`, assignment);
+    console.log(`  - Employees array:`, assignment.employees);
+    console.log(`  - Employee count:`, assignment.employees?.length || 0);
+    console.log(`  - Published status:`, assignment.published);
+    console.log(`  - Assignment type:`, typeof assignment.employees);
     
-    if (assignment.employees && assignment.employees.length > 0) {
+    if (assignment.employees && Array.isArray(assignment.employees) && assignment.employees.length > 0) {
       // ALWAYS show all employee names - no filtering based on user role or assignment status
       const allEmployees = assignment.employees.join(', ');
       console.log(`[AssignmentDetails] Showing all employees: "${allEmployees}"`);
+      console.log(`[AssignmentDetails] Individual employees:`, assignment.employees);
       return allEmployees;
     }
     
-    console.log(`[AssignmentDetails] No employees found, showing unassigned`);
+    console.log(`[AssignmentDetails] No valid employees found:`, {
+      employees: assignment.employees,
+      isArray: Array.isArray(assignment.employees),
+      length: assignment.employees?.length
+    });
     return t('planner.unassigned');
   };
   

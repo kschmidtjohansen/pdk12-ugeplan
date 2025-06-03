@@ -11,6 +11,13 @@ export const useViewSpecificFilters = () => {
     console.log('[useViewSpecificFilters] filterForPlanner - User name:', user?.name);
     console.log('[useViewSpecificFilters] filterForPlanner - Include unpublished:', includeUnpublished);
     console.log('[useViewSpecificFilters] filterForPlanner - Total assignments:', assignments.length);
+    console.log('[useViewSpecificFilters] filterForPlanner - Raw assignments data:', assignments.map(a => ({
+      id: a.id,
+      location: a.location,
+      published: a.published,
+      employees: a.employees,
+      employeeCount: a.employees?.length || 0
+    })));
     
     if (!user) {
       console.log('[useViewSpecificFilters] filterForPlanner - No user, returning empty array');
@@ -18,18 +25,18 @@ export const useViewSpecificFilters = () => {
     }
 
     const filtered = assignments.filter(assignment => {
-      // For servicemedarbejdere, show ALL published assignments (they can see everyone's assignments with ALL names)
-      // AND their own unpublished assignments
+      // FIXED: For servicemedarbejdere, show ALL published assignments (they can see everyone's assignments with ALL names)
+      // This is correct behavior for planner view - they should see all published tasks with all employee names
       if (user.role === 'servicemedarbejder') {
-        const isAssignedToUser = assignment.employees && assignment.employees.includes(user.name);
-        console.log(`[useViewSpecificFilters] Assignment ${assignment.id} (${assignment.location}) - Published: ${assignment.published}, User ${user.name} assigned: ${isAssignedToUser}, All employees: [${assignment.employees?.join(', ') || 'none'}]`);
+        console.log(`[useViewSpecificFilters] Servicemedarbejder filter - Assignment ${assignment.id} (${assignment.location}):`, {
+          published: assignment.published,
+          employees: assignment.employees,
+          employeeCount: assignment.employees?.length || 0,
+          willBeShown: assignment.published
+        });
         
-        // FIXED: Show ALL published assignments (so they can see all published tasks with all employee names)
-        // PLUS any unpublished assignments they are assigned to
-        const shouldShow = assignment.published || (isAssignedToUser && !assignment.published);
-        console.log(`[useViewSpecificFilters] Assignment ${assignment.id} (${assignment.location}) - Should show: ${shouldShow}`);
-        
-        return shouldShow;
+        // Show ALL published assignments - servicemedarbejdere can see all published tasks in planner
+        return assignment.published;
       }
       
       // For skadeleder and administrator, show based on includeUnpublished flag
@@ -49,12 +56,13 @@ export const useViewSpecificFilters = () => {
       id: a.id,
       location: a.location,
       published: a.published,
-      employees: a.employees
+      employees: a.employees,
+      employeeCount: a.employees?.length || 0
     })));
     return filtered;
   };
 
-  // ENHANCED: Filter assignments for the dashboard view - servicemedarbejdere see their assignments WITH ALL team member names
+  // Filter assignments for the dashboard view - servicemedarbejdere see their assignments WITH ALL team member names
   const filterForDashboard = (assignments: Assignment[]) => {
     console.log('[useViewSpecificFilters] filterForDashboard - User role:', user?.role);
     console.log('[useViewSpecificFilters] filterForDashboard - User name:', user?.name);

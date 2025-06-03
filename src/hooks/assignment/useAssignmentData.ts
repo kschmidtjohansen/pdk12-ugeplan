@@ -42,6 +42,7 @@ export const useAssignmentData = () => {
       if (assignmentsError) throw assignmentsError;
       
       console.log('[useAssignmentData] Raw assignments response:', assignmentsData);
+      console.log('[useAssignmentData] Assignments count:', assignmentsData?.length || 0);
       
       if (assignmentsData) {
         // Get assignment-employee relationships
@@ -52,6 +53,7 @@ export const useAssignmentData = () => {
         if (employeeError) throw employeeError;
         
         console.log('[useAssignmentData] Assignment employees response:', assignmentEmployees);
+        console.log('[useAssignmentData] Assignment employees count:', assignmentEmployees?.length || 0);
         
         // Get all profiles for the users in assignments
         const userIds = assignmentEmployees?.map(ae => ae.user_id) || [];
@@ -68,6 +70,7 @@ export const useAssignmentData = () => {
         }
         
         console.log('[useAssignmentData] Profiles response:', profilesData);
+        console.log('[useAssignmentData] Profiles count:', profilesData?.length || 0);
         
         // Process and combine the data
         const processedAssignments = assignmentsData.map(assignment => {
@@ -83,9 +86,12 @@ export const useAssignmentData = () => {
             })
             .filter(name => name) || [];
           
-          console.log(`[useAssignmentData] Assignment ${assignment.id} (${assignment.location}) employees:`, assignmentEmployeeNames);
+          console.log(`[useAssignmentData] Processing assignment ${assignment.id} (${assignment.location}):`);
+          console.log(`  - Employee IDs: [${assignmentEmployeeIds.join(', ')}]`);
+          console.log(`  - Employee Names: [${assignmentEmployeeNames.join(', ')}]`);
+          console.log(`  - Published: ${assignment.published}`);
           
-          return {
+          const processedAssignment = {
             id: assignment.id,
             title: assignment.title,
             description: assignment.description || '',
@@ -101,13 +107,24 @@ export const useAssignmentData = () => {
             employees: assignmentEmployeeNames,
             published: assignment.published || false
           };
+          
+          console.log(`[useAssignmentData] Final processed assignment:`, {
+            id: processedAssignment.id,
+            location: processedAssignment.location,
+            employees: processedAssignment.employees,
+            employeeCount: processedAssignment.employees.length,
+            published: processedAssignment.published
+          });
+          
+          return processedAssignment;
         });
         
-        console.log('[useAssignmentData] Final processed assignments:', processedAssignments.map(a => ({
+        console.log('[useAssignmentData] Final processed assignments summary:', processedAssignments.map(a => ({
           id: a.id,
           location: a.location,
           published: a.published,
-          employees: a.employees
+          employees: a.employees,
+          employeeCount: a.employees.length
         })));
         
         setAssignments(processedAssignments);
