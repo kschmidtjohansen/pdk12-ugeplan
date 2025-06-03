@@ -9,6 +9,7 @@ import dashboard from './dashboard';
 import notifications from './notifications';
 import { admin } from './admin';
 import { profile } from './profile';
+import login from './login';
 
 export const en = {
   common,
@@ -20,5 +21,6 @@ export const en = {
   dashboard,
   notifications,
   admin,
-  profile
+  profile,
+  login
 };

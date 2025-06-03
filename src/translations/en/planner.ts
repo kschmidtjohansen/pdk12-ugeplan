@@ -29,6 +29,7 @@ const planner = {
   publish: "Publish",
   publishDay: "Publish Day",
   publishDayTasks: "Publish Day",
+  publishAllUnpublished: "Publish All Unpublished",
   published: "Published",
   unpublished: "Unpublished",
   notPublished: "Not Published",
@@ -58,7 +59,7 @@ const planner = {
   onAnotherAssignment: "On another assignment",
   onAnotherAssignmentUntil: "On another assignment until {time}",
   fullyBooked: "Fully booked",
-  availableAfter: "Available after {{time}}",
+  availableAfter: "Available after {time}",
   copy: "Copy",
   copyAssignment: "Copy Assignment",
   assignmentCopied: "Assignment copied",
@@ -78,7 +79,20 @@ const planner = {
   allEmployeesAssigned: "All employees assigned",
   allCarsAssigned: "All cars assigned",
   showMore: "Show more",
-  showLess: "Show less"
+  showLess: "Show less",
+  createNew: "Create New",
+  type: "Type",
+  selectType: "Select type",
+  selectDateForCopy: "Select date for copied assignment",
+  // Assignment types
+  assignmentTypes: {
+    ordinary_damage: "Ordinary damage",
+    flood_damage: "Water damage", 
+    roof_damage: "Roof damage",
+    storm_damage: "Storm damage",
+    fire_damage: "Fire damage",
+    other: "Other"
+  }
 };
 
 export default planner;

@@ -7,6 +7,10 @@ import dashboard from './en/dashboard';
 import vacation from './en/vacation';
 import employees from './en/employees';
 import { profile } from './en/profile';
+import login from './en/login';
+import planner from './en/planner';
+import cars from './en/cars';
+import { admin } from './en/admin';
 
 const enTranslations = {
   // Common components
@@ -32,6 +36,14 @@ const enTranslations = {
   employees: employees,
   // Profile
   profile: profile,
+  // Login
+  login: login,
+  // Planner
+  planner: planner,
+  // Cars
+  cars: cars,
+  // Admin
+  admin: admin,
 };
 
 export type EnTranslations = typeof enTranslations;
