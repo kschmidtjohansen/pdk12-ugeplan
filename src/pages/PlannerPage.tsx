@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTranslation } from '../context/TranslationContext';
 import { usePlannerPage } from '../hooks/usePlannerPage';
@@ -7,11 +6,15 @@ import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer
 import { Clock, ChevronLeft, ChevronRight, Plus, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
-
 const PlannerPage: React.FC = () => {
-  const { t, currentLanguage } = useTranslation();
-  const { canCreate, canPublishTasks } = usePermissions();
-  
+  const {
+    t,
+    currentLanguage
+  } = useTranslation();
+  const {
+    canCreate,
+    canPublishTasks
+  } = usePermissions();
   const {
     selectedWeek,
     selectedYear,
@@ -38,7 +41,6 @@ const PlannerPage: React.FC = () => {
   // Sort weekAssignments by date (ascending - earliest first), then by time
   const sortedWeekAssignments = React.useMemo(() => {
     if (!weekAssignments) return [];
-    
     return [...weekAssignments].sort((a, b) => {
       if (a.date !== b.date) {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
@@ -46,9 +48,7 @@ const PlannerPage: React.FC = () => {
       return a.fromTime.localeCompare(b.fromTime);
     });
   }, [weekAssignments]);
-
-  return (
-    <div className="min-h-screen bg-gray-50/30">
+  return <div className="min-h-screen bg-gray-50/30">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Clean Page Header */}
         <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
@@ -58,23 +58,18 @@ const PlannerPage: React.FC = () => {
                 {t("navigation.planner")}
               </h1>
               <p className="text-sm text-gray-600">
-                {t('planner.weekView', { 
-                  week: selectedWeek, 
-                  year: selectedYear,
-                  start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
-                  end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
-                })}
+                {t('planner.weekView', {
+                week: selectedWeek,
+                year: selectedYear,
+                start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
+                end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
+              })}
               </p>
             </div>
             <div className="flex items-center gap-4">
               {/* Week Navigation */}
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePreviousWeek}
-                  className="h-8 w-8 p-0"
-                >
+                <Button variant="outline" size="sm" onClick={handlePreviousWeek} className="h-8 w-8 p-0">
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 
@@ -82,40 +77,19 @@ const PlannerPage: React.FC = () => {
                   {t('planner.week')} {selectedWeek}
                 </span>
                 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleNextWeek}
-                  className="h-8 w-8 p-0"
-                >
+                <Button variant="outline" size="sm" onClick={handleNextWeek} className="h-8 w-8 p-0">
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
 
               {/* Action Buttons */}
               <div className="flex gap-2">
-                {canPublishTasks && (
-                  <Button
-                    onClick={handlePublishAllUnpublished}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Eye className="h-4 w-4" />
-                    {t('planner.publishAllUnpublished')}
-                  </Button>
-                )}
+                {canPublishTasks}
                 
-                {canCreate && (
-                  <Button
-                    onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])}
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
+                {canCreate && <Button onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} size="sm" className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />
                     {t('planner.createNew')}
-                  </Button>
-                )}
+                  </Button>}
               </div>
 
               <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
@@ -128,37 +102,12 @@ const PlannerPage: React.FC = () => {
         {/* Planner Content */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
           <div className="p-6">
-            <PlannerContent
-              weekAssignments={sortedWeekAssignments}
-              onEditAssignment={handleOpenEditDialog}
-              onDeleteAssignment={deleteAssignment}
-              onPublishAssignment={publishAssignment}
-              onPublishDay={handlePublishDay}
-              onCreateAssignment={handleOpenCreateDialog}
-              onCopyAssignment={handleCopyAssignment}
-              selectedWeek={selectedWeek}
-              selectedYear={selectedYear}
-              weekDates={weekDates}
-            />
+            <PlannerContent weekAssignments={sortedWeekAssignments} onEditAssignment={handleOpenEditDialog} onDeleteAssignment={deleteAssignment} onPublishAssignment={publishAssignment} onPublishDay={handlePublishDay} onCreateAssignment={handleOpenCreateDialog} onCopyAssignment={handleCopyAssignment} selectedWeek={selectedWeek} selectedYear={selectedYear} weekDates={weekDates} />
           </div>
         </div>
 
-        <PlannerDialogContainer
-          isDialogOpen={isDialogOpen}
-          setIsDialogOpen={setIsDialogOpen}
-          currentAssignment={currentAssignment}
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleSubmit}
-          onDelete={deleteAssignment}
-          onPublish={publishAssignment}
-          assignments={weekAssignments}
-          selectedDay={selectedDay}
-          onPublishDay={handlePublishDay}
-        />
+        <PlannerDialogContainer isDialogOpen={isDialogOpen} setIsDialogOpen={setIsDialogOpen} currentAssignment={currentAssignment} formData={formData} setFormData={setFormData} onSubmit={handleSubmit} onDelete={deleteAssignment} onPublish={publishAssignment} assignments={weekAssignments} selectedDay={selectedDay} onPublishDay={handlePublishDay} />
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default PlannerPage;
