@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { Car, Clock, Tag, Users } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface AssignmentDetailsProps {
   assignment: Assignment;
@@ -18,28 +20,34 @@ const formatTime = (time: string): string => {
 
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // Optimized employee display logic with cleaner implementation
+  // Enhanced employee display logic with role-specific debugging
   const displayEmployees = () => {
     console.log(`[AssignmentDetails] Processing employees for assignment ${assignment.id} (${assignment.location}):`);
+    console.log(`  - User role: ${user?.role}`);
+    console.log(`  - User name: ${user?.name}`);
     console.log(`  - Assignment object:`, assignment);
     console.log(`  - Employees property:`, assignment.employees);
     console.log(`  - Employees type:`, typeof assignment.employees);
     console.log(`  - Is array:`, Array.isArray(assignment.employees));
     
-    // Special debugging for Fyn assignment
-    if (assignment.location === 'Fyn') {
-      console.log(`[AssignmentDetails] 🔍 FYN ASSIGNMENT DEBUGGING:`, {
+    // Special debugging for Fyn assignment and servicemedarbejder users
+    if (assignment.location === 'Fyn' && user?.role === 'servicemedarbejder') {
+      console.log(`[AssignmentDetails] 🔍 FYN ASSIGNMENT SERVICEMEDARBEJDER DEBUGGING:`, {
         assignmentId: assignment.id,
         location: assignment.location,
+        userRole: user.role,
+        userName: user.name,
         employees: assignment.employees,
         employeesType: typeof assignment.employees,
         isArray: Array.isArray(assignment.employees),
         length: assignment.employees?.length || 0,
-        published: assignment.published
+        published: assignment.published,
+        shouldShowAllEmployees: true
       });
     }
     
@@ -54,11 +62,12 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
       console.log(`  - No valid employees array, returning unassigned`);
       
       // Special debugging for Fyn assignment
-      if (assignment.location === 'Fyn') {
-        console.log(`[AssignmentDetails] 🔍 FYN - No valid employees array:`, {
+      if (assignment.location === 'Fyn' && user?.role === 'servicemedarbejder') {
+        console.log(`[AssignmentDetails] 🔍 FYN - Servicemedarbejder seeing no valid employees array:`, {
           employees: assignment.employees,
           isArray: Array.isArray(assignment.employees),
-          willReturn: 'Ikke tildelt'
+          willReturn: 'Ikke tildelt',
+          thisIsTheProblem: 'YES - employees array is not properly populated for servicemedarbejder'
         });
       }
       
@@ -70,9 +79,9 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
       const isValidString = emp && typeof emp === 'string' && emp.trim() !== '';
       console.log(`    - Employee "${emp}" is valid: ${isValidString}`);
       
-      // Special debugging for Fyn assignment
-      if (assignment.location === 'Fyn') {
-        console.log(`[AssignmentDetails] 🔍 FYN - Checking employee "${emp}":`, {
+      // Special debugging for Fyn assignment and servicemedarbejder
+      if (assignment.location === 'Fyn' && user?.role === 'servicemedarbejder') {
+        console.log(`[AssignmentDetails] 🔍 FYN - Servicemedarbejder checking employee "${emp}":`, {
           employee: emp,
           type: typeof emp,
           isEmpty: !emp,
@@ -86,22 +95,24 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
     
     console.log(`  - Valid employees after filtering:`, validEmployees);
     
-    // Special debugging for Fyn assignment
-    if (assignment.location === 'Fyn') {
-      console.log(`[AssignmentDetails] 🔍 FYN - Valid employees after filtering:`, {
+    // Special debugging for Fyn assignment and servicemedarbejder
+    if (assignment.location === 'Fyn' && user?.role === 'servicemedarbejder') {
+      console.log(`[AssignmentDetails] 🔍 FYN - Servicemedarbejder valid employees after filtering:`, {
         originalEmployees: assignment.employees,
         validEmployees: validEmployees,
         validCount: validEmployees.length,
-        willShowUnassigned: validEmployees.length === 0
+        willShowUnassigned: validEmployees.length === 0,
+        expectedEmployee: 'Henrik Jørgensen',
+        foundExpectedEmployee: validEmployees.includes('Henrik Jørgensen')
       });
     }
     
     if (validEmployees.length === 0) {
       console.log(`  - No valid employees found, returning unassigned`);
       
-      // Special debugging for Fyn assignment
-      if (assignment.location === 'Fyn') {
-        console.log(`[AssignmentDetails] 🔍 FYN - No valid employees found, will show "Ikke tildelt"`);
+      // Special debugging for servicemedarbejder on Fyn assignment
+      if (assignment.location === 'Fyn' && user?.role === 'servicemedarbejder') {
+        console.log(`[AssignmentDetails] 🔍 FYN - Servicemedarbejder will see "Ikke tildelt" - THIS IS THE BUG!`);
       }
       
       return t('planner.unassigned');
@@ -111,11 +122,12 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
     const employeeDisplay = validEmployees.join(', ');
     console.log(`  - Final employee display: "${employeeDisplay}"`);
     
-    // Special debugging for Fyn assignment
-    if (assignment.location === 'Fyn') {
-      console.log(`[AssignmentDetails] 🔍 FYN - FINAL DISPLAY:`, {
+    // Special debugging for Fyn assignment and servicemedarbejder
+    if (assignment.location === 'Fyn' && user?.role === 'servicemedarbejder') {
+      console.log(`[AssignmentDetails] 🔍 FYN - Servicemedarbejder FINAL DISPLAY:`, {
         employeeDisplay: employeeDisplay,
-        willShow: employeeDisplay
+        willShow: employeeDisplay,
+        success: employeeDisplay !== t('planner.unassigned')
       });
     }
     

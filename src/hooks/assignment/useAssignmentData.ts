@@ -12,15 +12,28 @@ export const useAssignmentData = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
 
-  // Fetch assignments from Supabase - optimized for new RLS policies
+  // Fetch assignments from Supabase with enhanced debugging for servicemedarbejder users
   const fetchAssignments = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('[useAssignmentData] Starting to fetch assignments with optimized queries...');
+      console.log('[useAssignmentData] Starting to fetch assignments with updated RLS policies...');
       
-      // With the new standardized RLS policies, we can use more efficient queries
+      // Get current user info for debugging
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('[useAssignmentData] Current user:', user?.id);
+      
+      // Get user role for debugging
+      const { data: userRoleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .single();
+      
+      console.log('[useAssignmentData] Current user role:', userRoleData?.role);
+      
+      // Fetch assignments with optimized query
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('assignments')
         .select(`
@@ -44,34 +57,45 @@ export const useAssignmentData = () => {
       console.log('[useAssignmentData] Assignments fetched:', assignmentsData?.length || 0);
       
       if (assignmentsData) {
-        // Get assignment-employee relationships with optimized query
+        // Get assignment-employee relationships - this should now work with the updated RLS policy
         const { data: assignmentEmployees, error: employeeError } = await supabase
           .from('assignments_employees')
           .select('assignment_id, user_id')
           .order('assignment_id');
         
-        if (employeeError) throw employeeError;
+        if (employeeError) {
+          console.error('[useAssignmentData] Error fetching assignment employees:', employeeError);
+          throw employeeError;
+        }
         
         console.log('[useAssignmentData] Assignment employees fetched:', assignmentEmployees?.length || 0);
+        console.log('[useAssignmentData] Assignment employees raw data:', assignmentEmployees);
         
         // Get all profiles for the users in assignments
         const userIds = assignmentEmployees?.map(ae => ae.user_id) || [];
         let profilesData: any[] = [];
         
         if (userIds.length > 0) {
+          const uniqueUserIds = [...new Set(userIds)];
+          console.log('[useAssignmentData] Fetching profiles for user IDs:', uniqueUserIds);
+          
           const { data: profiles, error: profilesError } = await supabase
             .from('profiles')
             .select('id, name')
-            .in('id', userIds)
+            .in('id', uniqueUserIds)
             .order('name');
           
-          if (profilesError) throw profilesError;
+          if (profilesError) {
+            console.error('[useAssignmentData] Error fetching profiles:', profilesError);
+            throw profilesError;
+          }
           profilesData = profiles || [];
         }
         
         console.log('[useAssignmentData] Profiles fetched:', profilesData?.length || 0);
+        console.log('[useAssignmentData] Profiles data:', profilesData);
         
-        // Process and combine the data with enhanced performance
+        // Process and combine the data with enhanced debugging
         const processedAssignments = assignmentsData.map(assignment => {
           console.log(`[useAssignmentData] Processing assignment ${assignment.id} (${assignment.location})`);
           
@@ -80,15 +104,35 @@ export const useAssignmentData = () => {
             ?.filter(emp => emp.assignment_id === assignment.id)
             ?.map(emp => emp.user_id) || [];
           
+          console.log(`[useAssignmentData] Assignment ${assignment.id} employee IDs:`, assignmentEmployeeIds);
+          
           // Map employee IDs to names efficiently
           const assignmentEmployeeNames: string[] = [];
           
           assignmentEmployeeIds.forEach(userId => {
             const profile = profilesData.find(p => p.id === userId);
+            console.log(`[useAssignmentData] Looking for user ${userId}, found profile:`, profile);
             if (profile?.name && typeof profile.name === 'string' && profile.name.trim() !== '') {
               assignmentEmployeeNames.push(profile.name.trim());
+              console.log(`[useAssignmentData] Added employee name: "${profile.name.trim()}" to assignment ${assignment.id}`);
+            } else {
+              console.warn(`[useAssignmentData] No valid name found for user ${userId} in assignment ${assignment.id}`);
             }
           });
+          
+          console.log(`[useAssignmentData] Final employee names for assignment ${assignment.id} (${assignment.location}):`, assignmentEmployeeNames);
+          
+          // Special debugging for Fyn assignment
+          if (assignment.location === 'Fyn') {
+            console.log(`[useAssignmentData] 🔍 FYN ASSIGNMENT FINAL DEBUG:`, {
+              assignmentId: assignment.id,
+              location: assignment.location,
+              published: assignment.published,
+              employeeIds: assignmentEmployeeIds,
+              employeeNames: assignmentEmployeeNames,
+              profilesAvailable: profilesData
+            });
+          }
           
           const processedAssignment: Assignment = {
             id: assignment.id,
@@ -110,6 +154,13 @@ export const useAssignmentData = () => {
         });
         
         console.log('[useAssignmentData] Final processed assignments:', processedAssignments.length);
+        console.log('[useAssignmentData] Processed assignments with employees:', processedAssignments.map(a => ({
+          id: a.id,
+          location: a.location,
+          employees: a.employees,
+          employeeCount: a.employees?.length || 0
+        })));
+        
         setAssignments(processedAssignments);
       } else {
         console.log('[useAssignmentData] No assignment data returned');
