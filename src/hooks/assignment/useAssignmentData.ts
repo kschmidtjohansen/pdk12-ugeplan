@@ -15,20 +15,43 @@ export const useAssignmentData = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  // Test Supabase connection
-  const testConnection = async () => {
+  // Test Supabase connection and permissions
+  const testConnectionAndPermissions = async () => {
     try {
-      console.log('[useAssignmentData] Testing Supabase connection...');
-      const { data, error } = await supabase.from('assignments').select('count').limit(1);
-      if (error) {
-        console.error('[useAssignmentData] Connection test failed:', error);
-        return false;
+      console.log('[useAssignmentData] Testing Supabase connection and permissions...');
+      
+      // Test basic connection
+      const { data: connectionTest, error: connectionError } = await supabase
+        .from('assignments')
+        .select('count')
+        .limit(1);
+      
+      if (connectionError) {
+        console.error('[useAssignmentData] Connection/Permission test failed:', connectionError);
+        if (connectionError.code === 'PGRST116') {
+          throw new Error('Permission denied: User cannot access assignments. Check RLS policies.');
+        }
+        if (connectionError.code === '42P01') {
+          throw new Error('Database table not found. Check database setup.');
+        }
+        throw new Error(`Database error: ${connectionError.message} (Code: ${connectionError.code})`);
       }
-      console.log('[useAssignmentData] Connection test successful');
+      
+      // Test user role access
+      const { data: roleTest, error: roleError } = await supabase
+        .rpc('get_current_user_role');
+      
+      if (roleError) {
+        console.warn('[useAssignmentData] Could not get user role:', roleError);
+      } else {
+        console.log('[useAssignmentData] User role verified:', roleTest);
+      }
+      
+      console.log('[useAssignmentData] Connection and permissions test successful');
       return true;
     } catch (err) {
-      console.error('[useAssignmentData] Connection test exception:', err);
-      return false;
+      console.error('[useAssignmentData] Connection/Permission test exception:', err);
+      throw err;
     }
   };
 
@@ -40,11 +63,8 @@ export const useAssignmentData = () => {
       
       console.log(`[useAssignmentData] STARTING FETCH for user: ${user?.name} (${user?.role}) - ID: ${user?.id}`);
       
-      // Test connection first
-      const connectionOk = await testConnection();
-      if (!connectionOk) {
-        throw new Error('Database connection failed');
-      }
+      // Test connection and permissions first
+      await testConnectionAndPermissions();
       
       // First, get all assignments with car information
       console.log('[useAssignmentData] Fetching assignments from database...');
@@ -67,7 +87,19 @@ export const useAssignmentData = () => {
       
       if (assignmentsError) {
         console.error('[useAssignmentData] Assignments fetch error:', assignmentsError);
-        throw new Error(`Failed to fetch assignments: ${assignmentsError.message}`);
+        
+        // Provide more specific error messages based on error codes
+        if (assignmentsError.code === 'PGRST116') {
+          throw new Error('Permission denied: You do not have access to view assignments. Contact your administrator.');
+        }
+        if (assignmentsError.code === '42P01') {
+          throw new Error('Database configuration error: Assignments table not found.');
+        }
+        if (assignmentsError.code === 'PGRST301') {
+          throw new Error('Authentication required: Please log in to view assignments.');
+        }
+        
+        throw new Error(`Failed to fetch assignments: ${assignmentsError.message} (Code: ${assignmentsError.code || 'unknown'})`);
       }
       
       console.log(`[useAssignmentData] RAW ASSIGNMENTS FETCHED: ${assignmentsData?.length || 0} assignments`);
@@ -87,7 +119,13 @@ export const useAssignmentData = () => {
         
         if (employeeError) {
           console.error('[useAssignmentData] Assignment employees fetch error:', employeeError);
-          throw new Error(`Failed to fetch assignment employees: ${employeeError.message}`);
+          
+          if (employeeError.code === 'PGRST116') {
+            console.warn('[useAssignmentData] No permission to read assignment employees - continuing with empty employee data');
+            // Continue with empty employee data rather than failing completely
+          } else {
+            throw new Error(`Failed to fetch assignment employees: ${employeeError.message}`);
+          }
         }
         
         console.log(`[useAssignmentData] ASSIGNMENT-EMPLOYEE RELATIONSHIPS: ${assignmentEmployees?.length || 0} relationships`);
@@ -107,9 +145,16 @@ export const useAssignmentData = () => {
           
           if (profilesError) {
             console.error('[useAssignmentData] Profiles fetch error:', profilesError);
-            throw new Error(`Failed to fetch user profiles: ${profilesError.message}`);
+            
+            if (profilesError.code === 'PGRST116') {
+              console.warn('[useAssignmentData] No permission to read profiles - continuing with empty profile data');
+              // Continue with empty profile data rather than failing completely
+            } else {
+              throw new Error(`Failed to fetch user profiles: ${profilesError.message}`);
+            }
+          } else {
+            profilesData = profiles || [];
           }
-          profilesData = profiles || [];
         }
         
         console.log(`[useAssignmentData] PROFILES FETCHED: ${profilesData.length} profiles`);
@@ -158,7 +203,7 @@ export const useAssignmentData = () => {
               name: assignment.cars.name,
               car_number: assignment.cars.car_number
             } : null,
-            employees: uniqueEmployeeNames, // CRITICAL: This should contain ALL employee names
+            employees: uniqueEmployeeNames,
             published: assignment.published || false
           };
           
@@ -195,12 +240,20 @@ export const useAssignmentData = () => {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
-      // Use fallback error message if translation is missing
-      const fetchErrorMessage = t('planner.fetchError') || 'Failed to load assignments. Please try again.';
+      // Use appropriate error message based on error type
+      let userErrorMessage = t('planner.fetchError') || 'Failed to load assignments. Please try again.';
+      
+      if (errorMessage.includes('Permission denied')) {
+        userErrorMessage = 'Permission denied: You do not have access to view assignments. Contact your administrator.';
+      } else if (errorMessage.includes('Authentication required')) {
+        userErrorMessage = 'Please log in to view assignments.';
+      } else if (errorMessage.includes('Database configuration error')) {
+        userErrorMessage = 'System configuration error. Contact technical support.';
+      }
       
       toast({
         title: t('common.error') || 'Error',
-        description: fetchErrorMessage,
+        description: userErrorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -217,7 +270,7 @@ export const useAssignmentData = () => {
       console.log('[useAssignmentData] No user ID, skipping fetch');
       setLoading(false);
     }
-  }, [user?.id, user?.role]); // Re-fetch when user changes
+  }, [user?.id, user?.role]);
   
   // Subscribe to assignment changes
   useEffect(() => {
