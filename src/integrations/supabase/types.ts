@@ -288,17 +288,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      can_access_assignment: {
-        Args: { assignment_id: string }
-        Returns: boolean
-      }
       delete_old_rejected_vacations: {
         Args: Record<PropertyKey, never>
         Returns: undefined
-      }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: Database["public"]["Enums"]["user_role"]
       }
       get_user_role: {
         Args: { uid: string }

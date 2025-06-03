@@ -1,99 +1,81 @@
 
+
 export const common = {
   // Basic actions
   save: 'Gem',
   cancel: 'Annuller',
   delete: 'Slet',
   edit: 'Rediger',
-  add: 'Tilføj',
   create: 'Opret',
   update: 'Opdater',
-  remove: 'Fjern',
   back: 'Tilbage',
   next: 'Næste',
   previous: 'Forrige',
   close: 'Luk',
-  confirm: 'Bekræft',
-  submit: 'Send',
-  retry: 'Prøv igen',
+  open: 'Åbn',
+  view: 'Se',
+  search: 'Søg',
+  filter: 'Filtrer',
+  sort: 'Sorter',
   refresh: 'Opdater',
+  loading: 'Indlæser...',
+  logout: 'Log ud',
+  login: 'Log ind',
+  password: 'Adgangskode',
   
   // Status messages
-  loading: 'Indlæser...',
-  saving: 'Gemmer...',
   success: 'Succes',
   error: 'Fejl',
   warning: 'Advarsel',
   info: 'Information',
   
-  // Common phrases
-  pleaseWait: 'Vent venligst...',
-  noData: 'Ingen data tilgængelig',
-  noResults: 'Ingen resultater fundet',
-  searchPlaceholder: 'Søg...',
-  selectOption: 'Vælg en mulighed',
-  required: 'Påkrævet',
-  optional: 'Valgfri',
-  
-  // Time and dates
-  today: 'I dag',
-  yesterday: 'I går',
-  tomorrow: 'I morgen',
-  week: 'Uge',
-  month: 'Måned',
-  year: 'År',
-  
-  // Common messages
-  confirmDelete: 'Er du sikker på, at du vil slette dette element?',
-  unsavedChanges: 'Du har ændringer, der ikke er gemt. Vil du fortsætte?',
-  operationSuccessful: 'Handlingen blev udført succesfuldt',
-  operationFailed: 'Handlingen mislykkedes',
-  connectionError: 'Forbindelsesfejl. Tjek din internetforbindelse.',
-  
-  // Permissions
-  accessDenied: 'Adgang nægtet',
-  insufficientPermissions: 'Utilstrækkelige tilladelser',
+  // Common labels
+  name: 'Navn',
+  email: 'Email',
+  phone: 'Telefon',
+  address: 'Adresse',
+  date: 'Dato',
+  time: 'Tid',
+  status: 'Status',
+  type: 'Type',
+  description: 'Beskrivelse',
+  notes: 'Noter',
   
   // Form validation
-  fieldRequired: 'Dette felt er påkrævet',
-  invalidFormat: 'Ugyldigt format',
+  required: 'Påkrævet',
+  optional: 'Valgfri',
+  invalid: 'Ugyldig',
+  
+  // Confirmation
+  confirm: 'Bekræft',
+  confirmDelete: 'Bekræft sletning',
+  areYouSure: 'Er du sikker?',
+  deleteWarning: 'Er du sikker på, at du vil slette?',
   
   // Navigation
   home: 'Hjem',
   dashboard: 'Dashboard',
-  settings: 'Indstillinger',
   profile: 'Profil',
+  settings: 'Indstillinger',
+  actions: 'Handlinger',
+  language: 'Sprog',
   
-  // Status indicators
-  online: 'Online',
-  offline: 'Offline',
-  connected: 'Tilsluttet',
-  disconnected: 'Afbrudt',
+  // Time
+  today: 'I dag',
+  yesterday: 'I går',
+  tomorrow: 'I morgen',
+  week: 'Uge',
   
-  // Common verbs
-  view: 'Vis',
-  download: 'Download',
-  upload: 'Upload',
-  export: 'Eksporter',
-  import: 'Importer',
-  copy: 'Kopier',
-  paste: 'Indsæt',
-  cut: 'Klip',
-  
-  // Confirmation
-  yes: 'Ja',
-  no: 'Nej',
-  ok: 'OK',
-  
-  // Size and quantity
+  // Generic
   all: 'Alle',
   none: 'Ingen',
-  selected: 'Valgt',
-  total: 'Total',
+  other: 'Andet',
+  unknown: 'Ukendt',
+  available: 'Tilgængelig',
+  unavailable: 'Ikke tilgængelig',
+  selectDate: 'Vælg dato',
   
-  // Common errors
-  networkError: 'Netværksfejl. Prøv igen senere.',
-  serverError: 'Serverfejl. Kontakt support hvis problemet fortsætter.',
-  validationError: 'Valideringsfejl. Tjek dine indtastninger.',
-  unknownError: 'Der opstod en ukendt fejl.'
+  yes: 'Ja',
+  no: 'Nej'
 };
+

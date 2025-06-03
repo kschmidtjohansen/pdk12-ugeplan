@@ -42,7 +42,6 @@ const planner = {
   assignmentAlreadyPublishedMsg: "This assignment is already published",
   errorPublishingAssignment: "Error publishing assignment",
   errorPublishingAssignments: "Error publishing assignments",
-  fetchError: "Failed to load assignments. Please try again.",
   week: "Week",
   previousWeek: "Previous week",
   nextWeek: "Next week",

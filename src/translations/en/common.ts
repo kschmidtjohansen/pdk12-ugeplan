@@ -5,95 +5,75 @@ export const common = {
   cancel: 'Cancel',
   delete: 'Delete',
   edit: 'Edit',
-  add: 'Add',
   create: 'Create',
   update: 'Update',
-  remove: 'Remove',
   back: 'Back',
   next: 'Next',
   previous: 'Previous',
   close: 'Close',
-  confirm: 'Confirm',
-  submit: 'Submit',
-  retry: 'Retry',
+  open: 'Open',
+  view: 'View',
+  search: 'Search',
+  filter: 'Filter',
+  sort: 'Sort',
   refresh: 'Refresh',
+  loading: 'Loading...',
+  logout: 'Logout',
+  login: 'Login',
+  password: 'Password',
   
   // Status messages
-  loading: 'Loading...',
-  saving: 'Saving...',
   success: 'Success',
   error: 'Error',
   warning: 'Warning',
   info: 'Information',
   
-  // Common phrases
-  pleaseWait: 'Please wait...',
-  noData: 'No data available',
-  noResults: 'No results found',
-  searchPlaceholder: 'Search...',
-  selectOption: 'Select an option',
-  required: 'Required',
-  optional: 'Optional',
-  
-  // Time and dates
-  today: 'Today',
-  yesterday: 'Yesterday',
-  tomorrow: 'Tomorrow',
-  week: 'Week',
-  month: 'Month',
-  year: 'Year',
-  
-  // Common messages
-  confirmDelete: 'Are you sure you want to delete this item?',
-  unsavedChanges: 'You have unsaved changes. Do you want to continue?',
-  operationSuccessful: 'Operation completed successfully',
-  operationFailed: 'Operation failed',
-  connectionError: 'Connection error. Please check your internet connection.',
-  
-  // Permissions
-  accessDenied: 'Access denied',
-  insufficientPermissions: 'Insufficient permissions',
+  // Common labels
+  name: 'Name',
+  email: 'Email',
+  phone: 'Phone',
+  address: 'Address',
+  date: 'Date',
+  time: 'Time',
+  status: 'Status',
+  type: 'Type',
+  description: 'Description',
+  notes: 'Notes',
   
   // Form validation
-  fieldRequired: 'This field is required',
-  invalidFormat: 'Invalid format',
+  required: 'Required',
+  optional: 'Optional',
+  invalid: 'Invalid',
+  
+  // Confirmation
+  confirm: 'Confirm',
+  confirmDelete: 'Confirm deletion',
+  areYouSure: 'Are you sure?',
+  deleteWarning: 'Are you sure you want to delete?',
   
   // Navigation
   home: 'Home',
   dashboard: 'Dashboard',
-  settings: 'Settings',
   profile: 'Profile',
+  settings: 'Settings',
+  actions: 'Actions',
+  language: 'Language',
   
-  // Status indicators
-  online: 'Online',
-  offline: 'Offline',
-  connected: 'Connected',
-  disconnected: 'Disconnected',
+  // Time
+  today: 'Today',
+  yesterday: 'Yesterday',
+  tomorrow: 'Tomorrow',
+  week: 'Week',
   
-  // Common verbs
-  view: 'View',
-  download: 'Download',
-  upload: 'Upload',
-  export: 'Export',
-  import: 'Import',
-  copy: 'Copy',
-  paste: 'Paste',
-  cut: 'Cut',
-  
-  // Confirmation
-  yes: 'Yes',
-  no: 'No',
-  ok: 'OK',
-  
-  // Size and quantity
+  // Generic
   all: 'All',
   none: 'None',
-  selected: 'Selected',
-  total: 'Total',
+  other: 'Other',
+  unknown: 'Unknown',
+  available: 'Available',
+  unavailable: 'Unavailable',
+  selectDate: 'Select date',
   
-  // Common errors
-  networkError: 'Network error. Please try again later.',
-  serverError: 'Server error. Contact support if the problem persists.',
-  validationError: 'Validation error. Please check your inputs.',
-  unknownError: 'An unknown error occurred.'
+  yes: 'Yes',
+  no: 'No'
 };

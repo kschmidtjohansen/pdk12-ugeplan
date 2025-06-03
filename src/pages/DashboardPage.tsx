@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -12,22 +11,24 @@ import { getCurrentWeek } from '@/types/assignment';
 import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import WeekNavigation from '@/components/Dashboard/WeekNavigation';
 
-// Use the new dedicated dashboard assignments hook
-import { useDashboardAssignments } from '@/hooks/useDashboardAssignments';
+// Import assignments from planner hook to reuse the mock data
+import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
 import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
+import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { t, currentLanguage } = useTranslation();
-  const { getAssignmentsForWeek, loading: assignmentsLoading, forceRefresh } = useDashboardAssignments();
+  const { assignments } = usePlannerAssignments();
   const { employees } = useEmployees();
   const { cars } = useCars();
   const { vacations } = useVacations();
+  const { filterForDashboard } = useAssignmentFilters();
 
-  // State for week navigation - start with current week but allow navigation to future weeks
+  // State for week navigation
   const [selectedWeek, setSelectedWeek] = useState(getCurrentWeekNumber());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -61,15 +62,9 @@ const DashboardPage: React.FC = () => {
   const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
   const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
 
-  console.log(`[DashboardPage] ===== DASHBOARD PAGE RENDER =====`);
-  console.log(`[DashboardPage] User: ${user?.name} (${user?.role}) - ID: ${user?.id}`);
-  console.log(`[DashboardPage] Selected week: ${selectedWeek}/${selectedYear}`);
-  console.log(`[DashboardPage] Week dates: ${startDateISO} to ${endDateISO}`);
-
   // Function to handle navigation to previous week
   const handlePreviousWeek = () => {
     const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
-    console.log(`[DashboardPage] Navigating to previous week: ${week}/${year}`);
     setSelectedWeek(week);
     setSelectedYear(year);
   };
@@ -77,30 +72,41 @@ const DashboardPage: React.FC = () => {
   // Function to handle navigation to next week
   const handleNextWeek = () => {
     const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
-    console.log(`[DashboardPage] Navigating to next week: ${week}/${year}`);
     setSelectedWeek(week);
     setSelectedYear(year);
   };
 
-  // Function to navigate to Week 23, 2025 (where test assignments are located)
-  const navigateToTestWeek = () => {
-    console.log(`[DashboardPage] Navigating to test week: 23/2025`);
-    setSelectedWeek(23);
-    setSelectedYear(2025);
-  };
-
-  // Get assignments for the selected week using the new hook
-  const userWeekAssignments = getAssignmentsForWeek(startDateISO, endDateISO);
-
-  console.log(`[DashboardPage] ===== FINAL USER WEEK ASSIGNMENTS =====`);
-  console.log(`[DashboardPage] User week assignments count: ${userWeekAssignments.length}`);
-  userWeekAssignments.forEach(assignment => {
-    console.log(`[DashboardPage] User assignment "${assignment.location}" (${assignment.id}):`, {
+  // ENHANCED: Get assignments for the selected week and user using dashboard filter with better logging
+  const userWeekAssignments = filterForDashboard(assignments).filter(assignment => {
+    // Check if assignment is within the selected week
+    const assignmentDate = assignment.date;
+    const isInWeek = assignmentDate >= startDateISO && assignmentDate <= endDateISO;
+    
+    console.log(`[DashboardPage] Assignment ${assignment.id} (${assignment.location}):`, {
+      date: assignmentDate,
+      weekStart: startDateISO,
+      weekEnd: endDateISO,
+      isInWeek: isInWeek,
       employees: assignment.employees,
-      employeeCount: assignment.employees?.length || 0,
-      allEmployeeNames: assignment.employees?.join(', ') || 'None'
+      userRole: user?.role
     });
+    
+    return isInWeek;
+  }).sort((a, b) => {
+    // Sort by date first (earliest first)
+    if (a.date !== b.date) {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    }
+    // If same date, sort by fromTime (earliest first)
+    return a.fromTime.localeCompare(b.fromTime);
   });
+
+  console.log(`[DashboardPage] Final user week assignments for ${user?.name}:`, userWeekAssignments.map(a => ({
+    id: a.id,
+    location: a.location,
+    employees: a.employees,
+    date: a.date
+  })));
 
   // Format the date based on the current language
   const getFormattedDate = () => {
@@ -173,46 +179,6 @@ const DashboardPage: React.FC = () => {
       {/* Dashboard metrics for admin/skadeleder */}
       <DashboardMetrics />
 
-      {/* DEBUG: Enhanced debugging section for all users */}
-      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
-        <p className="text-sm text-blue-800 mb-3 font-semibold">
-          🔍 Debug Info for {user?.name} ({user?.role}):
-        </p>
-        <div className="flex gap-2 mb-3 flex-wrap">
-          <Button 
-            onClick={navigateToTestWeek} 
-            variant="outline" 
-            size="sm"
-            className="text-blue-800 border-blue-300"
-          >
-            📅 Go to Week 23, 2025 (Test Data)
-          </Button>
-          <Button 
-            onClick={forceRefresh} 
-            variant="outline" 
-            size="sm"
-            className="text-blue-800 border-blue-300"
-          >
-            🔄 Force Refresh Data
-          </Button>
-        </div>
-        <div className="text-xs text-blue-600 space-y-1">
-          <p>📊 Current week: {selectedWeek}/{selectedYear}</p>
-          <p>📋 Assignments this week: {userWeekAssignments.length}</p>
-          <p>💻 Check browser console (F12) for detailed logs</p>
-          {userWeekAssignments.length > 0 && (
-            <div className="mt-2">
-              <p className="font-medium">📝 Your assignments this week:</p>
-              {userWeekAssignments.map(assignment => (
-                <p key={assignment.id} className="ml-2">
-                  • {assignment.location}: {assignment.employees?.join(', ') || 'No employees'} ({assignment.employees?.length || 0} people)
-                </p>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* This week's assignments */}
       <Card className="mb-8 mt-8">
         <CardHeader>
@@ -222,9 +188,6 @@ const DashboardPage: React.FC = () => {
                 {t('dashboard.myAssignments', {
                   week: selectedWeek
                 })}
-              </span>
-              <span className="text-sm text-gray-500">
-                ({selectedYear})
               </span>
               <WeekNavigation 
                 onPrevious={handlePreviousWeek}
@@ -238,28 +201,14 @@ const DashboardPage: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {assignmentsLoading ? (
+          {userWeekAssignments.length === 0 ? (
             <p className="text-left py-8 text-muted-foreground">
-              Loading assignments...
+              {t('dashboard.noAssignments')}
             </p>
-          ) : userWeekAssignments.length === 0 ? (
-            <div className="text-left py-8 text-muted-foreground">
-              <p className="mb-2">{t('dashboard.noAssignments')}</p>
-              <p className="text-sm">
-                Current week: {selectedWeek}/{selectedYear} ({startDateISO} to {endDateISO})
-              </p>
-              <p className="text-sm mt-2">
-                Try navigating to Week 23, 2025 to see test assignments.
-              </p>
-            </div>
           ) : (
             <div className="grid gap-4">
               {userWeekAssignments.map(assignment => {
-                console.log(`[DashboardPage] RENDERING assignment ${assignment.id} (${assignment.location}) for ${user?.name}:`, {
-                  employees: assignment.employees,
-                  employeeCount: assignment.employees?.length || 0,
-                  allEmployeeNames: assignment.employees?.join(', ')
-                });
+                console.log(`[DashboardPage] Rendering assignment ${assignment.id} (${assignment.location}) with employees:`, assignment.employees);
                 
                 return (
                   <div key={assignment.id} className="border rounded-md p-4 bg-white hover:border-polygon-blue transition-colors">
@@ -295,16 +244,12 @@ const DashboardPage: React.FC = () => {
                         </span>
                       </div>
                       
-                      {/* CRITICAL: Always show ALL employees for dashboard assignments */}
+                      {/* ENHANCED: Always show ALL employees for dashboard "Mine opgaver" */}
                       {assignment.employees && assignment.employees.length > 0 && (
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm text-gray-700 font-medium">
+                          <span className="text-sm text-gray-700">
                             {assignment.employees.join(', ')}
-                          </span>
-                          {/* DEBUG: Show employee count */}
-                          <span className="text-xs text-blue-500 ml-1 font-normal">
-                            ({assignment.employees.length} {assignment.employees.length === 1 ? 'person' : 'people'})
                           </span>
                         </div>
                       )}
