@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import PageHeader from '../components/Layout/PageHeader';
 import { usePermissions } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import { Button } from '@/components/ui/button';
@@ -106,69 +105,70 @@ const EmployeesPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Enhanced Page Header */}
-      <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-8 text-white shadow-large animate-fade-in-up">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">
-              {t("employees.title")}
-            </h1>
-            <p className="text-blue-100 text-lg">
-              {t("employees.description")}
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            {isAdmin && (
-              <Button 
-                onClick={handleCreateNew} 
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 hover:border-white/50 transition-all duration-200"
-                variant="outline"
-              >
-                <Plus className="mr-2 h-4 w-4" /> {t("employees.addEmployee")}
-              </Button>
-            )}
-            <div className="hidden md:block">
-              <div className="p-3 rounded-xl bg-white/10">
-                <Users className="h-8 w-8" />
+    <div className="min-h-screen bg-gray-50/30">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Clean Page Header */}
+        <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold text-gray-900">
+                {t("employees.title")}
+              </h1>
+              <p className="text-sm text-gray-600">
+                {t("employees.description")}
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              {isAdmin && (
+                <Button 
+                  onClick={handleCreateNew} 
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <Plus className="mr-2 h-4 w-4" /> {t("employees.addEmployee")}
+                </Button>
+              )}
+              <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
+                <Users className="h-6 w-6 text-primary" />
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Employees Content */}
-      <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-        <EmployeesList 
-          employees={employees} 
-          onEdit={handleEdit} 
-          onDelete={handleDelete}
-          onToggleLeave={handleToggleLeave}
+        {/* Employees Content */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="p-6">
+            <EmployeesList 
+              employees={employees} 
+              onEdit={handleEdit} 
+              onDelete={handleDelete}
+              onToggleLeave={handleToggleLeave}
+            />
+          </div>
+        </div>
+
+        <EmployeeDialogManager
+          dialogOpen={dialogOpen}
+          deleteDialogOpen={deleteDialogOpen}
+          markLeaveDialogOpen={markLeaveDialogOpen}
+          markAvailableDialogOpen={markAvailableDialogOpen}
+          currentEmployee={currentEmployee}
+          formData={formData}
+          employeeNote={employeeNote}
+          handleInputChange={handleInputChange}
+          handleSelectChange={handleSelectChange}
+          handleCheckboxChange={handleCheckboxChange}
+          handleNoteChange={setEmployeeNote}
+          handleSubmit={handleSubmit}
+          onCloseDialog={() => setDialogOpen(false)}
+          onConfirmDelete={confirmDelete}
+          onCloseDeleteDialog={setDeleteDialogOpen}
+          onConfirmMarkLeave={handleConfirmMarkLeave}
+          onCancelMarkLeave={() => setMarkLeaveDialogOpen(false)}
+          onConfirmMarkAvailableWithNote={handleConfirmMarkAvailableWithNote}
+          onConfirmMarkAvailableWithoutNote={handleConfirmMarkAvailableWithoutNote}
+          onCancelMarkAvailable={() => setMarkAvailableDialogOpen(false)}
         />
       </div>
-
-      <EmployeeDialogManager
-        dialogOpen={dialogOpen}
-        deleteDialogOpen={deleteDialogOpen}
-        markLeaveDialogOpen={markLeaveDialogOpen}
-        markAvailableDialogOpen={markAvailableDialogOpen}
-        currentEmployee={currentEmployee}
-        formData={formData}
-        employeeNote={employeeNote}
-        handleInputChange={handleInputChange}
-        handleSelectChange={handleSelectChange}
-        handleCheckboxChange={handleCheckboxChange}
-        handleNoteChange={setEmployeeNote}
-        handleSubmit={handleSubmit}
-        onCloseDialog={() => setDialogOpen(false)}
-        onConfirmDelete={confirmDelete}
-        onCloseDeleteDialog={setDeleteDialogOpen}
-        onConfirmMarkLeave={handleConfirmMarkLeave}
-        onCancelMarkLeave={() => setMarkLeaveDialogOpen(false)}
-        onConfirmMarkAvailableWithNote={handleConfirmMarkAvailableWithNote}
-        onConfirmMarkAvailableWithoutNote={handleConfirmMarkAvailableWithoutNote}
-        onCancelMarkAvailable={() => setMarkAvailableDialogOpen(false)}
-      />
     </div>
   );
 };
