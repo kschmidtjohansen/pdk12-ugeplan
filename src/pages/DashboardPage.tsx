@@ -346,7 +346,7 @@ const DashboardPage: React.FC = () => {
                         </div>
                       </div>
                       
-                      {assignment.description && <p className="text-muted-foreground mb-2 text-left leading-relaxed text-sm">
+                      {assignment.description && <p className="mb-2 text-left leading-relaxed text-sm text-polygon-neutral">
                           {assignment.description}
                         </p>}
                       <p className="text-foreground mb-3 font-medium text-left text-sm">
