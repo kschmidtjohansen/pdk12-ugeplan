@@ -24,8 +24,8 @@ const employees = {
   fullyBooked: "Fully booked",
   availableAfter: "Available after {time}",
   description: "Description",
-  contactinfo: "Contact Information",
-  jobtitle: "Job Title",
+  contactInfo: "Contact Information",
+  jobTitle: "Job Title",
   roles: {
     administrator: "Administrator",
     skadeleder: "Damage Leader",
