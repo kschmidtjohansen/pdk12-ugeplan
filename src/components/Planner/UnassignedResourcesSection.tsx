@@ -123,9 +123,9 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-blue-600" />
-          <h3 className="font-semibold text-blue-800">
+          <h5 className="font-semibold text-blue-800">
             {t('planner.unassignedResources')} ({unassignedEmployees.length + unassignedCars.length})
-          </h3>
+          </h5>
         </div>
         <Button
           variant="ghost"

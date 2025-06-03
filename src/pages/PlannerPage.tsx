@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { useTranslation } from '../context/TranslationContext';
 import { usePlannerPage } from '../hooks/usePlannerPage';
 import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
-import { Clock, ChevronLeft, ChevronRight, Plus, Eye } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Plus, Eye, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
 const PlannerPage: React.FC = () => {
@@ -48,6 +49,13 @@ const PlannerPage: React.FC = () => {
       return a.fromTime.localeCompare(b.fromTime);
     });
   }, [weekAssignments]);
+
+  const handleShowOnScreen = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const screenUrl = `/screen-display?date=${today}`;
+    window.open(screenUrl, '_blank', 'fullscreen=yes');
+  };
+
   return <div className="min-h-screen bg-gray-50/30">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Clean Page Header */}
@@ -84,7 +92,12 @@ const PlannerPage: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="flex gap-2">
-                {canPublishTasks}
+                {canPublishTasks && (
+                  <Button onClick={handleShowOnScreen} size="sm" className="flex items-center gap-2" variant="outline">
+                    <Monitor className="h-4 w-4" />
+                    {t('planner.showOnScreen')}
+                  </Button>
+                )}
                 
                 {canCreate && <Button onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} size="sm" className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />
