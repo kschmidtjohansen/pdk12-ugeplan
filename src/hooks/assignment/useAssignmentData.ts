@@ -21,7 +21,7 @@ export const useAssignmentData = () => {
       setLoading(true);
       setError(null);
       
-      console.log(`[useAssignmentData] Starting fetch for user: ${user?.name} (${user?.role})`);
+      console.log(`[useAssignmentData] STARTING FETCH for user: ${user?.name} (${user?.role}) - ID: ${user?.id}`);
       
       // First, get all assignments with car information
       const { data: assignmentsData, error: assignmentsError } = await supabase
@@ -43,7 +43,13 @@ export const useAssignmentData = () => {
       
       if (assignmentsError) throw assignmentsError;
       
-      console.log(`[useAssignmentData] Raw assignments response (${assignmentsData?.length || 0} assignments):`, assignmentsData);
+      console.log(`[useAssignmentData] RAW ASSIGNMENTS FETCHED: ${assignmentsData?.length || 0} assignments`);
+      console.log(`[useAssignmentData] Raw assignments:`, assignmentsData?.map(a => ({
+        id: a.id,
+        location: a.location,
+        date: a.assignment_date,
+        published: a.published
+      })));
       
       if (assignmentsData) {
         // Get assignment-employee relationships
@@ -53,11 +59,14 @@ export const useAssignmentData = () => {
         
         if (employeeError) throw employeeError;
         
-        console.log(`[useAssignmentData] Assignment employees (${assignmentEmployees?.length || 0} relationships):`, assignmentEmployees);
+        console.log(`[useAssignmentData] ASSIGNMENT-EMPLOYEE RELATIONSHIPS: ${assignmentEmployees?.length || 0} relationships`);
+        console.log(`[useAssignmentData] Assignment employees:`, assignmentEmployees);
         
         // Get all profiles for the users in assignments
-        const userIds = assignmentEmployees?.map(ae => ae.user_id) || [];
+        const userIds = [...new Set(assignmentEmployees?.map(ae => ae.user_id) || [])];
         let profilesData: any[] = [];
+        
+        console.log(`[useAssignmentData] FETCHING PROFILES FOR ${userIds.length} unique users:`, userIds);
         
         if (userIds.length > 0) {
           const { data: profiles, error: profilesError } = await supabase
@@ -69,30 +78,40 @@ export const useAssignmentData = () => {
           profilesData = profiles || [];
         }
         
-        console.log(`[useAssignmentData] Profiles data (${profilesData.length} profiles):`, profilesData);
+        console.log(`[useAssignmentData] PROFILES FETCHED: ${profilesData.length} profiles`);
+        console.log(`[useAssignmentData] Profiles data:`, profilesData.map(p => ({ id: p.id, name: p.name })));
         
-        // Process and combine the data with detailed logging
+        // Process and combine the data with enhanced validation
         const processedAssignments = assignmentsData.map(assignment => {
+          console.log(`[useAssignmentData] ===== PROCESSING ASSIGNMENT ${assignment.id} (${assignment.location}) =====`);
+          
           // Find all employees for this assignment
-          const assignmentEmployeeIds = assignmentEmployees
-            ?.filter(emp => emp.assignment_id === assignment.id)
-            ?.map(emp => emp.user_id) || [];
+          const assignmentEmployeeRelations = assignmentEmployees?.filter(emp => emp.assignment_id === assignment.id) || [];
+          const assignmentEmployeeIds = assignmentEmployeeRelations.map(emp => emp.user_id);
           
-          const assignmentEmployeeNames = assignmentEmployeeIds
-            .map(userId => {
-              const profile = profilesData.find(p => p.id === userId);
-              return profile?.name;
-            })
-            .filter(name => name) || [];
+          console.log(`[useAssignmentData] Assignment ${assignment.id} employee relations:`, assignmentEmployeeRelations);
+          console.log(`[useAssignmentData] Assignment ${assignment.id} employee IDs:`, assignmentEmployeeIds);
           
-          console.log(`[useAssignmentData] Processing assignment ${assignment.id} (${assignment.location}):`, {
-            assignmentEmployeeIds,
-            assignmentEmployeeNames,
-            published: assignment.published,
-            date: assignment.assignment_date
+          // Map employee IDs to names with validation
+          const assignmentEmployeeNames: string[] = [];
+          
+          assignmentEmployeeIds.forEach(userId => {
+            const profile = profilesData.find(p => p.id === userId);
+            if (profile && profile.name) {
+              assignmentEmployeeNames.push(profile.name);
+              console.log(`[useAssignmentData] Added employee: ${profile.name} (ID: ${userId})`);
+            } else {
+              console.warn(`[useAssignmentData] WARNING: Profile not found for user ID: ${userId}`);
+            }
           });
           
-          return {
+          // Ensure no duplicate names
+          const uniqueEmployeeNames = [...new Set(assignmentEmployeeNames)];
+          
+          console.log(`[useAssignmentData] Assignment ${assignment.id} FINAL EMPLOYEE NAMES:`, uniqueEmployeeNames);
+          console.log(`[useAssignmentData] Assignment ${assignment.id} published:`, assignment.published);
+          
+          const processedAssignment = {
             id: assignment.id,
             title: assignment.title,
             description: assignment.description || '',
@@ -105,28 +124,40 @@ export const useAssignmentData = () => {
               name: assignment.cars.name,
               car_number: assignment.cars.car_number
             } : null,
-            employees: assignmentEmployeeNames,
+            employees: uniqueEmployeeNames, // CRITICAL: This should contain ALL employee names
             published: assignment.published || false
           };
+          
+          console.log(`[useAssignmentData] Assignment ${assignment.id} FINAL PROCESSED:`, {
+            id: processedAssignment.id,
+            location: processedAssignment.location,
+            employees: processedAssignment.employees,
+            employeeCount: processedAssignment.employees.length,
+            published: processedAssignment.published
+          });
+          
+          return processedAssignment;
         });
         
-        console.log(`[useAssignmentData] Final processed assignments for ${user?.name} (${user?.role}):`, 
-          processedAssignments.map(a => ({
-            id: a.id,
-            location: a.location,
-            published: a.published,
-            employees: a.employees,
-            date: a.date
-          }))
-        );
+        console.log(`[useAssignmentData] ===== FINAL SUMMARY FOR ${user?.name} (${user?.role}) =====`);
+        console.log(`[useAssignmentData] Total processed assignments: ${processedAssignments.length}`);
+        console.log(`[useAssignmentData] Assignments with employees:`, processedAssignments.filter(a => a.employees.length > 0).length);
+        console.log(`[useAssignmentData] Published assignments:`, processedAssignments.filter(a => a.published).length);
+        
+        // Log each assignment's employee details
+        processedAssignments.forEach(assignment => {
+          if (assignment.employees.length > 0) {
+            console.log(`[useAssignmentData] Assignment "${assignment.location}" (${assignment.id}): ${assignment.employees.join(', ')} (${assignment.employees.length} people)`);
+          }
+        });
         
         setAssignments(processedAssignments);
       } else {
-        console.log('[useAssignmentData] No assignment data returned');
+        console.log('[useAssignmentData] No assignment data returned from database');
         setAssignments([]);
       }
     } catch (err) {
-      console.error('[useAssignmentData] Error fetching assignments:', err);
+      console.error('[useAssignmentData] ERROR fetching assignments:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch assignments');
       toast({
         title: t('common.error'),
@@ -138,10 +169,13 @@ export const useAssignmentData = () => {
     }
   };
 
-  // Load assignments on component mount
+  // Load assignments on component mount and when user changes
   useEffect(() => {
-    fetchAssignments();
-  }, [user?.id]); // Add user.id dependency to refetch when user changes
+    if (user?.id) {
+      console.log(`[useAssignmentData] User effect triggered - fetching for user: ${user.name} (${user.role})`);
+      fetchAssignments();
+    }
+  }, [user?.id, user?.role]); // Re-fetch when user changes
   
   // Subscribe to assignment changes
   useEffect(() => {

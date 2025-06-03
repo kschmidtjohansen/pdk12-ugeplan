@@ -61,7 +61,8 @@ const DashboardPage: React.FC = () => {
   const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
   const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
 
-  console.log(`[DashboardPage] User: ${user?.name} (${user?.role})`);
+  console.log(`[DashboardPage] ===== DASHBOARD PAGE RENDER =====`);
+  console.log(`[DashboardPage] User: ${user?.name} (${user?.role}) - ID: ${user?.id}`);
   console.log(`[DashboardPage] Selected week: ${selectedWeek}/${selectedYear}`);
   console.log(`[DashboardPage] Week dates: ${startDateISO} to ${endDateISO}`);
 
@@ -90,6 +91,16 @@ const DashboardPage: React.FC = () => {
 
   // Get assignments for the selected week using the new hook
   const userWeekAssignments = getAssignmentsForWeek(startDateISO, endDateISO);
+
+  console.log(`[DashboardPage] ===== FINAL USER WEEK ASSIGNMENTS =====`);
+  console.log(`[DashboardPage] User week assignments count: ${userWeekAssignments.length}`);
+  userWeekAssignments.forEach(assignment => {
+    console.log(`[DashboardPage] User assignment "${assignment.location}" (${assignment.id}):`, {
+      employees: assignment.employees,
+      employeeCount: assignment.employees?.length || 0,
+      allEmployeeNames: assignment.employees?.join(', ') || 'None'
+    });
+  });
 
   // Format the date based on the current language
   const getFormattedDate = () => {
@@ -162,60 +173,45 @@ const DashboardPage: React.FC = () => {
       {/* Dashboard metrics for admin/skadeleder */}
       <DashboardMetrics />
 
-      {/* Debug navigation and controls */}
-      {user?.role !== 'servicemedarbejder' && (
-        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-          <p className="text-sm text-yellow-800 mb-2">Debug Navigation:</p>
-          <div className="flex gap-2">
-            <Button 
-              onClick={navigateToTestWeek} 
-              variant="outline" 
-              size="sm"
-              className="text-yellow-800 border-yellow-300"
-            >
-              Go to Week 23, 2025 (Test Data)
-            </Button>
-            <Button 
-              onClick={forceRefresh} 
-              variant="outline" 
-              size="sm"
-              className="text-yellow-800 border-yellow-300"
-            >
-              Force Refresh Data
-            </Button>
-          </div>
+      {/* DEBUG: Enhanced debugging section for all users */}
+      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+        <p className="text-sm text-blue-800 mb-3 font-semibold">
+          🔍 Debug Info for {user?.name} ({user?.role}):
+        </p>
+        <div className="flex gap-2 mb-3 flex-wrap">
+          <Button 
+            onClick={navigateToTestWeek} 
+            variant="outline" 
+            size="sm"
+            className="text-blue-800 border-blue-300"
+          >
+            📅 Go to Week 23, 2025 (Test Data)
+          </Button>
+          <Button 
+            onClick={forceRefresh} 
+            variant="outline" 
+            size="sm"
+            className="text-blue-800 border-blue-300"
+          >
+            🔄 Force Refresh Data
+          </Button>
         </div>
-      )}
-
-      {/* DEBUG: Add debugging info for servicemedarbejder */}
-      {user?.role === 'servicemedarbejder' && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-          <p className="text-sm text-blue-800 mb-2">Debug Info for {user.name}:</p>
-          <div className="flex gap-2 mb-2">
-            <Button 
-              onClick={navigateToTestWeek} 
-              variant="outline" 
-              size="sm"
-              className="text-blue-800 border-blue-300"
-            >
-              Go to Week 23, 2025
-            </Button>
-            <Button 
-              onClick={forceRefresh} 
-              variant="outline" 
-              size="sm"
-              className="text-blue-800 border-blue-300"
-            >
-              Refresh Data
-            </Button>
-          </div>
-          <p className="text-xs text-blue-600">
-            Current week: {selectedWeek}/{selectedYear} | 
-            Assignments this week: {userWeekAssignments.length} |
-            Check console for detailed logs
-          </p>
+        <div className="text-xs text-blue-600 space-y-1">
+          <p>📊 Current week: {selectedWeek}/{selectedYear}</p>
+          <p>📋 Assignments this week: {userWeekAssignments.length}</p>
+          <p>💻 Check browser console (F12) for detailed logs</p>
+          {userWeekAssignments.length > 0 && (
+            <div className="mt-2">
+              <p className="font-medium">📝 Your assignments this week:</p>
+              {userWeekAssignments.map(assignment => (
+                <p key={assignment.id} className="ml-2">
+                  • {assignment.location}: {assignment.employees?.join(', ') || 'No employees'} ({assignment.employees?.length || 0} people)
+                </p>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* This week's assignments */}
       <Card className="mb-8 mt-8">
@@ -259,7 +255,7 @@ const DashboardPage: React.FC = () => {
           ) : (
             <div className="grid gap-4">
               {userWeekAssignments.map(assignment => {
-                console.log(`[DashboardPage] Rendering assignment ${assignment.id} (${assignment.location}) for ${user?.name}:`, {
+                console.log(`[DashboardPage] RENDERING assignment ${assignment.id} (${assignment.location}) for ${user?.name}:`, {
                   employees: assignment.employees,
                   employeeCount: assignment.employees?.length || 0,
                   allEmployeeNames: assignment.employees?.join(', ')
@@ -303,15 +299,13 @@ const DashboardPage: React.FC = () => {
                       {assignment.employees && assignment.employees.length > 0 && (
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm text-gray-700">
+                          <span className="text-sm text-gray-700 font-medium">
                             {assignment.employees.join(', ')}
                           </span>
-                          {/* DEBUG: Show employee count for servicemedarbejder */}
-                          {user?.role === 'servicemedarbejder' && (
-                            <span className="text-xs text-blue-500 ml-1">
-                              ({assignment.employees.length} people)
-                            </span>
-                          )}
+                          {/* DEBUG: Show employee count */}
+                          <span className="text-xs text-blue-500 ml-1 font-normal">
+                            ({assignment.employees.length} {assignment.employees.length === 1 ? 'person' : 'people'})
+                          </span>
                         </div>
                       )}
                     </div>

@@ -21,7 +21,8 @@ export const useDashboardAssignments = () => {
   
   useEffect(() => {
     if (user?.id) {
-      console.log(`[useDashboardAssignments] User changed to: ${user.name} (${user.role}), forcing refresh`);
+      console.log(`[useDashboardAssignments] ===== USER CHANGE DETECTED =====`);
+      console.log(`[useDashboardAssignments] User changed to: ${user.name} (${user.role}) - ID: ${user.id}`);
       setRefreshTrigger(prev => prev + 1);
       fetchAssignments();
     }
@@ -30,34 +31,34 @@ export const useDashboardAssignments = () => {
   // Apply dashboard-specific filtering with comprehensive logging
   const dashboardAssignments = filterForDashboard(assignments);
   
-  console.log(`[useDashboardAssignments] Final dashboard data for ${user?.name} (${user?.role}):`);
-  console.log(`[useDashboardAssignments] - Raw assignments: ${assignments.length}`);
-  console.log(`[useDashboardAssignments] - Filtered assignments: ${dashboardAssignments.length}`);
-  console.log(`[useDashboardAssignments] - Assignment details:`, dashboardAssignments.map(a => ({
-    id: a.id,
-    location: a.location,
-    date: a.date,
-    published: a.published,
-    employees: a.employees,
-    employeeCount: a.employees?.length || 0
-  })));
+  console.log(`[useDashboardAssignments] ===== FINAL DASHBOARD SUMMARY =====`);
+  console.log(`[useDashboardAssignments] User: ${user?.name} (${user?.role})`);
+  console.log(`[useDashboardAssignments] Raw assignments from useAssignmentData: ${assignments.length}`);
+  console.log(`[useDashboardAssignments] Filtered dashboard assignments: ${dashboardAssignments.length}`);
+  
+  // Detailed logging of each assignment
+  dashboardAssignments.forEach(assignment => {
+    console.log(`[useDashboardAssignments] Dashboard assignment "${assignment.location}" (${assignment.id}):`, {
+      date: assignment.date,
+      published: assignment.published,
+      employees: assignment.employees,
+      employeeCount: assignment.employees?.length || 0,
+      employeeList: assignment.employees?.join(', ') || 'None'
+    });
+  });
 
   // Filter assignments for a specific week
   const getAssignmentsForWeek = useCallback((startDate: string, endDate: string) => {
-    console.log(`[useDashboardAssignments] getAssignmentsForWeek called for ${user?.name} (${user?.role})`);
+    console.log(`[useDashboardAssignments] ===== GET WEEK ASSIGNMENTS =====`);
+    console.log(`[useDashboardAssignments] User: ${user?.name} (${user?.role})`);
     console.log(`[useDashboardAssignments] Date range: ${startDate} to ${endDate}`);
-    console.log(`[useDashboardAssignments] Available dashboard assignments:`, dashboardAssignments.map(a => ({
-      id: a.id,
-      location: a.location,
-      date: a.date,
-      employees: a.employees
-    })));
+    console.log(`[useDashboardAssignments] Available dashboard assignments: ${dashboardAssignments.length}`);
     
     const weekAssignments = dashboardAssignments.filter(assignment => {
       const assignmentDate = assignment.date;
       const isInWeek = assignmentDate >= startDate && assignmentDate <= endDate;
       
-      console.log(`[useDashboardAssignments] Assignment ${assignment.id} (${assignment.location}):`, {
+      console.log(`[useDashboardAssignments] Checking assignment ${assignment.id} (${assignment.location}):`, {
         date: assignmentDate,
         weekStart: startDate,
         weekEnd: endDate,
@@ -76,19 +77,24 @@ export const useDashboardAssignments = () => {
       return a.fromTime.localeCompare(b.fromTime);
     });
 
-    console.log(`[useDashboardAssignments] Final week assignments for ${user?.name}:`, weekAssignments.map(a => ({
-      id: a.id,
-      location: a.location,
-      employees: a.employees,
-      date: a.date,
-      employeeCount: a.employees?.length || 0
-    })));
+    console.log(`[useDashboardAssignments] ===== WEEK ASSIGNMENTS RESULT =====`);
+    console.log(`[useDashboardAssignments] Final week assignments for ${user?.name}: ${weekAssignments.length}`);
+    
+    weekAssignments.forEach(assignment => {
+      console.log(`[useDashboardAssignments] Week assignment "${assignment.location}" (${assignment.id}):`, {
+        date: assignment.date,
+        employees: assignment.employees,
+        employeeCount: assignment.employees?.length || 0,
+        employeeList: assignment.employees?.join(', ') || 'None'
+      });
+    });
 
     return weekAssignments;
   }, [dashboardAssignments, user?.name, user?.role]);
 
   // Force refresh function for debugging
   const forceRefresh = useCallback(() => {
+    console.log(`[useDashboardAssignments] ===== FORCE REFRESH TRIGGERED =====`);
     console.log(`[useDashboardAssignments] Force refresh triggered for ${user?.name} (${user?.role})`);
     setRefreshTrigger(prev => prev + 1);
     fetchAssignments();
