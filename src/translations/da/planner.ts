@@ -1,4 +1,5 @@
-export const planner = {
+
+const planner = {
   title: "Planlægning",
   week: "Uge",
   createNew: "Opret ny",
@@ -59,3 +60,5 @@ export const planner = {
   noEmployeesAssigned: "Ingen medarbejdere tildelt",
   noCarAssigned: "Ingen bil tildelt",
 };
+
+export default planner;

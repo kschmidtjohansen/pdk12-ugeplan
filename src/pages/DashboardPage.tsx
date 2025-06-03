@@ -2,14 +2,15 @@
 import React, { useState } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
-import UpcomingAssignmentsWidget from '@/components/Dashboard/UpcomingAssignmentsWidget';
 import UpcomingVacationsWidget from '@/components/Dashboard/UpcomingVacationsWidget';
 import VehicleStatusWidget from '@/components/Dashboard/VehicleStatusWidget';
 import AssignmentDetailsDialog from '@/components/Dashboard/AssignmentDetailsDialog';
 import { Assignment } from '@/types/assignment';
+import { useVacations } from '@/hooks/useVacations';
 
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
+  const { vacations } = useVacations();
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
 
@@ -48,15 +49,12 @@ const DashboardPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column */}
           <div className="space-y-6">
-            <UpcomingAssignmentsWidget 
-              onAssignmentClick={handleAssignmentClick}
-            />
             <VehicleStatusWidget />
           </div>
           
           {/* Right Column */}
           <div className="space-y-6">
-            <UpcomingVacationsWidget />
+            <UpcomingVacationsWidget vacations={vacations} />
           </div>
         </div>
       </div>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Vacation } from '@/types/vacation';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { CheckCircle, XCircle, Edit } from 'lucide-react';
 
@@ -28,13 +28,14 @@ const VacationTable: React.FC<VacationTableProps> = ({
   const { t, currentLanguage } = useTranslation();
   const { isAdmin } = usePermissions();
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (date: Date | string) => {
     try {
-      const date = parseISO(dateStr);
+      // If it's already a Date object, use it directly. If it's a string, convert it.
+      const dateObj = date instanceof Date ? date : new Date(date);
       const locale = currentLanguage === 'da' ? da : undefined;
-      return format(date, 'd. MMM yyyy', { locale });
+      return format(dateObj, 'd. MMM yyyy', { locale });
     } catch (error) {
-      return dateStr;
+      return date.toString();
     }
   };
 
