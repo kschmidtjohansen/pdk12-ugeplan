@@ -30,29 +30,29 @@ const MetricCard: React.FC<MetricCardProps> = ({
 }) => {
   const colorClasses = {
     blue: {
-      icon: 'text-blue-600 bg-blue-50',
-      accent: 'border-blue-200',
-      hover: 'hover:border-blue-300'
+      icon: 'text-blue-600 bg-blue-50 border-blue-200',
+      accent: 'border-l-blue-500',
+      hover: 'hover:border-blue-300 hover:shadow-blue-500/20'
     },
     green: {
-      icon: 'text-green-600 bg-green-50',
-      accent: 'border-green-200',
-      hover: 'hover:border-green-300'
+      icon: 'text-green-600 bg-green-50 border-green-200',
+      accent: 'border-l-green-500',
+      hover: 'hover:border-green-300 hover:shadow-green-500/20'
     },
     orange: {
-      icon: 'text-orange-600 bg-orange-50',
-      accent: 'border-orange-200',
-      hover: 'hover:border-orange-300'
+      icon: 'text-orange-600 bg-orange-50 border-orange-200',
+      accent: 'border-l-orange-500',
+      hover: 'hover:border-orange-300 hover:shadow-orange-500/20'
     },
     red: {
-      icon: 'text-red-600 bg-red-50',
-      accent: 'border-red-200',
-      hover: 'hover:border-red-300'
+      icon: 'text-red-600 bg-red-50 border-red-200',
+      accent: 'border-l-red-500',
+      hover: 'hover:border-red-300 hover:shadow-red-500/20'
     },
     purple: {
-      icon: 'text-purple-600 bg-purple-50',
-      accent: 'border-purple-200',
-      hover: 'hover:border-purple-300'
+      icon: 'text-purple-600 bg-purple-50 border-purple-200',
+      accent: 'border-l-purple-500',
+      hover: 'hover:border-purple-300 hover:shadow-purple-500/20'
     }
   };
 
@@ -61,46 +61,48 @@ const MetricCard: React.FC<MetricCardProps> = ({
   return (
     <Card 
       className={cn(
-        'relative overflow-hidden transition-all duration-200 border-l-4 shadow-soft hover:shadow-medium animate-scale-in',
+        'relative overflow-hidden transition-all duration-300 border-l-4 shadow-lg hover:shadow-2xl animate-scale-in bg-gradient-to-br from-card to-card/50 border-2 border-border/50',
         classes.accent,
-        onClick && 'cursor-pointer hover-lift',
+        onClick && 'cursor-pointer hover:scale-[1.02]',
         onClick && classes.hover,
         className
       )}
       onClick={onClick}
     >
-      <CardContent className="p-6">
+      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
+      
+      <CardContent className="p-8 relative z-10">
         <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-muted-foreground mb-1">
+          <div className="flex-1 space-y-3">
+            <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
               {title}
             </p>
-            <div className="flex items-baseline gap-2 mb-1">
-              <p className="text-3xl font-bold tracking-tight">
+            <div className="flex items-baseline gap-3">
+              <p className="text-4xl font-bold tracking-tight">
                 {value}
               </p>
               {trend && (
                 <span className={cn(
-                  'text-sm font-medium px-2 py-1 rounded-full',
+                  'text-sm font-bold px-3 py-1.5 rounded-full border',
                   trend.isPositive 
-                    ? 'text-green-700 bg-green-100' 
-                    : 'text-red-700 bg-red-100'
+                    ? 'text-green-700 bg-green-50 border-green-200' 
+                    : 'text-red-700 bg-red-50 border-red-200'
                 )}>
                   {trend.isPositive ? '+' : ''}{trend.value}%
                 </span>
               )}
             </div>
             {subtitle && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 {subtitle}
               </p>
             )}
           </div>
           <div className={cn(
-            'p-3 rounded-xl',
+            'p-4 rounded-2xl border-2 transition-all duration-300 hover:scale-110',
             classes.icon
           )}>
-            <Icon className="h-6 w-6" />
+            <Icon className="h-8 w-8" />
           </div>
         </div>
       </CardContent>
