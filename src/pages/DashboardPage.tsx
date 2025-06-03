@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -7,7 +6,7 @@ import PageHeader from '../components/Layout/PageHeader';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Users, Car, Clock, MapPin } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, getISOWeek, getISOWeekYear } from 'date-fns';
 import { getCurrentWeek } from '@/types/assignment';
 import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import WeekNavigation from '@/components/Dashboard/WeekNavigation';
@@ -29,9 +28,21 @@ const DashboardPage: React.FC = () => {
   const { vacations } = useVacations();
   const { filterForDashboard } = useAssignmentFilters();
 
-  // State for week navigation
-  const [selectedWeek, setSelectedWeek] = useState(getCurrentWeekNumber());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  // Debug: Verify current week calculation with proper ISO week functions
+  const today = new Date();
+  const todayISOWeek = getISOWeek(today);
+  const todayISOYear = getISOWeekYear(today);
+  
+  console.log('[DashboardPage] === CURRENT WEEK VERIFICATION ===');
+  console.log(`[DashboardPage] Today's date: ${today.toDateString()} (${format(today, 'yyyy-MM-dd')})`);
+  console.log(`[DashboardPage] ISO Week from getISOWeek(): ${todayISOWeek}`);
+  console.log(`[DashboardPage] ISO Year from getISOWeekYear(): ${todayISOYear}`);
+  console.log(`[DashboardPage] Legacy getCurrentWeekNumber(): ${getCurrentWeekNumber()}`);
+  console.log(`[DashboardPage] Should be week 23 for June 3rd, 2025`);
+
+  // State for week navigation - use proper ISO week calculation
+  const [selectedWeek, setSelectedWeek] = useState(todayISOWeek);
+  const [selectedYear, setSelectedYear] = useState(todayISOYear);
 
   // Update employee leave status based on vacations when dashboard loads
   useEffect(() => {
@@ -188,7 +199,7 @@ const DashboardPage: React.FC = () => {
       name: user?.name
     })} description={t('dashboard.today', {
       date: getFormattedDate(),
-      week: getCurrentWeek()
+      week: todayISOWeek // Use proper ISO week here
     })} />
 
       {/* Quick access grid */}

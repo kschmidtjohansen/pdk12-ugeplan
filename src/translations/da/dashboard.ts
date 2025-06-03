@@ -3,6 +3,7 @@ const dashboard = {
   title: "Dashboard",
   welcome: "Velkommen",
   today: "I dag er det {date}, uge {week}",
+  week: "Uge", // Added missing translation
   myTasks: "Mine Opgaver",
   weekOverview: "Ugeoversigt",
   upcomingVacations: "Kommende Ferie",
