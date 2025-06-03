@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { ChevronLeft, ChevronRight, Plus, Eye } from 'lucide-react';
 import { format } from 'date-fns';
-import { getWeekRangeText } from '@/utils/dates';
+import { formatDateRangeWithWeeks } from '@/utils/dateUtils';
 
 interface PlannerPageHeaderProps {
   selectedWeek: number;
@@ -34,7 +33,12 @@ const PlannerPageHeader: React.FC<PlannerPageHeaderProps> = ({
     onCreateNew(today);
   };
 
-  const weekRangeText = weekDates ? getWeekRangeText(weekDates) : '';
+  const weekRangeText = weekDates ? formatDateRangeWithWeeks(
+    weekDates.start, 
+    weekDates.end, 
+    'en', 
+    t('planner.week')
+  ) : '';
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
