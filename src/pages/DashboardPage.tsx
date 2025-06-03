@@ -198,15 +198,15 @@ const DashboardPage: React.FC = () => {
         {/* Enhanced Quick Access Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-in-right">
           {getQuickAccessItems().map((item, index) => <Link key={index} to={item.link} className="block group">
-              <Card className="h-full border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] bg-gradient-to-br from-card to-card/50">
+              <Card className="h-full border-2">
                 <CardContent className="p-8">
                   <div className="flex items-start justify-between mb-6">
-                    <div className={`p-4 rounded-2xl transition-all duration-300 group-hover:scale-110 ${item.color === 'blue' ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' : item.color === 'green' ? 'bg-green-50 text-green-600 group-hover:bg-green-100' : item.color === 'purple' ? 'bg-purple-50 text-purple-600 group-hover:bg-purple-100' : 'bg-orange-50 text-orange-600 group-hover:bg-orange-100'}`}>
+                    <div className={`p-4 rounded-2xl ${item.color === 'blue' ? 'bg-blue-50 text-blue-600' : item.color === 'green' ? 'bg-green-50 text-green-600' : item.color === 'purple' ? 'bg-purple-50 text-purple-600' : 'bg-orange-50 text-orange-600'}`}>
                       {item.icon}
                     </div>
-                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-all duration-300 group-hover:translate-x-1" />
+                    <ArrowRight className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <h3 className="font-bold text-lg mb-3 group-hover:text-primary transition-colors duration-300">
+                  <h3 className="font-bold text-lg mb-3">
                     {item.title}
                   </h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
