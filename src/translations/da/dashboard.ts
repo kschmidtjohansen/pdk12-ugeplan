@@ -2,7 +2,7 @@
 const dashboard = {
   title: "Dashboard",
   welcome: "Velkommen",
-  today: "I dag er det {date}, uge {week}",
+  today: "I dag er det {date}, Vi er i uge {week}",
   week: "Uge", // Added missing translation
   myTasks: "Mine Opgaver",
   weekOverview: "Ugeoversigt",
@@ -30,7 +30,7 @@ const dashboard = {
   availableCars: "Tilgængelige biler",
   todayAssignments: "Dagens opgaver",
   scheduledToday: "Planlagt i dag",
-  myAssignments: "Mine Opgaver (uge {week})",
+  myAssignments: "Mine Opgaver",
   noAssignments: "Ingen opgaver denne uge",
   quickAccess: {
     title: "Hurtig adgang",

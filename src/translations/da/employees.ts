@@ -23,7 +23,7 @@ const employees = {
   selected: "valgt",
   fullyBooked: "Ikke ledig",
   availableAfter: "Ledig efter kl. {time}",
-  description: "Beskrivelse",
+  description: "Afdelingens medarbejdere",
   contactInfo: "Kontaktoplysninger",
   jobTitle: "Jobtitel",
   roles: {
