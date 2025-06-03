@@ -149,12 +149,12 @@ const DashboardPage: React.FC = () => {
     if (currentLanguage === 'da') {
       const dayName = format(today, 'EEEE', { locale: da });
       const weekNumber = getISOWeek(today);
-      const dateString = format(today, 'dd/MM');
+      const dateString = format(today, 'd.M.yyyy');
       return { dayName, weekNumber, dateString };
     } else {
       const dayName = format(today, 'EEEE');
       const weekNumber = getISOWeek(today);
-      const dateString = format(today, 'dd/MM');
+      const dateString = format(today, 'd.M.yyyy');
       return { dayName, weekNumber, dateString };
     }
   };
