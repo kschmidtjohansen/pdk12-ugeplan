@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
@@ -62,7 +63,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     
     // DEBUGGING: Log grouped assignments
     console.log(`[PlannerContent] Grouped assignments:`, grouped);
-    Object.entries(grouped).forEach(([date, assignments]) => {
+    Object.entries(grouped).forEach(([date, assignments]: [string, Assignment[]]) => {
       console.log(`  Date ${date}: ${assignments.length} assignments`);
       assignments.forEach((assignment: Assignment, index: number) => {
         console.log(`    Assignment ${index + 1}: ${assignment.location}`);
