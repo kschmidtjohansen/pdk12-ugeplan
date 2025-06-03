@@ -32,20 +32,15 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
   const { t } = useTranslation();
   
   return (
-    <Card className="overflow-hidden border-gray-100 hover:shadow-md transition-all">
+    <Card className="overflow-hidden">
       <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex items-center">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 mr-3">
-              <Car className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">{car.car_number}</h3>
-              <p className="text-sm text-gray-600">{car.name}</p>
-            </div>
+        <div className="flex justify-between items-start">
+          <div className="flex items-center mb-2">
+            <Car className="h-4 w-4 mr-2 text-polygon-blue" />
+            <h3 className="font-medium">{car.car_number} - {car.name}</h3>
           </div>
           {isAdmin && (
-            <div className="flex items-center gap-1">
+            <div className="flex space-x-2">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -94,7 +89,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => onDelete(car)}
-                    className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    className="h-8 w-8 p-0 text-destructive"
                   >
                     <span className="sr-only">{t('common.delete')}</span>
                     <Trash2 className="h-4 w-4" />
@@ -107,62 +102,62 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
             </div>
           )}
         </div>
-        
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide">{t('cars.numberPlate')}</p>
-              <p className="text-gray-900 font-medium">{car.number_plate}</p>
-            </div>
-            <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide">{t('cars.hasTrailerHitch')}</p>
-              <div className="flex items-center">
-                {car.has_trailer_hitch ? (
-                  <>
-                    <Check className="h-4 w-4 mr-1 text-green-500" />
-                    <span className="text-gray-900">{t('common.yes')}</span>
-                  </>
-                ) : (
-                  <>
-                    <X className="h-4 w-4 mr-1 text-gray-400" />
-                    <span className="text-gray-600">{t('common.no')}</span>
-                  </>
-                )}
-              </div>
-            </div>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div>
+            <p className="text-muted-foreground">{t('cars.carNumber')}:</p>
+            <p>{car.car_number}</p>
           </div>
-
+          <div>
+            <p className="text-muted-foreground">{t('cars.numberPlate')}:</p>
+            <p>{car.number_plate}</p>
+          </div>
           {canViewFuelCardCode && (
-            <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide">{t('cars.fuelCardCode')}</p>
-              <code className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-mono">{car.fuel_card_code}</code>
+            <div className="col-span-2">
+              <p className="text-muted-foreground">{t('cars.fuelCardCode')}:</p>
+              <code className="bg-gray-100 p-1 rounded">{car.fuel_card_code}</code>
             </div>
           )}
-
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <div className="flex items-center gap-2">
-              {car.is_available ? (
+          <div className="col-span-1">
+            <p className="text-muted-foreground">{t('cars.hasTrailerHitch')}:</p>
+            <div className="flex items-center">
+              {car.has_trailer_hitch ? (
                 <>
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-gray-900">{t('common.available')}</span>
+                  <Check className="h-4 w-4 mr-1 text-green-500" />
+                  <span>{t('common.yes')}</span>
                 </>
               ) : (
                 <>
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  <span className="text-sm text-gray-900">{t('common.unavailable')}</span>
+                  <X className="h-4 w-4 mr-1 text-red-500" />
+                  <span>{t('common.no')}</span>
                 </>
               )}
             </div>
-            {car.notes && car.notes.trim() !== '' && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-blue-500 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs whitespace-pre-wrap">{car.notes}</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
+          </div>
+          <div className="col-span-1">
+            <p className="text-muted-foreground">{t('cars.isAvailable')}:</p>
+            <div className="flex items-center gap-2">
+              {car.is_available ? (
+                <>
+                  <Check className="h-4 w-4 mr-1 text-green-500" />
+                  <span>{t('common.available')}</span>
+                </>
+              ) : (
+                <>
+                  <X className="h-4 w-4 mr-1 text-red-500" />
+                  <span>{t('common.unavailable')}</span>
+                </>
+              )}
+              {car.notes && car.notes.trim() !== '' && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-blue-500 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs whitespace-pre-wrap">{car.notes}</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

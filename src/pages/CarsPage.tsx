@@ -43,89 +43,85 @@ const CarsPage: React.FC = () => {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gray-50/30">
-        <div className="max-w-7xl mx-auto p-6 space-y-6">
-          {/* Clean Page Header */}
-          <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <h1 className="text-2xl font-semibold text-gray-900">
-                  {t("navigation.cars")}
-                </h1>
-                <p className="text-sm text-gray-600">
-                  {t("cars.pageDescription")}
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
-                  <Car className="h-6 w-6 text-primary" />
-                </div>
+      <div className="space-y-8">
+        {/* Enhanced Page Header */}
+        <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-8 text-white shadow-large animate-fade-in-up">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">
+                {t("navigation.cars")}
+              </h1>
+              <p className="text-blue-100 text-lg">
+                {t("cars.pageDescription")}
+              </p>
+            </div>
+            <div className="hidden md:block">
+              <div className="p-3 rounded-xl bg-white/10">
+                <Car className="h-8 w-8" />
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Cars Header with Actions */}
+        {/* Cars Header with Actions */}
+        <div className="animate-slide-in-right">
           <CarPageHeader 
             onCreateNew={handleCreateNew}
             isAdmin={isAdmin}
           />
-
-          {/* Cars Content */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-            {loading ? (
-              <div className="flex justify-center items-center p-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
-              </div>
-            ) : error ? (
-              <div className="p-6">
-                <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-                  {error}
-                </div>
-              </div>
-            ) : (
-              <div className="p-6">
-                <CarsList 
-                  cars={cars} 
-                  canEdit={false}
-                  canViewFuelCardCode={canViewFuelCardCode} 
-                  isAdmin={isAdmin}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onToggleAvailability={handleToggleAvailability}
-                />
-              </div>
-            )}
-          </div>
-
-          <CarDialogs
-            dialogOpen={dialogOpen}
-            setDialogOpen={setDialogOpen}
-            deleteDialogOpen={deleteDialogOpen}
-            setDeleteDialogOpen={setDeleteDialogOpen}
-            formData={formData}
-            onInputChange={handleInputChange}
-            onCheckboxChange={handleCheckboxChange}
-            onSubmit={handleSubmit}
-            currentCar={currentCar}
-            canViewFuelCardCode={canViewFuelCardCode}
-            onConfirmDelete={confirmDelete}
-          />
-          
-          <CarMarkUnavailableDialog
-            open={unavailableDialogOpen}
-            onOpenChange={setUnavailableDialogOpen}
-            car={currentCar}
-            onConfirm={markCarUnavailable}
-          />
-          
-          <CarMarkAvailableDialog
-            open={availableDialogOpen}
-            onOpenChange={setAvailableDialogOpen}
-            car={currentCar}
-            onConfirmKeepNote={markCarAvailableKeepNote}
-            onConfirmDeleteNote={markCarAvailableDeleteNote}
-          />
         </div>
+
+        {/* Cars Content */}
+        <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          {loading ? (
+            <div className="flex justify-center items-center p-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto mb-4"></div>
+            </div>
+          ) : error ? (
+            <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-xl shadow-soft">
+              {error}
+            </div>
+          ) : (
+            <CarsList 
+              cars={cars} 
+              canEdit={false}
+              canViewFuelCardCode={canViewFuelCardCode} 
+              isAdmin={isAdmin}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onToggleAvailability={handleToggleAvailability}
+            />
+          )}
+        </div>
+
+        <CarDialogs
+          dialogOpen={dialogOpen}
+          setDialogOpen={setDialogOpen}
+          deleteDialogOpen={deleteDialogOpen}
+          setDeleteDialogOpen={setDeleteDialogOpen}
+          formData={formData}
+          onInputChange={handleInputChange}
+          onCheckboxChange={handleCheckboxChange}
+          onSubmit={handleSubmit}
+          currentCar={currentCar}
+          canViewFuelCardCode={canViewFuelCardCode}
+          onConfirmDelete={confirmDelete}
+        />
+        
+        <CarMarkUnavailableDialog
+          open={unavailableDialogOpen}
+          onOpenChange={setUnavailableDialogOpen}
+          car={currentCar}
+          onConfirm={markCarUnavailable}
+        />
+        
+        <CarMarkAvailableDialog
+          open={availableDialogOpen}
+          onOpenChange={setAvailableDialogOpen}
+          car={currentCar}
+          onConfirmKeepNote={markCarAvailableKeepNote}
+          onConfirmDeleteNote={markCarAvailableDeleteNote}
+        />
       </div>
     </TooltipProvider>
   );

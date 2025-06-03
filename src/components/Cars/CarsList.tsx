@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { CarData } from './types';
+import { useTranslation } from '@/context/TranslationContext';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import MobileCarCard from './MobileCarCard';
 import CarsTable from './CarsTable';
@@ -29,9 +30,9 @@ const CarsList: React.FC<CarsListProps> = ({
   
   return (
     <TooltipProvider>
-      <div>
+      <div className="grid gap-4">
         {/* Mobile view - card based display */}
-        <div className="md:hidden space-y-4">
+        <div className="md:hidden grid gap-4">
           {sortedCars.map((car) => (
             <MobileCarCard 
               key={car.id}
