@@ -3,13 +3,13 @@ import React from 'react';
 import { usePermissions } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import CarsList from '@/components/Cars/CarsList';
-import CarPageHeader from '@/components/Cars/CarPageHeader';
 import CarDialogs from '@/components/Cars/CarDialogs';
 import CarMarkUnavailableDialog from '@/components/Cars/CarMarkUnavailableDialog';
 import CarMarkAvailableDialog from '@/components/Cars/CarMarkAvailableDialog';
 import { useCars } from '@/hooks/car';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { Car } from 'lucide-react';
+import { Car, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const CarsPage: React.FC = () => {
   const { canViewFuelCardCode, isAdmin } = usePermissions();
@@ -57,18 +57,20 @@ const CarsPage: React.FC = () => {
                 </p>
               </div>
               <div className="flex items-center gap-4">
+                {isAdmin && (
+                  <Button 
+                    onClick={handleCreateNew}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> {t('cars.addNewCar')}
+                  </Button>
+                )}
                 <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
                   <Car className="h-6 w-6 text-primary" />
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Cars Header with Actions */}
-          <CarPageHeader 
-            onCreateNew={handleCreateNew}
-            isAdmin={isAdmin}
-          />
 
           {/* Cars Content */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
