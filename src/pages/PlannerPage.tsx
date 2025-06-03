@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTranslation } from '../context/TranslationContext';
 import { usePlannerPage } from '../hooks/usePlannerPage';
@@ -7,11 +6,15 @@ import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer
 import { Clock, ChevronLeft, ChevronRight, Plus, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
-
 const PlannerPage: React.FC = () => {
-  const { t, currentLanguage } = useTranslation();
-  const { canCreate, canPublishTasks } = usePermissions();
-  
+  const {
+    t,
+    currentLanguage
+  } = useTranslation();
+  const {
+    canCreate,
+    canPublishTasks
+  } = usePermissions();
   const {
     selectedWeek,
     selectedYear,
@@ -45,15 +48,12 @@ const PlannerPage: React.FC = () => {
       return a.fromTime.localeCompare(b.fromTime);
     });
   }, [weekAssignments]);
-
   const handleShowOnScreen = () => {
     const today = new Date().toISOString().split('T')[0];
     const screenUrl = `/screen-display?date=${today}`;
     window.open(screenUrl, '_blank', 'fullscreen=yes');
   };
-
-  return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
+  return <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
         {/* Enhanced Header with Glassmorphism */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 text-white shadow-2xl animate-fade-in-up">
@@ -72,65 +72,41 @@ const PlannerPage: React.FC = () => {
                 </h1>
                 <p className="text-blue-100 text-lg font-medium">
                   {t('planner.weekView', {
-                    week: selectedWeek,
-                    year: selectedYear,
-                    start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
-                    end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
-                  })}
+                  week: selectedWeek,
+                  year: selectedYear,
+                  start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
+                  end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
+                })}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               {/* Week Navigation */}
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handlePreviousWeek} 
-                  className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                >
+                <Button variant="outline" size="sm" onClick={handlePreviousWeek} className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm">
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 
-                <span className="text-sm font-medium min-w-[100px] text-center text-white">
+                <span className="font-medium min-w-[100px] text-center text-white text-xl">
                   {t('planner.week')} {selectedWeek}
                 </span>
                 
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleNextWeek} 
-                  className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                >
+                <Button variant="outline" size="sm" onClick={handleNextWeek} className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm">
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
 
               {/* Action Buttons */}
               <div className="flex gap-2">
-                {canPublishTasks && (
-                  <Button 
-                    onClick={handleShowOnScreen} 
-                    size="sm" 
-                    className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-lg" 
-                    variant="outline"
-                  >
+                {canPublishTasks && <Button onClick={handleShowOnScreen} size="sm" className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-lg" variant="outline">
                     <Monitor className="h-4 w-4" />
                     {t('planner.showOnScreen')}
-                  </Button>
-                )}
+                  </Button>}
                 
-                {canCreate && (
-                  <Button 
-                    onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} 
-                    size="sm" 
-                    className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-lg"
-                    variant="outline"
-                  >
+                {canCreate && <Button onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} size="sm" className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-lg" variant="outline">
                     <Plus className="h-4 w-4" />
                     {t('planner.createNew')}
-                  </Button>
-                )}
+                  </Button>}
               </div>
             </div>
           </div>
@@ -139,37 +115,12 @@ const PlannerPage: React.FC = () => {
         {/* Planner Content */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
           <div className="p-6">
-            <PlannerContent 
-              weekAssignments={sortedWeekAssignments}
-              onEditAssignment={handleOpenEditDialog}
-              onDeleteAssignment={deleteAssignment}
-              onPublishAssignment={publishAssignment}
-              onPublishDay={handlePublishDay}
-              onCreateAssignment={handleOpenCreateDialog}
-              onCopyAssignment={handleCopyAssignment}
-              selectedWeek={selectedWeek}
-              selectedYear={selectedYear}
-              weekDates={weekDates}
-            />
+            <PlannerContent weekAssignments={sortedWeekAssignments} onEditAssignment={handleOpenEditDialog} onDeleteAssignment={deleteAssignment} onPublishAssignment={publishAssignment} onPublishDay={handlePublishDay} onCreateAssignment={handleOpenCreateDialog} onCopyAssignment={handleCopyAssignment} selectedWeek={selectedWeek} selectedYear={selectedYear} weekDates={weekDates} />
           </div>
         </div>
 
-        <PlannerDialogContainer 
-          isDialogOpen={isDialogOpen}
-          setIsDialogOpen={setIsDialogOpen}
-          currentAssignment={currentAssignment}
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleSubmit}
-          onDelete={deleteAssignment}
-          onPublish={publishAssignment}
-          assignments={weekAssignments}
-          selectedDay={selectedDay}
-          onPublishDay={handlePublishDay}
-        />
+        <PlannerDialogContainer isDialogOpen={isDialogOpen} setIsDialogOpen={setIsDialogOpen} currentAssignment={currentAssignment} formData={formData} setFormData={setFormData} onSubmit={handleSubmit} onDelete={deleteAssignment} onPublish={publishAssignment} assignments={weekAssignments} selectedDay={selectedDay} onPublishDay={handlePublishDay} />
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default PlannerPage;
