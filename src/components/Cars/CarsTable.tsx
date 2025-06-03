@@ -10,7 +10,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { CarData } from './types';
 import { useTranslation } from '@/context/TranslationContext';
 import { 
@@ -40,144 +39,144 @@ const CarsTable: React.FC<CarsTableProps> = ({
   const { t } = useTranslation();
   
   return (
-    <Card>
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('cars.carNumber')}</TableHead>
-              <TableHead>{t('cars.vehicleName')}</TableHead>
-              <TableHead>{t('cars.numberPlate')}</TableHead>
-              {canViewFuelCardCode && <TableHead>{t('cars.fuelCardCode')}</TableHead>}
-              <TableHead>{t('cars.hasTrailerHitch')}</TableHead>
-              <TableHead>{t('cars.isAvailable')}</TableHead>
-              {isAdmin && <TableHead className="w-[150px]">{t('common.actions')}</TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {cars.map((car) => (
-              <TableRow key={car.id}>
-                <TableCell>
-                  <div className="flex items-center">
-                    <Car className="h-4 w-4 mr-2 text-polygon-blue" />
-                    <span className="font-medium">{car.car_number}</span>
+    <div className="overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="border-gray-100">
+            <TableHead className="text-gray-600 font-medium">{t('cars.carNumber')}</TableHead>
+            <TableHead className="text-gray-600 font-medium">{t('cars.vehicleName')}</TableHead>
+            <TableHead className="text-gray-600 font-medium">{t('cars.numberPlate')}</TableHead>
+            {canViewFuelCardCode && <TableHead className="text-gray-600 font-medium">{t('cars.fuelCardCode')}</TableHead>}
+            <TableHead className="text-gray-600 font-medium">{t('cars.hasTrailerHitch')}</TableHead>
+            <TableHead className="text-gray-600 font-medium">{t('cars.isAvailable')}</TableHead>
+            {isAdmin && <TableHead className="w-[150px] text-gray-600 font-medium">{t('common.actions')}</TableHead>}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {cars.map((car) => (
+            <TableRow key={car.id} className="border-gray-100 hover:bg-gray-50/50">
+              <TableCell>
+                <div className="flex items-center">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 mr-3">
+                    <Car className="h-4 w-4 text-primary" />
                   </div>
-                </TableCell>
-                <TableCell>{car.name}</TableCell>
-                <TableCell>{car.number_plate}</TableCell>
-                {canViewFuelCardCode && (
-                  <TableCell>
-                    <code className="bg-gray-100 p-1 rounded">{car.fuel_card_code}</code>
-                  </TableCell>
-                )}
+                  <span className="font-medium text-gray-900">{car.car_number}</span>
+                </div>
+              </TableCell>
+              <TableCell className="text-gray-900">{car.name}</TableCell>
+              <TableCell className="text-gray-900">{car.number_plate}</TableCell>
+              {canViewFuelCardCode && (
                 <TableCell>
-                  {car.has_trailer_hitch ? (
+                  <code className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-mono">{car.fuel_card_code}</code>
+                </TableCell>
+              )}
+              <TableCell>
+                {car.has_trailer_hitch ? (
+                  <div className="flex items-center">
+                    <Check className="h-4 w-4 mr-2 text-green-500" />
+                    <span className="text-gray-900">{t('common.yes')}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <X className="h-4 w-4 mr-2 text-gray-400" />
+                    <span className="text-gray-600">{t('common.no')}</span>
+                  </div>
+                )}
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  {car.is_available ? (
                     <div className="flex items-center">
-                      <Check className="h-4 w-4 mr-1 text-green-500" />
-                      <span>{t('common.yes')}</span>
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      <span className="text-gray-900">{t('common.available')}</span>
                     </div>
                   ) : (
                     <div className="flex items-center">
-                      <X className="h-4 w-4 mr-1 text-red-500" />
-                      <span>{t('common.no')}</span>
+                      <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                      <span className="text-gray-900">{t('common.unavailable')}</span>
                     </div>
                   )}
-                </TableCell>
+                  {car.notes && car.notes.trim() !== '' && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-blue-500 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs whitespace-pre-wrap">{car.notes}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
+              </TableCell>
+              {isAdmin && (
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    {car.is_available ? (
-                      <div className="flex items-center">
-                        <Check className="h-4 w-4 mr-1 text-green-500" />
-                        <span>{t('common.available')}</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center">
-                        <X className="h-4 w-4 mr-1 text-red-500" />
-                        <span>{t('common.unavailable')}</span>
-                      </div>
-                    )}
-                    {car.notes && car.notes.trim() !== '' && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 text-blue-500 cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="max-w-xs whitespace-pre-wrap">{car.notes}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
+                  <div className="flex items-center gap-1">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onToggleAvailability(car)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <span className="sr-only">
+                            {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
+                          </span>
+                          {car.is_available ? (
+                            <ToggleRight className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <ToggleLeft className="h-4 w-4 text-gray-400" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                    
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEdit(car)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <span className="sr-only">{t('common.edit')}</span>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t('common.edit')}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onDelete(car)}
+                          className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                        >
+                          <span className="sr-only">{t('common.delete')}</span>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t('common.delete')}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 </TableCell>
-                {isAdmin && (
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onToggleAvailability(car)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <span className="sr-only">
-                              {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
-                            </span>
-                            {car.is_available ? (
-                              <ToggleRight className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <ToggleLeft className="h-4 w-4 text-gray-400" />
-                            )}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>
-                            {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                      
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onEdit(car)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <span className="sr-only">{t('common.edit')}</span>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{t('common.edit')}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onDelete(car)}
-                            className="h-8 w-8 p-0 text-destructive"
-                          >
-                            <span className="sr-only">{t('common.delete')}</span>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{t('common.delete')}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
 

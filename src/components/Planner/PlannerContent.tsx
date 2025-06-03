@@ -13,7 +13,6 @@ import EmptyState from './EmptyState';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
-import { useVacations } from '@/hooks/useVacations';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
@@ -44,7 +43,6 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   const { canEdit, canPublishTasks } = usePermissions();
   const { employees } = useEmployees();
   const { cars } = useCars();
-  const { vacations } = useVacations();
 
   // DEBUGGING: Log assignments received by PlannerContent
   console.log(`[PlannerContent] Received ${weekAssignments.length} week assignments:`);
@@ -149,8 +147,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         <UnassignedResourcesSection 
           assignments={weekAssignments} 
           employees={employees} 
-          cars={cars}
-          vacations={vacations || []}
+          cars={cars} 
         />
       )}
       

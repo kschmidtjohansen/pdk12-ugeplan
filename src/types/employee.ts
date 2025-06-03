@@ -11,5 +11,4 @@ export interface Employee {
   onLeave?: boolean;
   notes?: string;
   onApprovedVacation?: boolean;
-  avatar_url?: string; // Add avatar URL field
 }

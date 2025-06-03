@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatDateRangeWithWeeks } from '@/utils/dateUtils';
 
@@ -23,10 +22,11 @@ const PlannerPageHeader: React.FC<PlannerPageHeaderProps> = ({
   weekDates,
   onPreviousWeek,
   onNextWeek,
-  onCreateNew
+  onCreateNew,
+  onPublishAllUnpublished
 }) => {
   const { t } = useTranslation();
-  const { canCreate } = usePermissions();
+  const { canCreate, canPublishTasks } = usePermissions();
 
   const handleCreateNew = () => {
     const today = format(new Date(), 'yyyy-MM-dd');
@@ -57,7 +57,7 @@ const PlannerPageHeader: React.FC<PlannerPageHeaderProps> = ({
               <ChevronLeft className="h-4 w-4" />
             </Button>
             
-            <span className="text-sm font-medium min-w-[320px] text-center">
+            <span className="text-sm font-medium min-w-[200px] text-center">
               {t('planner.week')} {selectedWeek}, {selectedYear}
               {weekRangeText && (
                 <span className="block text-xs text-gray-500 mt-1">
@@ -79,6 +79,18 @@ const PlannerPageHeader: React.FC<PlannerPageHeaderProps> = ({
       </div>
       
       <div className="flex gap-2">
+        {canPublishTasks && onPublishAllUnpublished && (
+          <Button
+            onClick={onPublishAllUnpublished}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Eye className="h-4 w-4" />
+            {t('planner.publishAllUnpublished')}
+          </Button>
+        )}
+        
         {canCreate && (
           <Button
             onClick={handleCreateNew}

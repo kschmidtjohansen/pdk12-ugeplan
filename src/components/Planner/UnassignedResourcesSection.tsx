@@ -8,20 +8,17 @@ import { da } from 'date-fns/locale';
 import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Car as CarType } from '@/types/car';
-import { Vacation } from '@/types/vacation';
 
 interface UnassignedResourcesSectionProps {
   assignments: Assignment[];
   employees: Employee[];
   cars: CarType[];
-  vacations: Vacation[];
 }
 
 const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   assignments,
   employees,
-  cars,
-  vacations
+  cars
 }) => {
   const { t, currentLanguage } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -47,26 +44,6 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     }
   };
 
-  // Helper function to check if an employee is on vacation on a specific date
-  const isEmployeeOnVacation = (employeeId: string, date: Date) => {
-    return vacations.some(vacation => {
-      if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
-        return false;
-      }
-      
-      const startDate = new Date(vacation.startDate);
-      const endDate = new Date(vacation.endDate);
-      
-      // Normalize dates to compare only the date part
-      date.setHours(0, 0, 0, 0);
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(0, 0, 0, 0);
-      
-      // Check if the date falls within the vacation period (inclusive of end date)
-      return date >= startDate && date <= endDate;
-    });
-  };
-
   const getUnassignedEmployees = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayAssignments = assignments.filter(a => a.date === dateStr);
@@ -78,8 +55,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     return employees.filter(employee => 
       employee.role === 'servicemedarbejder' && 
       !assignedEmployeeNames.has(employee.name) &&
-      !employee.onLeave &&
-      !isEmployeeOnVacation(employee.id, new Date(date))
+      !employee.onLeave
     );
   };
 
@@ -124,7 +100,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-blue-600" />
-          <h3 className="text-sm font-medium text-blue-800">
+          <h3 className="font-semibold text-blue-800">
             {t('planner.unassignedResources')} ({unassignedEmployees.length + unassignedCars.length})
           </h3>
         </div>

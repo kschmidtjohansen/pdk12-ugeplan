@@ -13,22 +13,20 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   children
 }) => {
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-      <div className="flex-1">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {title}
-        </h1>
-        {description && (
-          <p className="text-gray-600 mt-1">
-            {description}
-          </p>
+    <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm mb-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
+          {description && (
+            <p className="text-sm text-gray-600">{description}</p>
+          )}
+        </div>
+        {children && (
+          <div className="flex items-center gap-3">
+            {children}
+          </div>
         )}
       </div>
-      {children && (
-        <div className="flex gap-2">
-          {children}
-        </div>
-      )}
     </div>
   );
 };

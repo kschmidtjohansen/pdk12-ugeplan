@@ -1,13 +1,17 @@
 
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
+import { usePermissions } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Edit, Trash2, AlertCircle, Mail, Phone, UserCheck, UserMinus } from 'lucide-react';
 import { Employee } from '@/types/employee';
-import { Edit, Trash2, User, UserCheck } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface EmployeesListProps {
   employees: Employee[];
@@ -22,123 +26,164 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
   onDelete,
   onToggleLeave
 }) => {
-  const { isAdmin } = usePermissions();
   const { t } = useTranslation();
-
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case 'administrator':
-        return 'default';
-      case 'skadeleder':
-        return 'secondary';
-      default:
-        return 'outline';
-    }
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  if (employees.length === 0) {
-    return (
-      <div className="text-center py-16 text-gray-500">
-        <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
-        <p>{t("employees.noEmployees")}</p>
-      </div>
-    );
-  }
+  const { isAdmin, isSkadeleder } = usePermissions();
 
   return (
-    <div className="border rounded-lg">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead></TableHead>
-            <TableHead>{t('employees.name')}</TableHead>
-            <TableHead>{t('employees.email')}</TableHead>
-            <TableHead>{t('employees.phone')}</TableHead>
-            <TableHead>{t('employees.role')}</TableHead>
-            <TableHead>{t('employees.status')}</TableHead>
-            {isAdmin && <TableHead className="text-right">{t('common.actions')}</TableHead>}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {employees.map((employee) => (
-            <TableRow key={employee.id}>
-              <TableCell>
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={employee.avatar_url || undefined} />
-                  <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
-                </Avatar>
-              </TableCell>
-              <TableCell className="font-medium">
-                {employee.name}
-                {employee.notes && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {employee.notes}
-                  </div>
+    <TooltipProvider>
+      <div className="bg-white shadow rounded-md overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t("employees.name")}
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t("employees.contactInfo")}
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t("employees.jobTitle")}
+                </th>
+                {/* Show role column to admin and skadeleder users only */}
+                {(isAdmin || isSkadeleder) && (
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t("employees.role")}
+                  </th>
                 )}
-              </TableCell>
-              <TableCell>{employee.email}</TableCell>
-              <TableCell>{employee.phone || '-'}</TableCell>
-              <TableCell>
-                <Badge variant={getRoleBadgeVariant(employee.role)}>
-                  {t(`employees.roles.${employee.role}`)}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  {employee.onLeave ? (
-                    <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                      {t('employees.onLeave')}
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      {t('employees.active')}
-                    </Badge>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t("common.status")}
+                </th>
+                {isAdmin && (
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t("common.actions")}
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {employees.map((employee) => (
+                <tr key={employee.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div>
+                        <div className="flex items-center">
+                          <span className="text-sm font-medium text-gray-900">
+                            {employee.name}
+                          </span>
+                          
+                          {/* Display notes tooltip for employees on leave */}
+                          {(isAdmin || isSkadeleder) && employee.notes && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <AlertCircle size={16} className="text-orange-500 ml-2 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <p>{employee.notes}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900 flex items-center">
+                      <Mail size={16} className="mr-2 text-gray-500" /> {employee.email}
+                    </div>
+                    <div className="text-sm text-gray-500 flex items-center mt-1">
+                      <Phone size={16} className="mr-2 text-gray-500" /> {employee.phone}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {employee.jobTitle}
+                  </td>
+                  {/* Show role to admin and skadeleder users only */}
+                  {(isAdmin || isSkadeleder) && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {t(`admin.roles.${employee.role}`)}
+                    </td>
                   )}
-                </div>
-              </TableCell>
-              {isAdmin && (
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onToggleLeave(employee)}
-                      className={employee.onLeave ? "text-green-600 hover:text-green-700" : "text-orange-600 hover:text-orange-700"}
-                    >
-                      {employee.onLeave ? <UserCheck className="h-4 w-4" /> : <User className="h-4 w-4" />}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEdit(employee)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onDelete(employee)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {employee.onLeave ? (
+                      <Badge variant="outline" className="border-orange-200 bg-orange-100 text-orange-800 hover:bg-orange-100">
+                        {t("employees.onLeave")}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-green-200 bg-green-100 text-green-800 hover:bg-green-100">
+                        {t("dashboard.available")}
+                      </Badge>
+                    )}
+                  </td>
+                  {isAdmin && (
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end space-x-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => onEdit(employee)} 
+                              className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800"
+                            >
+                              <span className="sr-only">{t("common.edit")}</span>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            {t("common.edit")}
+                          </TooltipContent>
+                        </Tooltip>
+                        
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => onDelete(employee)} 
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
+                            >
+                              <span className="sr-only">{t("common.delete")}</span>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            {t("common.delete")}
+                          </TooltipContent>
+                        </Tooltip>
+                        
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost"
+                              size="icon" 
+                              onClick={() => onToggleLeave(employee)} 
+                              className={`h-8 w-8 p-0 ${employee.onLeave ? 'text-green-600 hover:text-green-800' : 'text-amber-600 hover:text-amber-800'}`}
+                            >
+                              <span className="sr-only">
+                                {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
+                              </span>
+                              {employee.onLeave ? (
+                                <UserCheck className="h-4 w-4" />
+                              ) : (
+                                <UserMinus className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </TooltipProvider>
   );
 };
 
