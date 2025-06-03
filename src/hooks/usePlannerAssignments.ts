@@ -108,13 +108,13 @@ export const usePlannerAssignments = () => {
   console.log("[usePlannerAssignments] Final grouped assignments:", Object.keys(groupedAssignments).length, "days");
   console.log("[usePlannerAssignments] Grouped assignments summary:", Object.entries(groupedAssignments).map(([date, assignments]) => ({
     date,
-    count: assignments.length,
-    assignments: assignments.map(a => ({
+    count: Array.isArray(assignments) ? assignments.length : 0,
+    assignments: Array.isArray(assignments) ? assignments.map(a => ({
       id: a.id,
       location: a.location,
       employees: a.employees,
       employeeCount: a.employees?.length || 0
-    }))
+    })) : []
   })));
   
   return {
