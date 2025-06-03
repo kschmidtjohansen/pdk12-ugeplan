@@ -73,30 +73,31 @@ export const useAssignmentData = () => {
         console.log('[useAssignmentData] Profiles count:', profilesData?.length || 0);
         console.log('[useAssignmentData] Profile details:', profilesData.map(p => ({ id: p.id, name: p.name })));
         
-        // Process and combine the data
+        // Process and combine the data with enhanced debugging
         const processedAssignments = assignmentsData.map(assignment => {
+          console.log(`[useAssignmentData] Processing assignment ${assignment.id} (${assignment.location}):`);
+          
           // Find all employees for this assignment
           const assignmentEmployeeIds = assignmentEmployees
             ?.filter(emp => emp.assignment_id === assignment.id)
             ?.map(emp => emp.user_id) || [];
           
+          console.log(`  - Employee IDs from junction table: [${assignmentEmployeeIds.join(', ')}]`);
+          
+          // Map employee IDs to names
           const assignmentEmployeeNames = assignmentEmployeeIds
             .map(userId => {
               const profile = profilesData.find(p => p.id === userId);
-              console.log(`[useAssignmentData] Looking for user ${userId}, found profile:`, profile);
+              console.log(`    - Looking for user ${userId}, found profile:`, profile);
               return profile?.name;
             })
-            .filter(name => name) || [];
+            .filter(name => name && name.trim() !== '') || [];
           
-          console.log(`[useAssignmentData] DETAILED Processing assignment ${assignment.id} (${assignment.location}):`);
-          console.log(`  - Assignment ID: ${assignment.id}`);
-          console.log(`  - Location: ${assignment.location}`);
-          console.log(`  - Employee IDs from junction: [${assignmentEmployeeIds.join(', ')}]`);
           console.log(`  - Employee Names resolved: [${assignmentEmployeeNames.join(', ')}]`);
+          console.log(`  - Final employee array length: ${assignmentEmployeeNames.length}`);
           console.log(`  - Published status: ${assignment.published}`);
-          console.log(`  - Raw assignment data:`, assignment);
           
-          const processedAssignment = {
+          const processedAssignment: Assignment = {
             id: assignment.id,
             title: assignment.title,
             description: assignment.description || '',
@@ -109,17 +110,16 @@ export const useAssignmentData = () => {
               name: assignment.cars.name,
               car_number: assignment.cars.car_number
             } : null,
-            employees: assignmentEmployeeNames,
+            employees: assignmentEmployeeNames, // This should be the array of employee names
             published: assignment.published || false
           };
           
-          console.log(`[useAssignmentData] FINAL processed assignment:`, {
+          console.log(`  - FINAL processed assignment:`, {
             id: processedAssignment.id,
             location: processedAssignment.location,
             employees: processedAssignment.employees,
             employeeCount: processedAssignment.employees.length,
-            published: processedAssignment.published,
-            fullObject: processedAssignment
+            published: processedAssignment.published
           });
           
           return processedAssignment;

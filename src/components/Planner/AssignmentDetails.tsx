@@ -23,36 +23,37 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // ENHANCED DEBUGGING: Always show all employee names for ALL assignments
+  // Enhanced employee display with detailed debugging
   const displayEmployees = () => {
-    console.log(`[AssignmentDetails] DETAILED: Displaying employees for assignment ${assignment.id} (${assignment.location}):`);
-    console.log(`  - Full assignment object:`, assignment);
-    console.log(`  - Assignment.employees type:`, typeof assignment.employees);
-    console.log(`  - Assignment.employees value:`, assignment.employees);
-    console.log(`  - Assignment.employees is array:`, Array.isArray(assignment.employees));
-    console.log(`  - Assignment.employees length:`, assignment.employees?.length || 0);
-    console.log(`  - Published status:`, assignment.published);
-    console.log(`  - Assignment ID:`, assignment.id);
+    console.log(`[AssignmentDetails] Processing employees for assignment ${assignment.id} (${assignment.location}):`);
+    console.log(`  - Assignment object:`, assignment);
+    console.log(`  - Assignment.employees:`, assignment.employees);
+    console.log(`  - Type of employees:`, typeof assignment.employees);
+    console.log(`  - Is array:`, Array.isArray(assignment.employees));
+    console.log(`  - Length:`, assignment.employees?.length || 0);
+    console.log(`  - Published:`, assignment.published);
     
+    // Check if employees array exists and has valid entries
     if (assignment.employees && Array.isArray(assignment.employees) && assignment.employees.length > 0) {
-      // ALWAYS show all employee names - no filtering based on user role or assignment status
-      const allEmployees = assignment.employees.join(', ');
-      console.log(`[AssignmentDetails] SUCCESS: Showing all employees: "${allEmployees}"`);
-      console.log(`[AssignmentDetails] Individual employees:`, assignment.employees);
-      return allEmployees;
+      // Filter out any empty or invalid entries
+      const validEmployees = assignment.employees.filter(emp => emp && typeof emp === 'string' && emp.trim() !== '');
+      
+      console.log(`  - Valid employees after filtering:`, validEmployees);
+      console.log(`  - Valid employee count:`, validEmployees.length);
+      
+      if (validEmployees.length > 0) {
+        const employeeDisplay = validEmployees.join(', ');
+        console.log(`  - Final employee display: "${employeeDisplay}"`);
+        return employeeDisplay;
+      }
     }
     
-    console.log(`[AssignmentDetails] ERROR: No valid employees found:`, {
-      employees: assignment.employees,
-      isArray: Array.isArray(assignment.employees),
-      length: assignment.employees?.length,
-      type: typeof assignment.employees
-    });
+    console.log(`  - No valid employees found, showing unassigned`);
     return t('planner.unassigned');
   };
   
   const employeeDisplay = displayEmployees();
-  console.log(`[AssignmentDetails] Final employee display for ${assignment.location}: "${employeeDisplay}"`);
+  console.log(`[AssignmentDetails] FINAL employee display for ${assignment.location}: "${employeeDisplay}"`);
   
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-sm text-left">

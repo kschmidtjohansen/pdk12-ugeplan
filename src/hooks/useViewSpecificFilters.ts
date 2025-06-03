@@ -25,8 +25,8 @@ export const useViewSpecificFilters = () => {
     }
 
     const filtered = assignments.filter(assignment => {
-      // FIXED: For servicemedarbejdere, show ALL published assignments (they can see everyone's assignments with ALL names)
-      // This is correct behavior for planner view - they should see all published tasks with all employee names
+      // For servicemedarbejdere, show ALL published assignments with ALL employee names
+      // They should see all published tasks in the planner with complete team information
       if (user.role === 'servicemedarbejder') {
         console.log(`[useViewSpecificFilters] Servicemedarbejder filter - Assignment ${assignment.id} (${assignment.location}):`, {
           published: assignment.published,
@@ -36,6 +36,7 @@ export const useViewSpecificFilters = () => {
         });
         
         // Show ALL published assignments - servicemedarbejdere can see all published tasks in planner
+        // IMPORTANT: We do NOT filter out employee names here - they should see all team members
         return assignment.published;
       }
       
@@ -59,6 +60,9 @@ export const useViewSpecificFilters = () => {
       employees: a.employees,
       employeeCount: a.employees?.length || 0
     })));
+    
+    // IMPORTANT: Return assignments with ALL original employee data intact
+    // Do NOT modify the employees array - servicemedarbejdere should see all team member names
     return filtered;
   };
 
@@ -88,6 +92,7 @@ export const useViewSpecificFilters = () => {
       });
       
       console.log('[useViewSpecificFilters] filterForDashboard - Servicemedarbejder filtered assignments:', filtered.length);
+      // IMPORTANT: Return assignments with ALL original employee data intact
       return filtered;
     }
     
