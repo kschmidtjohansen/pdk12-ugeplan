@@ -58,6 +58,12 @@ export const common = {
   settings: 'Settings',
   actions: 'Actions',
   language: 'Language',
+  goHome: 'Go to Dashboard',
+  goBack: 'Go Back',
+  
+  // Page Not Found
+  pageNotFound: 'Page Not Found',
+  pageNotFoundDescription: 'The page you are looking for does not exist or has been moved.',
   
   // Time
   today: 'Today',

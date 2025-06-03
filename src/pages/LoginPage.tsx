@@ -245,7 +245,13 @@ const LoginPage: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="password">{t('common.password')}</Label>
-                  
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-sm text-polygon-blue hover:text-polygon-darkblue transition-colors"
+                  >
+                    {t('login.passwordReset.forgotPassword')}
+                  </button>
                 </div>
                 <Input id="password" type="password" placeholder={t('login.passwordPlaceholder')} value={password} onChange={e => setPassword(e.target.value)} required className="border-2" disabled={isLoading || lockedUntil && lockedUntil > new Date()} />
               </div>

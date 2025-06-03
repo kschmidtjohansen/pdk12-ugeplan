@@ -1,5 +1,4 @@
 
-
 export const common = {
   // Basic actions
   save: 'Gem',
@@ -59,6 +58,12 @@ export const common = {
   settings: 'Indstillinger',
   actions: 'Handlinger',
   language: 'Sprog',
+  goHome: 'Gå til Dashboard',
+  goBack: 'Gå tilbage',
+  
+  // Page Not Found
+  pageNotFound: 'Side ikke fundet',
+  pageNotFoundDescription: 'Den side du leder efter eksisterer ikke eller er blevet flyttet.',
   
   // Time
   today: 'I dag',
@@ -78,4 +83,3 @@ export const common = {
   yes: 'Ja',
   no: 'Nej'
 };
-
