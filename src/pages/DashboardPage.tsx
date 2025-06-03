@@ -242,12 +242,7 @@ const DashboardPage: React.FC = () => {
                 <p className="text-blue-100 text-lg font-medium max-w-2xl">
                   {dailyQuote}
                 </p>
-                <p className="text-blue-200 text-sm">
-                  {t('dashboard.today', {
-                  date: getFormattedDate(),
-                  week: todayISOWeek
-                })}
-                </p>
+                
               </div>
             </div>
             <div className="hidden md:block">
