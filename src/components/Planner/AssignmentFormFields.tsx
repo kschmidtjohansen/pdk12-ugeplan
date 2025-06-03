@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Car } from '@/types/car';
 import { Assignment } from '@/types/assignment';
 import { CarSelector } from './CarSelector';
+import ResponsibleUserSelector from './ResponsibleUserSelector';
 
 interface AssignmentFormFieldsProps {
   title: string;
@@ -32,6 +33,8 @@ interface AssignmentFormFieldsProps {
   setAssignmentType: (value: string) => void;
   selectedCarId: string;
   setSelectedCarId: (value: string) => void;
+  selectedResponsibleUserId: string;
+  setSelectedResponsibleUserId: (value: string) => void;
   cars: Car[];
   assignmentId?: string;
   assignments?: Assignment[];
@@ -54,6 +57,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   setAssignmentType,
   selectedCarId,
   setSelectedCarId,
+  selectedResponsibleUserId,
+  setSelectedResponsibleUserId,
   cars,
   assignmentId,
   assignments = []
@@ -172,6 +177,15 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Responsible User Selector */}
+      <div className="space-y-2">
+        <Label>{t('planner.responsibleUser')}</Label>
+        <ResponsibleUserSelector
+          selectedUserId={selectedResponsibleUserId}
+          onUserSelect={setSelectedResponsibleUserId}
+        />
       </div>
 
       {/* Car Selector */}

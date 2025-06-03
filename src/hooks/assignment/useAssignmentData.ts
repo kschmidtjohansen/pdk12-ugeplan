@@ -33,7 +33,7 @@ export const useAssignmentData = () => {
       
       console.log('[useAssignmentData] Current user role:', userRoleData?.role);
       
-      // Fetch assignments with optimized query
+      // Fetch assignments with optimized query including responsible user
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('assignments')
         .select(`
@@ -46,9 +46,11 @@ export const useAssignmentData = () => {
           location,
           car_id,
           published,
+          responsible_user_id,
           created_at,
           updated_at,
-          cars:car_id (id, name, car_number)
+          cars:car_id (id, name, car_number),
+          responsible_user:responsible_user_id (id, name)
         `)
         .order('assignment_date', { ascending: true });
       
@@ -147,7 +149,11 @@ export const useAssignmentData = () => {
               name: assignment.cars.name
             } : null,
             employees: assignmentEmployeeNames,
-            published: assignment.published || false
+            published: assignment.published || false,
+            responsibleUser: assignment.responsible_user ? {
+              id: assignment.responsible_user.id,
+              name: assignment.responsible_user.name
+            } : null
           };
           
           return processedAssignment;
@@ -158,7 +164,8 @@ export const useAssignmentData = () => {
           id: a.id,
           location: a.location,
           employees: a.employees,
-          employeeCount: a.employees?.length || 0
+          employeeCount: a.employees?.length || 0,
+          responsibleUser: a.responsibleUser
         })));
         
         setAssignments(processedAssignments);

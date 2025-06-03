@@ -10,6 +10,7 @@ export interface Assignment {
   car: string | { id: string; name: string } | null;
   employees: string[]; // Guaranteed array of employee names as strings
   published: boolean;
+  responsibleUser?: { id: string; name: string } | null; // New field for Sagsansvarlig
 }
 
 export interface AssignmentFormData {
@@ -21,6 +22,7 @@ export interface AssignmentFormData {
   location?: string;
   car?: string;
   employees?: string[];
+  responsibleUserId?: string; // New field for form data
 }
 
 export interface AssignmentFilterOptions {
