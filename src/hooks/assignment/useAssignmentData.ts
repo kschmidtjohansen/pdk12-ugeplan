@@ -15,6 +15,23 @@ export const useAssignmentData = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
 
+  // Test Supabase connection
+  const testConnection = async () => {
+    try {
+      console.log('[useAssignmentData] Testing Supabase connection...');
+      const { data, error } = await supabase.from('assignments').select('count').limit(1);
+      if (error) {
+        console.error('[useAssignmentData] Connection test failed:', error);
+        return false;
+      }
+      console.log('[useAssignmentData] Connection test successful');
+      return true;
+    } catch (err) {
+      console.error('[useAssignmentData] Connection test exception:', err);
+      return false;
+    }
+  };
+
   // Fetch assignments from Supabase
   const fetchAssignments = async () => {
     try {
@@ -23,7 +40,14 @@ export const useAssignmentData = () => {
       
       console.log(`[useAssignmentData] STARTING FETCH for user: ${user?.name} (${user?.role}) - ID: ${user?.id}`);
       
+      // Test connection first
+      const connectionOk = await testConnection();
+      if (!connectionOk) {
+        throw new Error('Database connection failed');
+      }
+      
       // First, get all assignments with car information
+      console.log('[useAssignmentData] Fetching assignments from database...');
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('assignments')
         .select(`
@@ -41,7 +65,10 @@ export const useAssignmentData = () => {
           cars:car_id (id, name, car_number)
         `);
       
-      if (assignmentsError) throw assignmentsError;
+      if (assignmentsError) {
+        console.error('[useAssignmentData] Assignments fetch error:', assignmentsError);
+        throw new Error(`Failed to fetch assignments: ${assignmentsError.message}`);
+      }
       
       console.log(`[useAssignmentData] RAW ASSIGNMENTS FETCHED: ${assignmentsData?.length || 0} assignments`);
       console.log(`[useAssignmentData] Raw assignments:`, assignmentsData?.map(a => ({
@@ -53,11 +80,15 @@ export const useAssignmentData = () => {
       
       if (assignmentsData) {
         // Get assignment-employee relationships
+        console.log('[useAssignmentData] Fetching assignment-employee relationships...');
         const { data: assignmentEmployees, error: employeeError } = await supabase
           .from('assignments_employees')
           .select('assignment_id, user_id');
         
-        if (employeeError) throw employeeError;
+        if (employeeError) {
+          console.error('[useAssignmentData] Assignment employees fetch error:', employeeError);
+          throw new Error(`Failed to fetch assignment employees: ${employeeError.message}`);
+        }
         
         console.log(`[useAssignmentData] ASSIGNMENT-EMPLOYEE RELATIONSHIPS: ${assignmentEmployees?.length || 0} relationships`);
         console.log(`[useAssignmentData] Assignment employees:`, assignmentEmployees);
@@ -74,7 +105,10 @@ export const useAssignmentData = () => {
             .select('id, name')
             .in('id', userIds);
           
-          if (profilesError) throw profilesError;
+          if (profilesError) {
+            console.error('[useAssignmentData] Profiles fetch error:', profilesError);
+            throw new Error(`Failed to fetch user profiles: ${profilesError.message}`);
+          }
           profilesData = profiles || [];
         }
         
@@ -158,10 +192,15 @@ export const useAssignmentData = () => {
       }
     } catch (err) {
       console.error('[useAssignmentData] ERROR fetching assignments:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch assignments');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMessage);
+      
+      // Use fallback error message if translation is missing
+      const fetchErrorMessage = t('planner.fetchError') || 'Failed to load assignments. Please try again.';
+      
       toast({
-        title: t('common.error'),
-        description: t('planner.fetchError'),
+        title: t('common.error') || 'Error',
+        description: fetchErrorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -174,11 +213,16 @@ export const useAssignmentData = () => {
     if (user?.id) {
       console.log(`[useAssignmentData] User effect triggered - fetching for user: ${user.name} (${user.role})`);
       fetchAssignments();
+    } else {
+      console.log('[useAssignmentData] No user ID, skipping fetch');
+      setLoading(false);
     }
   }, [user?.id, user?.role]); // Re-fetch when user changes
   
   // Subscribe to assignment changes
   useEffect(() => {
+    if (!user?.id) return;
+    
     const channel = supabase
       .channel('assignment_changes')
       .on(

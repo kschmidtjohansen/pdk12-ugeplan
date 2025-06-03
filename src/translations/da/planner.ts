@@ -44,6 +44,7 @@ const planner = {
   assignmentAlreadyPublishedMsg: "Denne opgave er allerede publiceret",
   errorPublishingAssignment: "Fejl ved publicering af opgave",
   errorPublishingAssignments: "Fejl ved publicering af opgaver",
+  fetchError: "Kunne ikke indlæse opgaver. Prøv igen.",
   week: "Uge",
   previousWeek: "Forrige uge",
   nextWeek: "Næste uge",
