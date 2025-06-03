@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -6,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Users, Car, Clock, ArrowRight } from 'lucide-react';
 import { format, getISOWeek, getISOWeekYear } from 'date-fns';
+import { da } from 'date-fns/locale';
 import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import WeekNavigation from '@/components/Dashboard/WeekNavigation';
 import AssignmentDetailsDialog from '@/components/Dashboard/AssignmentDetailsDialog';
@@ -141,6 +143,22 @@ const DashboardPage: React.FC = () => {
     });
   };
 
+  // New function to format the date display in the header
+  const getHeaderDateDisplay = () => {
+    const today = new Date();
+    if (currentLanguage === 'da') {
+      const dayName = format(today, 'EEEE', { locale: da });
+      const weekNumber = getISOWeek(today);
+      const dateString = format(today, 'dd/MM');
+      return { dayName, weekNumber, dateString };
+    } else {
+      const dayName = format(today, 'EEEE');
+      const weekNumber = getISOWeek(today);
+      const dateString = format(today, 'dd/MM');
+      return { dayName, weekNumber, dateString };
+    }
+  };
+
   // Quick access items based on user role
   const getQuickAccessItems = () => {
     const baseItems = [{
@@ -176,6 +194,7 @@ const DashboardPage: React.FC = () => {
   };
   
   const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
+  const headerDate = getHeaderDateDisplay();
   
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
@@ -207,10 +226,13 @@ const DashboardPage: React.FC = () => {
               <div className="text-right space-y-2">
                 <div className="px-4 py-2 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30">
                   <p className="text-blue-100 text-sm uppercase tracking-wider font-semibold">
-                    {t('dashboard.week')} {todayISOWeek}
+                    {headerDate.dayName}
+                  </p>
+                  <p className="text-blue-100 text-sm uppercase tracking-wider font-semibold">
+                    Uge {headerDate.weekNumber}
                   </p>
                   <p className="text-2xl font-bold">
-                    {format(new Date(), 'dd/MM')}
+                    {headerDate.dateString}
                   </p>
                 </div>
               </div>
@@ -218,11 +240,11 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Enhanced Quick Access Grid */}
+        {/* Enhanced Quick Access Grid - Ensure consistent sizing */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-in-right">
           {getQuickAccessItems().map((item, index) => (
             <Link key={index} to={item.link} className="block group">
-              <Card className="h-full border-2">
+              <Card className="h-full border-2 hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
                 <CardContent className="p-4 py-[12px] px-[20px]">
                   <div className="flex items-start justify-between mb-4">
                     <div className={`p-3 rounded-2xl ${
@@ -233,7 +255,7 @@ const DashboardPage: React.FC = () => {
                     }`}>
                       {item.icon}
                     </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
                   <h3 className="font-bold text-base mb-2">
                     {item.title}
@@ -247,7 +269,7 @@ const DashboardPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Enhanced Dashboard Metrics */}
+        {/* Enhanced Dashboard Metrics - Ensure consistent sizing */}
         {shouldShowMetrics && (
           <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <DashboardMetrics />
