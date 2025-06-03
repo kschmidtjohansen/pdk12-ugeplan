@@ -72,6 +72,7 @@ const planner = {
   enterTitle: "Indtast sagsnummer",
   previousDays: "Forrige Dage",
   nothingPlannedToday: "Intet planlagt i dag.",
+  weekView: "Se planerne for opgaver i løbet af ugerne.",
   weekDescription: "Se planerne for denne uge.",
   noAssignmentsWeek: "Der er ingen opgaver planlagt for denne uge.",
   unassigned: "Ikke tildelt",

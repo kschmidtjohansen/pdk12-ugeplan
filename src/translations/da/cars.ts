@@ -2,6 +2,7 @@
 const cars = {
   title: 'Bil Administration',
   description: 'Administrer firmaets køretøjer og deres tilgængelighed',
+  pageDescription: 'Administrer firmaets køretøjer og deres tilgængelighed',
   addNewCar: 'Tilføj Ny Bil',
   editCar: 'Rediger Bil',
   deleteCar: 'Slet Bil',
