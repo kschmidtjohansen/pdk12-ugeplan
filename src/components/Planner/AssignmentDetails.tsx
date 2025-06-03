@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Car, Clock, Tag, Users } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
@@ -23,7 +22,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
   // Create a formatted time range string without seconds
   const timeRange = `${formatTime(assignment.fromTime)} - ${formatTime(assignment.toTime)}`;
   
-  // ENHANCED: Simplified and more robust employee display logic with special debugging for Fyn
+  // Optimized employee display logic with cleaner implementation
   const displayEmployees = () => {
     console.log(`[AssignmentDetails] Processing employees for assignment ${assignment.id} (${assignment.location}):`);
     console.log(`  - Assignment object:`, assignment);

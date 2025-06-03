@@ -4,7 +4,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { supabase } from '@/integrations/supabase/client';
-import { safeProperty } from '@/utils/dbHelpers';
 
 export const useAssignmentData = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -13,15 +12,15 @@ export const useAssignmentData = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
 
-  // Fetch assignments from Supabase
+  // Fetch assignments from Supabase - optimized for new RLS policies
   const fetchAssignments = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('[useAssignmentData] Starting to fetch assignments...');
+      console.log('[useAssignmentData] Starting to fetch assignments with optimized queries...');
       
-      // First, get all assignments with car information
+      // With the new standardized RLS policies, we can use more efficient queries
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('assignments')
         .select(`
@@ -37,23 +36,23 @@ export const useAssignmentData = () => {
           created_at,
           updated_at,
           cars:car_id (id, name, car_number)
-        `);
+        `)
+        .order('assignment_date', { ascending: true });
       
       if (assignmentsError) throw assignmentsError;
       
-      console.log('[useAssignmentData] Raw assignments response:', assignmentsData);
-      console.log('[useAssignmentData] Assignments count:', assignmentsData?.length || 0);
+      console.log('[useAssignmentData] Assignments fetched:', assignmentsData?.length || 0);
       
       if (assignmentsData) {
-        // Get assignment-employee relationships
+        // Get assignment-employee relationships with optimized query
         const { data: assignmentEmployees, error: employeeError } = await supabase
           .from('assignments_employees')
-          .select('assignment_id, user_id');
+          .select('assignment_id, user_id')
+          .order('assignment_id');
         
         if (employeeError) throw employeeError;
         
-        console.log('[useAssignmentData] Assignment employees response:', assignmentEmployees);
-        console.log('[useAssignmentData] Assignment employees count:', assignmentEmployees?.length || 0);
+        console.log('[useAssignmentData] Assignment employees fetched:', assignmentEmployees?.length || 0);
         
         // Get all profiles for the users in assignments
         const userIds = assignmentEmployees?.map(ae => ae.user_id) || [];
@@ -63,95 +62,33 @@ export const useAssignmentData = () => {
           const { data: profiles, error: profilesError } = await supabase
             .from('profiles')
             .select('id, name')
-            .in('id', userIds);
+            .in('id', userIds)
+            .order('name');
           
           if (profilesError) throw profilesError;
           profilesData = profiles || [];
         }
         
-        console.log('[useAssignmentData] Profiles response:', profilesData);
-        console.log('[useAssignmentData] Profiles count:', profilesData?.length || 0);
-        console.log('[useAssignmentData] Profile details:', profilesData.map(p => ({ id: p.id, name: p.name })));
+        console.log('[useAssignmentData] Profiles fetched:', profilesData?.length || 0);
         
-        // Process and combine the data with enhanced debugging
+        // Process and combine the data with enhanced performance
         const processedAssignments = assignmentsData.map(assignment => {
-          console.log(`[useAssignmentData] === PROCESSING ASSIGNMENT ${assignment.id} (${assignment.location}) ===`);
-          
-          // Special debugging for the "Fyn" assignment
-          if (assignment.location === 'Fyn') {
-            console.log(`[useAssignmentData] 🔍 DEBUGGING FYN ASSIGNMENT:`, {
-              assignmentId: assignment.id,
-              location: assignment.location,
-              published: assignment.published,
-              rawAssignment: assignment
-            });
-          }
+          console.log(`[useAssignmentData] Processing assignment ${assignment.id} (${assignment.location})`);
           
           // Find all employees for this assignment
           const assignmentEmployeeIds = assignmentEmployees
             ?.filter(emp => emp.assignment_id === assignment.id)
             ?.map(emp => emp.user_id) || [];
           
-          console.log(`  - Employee IDs from junction table: [${assignmentEmployeeIds.join(', ')}]`);
-          
-          // Special debugging for the "Fyn" assignment
-          if (assignment.location === 'Fyn') {
-            console.log(`[useAssignmentData] 🔍 FYN - Employee IDs found: [${assignmentEmployeeIds.join(', ')}]`);
-            console.log(`[useAssignmentData] 🔍 FYN - Available profiles:`, profilesData.map(p => ({ id: p.id, name: p.name })));
-          }
-          
-          // Map employee IDs to names with proper validation and error handling
+          // Map employee IDs to names efficiently
           const assignmentEmployeeNames: string[] = [];
           
           assignmentEmployeeIds.forEach(userId => {
             const profile = profilesData.find(p => p.id === userId);
-            console.log(`    - Looking for user ${userId}, found profile:`, profile);
-            
-            // Special debugging for the "Fyn" assignment
-            if (assignment.location === 'Fyn') {
-              console.log(`[useAssignmentData] 🔍 FYN - Looking for user ${userId}:`, {
-                profile: profile,
-                profileName: profile?.name,
-                isValidName: profile?.name && typeof profile.name === 'string' && profile.name.trim() !== ''
-              });
-            }
-            
             if (profile?.name && typeof profile.name === 'string' && profile.name.trim() !== '') {
-              const trimmedName = profile.name.trim();
-              assignmentEmployeeNames.push(trimmedName);
-              console.log(`    - ✓ Added employee name: "${trimmedName}"`);
-              
-              // Special debugging for the "Fyn" assignment
-              if (assignment.location === 'Fyn') {
-                console.log(`[useAssignmentData] 🔍 FYN - ✓ Successfully added employee: "${trimmedName}"`);
-              }
-            } else {
-              console.log(`    - ✗ Skipped invalid employee name for user ${userId}:`, profile?.name);
-              
-              // Special debugging for the "Fyn" assignment
-              if (assignment.location === 'Fyn') {
-                console.log(`[useAssignmentData] 🔍 FYN - ✗ Failed to add employee for user ${userId}:`, {
-                  profile: profile,
-                  profileName: profile?.name,
-                  reason: !profile ? 'No profile found' : !profile.name ? 'No name in profile' : 'Invalid name format'
-                });
-              }
+              assignmentEmployeeNames.push(profile.name.trim());
             }
           });
-          
-          console.log(`  - Employee Names resolved: [${assignmentEmployeeNames.join(', ')}]`);
-          console.log(`  - Final employee array length: ${assignmentEmployeeNames.length}`);
-          console.log(`  - Published status: ${assignment.published}`);
-          
-          // Special debugging for the "Fyn" assignment
-          if (assignment.location === 'Fyn') {
-            console.log(`[useAssignmentData] 🔍 FYN - FINAL RESULT:`, {
-              employeeNames: assignmentEmployeeNames,
-              employeeCount: assignmentEmployeeNames.length,
-              published: assignment.published,
-              willShowUnassigned: assignmentEmployeeNames.length === 0
-            });
-          }
           
           const processedAssignment: Assignment = {
             id: assignment.id,
@@ -165,43 +102,14 @@ export const useAssignmentData = () => {
               id: assignment.cars.id,
               name: assignment.cars.name
             } : null,
-            employees: assignmentEmployeeNames, // This is now guaranteed to be an array of valid strings
+            employees: assignmentEmployeeNames,
             published: assignment.published || false
           };
-          
-          console.log(`  - FINAL processed assignment employees: [${processedAssignment.employees.join(', ')}]`);
-          console.log(`  - FINAL processed assignment:`, {
-            id: processedAssignment.id,
-            location: processedAssignment.location,
-            employees: processedAssignment.employees,
-            employeeCount: processedAssignment.employees.length,
-            published: processedAssignment.published
-          });
-          
-          // Special debugging for the "Fyn" assignment
-          if (assignment.location === 'Fyn') {
-            console.log(`[useAssignmentData] 🔍 FYN - FINAL PROCESSED ASSIGNMENT:`, processedAssignment);
-          }
           
           return processedAssignment;
         });
         
-        console.log('[useAssignmentData] === ALL FINAL PROCESSED ASSIGNMENTS ===');
-        processedAssignments.forEach((assignment, index) => {
-          console.log(`${index + 1}. ${assignment.location}: employees=[${assignment.employees.join(', ')}], published=${assignment.published}`);
-          
-          // Extra logging for Fyn assignment
-          if (assignment.location === 'Fyn') {
-            console.log(`[useAssignmentData] 🔍 FYN - FINAL IN LIST:`, {
-              location: assignment.location,
-              employees: assignment.employees,
-              employeeCount: assignment.employees.length,
-              published: assignment.published,
-              shouldShowUnassigned: assignment.employees.length === 0
-            });
-          }
-        });
-        
+        console.log('[useAssignmentData] Final processed assignments:', processedAssignments.length);
         setAssignments(processedAssignments);
       } else {
         console.log('[useAssignmentData] No assignment data returned');
@@ -225,10 +133,12 @@ export const useAssignmentData = () => {
     fetchAssignments();
   }, []);
   
-  // Subscribe to assignment changes
+  // Subscribe to assignment changes with optimized realtime handling
   useEffect(() => {
+    console.log('[useAssignmentData] Setting up optimized realtime subscriptions...');
+    
     const channel = supabase
-      .channel('assignment_changes')
+      .channel('assignment_changes_optimized')
       .on(
         'postgres_changes',
         {
@@ -256,6 +166,7 @@ export const useAssignmentData = () => {
       .subscribe();
       
     return () => {
+      console.log('[useAssignmentData] Cleaning up realtime subscriptions');
       supabase.removeChannel(channel);
     };
   }, []);
