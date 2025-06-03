@@ -28,7 +28,20 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
   const formatDate = (date: Date) => {
     const locale = currentLanguage === 'da' ? da : undefined;
-    return format(date, 'PPP', { locale });
+    
+    // Format with day name first for Danish, e.g., "Tirsdag, 3. jun 2025"
+    if (currentLanguage === 'da') {
+      const dayName = format(date, 'EEEE', { locale }); // Full day name
+      const dateFormatted = format(date, 'd. MMM yyyy', { locale }); // Day with period, month abbreviation
+      
+      // Capitalize first letter of day name
+      const capitalizedDayName = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+      
+      return `${capitalizedDayName}, ${dateFormatted}`;
+    } else {
+      // For English, use a similar format: "Tuesday, 3 Jun 2025"
+      return format(date, 'EEEE, d MMM yyyy', { locale });
+    }
   };
 
   const getUnassignedEmployees = (date: Date) => {

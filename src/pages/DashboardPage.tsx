@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -93,10 +94,39 @@ const DashboardPage: React.FC = () => {
     
     return isInWeek;
   }).sort((a, b) => {
-    // Sort by date first (earliest first)
+    // Get today's date in YYYY-MM-DD format
+    const today = format(new Date(), 'yyyy-MM-dd');
+    
+    // Priority sorting: today first, then future dates, then past dates
+    const aIsToday = a.date === today;
+    const bIsToday = b.date === today;
+    const aIsFuture = a.date > today;
+    const bIsFuture = b.date > today;
+    const aIsPast = a.date < today;
+    const bIsPast = b.date < today;
+    
+    // Today's assignments at the top
+    if (aIsToday && !bIsToday) return -1;
+    if (!aIsToday && bIsToday) return 1;
+    
+    // Future assignments before past assignments
+    if (aIsFuture && bIsPast) return -1;
+    if (aIsPast && bIsFuture) return 1;
+    
+    // Within the same category (today, future, or past), sort by date and time
     if (a.date !== b.date) {
+      // For future dates, sort earliest first
+      if (aIsFuture && bIsFuture) {
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      }
+      // For past dates, sort latest first (most recent past dates first)
+      if (aIsPast && bIsPast) {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      }
+      // Default date comparison
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     }
+    
     // If same date, sort by fromTime (earliest first)
     return a.fromTime.localeCompare(b.fromTime);
   });
