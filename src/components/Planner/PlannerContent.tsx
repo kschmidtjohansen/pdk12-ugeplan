@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
@@ -15,7 +14,6 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
 import { Monitor } from 'lucide-react';
-
 interface PlannerContentProps {
   weekAssignments: Assignment[];
   onEditAssignment: (assignment: Assignment) => void;
@@ -29,7 +27,6 @@ interface PlannerContentProps {
   weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
   handleShowOnScreen: () => void;
 }
-
 const PlannerContent: React.FC<PlannerContentProps> = ({
   weekAssignments = [],
   onEditAssignment,
@@ -43,11 +40,22 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   weekDates,
   handleShowOnScreen
 }) => {
-  const { t } = useTranslation();
-  const { canEdit, canPublishTasks } = usePermissions();
-  const { employees } = useEmployees();
-  const { cars } = useCars();
-  const { vacations } = useVacations();
+  const {
+    t
+  } = useTranslation();
+  const {
+    canEdit,
+    canPublishTasks
+  } = usePermissions();
+  const {
+    employees
+  } = useEmployees();
+  const {
+    cars
+  } = useCars();
+  const {
+    vacations
+  } = useVacations();
 
   // DEBUGGING: Log assignments received by PlannerContent
   console.log(`[PlannerContent] Received ${weekAssignments.length} week assignments:`);
@@ -59,13 +67,12 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     console.log(`    - Published:`, assignment.published);
     console.log(`    - Assignment object:`, assignment);
   });
-
   const isMobile = window.innerWidth < 768;
 
   // Group assignments by day
   const groupedAssignments = useMemo(() => {
     const grouped = groupAssignmentsByDay(weekAssignments || []);
-    
+
     // DEBUGGING: Log grouped assignments
     console.log(`[PlannerContent] Grouped assignments:`, grouped);
     Object.entries(grouped).forEach(([date, assignments]: [string, Assignment[]]) => {
@@ -76,7 +83,6 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         console.log(`      - Employee count:`, assignment.employees?.length || 0);
       });
     });
-    
     return grouped;
   }, [weekAssignments]);
 
@@ -109,7 +115,10 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   const todayStr = format(today, 'yyyy-MM-dd');
 
   // Split dates into past and current/future
-  const { pastDates, currentAndFutureDates } = useMemo(() => {
+  const {
+    pastDates,
+    currentAndFutureDates
+  } = useMemo(() => {
     if (!Array.isArray(weekDateStrings)) {
       return {
         pastDates: [],
@@ -140,66 +149,24 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       currentAndFutureDates: []
     });
   }, [weekDateStrings, today]);
-
   if (Array.isArray(weekAssignments) && weekAssignments.length === 0 && !canEdit) {
     return <EmptyState message={t("planner.noAssignmentsWeek")} />;
   }
-
-  return (
-    <div className="space-y-6 pb-6">
+  return <div className="space-y-6 pb-6">
       {/* Unassigned Resources Section for admin/skadeleder only */}
-      {(canEdit || canPublishTasks) && (
-        <UnassignedResourcesSection 
-          assignments={weekAssignments} 
-          employees={employees} 
-          cars={cars}
-          vacations={vacations}
-        />
-      )}
+      {(canEdit || canPublishTasks) && <UnassignedResourcesSection assignments={weekAssignments} employees={employees} cars={cars} vacations={vacations} />}
       
       {/* Show on Screen Button */}
-      {canPublishTasks && (
-        <div className="flex justify-center mb-4">
-          <Button 
-            onClick={handleShowOnScreen} 
-            size="sm" 
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
-          >
+      {canPublishTasks && <div className="flex justify-center mb-4">
+          <Button onClick={handleShowOnScreen} size="sm" className="flex items-center gap-2 text-white shadow-lg bg-polygon-blue">
             <Monitor className="h-4 w-4" />
             {t('planner.showOnScreen')}
           </Button>
-        </div>
-      )}
+        </div>}
       
-      <CurrentAndFutureDays 
-        dates={currentAndFutureDates || []} 
-        groupedAssignments={groupedAssignments || {}} 
-        expandedDays={expandedDays} 
-        onToggleExpansion={handleToggleExpansion} 
-        onPublishDay={onPublishDay} 
-        onEditAssignment={onEditAssignment} 
-        onDeleteAssignment={onDeleteAssignment} 
-        onPublishAssignment={onPublishAssignment} 
-        onCopyAssignment={onCopyAssignment} 
-        canEdit={canEdit} 
-        canPublishTasks={canPublishTasks} 
-      />
+      <CurrentAndFutureDays dates={currentAndFutureDates || []} groupedAssignments={groupedAssignments || {}} expandedDays={expandedDays} onToggleExpansion={handleToggleExpansion} onPublishDay={onPublishDay} onEditAssignment={onEditAssignment} onDeleteAssignment={onDeleteAssignment} onPublishAssignment={onPublishAssignment} onCopyAssignment={onCopyAssignment} canEdit={canEdit} canPublishTasks={canPublishTasks} />
       
-      <PastAssignments 
-        pastDates={pastDates || []} 
-        groupedAssignments={groupedAssignments || {}} 
-        expandedDays={expandedDays} 
-        onToggleExpansion={handleToggleExpansion} 
-        onPublishDay={onPublishDay} 
-        onEditAssignment={onEditAssignment} 
-        onDeleteAssignment={onDeleteAssignment} 
-        onPublishAssignment={onPublishAssignment} 
-        onCopyAssignment={onCopyAssignment} 
-        canEdit={canEdit} 
-        canPublishTasks={canPublishTasks} 
-      />
-    </div>
-  );
+      <PastAssignments pastDates={pastDates || []} groupedAssignments={groupedAssignments || {}} expandedDays={expandedDays} onToggleExpansion={handleToggleExpansion} onPublishDay={onPublishDay} onEditAssignment={onEditAssignment} onDeleteAssignment={onDeleteAssignment} onPublishAssignment={onPublishAssignment} onCopyAssignment={onCopyAssignment} canEdit={canEdit} canPublishTasks={canPublishTasks} />
+    </div>;
 };
-
 export default PlannerContent;
