@@ -37,9 +37,9 @@ const MainLayout: React.FC = () => {
     <div className="flex flex-col min-h-screen w-full">
       <TopNavbar />
       
-      {/* Main Content with modern background */}
-      <main className="flex-1 page-container w-full max-w-full">
-        <div className="animate-fade-in-up">
+      {/* Main Content with full width */}
+      <main className="flex-1 w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
+        <div className="animate-fade-in-up w-full">
           <Outlet />
         </div>
       </main>
