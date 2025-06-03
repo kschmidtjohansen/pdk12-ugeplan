@@ -244,9 +244,9 @@ const DashboardPage: React.FC = () => {
           </div>}
 
         {/* Enhanced Weekly Assignments */}
-        <Card className="border-2 border-border/50 shadow-2xl bg-gradient-to-br from-card to-card/50 animate-fade-in-up" style={{
+        <Card style={{
         animationDelay: '0.4s'
-      }}>
+      }} className="border-2 border-border/50 shadow-2xl bg-gradient-to-br from-card to-card">
           <CardHeader className="pb-6">
             <CardTitle className="flex justify-between items-center">
               <div className="flex items-center gap-4">
