@@ -62,18 +62,23 @@ const PlannerPage: React.FC = () => {
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
           
           <div className="relative z-10 flex items-center justify-between">
-            <div className="space-y-3">
-              <h1 className="text-3xl font-bold tracking-tight">
-                {t("navigation.planner")}
-              </h1>
-              <p className="text-blue-100 text-lg font-medium">
-                {t('planner.weekView', {
-                  week: selectedWeek,
-                  year: selectedYear,
-                  start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
-                  end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
-                })}
-              </p>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30">
+                <Clock className="h-6 w-6 text-white" />
+              </div>
+              <div className="space-y-3">
+                <h1 className="text-3xl font-bold tracking-tight">
+                  {t("navigation.planner")}
+                </h1>
+                <p className="text-blue-100 text-lg font-medium">
+                  {t('planner.weekView', {
+                    week: selectedWeek,
+                    year: selectedYear,
+                    start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
+                    end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
+                  })}
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-4">
               {/* Week Navigation */}
@@ -126,10 +131,6 @@ const PlannerPage: React.FC = () => {
                     {t('planner.createNew')}
                   </Button>
                 )}
-              </div>
-
-              <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30">
-                <Clock className="h-6 w-6 text-white" />
               </div>
             </div>
           </div>

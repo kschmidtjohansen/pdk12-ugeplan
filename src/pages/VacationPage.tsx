@@ -17,17 +17,17 @@ const VacationPage: React.FC = () => {
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
           
           <div className="relative z-10 flex items-center justify-between">
-            <div className="space-y-3">
-              <h1 className="text-3xl font-bold tracking-tight">
-                {t("navigation.vacation")}
-              </h1>
-              <p className="text-blue-100 text-lg font-medium">
-                {t("vacation.pageDescription")}
-              </p>
-            </div>
             <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30">
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30">
                 <Calendar className="h-6 w-6 text-white" />
+              </div>
+              <div className="space-y-3">
+                <h1 className="text-3xl font-bold tracking-tight">
+                  {t("navigation.vacation")}
+                </h1>
+                <p className="text-blue-100 text-lg font-medium">
+                  {t("vacation.pageDescription")}
+                </p>
               </div>
             </div>
           </div>

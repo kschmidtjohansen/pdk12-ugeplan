@@ -229,21 +229,26 @@ const DashboardPage: React.FC = () => {
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
           
           <div className="relative z-10 flex items-center justify-between">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold tracking-tight">
-                  Hej {user?.name || 'Bruger'}! 👋
-                </h1>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30">
+                <Clock className="h-6 w-6 text-white" />
               </div>
-              <p className="text-blue-100 text-lg font-medium max-w-2xl">
-                {dailyQuote}
-              </p>
-              <p className="text-blue-200 text-sm">
-                {t('dashboard.today', {
-                date: getFormattedDate(),
-                week: todayISOWeek
-              })}
-              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-3xl font-bold tracking-tight">
+                    Hej {user?.name || 'Bruger'}! 👋
+                  </h1>
+                </div>
+                <p className="text-blue-100 text-lg font-medium max-w-2xl">
+                  {dailyQuote}
+                </p>
+                <p className="text-blue-200 text-sm">
+                  {t('dashboard.today', {
+                  date: getFormattedDate(),
+                  week: todayISOWeek
+                })}
+                </p>
+              </div>
             </div>
             <div className="hidden md:block">
               <div className="text-right space-y-2">
@@ -251,11 +256,11 @@ const DashboardPage: React.FC = () => {
                   <p className="text-blue-100 uppercase tracking-wider font-semibold text-base">
                     {headerDate.dayName}
                   </p>
-                  <p className="font-bold text-base text-blue-100">
-                    {headerDate.dateString}
-                  </p>
                   <p className="uppercase tracking-wider font-semibold text-2xl text-white">
                     Uge {headerDate.weekNumber}
+                  </p>
+                  <p className="font-bold text-base text-blue-100">
+                    {headerDate.dateString}
                   </p>
                 </div>
               </div>
