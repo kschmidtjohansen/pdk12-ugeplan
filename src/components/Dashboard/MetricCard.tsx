@@ -1,9 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
 interface MetricCardProps {
   title: string;
   value: number | string;
@@ -17,7 +15,6 @@ interface MetricCardProps {
   onClick?: () => void;
   className?: string;
 }
-
 const MetricCard: React.FC<MetricCardProps> = ({
   title,
   value,
@@ -55,59 +52,33 @@ const MetricCard: React.FC<MetricCardProps> = ({
       hover: 'hover:border-purple-300 hover:shadow-purple-500/20'
     }
   };
-
   const classes = colorClasses[color];
-
-  return (
-    <Card 
-      className={cn(
-        'relative overflow-hidden transition-all duration-300 border-l-4 shadow-lg hover:shadow-2xl animate-scale-in bg-gradient-to-br from-card to-card/50 border-2 border-border/50',
-        classes.accent,
-        onClick && 'cursor-pointer hover:scale-[1.02]',
-        onClick && classes.hover,
-        className
-      )}
-      onClick={onClick}
-    >
+  return <Card className={cn('relative overflow-hidden transition-all duration-300 border-l-4 shadow-lg hover:shadow-2xl animate-scale-in bg-gradient-to-br from-card to-card/50 border-2 border-border/50', classes.accent, onClick && 'cursor-pointer hover:scale-[1.02]', onClick && classes.hover, className)} onClick={onClick}>
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
       
-      <CardContent className="p-8 relative z-10">
+      <CardContent className="p-8 relative z-10 py-[16px]">
         <div className="flex items-start justify-between">
           <div className="flex-1 space-y-3">
-            <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            <p className="font-semibold text-muted-foreground uppercase tracking-wider text-xs">
               {title}
             </p>
             <div className="flex items-baseline gap-3">
               <p className="text-4xl font-bold tracking-tight">
                 {value}
               </p>
-              {trend && (
-                <span className={cn(
-                  'text-sm font-bold px-3 py-1.5 rounded-full border',
-                  trend.isPositive 
-                    ? 'text-green-700 bg-green-50 border-green-200' 
-                    : 'text-red-700 bg-red-50 border-red-200'
-                )}>
+              {trend && <span className={cn('text-sm font-bold px-3 py-1.5 rounded-full border', trend.isPositive ? 'text-green-700 bg-green-50 border-green-200' : 'text-red-700 bg-red-50 border-red-200')}>
                   {trend.isPositive ? '+' : ''}{trend.value}%
-                </span>
-              )}
+                </span>}
             </div>
-            {subtitle && (
-              <p className="text-sm text-muted-foreground leading-relaxed">
+            {subtitle && <p className="text-sm text-muted-foreground leading-relaxed">
                 {subtitle}
-              </p>
-            )}
+              </p>}
           </div>
-          <div className={cn(
-            'p-4 rounded-2xl border-2 transition-all duration-300 hover:scale-110',
-            classes.icon
-          )}>
+          <div className={cn('p-4 rounded-2xl border-2 transition-all duration-300 hover:scale-110', classes.icon)}>
             <Icon className="h-8 w-8" />
           </div>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default MetricCard;
