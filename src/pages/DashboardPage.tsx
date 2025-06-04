@@ -285,10 +285,10 @@ const DashboardPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Enhanced Dashboard Metrics - Pass selectedDate */}
+        {/* Enhanced Dashboard Metrics - Pass assignments data */}
         {shouldShowMetrics && (
           <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <DashboardMetrics selectedDate={selectedDateForMetrics} />
+            <DashboardMetrics selectedDate={selectedDateForMetrics} assignments={assignments} />
           </div>
         )}
 
