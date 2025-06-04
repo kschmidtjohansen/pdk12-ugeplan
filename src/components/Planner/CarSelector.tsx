@@ -15,8 +15,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 interface CarSelectorProps {
   cars: Car[];
-  selectedCarId: string;  // Changed to single car ID
-  onCarSelect: (carId: string) => void;  // Changed to single car ID
+  selectedCarId: string;
+  onCarSelect: (carId: string) => void;
   currentDate: string;
   assignments?: Assignment[];
   currentAssignmentId?: string;
@@ -183,8 +183,20 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-50 bg-white border shadow-lg" align="start">
-          <div className="max-h-60 overflow-y-auto p-2 space-y-1">
+        <PopoverContent 
+          className="w-[--radix-popover-trigger-width] p-0 z-50 bg-white border shadow-lg" 
+          align="start"
+          onWheel={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <div 
+            className="max-h-60 overflow-y-auto p-2 space-y-1"
+            style={{ 
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'rgb(203 213 225) transparent'
+            }}
+          >
             {/* No car option */}
             <div className="flex items-center space-x-2 p-2 hover:bg-accent rounded cursor-pointer">
               <Checkbox
@@ -230,7 +242,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                     <div className="flex gap-1 flex-shrink-0 ml-2">
                       {isUnavailable && (
                         <Badge variant="outline" className="text-xs">
-                          Unavailable
+                          {t('common.unavailable')}
                         </Badge>
                       )}
                       {carUsage.isAssigned && !isUnavailable && (
@@ -241,7 +253,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                               : 'bg-yellow-100 text-yellow-800 border-yellow-200'
                           }`}
                         >
-                          In use until {carUsage.latestEndTime}
+                          {t('cars.inUse', { time: carUsage.latestEndTime })}
                         </Badge>
                       )}
                     </div>

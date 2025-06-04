@@ -2,40 +2,38 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { NavigationItem } from '../../../types/navigation';
-import { Badge } from '@/components/ui/badge';
+import { NavItem } from '@/types/navigation';
 
 interface DesktopNavigationProps {
-  items: NavigationItem[];
+  items: NavItem[];
 }
 
 const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
   const location = useLocation();
-  
+
   return (
-    <div className="hidden md:ml-6 md:flex md:space-x-4">
-      {items.map((item) => (
-        <Link
-          key={item.path}
-          to={item.path}
-          className={cn(
-            "px-3 py-2 rounded-md text-sm font-medium flex items-center relative",
-            // Simplify the path matching logic - only consider the exact path match
-            location.pathname === item.path 
-              ? "bg-polygon-blue text-white" 
-              : "text-gray-700 hover:bg-polygon-lightgray"
-          )}
-        >
-          <span className="mr-2">{item.icon}</span>
-          <span>{item.name}</span>
-          
-          {/* Notification indicator */}
-          {item.hasNotification && (
-            <Badge className="absolute -top-1 -right-1 h-2 w-2 p-0 bg-red-500" />
-          )}
-        </Link>
-      ))}
-    </div>
+    <nav className="hidden md:flex items-center space-x-1">
+      {items.map((item) => {
+        const isActive = location.pathname === item.href;
+        const IconComponent = item.icon;
+        
+        return (
+          <Link
+            key={item.href}
+            to={item.href}
+            className={cn(
+              'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+              isActive
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+            )}
+          >
+            {IconComponent && <IconComponent className="h-4 w-4 flex-shrink-0" />}
+            <span>{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 };
 
