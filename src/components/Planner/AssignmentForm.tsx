@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
@@ -88,7 +87,19 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   // Handle responsible user selection
   const handleResponsibleUserSelect = (userId: string) => {
     console.log('Responsible user selection:', userId);
-    onFormDataChange({ responsibleUser: { id: userId } });
+    // Find the employee to get their name
+    const selectedEmployee = employees.find(emp => emp.id === userId);
+    if (selectedEmployee) {
+      onFormDataChange({ 
+        responsibleUser: { 
+          id: userId, 
+          name: selectedEmployee.name 
+        } 
+      });
+    } else {
+      // If no employee found, clear the responsible user
+      onFormDataChange({ responsibleUser: null });
+    }
   };
 
   // Handle date selection
