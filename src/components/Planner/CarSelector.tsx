@@ -15,8 +15,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 interface CarSelectorProps {
   cars: Car[];
-  selectedCarId: string;
-  onCarSelect: (carId: string) => void;
+  selectedCarIds: string[];
+  onCarSelect: (carIds: string[]) => void;
   currentDate: string;
   assignments?: Assignment[];
   currentAssignmentId?: string;
@@ -24,7 +24,7 @@ interface CarSelectorProps {
 
 export const CarSelector: React.FC<CarSelectorProps> = ({
   cars,
-  selectedCarId,
+  selectedCarIds,
   onCarSelect,
   currentDate,
   assignments = [],
@@ -133,42 +133,45 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
     console.log(`[CarSelector] Car toggle: ${carId}, checked: ${checked}`);
     
     if (carId === 'none') {
-      // If "No car" is selected, clear selection
-      onCarSelect(checked ? '' : '');
+      // If "No car" is selected, clear all selections
+      onCarSelect(checked ? [] : selectedCarIds);
     } else {
       if (checked) {
-        // Select this car
-        onCarSelect(carId);
+        // Add this car to selection
+        const newSelection = [...selectedCarIds, carId];
+        onCarSelect(newSelection);
       } else {
-        // Deselect if it was the selected car
-        if (selectedCarId === carId) {
-          onCarSelect('');
-        }
+        // Remove this car from selection
+        const newSelection = selectedCarIds.filter(id => id !== carId);
+        onCarSelect(newSelection);
       }
     }
   };
 
-  // FIXED: Get display text for selected car - handle all cases properly
-  const getSelectedCarDisplay = () => {
-    console.log(`[CarSelector] getSelectedCarDisplay - selectedCarId: "${selectedCarId}"`);
+  // FIXED: Get display text for selected cars - handle multiple cars
+  const getSelectedCarsDisplay = () => {
+    console.log(`[CarSelector] getSelectedCarsDisplay - selectedCarIds:`, selectedCarIds);
     
-    // Handle empty string or null/undefined
-    if (!selectedCarId || selectedCarId === '') {
+    // Handle empty array
+    if (!selectedCarIds || selectedCarIds.length === 0) {
       return t('planner.selectCar');
     }
     
-    // Find the car by ID
-    const car = cars.find(car => car.id === selectedCarId);
-    if (car) {
-      console.log(`[CarSelector] Found car: ${car.name}`);
-      return car.name;
+    // Find the selected cars
+    const selectedCars = cars.filter(car => selectedCarIds.includes(car.id));
+    
+    if (selectedCars.length === 0) {
+      return t('planner.selectCar');
     }
     
-    console.log(`[CarSelector] Car not found for ID: ${selectedCarId}`);
-    return t('planner.selectCar');
+    if (selectedCars.length === 1) {
+      return selectedCars[0].name;
+    }
+    
+    return `${selectedCars.length} ${t('cars.carsSelected')}`;
   };
 
-  console.log(`[CarSelector] Rendering - selectedCarId: "${selectedCarId}", cars count: ${cars.length}`);
+  console.log(`[CarSelector] Rendering - selectedCarIds:`, selectedCarIds, `cars count: ${cars.length}`);
 
   return (
     <div className="space-y-2">
@@ -179,7 +182,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
             role="combobox"
             className="w-full justify-between"
           >
-            {getSelectedCarDisplay()}
+            {getSelectedCarsDisplay()}
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -201,7 +204,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
             <div className="flex items-center space-x-2 p-2 hover:bg-accent rounded cursor-pointer">
               <Checkbox
                 id="none"
-                checked={!selectedCarId || selectedCarId === ''}
+                checked={selectedCarIds.length === 0}
                 onCheckedChange={(checked) => handleCarToggle('none', checked as boolean)}
               />
               <label htmlFor="none" className="flex-1 cursor-pointer text-sm">
@@ -212,7 +215,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
             {cars.map(car => {
               const isUnavailable = !car.is_available;
               const carUsage = isCarInUse(car.id);
-              const isSelected = selectedCarId === car.id;
+              const isSelected = selectedCarIds.includes(car.id);
               
               // ENHANCED: Stronger red styling for 16:00 end times with higher CSS specificity
               const hasRedStyling = carUsage.hasEndTimeAtSixteen;
@@ -265,25 +268,28 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
         </PopoverContent>
       </Popover>
       
-      {/* Display selected car as removable chip */}
-      {selectedCarId && selectedCarId !== '' && (
+      {/* Display selected cars as removable chips */}
+      {selectedCarIds && selectedCarIds.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {(() => {
-            const car = cars.find(c => c.id === selectedCarId);
+          {selectedCarIds.map(carId => {
+            const car = cars.find(c => c.id === carId);
             if (!car) return null;
             
             return (
-              <Badge key={selectedCarId} variant="secondary" className="flex items-center gap-1">
+              <Badge key={carId} variant="secondary" className="flex items-center gap-1">
                 {car.name}
                 <button
-                  onClick={() => onCarSelect('')}
+                  onClick={() => {
+                    const newSelection = selectedCarIds.filter(id => id !== carId);
+                    onCarSelect(newSelection);
+                  }}
                   className="ml-1 hover:bg-muted rounded-full p-0.5"
                 >
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
             );
-          })()}
+          })}
         </div>
       )}
     </div>
