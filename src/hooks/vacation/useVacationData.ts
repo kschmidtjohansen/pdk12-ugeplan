@@ -18,7 +18,7 @@ export const useVacationData = () => {
       setLoading(true);
       setError(null);
       
-      console.log('Fetching vacations...');
+      console.log('[useVacationData] Fetching vacations...');
       
       // Get all vacations with employee names through an explicit join query
       const { data, error } = await supabase
@@ -38,7 +38,7 @@ export const useVacationData = () => {
       if (error) throw error;
       
       if (data) {
-        console.log(`Fetched ${data.length} vacations`);
+        console.log(`[useVacationData] Fetched ${data.length} vacations`);
         
         // Get all user profiles in a separate query
         const { data: profiles, error: profilesError } = await supabase
@@ -53,23 +53,40 @@ export const useVacationData = () => {
           profileMap.set(profile.id, profile.name);
         });
         
-        const formattedVacations: Vacation[] = data.map(item => ({
-          id: item.id,
-          employeeId: item.user_id, // FIXED: Map user_id to employeeId consistently
-          employeeName: profileMap.get(item.user_id) || 'Unknown',
-          startDate: new Date(item.start_date),
-          endDate: new Date(item.end_date),
-          reason: item.reason || '',
-          status: item.status as VacationStatus,
-          notes: item.notes || '',
-          createdAt: new Date(item.created_at)
-        }));
+        const formattedVacations: Vacation[] = data.map(item => {
+          // Ensure dates are properly parsed as Date objects
+          const startDate = new Date(item.start_date);
+          const endDate = new Date(item.end_date);
+          
+          const vacation: Vacation = {
+            id: item.id,
+            employeeId: item.user_id, // CONSISTENT: Map user_id to employeeId
+            employeeName: profileMap.get(item.user_id) || 'Unknown',
+            startDate: startDate,
+            endDate: endDate,
+            reason: item.reason || '',
+            status: item.status as VacationStatus,
+            notes: item.notes || '',
+            createdAt: new Date(item.created_at)
+          };
+          
+          console.log('[useVacationData] Processed vacation:', {
+            id: vacation.id,
+            employeeId: vacation.employeeId,
+            employeeName: vacation.employeeName,
+            startDate: vacation.startDate.toISOString().split('T')[0],
+            endDate: vacation.endDate.toISOString().split('T')[0],
+            status: vacation.status
+          });
+          
+          return vacation;
+        });
         
-        console.log('Formatted vacations with consistent employeeId mapping:', formattedVacations);
+        console.log('[useVacationData] Formatted vacations with consistent employeeId mapping:', formattedVacations.length);
         setVacations(formattedVacations);
       }
     } catch (err) {
-      console.error('Error fetching vacations:', err);
+      console.error('[useVacationData] Error fetching vacations:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch vacations');
       toast({
         title: t('common.error'),
@@ -88,7 +105,7 @@ export const useVacationData = () => {
   
   // Subscribe to vacation changes
   useEffect(() => {
-    console.log('Setting up vacation realtime subscription...');
+    console.log('[useVacationData] Setting up vacation realtime subscription...');
     
     const channel = supabase
       .channel('vacation_changes')
@@ -100,11 +117,11 @@ export const useVacationData = () => {
           table: 'vacations'
         },
         (payload) => {
-          console.log('Received vacation change event:', payload.eventType, payload);
+          console.log('[useVacationData] Received vacation change event:', payload.eventType, payload);
           
           // Use different strategies based on the event type
           if (payload.eventType === 'DELETE') {
-            console.log('Vacation deleted:', payload.old.id);
+            console.log('[useVacationData] Vacation deleted:', payload.old.id);
             // Remove the deleted vacation from the local state
             setVacations(current => 
               current.filter(v => v.id !== payload.old.id)
@@ -117,11 +134,11 @@ export const useVacationData = () => {
         }
       )
       .subscribe((status) => {
-        console.log('Vacation realtime subscription status:', status);
+        console.log('[useVacationData] Vacation realtime subscription status:', status);
       });
       
     return () => {
-      console.log('Cleaning up vacation realtime subscription');
+      console.log('[useVacationData] Cleaning up vacation realtime subscription');
       supabase.removeChannel(channel);
     };
   }, []);

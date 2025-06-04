@@ -57,15 +57,46 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
   // Get available and partially available employees only
   const getAvailableEmployees = (date: Date) => {
-    return employees
-      .filter(employee => employee.role === 'servicemedarbejder')
-      .map(employee => ({
-        employee,
-        status: getEmployeeAvailabilityStatus(employee, date, assignments, vacations, t)
-      }))
-      .filter(({ status }) => 
-        status.status === 'available' || status.status === 'partiallyBooked'
-      );
+    const dateStr = format(date, 'yyyy-MM-dd');
+    console.log(`[UnassignedResourcesSection] === CALCULATING AVAILABLE EMPLOYEES FOR DATE: ${dateStr} ===`);
+    console.log(`[UnassignedResourcesSection] Total employees: ${employees.length}`);
+    console.log(`[UnassignedResourcesSection] Total assignments: ${assignments.length}`);
+    console.log(`[UnassignedResourcesSection] Total vacations: ${vacations.length}`);
+    
+    // Filter to service employees only
+    const serviceEmployees = employees.filter(employee => {
+      const isService = employee.role === 'servicemedarbejder';
+      console.log(`[UnassignedResourcesSection] Employee ${employee.name}: role=${employee.role}, isService=${isService}`);
+      return isService;
+    });
+    
+    console.log(`[UnassignedResourcesSection] Service employees: ${serviceEmployees.length}`);
+    
+    const availableEmployeesWithStatus = serviceEmployees
+      .map(employee => {
+        console.log(`[UnassignedResourcesSection] === Checking availability for ${employee.name} ===`);
+        
+        const status = getEmployeeAvailabilityStatus(employee, date, assignments, vacations, t);
+        
+        console.log(`[UnassignedResourcesSection] Employee ${employee.name}: status=${status.status}, statusText="${status.statusText}"`);
+        
+        return {
+          employee,
+          status
+        };
+      })
+      .filter(({ status }) => {
+        const isAvailable = status.status === 'available' || status.status === 'partiallyBooked';
+        console.log(`[UnassignedResourcesSection] Status ${status.status} -> isAvailable: ${isAvailable}`);
+        return isAvailable;
+      });
+      
+    console.log(`[UnassignedResourcesSection] === FINAL AVAILABLE EMPLOYEES: ${availableEmployeesWithStatus.length} ===`);
+    availableEmployeesWithStatus.forEach(({ employee, status }) => {
+      console.log(`  - ${employee.name}: ${status.status}`);
+    });
+    
+    return availableEmployeesWithStatus;
   };
 
   const unassignedCars = getUnassignedCars(selectedDate);

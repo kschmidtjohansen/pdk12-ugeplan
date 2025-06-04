@@ -20,6 +20,8 @@ export const useEmployeeData = () => {
       setLoading(true);
       setError(null);
       
+      console.log('[useEmployeeData] Starting to fetch employees...');
+      
       // First get all profiles including avatar_url
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
@@ -37,6 +39,8 @@ export const useEmployeeData = () => {
       
       if (profilesError) throw profilesError;
       
+      console.log('[useEmployeeData] Fetched profiles:', profilesData?.length || 0);
+      
       // Then get all roles for these users
       if (profilesData && profilesData.length > 0) {
         const userIds = profilesData.map(profile => profile.id);
@@ -48,33 +52,51 @@ export const useEmployeeData = () => {
         
         if (rolesError) throw rolesError;
         
-        console.log("Roles data:", rolesData);
+        console.log('[useEmployeeData] Fetched roles:', rolesData?.length || 0);
+        console.log('[useEmployeeData] Roles data:', rolesData);
         
-        // Combine the data - REMOVED vacation checking from here
+        // Combine the data
         const formattedEmployees: Employee[] = profilesData.map(item => {
           // Find the role for this user
           const userRole = rolesData?.find(r => r.user_id === item.id);
           
-          return {
+          const employee: Employee = {
             id: item.id,
             name: item.name,
             email: item.email,
             phone: item.phone || '',
             jobTitle: item.job_title || '',
             role: userRole ? userRole.role as UserRole : 'servicemedarbejder',
-            onLeave: item.on_leave || false, // Only use manual on_leave status
+            onLeave: item.on_leave || false,
             notes: item.notes || '',
             onApprovedVacation: false, // Will be calculated date-specifically when needed
             avatar_url: item.avatar_url || undefined
           };
+          
+          console.log('[useEmployeeData] Processed employee:', {
+            id: employee.id,
+            name: employee.name,
+            role: employee.role,
+            onLeave: employee.onLeave
+          });
+          
+          return employee;
+        });
+        
+        // Filter and log servicemedarbejder employees specifically
+        const serviceEmployees = formattedEmployees.filter(emp => emp.role === 'servicemedarbejder');
+        console.log('[useEmployeeData] Service employees (servicemedarbejder role):', serviceEmployees.length);
+        serviceEmployees.forEach(emp => {
+          console.log(`  - ${emp.name} (${emp.id}) - onLeave: ${emp.onLeave}`);
         });
         
         setEmployees(formattedEmployees);
       } else {
+        console.log('[useEmployeeData] No profiles found');
         setEmployees([]);
       }
     } catch (err) {
-      console.error('Error fetching employees:', err);
+      console.error('[useEmployeeData] Error fetching employees:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch employees');
       toast({
         title: t('common.error'),
@@ -103,6 +125,7 @@ export const useEmployeeData = () => {
           table: 'profiles'
         },
         () => {
+          console.log('[useEmployeeData] Received profile change, refreshing...');
           fetchEmployees(); // Refresh when changes occur
         }
       )

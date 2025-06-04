@@ -15,13 +15,25 @@ export interface EmployeeAvailabilityInfo {
 
 // Helper function to check if an employee is on vacation for a specific date
 export const isEmployeeOnVacation = (employeeId: string, selectedDate: Date, vacations: Vacation[]): boolean => {
+  console.log(`[isEmployeeOnVacation] Checking vacation for employee ${employeeId} on ${format(selectedDate, 'yyyy-MM-dd')}`);
+  console.log(`[isEmployeeOnVacation] Available vacations:`, vacations.length);
+  
   const checkResult = vacations.some(vacation => {
+    console.log(`[isEmployeeOnVacation] Checking vacation:`, {
+      id: vacation.id,
+      employeeId: vacation.employeeId,
+      startDate: vacation.startDate,
+      endDate: vacation.endDate,
+      status: vacation.status
+    });
+    
     if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
       return false;
     }
     
-    const startDate = new Date(vacation.startDate);
-    const endDate = new Date(vacation.endDate);
+    // Ensure we're working with Date objects
+    const startDate = vacation.startDate instanceof Date ? vacation.startDate : new Date(vacation.startDate);
+    const endDate = vacation.endDate instanceof Date ? vacation.endDate : new Date(vacation.endDate);
     
     // Normalize all dates to avoid time zone issues
     const normalizedSelectedDate = new Date(selectedDate);
@@ -38,6 +50,7 @@ export const isEmployeeOnVacation = (employeeId: string, selectedDate: Date, vac
     return isInRange;
   });
   
+  console.log(`[isEmployeeOnVacation] Final result for employee ${employeeId}: ${checkResult}`);
   return checkResult;
 };
 
@@ -66,7 +79,8 @@ export const getEmployeeAvailabilityStatus = (
   t: (key: string, params?: any) => string
 ): EmployeeAvailabilityInfo => {
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
-  console.log(`[getEmployeeAvailabilityStatus] Checking employee: ${employee.name} for date: ${dateStr}`);
+  console.log(`[getEmployeeAvailabilityStatus] Checking employee: ${employee.name} (${employee.id}) for date: ${dateStr}`);
+  console.log(`[getEmployeeAvailabilityStatus] Employee role: ${employee.role}, manual onLeave: ${employee.onLeave}`);
   
   // PRIORITY 1: Check if employee is on vacation FOR THIS SPECIFIC DATE
   const isOnVacationToday = isEmployeeOnVacation(employee.id, selectedDate, vacations);
@@ -92,6 +106,7 @@ export const getEmployeeAvailabilityStatus = (
   // Get assignments for this employee on the selected date
   const targetDateStr = format(selectedDate, 'yyyy-MM-dd');
   console.log(`[getEmployeeAvailabilityStatus] Target date string: ${targetDateStr}`);
+  console.log(`[getEmployeeAvailabilityStatus] Total assignments to check: ${assignments.length}`);
   
   // Enhanced assignment filtering with better logging
   const employeeAssignments = assignments.filter(assignment => {
@@ -103,13 +118,21 @@ export const getEmployeeAvailabilityStatus = (
     
     let isAssigned = false;
     if (assignment.employees && Array.isArray(assignment.employees)) {
-      isAssigned = assignment.employees.includes(employee.name);
+      // Check if the employee is in the assignment by name OR by ID
+      isAssigned = assignment.employees.includes(employee.name) || assignment.employees.includes(employee.id);
     }
     
     const matches = isOnDate && isAssigned;
-    if (matches) {
-      console.log(`[getEmployeeAvailabilityStatus] Found assignment for ${employee.name}: ${assignment.title} on ${assignmentDateStr}`);
-    }
+    
+    console.log(`[getEmployeeAvailabilityStatus] Assignment check:`, {
+      assignmentId: assignment.id,
+      assignmentDate: assignmentDateStr,
+      assignmentEmployees: assignment.employees,
+      isOnDate,
+      isAssigned,
+      matches,
+      title: assignment.title || assignment.location
+    });
     
     return matches;
   });
@@ -132,7 +155,7 @@ export const getEmployeeAvailabilityStatus = (
   const hasEndTimeAtWorkdayEnd = employeeAssignments.some(assignment => {
     const normalizedEndTime = normalizeTime(assignment.toTime);
     const isAtWorkdayEnd = normalizedEndTime === workdayEndTime;
-    console.log(`[getEmployeeAvailabilityStatus] Assignment ${assignment.title} ends at ${normalizedEndTime}, workday ends at ${workdayEndTime}, matches: ${isAtWorkdayEnd}`);
+    console.log(`[getEmployeeAvailabilityStatus] Assignment ${assignment.title || assignment.location} ends at ${normalizedEndTime}, workday ends at ${workdayEndTime}, matches: ${isAtWorkdayEnd}`);
     return isAtWorkdayEnd;
   });
 

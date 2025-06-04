@@ -36,20 +36,24 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   const targetDate = selectedDate || format(new Date(), 'yyyy-MM-dd');
   const targetDateObj = new Date(targetDate + 'T12:00:00');
 
-  console.log(`[DashboardMetrics] Calculating availability for date: ${targetDate}`);
+  console.log(`[DashboardMetrics] === CALCULATING AVAILABILITY FOR DATE: ${targetDate} ===`);
   console.log(`[DashboardMetrics] Total employees: ${employees.length}`);
   console.log(`[DashboardMetrics] Total assignments: ${assignments.length}`);
   console.log(`[DashboardMetrics] Total vacations: ${vacations.length}`);
 
-  // Filter employees to only include servicemedarbejder role
-  const serviceEmployees = employees.filter(employee => 
-    employee.role === 'servicemedarbejder'
-  );
+  // Filter employees to only include servicemedarbejder role and add detailed logging
+  const serviceEmployees = employees.filter(employee => {
+    const isService = employee.role === 'servicemedarbejder';
+    console.log(`[DashboardMetrics] Employee ${employee.name}: role=${employee.role}, isService=${isService}, onLeave=${employee.onLeave}`);
+    return isService;
+  });
 
   console.log(`[DashboardMetrics] Service employees: ${serviceEmployees.length}`);
 
   // Calculate available employees (including partially available) with detailed logging
   const availableEmployees = serviceEmployees.filter(employee => {
+    console.log(`[DashboardMetrics] === Checking availability for ${employee.name} ===`);
+    
     const availabilityInfo = getEmployeeAvailabilityStatus(
       employee,
       targetDateObj,
@@ -59,13 +63,15 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
     );
     
     const isAvailable = availabilityInfo.status === 'available' || availabilityInfo.status === 'partiallyBooked';
-    console.log(`[DashboardMetrics] Employee ${employee.name}: status=${availabilityInfo.status}, available=${isAvailable}`);
+    console.log(`[DashboardMetrics] Employee ${employee.name}: status=${availabilityInfo.status}, available=${isAvailable}, statusText="${availabilityInfo.statusText}"`);
     
     return isAvailable;
   });
 
   // Calculate unavailable employees (fully booked, on leave, on vacation) with detailed logging
   const unavailableEmployees = serviceEmployees.filter(employee => {
+    console.log(`[DashboardMetrics] === Checking unavailability for ${employee.name} ===`);
+    
     const availabilityInfo = getEmployeeAvailabilityStatus(
       employee,
       targetDateObj,
@@ -78,12 +84,16 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
                          availabilityInfo.status === 'onLeave' || 
                          availabilityInfo.status === 'onVacation';
     
-    console.log(`[DashboardMetrics] Employee ${employee.name}: status=${availabilityInfo.status}, unavailable=${isUnavailable}`);
+    console.log(`[DashboardMetrics] Employee ${employee.name}: status=${availabilityInfo.status}, unavailable=${isUnavailable}, statusText="${availabilityInfo.statusText}"`);
     
     return isUnavailable;
   });
 
-  console.log(`[DashboardMetrics] Final counts - Available: ${availableEmployees.length}, Unavailable: ${unavailableEmployees.length}`);
+  console.log(`[DashboardMetrics] === FINAL RESULTS ===`);
+  console.log(`[DashboardMetrics] Available employees: ${availableEmployees.length}`);
+  availableEmployees.forEach(emp => console.log(`  - ${emp.name}`));
+  console.log(`[DashboardMetrics] Unavailable employees: ${unavailableEmployees.length}`);
+  unavailableEmployees.forEach(emp => console.log(`  - ${emp.name}`));
 
   // Calculate cars in use on target date
   const carsInUseOnDate = assignments
