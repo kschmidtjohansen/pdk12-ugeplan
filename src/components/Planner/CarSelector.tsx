@@ -4,9 +4,15 @@ import { Car } from '@/types/car';
 import { Assignment } from '@/types/assignment';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '@/context/TranslationContext';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { X } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 interface CarSelectorProps {
   cars: Car[];
@@ -124,26 +130,38 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
   };
 
   // Handle car selection
-  const handleCarSelect = (value: string) => {
-    if (value === 'none') {
+  const handleCarSelect = (carId: string) => {
+    if (carId === 'none') {
       onCarSelect('');
     } else {
-      onCarSelect(value);
+      onCarSelect(carId);
     }
   };
 
   return (
     <div className="space-y-2">
       <Label>{t('planner.selectCar')}</Label>
-      <Select value={selectedCarId || 'none'} onValueChange={handleCarSelect}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder={t('planner.selectCar')} />
-        </SelectTrigger>
-        <SelectContent className="max-h-60">
+      
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full justify-between p-2"
+          >
+            <span className="truncate">{getSelectedCarDisplay()}</span>
+            <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto">
           {/* No car option */}
-          <SelectItem value="none">
-            {t('cars.noCar')}
-          </SelectItem>
+          <DropdownMenuItem
+            onClick={() => handleCarSelect('none')}
+            className="cursor-pointer"
+          >
+            <div className="flex items-center justify-between w-full space-x-2">
+              <span>{t('cars.noCar')}</span>
+            </div>
+          </DropdownMenuItem>
           
           {cars.map(car => {
             const isUnavailable = !car.is_available;
@@ -151,17 +169,21 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
             const hasRedStyling = carUsage.hasEndTimeAtSixteen;
             
             return (
-              <SelectItem 
-                key={car.id} 
-                value={car.id}
+              <DropdownMenuItem 
+                key={car.id}
+                onClick={() => !isUnavailable && handleCarSelect(car.id)}
+                className={`cursor-pointer ${
+                  isUnavailable ? 'opacity-50 cursor-not-allowed' : ''
+                } ${
+                  hasRedStyling ? '!bg-red-50 !border-l-4 !border-red-600 hover:!bg-red-100' : ''
+                }`}
                 disabled={isUnavailable}
-                className={hasRedStyling ? 'bg-red-50 text-red-700 font-bold border-l-4 border-red-600' : ''}
               >
-                <div className="flex items-center justify-between w-full">
-                  <span className={hasRedStyling ? 'text-red-700 font-bold' : ''}>
+                <div className="flex items-center justify-between w-full space-x-2">
+                  <span className={`truncate ${hasRedStyling ? 'text-red-700 font-bold' : ''}`}>
                     {car.name}
                   </span>
-                  <div className="flex gap-1 ml-2">
+                  <div className="flex gap-1 flex-shrink-0">
                     {isUnavailable && (
                       <Badge variant="outline" className="text-xs">
                         Unavailable
@@ -175,16 +197,16 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                             : 'bg-yellow-100 text-yellow-800 border-yellow-200'
                         }`}
                       >
-                        In use until {carUsage.latestEndTime}
+                        {t('cars.inUse', { time: carUsage.latestEndTime })}
                       </Badge>
                     )}
                   </div>
                 </div>
-              </SelectItem>
+              </DropdownMenuItem>
             );
           })}
-        </SelectContent>
-      </Select>
+        </DropdownMenuContent>
+      </DropdownMenu>
       
       {/* Display selected car as removable chip */}
       {selectedCarId && selectedCarId !== '' && (

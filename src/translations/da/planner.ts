@@ -40,6 +40,8 @@ const planner = {
   assignmentPublishedMsg: "Opgaven er nu tilgængelig for servicemedarbejdere",
   assignmentsPublished: "Opgaver publiceret",
   assignmentsPublishedMsg: "Alle opgaver for dagen er nu tilgængelige",
+  dayPublished: "Dag publiceret",
+  dayPublishedMsg: "Alle opgaver for dagen er nu publiceret",
   noAssignmentsToPublish: "Ingen opgaver at publicere",
   noUnpublishedAssignments: "Alle opgaver for denne dag er allerede publiceret",
   assignmentAlreadyPublished: "Opgave allerede publiceret",

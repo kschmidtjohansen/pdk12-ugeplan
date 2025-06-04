@@ -25,7 +25,7 @@ const cars = {
   // Status
   available: 'Tilgængelig',
   unavailable: 'Utilgængelig',
-  inUse: 'I brug ind til {time}',
+  inUse: 'I brug til kl. {time}',
   
   // Actions
   save: 'Gem',

@@ -38,6 +38,8 @@ const planner = {
   assignmentPublishedMsg: "Assignment is now available to employees",
   assignmentsPublished: "Assignments published",
   assignmentsPublishedMsg: "All assignments for the day are now available",
+  dayPublished: "Day published",
+  dayPublishedMsg: "All assignments for the day are now published",
   noAssignmentsToPublish: "No assignments to publish",
   noUnpublishedAssignments: "All assignments for this day are already published",
   assignmentAlreadyPublished: "Assignment already published",
