@@ -20,6 +20,7 @@ import { Employee } from '../../types/employee';
 import { Vacation } from '../../types/vacation';
 import { Assignment } from '../../types/assignment';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { getCarIds } from '@/utils/carUtils';
 
 interface AssignmentFormProps {
   currentAssignment: Assignment | null;
@@ -119,13 +120,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   // Check if user can assign responsible users
   const canAssignResponsibleUser = user?.role === 'administrator' || user?.role === 'skadeleder';
 
-  // Get selected car IDs
-  const selectedCarIds = (() => {
-    if (!formData.car) return [];
-    if (Array.isArray(formData.car)) return formData.car;
-    if (typeof formData.car === 'string') return formData.car ? [formData.car] : [];
-    return [];
-  })();
+  // Get selected car IDs using the utility function
+  const selectedCarIds = getCarIds(formData.car);
 
   return (
     <DialogContent className="max-w-md">
