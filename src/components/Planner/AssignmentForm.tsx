@@ -151,7 +151,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           </DialogHeader>
           
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-            {/* Basic fields first */}
             {/* Title Field */}
             <div className="space-y-2">
               <Label htmlFor="title">{t('planner.enterTitle')}</Label>

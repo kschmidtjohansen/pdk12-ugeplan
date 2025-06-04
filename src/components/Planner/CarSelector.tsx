@@ -100,16 +100,8 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
         typeof assignment.car === 'string' ? assignment.car === carId : assignment.car.id === carId
       );
       
-      console.log(`[CarSelector] Assignment ${assignment.id} for car ${carId}:`);
-      console.log(`  - Assignment date: "${assignment.date}" -> normalized: "${assignmentDateStr}"`);
-      console.log(`  - Target date: "${targetDateStr}"`);
-      console.log(`  - Date match: ${isOnDate}`);
-      console.log(`  - Car assigned: ${isAssigned}`);
-      
       return isOnDate && isAssigned;
     });
-    
-    console.log(`[CarSelector] Car ${carId} assignments on ${targetDateStr}:`, carAssignments);
     
     // Get the latest end time for this car
     let latestEndTime = "00:00";
@@ -126,16 +118,8 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       const normalizedEndTime = normalizeTime(originalTime);
       const exactMatch = normalizedEndTime === "16:00";
       
-      console.log(`[CarSelector] Assignment ${assignment.id} for car ${carId}:`);
-      console.log(`  - Original time: "${originalTime}"`);
-      console.log(`  - Normalized time: "${normalizedEndTime}"`);
-      console.log(`  - Exact 16:00 match: ${exactMatch}`);
-      
       return exactMatch;
     });
-    
-    console.log(`[CarSelector] Car ${carId} has 16:00 end time: ${hasEndTimeAtSixteen}`);
-    console.log(`[CarSelector] Car ${carId} latest end time: ${latestEndTime}`);
     
     return { 
       isAssigned: carAssignments.length > 0, 
@@ -178,7 +162,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
   // Get display text for selected cars
   const getSelectedCarsDisplay = () => {
     if (selectedCarIds.length === 0) {
-      return t('cars.selectCar');
+      return t('planner.selectCar');
     }
     
     if (selectedCarIds.includes('none')) {
@@ -187,10 +171,10 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
     
     if (selectedCarIds.length === 1) {
       const car = cars.find(car => car.id === selectedCarIds[0]);
-      return car ? car.name : t('cars.selectCar');
+      return car ? car.name : t('planner.selectCar');
     }
     
-    return t('cars.carsSelected', { count: selectedCarIds.length }) || `${selectedCarIds.length} cars selected`;
+    return `${selectedCarIds.length} cars selected`;
   };
 
   return (
@@ -206,10 +190,10 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-2" align="start">
-          <div className="max-h-60 overflow-y-auto rounded border">
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+          <div className="max-h-60 overflow-y-auto p-2">
             {/* No car option */}
-            <div className="flex items-center space-x-2 p-2 hover:bg-accent">
+            <div className="flex items-center space-x-2 p-2 hover:bg-accent rounded">
               <Checkbox
                 id="none"
                 checked={selectedCarIds.includes('none')}
@@ -227,12 +211,11 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
               
               // ENHANCED: Stronger red styling for 16:00 end times with higher CSS specificity
               const hasRedStyling = carUsage.hasEndTimeAtSixteen;
-              console.log(`[CarSelector] Car ${car.name} red styling applied: ${hasRedStyling}`);
               
               return (
                 <div 
                   key={car.id}
-                  className={`flex items-center space-x-2 p-2 hover:bg-accent ${
+                  className={`flex items-center space-x-2 p-2 hover:bg-accent rounded ${
                     hasRedStyling ? '!bg-red-50 !border-l-4 !border-red-600' : ''
                   } ${isUnavailable ? 'opacity-50' : ''}`}
                 >
@@ -254,7 +237,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                     <div className="flex gap-1">
                       {isUnavailable && (
                         <Badge variant="outline" className="text-xs">
-                          {t('cars.unavailable')}
+                          Unavailable
                         </Badge>
                       )}
                       {carUsage.isAssigned && !isUnavailable && (
@@ -265,7 +248,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                               : 'bg-yellow-100 text-yellow-800 border-yellow-200'
                           }`}
                         >
-                          {t('cars.inUse', { time: carUsage.latestEndTime })}
+                          In use until {carUsage.latestEndTime}
                         </Badge>
                       )}
                     </div>
