@@ -108,6 +108,24 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
 
   const availableCars = cars.filter(car => car.is_available).length;
 
+  // Add logging before dialog opens
+  const handleAvailabilityDialogOpen = () => {
+    console.log(`[DashboardMetrics] === OPENING AVAILABILITY DIALOG ===`);
+    console.log(`[DashboardMetrics] Passing ${availableEmployees.length} available employees to dialog:`);
+    availableEmployees.forEach(emp => console.log(`  - ${emp.name} (${emp.id})`));
+    console.log(`[DashboardMetrics] Target date: ${targetDate}`);
+    console.log(`[DashboardMetrics] Assignments being passed: ${assignments.length}`);
+    console.log(`[DashboardMetrics] Vacations being passed: ${vacations.length}`);
+    setAvailabilityDialogOpen(true);
+  };
+
+  const handleUnavailableDialogOpen = () => {
+    console.log(`[DashboardMetrics] === OPENING UNAVAILABLE DIALOG ===`);
+    console.log(`[DashboardMetrics] Passing ${unavailableEmployees.length} unavailable employees to dialog:`);
+    unavailableEmployees.forEach(emp => console.log(`  - ${emp.name} (${emp.id})`));
+    setUnavailableDialogOpen(true);
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -117,7 +135,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
           subtitle={`${serviceEmployees.length} ${t('admin.quickStats.total')}`}
           icon={Users}
           color="green"
-          onClick={() => setAvailabilityDialogOpen(true)}
+          onClick={handleAvailabilityDialogOpen}
         />
         
         <MetricCard
@@ -126,7 +144,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
           subtitle={t('dashboard.metrics.unavailableSubtitle')}
           icon={Users}
           color="red"
-          onClick={() => setUnavailableDialogOpen(true)}
+          onClick={handleUnavailableDialogOpen}
         />
         
         <MetricCard
