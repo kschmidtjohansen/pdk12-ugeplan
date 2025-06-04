@@ -206,8 +206,8 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0" align="start">
-          <div className="max-h-60 overflow-auto">
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-2" align="start">
+          <div className="max-h-60 overflow-y-auto rounded border">
             {/* No car option */}
             <div className="flex items-center space-x-2 p-2 hover:bg-accent">
               <Checkbox
