@@ -20,6 +20,7 @@ export const useAssignmentsConsolidated = ({
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const { toast } = useToast();
   const { t } = useTranslation();
   const { employees } = useEmployees();
@@ -434,6 +435,63 @@ export const useAssignmentsConsolidated = ({
     }
   };
 
+  // Publish single assignment
+  const publishAssignment = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .update({ published: true })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast({
+        title: t('planner.assignmentPublished'),
+        description: t('planner.assignmentPublishedMsg'),
+      });
+      
+      fetchAssignments();
+      return true;
+    } catch (error: any) {
+      console.error('Error publishing assignment:', error);
+      toast({
+        title: t('common.error'),
+        description: t('planner.errorPublishingAssignment'),
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  // Publish assignments by date
+  const publishAssignmentsByDate = async (date: string) => {
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .update({ published: true })
+        .eq('assignment_date', date)
+        .eq('published', false);
+
+      if (error) throw error;
+      
+      toast({
+        title: t('planner.dayPublished'),
+        description: t('planner.dayPublishedMsg'),
+      });
+      
+      fetchAssignments();
+      return true;
+    } catch (error: any) {
+      console.error('Error publishing assignments by date:', error);
+      toast({
+        title: t('common.error'),
+        description: t('planner.errorPublishingDay'),
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   // Load assignments on component mount
   useEffect(() => {
     fetchAssignments();
@@ -487,6 +545,10 @@ export const useAssignmentsConsolidated = ({
     setAssignments,
     createAssignment,
     updateAssignment,
-    deleteAssignment
+    deleteAssignment,
+    publishAssignment,
+    publishAssignmentsByDate,
+    isDialogOpen,
+    setIsDialogOpen
   };
 };

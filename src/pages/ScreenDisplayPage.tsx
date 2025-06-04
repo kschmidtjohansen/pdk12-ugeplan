@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAssignmentsConsolidated } from '@/hooks/useAssignmentsConsolidated';
@@ -13,7 +12,8 @@ import { Link } from 'react-router-dom';
 
 const ScreenDisplayPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
-  const { assignments, loading } = useAssignmentsConsolidated({ filter: 'published' });
+  // Use 'all' filter and only get published assignments
+  const { assignments, loading } = useAssignmentsConsolidated({ filter: 'all', includeUnpublished: false });
   const { filterForScreenDisplay } = useViewSpecificFilters();
   const [currentTime, setCurrentTime] = useState(new Date());
 
