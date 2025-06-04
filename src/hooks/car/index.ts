@@ -58,7 +58,9 @@ export const useCars = () => {
 
   const updateCar = () => {
     if (currentCar) {
-      return handleSubmit();
+      // Create a mock event for handleSubmit
+      const mockEvent = { preventDefault: () => {} } as React.FormEvent;
+      return handleSubmit(mockEvent);
     }
     return Promise.resolve(false);
   };
