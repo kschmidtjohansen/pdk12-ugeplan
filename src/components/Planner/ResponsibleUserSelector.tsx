@@ -30,7 +30,6 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
           <SelectValue placeholder={t('planner.selectResponsibleUser')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">{t('planner.noResponsibleUser')}</SelectItem>
           {eligibleUsers.map((user) => (
             <SelectItem key={user.id} value={user.id}>
               {user.name}
