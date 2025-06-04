@@ -48,14 +48,57 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   // Track selected employees separately for better UI state management
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   
-  // Ensure we update formData.date with current date when dialog opens
+  // FIXED: Ensure we update formData.date with current date when dialog opens AND properly handle car/responsible user conversion
   useEffect(() => {
-    if (isDialogOpen && !currentAssignment) {
-      console.log('[PlannerDialogContainer] Dialog opened, updating form date:', currentDate);
-      setFormData(prev => ({
-        ...prev,
-        date: currentDate
-      }));
+    if (isDialogOpen) {
+      console.log('[PlannerDialogContainer] Dialog opened, current assignment:', currentAssignment);
+      
+      if (!currentAssignment) {
+        // Creating new assignment
+        console.log('[PlannerDialogContainer] Creating new assignment, updating form date:', currentDate);
+        setFormData(prev => ({
+          ...prev,
+          date: currentDate
+        }));
+      } else {
+        // FIXED: Editing existing assignment - properly convert car and responsible user objects to IDs
+        console.log('[PlannerDialogContainer] Editing existing assignment, converting data...');
+        
+        // Convert car object to car ID string
+        let carId = '';
+        if (currentAssignment.car) {
+          if (typeof currentAssignment.car === 'string') {
+            carId = currentAssignment.car;
+          } else if (typeof currentAssignment.car === 'object' && currentAssignment.car.id) {
+            carId = currentAssignment.car.id;
+          }
+        }
+        
+        // Convert responsible user object to user ID string
+        let responsibleUserId = '';
+        if (currentAssignment.responsibleUser) {
+          if (typeof currentAssignment.responsibleUser === 'string') {
+            responsibleUserId = currentAssignment.responsibleUser;
+          } else if (typeof currentAssignment.responsibleUser === 'object' && currentAssignment.responsibleUser.id) {
+            responsibleUserId = currentAssignment.responsibleUser.id;
+          }
+        }
+        
+        console.log('[PlannerDialogContainer] Converted car ID:', carId);
+        console.log('[PlannerDialogContainer] Converted responsible user ID:', responsibleUserId);
+        
+        setFormData({
+          date: currentAssignment.date,
+          title: currentAssignment.title,
+          description: currentAssignment.description || '',
+          fromTime: currentAssignment.fromTime,
+          toTime: currentAssignment.toTime,
+          location: currentAssignment.location || '',
+          car: carId,
+          responsibleUserId: responsibleUserId,
+          employees: currentAssignment.employees || []
+        });
+      }
     }
   }, [isDialogOpen, currentAssignment, currentDate, setFormData]);
   
@@ -86,10 +129,13 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   };
 
   const handleSelectChange = (name: string, value: string) => {
+    console.log(`[PlannerDialogContainer] handleSelectChange: ${name} = ${value}`);
+    
     // Handle responsible user field mapping
     if (name === 'responsibleUserId') {
       setFormData(prev => ({ 
         ...prev, 
+        responsibleUserId: value,
         responsibleUser: value ? { id: value, name: '' } : undefined 
       }));
     } else {
@@ -136,6 +182,7 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[PlannerDialogContainer] Form submit with data:', formData);
     onSubmit(formData);
   };
 

@@ -81,13 +81,15 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     }
   };
 
-  // Handle car selection - now expects single car ID
+  // FIXED: Handle car selection - now expects single car ID and logs properly
   const handleCarSelect = (carId: string) => {
+    console.log(`[AssignmentForm] Car selected: "${carId}"`);
     handleFieldChange('car', carId);
   };
 
   // Handle responsible user selection
   const handleResponsibleUserSelect = (userId: string) => {
+    console.log(`[AssignmentForm] Responsible user selected: "${userId}"`);
     handleFieldChange('responsibleUserId', userId);
   };
 
@@ -236,7 +238,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               />
             </div>
 
-            {/* Car selector */}
+            {/* FIXED: Car selector - now properly handles string car ID */}
             <div className="space-y-2">
               <Label>{t('planner.selectCar')}</Label>
               <CarSelector 

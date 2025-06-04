@@ -130,6 +130,8 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
 
   // Handle car selection/deselection
   const handleCarToggle = (carId: string, checked: boolean) => {
+    console.log(`[CarSelector] Car toggle: ${carId}, checked: ${checked}`);
+    
     if (carId === 'none') {
       // If "No car" is selected, clear selection
       onCarSelect(checked ? '' : '');
@@ -146,19 +148,27 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
     }
   };
 
-  // Get display text for selected car
+  // FIXED: Get display text for selected car - handle all cases properly
   const getSelectedCarDisplay = () => {
-    if (!selectedCarId) {
+    console.log(`[CarSelector] getSelectedCarDisplay - selectedCarId: "${selectedCarId}"`);
+    
+    // Handle empty string or null/undefined
+    if (!selectedCarId || selectedCarId === '') {
       return t('planner.selectCar');
     }
     
-    if (selectedCarId === '') {
-      return t('cars.noCar');
+    // Find the car by ID
+    const car = cars.find(car => car.id === selectedCarId);
+    if (car) {
+      console.log(`[CarSelector] Found car: ${car.name}`);
+      return car.name;
     }
     
-    const car = cars.find(car => car.id === selectedCarId);
-    return car ? car.name : t('planner.selectCar');
+    console.log(`[CarSelector] Car not found for ID: ${selectedCarId}`);
+    return t('planner.selectCar');
   };
+
+  console.log(`[CarSelector] Rendering - selectedCarId: "${selectedCarId}", cars count: ${cars.length}`);
 
   return (
     <div className="space-y-2">
@@ -173,16 +183,16 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-50 bg-white" align="start">
-          <div className="max-h-60 overflow-y-auto p-2">
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-50 bg-white border shadow-lg" align="start">
+          <div className="max-h-60 overflow-y-auto p-2 space-y-1">
             {/* No car option */}
-            <div className="flex items-center space-x-2 p-2 hover:bg-accent rounded">
+            <div className="flex items-center space-x-2 p-2 hover:bg-accent rounded cursor-pointer">
               <Checkbox
                 id="none"
-                checked={!selectedCarId}
+                checked={!selectedCarId || selectedCarId === ''}
                 onCheckedChange={(checked) => handleCarToggle('none', checked as boolean)}
               />
-              <label htmlFor="none" className="flex-1 cursor-pointer">
+              <label htmlFor="none" className="flex-1 cursor-pointer text-sm">
                 {t('cars.noCar')}
               </label>
             </div>
@@ -198,7 +208,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
               return (
                 <div 
                   key={car.id}
-                  className={`flex items-center space-x-2 p-2 hover:bg-accent rounded ${
+                  className={`flex items-center space-x-2 p-2 hover:bg-accent rounded cursor-pointer ${
                     hasRedStyling ? '!bg-red-50 !border-l-4 !border-red-600' : ''
                   } ${isUnavailable ? 'opacity-50' : ''}`}
                 >
@@ -208,16 +218,16 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                     disabled={isUnavailable}
                     onCheckedChange={(checked) => handleCarToggle(car.id, checked as boolean)}
                   />
-                  <div className="flex-1 flex items-center justify-between">
+                  <div className="flex-1 flex items-center justify-between min-w-0">
                     <label 
                       htmlFor={car.id} 
-                      className={`cursor-pointer ${hasRedStyling ? '!text-red-700 !font-bold' : ''} ${
+                      className={`cursor-pointer text-sm truncate ${hasRedStyling ? '!text-red-700 !font-bold' : ''} ${
                         isUnavailable ? 'cursor-not-allowed' : ''
                       }`}
                     >
                       {car.name}
                     </label>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 flex-shrink-0 ml-2">
                       {isUnavailable && (
                         <Badge variant="outline" className="text-xs">
                           Unavailable
@@ -244,7 +254,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       </Popover>
       
       {/* Display selected car as removable chip */}
-      {selectedCarId && (
+      {selectedCarId && selectedCarId !== '' && (
         <div className="flex flex-wrap gap-1">
           {(() => {
             const car = cars.find(c => c.id === selectedCarId);

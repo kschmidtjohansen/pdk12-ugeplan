@@ -137,6 +137,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                     </p>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* FIXED: Display car information properly */}
                       {assignment.car && (
                         <div className="flex items-center gap-2">
                           <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-200">
@@ -168,6 +169,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                         </div>
                       )}
 
+                      {/* FIXED: Display responsible user information properly */}
                       {assignment.responsibleUser && (
                         <div className="flex items-center gap-2">
                           <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
