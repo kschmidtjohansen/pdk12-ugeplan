@@ -69,28 +69,38 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
     <>
       <Card className="border-2 border-border/50 bg-gradient-to-br from-card to-card">
         <CardHeader className="pb-4">
-          <CardTitle className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-2xl bg-primary/10 border border-primary/20">
-                <Clock className="h-5 w-5 text-primary" />
+          <CardTitle>
+            {/* Responsive Header Layout */}
+            <div className="flex flex-col gap-4">
+              {/* Title and Navigation Row */}
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-2xl bg-primary/10 border border-primary/20">
+                  <Clock className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg sm:text-xl font-bold truncate">
+                    {t('dashboard.myAssignments', { week: selectedWeek })}
+                  </h2>
+                </div>
+                <div className="flex-shrink-0">
+                  <WeekNavigation 
+                    onPrevious={onPreviousWeek} 
+                    onNext={onNextWeek} 
+                    currentWeek={selectedWeek} 
+                  />
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-bold">
-                  {t('dashboard.myAssignments', { week: selectedWeek })}
-                </h2>
+
+              {/* View All Button Row - Full width on mobile */}
+              <div className="flex justify-end">
+                <Button variant="gradient" size="sm" asChild className="shadow-lg w-full sm:w-auto">
+                  <Link to="/planner" className="flex items-center justify-center gap-2">
+                    <span>{t('dashboard.viewAll')}</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
               </div>
-              <WeekNavigation 
-                onPrevious={onPreviousWeek} 
-                onNext={onNextWeek} 
-                currentWeek={selectedWeek} 
-              />
             </div>
-            <Button variant="gradient" size="sm" asChild className="shadow-lg">
-              <Link to="/planner">
-                {t('dashboard.viewAll')}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
