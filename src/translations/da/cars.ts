@@ -53,7 +53,12 @@ const cars = {
   
   // Missing translations that were causing issues
   unavailabilityReason: 'Årsag til utilgængelighed',
-  enterNote: 'Indtast note'
+  enterNote: 'Indtast note',
+  
+  // Added missing translations for note management
+  keepNoteQuestion: 'Vil du beholde den nuværende note?',
+  keepNote: 'Behold note',
+  deleteNote: 'Slet note'
 };
 
 export default cars;

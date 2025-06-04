@@ -55,8 +55,11 @@ export const getEmployeeAvailabilityStatus = (
   vacations: Vacation[],
   t: (key: string, params?: any) => string
 ): EmployeeAvailabilityInfo => {
+  console.log(`[getEmployeeAvailabilityStatus] Checking employee: ${employee.name} for date: ${format(selectedDate, 'yyyy-MM-dd')}`);
+  
   // Check if employee is on leave
   if (employee.onLeave) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on leave`);
     return {
       status: 'onLeave',
       statusText: t('employees.onLeave'),
@@ -66,6 +69,7 @@ export const getEmployeeAvailabilityStatus = (
 
   // Check if employee is on vacation
   if (isEmployeeOnVacation(employee.id, selectedDate, vacations)) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on vacation`);
     return {
       status: 'onVacation',
       statusText: t('planner.onVacation'),
@@ -75,8 +79,9 @@ export const getEmployeeAvailabilityStatus = (
 
   // Get assignments for this employee on the selected date
   const targetDateStr = format(selectedDate, 'yyyy-MM-dd');
+  console.log(`[getEmployeeAvailabilityStatus] Target date string: ${targetDateStr}`);
   
-  // Enhanced assignment filtering
+  // Enhanced assignment filtering with better logging
   const employeeAssignments = assignments.filter(assignment => {
     const assignmentDateStr = assignment.date.includes('T') 
       ? assignment.date.split('T')[0] 
@@ -89,10 +94,18 @@ export const getEmployeeAvailabilityStatus = (
       isAssigned = assignment.employees.includes(employee.name);
     }
     
-    return isOnDate && isAssigned;
+    const matches = isOnDate && isAssigned;
+    if (matches) {
+      console.log(`[getEmployeeAvailabilityStatus] Found assignment for ${employee.name}: ${assignment.title} on ${assignmentDateStr}`);
+    }
+    
+    return matches;
   });
 
+  console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} has ${employeeAssignments.length} assignments on ${targetDateStr}`);
+
   if (employeeAssignments.length === 0) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is available (no assignments)`);
     return {
       status: 'available',
       statusText: t('dashboard.available'),
@@ -106,10 +119,13 @@ export const getEmployeeAvailabilityStatus = (
   
   const hasEndTimeAtWorkdayEnd = employeeAssignments.some(assignment => {
     const normalizedEndTime = normalizeTime(assignment.toTime);
-    return normalizedEndTime === workdayEndTime;
+    const isAtWorkdayEnd = normalizedEndTime === workdayEndTime;
+    console.log(`[getEmployeeAvailabilityStatus] Assignment ${assignment.title} ends at ${normalizedEndTime}, workday ends at ${workdayEndTime}, matches: ${isAtWorkdayEnd}`);
+    return isAtWorkdayEnd;
   });
 
   if (hasEndTimeAtWorkdayEnd) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is fully booked (ends at workday end)`);
     return {
       status: 'fullyBooked',
       statusText: t('employees.fullyBooked'),
@@ -127,6 +143,8 @@ export const getEmployeeAvailabilityStatus = (
   });
   
   const formattedTime = latestEndTime.substring(0, 5);
+  console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is partially booked, available after ${formattedTime}`);
+  
   return {
     status: 'partiallyBooked',
     statusText: t('employees.availableAfter', { time: formattedTime }),
