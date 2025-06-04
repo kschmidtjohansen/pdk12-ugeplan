@@ -8,6 +8,7 @@ import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Vacation } from '@/types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
+import { useEmployees } from '@/hooks/useEmployees';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { addDays, subDays, format } from 'date-fns';
 import { da } from 'date-fns/locale';
@@ -26,13 +27,14 @@ interface EmployeeAvailabilityDialogProps {
 export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProps> = ({
   open,
   onOpenChange,
-  employees,
+  employees: initialEmployees,
   assignments,
   vacations,
   selectedDate,
   title
 }) => {
   const { t, currentLanguage } = useTranslation();
+  const { employees: allEmployees } = useEmployees();
 
   // Local state for the viewed date
   const [viewedDate, setViewedDate] = useState<string>(selectedDate);
@@ -47,11 +49,43 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
 
   console.log(`[EmployeeAvailabilityDialog] === DIALOG DEBUG INFO ===`);
   console.log(`[EmployeeAvailabilityDialog] Dialog title: ${title}`);
-  console.log(`[EmployeeAvailabilityDialog] Viewed date: ${viewedDate}`);
-  console.log(`[EmployeeAvailabilityDialog] Employees passed to dialog: ${employees.length}`);
-  employees.forEach(emp => console.log(`  - ${emp.name} (${emp.id}) - role: ${emp.role}, onLeave: ${emp.onLeave}`));
-  console.log(`[EmployeeAvailabilityDialog] Assignments: ${assignments.length}`);
-  console.log(`[EmployeeAvailabilityDialog] Vacations: ${vacations.length}`);
+  console.log(`[EmployeeAvailabilityDialog] Initial selected date: ${selectedDate}`);
+  console.log(`[EmployeeAvailabilityDialog] Currently viewed date: ${viewedDate}`);
+  console.log(`[EmployeeAvailabilityDialog] Date changed: ${viewedDate !== selectedDate}`);
+  console.log(`[EmployeeAvailabilityDialog] Initial employees passed: ${initialEmployees.length}`);
+
+  // HYBRID APPROACH: Use initial employees for original date, all service employees for navigated dates
+  const getEmployeesToShow = () => {
+    if (viewedDate === selectedDate) {
+      // For the original date, use the pre-filtered employees from DashboardMetrics
+      console.log(`[EmployeeAvailabilityDialog] Using pre-filtered employees (${initialEmployees.length}) for original date ${selectedDate}`);
+      return initialEmployees;
+    } else {
+      // For navigated dates, get all service employees and filter them dynamically
+      const serviceEmployees = allEmployees.filter(employee => employee.role === 'servicemedarbejder');
+      console.log(`[EmployeeAvailabilityDialog] Using all service employees (${serviceEmployees.length}) for navigated date ${viewedDate}`);
+      
+      // Filter to show only available and partially available employees for navigated dates
+      const availableEmployees = serviceEmployees.filter(employee => {
+        const availabilityInfo = getEmployeeAvailabilityStatus(
+          employee,
+          currentDate,
+          assignments,
+          vacations,
+          t
+        );
+        
+        const isAvailable = availabilityInfo.status === 'available' || availabilityInfo.status === 'partiallyBooked';
+        console.log(`[EmployeeAvailabilityDialog] Employee ${employee.name} for ${viewedDate}: status=${availabilityInfo.status}, available=${isAvailable}`);
+        return isAvailable;
+      });
+      
+      console.log(`[EmployeeAvailabilityDialog] Filtered available employees for ${viewedDate}: ${availableEmployees.length}`);
+      return availableEmployees;
+    }
+  };
+
+  const employeesToShow = getEmployeesToShow();
 
   // Navigation functions
   const handlePreviousDay = () => {
@@ -83,9 +117,9 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     }
   };
 
-  // SIMPLIFIED: Use the same availability logic as DashboardMetrics
+  // Get employee status with proper availability calculation
   const getEmployeeStatus = (employee: Employee) => {
-    console.log(`[EmployeeAvailabilityDialog] === CHECKING EMPLOYEE: ${employee.name} ===`);
+    console.log(`[EmployeeAvailabilityDialog] === CHECKING EMPLOYEE: ${employee.name} for ${viewedDate} ===`);
     
     const availabilityInfo = getEmployeeAvailabilityStatus(
       employee,
@@ -166,12 +200,12 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
         
         <ScrollArea className="max-h-96">
           <div className="space-y-2">
-            {employees.length === 0 ? (
+            {employeesToShow.length === 0 ? (
               <div className="text-center text-gray-500 py-4">
                 Ingen medarbejdere fundet for denne dato
               </div>
             ) : (
-              employees.map(employee => {
+              employeesToShow.map(employee => {
                 const status = getEmployeeStatus(employee);
                 return (
                   <div 
