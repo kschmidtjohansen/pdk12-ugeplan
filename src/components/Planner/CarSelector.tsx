@@ -3,19 +3,20 @@ import React from 'react';
 import { Car } from '@/types/car';
 import { Assignment } from '@/types/assignment';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
+import { Check, ChevronDown, X } from 'lucide-react';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface CarSelectorProps {
   cars: Car[];
-  selectedCarId: string;
-  onCarSelect: (carId: string) => void;
+  selectedCarIds: string[];
+  onCarSelect: (carIds: string[]) => void;
   currentDate: string;
   assignments?: Assignment[];
   currentAssignmentId?: string;
@@ -23,7 +24,7 @@ interface CarSelectorProps {
 
 export const CarSelector: React.FC<CarSelectorProps> = ({
   cars,
-  selectedCarId,
+  selectedCarIds,
   onCarSelect,
   currentDate,
   assignments = [],
@@ -143,70 +144,160 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
     };
   };
 
-  // Get selected car name for display
-  const getSelectedCarName = () => {
-    if (selectedCarId === 'none') return t('cars.noCar');
-    const selectedCar = cars.find(car => car.id === selectedCarId);
-    return selectedCar ? selectedCar.name : t('cars.selectCar');
+  // Handle car selection/deselection
+  const handleCarToggle = (carId: string, checked: boolean) => {
+    if (carId === 'none') {
+      // If "No car" is selected, clear all other selections
+      onCarSelect(checked ? ['none'] : []);
+    } else {
+      let newSelectedIds = [...selectedCarIds];
+      
+      // Remove "none" if selecting actual cars
+      newSelectedIds = newSelectedIds.filter(id => id !== 'none');
+      
+      if (checked) {
+        // Add car if not already selected
+        if (!newSelectedIds.includes(carId)) {
+          newSelectedIds.push(carId);
+        }
+      } else {
+        // Remove car from selection
+        newSelectedIds = newSelectedIds.filter(id => id !== carId);
+      }
+      
+      onCarSelect(newSelectedIds);
+    }
+  };
+
+  // Remove a specific car from selection
+  const removeCar = (carId: string) => {
+    const newSelectedIds = selectedCarIds.filter(id => id !== carId);
+    onCarSelect(newSelectedIds);
+  };
+
+  // Get display text for selected cars
+  const getSelectedCarsDisplay = () => {
+    if (selectedCarIds.length === 0) {
+      return t('cars.selectCar');
+    }
+    
+    if (selectedCarIds.includes('none')) {
+      return t('cars.noCar');
+    }
+    
+    if (selectedCarIds.length === 1) {
+      const car = cars.find(car => car.id === selectedCarIds[0]);
+      return car ? car.name : t('cars.selectCar');
+    }
+    
+    return `${selectedCarIds.length} ${t('cars.carsSelected', 'cars selected')}`;
   };
 
   return (
     <div className="space-y-2">
-      <Select value={selectedCarId} onValueChange={onCarSelect}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder={t('cars.selectCar')}>
-            {getSelectedCarName()}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent className="max-h-60">
-          {/* No car option */}
-          <SelectItem value="none">
-            <span>{t('cars.noCar')}</span>
-          </SelectItem>
-          
-          {cars.map(car => {
-            const isUnavailable = !car.is_available;
-            const carUsage = isCarInUse(car.id);
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            className="w-full justify-between"
+          >
+            {getSelectedCarsDisplay()}
+            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-full p-0" align="start">
+          <div className="max-h-60 overflow-auto">
+            {/* No car option */}
+            <div className="flex items-center space-x-2 p-2 hover:bg-accent">
+              <Checkbox
+                id="none"
+                checked={selectedCarIds.includes('none')}
+                onCheckedChange={(checked) => handleCarToggle('none', checked as boolean)}
+              />
+              <label htmlFor="none" className="flex-1 cursor-pointer">
+                {t('cars.noCar')}
+              </label>
+            </div>
             
-            // ENHANCED: Stronger red styling for 16:00 end times with higher CSS specificity
-            const hasRedStyling = carUsage.hasEndTimeAtSixteen;
-            console.log(`[CarSelector] Car ${car.name} red styling applied: ${hasRedStyling}`);
-            
-            return (
-              <SelectItem 
-                key={car.id} 
-                value={car.id}
-                disabled={isUnavailable}
-                className={hasRedStyling ? '!bg-red-50 !border-l-4 !border-red-600 hover:!bg-red-100' : ''}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span className={hasRedStyling ? '!text-red-700 !font-bold' : ''}>
-                    {car.name}
-                  </span>
-                  <div className="flex gap-1 ml-2">
-                    {isUnavailable && (
-                      <Badge variant="outline" className="text-xs">
-                        {t('cars.unavailable')}
-                      </Badge>
-                    )}
-                    {carUsage.isAssigned && !isUnavailable && (
-                      <Badge 
-                        className={`text-xs font-medium ${
-                          hasRedStyling 
-                            ? '!bg-red-600 !text-white !border-red-700 hover:!bg-red-700' 
-                            : 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                        }`}
-                      >
-                        {t('cars.inUse', { time: carUsage.latestEndTime })}
-                      </Badge>
-                    )}
+            {cars.map(car => {
+              const isUnavailable = !car.is_available;
+              const carUsage = isCarInUse(car.id);
+              const isSelected = selectedCarIds.includes(car.id);
+              
+              // ENHANCED: Stronger red styling for 16:00 end times with higher CSS specificity
+              const hasRedStyling = carUsage.hasEndTimeAtSixteen;
+              console.log(`[CarSelector] Car ${car.name} red styling applied: ${hasRedStyling}`);
+              
+              return (
+                <div 
+                  key={car.id}
+                  className={`flex items-center space-x-2 p-2 hover:bg-accent ${
+                    hasRedStyling ? '!bg-red-50 !border-l-4 !border-red-600' : ''
+                  } ${isUnavailable ? 'opacity-50' : ''}`}
+                >
+                  <Checkbox
+                    id={car.id}
+                    checked={isSelected}
+                    disabled={isUnavailable}
+                    onCheckedChange={(checked) => handleCarToggle(car.id, checked as boolean)}
+                  />
+                  <div className="flex-1 flex items-center justify-between">
+                    <label 
+                      htmlFor={car.id} 
+                      className={`cursor-pointer ${hasRedStyling ? '!text-red-700 !font-bold' : ''} ${
+                        isUnavailable ? 'cursor-not-allowed' : ''
+                      }`}
+                    >
+                      {car.name}
+                    </label>
+                    <div className="flex gap-1">
+                      {isUnavailable && (
+                        <Badge variant="outline" className="text-xs">
+                          {t('cars.unavailable')}
+                        </Badge>
+                      )}
+                      {carUsage.isAssigned && !isUnavailable && (
+                        <Badge 
+                          className={`text-xs font-medium ${
+                            hasRedStyling 
+                              ? '!bg-red-600 !text-white !border-red-700 hover:!bg-red-700' 
+                              : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                          }`}
+                        >
+                          {t('cars.inUse', { time: carUsage.latestEndTime })}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </SelectItem>
+              );
+            })}
+          </div>
+        </PopoverContent>
+      </Popover>
+      
+      {/* Display selected cars as removable chips */}
+      {selectedCarIds.length > 0 && !selectedCarIds.includes('none') && (
+        <div className="flex flex-wrap gap-1">
+          {selectedCarIds.map(carId => {
+            const car = cars.find(c => c.id === carId);
+            if (!car) return null;
+            
+            return (
+              <Badge key={carId} variant="secondary" className="flex items-center gap-1">
+                {car.name}
+                <button
+                  onClick={() => removeCar(carId)}
+                  className="ml-1 hover:bg-muted rounded-full p-0.5"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
             );
           })}
-        </SelectContent>
-      </Select>
+        </div>
+      )}
     </div>
   );
 };
