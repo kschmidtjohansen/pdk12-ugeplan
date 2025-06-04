@@ -1,233 +1,134 @@
-import React, { useState, useEffect } from 'react';
-import { format, addDays, subDays } from 'date-fns';
-import { useTranslation } from '@/context/TranslationContext';
-import { useToast } from '@/components/ui/use-toast';
-import { Calendar as CalendarIcon, ArrowLeft, ArrowRight, Car } from 'lucide-react';
-import { DateRange } from 'react-day-picker';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { useAssignmentsConsolidated } from '@/hooks/useAssignmentsConsolidated';
-import { Assignment } from '@/types/assignment';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
+import { useVacations } from '@/hooks/useVacations';
+import { useAssignmentsConsolidated } from '@/hooks/useAssignmentsConsolidated';
+import { Employee } from '@/types/employee';
+import { useTranslation } from '@/context/TranslationContext';
+import { usePermissions } from '@/context/AuthContext';
+import AssignmentWidget from '@/components/Dashboard/AssignmentWidget';
+import PageHeader from '@/components/Layout/PageHeader';
+import QuickStatsGrid from '@/components/Admin/QuickStatsGrid';
+import EmployeeManagementTabs from '@/components/Admin/EmployeeManagementTabs';
+import VacationManagement from '@/components/Admin/VacationManagement';
+import CarManagement from '@/components/Admin/CarManagement';
+import { format } from 'date-fns';
+import { getAllCarIds } from '@/utils/carHelpers';
 
 const AdminPage: React.FC = () => {
+  const { isAdmin, isSkadeleder } = usePermissions();
   const { t } = useTranslation();
-  const { toast } = useToast();
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [range, setRange] = useState<DateRange | undefined>({
-    from: subDays(new Date(), 20),
-    to: addDays(new Date(), 20),
-  });
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { employees, createEmployee, updateEmployee, deleteEmployee } = useEmployees();
+  const { cars, createCar, updateCar, deleteCar } = useCars();
+  const { vacations, approveVacation, denyVacation } = useVacations();
   const { assignments } = useAssignmentsConsolidated({ filter: 'all' });
-  const { cars } = useCars();
 
-  useEffect(() => {
-    setSelectedDate(new Date());
-  }, []);
+  if (!isAdmin && !isSkadeleder) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">{t('common.accessDenied')}</p>
+      </div>
+    );
+  }
 
-  // Function to handle date selection
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      setSelectedDate(date);
+  // Helper function to filter service employees
+  const serviceEmployees = employees.filter((employee: Employee) => employee.role === 'servicemedarbejder');
+
+  // Get today's date in YYYY-MM-DD format for filtering assignments
+  const today = format(new Date(), 'yyyy-MM-dd');
+  
+  // Calculate assigned employees for today
+  const assignedToday = new Set();
+  assignments.forEach(assignment => {
+    if (assignment.date === today && assignment.employees) {
+      assignment.employees.forEach(employeeName => {
+        assignedToday.add(employeeName);
+      });
     }
+  });
+
+  // Calculate cars in use today
+  const carsInUseToday = assignments
+    .filter(assignment => assignment.date === today && assignment.car)
+    .reduce((uniqueCars, assignment) => {
+      const carIds = getAllCarIds(assignment.car);
+      carIds.forEach(carId => {
+        if (carId && !uniqueCars.includes(carId)) {
+          uniqueCars.push(carId);
+        }
+      });
+      return uniqueCars;
+    }, [] as string[]).length;
+
+  const availableCars = cars.filter(car => car.is_available).length;
+
+  const todayAssignments = assignments.filter(assignment => assignment.date === today);
+
+  const quickStats = {
+    totalEmployees: serviceEmployees.length,
+    availableEmployees: serviceEmployees.filter(emp => !emp.onLeave && !assignedToday.has(emp.name)).length,
+    totalCars: cars.length,
+    availableCars: availableCars,
+    carsInUse: carsInUseToday,
+    pendingVacations: vacations.filter(vacation => vacation.status === 'pending').length,
+    todayAssignments: todayAssignments.length
   };
-
-  // Function to copy text to clipboard
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: t('admin.copiedToClipboard'),
-      description: t('admin.copiedToClipboardMsg'),
-    });
-  };
-
-  // Calculate total number of assignments
-  const totalAssignments = assignments.length;
-
-  // Calculate number of assignments for the selected date
-  const assignmentsOnSelectedDate = assignments.filter(
-    (assignment: Assignment) => assignment.date === format(selectedDate, 'yyyy-MM-dd')
-  ).length;
-
-        // FIXED: Calculate cars in use with proper array handling
-        const carsInUseCount = assignments
-          .filter(a => a.date === format(selectedDate, 'yyyy-MM-dd') && a.car)
-          .reduce((uniqueCars, assignment) => {
-            if (!assignment.car) return uniqueCars;
-            
-            if (Array.isArray(assignment.car)) {
-              assignment.car.forEach(car => {
-                const carId = typeof car === 'string' ? car : car.id;
-                if (carId && !uniqueCars.includes(carId)) {
-                  uniqueCars.push(carId);
-                }
-              });
-            } else {
-              const carId = typeof assignment.car === 'string' ? assignment.car : assignment.car.id;
-              if (carId && !uniqueCars.includes(carId)) {
-                uniqueCars.push(carId);
-              }
-            }
-            return uniqueCars;
-          }, [] as string[]).length;
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">{t('admin.adminDashboard')}</h1>
+    <div className="container mx-auto px-4 py-6 space-y-6">
+      <PageHeader
+        title={t('admin.title')}
+        subtitle={t('admin.subtitle')}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <QuickStatsGrid stats={quickStats} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle>{t('admin.quickStats.totalAssignments')}</CardTitle>
-            <CardDescription>{t('admin.quickStats.allAssignments')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalAssignments}</div>
+          <CardContent className="p-6">
+            <EmployeeManagementTabs
+              employees={employees}
+              onCreateEmployee={createEmployee}
+              onUpdateEmployee={updateEmployee}
+              onDeleteEmployee={deleteEmployee}
+            />
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>{t('admin.quickStats.assignmentsToday')}</CardTitle>
-            <CardDescription>{t('admin.quickStats.todaysAssignments')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{assignmentsOnSelectedDate}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('admin.quickStats.availableCars')}</CardTitle>
-            <CardDescription>{t('admin.quickStats.availableVehicles')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{cars.filter(car => car.is_available).length}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('admin.quickStats.carsInUse')}</CardTitle>
-            <CardDescription>{t('admin.quickStats.vehiclesInUse')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{carsInUseCount}</div>
+          <CardContent className="p-6">
+            <VacationManagement
+              vacations={vacations}
+              onApprove={approveVacation}
+              onDeny={denyVacation}
+            />
           </CardContent>
         </Card>
       </div>
 
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">{t('admin.dateSelection')}</h2>
-        <div className="flex items-center space-x-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={'outline'}
-                className={cn(
-                  'w-[300px] justify-start text-left font-normal',
-                  !date && 'text-muted-foreground'
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, 'yyyy-MM-dd') : <span>{t('common.pickDate')}</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={handleDateSelect}
-                disabled={range ? { before: range.from, after: range.to } : undefined}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
+      <Card>
+        <CardContent className="p-6">
+          <CarManagement
+            cars={cars}
+            onCreateCar={createCar}
+            onUpdateCar={updateCar}
+            onDeleteCar={deleteCar}
+          />
+        </CardContent>
+      </Card>
 
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">{t('admin.dateRangeSelection')}</h2>
-        <div className="flex items-center space-x-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={'outline'}
-                className={cn(
-                  'w-[300px] justify-start text-left font-normal',
-                  !range && 'text-muted-foreground'
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {range?.from ? (
-                  range.to ? (
-                    `${format(range.from, 'yyyy-MM-dd')} - ${format(range.to, 'yyyy-MM-dd')}`
-                  ) : (
-                    format(range.from, 'yyyy-MM-dd')
-                  )
-                ) : (
-                  <span>{t('common.pickRange')}</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="range"
-                defaultMonth={selectedDate}
-                selected={range}
-                onSelect={setRange}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">{t('admin.supabaseCredentials')}</h2>
-        <div className="space-y-2">
-          <div>
-            <Label htmlFor="supabase-url">{t('admin.supabaseUrl')}</Label>
-            <div className="flex items-center">
-              <Input
-                id="supabase-url"
-                className="mr-2"
-                readOnly
-                value={process.env.NEXT_PUBLIC_SUPABASE_URL || ''}
-              />
-              <Button
-                size="sm"
-                onClick={() => copyToClipboard(process.env.NEXT_PUBLIC_SUPABASE_URL || '')}
-              >
-                {t('admin.copy')}
-              </Button>
-            </div>
-          </div>
-          <div>
-            <Label htmlFor="supabase-anon-key">{t('admin.supabaseAnonKey')}</Label>
-            <div className="flex items-center">
-              <Input
-                id="supabase-anon-key"
-                className="mr-2"
-                readOnly
-                value={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''}
-              />
-              <Button
-                size="sm"
-                onClick={() => copyToClipboard(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')}
-              >
-                {t('admin.copy')}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Card>
+        <CardContent className="p-6">
+          <h3 className="text-lg font-semibold mb-4">{t('admin.todayAssignments')}</h3>
+          <AssignmentWidget
+            assignments={todayAssignments}
+            showDateFilter={false}
+            title={t('admin.todayAssignments')}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 };

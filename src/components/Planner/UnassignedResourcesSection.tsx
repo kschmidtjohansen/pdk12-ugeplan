@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +11,7 @@ import { Employee } from '@/types/employee';
 import { Car as CarType } from '@/types/car';
 import { Vacation } from '@/types/vacation';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
+import { getAllCarIds } from '@/utils/carHelpers';
 
 interface UnassignedResourcesSectionProps {
   assignments: Assignment[];
@@ -50,7 +52,15 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   const getUnassignedCars = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayAssignments = assignments.filter(a => a.date === dateStr);
-    const assignedCarIds = new Set(dayAssignments.map(assignment => assignment.car).filter(car => car).map(car => typeof car === 'string' ? car : car?.id).filter(Boolean));
+    const assignedCarIds = new Set();
+    
+    dayAssignments.forEach(assignment => {
+      if (assignment.car) {
+        const carIds = getAllCarIds(assignment.car);
+        carIds.forEach(carId => assignedCarIds.add(carId));
+      }
+    });
+    
     return cars.filter(car => car.is_available && !assignedCarIds.has(car.id));
   };
 
@@ -97,21 +107,6 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     
     return availableEmployeesWithStatus;
   };
-
-  // FIXED: Handle car array properly when getting car IDs for checking assignment
-  const carInAssignments = assignments.some(assignment => {
-    if (!assignment.car) return false;
-    
-    if (Array.isArray(assignment.car)) {
-      return assignment.car.some(assignmentCar => {
-        const assignmentCarId = typeof assignmentCar === 'string' ? assignmentCar : assignmentCar.id;
-        return assignmentCarId === car.id;
-      });
-    }
-    
-    const assignmentCarId = typeof assignment.car === 'string' ? assignment.car : assignment.car.id;
-    return assignmentCarId === car.id;
-  });
 
   const unassignedCars = getUnassignedCars(selectedDate);
   const availableEmployeesWithStatus = getAvailableEmployees(selectedDate);
@@ -198,9 +193,9 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                 <p className="text-sm text-gray-500">{t('planner.allCarsAssigned')}</p>
               ) : (
                 <div className="space-y-1">
-                  {displayedCars.map(car => (
-                    <div key={car.id} className="text-sm bg-white p-2 rounded border">
-                      {car.car_number} - {car.name}
+                  {displayedCars.map(currentCar => (
+                    <div key={currentCar.id} className="text-sm bg-white p-2 rounded border">
+                      {currentCar.car_number} - {currentCar.name}
                     </div>
                   ))}
                   {unassignedCars.length > 3 && (

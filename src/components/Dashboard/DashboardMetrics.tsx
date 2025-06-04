@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Users, Car } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -10,6 +11,7 @@ import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import MetricCard from './MetricCard';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { Assignment } from '@/types/assignment';
+import { getAllCarIds } from '@/utils/carHelpers';
 
 interface DashboardMetricsProps {
   selectedDate?: string;
@@ -94,25 +96,16 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   console.log(`[DashboardMetrics] Unavailable employees: ${unavailableEmployees.length}`);
   unavailableEmployees.forEach(emp => console.log(`  - ${emp.name}`));
 
-  // Calculate cars in use on target date - FIXED to handle array of cars
+  // Calculate cars in use on target date - using getAllCarIds helper
   const carsInUseOnDate = assignments
     .filter(a => a.date === targetDate && a.car)
     .reduce((uniqueCars, assignment) => {
-      if (!assignment.car) return uniqueCars;
-      
-      if (Array.isArray(assignment.car)) {
-        assignment.car.forEach(car => {
-          const carId = typeof car === 'string' ? car : car.id;
-          if (carId && !uniqueCars.includes(carId)) {
-            uniqueCars.push(carId);
-          }
-        });
-      } else {
-        const carId = typeof assignment.car === 'string' ? assignment.car : assignment.car.id;
+      const carIds = getAllCarIds(assignment.car);
+      carIds.forEach(carId => {
         if (carId && !uniqueCars.includes(carId)) {
           uniqueCars.push(carId);
         }
-      }
+      });
       return uniqueCars;
     }, [] as string[]).length;
 

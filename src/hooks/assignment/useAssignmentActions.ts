@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -5,6 +6,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { isValidUUID, safeUUID } from '@/utils/uuidValidation';
+import { getCarId } from '@/utils/carHelpers';
 
 // This hook provides actions for managing assignments
 export const useAssignmentActions = (
@@ -52,22 +54,8 @@ export const useAssignmentActions = (
     try {
       console.log("Creating assignment with data:", assignmentData);
       
-      // Format car information for storage - FIXED to handle array of cars
-      let carId = null;
-      if (assignmentData.car) {
-        if (Array.isArray(assignmentData.car)) {
-          // For now, take the first car from the array
-          // In the future, this should be updated to support multiple cars in the database
-          if (assignmentData.car.length > 0) {
-            const firstCar = assignmentData.car[0];
-            carId = safeUUID(typeof firstCar === 'string' ? firstCar : firstCar.id);
-          }
-        } else if (typeof assignmentData.car === 'string') {
-          carId = safeUUID(assignmentData.car);
-        } else if (typeof assignmentData.car === 'object') {
-          carId = safeUUID(assignmentData.car.id);
-        }
-      }
+      // Format car information for storage - use helper function to get single car ID
+      const carId = getCarId(assignmentData.car);
       
       // Insert the new assignment
       const { data: newAssignment, error } = await supabase
@@ -150,22 +138,8 @@ export const useAssignmentActions = (
 
       console.log("Updating assignment with data:", assignmentData);
       
-      // Format car information for storage - FIXED to handle array of cars
-      let carId = null;
-      if (assignmentData.car) {
-        if (Array.isArray(assignmentData.car)) {
-          // For now, take the first car from the array
-          // In the future, this should be updated to support multiple cars in the database
-          if (assignmentData.car.length > 0) {
-            const firstCar = assignmentData.car[0];
-            carId = safeUUID(typeof firstCar === 'string' ? firstCar : firstCar.id);
-          }
-        } else if (typeof assignmentData.car === 'string') {
-          carId = safeUUID(assignmentData.car);
-        } else if (typeof assignmentData.car === 'object') {
-          carId = safeUUID(assignmentData.car.id);
-        }
-      }
+      // Format car information for storage - use helper function to get single car ID
+      const carId = getCarId(assignmentData.car);
       
       // Update the assignment
       const { error } = await supabase

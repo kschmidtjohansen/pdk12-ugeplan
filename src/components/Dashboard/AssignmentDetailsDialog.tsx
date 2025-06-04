@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Assignment } from '@/types/assignment';
 import { Calendar, Clock, MapPin, Car, Users, UserCheck } from 'lucide-react';
+import { getCarDisplayText } from '@/utils/carHelpers';
 
 interface AssignmentDetailsDialogProps {
   assignment: Assignment | null;
@@ -28,23 +29,7 @@ const AssignmentDetailsDialog: React.FC<AssignmentDetailsDialogProps> = ({
     );
   };
 
-  // Helper function to get car display text
-  const getCarDisplayText = () => {
-    if (!assignment.car) return null;
-    
-    if (Array.isArray(assignment.car)) {
-      if (assignment.car.length === 0) return null;
-      if (assignment.car.length === 1) {
-        const car = assignment.car[0];
-        return typeof car === 'string' ? car : car.name;
-      }
-      return assignment.car.map(car => typeof car === 'string' ? car : car.name).join(', ');
-    }
-    
-    return typeof assignment.car === 'string' ? assignment.car : assignment.car.name;
-  };
-
-  const carDisplayText = getCarDisplayText();
+  const carDisplayText = getCarDisplayText(assignment.car);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

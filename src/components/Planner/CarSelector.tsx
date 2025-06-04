@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
+import { getAllCarIds } from '@/utils/carHelpers';
 
 interface CarSelectorProps {
   cars: Car[];
@@ -97,20 +98,9 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       
       const isOnDate = assignmentDateStr === targetDateStr;
       
-      // Handle multiple car assignment formats
-      let isAssigned = false;
-      if (assignment.car) {
-        if (typeof assignment.car === 'string') {
-          isAssigned = assignment.car === carId;
-        } else if (Array.isArray(assignment.car)) {
-          // Handle array of car IDs or car objects
-          isAssigned = assignment.car.some(car => 
-            typeof car === 'string' ? car === carId : car.id === carId
-          );
-        } else if (typeof assignment.car === 'object') {
-          isAssigned = assignment.car.id === carId;
-        }
-      }
+      // Use helper function to get car IDs
+      const carIds = getAllCarIds(assignment.car);
+      const isAssigned = carIds.includes(carId);
       
       return isOnDate && isAssigned;
     });
@@ -274,28 +264,6 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
           </div>
         </PopoverContent>
       </Popover>
-      
-      {/* Display selected cars as removable chips */}
-      {selectedCarIds && selectedCarIds.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {selectedCarIds.map(carId => {
-            const car = cars.find(c => c.id === carId);
-            if (!car) return null;
-            
-            return (
-              <Badge key={carId} variant="secondary" className="flex items-center gap-1">
-                {car.name}
-                <button
-                  onClick={() => onCarSelect(selectedCarIds.filter(id => id !== carId))}
-                  className="ml-1 hover:bg-muted rounded-full p-0.5"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 };

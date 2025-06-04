@@ -6,6 +6,7 @@ import { Assignment } from '@/types/assignment';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { getAllCarIds } from '@/utils/carHelpers';
+import { useAssignmentActions } from './assignment/useAssignmentActions';
 
 interface UseAssignmentsConsolidatedOptions {
   filter?: 'all' | 'my' | 'planner';
@@ -154,6 +155,9 @@ export const useAssignmentsConsolidated = (options: UseAssignmentsConsolidatedOp
     }
   };
 
+  // Get CRUD actions
+  const { createAssignment, updateAssignment, deleteAssignment } = useAssignmentActions(fetchAssignments, setIsDialogOpen);
+
   // Publish a single assignment
   const publishAssignment = async (assignmentId: string) => {
     try {
@@ -298,6 +302,9 @@ export const useAssignmentsConsolidated = (options: UseAssignmentsConsolidatedOp
     isDialogOpen,
     setIsDialogOpen,
     publishAssignment,
-    publishAssignmentsByDate
+    publishAssignmentsByDate,
+    createAssignment,
+    updateAssignment,
+    deleteAssignment
   };
 };
