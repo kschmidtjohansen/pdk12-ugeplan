@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -98,6 +97,21 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     
     return availableEmployeesWithStatus;
   };
+
+  // FIXED: Handle car array properly when getting car IDs for checking assignment
+  const carInAssignments = assignments.some(assignment => {
+    if (!assignment.car) return false;
+    
+    if (Array.isArray(assignment.car)) {
+      return assignment.car.some(assignmentCar => {
+        const assignmentCarId = typeof assignmentCar === 'string' ? assignmentCar : assignmentCar.id;
+        return assignmentCarId === car.id;
+      });
+    }
+    
+    const assignmentCarId = typeof assignment.car === 'string' ? assignment.car : assignment.car.id;
+    return assignmentCarId === car.id;
+  });
 
   const unassignedCars = getUnassignedCars(selectedDate);
   const availableEmployeesWithStatus = getAvailableEmployees(selectedDate);

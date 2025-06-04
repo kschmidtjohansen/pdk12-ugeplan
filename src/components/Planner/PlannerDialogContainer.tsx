@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { useVacations } from '@/hooks/useVacations';
@@ -6,6 +7,7 @@ import { useCars } from '@/hooks/car';
 import AssignmentForm from './AssignmentForm';
 import { Assignment } from '@/types/assignment';
 import { format } from 'date-fns';
+import { getCarId } from '@/utils/carHelpers';
 
 interface PlannerDialogContainerProps {
   isDialogOpen: boolean;
@@ -63,15 +65,8 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
         // FIXED: Editing existing assignment - properly convert car and responsible user objects to IDs
         console.log('[PlannerDialogContainer] Editing existing assignment, converting data...');
         
-        // Convert car object to car ID string
-        let carId = '';
-        if (currentAssignment.car) {
-          if (typeof currentAssignment.car === 'string') {
-            carId = currentAssignment.car;
-          } else if (typeof currentAssignment.car === 'object' && currentAssignment.car.id) {
-            carId = currentAssignment.car.id;
-          }
-        }
+        // Convert car object to car ID string - use helper function
+        const carId = getCarId(currentAssignment.car) || '';
         
         console.log('[PlannerDialogContainer] Converted car ID:', carId);
         console.log('[PlannerDialogContainer] Responsible user:', currentAssignment.responsibleUser);

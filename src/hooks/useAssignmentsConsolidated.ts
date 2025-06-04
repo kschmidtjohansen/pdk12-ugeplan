@@ -1,29 +1,25 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { supabase } from '@/integrations/supabase/client';
-import { useEmployees } from './useEmployees';
-import { useVacations } from './useVacations';
-import { cleanupAssignmentEmployees } from '@/utils/employeeAssignmentUtils';
+import { useAuth } from '@/context/AuthContext';
+import { getAllCarIds } from '@/utils/carHelpers';
 
-interface UseAssignmentsConsolidatedProps {
-  filter?: 'all' | 'dashboard' | 'planner';
-  includeUnpublished?: boolean;
+interface UseAssignmentsConsolidatedOptions {
+  filter?: 'all' | 'my' | 'planner';
+  showUnpublished?: boolean;
 }
 
-export const useAssignmentsConsolidated = ({ 
-  filter = 'all', 
-  includeUnpublished = true 
-}: UseAssignmentsConsolidatedProps = {}) => {
+export const useAssignmentsConsolidated = (options: UseAssignmentsConsolidatedOptions = {}) => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { employees } = useEmployees();
-  const { vacations } = useVacations();
+  const { user } = useAuth();
 
   // Fetch assignments from Supabase
   const fetchAssignments = async () => {
@@ -31,10 +27,15 @@ export const useAssignmentsConsolidated = ({
       setLoading(true);
       setError(null);
       
-      console.log('[useAssignmentsConsolidated] Starting to fetch assignments...');
+      // Get current user info for filtering
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
       
-      // Build the query with proper joins for car and responsible user data
-      let query = supabase
+      console.log('[useAssignmentsConsolidated] Fetching assignments...');
+      console.log('[useAssignmentsConsolidated] Current user:', currentUser?.id);
+      console.log('[useAssignmentsConsolidated] Filter type:', options.filter);
+      
+      // Fetch assignments with optimized query
+      const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('assignments')
         .select(`
           id,
@@ -49,28 +50,14 @@ export const useAssignmentsConsolidated = ({
           responsible_user_id,
           created_at,
           updated_at,
-          cars:car_id (
-            id,
-            name,
-            car_number
-          ),
-          responsible_user:responsible_user_id (
-            id,
-            name
-          )
+          cars:car_id (id, name, car_number),
+          responsible_user:responsible_user_id (id, name)
         `)
         .order('assignment_date', { ascending: true });
-
-      // Apply filter based on published status
-      if (!includeUnpublished) {
-        query = query.eq('published', true);
-      }
-
-      const { data: assignmentsData, error: assignmentsError } = await query;
       
       if (assignmentsError) throw assignmentsError;
       
-      console.log('[useAssignmentsConsolidated] Fetched assignments:', assignmentsData?.length || 0);
+      console.log('[useAssignmentsConsolidated] Raw assignments data:', assignmentsData?.length || 0);
       
       if (assignmentsData) {
         // Get assignment-employee relationships
@@ -80,8 +67,11 @@ export const useAssignmentsConsolidated = ({
           .order('assignment_id');
         
         if (employeeError) {
+          console.error('[useAssignmentsConsolidated] Error fetching assignment employees:', employeeError);
           throw employeeError;
         }
+        
+        console.log('[useAssignmentsConsolidated] Assignment employees:', assignmentEmployees?.length || 0);
         
         // Get all profiles for the users in assignments
         const userIds = assignmentEmployees?.map(ae => ae.user_id) || [];
@@ -97,10 +87,13 @@ export const useAssignmentsConsolidated = ({
             .order('name');
           
           if (profilesError) {
+            console.error('[useAssignmentsConsolidated] Error fetching profiles:', profilesError);
             throw profilesError;
           }
           profilesData = profiles || [];
         }
+        
+        console.log('[useAssignmentsConsolidated] Profiles data:', profilesData.length);
         
         // Process and combine the data
         const processedAssignments = assignmentsData.map(assignment => {
@@ -139,25 +132,12 @@ export const useAssignmentsConsolidated = ({
             } : null
           };
           
-          console.log('[useAssignmentsConsolidated] Processed assignment:', {
-            id: processedAssignment.id,
-            title: processedAssignment.title,
-            car: processedAssignment.car,
-            responsibleUser: processedAssignment.responsibleUser,
-            employees: processedAssignment.employees
-          });
-          
           return processedAssignment;
         });
         
-        // Clean up assignments by removing unavailable employees
-        let cleanedAssignments = processedAssignments;
-        if (employees.length > 0 && vacations.length >= 0) {
-          cleanedAssignments = cleanupAssignmentEmployees(processedAssignments, employees, vacations);
-          console.log('[useAssignmentsConsolidated] Applied employee availability cleanup');
-        }
+        console.log('[useAssignmentsConsolidated] Processed assignments:', processedAssignments.length);
         
-        setAssignments(cleanedAssignments);
+        setAssignments(processedAssignments);
       } else {
         setAssignments([]);
       }
@@ -174,295 +154,26 @@ export const useAssignmentsConsolidated = ({
     }
   };
 
-  // Create assignment
-  const createAssignment = async (assignmentData: Partial<Assignment>) => {
-    try {
-      console.log("Creating assignment with data:", assignmentData);
-      
-      // Format car information for storage - FIXED to handle array of cars
-      let carId = null;
-      if (assignmentData.car) {
-        if (Array.isArray(assignmentData.car)) {
-          // For now, take the first car from the array
-          if (assignmentData.car.length > 0) {
-            const firstCar = assignmentData.car[0];
-            carId = typeof firstCar === 'string' ? firstCar : firstCar.id;
-          }
-        } else if (typeof assignmentData.car === 'string') {
-          carId = assignmentData.car;
-        } else if (typeof assignmentData.car === 'object') {
-          carId = assignmentData.car.id;
-        }
-      }
-
-      // Format responsible user ID
-      let responsibleUserId = null;
-      if (assignmentData.responsibleUser) {
-        if (typeof assignmentData.responsibleUser === 'string') {
-          responsibleUserId = assignmentData.responsibleUser;
-        } else if (typeof assignmentData.responsibleUser === 'object') {
-          responsibleUserId = assignmentData.responsibleUser.id;
-        }
-      }
-      
-      // Insert the new assignment
-      const { data: newAssignment, error } = await supabase
-        .from('assignments')
-        .insert({
-          title: assignmentData.title,
-          description: assignmentData.description,
-          location: assignmentData.location,
-          assignment_date: assignmentData.date,
-          from_time: assignmentData.fromTime,
-          to_time: assignmentData.toTime,
-          car_id: carId,
-          responsible_user_id: responsibleUserId,
-          published: assignmentData.published || false,
-          created_at: new Date().toISOString()
-        })
-        .select('id')
-        .single();
-
-      if (error) throw error;
-      
-      // If there are employees, link them to the assignment
-      if (assignmentData.employees && assignmentData.employees.length > 0 && newAssignment?.id) {
-        console.log("Assignment created, now linking employees:", assignmentData.employees);
-        
-        // Get profile IDs for each employee name
-        const employeeInserts = [];
-        
-        for (const employeeName of assignmentData.employees) {
-          if (typeof employeeName !== 'string') {
-            console.warn("Skipping invalid employee data:", employeeName);
-            continue;
-          }
-          
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('name', employeeName)
-            .single();
-            
-          if (profileError) {
-            console.error('Error getting profile by name:', profileError);
-            continue;
-          }
-          
-          if (profile?.id) {
-            employeeInserts.push({
-              assignment_id: newAssignment.id,
-              user_id: profile.id
-            });
-          }
-        }
-        
-        // Insert employee associations
-        if (employeeInserts.length > 0) {
-          const { error: employeeError } = await supabase
-            .from('assignments_employees')
-            .insert(employeeInserts);
-            
-          if (employeeError) {
-            console.error('Error linking employees to assignment:', employeeError);
-          }
-        }
-      }
-      
-      toast({
-        title: t('planner.assignmentCreated'),
-        description: t('planner.assignmentCreatedMsg', { title: assignmentData.title }),
-      });
-      
-      fetchAssignments();
-    } catch (error: any) {
-      console.error('Error creating assignment:', error);
-      toast({
-        title: t('common.error'),
-        description: t('planner.errorCreatingAssignment'),
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Update assignment
-  const updateAssignment = async (id: string, assignmentData: Partial<Assignment>) => {
-    try {
-      console.log("Updating assignment with data:", assignmentData);
-      
-      // Format car information for storage - FIXED to handle array of cars
-      let carId = null;
-      if (assignmentData.car) {
-        if (Array.isArray(assignmentData.car)) {
-          // For now, take the first car from the array
-          if (assignmentData.car.length > 0) {
-            const firstCar = assignmentData.car[0];
-            carId = typeof firstCar === 'string' ? firstCar : firstCar.id;
-          }
-        } else if (typeof assignmentData.car === 'string') {
-          carId = assignmentData.car;
-        } else if (typeof assignmentData.car === 'object') {
-          carId = assignmentData.car.id;
-        }
-      }
-
-      // Format responsible user ID
-      let responsibleUserId = null;
-      if (assignmentData.responsibleUser) {
-        if (typeof assignmentData.responsibleUser === 'string') {
-          responsibleUserId = assignmentData.responsibleUser;
-        } else if (typeof assignmentData.responsibleUser === 'object') {
-          responsibleUserId = assignmentData.responsibleUser.id;
-        }
-      }
-      
-      // Update the assignment
-      const { error } = await supabase
-        .from('assignments')
-        .update({
-          title: assignmentData.title,
-          description: assignmentData.description,
-          location: assignmentData.location,
-          assignment_date: assignmentData.date,
-          from_time: assignmentData.fromTime,
-          to_time: assignmentData.toTime,
-          car_id: carId,
-          responsible_user_id: responsibleUserId,
-          published: assignmentData.published,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id);
-
-      if (error) throw error;
-      
-      // Remove existing employee assignments
-      const { error: deleteError } = await supabase
-        .from('assignments_employees')
-        .delete()
-        .eq('assignment_id', id);
-        
-      if (deleteError) {
-        console.error('Error removing existing employee assignments:', deleteError);
-      }
-      
-      // If there are employees, link them to the assignment
-      if (assignmentData.employees && assignmentData.employees.length > 0) {
-        console.log("Assignment updated, now linking employees:", assignmentData.employees);
-        
-        // Get profile IDs for each employee name
-        const employeeInserts = [];
-        
-        for (const employeeName of assignmentData.employees) {
-          if (typeof employeeName !== 'string') {
-            console.warn("Skipping invalid employee data:", employeeName);
-            continue;
-          }
-          
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('name', employeeName)
-            .single();
-            
-          if (profileError) {
-            console.error('Error getting profile by name:', profileError);
-            continue;
-          }
-          
-          if (profile?.id) {
-            employeeInserts.push({
-              assignment_id: id,
-              user_id: profile.id
-            });
-          }
-        }
-        
-        // Insert employee associations
-        if (employeeInserts.length > 0) {
-          const { error: employeeError } = await supabase
-            .from('assignments_employees')
-            .insert(employeeInserts);
-            
-          if (employeeError) {
-            console.error('Error linking employees to assignment:', employeeError);
-          }
-        }
-      }
-      
-      toast({
-        title: t('planner.assignmentUpdated'),
-        description: t('planner.assignmentUpdatedMsg', { title: assignmentData.title }),
-      });
-      
-      fetchAssignments();
-      return true;
-    } catch (error: any) {
-      console.error('Error updating assignment:', error);
-      toast({
-        title: t('common.error'),
-        description: t('planner.errorUpdatingAssignment'),
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-  
-  // Delete assignment
-  const deleteAssignment = async (id: string) => {
-    try {
-      // First delete associated employee assignments
-      const { error: empError } = await supabase
-        .from('assignments_employees')
-        .delete()
-        .eq('assignment_id', id);
-        
-      if (empError) {
-        console.error('Error deleting employee assignments:', empError);
-      }
-      
-      // Then delete the assignment
-      const { error } = await supabase
-        .from('assignments')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      
-      toast({
-        title: t('planner.assignmentDeleted'),
-        description: t('planner.assignmentDeletedMsg'),
-      });
-      
-      fetchAssignments();
-      return true;
-    } catch (error: any) {
-      console.error('Error deleting assignment:', error);
-      toast({
-        title: t('common.error'),
-        description: t('planner.errorDeletingAssignment'),
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  // Publish single assignment
-  const publishAssignment = async (id: string) => {
+  // Publish a single assignment
+  const publishAssignment = async (assignmentId: string) => {
     try {
       const { error } = await supabase
         .from('assignments')
         .update({ published: true })
-        .eq('id', id);
+        .eq('id', assignmentId);
 
       if (error) throw error;
+
+      // Find the assignment to get car information for notification
+      const assignment = assignments.find(a => a.id === assignmentId);
+      const carIds = assignment ? getAllCarIds(assignment.car) : [];
       
       toast({
         title: t('planner.assignmentPublished'),
         description: t('planner.assignmentPublishedMsg'),
       });
-      
+
       fetchAssignments();
-      return true;
     } catch (error: any) {
       console.error('Error publishing assignment:', error);
       toast({
@@ -470,13 +181,24 @@ export const useAssignmentsConsolidated = ({
         description: t('planner.errorPublishingAssignment'),
         variant: "destructive",
       });
-      return false;
     }
   };
 
-  // Publish assignments by date
+  // Publish all assignments for a specific date
   const publishAssignmentsByDate = async (date: string) => {
     try {
+      const unpublishedAssignments = assignments.filter(
+        a => a.date === date && !a.published
+      );
+
+      if (unpublishedAssignments.length === 0) {
+        toast({
+          title: t('planner.noUnpublishedAssignments'),
+          description: t('planner.noUnpublishedAssignmentsMsg'),
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('assignments')
         .update({ published: true })
@@ -484,41 +206,60 @@ export const useAssignmentsConsolidated = ({
         .eq('published', false);
 
       if (error) throw error;
+
+      // Collect unique car IDs from all published assignments
+      const allCarIds = unpublishedAssignments.reduce((carIds: string[], assignment) => {
+        const assignmentCarIds = getAllCarIds(assignment.car);
+        return [...carIds, ...assignmentCarIds];
+      }, []);
       
+      const uniqueCarIds = [...new Set(allCarIds)];
+
       toast({
-        title: t('planner.dayPublished'),
-        description: t('planner.dayPublishedMsg'),
+        title: t('planner.assignmentsPublished'),
+        description: t('planner.assignmentsPublishedMsg', { count: unpublishedAssignments.length }),
       });
-      
+
       fetchAssignments();
-      return true;
     } catch (error: any) {
-      console.error('Error publishing assignments by date:', error);
+      console.error('Error publishing assignments:', error);
       toast({
         title: t('common.error'),
-        description: t('planner.errorPublishingDay'),
+        description: t('planner.errorPublishingAssignments'),
         variant: "destructive",
       });
-      return false;
     }
   };
 
-  // Load assignments on component mount
+  // Filter assignments based on options
+  const filteredAssignments = useMemo(() => {
+    let filtered = [...assignments];
+    
+    // Apply filter type
+    if (options.filter === 'my' && user) {
+      filtered = filtered.filter(assignment => 
+        assignment.employees?.includes(user.name || '') ||
+        assignment.responsibleUser?.id === user.id
+      );
+    }
+    
+    // Apply published filter
+    if (options.showUnpublished === false) {
+      filtered = filtered.filter(assignment => assignment.published);
+    }
+    
+    return filtered;
+  }, [assignments, options, user]);
+
+  // Load assignments on component mount and when options change
   useEffect(() => {
     fetchAssignments();
-  }, []);
+  }, [options.filter]);
   
-  // Refresh assignments when employees or vacations change (for auto-cleanup)
-  useEffect(() => {
-    if (employees.length > 0) {
-      fetchAssignments();
-    }
-  }, [employees, vacations]);
-  
-  // Subscribe to assignment changes with optimized realtime handling
+  // Subscribe to assignment changes
   useEffect(() => {
     const channel = supabase
-      .channel('assignment_changes_optimized')
+      .channel('consolidated_assignment_changes')
       .on(
         'postgres_changes',
         {
@@ -549,17 +290,14 @@ export const useAssignmentsConsolidated = ({
   }, []);
 
   return {
-    assignments,
+    assignments: filteredAssignments,
     loading,
     error,
     fetchAssignments,
     setAssignments,
-    createAssignment,
-    updateAssignment,
-    deleteAssignment,
-    publishAssignment,
-    publishAssignmentsByDate,
     isDialogOpen,
-    setIsDialogOpen
+    setIsDialogOpen,
+    publishAssignment,
+    publishAssignmentsByDate
   };
 };

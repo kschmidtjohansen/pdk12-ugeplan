@@ -4,6 +4,7 @@ import { Car, Clock, Tag, Users, UserCheck } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
+import { getCarDisplayText } from '@/utils/carHelpers';
 
 interface AssignmentDetailsProps {
   assignment: Assignment;
@@ -154,7 +155,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
         <div className="flex items-center gap-2 text-left">
           <Car className="w-4 h-4 flex-shrink-0 text-gray-500" />
           <span className="truncate text-left">
-            {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
+            {getCarDisplayText(assignment.car)}
           </span>
         </div>
       )}

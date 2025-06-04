@@ -284,13 +284,15 @@ const ScreenDisplayPage: React.FC = () => {
                         )}
 
                         {assignment.car && (
-                          <div className="flex items-center gap-2">
-                            <div className="bg-orange-100 p-1 rounded border border-orange-200">
-                              <Car className="h-3 w-3 text-orange-600" />
-                            </div>
-                            <p className="text-sm font-semibold text-gray-900 truncate">
-                              {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
-                            </p>
+                          <div className="flex items-center space-x-1">
+                            <Car className="h-3 w-3 text-blue-600" />
+                            <span className="text-xs font-medium text-blue-600">
+                              {typeof assignment.car === 'string' 
+                                ? assignment.car 
+                                : Array.isArray(assignment.car)
+                                  ? assignment.car.map(c => typeof c === 'string' ? c : c.name).join(', ')
+                                  : assignment.car.name}
+                            </span>
                           </div>
                         )}
                       </div>
