@@ -28,6 +28,24 @@ const AssignmentDetailsDialog: React.FC<AssignmentDetailsDialogProps> = ({
     );
   };
 
+  // Helper function to get car display text
+  const getCarDisplayText = () => {
+    if (!assignment.car) return null;
+    
+    if (Array.isArray(assignment.car)) {
+      if (assignment.car.length === 0) return null;
+      if (assignment.car.length === 1) {
+        const car = assignment.car[0];
+        return typeof car === 'string' ? car : car.name;
+      }
+      return assignment.car.map(car => typeof car === 'string' ? car : car.name).join(', ');
+    }
+    
+    return typeof assignment.car === 'string' ? assignment.car : assignment.car.name;
+  };
+
+  const carDisplayText = getCarDisplayText();
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
@@ -81,12 +99,12 @@ const AssignmentDetailsDialog: React.FC<AssignmentDetailsDialogProps> = ({
           </div>
 
           {/* Car Assignment */}
-          {assignment.car && (
+          {carDisplayText && (
             <div className="flex items-center gap-3">
               <Car className="h-5 w-5 text-orange-600" />
               <div>
                 <span className="font-medium">{t('planner.car')}: </span>
-                <span>{typeof assignment.car === 'string' ? assignment.car : assignment.car.name}</span>
+                <span>{carDisplayText}</span>
               </div>
             </div>
           )}

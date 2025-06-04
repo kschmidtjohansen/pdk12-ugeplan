@@ -21,10 +21,19 @@ const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
   // Get today's date in YYYY-MM-DD format
   const today = format(new Date(), 'yyyy-MM-dd');
   
-  // Function to check if a car is in use today based on assignments
+  // Function to check if a car is in use today based on assignments - FIXED to handle array of cars
   const isCarInUse = (carId: string): boolean => {
     return assignments.some(assignment => {
-      const assignmentCarId = typeof assignment.car === 'string' ? assignment.car : assignment.car?.id;
+      if (!assignment.car) return false;
+      
+      if (Array.isArray(assignment.car)) {
+        return assignment.car.some(car => {
+          const assignmentCarId = typeof car === 'string' ? car : car.id;
+          return assignmentCarId === carId;
+        }) && assignment.date === today;
+      }
+      
+      const assignmentCarId = typeof assignment.car === 'string' ? assignment.car : assignment.car.id;
       return assignmentCarId === carId && assignment.date === today;
     });
   };

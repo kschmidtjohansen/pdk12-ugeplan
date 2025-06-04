@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -180,10 +179,16 @@ export const useAssignmentsConsolidated = ({
     try {
       console.log("Creating assignment with data:", assignmentData);
       
-      // Format car information for storage
+      // Format car information for storage - FIXED to handle array of cars
       let carId = null;
       if (assignmentData.car) {
-        if (typeof assignmentData.car === 'string') {
+        if (Array.isArray(assignmentData.car)) {
+          // For now, take the first car from the array
+          if (assignmentData.car.length > 0) {
+            const firstCar = assignmentData.car[0];
+            carId = typeof firstCar === 'string' ? firstCar : firstCar.id;
+          }
+        } else if (typeof assignmentData.car === 'string') {
           carId = assignmentData.car;
         } else if (typeof assignmentData.car === 'object') {
           carId = assignmentData.car.id;
@@ -285,10 +290,16 @@ export const useAssignmentsConsolidated = ({
     try {
       console.log("Updating assignment with data:", assignmentData);
       
-      // Format car information for storage
+      // Format car information for storage - FIXED to handle array of cars
       let carId = null;
       if (assignmentData.car) {
-        if (typeof assignmentData.car === 'string') {
+        if (Array.isArray(assignmentData.car)) {
+          // For now, take the first car from the array
+          if (assignmentData.car.length > 0) {
+            const firstCar = assignmentData.car[0];
+            carId = typeof firstCar === 'string' ? firstCar : firstCar.id;
+          }
+        } else if (typeof assignmentData.car === 'string') {
           carId = assignmentData.car;
         } else if (typeof assignmentData.car === 'object') {
           carId = assignmentData.car.id;

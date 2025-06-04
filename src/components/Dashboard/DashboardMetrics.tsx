@@ -94,13 +94,24 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   console.log(`[DashboardMetrics] Unavailable employees: ${unavailableEmployees.length}`);
   unavailableEmployees.forEach(emp => console.log(`  - ${emp.name}`));
 
-  // Calculate cars in use on target date
+  // Calculate cars in use on target date - FIXED to handle array of cars
   const carsInUseOnDate = assignments
     .filter(a => a.date === targetDate && a.car)
     .reduce((uniqueCars, assignment) => {
-      const carId = typeof assignment.car === 'string' ? assignment.car : assignment.car?.id;
-      if (carId && !uniqueCars.includes(carId)) {
-        uniqueCars.push(carId);
+      if (!assignment.car) return uniqueCars;
+      
+      if (Array.isArray(assignment.car)) {
+        assignment.car.forEach(car => {
+          const carId = typeof car === 'string' ? car : car.id;
+          if (carId && !uniqueCars.includes(carId)) {
+            uniqueCars.push(carId);
+          }
+        });
+      } else {
+        const carId = typeof assignment.car === 'string' ? assignment.car : assignment.car.id;
+        if (carId && !uniqueCars.includes(carId)) {
+          uniqueCars.push(carId);
+        }
       }
       return uniqueCars;
     }, [] as string[]).length;

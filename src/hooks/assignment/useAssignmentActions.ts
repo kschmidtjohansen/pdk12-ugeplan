@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -53,14 +52,20 @@ export const useAssignmentActions = (
     try {
       console.log("Creating assignment with data:", assignmentData);
       
-      // Format car information for storage
+      // Format car information for storage - FIXED to handle array of cars
       let carId = null;
       if (assignmentData.car) {
-        if (typeof assignmentData.car === 'string') {
+        if (Array.isArray(assignmentData.car)) {
+          // For now, take the first car from the array
+          // In the future, this should be updated to support multiple cars in the database
+          if (assignmentData.car.length > 0) {
+            const firstCar = assignmentData.car[0];
+            carId = safeUUID(typeof firstCar === 'string' ? firstCar : firstCar.id);
+          }
+        } else if (typeof assignmentData.car === 'string') {
           carId = safeUUID(assignmentData.car);
         } else if (typeof assignmentData.car === 'object') {
-          // If car is already an object, use its ID
-          carId = safeUUID((assignmentData.car as Car).id);
+          carId = safeUUID(assignmentData.car.id);
         }
       }
       
@@ -145,14 +150,20 @@ export const useAssignmentActions = (
 
       console.log("Updating assignment with data:", assignmentData);
       
-      // Format car information for storage
+      // Format car information for storage - FIXED to handle array of cars
       let carId = null;
       if (assignmentData.car) {
-        if (typeof assignmentData.car === 'string') {
+        if (Array.isArray(assignmentData.car)) {
+          // For now, take the first car from the array
+          // In the future, this should be updated to support multiple cars in the database
+          if (assignmentData.car.length > 0) {
+            const firstCar = assignmentData.car[0];
+            carId = safeUUID(typeof firstCar === 'string' ? firstCar : firstCar.id);
+          }
+        } else if (typeof assignmentData.car === 'string') {
           carId = safeUUID(assignmentData.car);
         } else if (typeof assignmentData.car === 'object') {
-          // If car is already an object, use its ID
-          carId = safeUUID((assignmentData.car as Car).id);
+          carId = safeUUID(assignmentData.car.id);
         }
       }
       
