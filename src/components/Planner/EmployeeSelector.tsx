@@ -88,10 +88,13 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     return time.trim();
   };
 
-  // Function to determine if an employee is fully booked for the workday
+  // FIXED: Function to determine if an employee is fully booked for the workday
   const isEmployeeFullyBookedForDay = (assignments: Assignment[], dayOfWeek: number): boolean => {
     const workdayStart = "08:00";
+    // FIXED: Friday (dayOfWeek === 5 in JavaScript, where 0=Sunday) should end at 15:30
     const workdayEnd = dayOfWeek === 5 ? "15:30" : "16:00";
+    
+    console.log(`[EmployeeSelector] Checking if fully booked for day ${dayOfWeek}. Workday: ${workdayStart} - ${workdayEnd}`);
     
     let coveredTimeSlots: [string, string][] = [];
     const sortedAssignments = [...assignments].sort((a, b) => a.fromTime.localeCompare(b.fromTime));
@@ -100,11 +103,28 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       const from = normalizeTime(assignment.fromTime);
       const to = normalizeTime(assignment.toTime);
       
+      console.log(`[EmployeeSelector] Assignment time: ${from} - ${to}`);
+      
+      // Check if assignment covers the entire workday
       if (from <= workdayStart && to >= workdayEnd) {
+        console.log(`[EmployeeSelector] Assignment covers entire workday`);
         return true;
       }
       
       coveredTimeSlots.push([from, to]);
+    }
+    
+    // For Friday, if employee ends exactly at 15:30, they are fully booked
+    if (dayOfWeek === 5) {
+      const hasEndAtFridayEnd = sortedAssignments.some(assignment => {
+        const normalizedEndTime = normalizeTime(assignment.toTime);
+        return normalizedEndTime === "15:30";
+      });
+      
+      if (hasEndAtFridayEnd) {
+        console.log(`[EmployeeSelector] Employee ends at 15:30 on Friday - fully booked`);
+        return true;
+      }
     }
     
     return false;
@@ -177,21 +197,28 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       };
     }
     
-    // Check if employee ends at exactly 16:00
-    const hasEndTimeAtSixteen = employeeAssignments.some(assignment => {
+    // FIXED: Check if employee ends at exactly 16:00 OR 15:30 on Friday
+    const targetDate = new Date(targetDateStr + 'T12:00:00');
+    const dayOfWeek = targetDate.getDay(); // 0=Sunday, 5=Friday
+    
+    const hasEndTimeAtWorkdayEnd = employeeAssignments.some(assignment => {
       const originalTime = assignment.toTime;
       const normalizedEndTime = normalizeTime(originalTime);
-      const exactMatch = normalizedEndTime === "16:00";
       
-      console.log(`[EmployeeSelector] Assignment ${assignment.id} for ${employeeName}:`);
+      // Check for 16:00 on non-Friday or 15:30 on Friday
+      const workdayEndTime = dayOfWeek === 5 ? "15:30" : "16:00";
+      const exactMatch = normalizedEndTime === workdayEndTime;
+      
+      console.log(`[EmployeeSelector] Assignment ${assignment.id} for ${employeeName} on day ${dayOfWeek}:`);
       console.log(`  - Original time: "${originalTime}"`);
       console.log(`  - Normalized time: "${normalizedEndTime}"`);
-      console.log(`  - Exact 16:00 match: ${exactMatch}`);
+      console.log(`  - Expected workday end: "${workdayEndTime}"`);
+      console.log(`  - Exact match: ${exactMatch}`);
       
       return exactMatch;
     });
     
-    console.log(`[EmployeeSelector] Employee ${employeeName} has 16:00 end time: ${hasEndTimeAtSixteen}`);
+    console.log(`[EmployeeSelector] Employee ${employeeName} has workday end time: ${hasEndTimeAtWorkdayEnd}`);
     
     // Get the latest end time
     let latestEndTime = "00:00";
@@ -202,8 +229,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       }
     });
     
-    // PRIORITY 1: Red for exactly 16:00 end time
-    if (hasEndTimeAtSixteen) {
+    // PRIORITY 1: Red for exactly workday end time (16:00 or 15:30 on Friday)
+    if (hasEndTimeAtWorkdayEnd) {
       return { 
         isAssigned: true, 
         availableAt: undefined,
@@ -211,15 +238,13 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         isFullyBooked: true,
         hasEndTimeAtSixteen: true,
         status: 'fullyBooked',
-        statusText: t('employees.fullyBooked'), // Updated translation key
+        statusText: t('employees.fullyBooked'),
         badgeColor: '!bg-red-600 !text-white !border-red-700'
       };
     }
     
     // PRIORITY 2: Check if fully booked for the workday
     try {
-      const targetDate = new Date(targetDateStr + 'T12:00:00');
-      const dayOfWeek = targetDate.getDay();
       const fullyBooked = isEmployeeFullyBookedForDay(employeeAssignments, dayOfWeek);
       
       if (fullyBooked) {
@@ -230,7 +255,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           isFullyBooked: true,
           hasEndTimeAtSixteen: false,
           status: 'fullyBooked',
-          statusText: t('employees.fullyBooked'), // Updated translation key
+          statusText: t('employees.fullyBooked'),
           badgeColor: 'bg-red-100 text-red-800 border-red-200'
         };
       }
@@ -247,7 +272,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       isFullyBooked: false,
       hasEndTimeAtSixteen: false,
       status: 'partiallyBooked',
-      statusText: t('employees.availableAfter', { time: formattedTime }), // Updated translation key
+      statusText: t('employees.availableAfter', { time: formattedTime }),
       badgeColor: 'bg-yellow-100 text-yellow-800 border-yellow-200'
     };
   };
@@ -308,7 +333,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             
             const isDisabled = isOnVacation || isUnavailable;
             
-            // Apply red styling for 16:00 end times with higher CSS specificity
+            // Apply red styling for workday end times with higher CSS specificity
             const hasRedStyling = availabilityInfo.hasEndTimeAtSixteen;
             console.log(`[EmployeeSelector] Employee ${employee.name} red styling applied: ${hasRedStyling}`);
             

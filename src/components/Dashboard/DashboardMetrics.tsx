@@ -11,7 +11,11 @@ import { format } from 'date-fns';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import MetricCard from './MetricCard';
 
-const DashboardMetrics: React.FC = () => {
+interface DashboardMetricsProps {
+  selectedDate?: string;
+}
+
+const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate }) => {
   const { isAdmin, isSkadeleder } = usePermissions();
   const { t } = useTranslation();
   const { employees } = useEmployees();
@@ -27,15 +31,16 @@ const DashboardMetrics: React.FC = () => {
     return null;
   }
 
-  const today = format(new Date(), 'yyyy-MM-dd');
+  // Use selectedDate prop or default to today
+  const targetDate = selectedDate || format(new Date(), 'yyyy-MM-dd');
 
   // Filter employees to only include servicemedarbejder role
   const serviceEmployees = employees.filter(employee => employee.role === 'servicemedarbejder');
 
-  // Helper function to check if an employee is on vacation today
-  const isEmployeeOnVacationToday = (employeeId: string) => {
-    const todayDate = new Date(today);
-    todayDate.setHours(0, 0, 0, 0);
+  // Helper function to check if an employee is on vacation for the target date
+  const isEmployeeOnVacationForDate = (employeeId: string) => {
+    const targetDateObj = new Date(targetDate);
+    targetDateObj.setHours(0, 0, 0, 0);
     
     const isOnVacation = vacations.some(vacation => {
       if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
@@ -48,29 +53,29 @@ const DashboardMetrics: React.FC = () => {
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(0, 0, 0, 0);
       
-      return todayDate >= startDate && todayDate <= endDate;
+      return targetDateObj >= startDate && targetDateObj <= endDate;
     });
     
     return isOnVacation;
   };
 
-  // Helper function to check if employee has assignments today
-  const hasAssignmentsToday = (employeeId: string, employeeName: string) => {
-    const todaysAssignments = assignments.filter(assignment => 
-      assignment.date === today && 
+  // Helper function to check if employee has assignments on target date
+  const hasAssignmentsOnDate = (employeeId: string, employeeName: string) => {
+    const dateAssignments = assignments.filter(assignment => 
+      assignment.date === targetDate && 
       assignment.published &&
       assignment.employees && 
       assignment.employees.includes(employeeName)
     );
     
-    return todaysAssignments.length > 0;
+    return dateAssignments.length > 0;
   };
 
   // Calculate available employees (filtered to servicemedarbejder only)
   const availableEmployees = serviceEmployees.filter(employee => {
     const isOnLeave = employee.onLeave;
-    const isOnVacation = isEmployeeOnVacationToday(employee.id);
-    const hasAssignments = hasAssignmentsToday(employee.id, employee.name);
+    const isOnVacation = isEmployeeOnVacationForDate(employee.id);
+    const hasAssignments = hasAssignmentsOnDate(employee.id, employee.name);
     
     return !isOnLeave && !isOnVacation && !hasAssignments;
   });
@@ -78,15 +83,15 @@ const DashboardMetrics: React.FC = () => {
   // Calculate unavailable employees (filtered to servicemedarbejder only)
   const unavailableEmployees = serviceEmployees.filter(employee => {
     const isOnLeave = employee.onLeave;
-    const isOnVacation = isEmployeeOnVacationToday(employee.id);
-    const hasAssignments = hasAssignmentsToday(employee.id, employee.name);
+    const isOnVacation = isEmployeeOnVacationForDate(employee.id);
+    const hasAssignments = hasAssignmentsOnDate(employee.id, employee.name);
     
     return isOnLeave || isOnVacation || hasAssignments;
   });
 
-  // Calculate cars in use today
-  const carsInUseToday = assignments
-    .filter(a => a.date === today && a.car)
+  // Calculate cars in use on target date
+  const carsInUseOnDate = assignments
+    .filter(a => a.date === targetDate && a.car)
     .reduce((uniqueCars, assignment) => {
       const carId = typeof assignment.car === 'string' ? assignment.car : assignment.car?.id;
       if (carId && !uniqueCars.includes(carId)) {
@@ -128,7 +133,7 @@ const DashboardMetrics: React.FC = () => {
         
         <MetricCard
           title={t('dashboard.metrics.carsInUse')}
-          value={carsInUseToday}
+          value={carsInUseOnDate}
           subtitle={t('dashboard.metrics.carsInUseSubtitle')}
           icon={Car}
           color="orange"
@@ -142,7 +147,7 @@ const DashboardMetrics: React.FC = () => {
         employees={availableEmployees}
         assignments={assignments}
         vacations={vacations}
-        selectedDate={today}
+        selectedDate={targetDate}
         title={t('dashboard.metrics.availableEmployees')}
       />
 
@@ -153,7 +158,7 @@ const DashboardMetrics: React.FC = () => {
         employees={unavailableEmployees}
         assignments={assignments}
         vacations={vacations}
-        selectedDate={today}
+        selectedDate={targetDate}
         title={t('dashboard.metrics.unavailableEmployees')}
       />
     </>
