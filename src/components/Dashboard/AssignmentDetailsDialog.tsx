@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Assignment } from '@/types/assignment';
 import { Calendar, Clock, MapPin, Car, Users, UserCheck } from 'lucide-react';
-import { getCarDisplayText } from '@/utils/carUtils';
 
 interface AssignmentDetailsDialogProps {
   assignment: Assignment | null;
@@ -87,7 +86,7 @@ const AssignmentDetailsDialog: React.FC<AssignmentDetailsDialogProps> = ({
               <Car className="h-5 w-5 text-orange-600" />
               <div>
                 <span className="font-medium">{t('planner.car')}: </span>
-                <span>{getCarDisplayText(assignment.car)}</span>
+                <span>{typeof assignment.car === 'string' ? assignment.car : assignment.car.name}</span>
               </div>
             </div>
           )}

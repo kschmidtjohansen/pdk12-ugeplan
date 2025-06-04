@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Users, Car } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -11,7 +10,6 @@ import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import MetricCard from './MetricCard';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { Assignment } from '@/types/assignment';
-import { getCarIds } from '@/utils/carUtils';
 
 interface DashboardMetricsProps {
   selectedDate?: string;
@@ -100,12 +98,10 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   const carsInUseOnDate = assignments
     .filter(a => a.date === targetDate && a.car)
     .reduce((uniqueCars, assignment) => {
-      const carIds = getCarIds(assignment.car);
-      carIds.forEach(carId => {
-        if (carId && !uniqueCars.includes(carId)) {
-          uniqueCars.push(carId);
-        }
-      });
+      const carId = typeof assignment.car === 'string' ? assignment.car : assignment.car?.id;
+      if (carId && !uniqueCars.includes(carId)) {
+        uniqueCars.push(carId);
+      }
       return uniqueCars;
     }, [] as string[]).length;
 

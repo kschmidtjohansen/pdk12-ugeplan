@@ -8,7 +8,6 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import WeekNavigation from './WeekNavigation';
 import AssignmentDetailsDialog from './AssignmentDetailsDialog';
-import { getCarDisplayText } from '@/utils/carUtils';
 
 interface WeeklyAssignmentsProps {
   assignments: Assignment[];
@@ -145,7 +144,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                             <Car className="h-3.5 w-3.5 text-blue-600" />
                           </div>
                           <span className="text-foreground font-medium text-sm">
-                            {getCarDisplayText(assignment.car)}
+                            {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
                           </span>
                         </div>
                       )}

@@ -1,7 +1,6 @@
+
 const cars = {
-  title: "Cars",
-  noCar: "No car",
-  carsSelected: "cars selected",
+  title: 'Cars',
   description: 'Department vehicles and their details',
   addVehicle: 'Add Vehicle',
   vehicleName: 'Vehicle Name',
@@ -33,6 +32,7 @@ const cars = {
   deleteNote: 'Delete Note',
   notes: 'Notes',
   notesFeatureUnavailable: 'Notes feature is not fully available yet. Availability status has been updated.',
+  noCar: 'No car selected',
   inUse: 'In use until {time}.',
 };
 

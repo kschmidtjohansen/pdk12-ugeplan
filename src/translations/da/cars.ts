@@ -1,45 +1,64 @@
 
 const cars = {
-  title: "Biler",
-  pageDescription: "Administrer firmaets køretøjer og deres tilgængelighed",
-  addNewCar: "Tilføj ny bil",
-  addNewVehicle: "Tilføj nyt køretøj",
-  addNewVehicleDesc: "Udfyld detaljerne for det nye køretøj",
-  editVehicle: "Rediger køretøj",
-  updateVehicleInfo: "Opdater køretøjsoplysninger",
-  vehicleName: "Køretøjsnavn",
-  carNumber: "Bil nummer",
-  numberPlate: "Nummerplade",
-  fuelCardCode: "Tankkort kode",
-  hasTrailerHitch: "Har anhængertræk",
-  isAvailable: "Er tilgængelig",
-  notes: "Noter",
-  enterNote: "Indtast note",
-  noCar: "Ingen bil",
-  carsSelected: "biler valgt",
-  selectCar: "Vælg bil",
-  markAvailable: "Marker som tilgængelig",
-  markUnavailable: "Marker som utilgængelig",
-  vehicleUpdated: "Køretøj opdateret",
-  vehicleAdded: "Køretøj tilføjet",
-  vehicleDeleted: "Køretøj slettet",
-  vehicleUpdatedMsg: "Køretøjet {name} er blevet opdateret",
-  vehicleAddedMsg: "Køretøjet {name} er blevet tilføjet",
-  vehicleDeletedMsg: "Køretøjet {name} er blevet slettet",
-  vehicleAvailable: "Køretøj tilgængeligt",
-  vehicleUnavailable: "Køretøj utilgængeligt",
-  vehicleAvailableMsg: "Køretøjet {name} er nu tilgængeligt",
-  vehicleUnavailableMsg: "Køretøjet {name} er nu utilgængeligt",
-  unavailabilityReason: "Årsag til utilgængelighed",
-  keepNoteQuestion: "Vil du beholde utilgængelighedsnoten?",
-  keepNote: "Behold note",
-  deleteNote: "Slet note",
-  inUse: "I brug til {time}",
-  unassignedResources: "Ikke brugte ressourcer",
-  serviceEmployees: "Servicemedarbejdere",
-  unusedCars: "Ikke brugte biler",
-  showMore: "Vis flere",
-  showLess: "Vis færre"
+  title: 'Bil Administration',
+  description: 'Administrer firmaets køretøjer og deres tilgængelighed',
+  pageDescription: 'Administrer firmaets køretøjer og deres tilgængelighed',
+  addNewCar: 'Tilføj Ny Bil',
+  editCar: 'Rediger Bil',
+  deleteCar: 'Slet Bil',
+  markAvailable: 'Marker som Tilgængelig',
+  markUnavailable: 'Marker som Utilgængelig',
+  confirmDelete: 'Bekræft Sletning',
+  deleteWarning: 'Er du sikker på, at du vil slette denne bil? Denne handling kan ikke fortrydes.',
+  availabilityWarning: 'Er du sikker på, at du vil ændre tilgængeligheden af denne bil?',
+  
+  // Form fields
+  carName: 'Bil Navn',
+  vehicleName: 'Køretøj Navn',
+  carNumber: 'Bil Nummer',
+  numberPlate: 'Nummerplade',
+  fuelCardCode: 'Tankkortkode',
+  hasTrailerHitch: 'Har Anhængertræk',
+  isAvailable: 'Er Tilgængelig',
+  notes: 'Noter',
+  
+  // Status
+  available: 'Tilgængelig',
+  unavailable: 'Utilgængelig',
+  inUse: 'I brug ind til {time}',
+  
+  // Actions
+  save: 'Gem',
+  cancel: 'Annuller',
+  delete: 'Slet',
+  edit: 'Rediger',
+  
+  // Messages
+  carAdded: 'Bil tilføjet',
+  carUpdated: 'Bil opdateret',
+  carDeleted: 'Bil slettet',
+  carMarkedAvailable: 'Bil markeret som tilgængelig',
+  carMarkedUnavailable: 'Bil markeret som utilgængelig',
+  
+  // Placeholders
+  enterCarName: 'Indtast bil navn',
+  enterCarNumber: 'Indtast bil nummer',
+  enterNumberPlate: 'Indtast nummerplade',
+  enterFuelCardCode: 'Indtast tankkortkode',
+  enterNotes: 'Indtast noter (valgfrit)',
+  
+  // Selection
+  selectCar: 'Vælg en bil',
+  noCar: 'Ingen bil',
+  
+  // Missing translations that were causing issues
+  unavailabilityReason: 'Årsag til utilgængelighed',
+  enterNote: 'Indtast note',
+  
+  // Added missing translations for note management
+  keepNoteQuestion: 'Vil du beholde den nuværende note?',
+  keepNote: 'Behold note',
+  deleteNote: 'Slet note'
 };
 
 export default cars;

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { useVacations } from '@/hooks/useVacations';
@@ -7,7 +6,6 @@ import { useCars } from '@/hooks/car';
 import AssignmentForm from './AssignmentForm';
 import { Assignment } from '@/types/assignment';
 import { format } from 'date-fns';
-import { getCarIds } from '@/utils/carUtils';
 
 interface PlannerDialogContainerProps {
   isDialogOpen: boolean;
@@ -49,11 +47,6 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   // Track selected employees separately for better UI state management
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   
-  // Handle form data changes
-  const handleFormDataChange = (updates: Partial<Assignment>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
-  };
-  
   // FIXED: Ensure we update formData.date with current date when dialog opens AND properly handle car/responsible user conversion
   useEffect(() => {
     if (isDialogOpen) {
@@ -68,45 +61,144 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
         }));
       } else {
         // FIXED: Editing existing assignment - properly convert car and responsible user objects to IDs
-        console.log('[PlannerDialogContainer] Editing existing assignment');
+        console.log('[PlannerDialogContainer] Editing existing assignment, converting data...');
         
-        const carIds = getCarIds(currentAssignment.car);
-        const responsibleUserId = currentAssignment.responsibleUser?.id || '';
+        // Convert car object to car ID string
+        let carId = '';
+        if (currentAssignment.car) {
+          if (typeof currentAssignment.car === 'string') {
+            carId = currentAssignment.car;
+          } else if (typeof currentAssignment.car === 'object' && currentAssignment.car.id) {
+            carId = currentAssignment.car.id;
+          }
+        }
         
-        console.log('[PlannerDialogContainer] Setting form data with car IDs:', carIds);
+        console.log('[PlannerDialogContainer] Converted car ID:', carId);
+        console.log('[PlannerDialogContainer] Responsible user:', currentAssignment.responsibleUser);
+        
         setFormData({
-          id: currentAssignment.id,
           date: currentAssignment.date,
           title: currentAssignment.title,
           description: currentAssignment.description || '',
           fromTime: currentAssignment.fromTime,
           toTime: currentAssignment.toTime,
-          location: currentAssignment.location,
-          car: carIds,
-          employees: currentAssignment.employees || [],
-          published: currentAssignment.published
+          location: currentAssignment.location || '',
+          car: carId,
+          responsibleUser: currentAssignment.responsibleUser,
+          employees: currentAssignment.employees || []
         });
       }
     }
   }, [isDialogOpen, currentAssignment, currentDate, setFormData]);
   
+  // Update selected employees when the form data changes
+  useEffect(() => {
+    // Ensure we have a proper array of employee names
+    if (formData.employees && Array.isArray(formData.employees)) {
+      // Filter out any non-string values that might have gotten in
+      const validEmployeeNames = formData.employees.filter(
+        emp => typeof emp === 'string'
+      );
+      setSelectedEmployees(validEmployeeNames);
+      
+      // Debug logs
+      console.log("[PlannerDialogContainer] Current Assignment:", currentAssignment);
+      console.log("[PlannerDialogContainer] Form Data:", formData);
+      console.log("[PlannerDialogContainer] Selected Day:", selectedDay || todayDate);
+      console.log("[PlannerDialogContainer] Current Date Used:", currentDate);
+      console.log("[PlannerDialogContainer] Selected Employees:", validEmployeeNames);
+    } else {
+      setSelectedEmployees([]);
+    }
+  }, [formData, currentAssignment, selectedDay, todayDate, currentDate]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    console.log(`[PlannerDialogContainer] handleSelectChange: ${name} = ${value}`);
+    
+    // Handle responsible user field mapping
+    if (name === 'responsibleUserId') {
+      setFormData(prev => ({ 
+        ...prev, 
+        responsibleUser: value ? { id: value, name: '' } : undefined 
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleEmployeeToggle = (employeeName: string) => {
+    setSelectedEmployees(prev => {
+      const employeeExists = prev.includes(employeeName);
+      
+      // Create a new array to ensure React detects the change
+      const updated = employeeExists
+        ? prev.filter(name => name !== employeeName)
+        : [...prev, employeeName];
+        
+      // Update the form data with the new employee selection
+      setFormData(prevData => ({
+        ...prevData,
+        employees: updated
+      }));
+      
+      return updated;
+    });
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
+
+  const handleDeleteCurrentAssignment = () => {
+    if (currentAssignment) {
+      onDelete(currentAssignment.id);
+      setIsDialogOpen(false);
+    }
+  };
+
+  const handlePublishCurrentAssignment = () => {
+    if (currentAssignment && onPublish) {
+      onPublish(currentAssignment.id);
+      setIsDialogOpen(false);
+    }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('[PlannerDialogContainer] Form submit with data:', formData);
+    onSubmit(formData);
+  };
+
+  // Filter out the current assignment from the assignments list for employee availability check
+  const otherAssignments = currentAssignment 
+    ? assignments.filter(a => a.id !== currentAssignment.id) 
+    : assignments;
+
+  console.log(`[PlannerDialogContainer] Final current date: ${currentDate}`);
+  console.log(`[PlannerDialogContainer] Today's date: ${todayDate}`);
+  console.log(`[PlannerDialogContainer] Available assignments:`, otherAssignments);
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <AssignmentForm
-        employees={employees}
-        cars={cars}
-        vacations={vacations}
-        assignments={assignments}
         currentAssignment={currentAssignment}
         formData={formData}
-        onSubmit={onSubmit}
-        onDelete={onDelete}
-        onPublish={onPublish}
-        selectedDate={currentDate}
-        onPublishDay={onPublishDay}
         selectedEmployees={selectedEmployees}
-        setSelectedEmployees={setSelectedEmployees}
-        onFormDataChange={handleFormDataChange}
+        cars={cars || []}
+        employees={employees || []}
+        vacations={vacations || []}
+        handleInputChange={handleInputChange}
+        handleSelectChange={handleSelectChange}
+        handleEmployeeToggle={handleEmployeeToggle}
+        handleSubmit={handleFormSubmit}
+        onClose={handleCloseDialog}
+        currentDate={formData.date || currentDate} // Ensure we prioritize the form's date, then selectedDay, then today
+        assignments={otherAssignments} // Pass the filtered assignments
       />
     </Dialog>
   );

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -179,13 +180,11 @@ export const useAssignmentsConsolidated = ({
     try {
       console.log("Creating assignment with data:", assignmentData);
       
-      // Format car information for storage - handle multiple cars
+      // Format car information for storage
       let carId = null;
       if (assignmentData.car) {
         if (typeof assignmentData.car === 'string') {
           carId = assignmentData.car;
-        } else if (Array.isArray(assignmentData.car)) {
-          carId = assignmentData.car.length > 0 ? assignmentData.car[0] : null;
         } else if (typeof assignmentData.car === 'object') {
           carId = assignmentData.car.id;
         }
@@ -286,13 +285,11 @@ export const useAssignmentsConsolidated = ({
     try {
       console.log("Updating assignment with data:", assignmentData);
       
-      // Format car information for storage - handle multiple cars
+      // Format car information for storage
       let carId = null;
       if (assignmentData.car) {
         if (typeof assignmentData.car === 'string') {
           carId = assignmentData.car;
-        } else if (Array.isArray(assignmentData.car)) {
-          carId = assignmentData.car.length > 0 ? assignmentData.car[0] : null;
         } else if (typeof assignmentData.car === 'object') {
           carId = assignmentData.car.id;
         }

@@ -92,9 +92,9 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   // Show responsible user field only for admin and skadeleder
   const canAssignResponsibleUser = isAdmin || isSkadeleder;
 
-  // Handle car selection (multiple car IDs)
-  const handleCarSelect = (carIds: string[]) => {
-    setSelectedCarId(carIds.join(','));
+  // Handle car selection (single car ID)
+  const handleCarSelect = (carId: string) => {
+    setSelectedCarId(carId);
   };
 
   return (
@@ -202,7 +202,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         <Label>{t('planner.selectCar')}</Label>
         <CarSelector
           cars={cars}
-          selectedCarIds={selectedCarId ? selectedCarId.split(',').filter(id => id.trim() !== '') : []}
+          selectedCarId={selectedCarId}
           onCarSelect={handleCarSelect}
           currentDate={currentDateStr}
           assignments={assignments}

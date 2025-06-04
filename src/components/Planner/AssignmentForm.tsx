@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
@@ -19,110 +20,94 @@ import { Employee } from '../../types/employee';
 import { Vacation } from '../../types/vacation';
 import { Assignment } from '../../types/assignment';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { getCarIds } from '@/utils/carUtils';
 
 interface AssignmentFormProps {
-  currentAssignment: Assignment | null;
-  formData: Partial<Assignment>;
+  currentAssignment: any | null;
+  formData: any;
   selectedEmployees: string[];
-  setSelectedEmployees: React.Dispatch<React.SetStateAction<string[]>>;
   cars: Car[];
   employees: Employee[];
   vacations: Vacation[];
-  assignments: Assignment[];
-  selectedDate: string;
-  onSubmit: (data: Partial<Assignment>) => void;
-  onDelete: (id: string) => void;
-  onPublish?: (id: string) => void;
-  onPublishDay?: () => void;
-  onFormDataChange: (updates: Partial<Assignment>) => void;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handleSelectChange: (name: string, value: string) => void;
+  handleEmployeeToggle: (employeeName: string) => void;
+  handleSubmit: (e: React.FormEvent) => void;
+  onClose: () => void;
+  currentDate: string;
+  assignments?: Assignment[];
 }
 
 const AssignmentForm: React.FC<AssignmentFormProps> = ({
   currentAssignment,
   formData,
   selectedEmployees,
-  setSelectedEmployees,
   cars,
   employees,
   vacations,
-  assignments,
-  selectedDate,
-  onSubmit,
-  onDelete,
-  onPublish,
-  onPublishDay,
-  onFormDataChange
+  handleInputChange,
+  handleSelectChange,
+  handleEmployeeToggle,
+  handleSubmit,
+  onClose,
+  currentDate,
+  assignments = []
 }) => {
-  const { t, currentLanguage } = useTranslation();
+  const {
+    t,
+    currentLanguage
+  } = useTranslation();
   const { user } = useAuth();
 
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
+  // Create a function to handle field changes
+  const handleFieldChange = (field: string, value: any) => {
+    if (field === 'title' || field === 'location') {
+      const event = {
+        target: {
+          name: field,
+          value: value
+        }
+      } as React.ChangeEvent<HTMLInputElement>;
+      handleInputChange(event);
+    } else if (field === 'description') {
+      const event = {
+        target: {
+          name: field,
+          value: value
+        }
+      } as React.ChangeEvent<HTMLTextAreaElement>;
+      handleInputChange(event);
+    } else {
+      handleSelectChange(field, value);
+    }
   };
 
-  // Handle input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    onFormDataChange({ [name]: value });
-  };
-
-  // Handle employee toggle
-  const handleEmployeeToggle = (employeeName: string) => {
-    setSelectedEmployees(prev => 
-      prev.includes(employeeName) 
-        ? prev.filter(name => name !== employeeName)
-        : [...prev, employeeName]
-    );
-  };
-
-  // Handle car selection
-  const handleCarSelect = (carIds: string[]) => {
-    console.log('Car selection:', carIds);
-    onFormDataChange({ car: carIds });
+  // FIXED: Handle car selection - now expects single car ID and logs properly
+  const handleCarSelect = (carId: string) => {
+    console.log(`[AssignmentForm] Car selected: "${carId}"`);
+    handleFieldChange('car', carId);
   };
 
   // Handle responsible user selection
   const handleResponsibleUserSelect = (userId: string) => {
-    console.log('Responsible user selection:', userId);
-    // Find the employee to get their name
-    const selectedEmployee = employees.find(emp => emp.id === userId);
-    if (selectedEmployee) {
-      onFormDataChange({ 
-        responsibleUser: { 
-          id: userId, 
-          name: selectedEmployee.name 
-        } 
-      });
-    } else {
-      // If no employee found, clear the responsible user
-      onFormDataChange({ responsibleUser: null });
-    }
-  };
-
-  // Handle date selection
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      const dateStr = format(date, 'yyyy-MM-dd');
-      onFormDataChange({ date: dateStr });
-    }
+    console.log(`[AssignmentForm] Responsible user selected: "${userId}"`);
+    handleFieldChange('responsibleUserId', userId);
   };
 
   // Format date with Danish locale
   const formatDateDisplay = (date: Date) => {
     try {
       const locale = currentLanguage === 'da' ? da : undefined;
-      return format(date, "PPP", { locale });
+      return format(date, "PPP", {
+        locale
+      });
     } catch (e) {
       console.error("Error formatting date:", e);
       return format(date, "PPP");
     }
   };
 
-  // Get selected date
-  const selectedDateObj = (() => {
+  // FIXED: Better date parsing and fallback to current date
+  const selectedDate = (() => {
     try {
       if (formData.date) {
         const date = new Date(formData.date + 'T00:00:00');
@@ -130,21 +115,30 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           return date;
         }
       }
-      return new Date(selectedDate + 'T00:00:00');
+      // Fallback to current date if formData.date is invalid
+      return new Date(currentDate + 'T00:00:00');
     } catch (e) {
       console.error("Error parsing date:", e);
-      return new Date();
+      return new Date(); // Ultimate fallback
     }
   })();
 
-  // Check if user can assign responsible users
+  // Check if user can assign responsible users (admin or skadeleder only)
   const canAssignResponsibleUser = user?.role === 'administrator' || user?.role === 'skadeleder';
 
-  // Get selected car IDs using the utility function
-  const selectedCarIds = getCarIds(formData.car);
+  // Get responsible user ID for the selector
+  const responsibleUserId = formData.responsibleUser 
+    ? (typeof formData.responsibleUser === 'string' ? formData.responsibleUser : formData.responsibleUser.id)
+    : '';
 
-  return (
-    <DialogContent className="max-w-md">
+  console.log("AssignmentForm - Current formData:", formData);
+  console.log("AssignmentForm - Selected employees:", selectedEmployees);
+  console.log("AssignmentForm - Current date:", currentDate);
+  console.log("AssignmentForm - Can assign responsible user:", canAssignResponsibleUser);
+  console.log("AssignmentForm - Selected car ID:", formData.car);
+  console.log("AssignmentForm - Responsible user ID:", responsibleUserId);
+
+  return <DialogContent className="max-w-md">
       <ScrollArea className="max-h-[80vh] pr-4">
         <div className="p-1">
           <DialogHeader>
@@ -162,9 +156,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               <Label htmlFor="title">{t('planner.enterTitle')}</Label>
               <Input 
                 id="title" 
-                name="title"
                 value={formData.title || ''} 
-                onChange={handleInputChange} 
+                onChange={e => handleFieldChange('title', e.target.value)} 
                 placeholder={t('planner.enterTitle')} 
                 required 
               />
@@ -175,9 +168,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               <Label htmlFor="location">{t('planner.location')}</Label>
               <Input 
                 id="location" 
-                name="location"
                 value={formData.location || ''} 
-                onChange={handleInputChange} 
+                onChange={e => handleFieldChange('location', e.target.value)} 
                 placeholder={t('planner.enterLocation')} 
                 required 
               />
@@ -190,14 +182,14 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDateObj ? formatDateDisplay(selectedDateObj) : t('common.selectDate')}
+                    {selectedDate ? formatDateDisplay(selectedDate) : t('common.selectDate')}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar 
                     mode="single" 
-                    selected={selectedDateObj} 
-                    onSelect={handleDateSelect} 
+                    selected={selectedDate} 
+                    onSelect={date => handleFieldChange('date', date ? format(date, 'yyyy-MM-dd') : '')} 
                     initialFocus 
                     locale={currentLanguage === 'da' ? da : undefined} 
                   />
@@ -211,10 +203,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
                 <Label htmlFor="fromTime">{t('planner.startTime')}</Label>
                 <Input 
                   id="fromTime" 
-                  name="fromTime"
                   type="time" 
                   value={formData.fromTime || ''} 
-                  onChange={handleInputChange} 
+                  onChange={e => handleFieldChange('fromTime', e.target.value)} 
                   required 
                 />
               </div>
@@ -222,19 +213,18 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
                 <Label htmlFor="toTime">{t('planner.endTime')}</Label>
                 <Input 
                   id="toTime" 
-                  name="toTime"
                   type="time" 
                   value={formData.toTime || ''} 
-                  onChange={handleInputChange} 
+                  onChange={e => handleFieldChange('toTime', e.target.value)} 
                   required 
                 />
               </div>
             </div>
 
-            {/* Responsible User Selector */}
+            {/* Responsible User Selector - Only for admins and skadeleders */}
             {canAssignResponsibleUser && (
               <ResponsibleUserSelector
-                selectedUserId={formData.responsibleUser?.id || ''}
+                selectedUserId={responsibleUserId}
                 onUserSelect={handleResponsibleUserSelect}
               />
             )}
@@ -247,19 +237,19 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
                 selectedEmployees={selectedEmployees} 
                 onToggle={handleEmployeeToggle} 
                 vacations={vacations} 
-                currentDate={formData.date || selectedDate} 
+                currentDate={formData.date || currentDate} 
                 assignments={assignments} 
               />
             </div>
 
-            {/* Car selector */}
+            {/* FIXED: Car selector - now properly handles string car ID */}
             <div className="space-y-2">
               <Label>{t('planner.selectCar')}</Label>
               <CarSelector 
                 cars={cars} 
-                selectedCarIds={selectedCarIds}
+                selectedCarId={formData.car || ''}
                 onCarSelect={handleCarSelect} 
-                currentDate={formData.date ? format(new Date(formData.date), 'yyyy-MM-dd') : selectedDate} 
+                currentDate={formData.date ? format(new Date(formData.date), 'yyyy-MM-dd') : currentDate} 
                 assignments={assignments} 
                 currentAssignmentId={currentAssignment?.id} 
               />
@@ -270,16 +260,15 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               <Label htmlFor="description">{t('planner.description')}</Label>
               <Textarea 
                 id="description" 
-                name="description"
                 value={formData.description || ''} 
-                onChange={handleInputChange} 
+                onChange={e => handleFieldChange('description', e.target.value)} 
                 placeholder={t('planner.notesPlaceholder')} 
                 rows={3} 
               />
             </div>
             
             <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={() => console.log('Cancel')}>
+              <Button type="button" variant="outline" onClick={onClose}>
                 {t("common.cancel")}
               </Button>
               <Button 
@@ -293,8 +282,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           </form>
         </div>
       </ScrollArea>
-    </DialogContent>
-  );
+    </DialogContent>;
 };
 
 export default AssignmentForm;

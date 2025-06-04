@@ -11,7 +11,6 @@ import { useCars } from '@/hooks/car';
 import { usePlannerPage } from '@/hooks/usePlannerPage';
 import PlannerDialogContainer from './PlannerDialogContainer';
 import { format } from 'date-fns';
-import { getCarIds } from '@/utils/carUtils';
 
 interface AssignmentDialogManagerProps {
   onClose: () => void;
@@ -82,7 +81,6 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
       if (assignment) {
         setCurrentAssignment(assignment);
         // Initialize form data with assignment details
-        const carIds = getCarIds(assignment.car);
         setFormData({
           date: assignment.date,
           title: assignment.title,
@@ -90,7 +88,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
           fromTime: assignment.fromTime,
           toTime: assignment.toTime,
           location: assignment.location || '',
-          car: carIds,
+          car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : '',
           employees: assignment.employees || []
         });
       } else {
@@ -109,7 +107,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
         fromTime: '08:00',
         toTime: '16:00',
         location: '',
-        car: [],
+        car: '',
         employees: []
       });
     }
