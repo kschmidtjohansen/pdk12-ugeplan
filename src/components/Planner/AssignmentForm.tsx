@@ -3,8 +3,10 @@ import React from 'react';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 import { EmployeeSelector } from './EmployeeSelector';
 import { CarSelector } from './CarSelector';
+import ResponsibleUserSelector from './ResponsibleUserSelector';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
@@ -54,6 +56,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     t,
     currentLanguage
   } = useTranslation();
+  const { user } = useAuth();
 
   // Create a function to handle field changes
   const handleFieldChange = (field: string, value: any) => {
@@ -90,6 +93,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     handleFieldChange('car', carId === 'none' ? '' : carId);
   };
 
+  // Handle responsible user selection
+  const handleResponsibleUserSelect = (userId: string) => {
+    handleFieldChange('responsibleUserId', userId);
+  };
+
   // Format date with Danish locale
   const formatDateDisplay = (date: Date) => {
     try {
@@ -120,11 +128,15 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     }
   })();
 
+  // Check if user can assign responsible users (admin or skadeleder only)
+  const canAssignResponsibleUser = user?.role === 'administrator' || user?.role === 'skadeleder';
+
   console.log("AssignmentForm - Current formData:", formData);
   console.log("AssignmentForm - Selected employees:", selectedEmployees);
   console.log("AssignmentForm - Current date:", currentDate);
   console.log("AssignmentForm - Selected date:", selectedDate);
   console.log("AssignmentForm - Form data date:", formData.date);
+  console.log("AssignmentForm - Can assign responsible user:", canAssignResponsibleUser);
 
   return <DialogContent className="max-w-md">
       <ScrollArea className="max-h-[80vh] pr-4">
@@ -209,6 +221,14 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
                 />
               </div>
             </div>
+
+            {/* Responsible User Selector - Only for admins and skadeleders */}
+            {canAssignResponsibleUser && (
+              <ResponsibleUserSelector
+                selectedUserId={formData.responsibleUserId || ''}
+                onUserSelect={handleResponsibleUserSelect}
+              />
+            )}
 
             {/* Employee selector */}
             <div className="space-y-2">

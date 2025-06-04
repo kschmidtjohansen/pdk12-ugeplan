@@ -86,7 +86,15 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    // Handle responsible user field mapping
+    if (name === 'responsibleUserId') {
+      setFormData(prev => ({ 
+        ...prev, 
+        responsibleUser: value ? { id: value, name: '' } : undefined 
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleEmployeeToggle = (employeeName: string) => {

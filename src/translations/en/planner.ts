@@ -84,6 +84,9 @@ const planner = {
   type: "Type",
   selectType: "Select type",
   selectDateForCopy: "Select date for copied assignment",
+  responsibleUser: "Responsible User",
+  selectResponsibleUser: "Select responsible user",
+  noResponsibleUser: "No responsible user",
   // Assignment types
   assignmentTypes: {
     ordinary_damage: "Ordinary damage",

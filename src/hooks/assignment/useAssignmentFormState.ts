@@ -14,6 +14,7 @@ export interface AssignmentFormData {
   location?: string;
   car?: string;
   employees?: string[];
+  responsibleUserId?: string;
 }
 
 export const useAssignmentFormState = (
@@ -42,7 +43,8 @@ export const useAssignmentFormState = (
     toTime: '16:00',
     location: '',
     car: '',
-    employees: []
+    employees: [],
+    responsibleUserId: ''
   });
 
   // Update form date if selectedDate changes
@@ -81,6 +83,14 @@ export const useAssignmentFormState = (
     }));
   }, []);
 
+  // Handle responsible user selection
+  const handleResponsibleUserChange = useCallback((value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      responsibleUserId: value
+    }));
+  }, []);
+
   // Handle form submission
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -110,6 +120,7 @@ export const useAssignmentFormState = (
     handleInputChange,
     handleEmployeeChange,
     handleCarChange,
+    handleResponsibleUserChange,
     handleSubmit
   };
 };
