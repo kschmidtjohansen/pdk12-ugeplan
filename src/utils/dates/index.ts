@@ -1,8 +1,17 @@
 
-// Export all date utility functions from a central file
-export * from './weekCore';
-export * from './weekNavigation';
-export * from './weekFormatting';
+import { Assignment } from '@/types/assignment';
+import { getWeek, getYear } from 'date-fns';
 
-// Add console log to help debugging
-console.log("Date utilities loaded from src/utils/dates/index.ts");
+export const filterByWeek = (assignments: Assignment[], week: number, year: number): Assignment[] => {
+  return assignments.filter(assignment => {
+    const assignmentDate = new Date(assignment.date);
+    const assignmentWeek = getWeek(assignmentDate);
+    const assignmentYear = getYear(assignmentDate);
+    
+    return assignmentWeek === week && assignmentYear === year;
+  });
+};
+
+export * from './weekCore';
+export * from './weekFormatting';
+export * from './weekNavigation';

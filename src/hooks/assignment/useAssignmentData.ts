@@ -1,178 +1,55 @@
 
 import { useState, useEffect } from 'react';
-import { useToast } from '@/components/ui/use-toast';
-import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useAssignmentData = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
-  const { t } = useTranslation();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Fetch assignments from Supabase
   const fetchAssignments = async () => {
     try {
       setLoading(true);
-      setError(null);
-      
-      // Get current user info
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Fetch assignments with optimized query including responsible user
-      const { data: assignmentsData, error: assignmentsError } = await supabase
+      const { data, error } = await supabase
         .from('assignments')
-        .select(`
-          id,
-          title,
-          description,
-          assignment_date,
-          from_time,
-          to_time,
-          location,
-          car_id,
-          published,
-          responsible_user_id,
-          created_at,
-          updated_at,
-          cars:car_id (id, name, car_number),
-          responsible_user:responsible_user_id (id, name)
-        `)
-        .order('assignment_date', { ascending: true });
-      
-      if (assignmentsError) throw assignmentsError;
-      
-      if (assignmentsData) {
-        // Get assignment-employee relationships
-        const { data: assignmentEmployees, error: employeeError } = await supabase
-          .from('assignments_employees')
-          .select('assignment_id, user_id')
-          .order('assignment_id');
-        
-        if (employeeError) {
-          throw employeeError;
-        }
-        
-        // Get all profiles for the users in assignments
-        const userIds = assignmentEmployees?.map(ae => ae.user_id) || [];
-        let profilesData: any[] = [];
-        
-        if (userIds.length > 0) {
-          const uniqueUserIds = [...new Set(userIds)];
-          
-          const { data: profiles, error: profilesError } = await supabase
-            .from('profiles')
-            .select('id, name')
-            .in('id', uniqueUserIds)
-            .order('name');
-          
-          if (profilesError) {
-            throw profilesError;
-          }
-          profilesData = profiles || [];
-        }
-        
-        // Process and combine the data
-        const processedAssignments = assignmentsData.map(assignment => {
-          // Find all employees for this assignment
-          const assignmentEmployeeIds = assignmentEmployees
-            ?.filter(emp => emp.assignment_id === assignment.id)
-            ?.map(emp => emp.user_id) || [];
-          
-          // Map employee IDs to names efficiently
-          const assignmentEmployeeNames: string[] = [];
-          
-          assignmentEmployeeIds.forEach(userId => {
-            const profile = profilesData.find(p => p.id === userId);
-            if (profile?.name && typeof profile.name === 'string' && profile.name.trim() !== '') {
-              assignmentEmployeeNames.push(profile.name.trim());
-            }
-          });
-          
-          const processedAssignment: Assignment = {
-            id: assignment.id,
-            title: assignment.title,
-            description: assignment.description || '',
-            date: assignment.assignment_date,
-            fromTime: assignment.from_time,
-            toTime: assignment.to_time,
-            location: assignment.location,
-            car: assignment.cars ? {
-              id: assignment.cars.id,
-              name: assignment.cars.name
-            } : null,
-            employees: assignmentEmployeeNames,
-            published: assignment.published || false,
-            responsibleUser: assignment.responsible_user ? {
-              id: assignment.responsible_user.id,
-              name: assignment.responsible_user.name
-            } : null
-          };
-          
-          return processedAssignment;
-        });
-        
-        setAssignments(processedAssignments);
-      } else {
-        setAssignments([]);
-      }
+        .select('*')
+        .order('date', { ascending: true });
+
+      if (error) throw error;
+
+      const formattedAssignments: Assignment[] = data.map(assignment => ({
+        id: assignment.id,
+        title: assignment.title || '',
+        location: assignment.location,
+        date: assignment.date,
+        fromTime: assignment.from_time,
+        toTime: assignment.to_time,
+        employees: assignment.employees || [],
+        car: assignment.car_assignments ? assignment.car_assignments : null,
+        notes: assignment.notes || '',
+        published: assignment.published || false,
+        responsibleUser: assignment.responsible_user || null
+      }));
+
+      setAssignments(formattedAssignments);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch assignments');
-      toast({
-        title: t('common.error'),
-        description: t('planner.fetchError'),
-        variant: 'destructive',
-      });
+      console.error('Error fetching assignments:', err);
+      setError('Failed to fetch assignments');
     } finally {
       setLoading(false);
     }
   };
 
-  // Load assignments on component mount
   useEffect(() => {
     fetchAssignments();
-  }, []);
-  
-  // Subscribe to assignment changes with optimized realtime handling
-  useEffect(() => {
-    const channel = supabase
-      .channel('assignment_changes_optimized')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'assignments'
-        },
-        () => {
-          fetchAssignments();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'assignments_employees'
-        },
-        () => {
-          fetchAssignments();
-        }
-      )
-      .subscribe();
-      
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   return {
     assignments,
+    setAssignments,
     loading,
     error,
-    fetchAssignments,
-    setAssignments
+    fetchAssignments
   };
 };

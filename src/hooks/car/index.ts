@@ -44,13 +44,27 @@ export const useCars = () => {
 
   // Enhanced handleEdit to initialize form data
   const enhancedHandleEdit = (car: CarData) => {
-    // Set the current car without calling handleEdit recursively
     setCurrentCar(car);
-    // Initialize form with car data
     initFormWithCar(car);
-    // Open the dialog
     setDialogOpen(true);
     return car;
+  };
+
+  // Car management functions for admin
+  const createCar = () => {
+    handleCreateNew();
+  };
+
+  const updateCar = () => {
+    if (currentCar) {
+      handleSubmit();
+    }
+  };
+
+  const deleteCar = () => {
+    if (currentCar) {
+      confirmDelete();
+    }
   };
 
   return {
@@ -78,7 +92,10 @@ export const useCars = () => {
     handleToggleAvailability,
     markCarUnavailable,
     markCarAvailableKeepNote,
-    markCarAvailableDeleteNote
+    markCarAvailableDeleteNote,
+    createCar,
+    updateCar,
+    deleteCar
   };
 };
 
