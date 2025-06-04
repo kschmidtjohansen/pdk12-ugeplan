@@ -4,7 +4,7 @@ import { Users, Car } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
-import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
+import { useAssignments } from '@/hooks/useAssignments';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { format } from 'date-fns';
@@ -22,7 +22,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate }) => 
   const { employees } = useEmployees();
   const { cars } = useCars();
   const { vacations } = useVacations();
-  const { assignments } = usePlannerAssignments();
+  const { assignments } = useAssignments();
   
   const [availabilityDialogOpen, setAvailabilityDialogOpen] = useState(false);
   const [unavailableDialogOpen, setUnavailableDialogOpen] = useState(false);
@@ -36,11 +36,11 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate }) => 
   const targetDate = selectedDate || format(new Date(), 'yyyy-MM-dd');
   const targetDateObj = new Date(targetDate + 'T12:00:00'); // Add time to avoid timezone issues
 
-  console.log('[DashboardMetrics] === ENHANCED DEBUG INFO ===');
+  console.log('[DashboardMetrics] === FIXED DEBUG INFO ===');
   console.log('[DashboardMetrics] Target date:', targetDate);
   console.log('[DashboardMetrics] Target date object:', targetDateObj);
   console.log('[DashboardMetrics] Total employees:', employees.length);
-  console.log('[DashboardMetrics] Total assignments:', assignments.length);
+  console.log('[DashboardMetrics] Total assignments (from useAssignments):', assignments.length);
   console.log('[DashboardMetrics] All employees:', employees.map(e => ({
     id: e.id,
     name: e.name,
@@ -64,7 +64,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate }) => 
   })));
 
   // Log all assignments for debugging
-  console.log('[DashboardMetrics] All assignments details:', assignments.map(a => ({
+  console.log('[DashboardMetrics] All assignments details (from useAssignments):', assignments.map(a => ({
     id: a.id,
     date: a.date,
     location: a.location,
@@ -133,7 +133,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate }) => 
 
   const availableCars = cars.filter(car => car.is_available).length;
 
-  console.log('[DashboardMetrics] === FINAL METRICS ===');
+  console.log('[DashboardMetrics] === FINAL METRICS (FIXED) ===');
   console.log('[DashboardMetrics] Total service employees:', serviceEmployees.length);
   console.log('[DashboardMetrics] Available employees:', availableEmployees.length);
   console.log('[DashboardMetrics] Unavailable employees:', unavailableEmployees.length);
