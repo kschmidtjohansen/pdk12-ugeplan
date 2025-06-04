@@ -56,6 +56,15 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
     return a.fromTime.localeCompare(b.fromTime);
   });
 
+  console.log('[WeeklyAssignments] Rendering assignments:', sortedAssignments.map(a => ({
+    id: a.id,
+    title: a.title,
+    location: a.location,
+    car: a.car,
+    responsibleUser: a.responsibleUser,
+    employees: a.employees
+  })));
+
   return (
     <>
       <Card className="border-2 border-border/50 bg-gradient-to-br from-card to-card">
@@ -165,7 +174,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                             <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
                           </div>
                           <span className="text-foreground font-medium text-sm">
-                            {assignment.responsibleUser.name}
+                            {typeof assignment.responsibleUser === 'string' ? assignment.responsibleUser : assignment.responsibleUser.name}
                           </span>
                         </div>
                       )}

@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ChevronDown } from 'lucide-react';
 import { getEmployeeAvailabilityStatus, isEmployeeOnVacation } from '@/utils/employeeAvailability';
+import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUtils';
 
 interface EmployeeSelectorProps {
   employees: Employee[];
@@ -37,6 +38,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const { t, currentLanguage } = useTranslation();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
 
   // Show all employees for all user types
   const filteredEmployees = employees;
@@ -59,6 +61,28 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       return new Date();
     }
   })();
+
+  // Check for employees that should be auto-removed when their availability changes
+  useEffect(() => {
+    const employeesToRemove: string[] = [];
+    
+    selectedEmployees.forEach(employeeName => {
+      const employee = employees.find(emp => emp.name === employeeName);
+      if (employee && shouldRemoveEmployeeFromAssignment(employee, currentDate, vacations)) {
+        employeesToRemove.push(employeeName);
+      }
+    });
+
+    if (employeesToRemove.length > 0) {
+      console.log('[EmployeeSelector] Auto-removing unavailable employees:', employeesToRemove);
+      setAutoRemovedEmployees(employeesToRemove);
+      
+      // Remove the unavailable employees
+      employeesToRemove.forEach(employeeName => {
+        onToggle(employeeName);
+      });
+    }
+  }, [employees, vacations, currentDate, selectedEmployees, onToggle]);
   
   const getDisplayText = () => {
     if (selectedEmployees.length === 0) {
@@ -77,10 +101,18 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     console.log("EmployeeSelector - Filtered employees count:", filteredEmployees.length);
     console.log("EmployeeSelector - All assignments:", assignments);
     console.log("EmployeeSelector - Date for comparison:", dateForComparison);
-  }, [currentDate, selectedEmployees, assignments, user?.role, filteredEmployees.length, dateForComparison]);
+    console.log("EmployeeSelector - Auto-removed employees:", autoRemovedEmployees);
+  }, [currentDate, selectedEmployees, assignments, user?.role, filteredEmployees.length, dateForComparison, autoRemovedEmployees]);
 
   return (
     <div className="space-y-2">
+      {/* Show notification if employees were auto-removed */}
+      {autoRemovedEmployees.length > 0 && (
+        <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded p-2">
+          {t('employees.autoRemovedUnavailable')}: {autoRemovedEmployees.join(', ')}
+        </div>
+      )}
+      
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="w-full justify-between">
