@@ -53,18 +53,21 @@ export const useCars = () => {
   // Car management functions for admin
   const createCar = () => {
     handleCreateNew();
+    setDialogOpen(true);
   };
 
   const updateCar = () => {
     if (currentCar) {
-      handleSubmit();
+      return handleSubmit();
     }
+    return Promise.resolve(false);
   };
 
   const deleteCar = () => {
     if (currentCar) {
-      confirmDelete();
+      return confirmDelete();
     }
+    return Promise.resolve(false);
   };
 
   return {

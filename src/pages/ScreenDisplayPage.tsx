@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,8 +14,7 @@ import { getCarDisplayText } from '@/utils/carHelpers';
 const ScreenDisplayPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
   const { assignments, loading } = useAssignmentsConsolidated({ 
-    filter: 'all',
-    showUnpublished: false
+    filter: 'all'
   });
   
   const [currentWeek, setCurrentWeek] = useState(new Date());

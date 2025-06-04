@@ -13,23 +13,26 @@ export const useAssignmentData = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('assignments')
-        .select('*')
-        .order('date', { ascending: true });
+        .select(`
+          *,
+          assignments_employees(user_id)
+        `)
+        .order('assignment_date', { ascending: true });
 
       if (error) throw error;
 
       const formattedAssignments: Assignment[] = data.map(assignment => ({
         id: assignment.id,
         title: assignment.title || '',
+        description: assignment.description || '',
         location: assignment.location,
-        date: assignment.date,
+        date: assignment.assignment_date,
         fromTime: assignment.from_time,
         toTime: assignment.to_time,
-        employees: assignment.employees || [],
-        car: assignment.car_assignments ? assignment.car_assignments : null,
-        notes: assignment.notes || '',
+        employees: assignment.assignments_employees?.map((emp: any) => emp.user_id) || [],
+        car: assignment.car_id || null,
         published: assignment.published || false,
-        responsibleUser: assignment.responsible_user || null
+        responsibleUser: assignment.responsible_user_id ? { id: assignment.responsible_user_id, name: '' } : null
       }));
 
       setAssignments(formattedAssignments);

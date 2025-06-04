@@ -3,6 +3,7 @@ import React from 'react';
 import { Vacation } from '@/types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
 import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
 
 interface VacationManagementProps {
   vacations: Vacation[];
@@ -19,6 +20,13 @@ const VacationManagement: React.FC<VacationManagementProps> = ({
 
   const pendingVacations = vacations.filter(v => v.status === 'pending');
 
+  const formatVacationDate = (date: Date | string): string => {
+    if (typeof date === 'string') {
+      return format(new Date(date), 'dd.MM.yyyy');
+    }
+    return format(date, 'dd.MM.yyyy');
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">{t('admin.vacationManagement')}</h3>
@@ -33,7 +41,7 @@ const VacationManagement: React.FC<VacationManagementProps> = ({
               <div>
                 <p className="font-medium">{vacation.employeeName}</p>
                 <p className="text-sm text-muted-foreground">
-                  {vacation.startDate} - {vacation.endDate}
+                  {formatVacationDate(vacation.startDate)} - {formatVacationDate(vacation.endDate)}
                 </p>
                 <p className="text-sm">{vacation.reason}</p>
               </div>

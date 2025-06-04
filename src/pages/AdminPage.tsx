@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -22,7 +21,7 @@ const AdminPage: React.FC = () => {
   const { t } = useTranslation();
   const { employees, createEmployee, updateEmployee, deleteEmployee } = useEmployees();
   const { cars, createCar, updateCar, deleteCar } = useCars();
-  const { vacations, approveVacation, denyVacation } = useVacations();
+  const { vacations, approveVacation, rejectVacation } = useVacations();
   const { assignments } = useAssignmentsConsolidated({ filter: 'all' });
 
   if (!isAdmin && !isSkadeleder) {
@@ -76,6 +75,12 @@ const AdminPage: React.FC = () => {
     todayAssignments: todayAssignments.length
   };
 
+  // Wrapper function to handle vacation denial with proper signature
+  const handleVacationDenial = async (vacation: any) => {
+    // For now, use a default reason. In a real app, you'd want to show a dialog to get the reason
+    await rejectVacation(vacation, 'Denied by administrator');
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
       <PageHeader
@@ -102,7 +107,7 @@ const AdminPage: React.FC = () => {
             <VacationManagement
               vacations={vacations}
               onApprove={approveVacation}
-              onDeny={denyVacation}
+              onDeny={handleVacationDenial}
             />
           </CardContent>
         </Card>
