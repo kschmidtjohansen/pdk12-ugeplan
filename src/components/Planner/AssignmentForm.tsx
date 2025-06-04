@@ -29,7 +29,7 @@ interface AssignmentFormProps {
   employees: Employee[];
   vacations: Vacation[];
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handleSelectChange: (name: string, value: string) => void;
+  handleSelectChange: (name: string, value: string | string[]) => void;
   handleEmployeeToggle: (employeeName: string) => void;
   handleSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
@@ -81,10 +81,10 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     }
   };
 
-  // FIXED: Handle car selection - now expects single car ID and logs properly
-  const handleCarSelect = (carId: string) => {
-    console.log(`[AssignmentForm] Car selected: "${carId}"`);
-    handleFieldChange('car', carId);
+  // UPDATED: Handle car selection - now expects array of car IDs
+  const handleCarSelect = (carIds: string[]) => {
+    console.log(`[AssignmentForm] Cars selected:`, carIds);
+    handleFieldChange('car', carIds);
   };
 
   // Handle responsible user selection
@@ -131,11 +131,19 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     ? (typeof formData.responsibleUser === 'string' ? formData.responsibleUser : formData.responsibleUser.id)
     : '';
 
+  // UPDATED: Get selected car IDs - support both single string and array formats
+  const selectedCarIds = (() => {
+    if (!formData.car) return [];
+    if (Array.isArray(formData.car)) return formData.car;
+    if (typeof formData.car === 'string') return formData.car ? [formData.car] : [];
+    return [];
+  })();
+
   console.log("AssignmentForm - Current formData:", formData);
   console.log("AssignmentForm - Selected employees:", selectedEmployees);
   console.log("AssignmentForm - Current date:", currentDate);
   console.log("AssignmentForm - Can assign responsible user:", canAssignResponsibleUser);
-  console.log("AssignmentForm - Selected car ID:", formData.car);
+  console.log("AssignmentForm - Selected car IDs:", selectedCarIds);
   console.log("AssignmentForm - Responsible user ID:", responsibleUserId);
 
   return <DialogContent className="max-w-md">
@@ -242,12 +250,12 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               />
             </div>
 
-            {/* FIXED: Car selector - now properly handles string car ID */}
+            {/* UPDATED: Car selector - now supports multiple cars */}
             <div className="space-y-2">
               <Label>{t('planner.selectCar')}</Label>
               <CarSelector 
                 cars={cars} 
-                selectedCarId={formData.car || ''}
+                selectedCarIds={selectedCarIds}
                 onCarSelect={handleCarSelect} 
                 currentDate={formData.date ? format(new Date(formData.date), 'yyyy-MM-dd') : currentDate} 
                 assignments={assignments} 

@@ -1,64 +1,33 @@
 
 const cars = {
-  title: 'Bil Administration',
-  description: 'Administrer firmaets køretøjer og deres tilgængelighed',
-  pageDescription: 'Administrer firmaets køretøjer og deres tilgængelighed',
-  addNewCar: 'Tilføj Ny Bil',
-  editCar: 'Rediger Bil',
-  deleteCar: 'Slet Bil',
-  markAvailable: 'Marker som Tilgængelig',
-  markUnavailable: 'Marker som Utilgængelig',
-  confirmDelete: 'Bekræft Sletning',
-  deleteWarning: 'Er du sikker på, at du vil slette denne bil? Denne handling kan ikke fortrydes.',
-  availabilityWarning: 'Er du sikker på, at du vil ændre tilgængeligheden af denne bil?',
-  
-  // Form fields
-  carName: 'Bil Navn',
-  vehicleName: 'Køretøj Navn',
-  carNumber: 'Bil Nummer',
-  numberPlate: 'Nummerplade',
-  fuelCardCode: 'Tankkortkode',
-  hasTrailerHitch: 'Har Anhængertræk',
-  isAvailable: 'Er Tilgængelig',
-  notes: 'Noter',
-  
-  // Status
-  available: 'Tilgængelig',
-  unavailable: 'Utilgængelig',
-  inUse: 'I brug ind til {time}',
-  
-  // Actions
-  save: 'Gem',
-  cancel: 'Annuller',
-  delete: 'Slet',
-  edit: 'Rediger',
-  
-  // Messages
-  carAdded: 'Bil tilføjet',
-  carUpdated: 'Bil opdateret',
-  carDeleted: 'Bil slettet',
-  carMarkedAvailable: 'Bil markeret som tilgængelig',
-  carMarkedUnavailable: 'Bil markeret som utilgængelig',
-  
-  // Placeholders
-  enterCarName: 'Indtast bil navn',
-  enterCarNumber: 'Indtast bil nummer',
-  enterNumberPlate: 'Indtast nummerplade',
-  enterFuelCardCode: 'Indtast tankkortkode',
-  enterNotes: 'Indtast noter (valgfrit)',
-  
-  // Selection
-  selectCar: 'Vælg en bil',
-  noCar: 'Ingen bil',
-  
-  // Missing translations that were causing issues
-  unavailabilityReason: 'Årsag til utilgængelighed',
-  enterNote: 'Indtast note',
-  
-  // Added missing translations for note management
-  keepNoteQuestion: 'Vil du beholde den nuværende note?',
-  keepNote: 'Behold note',
-  deleteNote: 'Slet note'
+  vehicleManagement: "Køretøjsadministration",
+  addNewVehicle: "Tilføj nyt køretøj",
+  carDetails: "Bildetaljer",
+  carName: "Bilnavn",
+  carNumber: "Bilnummer",
+  numberPlate: "Nummerplade",
+  fuelCardCode: "Brændstofkortkode",
+  hasTrailerHitch: "Har anhængertræk",
+  isAvailable: "Er tilgængelig",
+  notes: "Noter",
+  vehicleAdded: "Køretøj tilføjet",
+  vehicleAddedMsg: "{{name}} er blevet tilføjet med succes",
+  vehicleUpdated: "Køretøj opdateret",
+  vehicleUpdatedMsg: "{{name}} er blevet opdateret med succes",
+  vehicleDeleted: "Køretøj slettet",
+  vehicleDeletedMsg: "{{name}} er blevet slettet med succes",
+  availabilityUpdated: "Tilgængelighed opdateret",
+  availabilityUpdatedMsg: "Køretøjets tilgængelighed er blevet opdateret",
+  lastUpdated: "Sidst opdateret",
+  deleteVehicle: "Slet køretøj",
+  deleteConfirmation: "Er du sikker på, at du vil slette dette køretøj? Denne handling kan ikke fortrydes.",
+  markAvailable: "Marker som tilgængelig",
+  markUnavailable: "Marker som utilgængelig",
+  confirmAvailable: "Er du sikker på, at du vil markere dette køretøj som tilgængeligt?",
+  confirmUnavailable: "Er du sikker på, at du vil markere dette køretøj som utilgængeligt?",
+  inUse: "I brug indtil {{time}}",
+  noCar: "Ingen bil",
+  selectedCars: "{{count}} biler valgt"
 };
 
 export default cars;

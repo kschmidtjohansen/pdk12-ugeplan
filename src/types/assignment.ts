@@ -7,7 +7,7 @@ export interface Assignment {
   fromTime: string;
   toTime: string;
   location: string;
-  car: string | { id: string; name: string } | null;
+  car: string | string[] | { id: string; name: string }[] | null; // Support multiple cars
   employees: string[]; // Guaranteed array of employee names as strings
   published: boolean;
   responsibleUser?: { id: string; name: string } | null;
@@ -20,7 +20,7 @@ export interface AssignmentFormData {
   fromTime?: string;
   toTime?: string;
   location?: string;
-  car?: string;
+  car?: string | string[]; // Support multiple cars
   employees?: string[];
   responsibleUserId?: string;
 }
