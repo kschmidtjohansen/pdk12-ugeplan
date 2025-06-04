@@ -1,4 +1,3 @@
-
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -67,129 +66,18 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   };
 
   /**
-   * Update employee leave status based on active vacations
+   * SIMPLIFIED: This function no longer automatically marks employees as on leave based on vacations
+   * Manual leave status is now separate from vacation-based availability
    */
   const updateEmployeeLeaveStatusFromVacations = async () => {
+    console.log('updateEmployeeLeaveStatusFromVacations: This function is now simplified and only refreshes employee data');
+    
     try {
-      console.log('Updating employee leave status from vacations...');
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayISO = today.toISOString().split('T')[0];
-      
-      // 1. Find employees who are currently on approved vacation
-      const { data: activeVacations, error: vacationError } = await supabase
-        .from('vacations')
-        .select('user_id')
-        .eq('status', 'approved')
-        .lte('start_date', todayISO)
-        .gte('end_date', todayISO);
-      
-      if (vacationError) {
-        console.error('Error fetching active vacations:', vacationError);
-        return false;
-      }
-      
-      // Filter out any vacations with invalid user_id
-      const validActiveVacations = (activeVacations || []).filter(vacation => 
-        isValidUUID(vacation.user_id)
-      );
-      
-      // Create a set of user IDs who are on active vacations
-      const employeesOnVacation = new Set(
-        validActiveVacations.map(vacation => vacation.user_id)
-      );
-      
-      console.log(`Found ${employeesOnVacation.size} employees on active vacation`);
-      
-      // 2. Find all employees and update their status if necessary
-      const { data: employees, error: employeesError } = await supabase
-        .from('profiles')
-        .select('id, on_leave')
-        .not('id', 'is', null);
-      
-      if (employeesError) {
-        console.error('Error fetching employees:', employeesError);
-        return false;
-      }
-      
-      // Track employees who need to be marked as on leave or available
-      const employeesToMarkOnLeave: string[] = [];
-      const employeesToMarkAvailable: string[] = [];
-      
-      // Process each employee
-      for (const employee of employees || []) {
-        // Skip employees with invalid IDs
-        if (!isValidUUID(employee.id)) {
-          console.warn('Skipping employee with invalid ID:', employee);
-          continue;
-        }
-        
-        const isOnVacation = employeesOnVacation.has(employee.id);
-        
-        // If employee is on vacation but not marked as on leave, mark them on leave
-        if (isOnVacation && !employee.on_leave) {
-          employeesToMarkOnLeave.push(employee.id);
-        }
-        
-        // If employee is not on vacation but is marked as on leave due to vacation 
-        if (!isOnVacation && employee.on_leave) {
-          // Check if they were marked as on leave due to a vacation that has ended
-          const { data: recentVacations, error: recentError } = await supabase
-            .from('vacations')
-            .select('id')
-            .eq('user_id', employee.id)
-            .eq('status', 'approved')
-            .lt('end_date', todayISO)
-            .order('end_date', { ascending: false })
-            .limit(1);
-          
-          if (recentError) {
-            console.error(`Error checking recent vacations for employee ${employee.id}:`, recentError);
-            continue;
-          }
-          
-          // If there was a recent vacation that has ended, mark them as available
-          if (recentVacations && recentVacations.length > 0) {
-            employeesToMarkAvailable.push(employee.id);
-          }
-        }
-      }
-      
-      console.log(`Marking ${employeesToMarkOnLeave.length} employees as on leave`);
-      console.log(`Marking ${employeesToMarkAvailable.length} employees as available`);
-      
-      // Update employees who need to be marked as on leave
-      if (employeesToMarkOnLeave.length > 0) {
-        const { error: markOnLeaveError } = await supabase
-          .from('profiles')
-          .update({ on_leave: true })
-          .in('id', employeesToMarkOnLeave);
-        
-        if (markOnLeaveError) {
-          console.error('Error marking employees as on leave:', markOnLeaveError);
-        }
-      }
-      
-      // Update employees who need to be marked as available
-      if (employeesToMarkAvailable.length > 0) {
-        const { error: markAvailableError } = await supabase
-          .from('profiles')
-          .update({ on_leave: false })
-          .in('id', employeesToMarkAvailable);
-        
-        if (markAvailableError) {
-          console.error('Error marking employees as available:', markAvailableError);
-        }
-      }
-      
-      // If any updates were made, refresh the employee list
-      if (employeesToMarkOnLeave.length > 0 || employeesToMarkAvailable.length > 0) {
-        await refreshEmployees();
-      }
-      
+      // Just refresh the employee list to get the latest data
+      await refreshEmployees();
       return true;
     } catch (err) {
-      console.error('Error updating employee leave status from vacations:', err);
+      console.error('Error refreshing employee data:', err);
       return false;
     }
   };

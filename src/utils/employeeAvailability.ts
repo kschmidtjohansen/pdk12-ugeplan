@@ -15,7 +15,7 @@ export interface EmployeeAvailabilityInfo {
 
 // Helper function to check if an employee is on vacation for a specific date
 export const isEmployeeOnVacation = (employeeId: string, selectedDate: Date, vacations: Vacation[]): boolean => {
-  return vacations.some(vacation => {
+  const checkResult = vacations.some(vacation => {
     if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
       return false;
     }
@@ -23,12 +23,22 @@ export const isEmployeeOnVacation = (employeeId: string, selectedDate: Date, vac
     const startDate = new Date(vacation.startDate);
     const endDate = new Date(vacation.endDate);
     
-    selectedDate.setHours(0, 0, 0, 0);
+    // Normalize all dates to avoid time zone issues
+    const normalizedSelectedDate = new Date(selectedDate);
+    normalizedSelectedDate.setHours(0, 0, 0, 0);
     startDate.setHours(0, 0, 0, 0);
     endDate.setHours(0, 0, 0, 0);
     
-    return selectedDate >= startDate && selectedDate <= endDate;
+    const isInRange = normalizedSelectedDate >= startDate && normalizedSelectedDate <= endDate;
+    
+    if (isInRange) {
+      console.log(`[isEmployeeOnVacation] Employee ${employeeId} is on vacation on ${format(selectedDate, 'yyyy-MM-dd')}: vacation from ${format(startDate, 'yyyy-MM-dd')} to ${format(endDate, 'yyyy-MM-dd')}`);
+    }
+    
+    return isInRange;
   });
+  
+  return checkResult;
 };
 
 // Helper function to normalize time
@@ -55,25 +65,27 @@ export const getEmployeeAvailabilityStatus = (
   vacations: Vacation[],
   t: (key: string, params?: any) => string
 ): EmployeeAvailabilityInfo => {
-  console.log(`[getEmployeeAvailabilityStatus] Checking employee: ${employee.name} for date: ${format(selectedDate, 'yyyy-MM-dd')}`);
+  const dateStr = format(selectedDate, 'yyyy-MM-dd');
+  console.log(`[getEmployeeAvailabilityStatus] Checking employee: ${employee.name} for date: ${dateStr}`);
   
-  // Check if employee is on leave
-  if (employee.onLeave) {
-    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on leave`);
-    return {
-      status: 'onLeave',
-      statusText: t('employees.onLeave'),
-      badgeColor: 'bg-gray-100 text-gray-800 border-gray-200'
-    };
-  }
-
-  // Check if employee is on vacation
-  if (isEmployeeOnVacation(employee.id, selectedDate, vacations)) {
-    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on vacation`);
+  // PRIORITY 1: Check if employee is on vacation FOR THIS SPECIFIC DATE
+  const isOnVacationToday = isEmployeeOnVacation(employee.id, selectedDate, vacations);
+  if (isOnVacationToday) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on vacation on ${dateStr}`);
     return {
       status: 'onVacation',
       statusText: t('planner.onVacation'),
       badgeColor: 'bg-blue-100 text-blue-800 border-blue-200'
+    };
+  }
+
+  // PRIORITY 2: Check if employee is manually marked as on leave
+  if (employee.onLeave) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is manually marked as on leave`);
+    return {
+      status: 'onLeave',
+      statusText: t('employees.onLeave'),
+      badgeColor: 'bg-gray-100 text-gray-800 border-gray-200'
     };
   }
 

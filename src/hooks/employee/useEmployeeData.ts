@@ -50,34 +50,10 @@ export const useEmployeeData = () => {
         
         console.log("Roles data:", rolesData);
         
-        // Check if employees have active vacations
-        const today = new Date().toISOString().split('T')[0];
-        const { data: activeVacations, error: vacationsError } = await supabase
-          .from('vacations')
-          .select('user_id')
-          .eq('status', 'approved')
-          .lte('start_date', today)
-          .gte('end_date', today);
-          
-        if (vacationsError) {
-          console.error('Error fetching active vacations:', vacationsError);
-        }
-        
-        // Create a set of user IDs who are on vacation
-        const employeesOnVacation = new Set(
-          activeVacations?.map(vacation => vacation.user_id) || []
-        );
-        
-        // Combine the data
+        // Combine the data - REMOVED vacation checking from here
         const formattedEmployees: Employee[] = profilesData.map(item => {
           // Find the role for this user
           const userRole = rolesData?.find(r => r.user_id === item.id);
-          
-          // Check if employee is on approved vacation
-          const isOnApprovedVacation = employeesOnVacation.has(item.id);
-          
-          // If employee is on approved vacation, they should be marked as on leave
-          const onLeave = isOnApprovedVacation || item.on_leave;
           
           return {
             id: item.id,
@@ -86,9 +62,9 @@ export const useEmployeeData = () => {
             phone: item.phone || '',
             jobTitle: item.job_title || '',
             role: userRole ? userRole.role as UserRole : 'servicemedarbejder',
-            onLeave: onLeave || false,
+            onLeave: item.on_leave || false, // Only use manual on_leave status
             notes: item.notes || '',
-            onApprovedVacation: isOnApprovedVacation || false,
+            onApprovedVacation: false, // Will be calculated date-specifically when needed
             avatar_url: item.avatar_url || undefined
           };
         });

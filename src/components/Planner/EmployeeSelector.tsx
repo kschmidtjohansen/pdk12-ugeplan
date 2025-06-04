@@ -91,15 +91,22 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto">
           {filteredEmployees.map(employee => {
             const isSelected = selectedEmployees.includes(employee.name);
-            const isOnVacation = isEmployeeOnVacation(employee.id, dateForComparison, vacations);
-            const isUnavailable = employee.onLeave;
+            
+            // Use date-specific vacation checking
+            const isOnVacationToday = isEmployeeOnVacation(employee.id, dateForComparison, vacations);
+            
+            // Use manual on leave status (not vacation-based)
+            const isManuallyOnLeave = employee.onLeave;
+            
+            // Get comprehensive availability info
             const availabilityInfo = getEmployeeAvailabilityStatus(employee, dateForComparison, assignments, vacations, t);
             
-            const isDisabled = isOnVacation || isUnavailable;
+            // Employee is disabled if they're on vacation today OR manually on leave
+            const isDisabled = isOnVacationToday || isManuallyOnLeave;
             
             // Apply red styling for workday end times with higher CSS specificity
             const hasRedStyling = availabilityInfo.status === 'fullyBooked';
-            console.log(`[EmployeeSelector] Employee ${employee.name} red styling applied: ${hasRedStyling}`);
+            console.log(`[EmployeeSelector] Employee ${employee.name} red styling applied: ${hasRedStyling}, disabled: ${isDisabled}`);
             
             return (
               <DropdownMenuItem
@@ -126,12 +133,12 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                       {employee.name}
                     </span>
                     <div className="flex gap-1 ml-2 flex-shrink-0">
-                      {isOnVacation && (
+                      {isOnVacationToday && (
                         <Badge variant="outline" className="text-xs">
                           {t('planner.onVacation')}
                         </Badge>
                       )}
-                      {isUnavailable && (
+                      {isManuallyOnLeave && (
                         <Badge variant="outline" className="text-xs">
                           {t('employees.onLeave')}
                         </Badge>
