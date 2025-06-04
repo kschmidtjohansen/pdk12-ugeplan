@@ -18,7 +18,8 @@ export const useAssignmentData = () => {
       setLoading(true);
       setError(null);
       
-      console.log('[useAssignmentData] Starting to fetch assignments with updated RLS policies...');
+      console.log('[useAssignmentData] === ENHANCED DEBUGGING FOR DASHBOARD METRICS ===');
+      console.log('[useAssignmentData] Starting to fetch assignments...');
       
       // Get current user info for debugging
       const { data: { user } } = await supabase.auth.getUser();
@@ -56,7 +57,8 @@ export const useAssignmentData = () => {
       
       if (assignmentsError) throw assignmentsError;
       
-      console.log('[useAssignmentData] Assignments fetched:', assignmentsData?.length || 0);
+      console.log('[useAssignmentData] Raw assignments fetched from DB:', assignmentsData?.length || 0);
+      console.log('[useAssignmentData] Raw assignments data sample:', assignmentsData?.slice(0, 3));
       
       if (assignmentsData) {
         // Get assignment-employee relationships - this should now work with the updated RLS policy
@@ -71,7 +73,7 @@ export const useAssignmentData = () => {
         }
         
         console.log('[useAssignmentData] Assignment employees fetched:', assignmentEmployees?.length || 0);
-        console.log('[useAssignmentData] Assignment employees raw data:', assignmentEmployees);
+        console.log('[useAssignmentData] Assignment employees raw data sample:', assignmentEmployees?.slice(0, 10));
         
         // Get all profiles for the users in assignments
         const userIds = assignmentEmployees?.map(ae => ae.user_id) || [];
@@ -95,11 +97,11 @@ export const useAssignmentData = () => {
         }
         
         console.log('[useAssignmentData] Profiles fetched:', profilesData?.length || 0);
-        console.log('[useAssignmentData] Profiles data:', profilesData);
+        console.log('[useAssignmentData] Profiles data sample:', profilesData?.slice(0, 5));
         
         // Process and combine the data with enhanced debugging
         const processedAssignments = assignmentsData.map(assignment => {
-          console.log(`[useAssignmentData] Processing assignment ${assignment.id} (${assignment.location})`);
+          console.log(`[useAssignmentData] === Processing assignment ${assignment.id} (${assignment.location}) ===`);
           
           // Find all employees for this assignment
           const assignmentEmployeeIds = assignmentEmployees
@@ -124,18 +126,6 @@ export const useAssignmentData = () => {
           
           console.log(`[useAssignmentData] Final employee names for assignment ${assignment.id} (${assignment.location}):`, assignmentEmployeeNames);
           
-          // Special debugging for Fyn assignment
-          if (assignment.location === 'Fyn') {
-            console.log(`[useAssignmentData] 🔍 FYN ASSIGNMENT FINAL DEBUG:`, {
-              assignmentId: assignment.id,
-              location: assignment.location,
-              published: assignment.published,
-              employeeIds: assignmentEmployeeIds,
-              employeeNames: assignmentEmployeeNames,
-              profilesAvailable: profilesData
-            });
-          }
-          
           const processedAssignment: Assignment = {
             id: assignment.id,
             title: assignment.title,
@@ -156,15 +146,27 @@ export const useAssignmentData = () => {
             } : null
           };
           
+          console.log(`[useAssignmentData] Final processed assignment ${assignment.id}:`, {
+            id: processedAssignment.id,
+            date: processedAssignment.date,
+            location: processedAssignment.location,
+            employees: processedAssignment.employees,
+            employeeCount: processedAssignment.employees.length
+          });
+          
           return processedAssignment;
         });
         
-        console.log('[useAssignmentData] Final processed assignments:', processedAssignments.length);
-        console.log('[useAssignmentData] Processed assignments with employees:', processedAssignments.map(a => ({
+        console.log('[useAssignmentData] === FINAL PROCESSING SUMMARY ===');
+        console.log('[useAssignmentData] Total processed assignments:', processedAssignments.length);
+        console.log('[useAssignmentData] Assignments with employees:', processedAssignments.filter(a => a.employees.length > 0).length);
+        console.log('[useAssignmentData] Assignments for June 8, 2025:', processedAssignments.filter(a => a.date === '2025-06-08').length);
+        console.log('[useAssignmentData] All processed assignments sample:', processedAssignments.slice(0, 3).map(a => ({
           id: a.id,
+          date: a.date,
           location: a.location,
           employees: a.employees,
-          employeeCount: a.employees?.length || 0
+          employeeCount: a.employees.length
         })));
         
         setAssignments(processedAssignments);

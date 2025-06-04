@@ -55,8 +55,26 @@ export const getEmployeeAvailabilityStatus = (
   vacations: Vacation[],
   t: (key: string, params?: any) => string
 ): EmployeeAvailabilityInfo => {
+  console.log(`[getEmployeeAvailabilityStatus] === DEBUGGING EMPLOYEE: ${employee.name} ===`);
+  console.log(`[getEmployeeAvailabilityStatus] Selected date:`, selectedDate);
+  console.log(`[getEmployeeAvailabilityStatus] Employee details:`, {
+    id: employee.id,
+    name: employee.name,
+    role: employee.role,
+    onLeave: employee.onLeave
+  });
+  console.log(`[getEmployeeAvailabilityStatus] Total assignments passed:`, assignments.length);
+  console.log(`[getEmployeeAvailabilityStatus] All assignments:`, assignments.map(a => ({
+    id: a.id,
+    date: a.date,
+    location: a.location,
+    employees: a.employees,
+    employeeCount: a.employees?.length || 0
+  })));
+
   // Check if employee is on leave
   if (employee.onLeave) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on leave`);
     return {
       status: 'onLeave',
       statusText: t('employees.onLeave'),
@@ -66,6 +84,7 @@ export const getEmployeeAvailabilityStatus = (
 
   // Check if employee is on vacation
   if (isEmployeeOnVacation(employee.id, selectedDate, vacations)) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on vacation`);
     return {
       status: 'onVacation',
       statusText: t('planner.onVacation'),
@@ -75,18 +94,62 @@ export const getEmployeeAvailabilityStatus = (
 
   // Get assignments for this employee on the selected date
   const targetDateStr = format(selectedDate, 'yyyy-MM-dd');
+  console.log(`[getEmployeeAvailabilityStatus] Target date string:`, targetDateStr);
+  
+  // Enhanced assignment filtering with detailed logging
   const employeeAssignments = assignments.filter(assignment => {
+    console.log(`[getEmployeeAvailabilityStatus] Checking assignment:`, {
+      id: assignment.id,
+      date: assignment.date,
+      location: assignment.location,
+      employees: assignment.employees,
+      employeesType: typeof assignment.employees,
+      isEmployeesArray: Array.isArray(assignment.employees)
+    });
+
     const assignmentDateStr = assignment.date.includes('T') 
       ? assignment.date.split('T')[0] 
       : assignment.date;
     
     const isOnDate = assignmentDateStr === targetDateStr;
-    const isAssigned = assignment.employees && assignment.employees.includes(employee.name);
+    console.log(`[getEmployeeAvailabilityStatus] Date comparison:`, {
+      assignmentDate: assignmentDateStr,
+      targetDate: targetDateStr,
+      isOnDate
+    });
     
-    return isOnDate && isAssigned;
+    let isAssigned = false;
+    if (assignment.employees && Array.isArray(assignment.employees)) {
+      isAssigned = assignment.employees.includes(employee.name);
+      console.log(`[getEmployeeAvailabilityStatus] Employee assignment check:`, {
+        employeeName: employee.name,
+        assignmentEmployees: assignment.employees,
+        isAssigned
+      });
+    } else {
+      console.log(`[getEmployeeAvailabilityStatus] No valid employees array found in assignment`);
+    }
+    
+    const shouldInclude = isOnDate && isAssigned;
+    console.log(`[getEmployeeAvailabilityStatus] Assignment filter result:`, {
+      assignmentId: assignment.id,
+      location: assignment.location,
+      shouldInclude
+    });
+    
+    return shouldInclude;
   });
 
+  console.log(`[getEmployeeAvailabilityStatus] Found ${employeeAssignments.length} assignments for employee ${employee.name} on ${targetDateStr}`);
+  console.log(`[getEmployeeAvailabilityStatus] Employee assignments:`, employeeAssignments.map(a => ({
+    id: a.id,
+    location: a.location,
+    fromTime: a.fromTime,
+    toTime: a.toTime
+  })));
+
   if (employeeAssignments.length === 0) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is AVAILABLE (no assignments)`);
     return {
       status: 'available',
       statusText: t('dashboard.available'),
@@ -97,13 +160,23 @@ export const getEmployeeAvailabilityStatus = (
   // Check if employee ends at exactly workday end time (16:00 or 15:30 on Friday)
   const dayOfWeek = selectedDate.getDay(); // 0=Sunday, 5=Friday
   const workdayEndTime = dayOfWeek === 5 ? "15:30" : "16:00";
+  console.log(`[getEmployeeAvailabilityStatus] Workday end time for day ${dayOfWeek}:`, workdayEndTime);
   
   const hasEndTimeAtWorkdayEnd = employeeAssignments.some(assignment => {
     const normalizedEndTime = normalizeTime(assignment.toTime);
-    return normalizedEndTime === workdayEndTime;
+    const isWorkdayEnd = normalizedEndTime === workdayEndTime;
+    console.log(`[getEmployeeAvailabilityStatus] Assignment end time check:`, {
+      assignmentId: assignment.id,
+      rawEndTime: assignment.toTime,
+      normalizedEndTime,
+      workdayEndTime,
+      isWorkdayEnd
+    });
+    return isWorkdayEnd;
   });
 
   if (hasEndTimeAtWorkdayEnd) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is FULLY BOOKED (ends at workday end)`);
     return {
       status: 'fullyBooked',
       statusText: t('employees.fullyBooked'),
@@ -120,6 +193,8 @@ export const getEmployeeAvailabilityStatus = (
     }
   });
 
+  console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is PARTIALLY BOOKED (latest end: ${latestEndTime})`);
+  
   const formattedTime = latestEndTime.substring(0, 5);
   return {
     status: 'partiallyBooked',

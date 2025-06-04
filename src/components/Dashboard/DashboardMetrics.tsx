@@ -36,11 +36,48 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate }) => 
   const targetDate = selectedDate || format(new Date(), 'yyyy-MM-dd');
   const targetDateObj = new Date(targetDate + 'T12:00:00'); // Add time to avoid timezone issues
 
+  console.log('[DashboardMetrics] === ENHANCED DEBUG INFO ===');
+  console.log('[DashboardMetrics] Target date:', targetDate);
+  console.log('[DashboardMetrics] Target date object:', targetDateObj);
+  console.log('[DashboardMetrics] Total employees:', employees.length);
+  console.log('[DashboardMetrics] Total assignments:', assignments.length);
+  console.log('[DashboardMetrics] All employees:', employees.map(e => ({
+    id: e.id,
+    name: e.name,
+    role: e.role,
+    onLeave: e.onLeave
+  })));
+
   // Filter employees to only include servicemedarbejder role
-  const serviceEmployees = employees.filter(employee => employee.role === 'servicemedarbejder');
+  const serviceEmployees = employees.filter(employee => {
+    const isServiceEmployee = employee.role === 'servicemedarbejder';
+    console.log(`[DashboardMetrics] Employee ${employee.name} - role: ${employee.role}, isServiceEmployee: ${isServiceEmployee}`);
+    return isServiceEmployee;
+  });
+
+  console.log('[DashboardMetrics] Service employees:', serviceEmployees.length);
+  console.log('[DashboardMetrics] Service employees details:', serviceEmployees.map(e => ({
+    id: e.id,
+    name: e.name,
+    role: e.role,
+    onLeave: e.onLeave
+  })));
+
+  // Log all assignments for debugging
+  console.log('[DashboardMetrics] All assignments details:', assignments.map(a => ({
+    id: a.id,
+    date: a.date,
+    location: a.location,
+    employees: a.employees,
+    employeeCount: a.employees?.length || 0,
+    fromTime: a.fromTime,
+    toTime: a.toTime
+  })));
 
   // Calculate available employees (including partially available)
   const availableEmployees = serviceEmployees.filter(employee => {
+    console.log(`[DashboardMetrics] === Checking availability for ${employee.name} ===`);
+    
     const availabilityInfo = getEmployeeAvailabilityStatus(
       employee,
       targetDateObj,
@@ -49,9 +86,17 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate }) => 
       t
     );
     
+    console.log(`[DashboardMetrics] Employee ${employee.name} availability status:`, availabilityInfo.status);
+    
     // Include both available and partially booked employees
-    return availabilityInfo.status === 'available' || availabilityInfo.status === 'partiallyBooked';
+    const isAvailable = availabilityInfo.status === 'available' || availabilityInfo.status === 'partiallyBooked';
+    console.log(`[DashboardMetrics] Employee ${employee.name} is included in available count:`, isAvailable);
+    
+    return isAvailable;
   });
+
+  console.log('[DashboardMetrics] Available employees count:', availableEmployees.length);
+  console.log('[DashboardMetrics] Available employees list:', availableEmployees.map(e => e.name));
 
   // Calculate unavailable employees (fully booked, on leave, on vacation)
   const unavailableEmployees = serviceEmployees.filter(employee => {
@@ -63,10 +108,17 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate }) => 
       t
     );
     
-    return availabilityInfo.status === 'fullyBooked' || 
+    const isUnavailable = availabilityInfo.status === 'fullyBooked' || 
            availabilityInfo.status === 'onLeave' || 
            availabilityInfo.status === 'onVacation';
+    
+    console.log(`[DashboardMetrics] Employee ${employee.name} is unavailable:`, isUnavailable, 'Status:', availabilityInfo.status);
+    
+    return isUnavailable;
   });
+
+  console.log('[DashboardMetrics] Unavailable employees count:', unavailableEmployees.length);
+  console.log('[DashboardMetrics] Unavailable employees list:', unavailableEmployees.map(e => e.name));
 
   // Calculate cars in use on target date
   const carsInUseOnDate = assignments
@@ -80,6 +132,13 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate }) => 
     }, [] as string[]).length;
 
   const availableCars = cars.filter(car => car.is_available).length;
+
+  console.log('[DashboardMetrics] === FINAL METRICS ===');
+  console.log('[DashboardMetrics] Total service employees:', serviceEmployees.length);
+  console.log('[DashboardMetrics] Available employees:', availableEmployees.length);
+  console.log('[DashboardMetrics] Unavailable employees:', unavailableEmployees.length);
+  console.log('[DashboardMetrics] Available cars:', availableCars);
+  console.log('[DashboardMetrics] Cars in use:', carsInUseOnDate);
 
   return (
     <>
