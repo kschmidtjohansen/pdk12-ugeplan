@@ -190,7 +190,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       return car ? car.name : t('cars.selectCar');
     }
     
-    return `${selectedCarIds.length} ${t('cars.carsSelected', 'cars selected')}`;
+    return t('cars.carsSelected', { count: selectedCarIds.length }) || `${selectedCarIds.length} cars selected`;
   };
 
   return (

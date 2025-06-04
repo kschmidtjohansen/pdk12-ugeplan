@@ -81,6 +81,15 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     }
   };
 
+  // Convert single car to array for multi-select
+  const selectedCarIds = formData.car ? [formData.car] : [];
+  
+  // Handle car selection from multi-select (take first car for backward compatibility)
+  const handleCarSelect = (carIds: string[]) => {
+    const carId = carIds.length > 0 ? carIds[0] : '';
+    handleFieldChange('car', carId === 'none' ? '' : carId);
+  };
+
   // Format date with Danish locale
   const formatDateDisplay = (date: Date) => {
     try {
@@ -219,8 +228,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               <Label>{t('planner.selectCar')}</Label>
               <CarSelector 
                 cars={cars} 
-                selectedCarId={formData.car === '' ? 'none' : formData.car || 'none'} 
-                onCarSelect={value => handleFieldChange('car', value)} 
+                selectedCarIds={selectedCarIds}
+                onCarSelect={handleCarSelect} 
                 currentDate={formData.date ? format(new Date(formData.date), 'yyyy-MM-dd') : currentDate} 
                 assignments={assignments} 
                 currentAssignmentId={currentAssignment?.id} 
