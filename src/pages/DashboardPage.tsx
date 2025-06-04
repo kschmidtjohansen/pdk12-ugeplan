@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -11,7 +12,8 @@ import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import WeekNavigation from '@/components/Dashboard/WeekNavigation';
 import AssignmentDetailsDialog from '@/components/Dashboard/AssignmentDetailsDialog';
 
-// Import assignments from planner hook to reuse the mock data
+// Import both hooks - useAssignments for metrics (unfiltered) and usePlannerAssignments for user assignments (filtered)
+import { useAssignments } from '@/hooks/useAssignments';
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
@@ -25,7 +27,11 @@ import { isValidUUID } from '@/utils/uuidValidation';
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { t, currentLanguage } = useTranslation();
-  const { assignments } = usePlannerAssignments();
+  
+  // FIXED: Use two different hooks for different purposes
+  const { assignments: allAssignments } = useAssignments(); // Unfiltered assignments for metrics
+  const { assignments: userAssignments } = usePlannerAssignments(); // Filtered assignments for user's list
+  
   const { employees, updateEmployeeLeaveStatusFromVacations } = useEmployees();
   const { cars } = useCars();
   const { vacations } = useVacations();
@@ -41,6 +47,17 @@ const DashboardPage: React.FC = () => {
 
   // Get the daily motivational quote
   const dailyQuote = getDailyQuote();
+
+  console.log('[DashboardPage] === FIXED DATA SOURCE DEBUGGING ===');
+  console.log('[DashboardPage] All assignments (unfiltered for metrics):', allAssignments.length);
+  console.log('[DashboardPage] User assignments (filtered for display):', userAssignments.length);
+  console.log('[DashboardPage] All assignments sample:', allAssignments.slice(0, 3).map(a => ({
+    id: a.id,
+    date: a.date,
+    location: a.location,
+    published: a.published,
+    employees: a.employees
+  })));
 
   // FIXED: Calculate the selected date for metrics based on current week selection
   const getSelectedDateForMetrics = () => {
@@ -112,8 +129,8 @@ const DashboardPage: React.FC = () => {
     setIsAssignmentDialogOpen(true);
   };
 
-  // Get assignments for the selected week and user with proper error handling
-  const userWeekAssignments = filterForDashboard(assignments).filter(assignment => {
+  // FIXED: Get assignments for the selected week using the FILTERED user assignments
+  const userWeekAssignments = filterForDashboard(userAssignments).filter(assignment => {
     try {
       const assignmentDate = assignment.date;
       const isInWeek = assignmentDate >= startDateISO && assignmentDate <= endDateISO;
@@ -285,10 +302,10 @@ const DashboardPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Enhanced Dashboard Metrics - Pass assignments data */}
+        {/* FIXED: Enhanced Dashboard Metrics - Pass UNFILTERED assignments data */}
         {shouldShowMetrics && (
           <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <DashboardMetrics selectedDate={selectedDateForMetrics} assignments={assignments} />
+            <DashboardMetrics selectedDate={selectedDateForMetrics} assignments={allAssignments} />
           </div>
         )}
 
