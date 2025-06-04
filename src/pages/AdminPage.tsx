@@ -1,3 +1,4 @@
+
 import React from 'react';
 import PageHeader from '../components/Layout/PageHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -5,7 +6,7 @@ import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNavigate } from 'react-router-dom';
 import UserManagement from '@/components/Admin/UserManagement';
-import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
+import { useAssignmentsConsolidated } from '@/hooks/useAssignmentsConsolidated';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
@@ -28,7 +29,7 @@ const AdminPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = React.useState("overview");
-  const { assignments } = usePlannerAssignments();
+  const { assignments } = useAssignmentsConsolidated({ filter: 'all' });
   const { employees } = useEmployees();
   const { cars } = useCars();
   const { vacations } = useVacations();

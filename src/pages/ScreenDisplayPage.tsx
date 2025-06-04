@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
-import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
+import { useAssignmentsConsolidated } from '@/hooks/useAssignmentsConsolidated';
 import { useViewSpecificFilters } from '@/hooks/useViewSpecificFilters';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 
 const ScreenDisplayPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
-  const { assignments, loading } = usePlannerAssignments();
+  const { assignments, loading } = useAssignmentsConsolidated({ filter: 'published' });
   const { filterForScreenDisplay } = useViewSpecificFilters();
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -26,14 +26,12 @@ const ScreenDisplayPage: React.FC = () => {
       try {
         // Parse the date from the URL parameter
         const parsedDate = parseISO(dateParam);
-        console.log('[ScreenDisplayPage] Using date from URL:', dateParam, 'parsed as:', parsedDate);
         return parsedDate;
       } catch (error) {
-        console.error('[ScreenDisplayPage] Error parsing date from URL:', dateParam, error);
+        console.error('Error parsing date from URL:', dateParam, error);
       }
     }
     
-    console.log('[ScreenDisplayPage] No valid date in URL, using today');
     return new Date();
   };
 
@@ -41,9 +39,6 @@ const ScreenDisplayPage: React.FC = () => {
 
   // Filter assignments for screen display (only published assignments)
   const filteredAssignments = filterForScreenDisplay(assignments);
-
-  console.log('[ScreenDisplayPage] Assignments loaded:', filteredAssignments.length);
-  console.log('[ScreenDisplayPage] Selected date:', format(selectedDate, 'yyyy-MM-dd'));
 
   // Update current time every minute
   useEffect(() => {
@@ -82,14 +77,6 @@ const ScreenDisplayPage: React.FC = () => {
   const todayAssignments = filteredAssignments
     .filter(a => a.date === selectedDateStr && a.published)
     .sort((a, b) => a.fromTime.localeCompare(b.fromTime));
-
-  console.log('[ScreenDisplayPage] Assignments for selected date:', todayAssignments.length);
-  console.log('[ScreenDisplayPage] Assignment details:', todayAssignments.map(a => ({
-    id: a.id,
-    location: a.location,
-    date: a.date,
-    employees: a.employees
-  })));
 
   const handlePreviousDay = () => {
     const newDate = subDays(selectedDate, 1);

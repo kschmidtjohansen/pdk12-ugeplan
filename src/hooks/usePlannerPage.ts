@@ -1,7 +1,8 @@
+
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
-import { usePlannerAssignments } from './usePlannerAssignments';
+import { useAssignmentsConsolidated } from './useAssignmentsConsolidated';
 import { 
   getWeekDates, 
   getCurrentWeekInfo, 
@@ -30,13 +31,11 @@ export const usePlannerPage = () => {
     deleteAssignment,
     publishAssignment,
     publishAssignmentsByDate,
-    publishAllUnpublishedAssignments,
     isDialogOpen,
-    setIsDialogOpen,
-    currentAssignment,
-    setCurrentAssignment
-  } = usePlannerAssignments();
+    setIsDialogOpen
+  } = useAssignmentsConsolidated({ filter: 'planner' });
 
+  const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
 
   // FIXED: Always get a fresh today's date - recalculate each time to ensure it updates daily
@@ -75,7 +74,6 @@ export const usePlannerPage = () => {
   // Navigate to previous week
   const handlePreviousWeek = useCallback(() => {
     const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
-    console.log(`[usePlannerPage] Going to previous week: ${week}, year: ${year}`);
     setSelectedWeek(week);
     setSelectedYear(year);
   }, [selectedWeek, selectedYear]);
@@ -83,7 +81,6 @@ export const usePlannerPage = () => {
   // Navigate to next week
   const handleNextWeek = useCallback(() => {
     const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
-    console.log(`[usePlannerPage] Going to next week: ${week}, year: ${year}`);
     setSelectedWeek(week);
     setSelectedYear(year);
   }, [selectedWeek, selectedYear]);
@@ -96,9 +93,6 @@ export const usePlannerPage = () => {
     const freshTodayDate = getFreshToday();
     const taskDate = date && date.trim() !== '' ? date : freshTodayDate;
     setSelectedDay(taskDate);
-    
-    console.log("[usePlannerPage] Creating new assignment with date:", taskDate);
-    console.log("[usePlannerPage] Fresh today's date is:", freshTodayDate);
     
     // Set form data in one update to avoid race conditions
     setFormData({
@@ -113,10 +107,9 @@ export const usePlannerPage = () => {
     });
     
     setIsDialogOpen(true);
-  }, [setCurrentAssignment, setIsDialogOpen, getFreshToday]);
+  }, [setIsDialogOpen, getFreshToday]);
 
   const handleOpenEditDialog = useCallback((assignment: Assignment) => {
-    console.log("[usePlannerPage] Opening edit dialog with assignment:", assignment);
     setCurrentAssignment(assignment);
     setSelectedDay(assignment.date);
     
@@ -129,12 +122,10 @@ export const usePlannerPage = () => {
     });
     
     setIsDialogOpen(true);
-  }, [setCurrentAssignment, setIsDialogOpen]);
+  }, [setIsDialogOpen]);
 
   // New function to handle copying an assignment
   const handleCopyAssignment = useCallback((assignment: Assignment) => {
-    console.log("[usePlannerPage] Copying assignment:", assignment);
-    
     // Set the assignment to be copied
     setCurrentAssignment(null);
     
@@ -160,11 +151,9 @@ export const usePlannerPage = () => {
     
     // Open the dialog to let the user select a new date
     setIsDialogOpen(true);
-  }, [setCurrentAssignment, setIsDialogOpen, toast, t, getFreshToday]);
+  }, [setIsDialogOpen, toast, t, getFreshToday]);
 
   const handleSubmit = useCallback((data: Partial<Assignment>) => {
-    console.log("[usePlannerPage] Submitting assignment data:", data);
-    
     if (currentAssignment) {
       // Set the edited assignment as unpublished
       const unpublishedData = getUnpublishedAssignment(data as Assignment);
@@ -189,8 +178,12 @@ export const usePlannerPage = () => {
 
   // New function to publish all unpublished assignments
   const handlePublishAllUnpublished = useCallback(() => {
-    publishAllUnpublishedAssignments();
-  }, [publishAllUnpublishedAssignments]);
+    // This functionality would need to be implemented in the consolidated hook
+    toast({
+      title: t('common.info'),
+      description: 'Publish all unpublished functionality not yet implemented'
+    });
+  }, [toast, t]);
   
   return {
     selectedWeek,

@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Assignment } from '@/types/assignment';
 import { supabase } from '@/integrations/supabase/client';
 
-export type AssignmentFilterType = 'all' | 'published' | 'unpublished' | 'user-specific' | 'dashboard';
+export type AssignmentFilterType = 'all' | 'published' | 'unpublished' | 'user-specific' | 'dashboard' | 'planner';
 
 interface UseAssignmentsOptions {
   filter?: AssignmentFilterType;
@@ -18,6 +18,7 @@ export const useAssignmentsConsolidated = (options: UseAssignmentsOptions = {}) 
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -141,6 +142,203 @@ export const useAssignmentsConsolidated = (options: UseAssignmentsOptions = {}) 
     }
   }, [filter, includeUnpublished, user, toast, t]);
 
+  // Create assignment
+  const createAssignment = useCallback(async (assignmentData: Partial<Assignment>) => {
+    try {
+      const { data, error } = await supabase
+        .from('assignments')
+        .insert({
+          title: assignmentData.title,
+          description: assignmentData.description,
+          assignment_date: assignmentData.date,
+          from_time: assignmentData.fromTime,
+          to_time: assignmentData.toTime,
+          location: assignmentData.location,
+          car_id: assignmentData.car ? (typeof assignmentData.car === 'string' ? assignmentData.car : assignmentData.car.id) : null,
+          published: assignmentData.published || false,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Add employees if provided
+      if (data && assignmentData.employees?.length) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .in('name', assignmentData.employees);
+
+        if (profiles?.length) {
+          const employeeInserts = profiles.map(profile => ({
+            assignment_id: data.id,
+            user_id: profile.id
+          }));
+
+          await supabase
+            .from('assignments_employees')
+            .insert(employeeInserts);
+        }
+      }
+
+      await fetchAssignments();
+      toast({
+        title: t('planner.createSuccess'),
+        description: t('planner.assignmentCreated'),
+      });
+      return true;
+    } catch (err) {
+      toast({
+        title: t('common.error'),
+        description: t('planner.createError'),
+        variant: 'destructive',
+      });
+      return false;
+    }
+  }, [fetchAssignments, toast, t]);
+
+  // Update assignment
+  const updateAssignment = useCallback(async (assignmentId: string, assignmentData: Partial<Assignment>) => {
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .update({
+          title: assignmentData.title,
+          description: assignmentData.description,
+          assignment_date: assignmentData.date,
+          from_time: assignmentData.fromTime,
+          to_time: assignmentData.toTime,
+          location: assignmentData.location,
+          car_id: assignmentData.car ? (typeof assignmentData.car === 'string' ? assignmentData.car : assignmentData.car.id) : null,
+          published: assignmentData.published,
+        })
+        .eq('id', assignmentId);
+
+      if (error) throw error;
+
+      // Update employees
+      if (assignmentData.employees !== undefined) {
+        // Remove existing employees
+        await supabase
+          .from('assignments_employees')
+          .delete()
+          .eq('assignment_id', assignmentId);
+
+        // Add new employees
+        if (assignmentData.employees.length > 0) {
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, name')
+            .in('name', assignmentData.employees);
+
+          if (profiles?.length) {
+            const employeeInserts = profiles.map(profile => ({
+              assignment_id: assignmentId,
+              user_id: profile.id
+            }));
+
+            await supabase
+              .from('assignments_employees')
+              .insert(employeeInserts);
+          }
+        }
+      }
+
+      await fetchAssignments();
+      toast({
+        title: t('planner.updateSuccess'),
+        description: t('planner.assignmentUpdated'),
+      });
+      return true;
+    } catch (err) {
+      toast({
+        title: t('common.error'),
+        description: t('planner.updateError'),
+        variant: 'destructive',
+      });
+      return false;
+    }
+  }, [fetchAssignments, toast, t]);
+
+  // Delete assignment
+  const deleteAssignment = useCallback(async (assignmentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .delete()
+        .eq('id', assignmentId);
+
+      if (error) throw error;
+
+      await fetchAssignments();
+      toast({
+        title: t('planner.deleteSuccess'),
+        description: t('planner.assignmentDeleted'),
+      });
+      return true;
+    } catch (err) {
+      toast({
+        title: t('common.error'),
+        description: t('planner.deleteError'),
+        variant: 'destructive',
+      });
+      return false;
+    }
+  }, [fetchAssignments, toast, t]);
+
+  // Publish assignment
+  const publishAssignment = useCallback(async (assignmentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .update({ published: true })
+        .eq('id', assignmentId);
+
+      if (error) throw error;
+
+      await fetchAssignments();
+      toast({
+        title: t('planner.publishSuccess'),
+        description: t('planner.assignmentPublished'),
+      });
+      return true;
+    } catch (err) {
+      toast({
+        title: t('common.error'),
+        description: t('planner.publishError'),
+        variant: 'destructive',
+      });
+      return false;
+    }
+  }, [fetchAssignments, toast, t]);
+
+  // Publish assignments by date
+  const publishAssignmentsByDate = useCallback(async (date: string) => {
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .update({ published: true })
+        .eq('assignment_date', date)
+        .eq('published', false);
+
+      if (error) throw error;
+
+      await fetchAssignments();
+      toast({
+        title: t('planner.publishSuccess'),
+        description: t('planner.dayPublished'),
+      });
+      return true;
+    } catch (err) {
+      toast({
+        title: t('common.error'),
+        description: t('planner.publishError'),
+        variant: 'destructive',
+      });
+      return false;
+    }
+  }, [fetchAssignments, toast, t]);
+
   // Load assignments on component mount
   useEffect(() => {
     fetchAssignments();
@@ -171,7 +369,14 @@ export const useAssignmentsConsolidated = (options: UseAssignmentsOptions = {}) 
     assignments,
     loading,
     error,
-    fetchAssignments
+    fetchAssignments,
+    createAssignment,
+    updateAssignment,
+    deleteAssignment,
+    publishAssignment,
+    publishAssignmentsByDate,
+    isDialogOpen,
+    setIsDialogOpen
   };
 };
 
@@ -206,6 +411,7 @@ const applyFilter = (
       }
       return assignments.filter(a => includeUnpublished || a.published);
       
+    case 'planner':
     case 'user-specific':
       // For planner view - servicemedarbejdere see all published, others see based on includeUnpublished
       if (user.role === 'servicemedarbejder') {

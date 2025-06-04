@@ -54,22 +54,11 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   let allWeekDays: string[] = [];
   
   if (weekDates?.start && weekDates?.end) {
-    console.log(`AssignmentList: Creating week days for week ${selectedWeek}/${selectedYear}`);
-    console.log(`Start: ${format(weekDates.start, 'yyyy-MM-dd')} (${format(weekDates.start, 'EEEE')}) - Day ${weekDates.start.getDay()}`);
-    console.log(`End: ${format(weekDates.end, 'yyyy-MM-dd')} (${format(weekDates.end, 'EEEE')}) - Day ${weekDates.end.getDay()}`);
-    
     allWeekDays = getAllWeekDays({ 
       start: weekDates.start, 
       end: weekDates.end
     });
   }
-  
-  // Debug the week days
-  useEffect(() => {
-    if (allWeekDays.length > 0) {
-      console.log("AssignmentList - Generated week days:", allWeekDays);
-    }
-  }, [allWeekDays]);
 
   // Fill in any missing days from the week
   allWeekDays.forEach(dateKey => {
