@@ -26,6 +26,7 @@ const employees = {
   description: "Description",
   contactInfo: "Contact Information",
   jobTitle: "Job Title",
+  autoRemovedUnavailable: "Auto-removed unavailable",
   roles: {
     administrator: "Administrator",
     skadeleder: "Damage Leader",

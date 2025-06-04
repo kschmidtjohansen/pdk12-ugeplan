@@ -20,6 +20,7 @@ const planner = {
   createAssignment: "Create Assignment",
   saveChanges: "Save Changes",
   assignmentCreated: "Assignment created",
+  assignmentCreatedMsg: "Assignment '{title}' has been created",
   assignmentUpdated: "Assignment updated",
   assignmentUpdatedMsg: "Assignment has been updated",
   assignmentDeleted: "Assignment deleted",

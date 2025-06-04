@@ -26,6 +26,7 @@ const employees = {
   description: "Afdelingens medarbejdere",
   contactInfo: "Kontaktoplysninger",
   jobTitle: "Jobtitel",
+  autoRemovedUnavailable: "Automatisk fjernet utilgængelige",
   roles: {
     administrator: "Administrator",
     skadeleder: "Skadeleder", 

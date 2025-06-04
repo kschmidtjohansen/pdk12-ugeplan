@@ -20,6 +20,7 @@ const planner = {
   createAssignment: "Opret Opgave",
   saveChanges: "Gem Ændringer",
   assignmentCreated: "Opgave oprettet",
+  assignmentCreatedMsg: "Opgave '{title}' er blevet oprettet",
   assignmentUpdated: "Opgave opdateret",
   assignmentUpdatedMsg: "Opgaven er blevet opdateret",
   assignmentDeleted: "Opgave slettet",
