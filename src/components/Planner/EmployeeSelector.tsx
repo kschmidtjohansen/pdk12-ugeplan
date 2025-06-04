@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { ChevronDown } from 'lucide-react';
+import { getEmployeeAvailabilityStatus, isEmployeeOnVacation } from '@/utils/employeeAvailability';
 
 interface EmployeeSelectorProps {
   employees: Employee[];
@@ -23,17 +24,6 @@ interface EmployeeSelectorProps {
   vacations: Vacation[];
   currentDate: string;
   assignments?: Assignment[];
-}
-
-type EmployeeAvailabilityInfo = {
-  isAssigned: boolean;
-  availableAt?: string;
-  latestAssignmentEndTime?: string;
-  isFullyBooked: boolean;
-  hasEndTimeAtSixteen: boolean;
-  status: 'available' | 'partiallyBooked' | 'fullyBooked';
-  statusText: string;
-  badgeColor: string;
 }
 
 export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
@@ -50,232 +40,6 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 
   // Show all employees for all user types
   const filteredEmployees = employees;
-
-  // Helper function to check if an employee is on vacation - FIXED to include end date
-  const isEmployeeOnVacation = (employeeId: string, selectedDate: Date) => {
-    return vacations.some(vacation => {
-      if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
-        return false;
-      }
-      
-      const startDate = new Date(vacation.startDate);
-      const endDate = new Date(vacation.endDate);
-      
-      selectedDate.setHours(0, 0, 0, 0);
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(0, 0, 0, 0);
-      
-      // FIXED: Include the end date in vacation period (was < endDate, now <= endDate)
-      return selectedDate >= startDate && selectedDate <= endDate;
-    });
-  };
-
-  // ENHANCED: Improved time normalization function
-  const normalizeTime = (time: string): string => {
-    if (!time) return '';
-    
-    // Remove seconds if present (HH:MM:SS -> HH:MM)
-    if (time.length === 8 && time.includes(':')) {
-      time = time.substring(0, 5);
-    }
-    
-    // Ensure we have HH:MM format
-    if (time.length === 5 && time.includes(':')) {
-      return time;
-    }
-    
-    // Handle edge cases
-    return time.trim();
-  };
-
-  // FIXED: Function to determine if an employee is fully booked for the workday
-  const isEmployeeFullyBookedForDay = (assignments: Assignment[], dayOfWeek: number): boolean => {
-    const workdayStart = "08:00";
-    // FIXED: Friday (dayOfWeek === 5 in JavaScript, where 0=Sunday) should end at 15:30
-    const workdayEnd = dayOfWeek === 5 ? "15:30" : "16:00";
-    
-    console.log(`[EmployeeSelector] Checking if fully booked for day ${dayOfWeek}. Workday: ${workdayStart} - ${workdayEnd}`);
-    
-    let coveredTimeSlots: [string, string][] = [];
-    const sortedAssignments = [...assignments].sort((a, b) => a.fromTime.localeCompare(b.fromTime));
-    
-    for (const assignment of sortedAssignments) {
-      const from = normalizeTime(assignment.fromTime);
-      const to = normalizeTime(assignment.toTime);
-      
-      console.log(`[EmployeeSelector] Assignment time: ${from} - ${to}`);
-      
-      // Check if assignment covers the entire workday
-      if (from <= workdayStart && to >= workdayEnd) {
-        console.log(`[EmployeeSelector] Assignment covers entire workday`);
-        return true;
-      }
-      
-      coveredTimeSlots.push([from, to]);
-    }
-    
-    // For Friday, if employee ends exactly at 15:30, they are fully booked
-    if (dayOfWeek === 5) {
-      const hasEndAtFridayEnd = sortedAssignments.some(assignment => {
-        const normalizedEndTime = normalizeTime(assignment.toTime);
-        return normalizedEndTime === "15:30";
-      });
-      
-      if (hasEndAtFridayEnd) {
-        console.log(`[EmployeeSelector] Employee ends at 15:30 on Friday - fully booked`);
-        return true;
-      }
-    }
-    
-    return false;
-  };
-
-  // COMPREHENSIVE FIX: Improved function to check employee availability with consistent date parsing
-  const checkEmployeeAvailability = (employeeName: string): EmployeeAvailabilityInfo => {
-    // ROBUST date parsing - handle both YYYY-MM-DD and DD/MM/YYYY formats
-    let targetDateStr: string;
-    try {
-      // Convert currentDate to consistent YYYY-MM-DD format
-      if (currentDate.includes('/')) {
-        // Handle DD/MM/YYYY format
-        const [day, month, year] = currentDate.split('/');
-        targetDateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      } else if (currentDate.includes('T')) {
-        // Handle ISO datetime format
-        targetDateStr = currentDate.split('T')[0];
-      } else {
-        // Assume YYYY-MM-DD format
-        targetDateStr = currentDate;
-      }
-      
-      console.log(`[EmployeeSelector] Date conversion: "${currentDate}" -> "${targetDateStr}"`);
-    } catch (e) {
-      console.error(`[EmployeeSelector] Error parsing currentDate: ${currentDate}`, e);
-      targetDateStr = new Date().toISOString().split('T')[0]; // Fallback to today
-    }
-    
-    // Filter assignments for this employee on the target date with robust date comparison
-    const employeeAssignments = assignments.filter(assignment => {
-      // Normalize assignment date to YYYY-MM-DD format
-      let assignmentDateStr: string;
-      try {
-        if (assignment.date.includes('T')) {
-          assignmentDateStr = assignment.date.split('T')[0];
-        } else if (assignment.date.includes('/')) {
-          const [day, month, year] = assignment.date.split('/');
-          assignmentDateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-        } else {
-          assignmentDateStr = assignment.date;
-        }
-      } catch (e) {
-        console.error(`[EmployeeSelector] Error parsing assignment date: ${assignment.date}`, e);
-        assignmentDateStr = assignment.date;
-      }
-      
-      const isOnDate = assignmentDateStr === targetDateStr;
-      const isAssigned = assignment.employees && assignment.employees.includes(employeeName);
-      
-      console.log(`[EmployeeSelector] Assignment ${assignment.id} for ${employeeName}:`);
-      console.log(`  - Assignment date: "${assignment.date}" -> normalized: "${assignmentDateStr}"`);
-      console.log(`  - Target date: "${targetDateStr}"`);
-      console.log(`  - Date match: ${isOnDate}`);
-      console.log(`  - Employee assigned: ${isAssigned}`);
-      
-      return isOnDate && isAssigned;
-    });
-    
-    console.log(`[EmployeeSelector] Employee ${employeeName} assignments on ${targetDateStr}:`, employeeAssignments);
-    
-    if (employeeAssignments.length === 0) {
-      return { 
-        isAssigned: false, 
-        isFullyBooked: false, 
-        hasEndTimeAtSixteen: false,
-        status: 'available',
-        statusText: t('dashboard.available'),
-        badgeColor: 'bg-green-100 text-green-800 border-green-200'
-      };
-    }
-    
-    // FIXED: Check if employee ends at exactly 16:00 OR 15:30 on Friday
-    const targetDate = new Date(targetDateStr + 'T12:00:00');
-    const dayOfWeek = targetDate.getDay(); // 0=Sunday, 5=Friday
-    
-    const hasEndTimeAtWorkdayEnd = employeeAssignments.some(assignment => {
-      const originalTime = assignment.toTime;
-      const normalizedEndTime = normalizeTime(originalTime);
-      
-      // Check for 16:00 on non-Friday or 15:30 on Friday
-      const workdayEndTime = dayOfWeek === 5 ? "15:30" : "16:00";
-      const exactMatch = normalizedEndTime === workdayEndTime;
-      
-      console.log(`[EmployeeSelector] Assignment ${assignment.id} for ${employeeName} on day ${dayOfWeek}:`);
-      console.log(`  - Original time: "${originalTime}"`);
-      console.log(`  - Normalized time: "${normalizedEndTime}"`);
-      console.log(`  - Expected workday end: "${workdayEndTime}"`);
-      console.log(`  - Exact match: ${exactMatch}`);
-      
-      return exactMatch;
-    });
-    
-    console.log(`[EmployeeSelector] Employee ${employeeName} has workday end time: ${hasEndTimeAtWorkdayEnd}`);
-    
-    // Get the latest end time
-    let latestEndTime = "00:00";
-    employeeAssignments.forEach(assignment => {
-      const normalizedTime = normalizeTime(assignment.toTime);
-      if (normalizedTime > latestEndTime) {
-        latestEndTime = normalizedTime;
-      }
-    });
-    
-    // PRIORITY 1: Red for exactly workday end time (16:00 or 15:30 on Friday)
-    if (hasEndTimeAtWorkdayEnd) {
-      return { 
-        isAssigned: true, 
-        availableAt: undefined,
-        latestAssignmentEndTime: latestEndTime,
-        isFullyBooked: true,
-        hasEndTimeAtSixteen: true,
-        status: 'fullyBooked',
-        statusText: t('employees.fullyBooked'),
-        badgeColor: '!bg-red-600 !text-white !border-red-700'
-      };
-    }
-    
-    // PRIORITY 2: Check if fully booked for the workday
-    try {
-      const fullyBooked = isEmployeeFullyBookedForDay(employeeAssignments, dayOfWeek);
-      
-      if (fullyBooked) {
-        return { 
-          isAssigned: true, 
-          availableAt: undefined,
-          latestAssignmentEndTime: latestEndTime,
-          isFullyBooked: true,
-          hasEndTimeAtSixteen: false,
-          status: 'fullyBooked',
-          statusText: t('employees.fullyBooked'),
-          badgeColor: 'bg-red-100 text-red-800 border-red-200'
-        };
-      }
-    } catch (e) {
-      console.error('Error checking if fully booked:', e);
-    }
-    
-    // PRIORITY 3: YELLOW - Partially booked (show "Ledig efter kl. XX:XX")
-    const formattedTime = latestEndTime.substring(0, 5); // Remove seconds if present
-    return { 
-      isAssigned: true, 
-      availableAt: latestEndTime,
-      latestAssignmentEndTime: latestEndTime,
-      isFullyBooked: false,
-      hasEndTimeAtSixteen: false,
-      status: 'partiallyBooked',
-      statusText: t('employees.availableAfter', { time: formattedTime }),
-      badgeColor: 'bg-yellow-100 text-yellow-800 border-yellow-200'
-    };
-  };
 
   // ROBUST date parsing for vacation check
   const dateForComparison = (() => {
@@ -327,14 +91,14 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto">
           {filteredEmployees.map(employee => {
             const isSelected = selectedEmployees.includes(employee.name);
-            const isOnVacation = isEmployeeOnVacation(employee.id, dateForComparison);
+            const isOnVacation = isEmployeeOnVacation(employee.id, dateForComparison, vacations);
             const isUnavailable = employee.onLeave;
-            const availabilityInfo = checkEmployeeAvailability(employee.name);
+            const availabilityInfo = getEmployeeAvailabilityStatus(employee, dateForComparison, assignments, vacations, t);
             
             const isDisabled = isOnVacation || isUnavailable;
             
             // Apply red styling for workday end times with higher CSS specificity
-            const hasRedStyling = availabilityInfo.hasEndTimeAtSixteen;
+            const hasRedStyling = availabilityInfo.status === 'fullyBooked';
             console.log(`[EmployeeSelector] Employee ${employee.name} red styling applied: ${hasRedStyling}`);
             
             return (
@@ -372,7 +136,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                           {t('employees.onLeave')}
                         </Badge>
                       )}
-                      {availabilityInfo.isAssigned && !isDisabled && (
+                      {availabilityInfo.status !== 'available' && !isDisabled && (
                         <Badge className={`text-xs font-medium ${availabilityInfo.badgeColor}`}>
                           {availabilityInfo.statusText}
                         </Badge>

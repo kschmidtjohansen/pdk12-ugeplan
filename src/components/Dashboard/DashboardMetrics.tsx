@@ -10,6 +10,7 @@ import { usePermissions } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import MetricCard from './MetricCard';
+import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 
 interface DashboardMetricsProps {
   selectedDate?: string;
@@ -33,60 +34,38 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate }) => 
 
   // Use selectedDate prop or default to today
   const targetDate = selectedDate || format(new Date(), 'yyyy-MM-dd');
+  const targetDateObj = new Date(targetDate + 'T12:00:00'); // Add time to avoid timezone issues
 
   // Filter employees to only include servicemedarbejder role
   const serviceEmployees = employees.filter(employee => employee.role === 'servicemedarbejder');
 
-  // Helper function to check if an employee is on vacation for the target date
-  const isEmployeeOnVacationForDate = (employeeId: string) => {
-    const targetDateObj = new Date(targetDate);
-    targetDateObj.setHours(0, 0, 0, 0);
-    
-    const isOnVacation = vacations.some(vacation => {
-      if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
-        return false;
-      }
-      
-      const startDate = new Date(vacation.startDate);
-      const endDate = new Date(vacation.endDate);
-      
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(0, 0, 0, 0);
-      
-      return targetDateObj >= startDate && targetDateObj <= endDate;
-    });
-    
-    return isOnVacation;
-  };
-
-  // Helper function to check if employee has assignments on target date
-  const hasAssignmentsOnDate = (employeeId: string, employeeName: string) => {
-    const dateAssignments = assignments.filter(assignment => 
-      assignment.date === targetDate && 
-      assignment.published &&
-      assignment.employees && 
-      assignment.employees.includes(employeeName)
+  // Calculate available employees (including partially available)
+  const availableEmployees = serviceEmployees.filter(employee => {
+    const availabilityInfo = getEmployeeAvailabilityStatus(
+      employee,
+      targetDateObj,
+      assignments,
+      vacations,
+      t
     );
     
-    return dateAssignments.length > 0;
-  };
-
-  // Calculate available employees (filtered to servicemedarbejder only)
-  const availableEmployees = serviceEmployees.filter(employee => {
-    const isOnLeave = employee.onLeave;
-    const isOnVacation = isEmployeeOnVacationForDate(employee.id);
-    const hasAssignments = hasAssignmentsOnDate(employee.id, employee.name);
-    
-    return !isOnLeave && !isOnVacation && !hasAssignments;
+    // Include both available and partially booked employees
+    return availabilityInfo.status === 'available' || availabilityInfo.status === 'partiallyBooked';
   });
 
-  // Calculate unavailable employees (filtered to servicemedarbejder only)
+  // Calculate unavailable employees (fully booked, on leave, on vacation)
   const unavailableEmployees = serviceEmployees.filter(employee => {
-    const isOnLeave = employee.onLeave;
-    const isOnVacation = isEmployeeOnVacationForDate(employee.id);
-    const hasAssignments = hasAssignmentsOnDate(employee.id, employee.name);
+    const availabilityInfo = getEmployeeAvailabilityStatus(
+      employee,
+      targetDateObj,
+      assignments,
+      vacations,
+      t
+    );
     
-    return isOnLeave || isOnVacation || hasAssignments;
+    return availabilityInfo.status === 'fullyBooked' || 
+           availabilityInfo.status === 'onLeave' || 
+           availabilityInfo.status === 'onVacation';
   });
 
   // Calculate cars in use on target date
