@@ -79,7 +79,6 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
           location: currentAssignment.location,
           car: carIds,
           employees: currentAssignment.employees || [],
-          responsibleUserId: responsibleUserId,
           published: currentAssignment.published
         });
       }
@@ -95,7 +94,6 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
         assignments={assignments}
         currentAssignment={currentAssignment}
         formData={formData}
-        setFormData={setFormData}
         onSubmit={onSubmit}
         onDelete={onDelete}
         onPublish={onPublish}

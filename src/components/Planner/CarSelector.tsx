@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
+import { getCarIds } from '@/utils/carUtils';
 
 interface CarSelectorProps {
   cars: Car[];
@@ -96,9 +97,9 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       }
       
       const isOnDate = assignmentDateStr === targetDateStr;
-      const isAssigned = assignment.car && (
-        typeof assignment.car === 'string' ? assignment.car === carId : assignment.car.id === carId
-      );
+      // FIXED: Use getCarIds utility function to handle all car formats
+      const carIds = getCarIds(assignment.car);
+      const isAssigned = carIds.includes(carId);
       
       return isOnDate && isAssigned;
     });
