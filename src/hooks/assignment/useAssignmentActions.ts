@@ -6,7 +6,6 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { isValidUUID, safeUUID } from '@/utils/uuidValidation';
-import { getCarId } from '@/utils/carHelpers';
 
 // This hook provides actions for managing assignments
 export const useAssignmentActions = (
@@ -54,8 +53,16 @@ export const useAssignmentActions = (
     try {
       console.log("Creating assignment with data:", assignmentData);
       
-      // Format car information for storage - use helper function to get single car ID
-      const carId = getCarId(assignmentData.car);
+      // Format car information for storage
+      let carId = null;
+      if (assignmentData.car) {
+        if (typeof assignmentData.car === 'string') {
+          carId = safeUUID(assignmentData.car);
+        } else if (typeof assignmentData.car === 'object') {
+          // If car is already an object, use its ID
+          carId = safeUUID((assignmentData.car as Car).id);
+        }
+      }
       
       // Insert the new assignment
       const { data: newAssignment, error } = await supabase
@@ -138,8 +145,16 @@ export const useAssignmentActions = (
 
       console.log("Updating assignment with data:", assignmentData);
       
-      // Format car information for storage - use helper function to get single car ID
-      const carId = getCarId(assignmentData.car);
+      // Format car information for storage
+      let carId = null;
+      if (assignmentData.car) {
+        if (typeof assignmentData.car === 'string') {
+          carId = safeUUID(assignmentData.car);
+        } else if (typeof assignmentData.car === 'object') {
+          // If car is already an object, use its ID
+          carId = safeUUID((assignmentData.car as Car).id);
+        }
+      }
       
       // Update the assignment
       const { error } = await supabase

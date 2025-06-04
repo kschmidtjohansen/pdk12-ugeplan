@@ -4,14 +4,12 @@ import React from 'react';
 interface PageHeaderProps {
   title: string;
   description?: string;
-  subtitle?: string;
   children?: React.ReactNode;
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   description,
-  subtitle,
   children
 }) => {
   return (
@@ -19,8 +17,8 @@ const PageHeader: React.FC<PageHeaderProps> = ({
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
-          {(description || subtitle) && (
-            <p className="text-sm text-gray-600">{description || subtitle}</p>
+          {description && (
+            <p className="text-sm text-gray-600">{description}</p>
           )}
         </div>
         {children && (

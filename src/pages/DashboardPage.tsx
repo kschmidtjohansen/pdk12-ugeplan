@@ -1,128 +1,155 @@
 
-import React, { useState } from 'react';
-import { format } from 'date-fns';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useTranslation } from '../context/TranslationContext';
+import { format, getISOWeek, getISOWeekYear } from 'date-fns';
 import { useAssignmentsConsolidated } from '@/hooks/useAssignmentsConsolidated';
-import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
-import WeeklyAssignments from '@/components/Dashboard/WeeklyAssignments';
-import VehicleStatusWidget from '@/components/Dashboard/VehicleStatusWidget';
-import UnpublishedAssignmentsWidget from '@/components/Dashboard/UnpublishedAssignmentsWidget';
-import WeeklyCalendar from '@/components/Dashboard/WeeklyCalendar';
-import QuickAccessGrid from '@/components/Dashboard/QuickAccessGrid';
-import { useWeekNavigation } from '@/hooks/useWeekNavigation';
-import { filterByWeek } from '@/utils/dates';
+import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
-import PageHeader from '@/components/Layout/PageHeader';
-import { useTranslation } from '@/context/TranslationContext';
+import { useVacations } from '@/hooks/useVacations';
+import { AssignmentFilterService } from '@/services/assignmentFilterService';
+import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
+import { getDailyQuote } from '@/utils/dailyQuotes';
+import { isValidUUID } from '@/utils/uuidValidation';
+import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
+import WelcomeHeader from '@/components/Dashboard/WelcomeHeader';
+import QuickAccessGrid from '@/components/Dashboard/QuickAccessGrid';
+import WeeklyAssignments from '@/components/Dashboard/WeeklyAssignments';
 
 const DashboardPage: React.FC = () => {
+  const { user } = useAuth();
   const { t } = useTranslation();
   
-  // Add debugging logs
-  console.log('[DashboardPage] Component loading...');
-  
-  const { assignments, loading, error } = useAssignmentsConsolidated({ filter: 'my' });
-  const { cars } = useCars();
-  const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
-  
-  // Week navigation
-  const {
-    selectedWeek,
-    selectedYear,
-    weekDates,
-    handlePreviousWeek,
-    handleNextWeek
-  } = useWeekNavigation();
-
-  // Filter assignments for the current week
-  const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
-
-  // Add debugging logs
-  console.log('[DashboardPage] State:', {
-    assignmentsCount: assignments.length,
-    loading,
-    error,
-    carsCount: cars.length,
-    selectedDate,
-    selectedWeek,
-    weekAssignmentsCount: weekAssignments.length
+  // Use the new consolidated hook with different filters
+  const { assignments: allAssignments } = useAssignmentsConsolidated({ filter: 'all' });
+  const { assignments: userAssignments } = useAssignmentsConsolidated({ 
+    filter: 'dashboard',
+    includeUnpublished: false 
   });
+  
+  const { employees, updateEmployeeLeaveStatusFromVacations } = useEmployees();
+  const { cars } = useCars();
+  const { vacations } = useVacations();
 
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">{t('common.loading')}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const today = new Date();
+  const todayISOWeek = getISOWeek(today);
+  const todayISOYear = getISOWeekYear(today);
+  const [selectedWeek, setSelectedWeek] = useState(todayISOWeek);
+  const [selectedYear, setSelectedYear] = useState(todayISOYear);
 
-  // Show error state
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <p className="text-red-600 mb-2">Error loading dashboard</p>
-            <p className="text-muted-foreground">{error}</p>
-          </div>
-        </div>
-      </div>
+  const dailyQuote = getDailyQuote();
+
+  // Calculate the selected date for metrics based on current week selection
+  const getSelectedDateForMetrics = () => {
+    const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    const weekStartStr = format(weekDates.start, 'yyyy-MM-dd');
+    const weekEndStr = format(weekDates.end, 'yyyy-MM-dd');
+    
+    if (todayStr >= weekStartStr && todayStr <= weekEndStr) {
+      return todayStr;
+    }
+    
+    return weekStartStr;
+  };
+
+  // Update employee leave status based on vacations when dashboard loads
+  useEffect(() => {
+    const updateEmployeeStatuses = async () => {
+      try {
+        if (user?.id && isValidUUID(user.id)) {
+          await updateEmployeeLeaveStatusFromVacations();
+        }
+      } catch (error) {
+        console.error('Failed to update employee statuses:', error);
+      }
+    };
+
+    if (user?.id && isValidUUID(user.id)) {
+      updateEmployeeStatuses();
+      const intervalId = setInterval(() => {
+        updateEmployeeStatuses();
+      }, 30 * 60 * 1000);
+
+      return () => {
+        clearInterval(intervalId);
+      };
+    }
+  }, [user?.id, updateEmployeeLeaveStatusFromVacations]);
+
+  // Get the dates for the selected week
+  const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
+  const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
+  const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
+
+  // Function to handle navigation to previous week
+  const handlePreviousWeek = () => {
+    const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
+    setSelectedWeek(week);
+    setSelectedYear(year);
+  };
+
+  // Function to handle navigation to next week
+  const handleNextWeek = () => {
+    const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
+    setSelectedWeek(week);
+    setSelectedYear(year);
+  };
+
+  // Filter assignments for "Mine Opgaver" based on user role
+  const getMyAssignments = () => {
+    if (!user) return [];
+
+    const weekAssignments = AssignmentFilterService.filterByDateRange(
+      userAssignments,
+      startDateISO,
+      endDateISO
     );
-  }
+
+    // Filter based on user role
+    if (user.role === 'administrator' || user.role === 'skadeleder') {
+      // For admin/skadeleder: show assignments where they are responsible user OR assigned as employee
+      return weekAssignments.filter(assignment => 
+        (assignment.responsibleUser && assignment.responsibleUser.id === user.id) ||
+        (assignment.employees && assignment.employees.includes(user.name || ''))
+      );
+    } else if (user.role === 'servicemedarbejder') {
+      // For servicemedarbejder: show assignments where they are assigned as employee
+      return weekAssignments.filter(assignment => 
+        assignment.employees && assignment.employees.includes(user.name || '')
+      );
+    }
+
+    return weekAssignments;
+  };
+
+  const myWeekAssignments = getMyAssignments();
+  const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
+  const selectedDateForMetrics = getSelectedDateForMetrics();
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      <PageHeader
-        title={t('dashboard.title')}
-        subtitle={t('dashboard.subtitle')}
-      />
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
+        {/* Welcome Header */}
+        <WelcomeHeader userName={user?.name} dailyQuote={dailyQuote} />
 
-      {/* Quick Access Grid */}
-      <QuickAccessGrid />
+        {/* Quick Access Grid */}
+        <QuickAccessGrid userRole={user?.role} />
 
-      {/* Main Dashboard Content */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Left Column - Main Content */}
-        <div className="xl:col-span-2 space-y-6">
-          {/* Metrics */}
-          <DashboardMetrics 
-            selectedDate={selectedDate}
-            assignments={assignments}
-          />
+        {/* Dashboard Metrics - Pass UNFILTERED assignments data */}
+        {shouldShowMetrics && (
+          <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <DashboardMetrics selectedDate={selectedDateForMetrics} assignments={allAssignments} />
+          </div>
+        )}
 
-          {/* Weekly Assignments */}
+        {/* Weekly Assignments */}
+        <div style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
           <WeeklyAssignments
-            assignments={weekAssignments}
+            assignments={myWeekAssignments}
             selectedWeek={selectedWeek}
             onPreviousWeek={handlePreviousWeek}
             onNextWeek={handleNextWeek}
-          />
-        </div>
-
-        {/* Right Column - Sidebar */}
-        <div className="space-y-6">
-          {/* Calendar */}
-          <WeeklyCalendar
-            selectedDate={selectedDate}
-            onDateSelect={setSelectedDate}
-            assignments={assignments}
-            weekDates={weekDates}
-          />
-
-          {/* Vehicle Status */}
-          <VehicleStatusWidget 
-            cars={cars} 
-            assignments={assignments}
-          />
-
-          {/* Unpublished Assignments */}
-          <UnpublishedAssignmentsWidget 
-            assignments={assignments.filter(a => !a.published)}
           />
         </div>
       </div>

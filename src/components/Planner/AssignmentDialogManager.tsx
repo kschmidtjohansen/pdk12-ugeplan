@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/context/TranslationContext';
@@ -10,7 +11,6 @@ import { useCars } from '@/hooks/car';
 import { usePlannerPage } from '@/hooks/usePlannerPage';
 import PlannerDialogContainer from './PlannerDialogContainer';
 import { format } from 'date-fns';
-import { getCarId } from '@/utils/carHelpers';
 
 interface AssignmentDialogManagerProps {
   onClose: () => void;
@@ -88,7 +88,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
           fromTime: assignment.fromTime,
           toTime: assignment.toTime,
           location: assignment.location || '',
-          car: getCarId(assignment.car) || '',
+          car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : '',
           employees: assignment.employees || []
         });
       } else {

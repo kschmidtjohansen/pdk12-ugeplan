@@ -6,7 +6,6 @@ import { Car } from '@/types/car';
 import { Car as CarIcon, Check, X } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
 import { format } from 'date-fns';
-import { getAllCarIds } from '@/utils/carHelpers';
 
 interface VehicleStatusWidgetProps {
   cars?: Car[];
@@ -22,13 +21,11 @@ const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
   // Get today's date in YYYY-MM-DD format
   const today = format(new Date(), 'yyyy-MM-dd');
   
-  // Function to check if a car is in use today based on assignments - using getAllCarIds helper
+  // Function to check if a car is in use today based on assignments
   const isCarInUse = (carId: string): boolean => {
     return assignments.some(assignment => {
-      if (!assignment.car) return false;
-      
-      const carIds = getAllCarIds(assignment.car);
-      return carIds.includes(carId) && assignment.date === today;
+      const assignmentCarId = typeof assignment.car === 'string' ? assignment.car : assignment.car?.id;
+      return assignmentCarId === carId && assignment.date === today;
     });
   };
 

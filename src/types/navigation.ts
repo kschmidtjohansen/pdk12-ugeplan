@@ -10,6 +10,3 @@ export interface NavigationItem {
   translationKey: string;
   hasNotification?: boolean;
 }
-
-// Add NavItem as an alias for NavigationItem to maintain compatibility
-export type NavItem = NavigationItem;

@@ -11,7 +11,6 @@ import { Employee } from '@/types/employee';
 import { Car as CarType } from '@/types/car';
 import { Vacation } from '@/types/vacation';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
-import { getAllCarIds } from '@/utils/carHelpers';
 
 interface UnassignedResourcesSectionProps {
   assignments: Assignment[];
@@ -52,15 +51,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   const getUnassignedCars = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayAssignments = assignments.filter(a => a.date === dateStr);
-    const assignedCarIds = new Set();
-    
-    dayAssignments.forEach(assignment => {
-      if (assignment.car) {
-        const carIds = getAllCarIds(assignment.car);
-        carIds.forEach(carId => assignedCarIds.add(carId));
-      }
-    });
-    
+    const assignedCarIds = new Set(dayAssignments.map(assignment => assignment.car).filter(car => car).map(car => typeof car === 'string' ? car : car?.id).filter(Boolean));
     return cars.filter(car => car.is_available && !assignedCarIds.has(car.id));
   };
 
@@ -193,9 +184,9 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                 <p className="text-sm text-gray-500">{t('planner.allCarsAssigned')}</p>
               ) : (
                 <div className="space-y-1">
-                  {displayedCars.map(currentCar => (
-                    <div key={currentCar.id} className="text-sm bg-white p-2 rounded border">
-                      {currentCar.car_number} - {currentCar.name}
+                  {displayedCars.map(car => (
+                    <div key={car.id} className="text-sm bg-white p-2 rounded border">
+                      {car.car_number} - {car.name}
                     </div>
                   ))}
                   {unassignedCars.length > 3 && (

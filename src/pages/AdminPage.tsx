@@ -1,139 +1,308 @@
+
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import PageHeader from '../components/Layout/PageHeader';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { usePermissions } from '@/context/AuthContext';
+import { useTranslation } from '@/context/TranslationContext';
+import { useNavigate } from 'react-router-dom';
+import UserManagement from '@/components/Admin/UserManagement';
+import { useAssignmentsConsolidated } from '@/hooks/useAssignmentsConsolidated';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
-import { useAssignmentsConsolidated } from '@/hooks/useAssignmentsConsolidated';
-import { Employee } from '@/types/employee';
-import { useTranslation } from '@/context/TranslationContext';
-import { usePermissions } from '@/context/AuthContext';
-import AssignmentWidget from '@/components/Dashboard/AssignmentWidget';
-import PageHeader from '@/components/Layout/PageHeader';
-import QuickStatsGrid from '@/components/Admin/QuickStatsGrid';
-import EmployeeManagementTabs from '@/components/Admin/EmployeeManagementTabs';
-import VacationManagement from '@/components/Admin/VacationManagement';
-import CarManagement from '@/components/Admin/CarManagement';
 import { format } from 'date-fns';
-import { getAllCarIds } from '@/utils/carHelpers';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { 
+  Car, 
+  Calendar, 
+  ClipboardCheck, 
+  TrendingUp, 
+  Activity,
+  UserCheck,
+  AlertTriangle,
+  CheckCircle,
+  Settings
+} from 'lucide-react';
 
 const AdminPage: React.FC = () => {
-  const { isAdmin, isSkadeleder } = usePermissions();
+  const { isAdmin } = usePermissions();
   const { t } = useTranslation();
-  const { employees, createEmployee, updateEmployee, deleteEmployee } = useEmployees();
-  const { cars, createCar, updateCar, deleteCar } = useCars();
-  const { vacations, approveVacation, rejectVacation } = useVacations();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = React.useState("overview");
   const { assignments } = useAssignmentsConsolidated({ filter: 'all' });
+  const { employees } = useEmployees();
+  const { cars } = useCars();
+  const { vacations } = useVacations();
 
-  if (!isAdmin && !isSkadeleder) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">{t('common.accessDenied')}</p>
-      </div>
-    );
-  }
-
-  // Helper function to filter service employees
-  const serviceEmployees = employees.filter((employee: Employee) => employee.role === 'servicemedarbejder');
-
-  // Get today's date in YYYY-MM-DD format for filtering assignments
-  const today = format(new Date(), 'yyyy-MM-dd');
-  
-  // Calculate assigned employees for today
-  const assignedToday = new Set();
-  assignments.forEach(assignment => {
-    if (assignment.date === today && assignment.employees) {
-      assignment.employees.forEach(employeeName => {
-        assignedToday.add(employeeName);
-      });
+  // Redirect if not an admin
+  React.useEffect(() => {
+    if (!isAdmin) {
+      navigate('/dashboard');
     }
-  });
+  }, [isAdmin, navigate]);
 
-  // Calculate cars in use today
-  const carsInUseToday = assignments
-    .filter(assignment => assignment.date === today && assignment.car)
-    .reduce((uniqueCars, assignment) => {
-      const carIds = getAllCarIds(assignment.car);
-      carIds.forEach(carId => {
-        if (carId && !uniqueCars.includes(carId)) {
-          uniqueCars.push(carId);
-        }
-      });
-      return uniqueCars;
-    }, [] as string[]).length;
+  // Get today's date in YYYY-MM-DD format
+  const today = format(new Date(), 'yyyy-MM-dd');
 
-  const availableCars = cars.filter(car => car.is_available).length;
-
-  const todayAssignments = assignments.filter(assignment => assignment.date === today);
-
-  const quickStats = {
-    totalEmployees: serviceEmployees.length,
-    availableEmployees: serviceEmployees.filter(emp => !emp.onLeave && !assignedToday.has(emp.name)).length,
-    totalCars: cars.length,
-    availableCars: availableCars,
-    carsInUse: carsInUseToday,
-    pendingVacations: vacations.filter(vacation => vacation.status === 'pending').length,
-    todayAssignments: todayAssignments.length
+  // Helper function to check if an employee is on vacation today
+  const isEmployeeOnVacationToday = (employeeId: string) => {
+    const todayDate = new Date(today);
+    todayDate.setHours(0, 0, 0, 0);
+    
+    return vacations.some(vacation => {
+      if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
+        return false;
+      }
+      
+      const startDate = new Date(vacation.startDate);
+      const endDate = new Date(vacation.endDate);
+      
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+      
+      return todayDate >= startDate && todayDate <= endDate;
+    });
   };
 
-  // Wrapper function to handle vacation denial with proper signature
-  const handleVacationDenial = async (vacation: any) => {
-    // For now, use a default reason. In a real app, you'd want to show a dialog to get the reason
-    await rejectVacation(vacation, 'Denied by administrator');
+  // Helper function to check if employee has assignments today
+  const hasAssignmentsToday = (employeeId: string, employeeName: string) => {
+    return assignments.some(assignment => 
+      assignment.date === today && 
+      assignment.published &&
+      assignment.employees && 
+      assignment.employees.includes(employeeName)
+    );
+  };
+
+  // Calculate actually available employees (not on leave, not on vacation, no assignments today)
+  const availableEmployees = employees.filter(employee => {
+    const isOnLeave = employee.onLeave;
+    const isOnVacation = isEmployeeOnVacationToday(employee.id);
+    const hasAssignments = hasAssignmentsToday(employee.id, employee.name);
+    
+    return !isOnLeave && !isOnVacation && !hasAssignments;
+  });
+
+  const vehiclesCount = cars.length;
+  const availableVehiclesCount = cars.filter(c => c.is_available).length;
+  
+  // Count vehicles in use today
+  const inUseVehiclesCount = assignments
+    .filter(a => a.date === today && a.car)
+    .reduce((uniqueCars, assignment) => {
+      const carId = typeof assignment.car === 'string' ? assignment.car : assignment.car?.id;
+      if (carId && !uniqueCars.includes(carId)) {
+        uniqueCars.push(carId);
+      }
+      return uniqueCars;
+    }, [] as string[]).length;
+  
+  // Vacation metrics
+  const pendingVacationCount = vacations.filter(v => v.status === 'pending').length;
+  const approvedVacationCount = vacations.filter(v => v.status === 'approved').length;
+  
+  // Assignment metrics
+  const totalAssignments = assignments.length;
+  const publishedAssignments = assignments.filter(a => a.published).length;
+  const unpublishedAssignments = totalAssignments - publishedAssignments;
+  const todayAssignments = assignments.filter(a => a.date === today).length;
+
+  // Quick stats for overview - removed employee count metric
+  const quickStats = [
+    {
+      title: t('admin.quickStats.vehicles'),
+      value: vehiclesCount,
+      subtitle: `${availableVehiclesCount} ${t('admin.quickStats.available')}`,
+      icon: <Car className="h-6 w-6" />,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      onClick: () => navigate('/cars')
+    },
+    {
+      title: t('admin.quickStats.pendingVacations'),
+      value: pendingVacationCount,
+      subtitle: `${approvedVacationCount} ${t('admin.quickStats.approved')}`,
+      icon: <Calendar className="h-6 w-6" />,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      onClick: () => navigate('/vacation')
+    },
+    {
+      title: t('admin.quickStats.todaysTasks'),
+      value: todayAssignments,
+      subtitle: `${totalAssignments} ${t('admin.quickStats.total')}`,
+      icon: <ClipboardCheck className="h-6 w-6" />,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      onClick: () => navigate('/planner')
+    }
+  ];
+
+  // System health indicators
+  const systemHealth = [
+    {
+      title: t('admin.systemHealth.assignmentPublishing'),
+      status: unpublishedAssignments === 0 ? 'good' : 'warning',
+      message: unpublishedAssignments === 0 ? t('admin.systemHealth.allAssignmentsPublished') : t('admin.systemHealth.unpublishedTasks', { count: unpublishedAssignments }),
+      icon: unpublishedAssignments === 0 ? <CheckCircle className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />
+    },
+    {
+      title: t('admin.systemHealth.vehicleUtilization'),
+      status: inUseVehiclesCount > 0 ? 'good' : 'info',
+      message: t('admin.systemHealth.vehiclesInUse', { inUse: inUseVehiclesCount, total: vehiclesCount }),
+      icon: <Activity className="h-5 w-5" />
+    },
+    {
+      title: t('admin.systemHealth.staffAvailability'),
+      status: availableEmployees.length > employees.length * 0.5 ? 'good' : 'warning',
+      message: t('admin.systemHealth.staffAvailable', { available: availableEmployees.length, total: employees.length }),
+      icon: <UserCheck className="h-5 w-5" />
+    }
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'good': return 'text-green-600 bg-green-50';
+      case 'warning': return 'text-orange-600 bg-orange-50';
+      case 'error': return 'text-red-600 bg-red-50';
+      default: return 'text-blue-600 bg-blue-50';
+    }
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      <PageHeader
-        title={t('admin.title')}
-        subtitle={t('admin.subtitle')}
-      />
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
+        {/* Enhanced Header with Glassmorphism */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 text-white shadow-2xl animate-fade-in-up">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
+          
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="space-y-3">
+              <h1 className="text-3xl font-bold tracking-tight">
+                {t('admin.title')}
+              </h1>
+              <p className="text-blue-100 text-lg font-medium">
+                {t('admin.systemOverview.description')}
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30">
+                <Settings className="h-6 w-6 text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <QuickStatsGrid stats={quickStats} />
+        {/* Admin Content */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="p-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="overview">{t('admin.tabs.overview')}</TabsTrigger>
+                <TabsTrigger value="users">{t('admin.tabs.users')}</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview" className="mt-6 space-y-6">
+                {/* Quick Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {quickStats.map((stat, index) => (
+                    <Card 
+                      key={index} 
+                      className="cursor-pointer hover:shadow-md transition-all duration-200 hover:border-polygon-blue"
+                      onClick={stat.onClick}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                            <p className="text-2xl font-bold">{stat.value}</p>
+                            <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
+                          </div>
+                          <div className={`p-3 rounded-full ${stat.bgColor} ${stat.color}`}>
+                            {stat.icon}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <EmployeeManagementTabs
-              employees={employees}
-              onCreateEmployee={createEmployee}
-              onUpdateEmployee={updateEmployee}
-              onDeleteEmployee={deleteEmployee}
-            />
-          </CardContent>
-        </Card>
+                {/* System Health */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      {t('admin.systemHealth.title')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {systemHealth.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-full ${getStatusColor(item.status)}`}>
+                              {item.icon}
+                            </div>
+                            <div>
+                              <p className="font-medium">{item.title}</p>
+                              <p className="text-sm text-muted-foreground">{item.message}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <VacationManagement
-              vacations={vacations}
-              onApprove={approveVacation}
-              onDeny={handleVacationDenial}
-            />
-          </CardContent>
-        </Card>
+                {/* Quick Actions */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t('admin.quickActions.title')}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <button 
+                        onClick={() => navigate('/planner')}
+                        className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
+                      >
+                        <ClipboardCheck className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
+                        <p className="text-sm font-medium">{t('admin.quickActions.viewPlanner')}</p>
+                      </button>
+                      <button 
+                        onClick={() => navigate('/employees')}
+                        className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
+                      >
+                        <UserCheck className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
+                        <p className="text-sm font-medium">{t('admin.quickActions.manageStaff')}</p>
+                      </button>
+                      <button 
+                        onClick={() => navigate('/cars')}
+                        className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
+                      >
+                        <Car className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
+                        <p className="text-sm font-medium">{t('admin.quickActions.fleetManagement')}</p>
+                      </button>
+                      <button 
+                        onClick={() => navigate('/vacation')}
+                        className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-center"
+                      >
+                        <Calendar className="h-6 w-6 mx-auto mb-2 text-polygon-blue" />
+                        <p className="text-sm font-medium">{t('admin.quickActions.vacationRequests')}</p>
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="users" className="mt-6">
+                <UserManagement />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </div>
-
-      <Card>
-        <CardContent className="p-6">
-          <CarManagement
-            cars={cars}
-            onCreateCar={createCar}
-            onUpdateCar={updateCar}
-            onDeleteCar={deleteCar}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-6">
-          <h3 className="text-lg font-semibold mb-4">{t('admin.todayAssignments')}</h3>
-          <AssignmentWidget
-            assignments={todayAssignments}
-            showDateFilter={false}
-            title={t('admin.todayAssignments')}
-          />
-        </CardContent>
-      </Card>
     </div>
   );
 };

@@ -12,6 +12,7 @@ export const useVacations = () => {
   const {
     date,
     setDate,
+    // New separate date fields
     startDate,
     setStartDate,
     endDate,
@@ -31,6 +32,7 @@ export const useVacations = () => {
   
   const { employees } = useEmployees();
   
+  // Add states for edit and delete dialogs
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedVacation, setSelectedVacation] = useState<Vacation | null>(null);
@@ -43,12 +45,11 @@ export const useVacations = () => {
     deleteVacation
   } = useVacationActions(fetchVacations);
 
-  // Add denyVacation as alias for rejectVacation
-  const denyVacation = rejectVacation;
-
+  // Wrapper function to simplify the submit vacation request call
   const submitVacationRequest = async (e: React.FormEvent, isAdminRequest: boolean = false) => {
     e.preventDefault();
     
+    // Check if we have both dates from either the combined or separate date fields
     const requestStartDate = startDate || date.from;
     const requestEndDate = endDate || date.to;
     
@@ -66,23 +67,34 @@ export const useVacations = () => {
     );
     
     if (result) {
+      // Reset form state on successful submission
       resetFormState();
     }
     
     return result;
   };
   
+  // Handler for editing a vacation
   const handleEditVacation = (vacation: Vacation) => {
     console.log("Setting up vacation for editing:", vacation);
     setSelectedVacation(vacation);
     
+    // Clear existing date values first
     setDate({ from: undefined, to: undefined });
     setStartDate(undefined);
     setEndDate(undefined);
     
+    // Then set the new values
+    // Convert string dates to Date objects
     const vacationStartDate = new Date(vacation.startDate);
     const vacationEndDate = new Date(vacation.endDate);
     
+    console.log("Setting dates for editing:", {
+      startDate: vacationStartDate.toISOString(),
+      endDate: vacationEndDate.toISOString()
+    });
+    
+    // Set both the date range and individual date fields
     setDate({
       from: vacationStartDate,
       to: vacationEndDate,
@@ -94,10 +106,12 @@ export const useVacations = () => {
     setEditDialogOpen(true);
   };
   
+  // Submit edit handler - updated with better date handling
   const submitEditVacation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedVacation) return;
     
+    // Use either the individual dates or the combined date range
     const editStartDate = startDate || date.from;
     const editEndDate = endDate || date.to;
     
@@ -106,11 +120,17 @@ export const useVacations = () => {
       return;
     }
 
+    // Ensure we're working with Date objects
     const startDateObj = editStartDate instanceof Date ? 
       editStartDate : new Date(editStartDate);
     
     const endDateObj = editEndDate instanceof Date ? 
       editEndDate : new Date(editEndDate);
+    
+    console.log("Submitting edit with dates:", {
+      startDate: startDateObj instanceof Date ? startDateObj.toISOString() : "undefined",
+      endDate: endDateObj instanceof Date ? endDateObj.toISOString() : "undefined"
+    });
     
     await editVacation(
       selectedVacation,
@@ -124,24 +144,36 @@ export const useVacations = () => {
     setSelectedVacation(null);
   };
   
+  // Delete vacation handler
   const handleDeleteVacation = (vacation: Vacation) => {
     console.log("Setting up vacation for deletion:", vacation.id);
     setSelectedVacation(vacation);
     setDeleteDialogOpen(true);
   };
   
+  // Confirm delete handler - this function calls the deleteVacation function
   const confirmDeleteVacation = async () => {
     if (!selectedVacation) {
       console.error("No vacation selected for deletion");
       return;
     }
     
+    console.log("Confirming deletion of vacation:", selectedVacation.id);
+    
     try {
+      // Call the deleteVacation function from useVacationActions
       const success = await deleteVacation(selectedVacation);
       
       if (success) {
+        console.log("Vacation successfully deleted:", selectedVacation.id);
+        
+        // Close the dialog and reset state
         setDeleteDialogOpen(false);
         setSelectedVacation(null);
+
+        // Add local state update as a fallback if realtime update fails
+        // This ensures the UI updates immediately after a successful deletion
+        // without waiting for the realtime notification
         fetchVacations();
       } else {
         console.error("Failed to delete vacation");
@@ -151,6 +183,7 @@ export const useVacations = () => {
     }
   };
 
+  // Handle delete for the current vacation (from the edit dialog)
   const handleDeleteCurrentVacation = () => {
     if (selectedVacation) {
       setDeleteDialogOpen(true);
@@ -164,6 +197,7 @@ export const useVacations = () => {
     error,
     date,
     setDate,
+    // Add separate date fields
     startDate,
     setStartDate,
     endDate,
@@ -186,7 +220,6 @@ export const useVacations = () => {
     submitVacationRequest,
     approveVacation,
     rejectVacation,
-    denyVacation,
     handleEditVacation,
     submitEditVacation,
     handleDeleteVacation,

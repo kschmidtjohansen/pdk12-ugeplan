@@ -22,23 +22,12 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     employee.role === 'administrator' || employee.role === 'skadeleder'
   );
 
-  // Find the selected user to display their name
-  const selectedUser = eligibleUsers.find(user => user.id === selectedUserId);
-  
-  console.log('[ResponsibleUserSelector] Selected user ID:', selectedUserId);
-  console.log('[ResponsibleUserSelector] Found selected user:', selectedUser);
-  console.log('[ResponsibleUserSelector] Eligible users:', eligibleUsers);
-
   return (
     <div className="space-y-2">
       <Label>{t('planner.responsibleUser')}</Label>
       <Select value={selectedUserId} onValueChange={onUserSelect}>
         <SelectTrigger>
-          <SelectValue 
-            placeholder={t('planner.selectResponsibleUser')}
-          >
-            {selectedUser ? selectedUser.name : t('planner.selectResponsibleUser')}
-          </SelectValue>
+          <SelectValue placeholder={t('planner.selectResponsibleUser')} />
         </SelectTrigger>
         <SelectContent>
           {eligibleUsers.map((user) => (

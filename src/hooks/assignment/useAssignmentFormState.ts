@@ -12,7 +12,7 @@ export interface AssignmentFormData {
   fromTime?: string;
   toTime?: string;
   location?: string;
-  car?: string | string[]; // Support multiple cars
+  car?: string;
   employees?: string[];
   responsibleUserId?: string;
 }
@@ -42,7 +42,7 @@ export const useAssignmentFormState = (
     fromTime: '08:00',
     toTime: '16:00',
     location: '',
-    car: [], // Initialize as empty array for multiple cars
+    car: '',
     employees: [],
     responsibleUserId: ''
   });
@@ -75,8 +75,8 @@ export const useAssignmentFormState = (
     }));
   }, []);
 
-  // UPDATED: Handle car selection - now supports arrays
-  const handleCarChange = useCallback((value: string | string[]) => {
+  // Handle car selection
+  const handleCarChange = useCallback((value: string) => {
     setFormData(prev => ({
       ...prev,
       car: value
