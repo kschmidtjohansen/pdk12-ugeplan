@@ -36,6 +36,7 @@ interface AssignmentFormProps {
   onDelete: (id: string) => void;
   onPublish?: (id: string) => void;
   onPublishDay?: () => void;
+  onFormDataChange: (updates: Partial<Assignment>) => void;
 }
 
 const AssignmentForm: React.FC<AssignmentFormProps> = ({
@@ -51,7 +52,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   onSubmit,
   onDelete,
   onPublish,
-  onPublishDay
+  onPublishDay,
+  onFormDataChange
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { user } = useAuth();
@@ -65,8 +67,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    // This would need to be passed from parent or handled differently
-    console.log('Input change:', name, value);
+    onFormDataChange({ [name]: value });
   };
 
   // Handle employee toggle
@@ -81,13 +82,21 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   // Handle car selection
   const handleCarSelect = (carIds: string[]) => {
     console.log('Car selection:', carIds);
-    // This would need to be passed from parent or handled differently
+    onFormDataChange({ car: carIds });
   };
 
   // Handle responsible user selection
   const handleResponsibleUserSelect = (userId: string) => {
     console.log('Responsible user selection:', userId);
-    // This would need to be passed from parent or handled differently
+    onFormDataChange({ responsibleUser: { id: userId } });
+  };
+
+  // Handle date selection
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      onFormDataChange({ date: dateStr });
+    }
   };
 
   // Format date with Danish locale
@@ -142,6 +151,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               <Label htmlFor="title">{t('planner.enterTitle')}</Label>
               <Input 
                 id="title" 
+                name="title"
                 value={formData.title || ''} 
                 onChange={handleInputChange} 
                 placeholder={t('planner.enterTitle')} 
@@ -154,6 +164,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               <Label htmlFor="location">{t('planner.location')}</Label>
               <Input 
                 id="location" 
+                name="location"
                 value={formData.location || ''} 
                 onChange={handleInputChange} 
                 placeholder={t('planner.enterLocation')} 
@@ -175,7 +186,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
                   <Calendar 
                     mode="single" 
                     selected={selectedDateObj} 
-                    onSelect={(date) => console.log('Date selected:', date)} 
+                    onSelect={handleDateSelect} 
                     initialFocus 
                     locale={currentLanguage === 'da' ? da : undefined} 
                   />
@@ -189,6 +200,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
                 <Label htmlFor="fromTime">{t('planner.startTime')}</Label>
                 <Input 
                   id="fromTime" 
+                  name="fromTime"
                   type="time" 
                   value={formData.fromTime || ''} 
                   onChange={handleInputChange} 
@@ -199,6 +211,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
                 <Label htmlFor="toTime">{t('planner.endTime')}</Label>
                 <Input 
                   id="toTime" 
+                  name="toTime"
                   type="time" 
                   value={formData.toTime || ''} 
                   onChange={handleInputChange} 
@@ -210,7 +223,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             {/* Responsible User Selector */}
             {canAssignResponsibleUser && (
               <ResponsibleUserSelector
-                selectedUserId={''}
+                selectedUserId={formData.responsibleUser?.id || ''}
                 onUserSelect={handleResponsibleUserSelect}
               />
             )}
@@ -246,6 +259,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               <Label htmlFor="description">{t('planner.description')}</Label>
               <Textarea 
                 id="description" 
+                name="description"
                 value={formData.description || ''} 
                 onChange={handleInputChange} 
                 placeholder={t('planner.notesPlaceholder')} 

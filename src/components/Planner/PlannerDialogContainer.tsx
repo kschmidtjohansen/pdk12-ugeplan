@@ -49,6 +49,11 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   // Track selected employees separately for better UI state management
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   
+  // Handle form data changes
+  const handleFormDataChange = (updates: Partial<Assignment>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
+  };
+  
   // FIXED: Ensure we update formData.date with current date when dialog opens AND properly handle car/responsible user conversion
   useEffect(() => {
     if (isDialogOpen) {
@@ -101,6 +106,7 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
         onPublishDay={onPublishDay}
         selectedEmployees={selectedEmployees}
         setSelectedEmployees={setSelectedEmployees}
+        onFormDataChange={handleFormDataChange}
       />
     </Dialog>
   );
