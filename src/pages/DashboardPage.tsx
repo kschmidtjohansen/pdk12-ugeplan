@@ -16,7 +16,11 @@ import { useTranslation } from '@/context/TranslationContext';
 
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
-  const { assignments, loading } = useAssignmentsConsolidated({ filter: 'my' });
+  
+  // Add debugging logs
+  console.log('[DashboardPage] Component loading...');
+  
+  const { assignments, loading, error } = useAssignmentsConsolidated({ filter: 'my' });
   const { cars } = useCars();
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   
@@ -31,6 +35,45 @@ const DashboardPage: React.FC = () => {
 
   // Filter assignments for the current week
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
+
+  // Add debugging logs
+  console.log('[DashboardPage] State:', {
+    assignmentsCount: assignments.length,
+    loading,
+    error,
+    carsCount: cars.length,
+    selectedDate,
+    selectedWeek,
+    weekAssignmentsCount: weekAssignments.length
+  });
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">{t('common.loading')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-red-600 mb-2">Error loading dashboard</p>
+            <p className="text-muted-foreground">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">

@@ -24,6 +24,17 @@ export const useAssignmentsConsolidated = (options: UseAssignmentsConsolidatedOp
     publishAssignmentsByDate
   } = useAssignments();
 
+  // Add debugging
+  console.log('[useAssignmentsConsolidated] State:', {
+    filter: options.filter,
+    baseAssignmentsCount: baseAssignments.length,
+    baseLoading,
+    baseError,
+    assignmentsCount: assignments.length,
+    loading,
+    error
+  });
+
   useEffect(() => {
     // Filter assignments based on the filter option
     let filteredAssignments = baseAssignments;
@@ -41,6 +52,12 @@ export const useAssignmentsConsolidated = (options: UseAssignmentsConsolidatedOp
         filteredAssignments = baseAssignments;
         break;
     }
+
+    console.log('[useAssignmentsConsolidated] Filtering assignments:', {
+      filter: options.filter,
+      before: baseAssignments.length,
+      after: filteredAssignments.length
+    });
 
     setAssignments(filteredAssignments);
     setLoading(baseLoading);
