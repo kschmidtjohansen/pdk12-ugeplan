@@ -1,27 +1,40 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 import { Assignment } from '@/types/assignment';
 import { supabase } from '@/integrations/supabase/client';
 
-export const useAssignmentData = () => {
+export type AssignmentFilterType = 'all' | 'published' | 'unpublished' | 'user-specific' | 'dashboard';
+
+interface UseAssignmentsOptions {
+  filter?: AssignmentFilterType;
+  includeUnpublished?: boolean;
+}
+
+export const useAssignmentsConsolidated = (options: UseAssignmentsOptions = {}) => {
+  const { filter = 'all', includeUnpublished = true } = options;
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   // Fetch assignments from Supabase
-  const fetchAssignments = async () => {
+  const fetchAssignments = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Get current user info
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        setAssignments([]);
+        return;
+      }
       
-      // Fetch assignments with optimized query including responsible user
+      // Fetch assignments with optimized query
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('assignments')
         .select(`
@@ -51,9 +64,7 @@ export const useAssignmentData = () => {
           .select('assignment_id, user_id')
           .order('assignment_id');
         
-        if (employeeError) {
-          throw employeeError;
-        }
+        if (employeeError) throw employeeError;
         
         // Get all profiles for the users in assignments
         const userIds = assignmentEmployees?.map(ae => ae.user_id) || [];
@@ -68,9 +79,7 @@ export const useAssignmentData = () => {
             .in('id', uniqueUserIds)
             .order('name');
           
-          if (profilesError) {
-            throw profilesError;
-          }
+          if (profilesError) throw profilesError;
           profilesData = profiles || [];
         }
         
@@ -81,7 +90,7 @@ export const useAssignmentData = () => {
             ?.filter(emp => emp.assignment_id === assignment.id)
             ?.map(emp => emp.user_id) || [];
           
-          // Map employee IDs to names efficiently
+          // Map employee IDs to names
           const assignmentEmployeeNames: string[] = [];
           
           assignmentEmployeeIds.forEach(userId => {
@@ -114,7 +123,9 @@ export const useAssignmentData = () => {
           return processedAssignment;
         });
         
-        setAssignments(processedAssignments);
+        // Apply filtering based on options
+        const filteredAssignments = applyFilter(processedAssignments, filter, user, includeUnpublished);
+        setAssignments(filteredAssignments);
       } else {
         setAssignments([]);
       }
@@ -128,51 +139,81 @@ export const useAssignmentData = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, includeUnpublished, user, toast, t]);
 
   // Load assignments on component mount
   useEffect(() => {
     fetchAssignments();
-  }, []);
+  }, [fetchAssignments]);
   
-  // Subscribe to assignment changes with optimized realtime handling
+  // Subscribe to assignment changes
   useEffect(() => {
     const channel = supabase
-      .channel('assignment_changes_optimized')
+      .channel('assignment_changes_consolidated')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'assignments'
-        },
-        () => {
-          fetchAssignments();
-        }
+        { event: '*', schema: 'public', table: 'assignments' },
+        () => fetchAssignments()
       )
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'assignments_employees'
-        },
-        () => {
-          fetchAssignments();
-        }
+        { event: '*', schema: 'public', table: 'assignments_employees' },
+        () => fetchAssignments()
       )
       .subscribe();
       
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchAssignments]);
 
   return {
     assignments,
     loading,
     error,
-    fetchAssignments,
-    setAssignments
+    fetchAssignments
   };
+};
+
+// Centralized filtering logic
+const applyFilter = (
+  assignments: Assignment[],
+  filter: AssignmentFilterType,
+  user: any,
+  includeUnpublished: boolean
+): Assignment[] => {
+  if (!user) return [];
+
+  switch (filter) {
+    case 'all':
+      return assignments;
+      
+    case 'published':
+      return assignments.filter(a => a.published);
+      
+    case 'unpublished':
+      return assignments.filter(a => !a.published);
+      
+    case 'dashboard':
+      // For dashboard, servicemedarbejdere see only their published assignments
+      // Admins/skadeledere see all published assignments
+      if (user.role === 'servicemedarbejder') {
+        return assignments.filter(a => 
+          a.published && 
+          a.employees && 
+          a.employees.includes(user.name)
+        );
+      }
+      return assignments.filter(a => includeUnpublished || a.published);
+      
+    case 'user-specific':
+      // For planner view - servicemedarbejdere see all published, others see based on includeUnpublished
+      if (user.role === 'servicemedarbejder') {
+        return assignments.filter(a => a.published);
+      }
+      return assignments.filter(a => includeUnpublished || a.published);
+      
+    default:
+      return assignments;
+  }
 };
