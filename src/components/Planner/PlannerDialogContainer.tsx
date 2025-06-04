@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { useVacations } from '@/hooks/useVacations';
@@ -74,18 +73,8 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
           }
         }
         
-        // Convert responsible user object to user ID string
-        let responsibleUserId = '';
-        if (currentAssignment.responsibleUser) {
-          if (typeof currentAssignment.responsibleUser === 'string') {
-            responsibleUserId = currentAssignment.responsibleUser;
-          } else if (typeof currentAssignment.responsibleUser === 'object' && currentAssignment.responsibleUser.id) {
-            responsibleUserId = currentAssignment.responsibleUser.id;
-          }
-        }
-        
         console.log('[PlannerDialogContainer] Converted car ID:', carId);
-        console.log('[PlannerDialogContainer] Converted responsible user ID:', responsibleUserId);
+        console.log('[PlannerDialogContainer] Responsible user:', currentAssignment.responsibleUser);
         
         setFormData({
           date: currentAssignment.date,
@@ -95,7 +84,7 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
           toTime: currentAssignment.toTime,
           location: currentAssignment.location || '',
           car: carId,
-          responsibleUserId: responsibleUserId,
+          responsibleUser: currentAssignment.responsibleUser,
           employees: currentAssignment.employees || []
         });
       }
@@ -135,7 +124,6 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
     if (name === 'responsibleUserId') {
       setFormData(prev => ({ 
         ...prev, 
-        responsibleUserId: value,
         responsibleUser: value ? { id: value, name: '' } : undefined 
       }));
     } else {

@@ -126,13 +126,17 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   // Check if user can assign responsible users (admin or skadeleder only)
   const canAssignResponsibleUser = user?.role === 'administrator' || user?.role === 'skadeleder';
 
+  // Get responsible user ID for the selector
+  const responsibleUserId = formData.responsibleUser 
+    ? (typeof formData.responsibleUser === 'string' ? formData.responsibleUser : formData.responsibleUser.id)
+    : '';
+
   console.log("AssignmentForm - Current formData:", formData);
   console.log("AssignmentForm - Selected employees:", selectedEmployees);
   console.log("AssignmentForm - Current date:", currentDate);
-  console.log("AssignmentForm - Selected date:", selectedDate);
-  console.log("AssignmentForm - Form data date:", formData.date);
   console.log("AssignmentForm - Can assign responsible user:", canAssignResponsibleUser);
   console.log("AssignmentForm - Selected car ID:", formData.car);
+  console.log("AssignmentForm - Responsible user ID:", responsibleUserId);
 
   return <DialogContent className="max-w-md">
       <ScrollArea className="max-h-[80vh] pr-4">
@@ -220,7 +224,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             {/* Responsible User Selector - Only for admins and skadeleders */}
             {canAssignResponsibleUser && (
               <ResponsibleUserSelector
-                selectedUserId={formData.responsibleUserId || ''}
+                selectedUserId={responsibleUserId}
                 onUserSelect={handleResponsibleUserSelect}
               />
             )}
