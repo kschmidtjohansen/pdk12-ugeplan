@@ -2,10 +2,10 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { NavItem } from '@/types/navigation';
+import { NavigationItem } from '@/types/navigation';
 
 interface DesktopNavigationProps {
-  items: NavItem[];
+  items: NavigationItem[];
 }
 
 const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
@@ -14,13 +14,12 @@ const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
   return (
     <nav className="hidden md:flex items-center space-x-1">
       {items.map((item) => {
-        const isActive = location.pathname === item.href;
-        const IconComponent = item.icon;
+        const isActive = location.pathname === item.path;
         
         return (
           <Link
-            key={item.href}
-            to={item.href}
+            key={item.path}
+            to={item.path}
             className={cn(
               'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
               isActive
@@ -28,8 +27,8 @@ const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
                 : 'text-muted-foreground hover:text-foreground hover:bg-accent'
             )}
           >
-            {IconComponent && <IconComponent className="h-4 w-4 flex-shrink-0" />}
-            <span>{item.label}</span>
+            <span className="h-4 w-4 flex-shrink-0">{item.icon}</span>
+            <span>{item.name}</span>
           </Link>
         );
       })}
