@@ -76,21 +76,14 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
         }
       } as React.ChangeEvent<HTMLTextAreaElement>;
       handleInputChange(event);
-    } else if (field === 'car' && value === 'none') {
-      // Convert "none" value to empty string for backward compatibility
-      handleSelectChange(field, '');
     } else {
       handleSelectChange(field, value);
     }
   };
 
-  // Convert single car to array for multi-select
-  const selectedCarIds = formData.car ? [formData.car] : [];
-  
-  // Handle car selection from multi-select (take first car for backward compatibility)
-  const handleCarSelect = (carIds: string[]) => {
-    const carId = carIds.length > 0 ? carIds[0] : '';
-    handleFieldChange('car', carId === 'none' ? '' : carId);
+  // Handle car selection - now expects single car ID
+  const handleCarSelect = (carId: string) => {
+    handleFieldChange('car', carId);
   };
 
   // Handle responsible user selection
@@ -137,6 +130,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   console.log("AssignmentForm - Selected date:", selectedDate);
   console.log("AssignmentForm - Form data date:", formData.date);
   console.log("AssignmentForm - Can assign responsible user:", canAssignResponsibleUser);
+  console.log("AssignmentForm - Selected car ID:", formData.car);
 
   return <DialogContent className="max-w-md">
       <ScrollArea className="max-h-[80vh] pr-4">
@@ -247,7 +241,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               <Label>{t('planner.selectCar')}</Label>
               <CarSelector 
                 cars={cars} 
-                selectedCarIds={selectedCarIds}
+                selectedCarId={formData.car || ''}
                 onCarSelect={handleCarSelect} 
                 currentDate={formData.date ? format(new Date(formData.date), 'yyyy-MM-dd') : currentDate} 
                 assignments={assignments} 

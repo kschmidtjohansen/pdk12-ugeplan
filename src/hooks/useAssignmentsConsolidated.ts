@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -156,6 +155,7 @@ export const useAssignmentsConsolidated = (options: UseAssignmentsOptions = {}) 
           location: assignmentData.location,
           car_id: assignmentData.car ? (typeof assignmentData.car === 'string' ? assignmentData.car : assignmentData.car.id) : null,
           published: assignmentData.published || false,
+          responsible_user_id: assignmentData.responsibleUser ? (typeof assignmentData.responsibleUser === 'string' ? assignmentData.responsibleUser : assignmentData.responsibleUser.id) : null,
         })
         .select()
         .single();
@@ -211,6 +211,7 @@ export const useAssignmentsConsolidated = (options: UseAssignmentsOptions = {}) 
           location: assignmentData.location,
           car_id: assignmentData.car ? (typeof assignmentData.car === 'string' ? assignmentData.car : assignmentData.car.id) : null,
           published: assignmentData.published,
+          responsible_user_id: assignmentData.responsibleUser ? (typeof assignmentData.responsibleUser === 'string' ? assignmentData.responsibleUser : assignmentData.responsibleUser.id) : null,
         })
         .eq('id', assignmentId);
 
