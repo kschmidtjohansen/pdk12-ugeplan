@@ -1,8 +1,15 @@
 
 import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useEmployees } from '@/hooks/useEmployees';
 
 interface ResponsibleUserSelectorProps {
@@ -22,21 +29,63 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     employee.role === 'administrator' || employee.role === 'skadeleder'
   );
 
+  // Get display text for selected user
+  const getSelectedUserDisplay = () => {
+    if (!selectedUserId || selectedUserId === '') {
+      return t('planner.selectResponsibleUser');
+    }
+    
+    const user = eligibleUsers.find(user => user.id === selectedUserId);
+    return user ? user.name : t('planner.selectResponsibleUser');
+  };
+
+  // Handle user selection
+  const handleUserSelect = (userId: string) => {
+    if (userId === 'none') {
+      onUserSelect('');
+    } else {
+      onUserSelect(userId);
+    }
+  };
+
   return (
     <div className="space-y-2">
       <Label>{t('planner.responsibleUser')}</Label>
-      <Select value={selectedUserId} onValueChange={onUserSelect}>
-        <SelectTrigger>
-          <SelectValue placeholder={t('planner.selectResponsibleUser')} />
-        </SelectTrigger>
-        <SelectContent>
+      
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full justify-between p-2"
+          >
+            <span className="truncate">{getSelectedUserDisplay()}</span>
+            <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto">
+          {/* No responsible user option */}
+          <DropdownMenuItem
+            onClick={() => handleUserSelect('none')}
+            className="cursor-pointer"
+          >
+            <div className="flex items-center justify-between w-full space-x-2">
+              <span>{t('planner.noResponsibleUser')}</span>
+            </div>
+          </DropdownMenuItem>
+          
           {eligibleUsers.map((user) => (
-            <SelectItem key={user.id} value={user.id}>
-              {user.name}
-            </SelectItem>
+            <DropdownMenuItem
+              key={user.id}
+              onClick={() => handleUserSelect(user.id)}
+              className="cursor-pointer"
+            >
+              <div className="flex items-center justify-between w-full space-x-2">
+                <span className="truncate">{user.name}</span>
+              </div>
+            </DropdownMenuItem>
           ))}
-        </SelectContent>
-      </Select>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Car } from '@/types/car';
 import { Assignment } from '@/types/assignment';
@@ -186,7 +185,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                   <div className="flex gap-1 flex-shrink-0">
                     {isUnavailable && (
                       <Badge variant="outline" className="text-xs">
-                        Unavailable
+                        {t('cars.unavailable')}
                       </Badge>
                     )}
                     {carUsage.isAssigned && !isUnavailable && (
