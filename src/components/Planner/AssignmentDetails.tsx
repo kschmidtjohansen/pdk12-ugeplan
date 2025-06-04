@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car, Clock, Tag, Users } from 'lucide-react';
+import { Car, Clock, Tag, Users, UserCheck } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
@@ -165,6 +165,15 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment }) => 
           {employeeDisplay}
         </span>
       </div>
+
+      {assignment.responsibleUser && (
+        <div className="flex items-center gap-2 text-left">
+          <UserCheck className="w-4 h-4 flex-shrink-0 text-purple-600" />
+          <span className="truncate text-left">
+            {assignment.responsibleUser.name}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Assignment } from '@/types/assignment';
-import { Calendar, Clock, MapPin, Car, Users, User } from 'lucide-react';
+import { Calendar, Clock, MapPin, Car, Users, UserCheck } from 'lucide-react';
 
 interface AssignmentDetailsDialogProps {
   assignment: Assignment | null;
@@ -94,7 +94,7 @@ const AssignmentDetailsDialog: React.FC<AssignmentDetailsDialogProps> = ({
           {/* Responsible User */}
           {assignment.responsibleUser && (
             <div className="flex items-center gap-3">
-              <User className="h-5 w-5 text-purple-600" />
+              <UserCheck className="h-5 w-5 text-purple-600" />
               <div>
                 <span className="font-medium">{t('planner.responsibleUser')}: </span>
                 <span>{assignment.responsibleUser.name}</span>

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Users, Car, Clock, ArrowRight } from 'lucide-react';
+import { Calendar, Users, Car, Clock, ArrowRight, UserCheck } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import WeekNavigation from './WeekNavigation';
@@ -149,12 +149,23 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                       </div>
                       
                       {assignment.employees && assignment.employees.length > 0 && (
-                        <div className="flex items-center gap-2 sm:col-span-2">
+                        <div className="flex items-center gap-2">
                           <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
                             <Users className="h-3.5 w-3.5 text-purple-600" />
                           </div>
                           <span className="text-foreground font-medium text-sm">
                             {assignment.employees.join(', ')}
+                          </span>
+                        </div>
+                      )}
+
+                      {assignment.responsibleUser && (
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
+                            <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
+                          </div>
+                          <span className="text-foreground font-medium text-sm">
+                            {assignment.responsibleUser.name}
                           </span>
                         </div>
                       )}

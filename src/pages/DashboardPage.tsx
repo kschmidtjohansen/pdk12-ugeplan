@@ -96,13 +96,34 @@ const DashboardPage: React.FC = () => {
     setSelectedYear(year);
   };
 
-  // Get assignments for the selected week using the centralized filter service
-  const userWeekAssignments = AssignmentFilterService.filterByDateRange(
-    userAssignments,
-    startDateISO,
-    endDateISO
-  );
+  // Filter assignments for "Mine Opgaver" based on user role
+  const getMyAssignments = () => {
+    if (!user) return [];
 
+    const weekAssignments = AssignmentFilterService.filterByDateRange(
+      userAssignments,
+      startDateISO,
+      endDateISO
+    );
+
+    // Filter based on user role
+    if (user.role === 'administrator' || user.role === 'skadeleder') {
+      // For admin/skadeleder: show assignments where they are responsible user OR assigned as employee
+      return weekAssignments.filter(assignment => 
+        (assignment.responsibleUser && assignment.responsibleUser.id === user.id) ||
+        (assignment.employees && assignment.employees.includes(user.name || ''))
+      );
+    } else if (user.role === 'servicemedarbejder') {
+      // For servicemedarbejder: show assignments where they are assigned as employee
+      return weekAssignments.filter(assignment => 
+        assignment.employees && assignment.employees.includes(user.name || '')
+      );
+    }
+
+    return weekAssignments;
+  };
+
+  const myWeekAssignments = getMyAssignments();
   const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
   const selectedDateForMetrics = getSelectedDateForMetrics();
 
@@ -125,7 +146,7 @@ const DashboardPage: React.FC = () => {
         {/* Weekly Assignments */}
         <div style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
           <WeeklyAssignments
-            assignments={userWeekAssignments}
+            assignments={myWeekAssignments}
             selectedWeek={selectedWeek}
             onPreviousWeek={handlePreviousWeek}
             onNextWeek={handleNextWeek}
