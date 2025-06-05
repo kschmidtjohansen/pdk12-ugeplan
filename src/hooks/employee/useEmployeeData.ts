@@ -4,7 +4,6 @@ import { Employee } from '@/types/employee';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { safeProperty } from '@/utils/dbHelpers';
 import { UserRole } from '@/context/AuthContext';
 
 export const useEmployeeData = () => {
@@ -63,7 +62,6 @@ export const useEmployeeData = () => {
         }
         
         console.log('[useEmployeeData] Fetched roles:', rolesData.length);
-        console.log('[useEmployeeData] Roles data:', rolesData);
         
         // Combine the data with better error handling
         const formattedEmployees: Employee[] = profilesData.map(item => {

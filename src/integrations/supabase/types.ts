@@ -314,6 +314,14 @@ export type Database = {
         Args: { uid: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      get_user_role_safe: {
+        Args: { user_uuid: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       assignment_type: "waterDamage" | "fireDamage" | "mold" | "other"

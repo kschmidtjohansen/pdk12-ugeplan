@@ -18,8 +18,7 @@ export const useAssignmentData = () => {
       setLoading(true);
       setError(null);
       
-      // Get current user info
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log('[useAssignmentData] Starting to fetch assignments...');
       
       // Fetch assignments with optimized query including responsible user
       const { data: assignmentsData, error: assignmentsError } = await supabase
@@ -42,7 +41,12 @@ export const useAssignmentData = () => {
         `)
         .order('assignment_date', { ascending: true });
       
-      if (assignmentsError) throw assignmentsError;
+      if (assignmentsError) {
+        console.error('[useAssignmentData] Error fetching assignments:', assignmentsError);
+        throw assignmentsError;
+      }
+      
+      console.log('[useAssignmentData] Fetched assignments:', assignmentsData?.length || 0);
       
       if (assignmentsData) {
         // Get assignment-employee relationships
@@ -52,7 +56,8 @@ export const useAssignmentData = () => {
           .order('assignment_id');
         
         if (employeeError) {
-          throw employeeError;
+          console.warn('[useAssignmentData] Error fetching assignment employees:', employeeError);
+          // Don't throw, continue with empty employee assignments
         }
         
         // Get all profiles for the users in assignments
@@ -69,9 +74,11 @@ export const useAssignmentData = () => {
             .order('name');
           
           if (profilesError) {
-            throw profilesError;
+            console.warn('[useAssignmentData] Error fetching profiles for assignments:', profilesError);
+            // Don't throw, continue with empty profiles
+          } else {
+            profilesData = profiles || [];
           }
-          profilesData = profiles || [];
         }
         
         // Process and combine the data
@@ -114,17 +121,20 @@ export const useAssignmentData = () => {
           return processedAssignment;
         });
         
+        console.log('[useAssignmentData] Processed assignments:', processedAssignments.length);
         setAssignments(processedAssignments);
       } else {
         setAssignments([]);
       }
     } catch (err) {
+      console.error('[useAssignmentData] Error fetching assignments:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch assignments');
       toast({
         title: t('common.error'),
         description: t('planner.fetchError'),
         variant: 'destructive',
       });
+      setAssignments([]);
     } finally {
       setLoading(false);
     }
@@ -146,7 +156,8 @@ export const useAssignmentData = () => {
           schema: 'public',
           table: 'assignments'
         },
-        () => {
+        (payload) => {
+          console.log('[useAssignmentData] Received assignment change:', payload);
           fetchAssignments();
         }
       )
@@ -157,11 +168,14 @@ export const useAssignmentData = () => {
           schema: 'public',
           table: 'assignments_employees'
         },
-        () => {
+        (payload) => {
+          console.log('[useAssignmentData] Received assignment employee change:', payload);
           fetchAssignments();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[useAssignmentData] Subscription status:', status);
+      });
       
     return () => {
       supabase.removeChannel(channel);
