@@ -54,7 +54,10 @@ export const useEmployeeData = () => {
           .in('user_id', userIds);
         
         if (rolesError) {
-          console.warn('[useEmployeeData] Error fetching roles, will use default roles:', rolesError);
+          // Only log role errors in development mode, don't break the flow
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('[useEmployeeData] Error fetching roles, using default roles:', rolesError);
+          }
           // Don't throw error, just use empty array and default roles
           rolesData = [];
         } else {
@@ -65,13 +68,21 @@ export const useEmployeeData = () => {
         
         // Combine the data with better error handling
         const formattedEmployees: Employee[] = profilesData.map(item => {
+          // Validate required fields
+          if (!item.id || typeof item.name !== 'string' || item.name.trim() === '') {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('[useEmployeeData] Invalid employee data, skipping:', item);
+            }
+            return null;
+          }
+          
           // Find the role for this user, with fallback to default
           const userRole = rolesData.find(r => r.user_id === item.id);
           const defaultRole: UserRole = 'servicemedarbejder';
           
           const employee: Employee = {
             id: item.id,
-            name: item.name || 'Unknown',
+            name: item.name.trim(),
             email: item.email || '',
             phone: item.phone || '',
             jobTitle: item.job_title || '',
@@ -82,23 +93,27 @@ export const useEmployeeData = () => {
             avatar_url: item.avatar_url || undefined
           };
           
-          console.log('[useEmployeeData] Processed employee:', {
-            id: employee.id,
-            name: employee.name,
-            role: employee.role,
-            onLeave: employee.onLeave,
-            hasUserRole: !!userRole
-          });
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[useEmployeeData] Processed employee:', {
+              id: employee.id,
+              name: employee.name,
+              role: employee.role,
+              onLeave: employee.onLeave,
+              hasUserRole: !!userRole
+            });
+          }
           
           return employee;
-        });
+        }).filter((emp): emp is Employee => emp !== null); // Filter out invalid employees
         
         // Filter and log servicemedarbejder employees specifically
         const serviceEmployees = formattedEmployees.filter(emp => emp.role === 'servicemedarbejder');
-        console.log('[useEmployeeData] Service employees (servicemedarbejder role):', serviceEmployees.length);
-        serviceEmployees.forEach(emp => {
-          console.log(`  - ${emp.name} (${emp.id}) - onLeave: ${emp.onLeave}`);
-        });
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[useEmployeeData] Service employees (servicemedarbejder role):', serviceEmployees.length);
+          serviceEmployees.forEach(emp => {
+            console.log(`  - ${emp.name} (${emp.id}) - onLeave: ${emp.onLeave}`);
+          });
+        }
         
         setEmployees(formattedEmployees);
       } else {
@@ -141,7 +156,9 @@ export const useEmployeeData = () => {
           table: 'profiles'
         },
         (payload) => {
-          console.log('[useEmployeeData] Received profile change:', payload);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[useEmployeeData] Received profile change:', payload);
+          }
           fetchEmployees(); // Refresh when changes occur
         }
       )
@@ -153,12 +170,16 @@ export const useEmployeeData = () => {
           table: 'user_roles'
         },
         (payload) => {
-          console.log('[useEmployeeData] Received role change:', payload);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[useEmployeeData] Received role change:', payload);
+          }
           fetchEmployees(); // Refresh when role changes occur
         }
       )
       .subscribe((status) => {
-        console.log('[useEmployeeData] Subscription status:', status);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[useEmployeeData] Subscription status:', status);
+        }
       });
       
     return () => {

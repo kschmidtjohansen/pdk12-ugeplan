@@ -32,7 +32,7 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
     localStorage.setItem('polygonLanguage', lang);
   };
   
-  // Translation function
+  // Translation function with improved error handling and less console noise
   const t = (key: string, params?: Record<string, any>) => {
     try {
       // Use the imported translations object
@@ -46,7 +46,10 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (translation && typeof translation === 'object' && part in translation) {
           translation = translation[part];
         } else {
-          console.warn(`Missing translation key: ${key} in ${currentLanguage}`);
+          // Only log missing translations in development mode
+          if (process.env.NODE_ENV === 'development') {
+            console.warn(`Missing translation key: ${key} in ${currentLanguage}`);
+          }
           return key; // Return key if translation not found
         }
       }
@@ -71,7 +74,10 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
       
       return key;
     } catch (error) {
-      console.error(`Error in translation for key: ${key}`, error);
+      // Only log errors in development mode
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`Error in translation for key: ${key}`, error);
+      }
       return key;
     }
   };

@@ -56,7 +56,9 @@ export const useAssignmentData = () => {
           .order('assignment_id');
         
         if (employeeError) {
-          console.warn('[useAssignmentData] Error fetching assignment employees:', employeeError);
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('[useAssignmentData] Error fetching assignment employees:', employeeError);
+          }
           // Don't throw, continue with empty employee assignments
         }
         
@@ -74,7 +76,9 @@ export const useAssignmentData = () => {
             .order('name');
           
           if (profilesError) {
-            console.warn('[useAssignmentData] Error fetching profiles for assignments:', profilesError);
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('[useAssignmentData] Error fetching profiles for assignments:', profilesError);
+            }
             // Don't throw, continue with empty profiles
           } else {
             profilesData = profiles || [];
@@ -88,13 +92,15 @@ export const useAssignmentData = () => {
             ?.filter(emp => emp.assignment_id === assignment.id)
             ?.map(emp => emp.user_id) || [];
           
-          // Map employee IDs to names efficiently
+          // Map employee IDs to names efficiently with validation
           const assignmentEmployeeNames: string[] = [];
           
           assignmentEmployeeIds.forEach(userId => {
             const profile = profilesData.find(p => p.id === userId);
             if (profile?.name && typeof profile.name === 'string' && profile.name.trim() !== '') {
               assignmentEmployeeNames.push(profile.name.trim());
+            } else if (process.env.NODE_ENV === 'development') {
+              console.warn('[useAssignmentData] Invalid employee name for user:', userId, profile);
             }
           });
           
@@ -157,7 +163,9 @@ export const useAssignmentData = () => {
           table: 'assignments'
         },
         (payload) => {
-          console.log('[useAssignmentData] Received assignment change:', payload);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[useAssignmentData] Received assignment change:', payload);
+          }
           fetchAssignments();
         }
       )
@@ -169,12 +177,16 @@ export const useAssignmentData = () => {
           table: 'assignments_employees'
         },
         (payload) => {
-          console.log('[useAssignmentData] Received assignment employee change:', payload);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[useAssignmentData] Received assignment employee change:', payload);
+          }
           fetchAssignments();
         }
       )
       .subscribe((status) => {
-        console.log('[useAssignmentData] Subscription status:', status);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[useAssignmentData] Subscription status:', status);
+        }
       });
       
     return () => {

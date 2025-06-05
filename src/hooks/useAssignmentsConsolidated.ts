@@ -81,7 +81,10 @@ export const useAssignmentsConsolidated = ({
           .order('assignment_id');
         
         if (employeeError) {
-          throw employeeError;
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('[useAssignmentsConsolidated] Error fetching assignment employees:', employeeError);
+          }
+          // Don't throw, continue with empty employee assignments
         }
         
         // Get all profiles for the users in assignments
@@ -98,9 +101,13 @@ export const useAssignmentsConsolidated = ({
             .order('name');
           
           if (profilesError) {
-            throw profilesError;
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('[useAssignmentsConsolidated] Error fetching profiles for assignments:', profilesError);
+            }
+            // Don't throw, continue with empty profiles
+          } else {
+            profilesData = profiles || [];
           }
-          profilesData = profiles || [];
         }
         
         // Process and combine the data
@@ -110,13 +117,15 @@ export const useAssignmentsConsolidated = ({
             ?.filter(emp => emp.assignment_id === assignment.id)
             ?.map(emp => emp.user_id) || [];
           
-          // Map employee IDs to names efficiently
+          // Map employee IDs to names efficiently with validation
           const assignmentEmployeeNames: string[] = [];
           
           assignmentEmployeeIds.forEach(userId => {
             const profile = profilesData.find(p => p.id === userId);
             if (profile?.name && typeof profile.name === 'string' && profile.name.trim() !== '') {
               assignmentEmployeeNames.push(profile.name.trim());
+            } else if (process.env.NODE_ENV === 'development') {
+              console.warn('[useAssignmentsConsolidated] Invalid employee name for user:', userId, profile);
             }
           });
           
@@ -140,13 +149,15 @@ export const useAssignmentsConsolidated = ({
             } : null
           };
           
-          console.log('[useAssignmentsConsolidated] Processed assignment:', {
-            id: processedAssignment.id,
-            title: processedAssignment.title,
-            car: processedAssignment.car,
-            responsibleUser: processedAssignment.responsibleUser,
-            employees: processedAssignment.employees
-          });
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[useAssignmentsConsolidated] Processed assignment:', {
+              id: processedAssignment.id,
+              title: processedAssignment.title,
+              car: processedAssignment.car,
+              responsibleUser: processedAssignment.responsibleUser,
+              employees: processedAssignment.employees
+            });
+          }
           
           return processedAssignment;
         });
@@ -155,7 +166,9 @@ export const useAssignmentsConsolidated = ({
         let cleanedAssignments = processedAssignments;
         if (employees.length > 0 && vacations.length >= 0) {
           cleanedAssignments = cleanupAssignmentEmployees(processedAssignments, employees, vacations);
-          console.log('[useAssignmentsConsolidated] Applied employee availability cleanup');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[useAssignmentsConsolidated] Applied employee availability cleanup');
+          }
         }
         
         setAssignments(cleanedAssignments);
@@ -175,9 +188,14 @@ export const useAssignmentsConsolidated = ({
     }
   };
 
-  // Create assignment
+  // Create assignment with enhanced validation
   const createAssignment = async (assignmentData: Partial<Assignment>) => {
     try {
+      // Validate required fields
+      if (!assignmentData.title || !assignmentData.location || !assignmentData.date) {
+        throw new Error('Title, location, and date are required');
+      }
+
       console.log("Creating assignment with data:", assignmentData);
       
       // Format car information for storage
@@ -228,19 +246,23 @@ export const useAssignmentsConsolidated = ({
         const employeeInserts = [];
         
         for (const employeeName of assignmentData.employees) {
-          if (typeof employeeName !== 'string') {
-            console.warn("Skipping invalid employee data:", employeeName);
+          if (typeof employeeName !== 'string' || employeeName.trim() === '') {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn("Skipping invalid employee data:", employeeName);
+            }
             continue;
           }
           
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('id')
-            .eq('name', employeeName)
+            .eq('name', employeeName.trim())
             .single();
             
           if (profileError) {
-            console.error('Error getting profile by name:', profileError);
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('Error getting profile by name:', profileError);
+            }
             continue;
           }
           
@@ -272,9 +294,10 @@ export const useAssignmentsConsolidated = ({
       fetchAssignments();
     } catch (error: any) {
       console.error('Error creating assignment:', error);
+      const errorMessage = error.message || t('planner.errorCreatingAssignment');
       toast({
         title: t('common.error'),
-        description: t('planner.errorCreatingAssignment'),
+        description: errorMessage,
         variant: "destructive",
       });
     }

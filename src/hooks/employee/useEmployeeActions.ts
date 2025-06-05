@@ -3,8 +3,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useNotifications } from '@/context/NotificationContext';
-import { safeProperty } from '@/utils/dbHelpers';
-import { isValidUUID, validateUUID, safeUUID } from '@/utils/uuidValidation';
+import { isValidUUID } from '@/utils/uuidValidation';
 
 export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   const { toast } = useToast();
@@ -74,7 +73,9 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
    * Manual leave status is now separate from vacation-based availability
    */
   const updateEmployeeLeaveStatusFromVacations = async () => {
-    console.log('updateEmployeeLeaveStatusFromVacations: This function is now simplified and only refreshes employee data');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('updateEmployeeLeaveStatusFromVacations: This function is now simplified and only refreshes employee data');
+    }
     
     try {
       // Just refresh the employee list to get the latest data
@@ -87,13 +88,19 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   };
 
   /**
-   * Create a new employee
+   * Create a new employee with enhanced validation
    */
   const createEmployee = async (formData: any) => {
     try {
       // Validate required fields
       if (!formData.email || !formData.password || !formData.name) {
         throw new Error('Email, password, and name are required');
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        throw new Error('Please provide a valid email address');
       }
 
       console.log('[createEmployee] Creating employee with role:', formData.role);
@@ -135,10 +142,14 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         if (profileError) {
           console.error('Error updating profile:', profileError);
           // Don't throw here, the user was created successfully
-          console.warn('Profile update failed, but user was created');
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('Profile update failed, but user was created');
+          }
         }
       } else {
-        console.warn('Invalid or missing user ID returned from creation:', data?.id);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Invalid or missing user ID returned from creation:', data?.id);
+        }
       }
       
       toast({
@@ -166,7 +177,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   };
 
   /**
-   * Update an existing employee
+   * Update an existing employee with enhanced validation
    */
   const updateEmployee = async (employee: any, formData: any) => {
     if (!isValidUUID(employee?.id)) {
@@ -180,6 +191,14 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
     }
     
     try {
+      // Validate email format if provided
+      if (formData.email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+          throw new Error('Please provide a valid email address');
+        }
+      }
+
       console.log('[updateEmployee] Updating employee:', employee.id, 'with role:', formData.role);
       
       // Update the profile data
@@ -241,7 +260,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   };
 
   /**
-   * Delete an employee
+   * Delete an employee with enhanced validation
    */
   const deleteEmployee = async (employeeId: string, allEmployees: any[]) => {
     if (!isValidUUID(employeeId)) {
