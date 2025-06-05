@@ -37,36 +37,47 @@ export const useEmployeeData = () => {
         `)
         .order('name');
       
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error('[useEmployeeData] Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
       
       console.log('[useEmployeeData] Fetched profiles:', profilesData?.length || 0);
       
-      // Then get all roles for these users
+      // Then get all roles for these users - with better error handling
+      let rolesData: any[] = [];
       if (profilesData && profilesData.length > 0) {
         const userIds = profilesData.map(profile => profile.id);
         
-        const { data: rolesData, error: rolesError } = await supabase
+        const { data: fetchedRolesData, error: rolesError } = await supabase
           .from('user_roles')
           .select('user_id, role')
           .in('user_id', userIds);
         
-        if (rolesError) throw rolesError;
+        if (rolesError) {
+          console.warn('[useEmployeeData] Error fetching roles, will use default roles:', rolesError);
+          // Don't throw error, just use empty array and default roles
+          rolesData = [];
+        } else {
+          rolesData = fetchedRolesData || [];
+        }
         
-        console.log('[useEmployeeData] Fetched roles:', rolesData?.length || 0);
+        console.log('[useEmployeeData] Fetched roles:', rolesData.length);
         console.log('[useEmployeeData] Roles data:', rolesData);
         
-        // Combine the data
+        // Combine the data with better error handling
         const formattedEmployees: Employee[] = profilesData.map(item => {
-          // Find the role for this user
-          const userRole = rolesData?.find(r => r.user_id === item.id);
+          // Find the role for this user, with fallback to default
+          const userRole = rolesData.find(r => r.user_id === item.id);
+          const defaultRole: UserRole = 'servicemedarbejder';
           
           const employee: Employee = {
             id: item.id,
-            name: item.name,
-            email: item.email,
+            name: item.name || 'Unknown',
+            email: item.email || '',
             phone: item.phone || '',
             jobTitle: item.job_title || '',
-            role: userRole ? userRole.role as UserRole : 'servicemedarbejder',
+            role: userRole ? userRole.role as UserRole : defaultRole,
             onLeave: item.on_leave || false,
             notes: item.notes || '',
             onApprovedVacation: false, // Will be calculated date-specifically when needed
@@ -77,7 +88,8 @@ export const useEmployeeData = () => {
             id: employee.id,
             name: employee.name,
             role: employee.role,
-            onLeave: employee.onLeave
+            onLeave: employee.onLeave,
+            hasUserRole: !!userRole
           });
           
           return employee;
@@ -97,12 +109,18 @@ export const useEmployeeData = () => {
       }
     } catch (err) {
       console.error('[useEmployeeData] Error fetching employees:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch employees');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch employees';
+      setError(errorMessage);
+      
+      // Show a more user-friendly error message
       toast({
         title: t('common.error'),
         description: t('employees.fetchError'),
         variant: 'destructive',
       });
+      
+      // Set empty array so UI doesn't break
+      setEmployees([]);
     } finally {
       setLoading(false);
     }
@@ -113,7 +131,7 @@ export const useEmployeeData = () => {
     fetchEmployees();
   }, []);
 
-  // Subscribe to employee changes
+  // Subscribe to employee changes with better error handling
   useEffect(() => {
     const channel = supabase
       .channel('employee_changes')
@@ -124,12 +142,26 @@ export const useEmployeeData = () => {
           schema: 'public',
           table: 'profiles'
         },
-        () => {
-          console.log('[useEmployeeData] Received profile change, refreshing...');
+        (payload) => {
+          console.log('[useEmployeeData] Received profile change:', payload);
           fetchEmployees(); // Refresh when changes occur
         }
       )
-      .subscribe();
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_roles'
+        },
+        (payload) => {
+          console.log('[useEmployeeData] Received role change:', payload);
+          fetchEmployees(); // Refresh when role changes occur
+        }
+      )
+      .subscribe((status) => {
+        console.log('[useEmployeeData] Subscription status:', status);
+      });
       
     return () => {
       supabase.removeChannel(channel);
