@@ -22,39 +22,63 @@ import NotFound from './pages/NotFound';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './App.css';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors
+        if (error instanceof Error && error.message.includes('40')) {
+          return false;
+        }
+        return failureCount < 2;
+      },
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
+
+// Error boundary specifically for the notification provider
+const NotificationErrorBoundary: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <ErrorBoundary fallback={<>{children}</>}>
+      {children}
+    </ErrorBoundary>
+  );
+};
 
 function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="light" storageKey="polygon-theme">
-          <TranslationProvider>
-            <NotificationProvider>
-              <AuthProvider>
-                <Router>
-                  <div className="App">
-                    <Routes>
-                      <Route path="/login" element={<LoginPage />} />
-                      <Route path="/password-reset" element={<PasswordResetPage />} />
-                      <Route path="/screen-display" element={<ScreenDisplayPage />} />
-                      <Route path="/" element={<MainLayout />}>
-                        <Route index element={<Index />} />
-                        <Route path="dashboard" element={<DashboardPage />} />
-                        <Route path="planner" element={<PlannerPage />} />
-                        <Route path="employees" element={<EmployeesPage />} />
-                        <Route path="cars" element={<CarsPage />} />
-                        <Route path="vacation" element={<VacationPage />} />
-                        <Route path="admin" element={<AdminPage />} />
-                      </Route>
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                    <Toaster />
-                  </div>
-                </Router>
-              </AuthProvider>
-            </NotificationProvider>
-          </TranslationProvider>
+          <AuthProvider>
+            <TranslationProvider>
+              <NotificationErrorBoundary>
+                <NotificationProvider>
+                  <Router>
+                    <div className="App">
+                      <Routes>
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/password-reset" element={<PasswordResetPage />} />
+                        <Route path="/screen-display" element={<ScreenDisplayPage />} />
+                        <Route path="/" element={<MainLayout />}>
+                          <Route index element={<Index />} />
+                          <Route path="dashboard" element={<DashboardPage />} />
+                          <Route path="planner" element={<PlannerPage />} />
+                          <Route path="employees" element={<EmployeesPage />} />
+                          <Route path="cars" element={<CarsPage />} />
+                          <Route path="vacation" element={<VacationPage />} />
+                          <Route path="admin" element={<AdminPage />} />
+                        </Route>
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                      <Toaster />
+                    </div>
+                  </Router>
+                </NotificationProvider>
+              </NotificationErrorBoundary>
+            </TranslationProvider>
+          </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>

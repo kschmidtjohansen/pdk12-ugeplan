@@ -21,7 +21,8 @@ interface NotificationContextType {
   fetchNotifications: () => Promise<void>;
 }
 
-const NotificationContext = createContext<NotificationContextType>({
+// Create a safe default context that won't fail if translation is not ready
+const defaultContext: NotificationContextType = {
   notifications: [],
   unreadCount: 0,
   loading: false,
@@ -31,7 +32,9 @@ const NotificationContext = createContext<NotificationContextType>({
   deleteAllNotifications: async () => {},
   addNotification: async () => null,
   fetchNotifications: async () => {}
-});
+};
+
+const NotificationContext = createContext<NotificationContextType>(defaultContext);
 
 // Export the hook for using the notifications context
 export const useNotifications = () => useContext(NotificationContext);
@@ -39,8 +42,17 @@ export const useNotifications = () => useContext(NotificationContext);
 export const NotificationProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  // Use the notification hook to get all notification functionality
-  const notificationHookData = useNotificationsHook();
+  // Use a try-catch wrapper to prevent provider initialization errors from cascading
+  let notificationHookData;
+  
+  try {
+    // Use the notification hook to get all notification functionality
+    notificationHookData = useNotificationsHook();
+  } catch (error) {
+    // If there's an error during hook initialization, use default values
+    console.warn('[NotificationProvider] Error initializing notification hook, using defaults:', error);
+    notificationHookData = defaultContext;
+  }
   
   return (
     <NotificationContext.Provider value={notificationHookData}>

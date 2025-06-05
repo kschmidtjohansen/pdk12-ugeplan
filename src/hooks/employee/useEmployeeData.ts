@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Employee } from '@/types/employee';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -12,10 +12,19 @@ export const useEmployeeData = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const fetchInProgressRef = useRef<boolean>(false);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch employees from Supabase
+  // Fetch employees from Supabase with improved error handling
   const fetchEmployees = async () => {
+    // Prevent concurrent fetches
+    if (fetchInProgressRef.current) {
+      console.log('[useEmployeeData] Fetch already in progress, skipping duplicate request');
+      return;
+    }
+
     try {
+      fetchInProgressRef.current = true;
       setLoading(true);
       setError(null);
       
@@ -38,7 +47,7 @@ export const useEmployeeData = () => {
       
       if (profilesError) {
         console.error('[useEmployeeData] Error fetching profiles:', profilesError);
-        throw profilesError;
+        throw new Error(`Failed to fetch employee profiles: ${profilesError.message}`);
       }
       
       console.log('[useEmployeeData] Fetched profiles:', profilesData?.length || 0);
@@ -55,9 +64,7 @@ export const useEmployeeData = () => {
         
         if (rolesError) {
           // Only log role errors in development mode, don't break the flow
-          if (process.env.NODE_ENV === 'development') {
-            console.warn('[useEmployeeData] Error fetching roles, using default roles:', rolesError);
-          }
+          console.warn('[useEmployeeData] Error fetching roles, using default roles:', rolesError);
           // Don't throw error, just use empty array and default roles
           rolesData = [];
         } else {
@@ -70,9 +77,7 @@ export const useEmployeeData = () => {
         const formattedEmployees: Employee[] = profilesData.map(item => {
           // Validate required fields
           if (!item.id || typeof item.name !== 'string' || item.name.trim() === '') {
-            if (process.env.NODE_ENV === 'development') {
-              console.warn('[useEmployeeData] Invalid employee data, skipping:', item);
-            }
+            console.warn('[useEmployeeData] Invalid employee data, skipping:', item);
             return null;
           }
           
@@ -93,27 +98,23 @@ export const useEmployeeData = () => {
             avatar_url: item.avatar_url || undefined
           };
           
-          if (process.env.NODE_ENV === 'development') {
-            console.log('[useEmployeeData] Processed employee:', {
-              id: employee.id,
-              name: employee.name,
-              role: employee.role,
-              onLeave: employee.onLeave,
-              hasUserRole: !!userRole
-            });
-          }
+          console.log('[useEmployeeData] Processed employee:', {
+            id: employee.id,
+            name: employee.name,
+            role: employee.role,
+            onLeave: employee.onLeave,
+            hasUserRole: !!userRole
+          });
           
           return employee;
         }).filter((emp): emp is Employee => emp !== null); // Filter out invalid employees
         
         // Filter and log servicemedarbejder employees specifically
         const serviceEmployees = formattedEmployees.filter(emp => emp.role === 'servicemedarbejder');
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[useEmployeeData] Service employees (servicemedarbejder role):', serviceEmployees.length);
-          serviceEmployees.forEach(emp => {
-            console.log(`  - ${emp.name} (${emp.id}) - onLeave: ${emp.onLeave}`);
-          });
-        }
+        console.log('[useEmployeeData] Service employees (servicemedarbejder role):', serviceEmployees.length);
+        serviceEmployees.forEach(emp => {
+          console.log(`  - ${emp.name} (${emp.id}) - onLeave: ${emp.onLeave}`);
+        });
         
         setEmployees(formattedEmployees);
       } else {
@@ -125,65 +126,106 @@ export const useEmployeeData = () => {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch employees';
       setError(errorMessage);
       
-      // Show a more user-friendly error message
-      toast({
-        title: t('common.error'),
-        description: t('employees.fetchError'),
-        variant: 'destructive',
-      });
+      // Only show toast if translation context is available
+      try {
+        toast({
+          title: t('common.error'),
+          description: t('employees.fetchError'),
+          variant: 'destructive',
+        });
+      } catch (toastError) {
+        console.warn('[useEmployeeData] Could not show error toast, translation context may not be ready:', toastError);
+      }
       
       // Set empty array so UI doesn't break
       setEmployees([]);
+      
+      // Retry after 3 seconds if it's a network error
+      if (err instanceof Error && err.message.includes('Failed to fetch')) {
+        console.log('[useEmployeeData] Network error detected, retrying in 3 seconds...');
+        retryTimeoutRef.current = setTimeout(() => {
+          fetchEmployees();
+        }, 3000);
+      }
     } finally {
       setLoading(false);
+      fetchInProgressRef.current = false;
     }
   };
 
   // Load employees on component mount
   useEffect(() => {
     fetchEmployees();
+    
+    // Cleanup retry timeout on unmount
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
   }, []);
 
   // Subscribe to employee changes with better error handling
   useEffect(() => {
-    const channel = supabase
-      .channel('employee_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles'
-        },
-        (payload) => {
-          if (process.env.NODE_ENV === 'development') {
+    let channel: any = null;
+    
+    try {
+      channel = supabase
+        .channel('employee_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'profiles'
+          },
+          (payload) => {
             console.log('[useEmployeeData] Received profile change:', payload);
+            // Debounce rapid changes
+            if (retryTimeoutRef.current) {
+              clearTimeout(retryTimeoutRef.current);
+            }
+            retryTimeoutRef.current = setTimeout(() => {
+              fetchEmployees();
+            }, 500);
           }
-          fetchEmployees(); // Refresh when changes occur
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_roles'
-        },
-        (payload) => {
-          if (process.env.NODE_ENV === 'development') {
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'user_roles'
+          },
+          (payload) => {
             console.log('[useEmployeeData] Received role change:', payload);
+            // Debounce rapid changes
+            if (retryTimeoutRef.current) {
+              clearTimeout(retryTimeoutRef.current);
+            }
+            retryTimeoutRef.current = setTimeout(() => {
+              fetchEmployees();
+            }, 500);
           }
-          fetchEmployees(); // Refresh when role changes occur
-        }
-      )
-      .subscribe((status) => {
-        if (process.env.NODE_ENV === 'development') {
+        )
+        .subscribe((status) => {
           console.log('[useEmployeeData] Subscription status:', status);
-        }
-      });
+        });
+    } catch (subscriptionError) {
+      console.warn('[useEmployeeData] Error setting up real-time subscription:', subscriptionError);
+    }
       
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (cleanupError) {
+          console.warn('[useEmployeeData] Error cleaning up subscription:', cleanupError);
+        }
+      }
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
     };
   }, []);
 
