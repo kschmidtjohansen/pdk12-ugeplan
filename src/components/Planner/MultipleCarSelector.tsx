@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { X, Car } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
@@ -121,34 +122,38 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
             </div>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-80 p-0 z-50 bg-white border shadow-md">
+        <PopoverContent className="w-80 p-0 z-[60] bg-white border shadow-lg" sideOffset={4}>
           <div className="p-3">
             <h4 className="font-medium mb-3">{t('planner.selectCars')}</h4>
-            <div className="space-y-2 max-h-60 overflow-y-auto overscroll-contain">
-              <div className="pr-2"> {/* Add padding to prevent scrollbar overlap */}
+            <ScrollArea className="h-60 w-full">
+              <div className="space-y-2 pr-3">
                 {cars.map((car) => {
                   const isSelected = selectedCarIds.includes(car.id);
                   const bookingStatus = getCarBookingStatus(car.id);
-                  const isAvailable = car.is_available && bookingStatus.isAvailable;
+                  const isGenerallyAvailable = car.is_available;
+                  const isBookingAvailable = bookingStatus.isAvailable;
+                  const canSelect = isGenerallyAvailable && isBookingAvailable;
                   
                   return (
                     <div
                       key={car.id}
-                      className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50 cursor-pointer"
-                      onClick={() => (isAvailable || isSelected) && onCarToggle(car.id)}
+                      className={`flex items-center space-x-2 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors ${
+                        !canSelect && !isSelected ? 'opacity-60' : ''
+                      }`}
+                      onClick={() => (canSelect || isSelected) && onCarToggle(car.id)}
                     >
                       <input
                         type="checkbox"
                         id={`car-${car.id}`}
                         checked={isSelected}
-                        onChange={() => (isAvailable || isSelected) && onCarToggle(car.id)}
-                        disabled={!isAvailable && !isSelected}
+                        onChange={() => (canSelect || isSelected) && onCarToggle(car.id)}
+                        disabled={!canSelect && !isSelected}
                         className="rounded border-gray-300"
                       />
                       <label
                         htmlFor={`car-${car.id}`}
                         className={`flex-1 text-sm cursor-pointer ${
-                          !isAvailable && !isSelected ? 'text-gray-400' : ''
+                          !canSelect && !isSelected ? 'text-gray-400' : ''
                         }`}
                       >
                         <div className="flex items-center justify-between w-full">
@@ -160,7 +165,11 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                             )}
                           </div>
                           <div className="flex gap-1">
-                            {isAvailable ? (
+                            {!isGenerallyAvailable ? (
+                              <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
+                                {t('planner.carNotAvailable')}
+                              </Badge>
+                            ) : canSelect ? (
                               <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
                                 {t('planner.available')}
                               </Badge>
@@ -179,7 +188,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                   );
                 })}
               </div>
-            </div>
+            </ScrollArea>
           </div>
         </PopoverContent>
       </Popover>

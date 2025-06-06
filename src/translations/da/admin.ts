@@ -8,7 +8,18 @@ const admin = {
   },
   tabs: {
     overview: "Oversigt",
-    users: "Brugere"
+    users: "Brugere",
+    metrics: "Metrics"
+  },
+  systemMetrics: {
+    totalUsers: "Totale brugere",
+    totalUsersDesc: "{count} aktive i dag",
+    vehicles: "Køretøjer",
+    vehiclesDesc: "{count} i brug nu",
+    vacationRequests: "Ferieansøgninger",
+    vacationRequestsDesc: "afventer godkendelse",
+    scheduledTasks: "Planlagte opgaver",
+    scheduledTasksDesc: "Opgaver denne uge"
   },
   userManagement: {
     title: "Brugerstyring",
@@ -16,10 +27,17 @@ const admin = {
     addUser: "Tilføj Bruger",
     editUser: "Rediger Bruger",
     deleteUser: "Slet Bruger",
+    addNewUser: "Tilføj ny bruger",
+    updateInfo: "Opdater brugeroplysninger og tilladelser.",
+    createAccount: "Opret en ny brugerkonto.",
+    fullName: "Fulde navn",
     name: "Navn",
     email: "Email",
     role: "Rolle",
+    phone: "Telefonnummer",
+    position: "Stilling",
     actions: "Handlinger",
+    selectRole: "Vælg en rolle",
     fetchError: "Fejl ved indlæsning af brugere",
     userAdded: "Bruger tilføjet",
     userUpdated: "Bruger opdateret",
@@ -41,7 +59,11 @@ const admin = {
     confirmActivate: "Er du sikker på, at du vil aktivere {name}?",
     deactivateWarning: "Brugeren vil ikke kunne logge ind, indtil de aktiveres igen.",
     active: "Aktiv",
-    inactive: "Inaktiv"
+    inactive: "Inaktiv",
+    deleteConfirm: "Er du sikker?",
+    deleteWarning: "Du er ved at slette {name}s konto. Denne handling kan ikke fortrydes.",
+    createSuccess: "Bruger oprettet med succes",
+    updateSuccess: "Bruger opdateret med succes"
   },
   roles: {
     administrator: "Administrator",
@@ -49,11 +71,22 @@ const admin = {
     servicemedarbejder: "Servicemedarbejder"
   },
   passwords: {
+    changePassword: "Skift adgangskode",
     resetPassword: "Nulstil Adgangskode",
-    resetPasswordFor: "Nulstil adgangskode for {name}",
-    passwordReset: "Adgangskode nulstillet",
-    passwordResetMsg: "En ny adgangskode er sendt til {email}",
-    resetError: "Fejl ved nulstilling af adgangskode"
+    resetPasswordFor: "Nulstil adgangskode for denne medarbejder",
+    enterNewPassword: "Indtast ny adgangskode for denne medarbejder",
+    newPassword: "Ny adgangskode",
+    confirmPassword: "Bekræft adgangskode",
+    resetting: "Nulstiller...",
+    resetSuccess: "Adgangskode nulstillet",
+    resetDescription: "{name}s adgangskode er blevet nulstillet",
+    resetError: "Fejl. Kunne ikke nulstille adgangskode. Prøv igen.",
+    passwordMismatch: "Adgangskoder matcher ikke",
+    passwordMinLength: "Adgangskoden skal være mindst 8 tegn lang",
+    passwordChanged: "Adgangskode ændret",
+    passwordChangedMsg: "Adgangskoden er blevet ændret.",
+    passwordTooShort: "Adgangskoden er for kort. Skal indeholde 6 tegn.",
+    passwordResetMsg: "En ny adgangskode er sendt til {email}"
   },
   quickStats: {
     totalUsers: "Medarbejdere",
