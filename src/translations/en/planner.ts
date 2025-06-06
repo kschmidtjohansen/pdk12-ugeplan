@@ -16,6 +16,7 @@ const planner = {
   carsSelected: "{count} cars selected",
   carNotAvailable: "Booked",
   bookedUntil: "Booked until {time}",
+  unavailable: "Unavailable",
   car: "Car",
   cars: "Cars",
   employees: "Employees",

@@ -16,6 +16,7 @@ const planner = {
   carsSelected: "{count} biler valgt",
   carNotAvailable: "Booket",
   bookedUntil: "Booket til kl. {time}",
+  unavailable: "Ikke tilgængelig",
   car: "Bil",
   cars: "Biler",
   employees: "Servicemedarbejdere",
