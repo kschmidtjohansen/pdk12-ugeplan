@@ -14,30 +14,41 @@ interface AssignmentDetailsProps {
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars }) => {
   const { t } = useTranslation();
 
-  // Get car names for display using the cars prop
+  // Get car names for display using the cars prop - IMPROVED VERSION
   const getCarNames = (assignment: Assignment): string[] => {
     const carNames: string[] = [];
+    
+    console.log('[AssignmentDetails] Getting car names for assignment:', assignment.id);
+    console.log('[AssignmentDetails] Assignment cars:', assignment.cars);
+    console.log('[AssignmentDetails] Assignment car (legacy):', assignment.car);
+    console.log('[AssignmentDetails] Available cars:', cars);
     
     if (assignment.cars && Array.isArray(assignment.cars) && assignment.cars.length > 0) {
       // New format: multiple cars array
       assignment.cars.forEach(carId => {
+        console.log('[AssignmentDetails] Looking for car with ID:', carId);
         const car = cars.find(c => c.id === carId);
         if (car) {
+          console.log('[AssignmentDetails] Found car:', car.name);
           carNames.push(car.name);
         } else {
+          console.log('[AssignmentDetails] Car not found, using ID:', carId);
           carNames.push(carId); // Fallback to ID if car not found
         }
       });
     } else if (assignment.car) {
       // Old format: single car
       if (typeof assignment.car === 'string') {
+        console.log('[AssignmentDetails] Legacy car ID:', assignment.car);
         const car = cars.find(c => c.id === assignment.car);
         carNames.push(car ? car.name : assignment.car);
       } else if (typeof assignment.car === 'object' && assignment.car.name) {
+        console.log('[AssignmentDetails] Legacy car object:', assignment.car.name);
         carNames.push(assignment.car.name);
       }
     }
     
+    console.log('[AssignmentDetails] Final car names:', carNames);
     return carNames;
   };
 

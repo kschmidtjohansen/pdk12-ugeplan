@@ -3,7 +3,7 @@ import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { ChevronDown } from 'lucide-react';
+import { UserCheck } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,26 +50,31 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
 
   return (
     <div className="space-y-2">
-      <Label>{t('planner.responsibleUser')}</Label>
+      <Label className="text-sm font-medium">{t('planner.responsibleUser')}</Label>
       
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="w-full justify-between p-2"
+            className="w-full justify-between h-11 px-4 py-2"
           >
-            <span className="truncate">{getSelectedUserDisplay()}</span>
-            <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+            <div className="flex items-center gap-2">
+              <UserCheck className="h-4 w-4" />
+              <span className="truncate">{getSelectedUserDisplay()}</span>
+            </div>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto">
+        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-50 bg-white border shadow-md">
           {/* No responsible user option */}
           <DropdownMenuItem
             onClick={() => handleUserSelect('none')}
-            className="cursor-pointer"
+            className="cursor-pointer p-2"
           >
             <div className="flex items-center justify-between w-full space-x-2">
-              <span>{t('planner.noResponsibleUser')}</span>
+              <div className="flex items-center gap-2">
+                <UserCheck className="h-4 w-4" />
+                <span>{t('planner.noResponsibleUser')}</span>
+              </div>
             </div>
           </DropdownMenuItem>
           
@@ -77,10 +82,13 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
             <DropdownMenuItem
               key={user.id}
               onClick={() => handleUserSelect(user.id)}
-              className="cursor-pointer"
+              className="cursor-pointer p-2"
             >
               <div className="flex items-center justify-between w-full space-x-2">
-                <span className="truncate">{user.name}</span>
+                <div className="flex items-center gap-2">
+                  <UserCheck className="h-4 w-4" />
+                  <span className="truncate">{user.name}</span>
+                </div>
               </div>
             </DropdownMenuItem>
           ))}

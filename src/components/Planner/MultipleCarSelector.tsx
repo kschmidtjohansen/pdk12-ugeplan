@@ -28,8 +28,8 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
   const { t } = useTranslation();
 
   // Check if a car is available for the current date and time
-  const isCarAvailable = (carId: string): boolean => {
-    if (!currentDate) return true;
+  const getCarBookingStatus = (carId: string): { isAvailable: boolean; endTime?: string } => {
+    if (!currentDate) return { isAvailable: true };
     
     // Filter out current assignment when checking availability
     const otherAssignments = currentAssignmentId 
@@ -37,7 +37,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       : assignments;
     
     // Check if car is assigned to any other assignment on the same date
-    const isCarBusy = otherAssignments.some(assignment => {
+    const carAssignments = otherAssignments.filter(assignment => {
       if (assignment.date !== currentDate) return false;
       
       // Check both old car field and new cars array for compatibility
@@ -45,7 +45,22 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       return assignmentCarIds.includes(carId);
     });
     
-    return !isCarBusy;
+    if (carAssignments.length === 0) {
+      return { isAvailable: true };
+    }
+    
+    // Find the latest end time
+    let latestEndTime = '';
+    carAssignments.forEach(assignment => {
+      if (assignment.toTime > latestEndTime) {
+        latestEndTime = assignment.toTime;
+      }
+    });
+    
+    return { 
+      isAvailable: false, 
+      endTime: latestEndTime 
+    };
   };
 
   // Get selected cars for display
@@ -98,30 +113,34 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
           <Button
             type="button"
             variant="outline"
-            className="w-full justify-start text-left font-normal"
+            className="w-full justify-between h-11 px-4 py-2"
           >
-            <Car className="mr-2 h-4 w-4" />
-            {getButtonText()}
+            <div className="flex items-center gap-2">
+              <Car className="h-4 w-4" />
+              <span>{getButtonText()}</span>
+            </div>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-80 p-0">
+        <PopoverContent className="w-80 p-0 z-50 bg-white border shadow-md">
           <div className="p-3">
             <h4 className="font-medium mb-3">{t('planner.selectCars')}</h4>
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {cars.map((car) => {
                 const isSelected = selectedCarIds.includes(car.id);
-                const isAvailable = car.is_available && isCarAvailable(car.id);
+                const bookingStatus = getCarBookingStatus(car.id);
+                const isAvailable = car.is_available && bookingStatus.isAvailable;
                 
                 return (
                   <div
                     key={car.id}
-                    className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50"
+                    className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50 cursor-pointer"
+                    onClick={() => (isAvailable || isSelected) && onCarToggle(car.id)}
                   >
                     <input
                       type="checkbox"
                       id={`car-${car.id}`}
                       checked={isSelected}
-                      onChange={() => onCarToggle(car.id)}
+                      onChange={() => (isAvailable || isSelected) && onCarToggle(car.id)}
                       disabled={!isAvailable && !isSelected}
                       className="rounded border-gray-300"
                     />
@@ -146,7 +165,10 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                             </Badge>
                           ) : !isSelected && (
                             <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
-                              {t('planner.carNotAvailable')}
+                              {bookingStatus.endTime 
+                                ? t('planner.bookedUntil', { time: bookingStatus.endTime })
+                                : t('planner.carNotAvailable')
+                              }
                             </Badge>
                           )}
                         </div>

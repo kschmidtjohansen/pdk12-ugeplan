@@ -152,21 +152,62 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   if (Array.isArray(weekAssignments) && weekAssignments.length === 0 && !canEdit) {
     return <EmptyState message={t("planner.noAssignmentsWeek")} />;
   }
-  return <div className="space-y-6 pb-6">
+  return (
+    <div className="space-y-6 pb-6">
       {/* Unassigned Resources Section for admin/skadeleder only */}
-      {(canEdit || canPublishTasks) && <UnassignedResourcesSection assignments={weekAssignments} employees={employees} cars={cars} vacations={vacations} />}
+      {(canEdit || canPublishTasks) && (
+        <UnassignedResourcesSection 
+          assignments={weekAssignments}
+          employees={employees}
+          cars={cars}
+          vacations={vacations}
+        />
+      )}
       
       {/* Show on Screen Button */}
-      {canPublishTasks && <div className="flex justify-center mb-4">
-          <Button onClick={handleShowOnScreen} size="sm" className="flex items-center gap-2 text-white shadow-lg bg-polygon-blue">
+      {canPublishTasks && (
+        <div className="flex justify-center mb-4">
+          <Button 
+            onClick={handleShowOnScreen}
+            size="sm" 
+            className="flex items-center gap-2 text-white shadow-lg bg-polygon-blue"
+          >
             <Monitor className="h-4 w-4" />
             {t('planner.showOnScreen')}
           </Button>
-        </div>}
+        </div>
+      )}
       
-      <CurrentAndFutureDays dates={currentAndFutureDates || []} groupedAssignments={groupedAssignments || {}} expandedDays={expandedDays} onToggleExpansion={handleToggleExpansion} onPublishDay={onPublishDay} onEditAssignment={onEditAssignment} onDeleteAssignment={onDeleteAssignment} onPublishAssignment={onPublishAssignment} onCopyAssignment={onCopyAssignment} canEdit={canEdit} canPublishTasks={canPublishTasks} />
+      <CurrentAndFutureDays 
+        dates={currentAndFutureDates || []}
+        groupedAssignments={groupedAssignments || {}}
+        expandedDays={expandedDays}
+        onToggleExpansion={handleToggleExpansion}
+        onPublishDay={onPublishDay}
+        onEditAssignment={onEditAssignment}
+        onDeleteAssignment={onDeleteAssignment}
+        onPublishAssignment={onPublishAssignment}
+        onCopyAssignment={onCopyAssignment}
+        canEdit={canEdit}
+        canPublishTasks={canPublishTasks}
+        cars={cars}
+      />
       
-      <PastAssignments pastDates={pastDates || []} groupedAssignments={groupedAssignments || {}} expandedDays={expandedDays} onToggleExpansion={handleToggleExpansion} onPublishDay={onPublishDay} onEditAssignment={onEditAssignment} onDeleteAssignment={onDeleteAssignment} onPublishAssignment={onPublishAssignment} onCopyAssignment={onCopyAssignment} canEdit={canEdit} canPublishTasks={canPublishTasks} />
-    </div>;
+      <PastAssignments 
+        pastDates={pastDates || []}
+        groupedAssignments={groupedAssignments || {}}
+        expandedDays={expandedDays}
+        onToggleExpansion={handleToggleExpansion}
+        onPublishDay={onPublishDay}
+        onEditAssignment={onEditAssignment}
+        onDeleteAssignment={onDeleteAssignment}
+        onPublishAssignment={onPublishAssignment}
+        onCopyAssignment={onCopyAssignment}
+        canEdit={canEdit}
+        canPublishTasks={canPublishTasks}
+        cars={cars}
+      />
+    </div>
+  );
 };
 export default PlannerContent;

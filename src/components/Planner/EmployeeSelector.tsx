@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { ChevronDown } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { getEmployeeAvailabilityStatus, isEmployeeOnVacation } from '@/utils/employeeAvailability';
 import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUtils';
 
@@ -106,6 +106,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 
   return (
     <div className="space-y-2">
+      <label className="text-sm font-medium">{t('planner.employees')}</label>
+      
       {/* Show notification if employees were auto-removed */}
       {autoRemovedEmployees.length > 0 && (
         <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded p-2">
@@ -115,12 +117,17 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="w-full justify-between">
-            <span className="truncate">{getDisplayText()}</span>
-            <ChevronDown className="h-4 w-4 opacity-50" />
+          <Button 
+            variant="outline" 
+            className="w-full justify-between h-11 px-4 py-2"
+          >
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span className="truncate">{getDisplayText()}</span>
+            </div>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto">
+        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-50 bg-white border shadow-md">
           {filteredEmployees.map(employee => {
             const isSelected = selectedEmployees.includes(employee.name);
             
@@ -161,9 +168,12 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className={`font-medium ${hasRedStyling ? '!text-red-700 !font-bold' : ''}`}>
-                      {employee.name}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      <span className={`font-medium ${hasRedStyling ? '!text-red-700 !font-bold' : ''}`}>
+                        {employee.name}
+                      </span>
+                    </div>
                     <div className="flex gap-1 ml-2 flex-shrink-0">
                       {isOnVacationToday && (
                         <Badge variant="outline" className="text-xs">

@@ -2,6 +2,7 @@
 import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
+import { Car } from '@/types/car';
 import DaySection from './DaySection';
 
 interface PastAssignmentsProps {
@@ -16,6 +17,7 @@ interface PastAssignmentsProps {
   onCopyAssignment?: (assignment: Assignment) => void;
   canEdit: boolean;
   canPublishTasks: boolean;
+  cars?: Car[];
 }
 
 const PastAssignments: React.FC<PastAssignmentsProps> = ({
@@ -29,7 +31,8 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
   onPublishAssignment,
   onCopyAssignment,
   canEdit,
-  canPublishTasks
+  canPublishTasks,
+  cars = []
 }) => {
   const { t } = useTranslation();
   
@@ -55,6 +58,7 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
             onCopyAssignment={onCopyAssignment}
             canEdit={canEdit}
             canPublishTasks={canPublishTasks}
+            cars={cars}
           />
         ))}
       </div>

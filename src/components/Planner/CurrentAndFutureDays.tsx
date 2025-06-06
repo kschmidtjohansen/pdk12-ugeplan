@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Assignment } from '@/types/assignment';
+import { Car } from '@/types/car';
 import DaySection from './DaySection';
 
 interface CurrentAndFutureDaysProps {
@@ -15,6 +16,7 @@ interface CurrentAndFutureDaysProps {
   onCopyAssignment?: (assignment: Assignment) => void;
   canEdit: boolean;
   canPublishTasks: boolean;
+  cars?: Car[];
 }
 
 const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
@@ -28,7 +30,8 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
   onPublishAssignment,
   onCopyAssignment,
   canEdit,
-  canPublishTasks
+  canPublishTasks,
+  cars = []
 }) => {
   if (dates.length === 0) return null;
   
@@ -48,6 +51,7 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
           onCopyAssignment={onCopyAssignment}
           canEdit={canEdit}
           canPublishTasks={canPublishTasks}
+          cars={cars}
         />
       ))}
     </div>
