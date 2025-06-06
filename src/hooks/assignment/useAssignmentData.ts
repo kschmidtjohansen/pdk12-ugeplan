@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -32,6 +31,7 @@ export const useAssignmentData = () => {
           to_time,
           location,
           car_id,
+          car_ids,
           published,
           responsible_user_id,
           created_at,
@@ -104,6 +104,25 @@ export const useAssignmentData = () => {
             }
           });
           
+          // Handle multiple cars - prioritize new car_ids format
+          let carData = null;
+          let carsArray: string[] = [];
+          
+          if (assignment.car_ids && Array.isArray(assignment.car_ids) && assignment.car_ids.length > 0) {
+            // New format: multiple cars
+            carsArray = assignment.car_ids;
+            // For backward compatibility, set car to the first car in the array
+            if (assignment.cars) {
+              carData = { id: assignment.cars.id, name: assignment.cars.name };
+            }
+          } else if (assignment.car_id) {
+            // Old format: single car, convert to array
+            carsArray = [assignment.car_id];
+            if (assignment.cars) {
+              carData = { id: assignment.cars.id, name: assignment.cars.name };
+            }
+          }
+          
           const processedAssignment: Assignment = {
             id: assignment.id,
             title: assignment.title,
@@ -112,10 +131,8 @@ export const useAssignmentData = () => {
             fromTime: assignment.from_time,
             toTime: assignment.to_time,
             location: assignment.location,
-            car: assignment.cars ? {
-              id: assignment.cars.id,
-              name: assignment.cars.name
-            } : null,
+            car: carData, // Keep for backward compatibility
+            cars: carsArray, // New field for multiple cars
             employees: assignmentEmployeeNames,
             published: assignment.published || false,
             responsibleUser: assignment.responsible_user ? {
