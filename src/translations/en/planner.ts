@@ -68,7 +68,6 @@ const planner = {
   onAnotherAssignmentUntil: "On another assignment until {time}",
   fullyBooked: "Fully booked",
   availableAfter: "Available after {time}",
-  bookedUntil: "Booked until {time}",
   copy: "Copy",
   copyAssignment: "Copy Assignment",
   assignmentCopied: "Assignment copied",
@@ -96,9 +95,7 @@ const planner = {
   responsibleUser: "Responsible User",
   selectResponsibleUser: "Select responsible user",
   noResponsibleUser: "No responsible user",
-  // Car availability status
   available: "Available",
-  // Assignment types
   assignmentTypes: {
     ordinary_damage: "Ordinary damage",
     flood_damage: "Water damage", 
