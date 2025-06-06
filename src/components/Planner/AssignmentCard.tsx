@@ -2,12 +2,14 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Assignment } from '../../types/assignment';
+import { Car } from '../../types/car';
 import AssignmentStatusBadge from './AssignmentStatusBadge';
 import AssignmentActionButtons from './AssignmentActionButtons';
 import AssignmentDetails from './AssignmentDetails';
 
 interface AssignmentCardProps {
   assignment: Assignment;
+  cars: Car[];
   canEdit: boolean;
   onEdit: (assignment: Assignment) => void;
   onDelete: () => void;
@@ -17,6 +19,7 @@ interface AssignmentCardProps {
 
 const AssignmentCard: React.FC<AssignmentCardProps> = ({
   assignment,
+  cars,
   canEdit,
   onEdit,
   onDelete,
@@ -62,7 +65,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       
       <p className="text-gray-600 mb-3">{assignment.description}</p>
       
-      <AssignmentDetails assignment={assignment} />
+      <AssignmentDetails assignment={assignment} cars={cars} />
     </Card>
   );
 };

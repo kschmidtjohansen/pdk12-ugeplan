@@ -54,6 +54,17 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
   // Count how many cars are selected
   const selectedCount = selectedCarIds.length;
 
+  // Get button display text
+  const getButtonText = () => {
+    if (selectedCount === 0) {
+      return t('planner.selectCars');
+    } else if (selectedCount === 1) {
+      return selectedCars[0]?.name || t('planner.selectCars');
+    } else {
+      return t('planner.carsSelected', { count: selectedCount });
+    }
+  };
+
   console.log('[MultipleCarSelector] Cars:', cars.length);
   console.log('[MultipleCarSelector] Selected car IDs:', selectedCarIds);
   console.log('[MultipleCarSelector] Current date:', currentDate);
@@ -90,10 +101,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
             className="w-full justify-start text-left font-normal"
           >
             <Car className="mr-2 h-4 w-4" />
-            {selectedCount === 0 
-              ? t('planner.selectCars')
-              : t('planner.carsSelected', { count: selectedCount })
-            }
+            {getButtonText()}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-80 p-0">
@@ -123,18 +131,26 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                         !isAvailable && !isSelected ? 'text-gray-400' : ''
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <Car className="h-4 w-4" />
-                        <span className="font-medium">{car.name}</span>
-                        {car.car_number && (
-                          <span className="text-gray-500">({car.car_number})</span>
-                        )}
-                      </div>
-                      {!isAvailable && !isSelected && (
-                        <div className="text-xs text-red-500 mt-1">
-                          {t('planner.carNotAvailable')}
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                          <Car className="h-4 w-4" />
+                          <span className="font-medium">{car.name}</span>
+                          {car.car_number && (
+                            <span className="text-gray-500">({car.car_number})</span>
+                          )}
                         </div>
-                      )}
+                        <div className="flex gap-1">
+                          {isAvailable ? (
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                              {t('planner.available')}
+                            </Badge>
+                          ) : !isSelected && (
+                            <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                              {t('planner.carNotAvailable')}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </label>
                   </div>
                 );

@@ -12,7 +12,11 @@ const planner = {
   startTime: "Starttidspunkt",
   endTime: "Sluttidspunkt",
   selectCar: "Vælg bil",
+  selectCars: "Vælg biler",
+  carsSelected: "{count} biler valgt",
+  carNotAvailable: "Bil ikke tilgængelig",
   car: "Bil",
+  cars: "Biler",
   employees: "Servicemedarbejdere",
   description: "Beskrivelse",
   notes: "Noter",
@@ -94,6 +98,9 @@ const planner = {
   responsibleUser: "Sagsansvarlig",
   selectResponsibleUser: "Vælg sagsansvarlig",
   noResponsibleUser: "Ingen sagsansvarlig",
+  // Car availability status
+  available: "Tilgængelig",
+  carNotAvailable: "Bil ikke tilgængelig",
   // Assignment types
   assignmentTypes: {
     ordinary_damage: "Almindelig skade",

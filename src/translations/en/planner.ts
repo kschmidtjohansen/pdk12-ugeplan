@@ -12,7 +12,11 @@ const planner = {
   startTime: "Start Time",
   endTime: "End Time",
   selectCar: "Select Car",
+  selectCars: "Select Cars",
+  carsSelected: "{count} cars selected",
+  carNotAvailable: "Car not available",
   car: "Car",
+  cars: "Cars",
   employees: "Employees",
   description: "Description",
   notes: "Notes",
@@ -90,6 +94,8 @@ const planner = {
   responsibleUser: "Responsible User",
   selectResponsibleUser: "Select responsible user",
   noResponsibleUser: "No responsible user",
+  // Car availability status
+  available: "Available",
   // Assignment types
   assignmentTypes: {
     ordinary_damage: "Ordinary damage",
