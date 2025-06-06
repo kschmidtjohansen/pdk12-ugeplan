@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -132,7 +133,7 @@ export const useAssignmentData = () => {
             toTime: assignment.to_time,
             location: assignment.location,
             car: carData, // Keep for backward compatibility
-            cars: carsArray, // New field for multiple cars
+            cars: carsArray, // New field for multiple cars - this was missing!
             employees: assignmentEmployeeNames,
             published: assignment.published || false,
             responsibleUser: assignment.responsible_user ? {
