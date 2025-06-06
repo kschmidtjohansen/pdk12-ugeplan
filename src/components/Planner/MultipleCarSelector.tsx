@@ -49,7 +49,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       return { isAvailable: true };
     }
     
-    // Find the latest end time
+    // Find the latest end time and format it to HH:MM
     let latestEndTime = '';
     carAssignments.forEach(assignment => {
       if (assignment.toTime > latestEndTime) {
@@ -59,7 +59,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     
     return { 
       isAvailable: false, 
-      endTime: latestEndTime 
+      endTime: latestEndTime ? latestEndTime.substring(0, 5) : undefined
     };
   };
 
@@ -124,59 +124,61 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         <PopoverContent className="w-80 p-0 z-50 bg-white border shadow-md">
           <div className="p-3">
             <h4 className="font-medium mb-3">{t('planner.selectCars')}</h4>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {cars.map((car) => {
-                const isSelected = selectedCarIds.includes(car.id);
-                const bookingStatus = getCarBookingStatus(car.id);
-                const isAvailable = car.is_available && bookingStatus.isAvailable;
-                
-                return (
-                  <div
-                    key={car.id}
-                    className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50 cursor-pointer"
-                    onClick={() => (isAvailable || isSelected) && onCarToggle(car.id)}
-                  >
-                    <input
-                      type="checkbox"
-                      id={`car-${car.id}`}
-                      checked={isSelected}
-                      onChange={() => (isAvailable || isSelected) && onCarToggle(car.id)}
-                      disabled={!isAvailable && !isSelected}
-                      className="rounded border-gray-300"
-                    />
-                    <label
-                      htmlFor={`car-${car.id}`}
-                      className={`flex-1 text-sm cursor-pointer ${
-                        !isAvailable && !isSelected ? 'text-gray-400' : ''
-                      }`}
+            <div className="space-y-2 max-h-60 overflow-y-auto overscroll-contain">
+              <div className="pr-2"> {/* Add padding to prevent scrollbar overlap */}
+                {cars.map((car) => {
+                  const isSelected = selectedCarIds.includes(car.id);
+                  const bookingStatus = getCarBookingStatus(car.id);
+                  const isAvailable = car.is_available && bookingStatus.isAvailable;
+                  
+                  return (
+                    <div
+                      key={car.id}
+                      className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50 cursor-pointer"
+                      onClick={() => (isAvailable || isSelected) && onCarToggle(car.id)}
                     >
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center gap-2">
-                          <Car className="h-4 w-4" />
-                          <span className="font-medium">{car.name}</span>
-                          {car.car_number && (
-                            <span className="text-gray-500">({car.car_number})</span>
-                          )}
+                      <input
+                        type="checkbox"
+                        id={`car-${car.id}`}
+                        checked={isSelected}
+                        onChange={() => (isAvailable || isSelected) && onCarToggle(car.id)}
+                        disabled={!isAvailable && !isSelected}
+                        className="rounded border-gray-300"
+                      />
+                      <label
+                        htmlFor={`car-${car.id}`}
+                        className={`flex-1 text-sm cursor-pointer ${
+                          !isAvailable && !isSelected ? 'text-gray-400' : ''
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-2">
+                            <Car className="h-4 w-4" />
+                            <span className="font-medium">{car.name}</span>
+                            {car.car_number && (
+                              <span className="text-gray-500">({car.car_number})</span>
+                            )}
+                          </div>
+                          <div className="flex gap-1">
+                            {isAvailable ? (
+                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                                {t('planner.available')}
+                              </Badge>
+                            ) : !isSelected && (
+                              <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                                {bookingStatus.endTime 
+                                  ? t('planner.bookedUntil', { time: bookingStatus.endTime })
+                                  : t('planner.carNotAvailable')
+                                }
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex gap-1">
-                          {isAvailable ? (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                              {t('planner.available')}
-                            </Badge>
-                          ) : !isSelected && (
-                            <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
-                              {bookingStatus.endTime 
-                                ? t('planner.bookedUntil', { time: bookingStatus.endTime })
-                                : t('planner.carNotAvailable')
-                              }
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-                );
-              })}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </PopoverContent>
