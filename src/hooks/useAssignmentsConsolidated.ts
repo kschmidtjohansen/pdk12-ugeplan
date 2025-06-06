@@ -46,6 +46,7 @@ export const useAssignmentsConsolidated = ({
           to_time,
           location,
           car_id,
+          car_ids,
           published,
           responsible_user_id,
           created_at,
@@ -109,6 +110,35 @@ export const useAssignmentsConsolidated = ({
             profilesData = profiles || [];
           }
         }
+
+        // Get car data for multiple cars
+        const allCarIds = new Set<string>();
+        assignmentsData.forEach(assignment => {
+          // Add car_ids (new format)
+          if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
+            assignment.car_ids.forEach((carId: string) => allCarIds.add(carId));
+          }
+          // Add car_id (old format for backward compatibility)
+          if (assignment.car_id) {
+            allCarIds.add(assignment.car_id);
+          }
+        });
+
+        let carsData: any[] = [];
+        if (allCarIds.size > 0) {
+          const { data: cars, error: carsError } = await supabase
+            .from('cars')
+            .select('id, name, car_number')
+            .in('id', Array.from(allCarIds));
+          
+          if (carsError) {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('[useAssignmentsConsolidated] Error fetching cars for assignments:', carsError);
+            }
+          } else {
+            carsData = cars || [];
+          }
+        }
         
         // Process and combine the data
         const processedAssignments = assignmentsData.map(assignment => {
@@ -128,6 +158,28 @@ export const useAssignmentsConsolidated = ({
               console.warn('[useAssignmentsConsolidated] Invalid employee name for user:', userId, profile);
             }
           });
+
+          // Handle multiple cars - prioritize new car_ids format
+          let carData = null;
+          let carsArray: string[] = [];
+          
+          if (assignment.car_ids && Array.isArray(assignment.car_ids) && assignment.car_ids.length > 0) {
+            // New format: multiple cars
+            carsArray = assignment.car_ids;
+            // For backward compatibility, set car to the first car in the array
+            const firstCarId = assignment.car_ids[0];
+            const firstCar = carsData.find(c => c.id === firstCarId);
+            if (firstCar) {
+              carData = { id: firstCar.id, name: firstCar.name };
+            }
+          } else if (assignment.car_id) {
+            // Old format: single car, convert to array
+            carsArray = [assignment.car_id];
+            const car = carsData.find(c => c.id === assignment.car_id);
+            if (car) {
+              carData = { id: car.id, name: car.name };
+            }
+          }
           
           const processedAssignment: Assignment = {
             id: assignment.id,
@@ -137,10 +189,8 @@ export const useAssignmentsConsolidated = ({
             fromTime: assignment.from_time,
             toTime: assignment.to_time,
             location: assignment.location,
-            car: assignment.cars ? {
-              id: assignment.cars.id,
-              name: assignment.cars.name
-            } : null,
+            car: carData, // Keep for backward compatibility
+            cars: carsArray, // New field for multiple cars
             employees: assignmentEmployeeNames,
             published: assignment.published || false,
             responsibleUser: assignment.responsible_user ? {
@@ -154,6 +204,7 @@ export const useAssignmentsConsolidated = ({
               id: processedAssignment.id,
               title: processedAssignment.title,
               car: processedAssignment.car,
+              cars: processedAssignment.cars,
               responsibleUser: processedAssignment.responsibleUser,
               employees: processedAssignment.employees
             });
@@ -198,13 +249,22 @@ export const useAssignmentsConsolidated = ({
 
       console.log("Creating assignment with data:", assignmentData);
       
-      // Format car information for storage
+      // Format car information for storage - handle both single car and multiple cars
       let carId = null;
-      if (assignmentData.car) {
+      let carIds: string[] = [];
+      
+      if (assignmentData.cars && Array.isArray(assignmentData.cars) && assignmentData.cars.length > 0) {
+        // New format: multiple cars
+        carIds = assignmentData.cars;
+        carId = assignmentData.cars[0]; // Set first car as primary for backward compatibility
+      } else if (assignmentData.car) {
+        // Fallback: single car format
         if (typeof assignmentData.car === 'string') {
           carId = assignmentData.car;
+          carIds = [assignmentData.car];
         } else if (typeof assignmentData.car === 'object') {
           carId = assignmentData.car.id;
+          carIds = [assignmentData.car.id];
         }
       }
 
@@ -228,7 +288,8 @@ export const useAssignmentsConsolidated = ({
           assignment_date: assignmentData.date,
           from_time: assignmentData.fromTime,
           to_time: assignmentData.toTime,
-          car_id: carId,
+          car_id: carId, // Keep for backward compatibility
+          car_ids: carIds.length > 0 ? carIds : null, // New field for multiple cars
           responsible_user_id: responsibleUserId,
           published: assignmentData.published || false,
           created_at: new Date().toISOString()
@@ -308,13 +369,22 @@ export const useAssignmentsConsolidated = ({
     try {
       console.log("Updating assignment with data:", assignmentData);
       
-      // Format car information for storage
+      // Format car information for storage - handle both single car and multiple cars
       let carId = null;
-      if (assignmentData.car) {
+      let carIds: string[] = [];
+      
+      if (assignmentData.cars && Array.isArray(assignmentData.cars) && assignmentData.cars.length > 0) {
+        // New format: multiple cars
+        carIds = assignmentData.cars;
+        carId = assignmentData.cars[0]; // Set first car as primary for backward compatibility
+      } else if (assignmentData.car) {
+        // Fallback: single car format
         if (typeof assignmentData.car === 'string') {
           carId = assignmentData.car;
+          carIds = [assignmentData.car];
         } else if (typeof assignmentData.car === 'object') {
           carId = assignmentData.car.id;
+          carIds = [assignmentData.car.id];
         }
       }
 
@@ -338,7 +408,8 @@ export const useAssignmentsConsolidated = ({
           assignment_date: assignmentData.date,
           from_time: assignmentData.fromTime,
           to_time: assignmentData.toTime,
-          car_id: carId,
+          car_id: carId, // Keep for backward compatibility
+          car_ids: carIds.length > 0 ? carIds : null, // New field for multiple cars
           responsible_user_id: responsibleUserId,
           published: assignmentData.published,
           updated_at: new Date().toISOString()

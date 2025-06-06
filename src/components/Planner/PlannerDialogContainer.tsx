@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { useVacations } from '@/hooks/useVacations';
@@ -47,7 +48,7 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   // Track selected employees separately for better UI state management
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   
-  // FIXED: Ensure we update formData.date with current date when dialog opens AND properly handle car/responsible user conversion
+  // Update form data when dialog opens and properly handle car/responsible user conversion
   useEffect(() => {
     if (isDialogOpen) {
       console.log('[PlannerDialogContainer] Dialog opened, current assignment:', currentAssignment);
@@ -57,23 +58,28 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
         console.log('[PlannerDialogContainer] Creating new assignment, updating form date:', currentDate);
         setFormData(prev => ({
           ...prev,
-          date: currentDate
+          date: currentDate,
+          cars: [] // Initialize with empty cars array
         }));
       } else {
-        // FIXED: Editing existing assignment - properly convert car and responsible user objects to IDs
+        // Editing existing assignment - properly convert car and responsible user objects to IDs
         console.log('[PlannerDialogContainer] Editing existing assignment, converting data...');
         
-        // Convert car object to car ID string
-        let carId = '';
-        if (currentAssignment.car) {
+        // Convert cars: handle both old single car format and new multiple cars format
+        let carsArray: string[] = [];
+        if (currentAssignment.cars && Array.isArray(currentAssignment.cars)) {
+          // New format: already an array of car IDs
+          carsArray = currentAssignment.cars;
+        } else if (currentAssignment.car) {
+          // Old format: single car, convert to array
           if (typeof currentAssignment.car === 'string') {
-            carId = currentAssignment.car;
+            carsArray = [currentAssignment.car];
           } else if (typeof currentAssignment.car === 'object' && currentAssignment.car.id) {
-            carId = currentAssignment.car.id;
+            carsArray = [currentAssignment.car.id];
           }
         }
         
-        console.log('[PlannerDialogContainer] Converted car ID:', carId);
+        console.log('[PlannerDialogContainer] Converted cars array:', carsArray);
         console.log('[PlannerDialogContainer] Responsible user:', currentAssignment.responsibleUser);
         
         setFormData({
@@ -83,7 +89,7 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
           fromTime: currentAssignment.fromTime,
           toTime: currentAssignment.toTime,
           location: currentAssignment.location || '',
-          car: carId,
+          cars: carsArray, // Use the converted cars array
           responsibleUser: currentAssignment.responsibleUser,
           employees: currentAssignment.employees || []
         });
@@ -107,6 +113,7 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
       console.log("[PlannerDialogContainer] Selected Day:", selectedDay || todayDate);
       console.log("[PlannerDialogContainer] Current Date Used:", currentDate);
       console.log("[PlannerDialogContainer] Selected Employees:", validEmployeeNames);
+      console.log("[PlannerDialogContainer] Selected Cars:", formData.cars);
     } else {
       setSelectedEmployees([]);
     }
@@ -117,15 +124,18 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (name: string, value: string) => {
-    console.log(`[PlannerDialogContainer] handleSelectChange: ${name} = ${value}`);
+  const handleSelectChange = (name: string, value: string | string[]) => {
+    console.log(`[PlannerDialogContainer] handleSelectChange: ${name} =`, value);
     
     // Handle responsible user field mapping
     if (name === 'responsibleUserId') {
       setFormData(prev => ({ 
         ...prev, 
-        responsibleUser: value ? { id: value, name: '' } : undefined 
+        responsibleUser: value ? { id: value as string, name: '' } : undefined 
       }));
+    } else if (name === 'cars') {
+      // Handle multiple cars selection
+      setFormData(prev => ({ ...prev, cars: value as string[] }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -197,8 +207,8 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
         handleEmployeeToggle={handleEmployeeToggle}
         handleSubmit={handleFormSubmit}
         onClose={handleCloseDialog}
-        currentDate={formData.date || currentDate} // Ensure we prioritize the form's date, then selectedDay, then today
-        assignments={otherAssignments} // Pass the filtered assignments
+        currentDate={formData.date || currentDate}
+        assignments={otherAssignments}
       />
     </Dialog>
   );

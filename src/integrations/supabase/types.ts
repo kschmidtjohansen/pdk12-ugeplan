@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           assignment_date: string
           car_id: string | null
+          car_ids: string[] | null
           created_at: string
           description: string | null
           from_time: string
@@ -28,6 +29,7 @@ export type Database = {
         Insert: {
           assignment_date: string
           car_id?: string | null
+          car_ids?: string[] | null
           created_at?: string
           description?: string | null
           from_time: string
@@ -43,6 +45,7 @@ export type Database = {
         Update: {
           assignment_date?: string
           car_id?: string | null
+          car_ids?: string[] | null
           created_at?: string
           description?: string | null
           from_time?: string
