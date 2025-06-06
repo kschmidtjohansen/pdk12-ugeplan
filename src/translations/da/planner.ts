@@ -100,7 +100,6 @@ const planner = {
   noResponsibleUser: "Ingen sagsansvarlig",
   // Car availability status
   available: "Tilgængelig",
-  carNotAvailable: "Bil ikke tilgængelig",
   // Assignment types
   assignmentTypes: {
     ordinary_damage: "Almindelig skade",

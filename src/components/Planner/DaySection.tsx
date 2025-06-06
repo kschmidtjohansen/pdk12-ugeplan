@@ -2,6 +2,7 @@
 import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
+import { Car } from '@/types/car';
 import { formatDateWithCapital, getDateStatus } from '@/utils/dateUtils';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
@@ -19,6 +20,7 @@ interface DaySectionProps {
   onCopyAssignment?: (assignment: Assignment) => void;
   canEdit: boolean;
   canPublishTasks: boolean;
+  cars?: Car[];
 }
 
 const DaySection: React.FC<DaySectionProps> = ({
@@ -32,7 +34,8 @@ const DaySection: React.FC<DaySectionProps> = ({
   onPublishAssignment,
   onCopyAssignment,
   canEdit,
-  canPublishTasks
+  canPublishTasks,
+  cars = []
 }) => {
   const { t, currentLanguage } = useTranslation();
   
@@ -86,6 +89,7 @@ const DaySection: React.FC<DaySectionProps> = ({
               <AssignmentCard
                 key={assignment.id}
                 assignment={assignment}
+                cars={cars}
                 canEdit={canEdit}
                 onEdit={() => onEditAssignment(assignment)}
                 onDelete={() => onDeleteAssignment(assignment.id)}
