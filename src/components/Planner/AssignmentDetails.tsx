@@ -58,16 +58,22 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
     <div className="grid grid-cols-2 gap-4 text-sm">
       {/* Left Column */}
       <div className="space-y-3">
-        {/* Time */}
-        <div className="flex items-center gap-2 text-gray-600">
-          <Clock className="h-4 w-4" />
-          <span>{assignment.fromTime} - {assignment.toTime}</span>
+        {/* Time - styled to match dashboard */}
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 rounded-lg bg-green-50 border border-green-200">
+            <Clock className="h-3.5 w-3.5 text-green-600" />
+          </div>
+          <span className="text-foreground font-medium text-sm">
+            {assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}
+          </span>
         </div>
 
-        {/* Cars */}
+        {/* Cars - styled to match dashboard */}
         {carNames.length > 0 && (
-          <div className="flex items-center gap-2 text-gray-600">
-            <Car className="h-4 w-4" />
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-200">
+              <Car className="h-3.5 w-3.5 text-blue-600" />
+            </div>
             <div className="flex flex-wrap gap-1">
               {carNames.map((carName, index) => (
                 <Badge key={index} variant="outline" className="text-xs">
@@ -81,18 +87,24 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
 
       {/* Right Column */}
       <div className="space-y-3">
-        {/* Responsible User */}
+        {/* Responsible User - styled to match dashboard */}
         {assignment.responsibleUser && (
-          <div className="flex items-center gap-2 text-gray-600">
-            <UserCheck className="h-4 w-4" />
-            <span>{assignment.responsibleUser.name}</span>
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
+              <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
+            </div>
+            <span className="text-foreground font-medium text-sm">
+              {assignment.responsibleUser.name}
+            </span>
           </div>
         )}
 
-        {/* Employees */}
+        {/* Employees - styled to match dashboard */}
         {assignment.employees && assignment.employees.length > 0 && (
-          <div className="flex items-center gap-2 text-gray-600">
-            <Users className="h-4 w-4" />
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
+              <Users className="h-3.5 w-3.5 text-purple-600" />
+            </div>
             <div className="flex flex-wrap gap-1">
               {assignment.employees.map((employee, index) => (
                 <Badge key={index} variant="secondary" className="text-xs">
