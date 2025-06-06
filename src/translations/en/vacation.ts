@@ -1,12 +1,19 @@
+
 const vacation = {
   title: "Vacation",
   pageDescription: "Request and manage your vacations",
   requestVacation: "Request Vacation",
   requestVacationAdmin: "Request Vacation for Employee",
   vacationRequest: "Vacation Request",
+  editVacationRequest: "Edit Vacation Request",
+  deleteVacationRequest: "Delete Vacation Request",
   vacationDetails: "Vacation Details",
   employee: "Employee",
   date: "Date",
+  dateRange: "Date Range",
+  from: "From",
+  to: "To",
+  requestedOn: "Requested on",
   reason: "Reason",
   notes: "Notes",
   status: "Status",
@@ -17,6 +24,7 @@ const vacation = {
   all: "All",
   mine: "Mine",
   submit: "Submit",
+  update: "Update",
   cancel: "Cancel",
   close: "Close",
   edit: "Edit",
@@ -25,9 +33,12 @@ const vacation = {
   reject: "Reject",
   requestSuccess: "Request submitted successfully",
   requestError: "Failed to submit request",
-  fetchError: "Failed to fetch vacations",
+  updateSuccess: "Vacation request updated",
   updateError: "Failed to update vacation",
+  deleteSuccess: "Vacation request deleted",
   deleteError: "Failed to delete vacation",
+  fetchError: "Failed to fetch vacations",
+  noVacations: "No vacation requests found",
   confirmDelete: "Are you sure you want to delete this vacation request?",
   deleteWarning: "This action cannot be undone.",
   requestApproved: "Request Approved",
@@ -35,13 +46,21 @@ const vacation = {
   requestRejected: "Request Rejected",
   requestRejectedMsg: "Vacation request for {name} has been rejected",
   vacationStatusChanged: "Vacation Status Changed",
+  vacationApproved: "Vacation Approved",
   yourRequestApproved: "Your vacation request has been approved",
-  yourRequestRejected: "Your vacation request has been rejected",
+  yourRequestRejected: "Your vacation request has been rejected with reason: {reason}",
   newVacationRequest: "New Vacation Request",
   newVacationRequestActionRequired: "New vacation request from {name} from {from} to {to} requires your attention",
   cleanupComplete: "Cleanup Complete",
   cleanupCompleteDescription: "Outdated vacation requests have been cleaned up",
   days: "days",
+  // Tab names
+  tabs: {
+    all: "All",
+    pending: "Pending",
+    approved: "Approved",
+    rejected: "Rejected"
+  }
 };
 
 export default vacation;

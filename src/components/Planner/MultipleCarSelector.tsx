@@ -2,7 +2,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { X, Car } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
@@ -81,10 +80,6 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     }
   };
 
-  console.log('[MultipleCarSelector] Cars:', cars.length);
-  console.log('[MultipleCarSelector] Selected car IDs:', selectedCarIds);
-  console.log('[MultipleCarSelector] Current date:', currentDate);
-
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium">{t('planner.cars')}</label>
@@ -128,72 +123,70 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
             <h4 className="font-medium text-sm">{t('planner.selectCars')}</h4>
           </div>
           
-          {/* Scrollable content area */}
-          <div className="relative">
-            <ScrollArea className="h-64 w-full">
-              <div className="p-3 space-y-1">
-                {cars.map((car) => {
-                  const isSelected = selectedCarIds.includes(car.id);
-                  const bookingStatus = getCarBookingStatus(car.id);
-                  const isGenerallyAvailable = car.is_available;
-                  const isBookingAvailable = bookingStatus.isAvailable;
-                  const canSelect = isGenerallyAvailable && isBookingAvailable;
-                  
-                  return (
-                    <div
-                      key={car.id}
-                      className={`flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-200 ${
-                        !canSelect && !isSelected ? 'opacity-60' : ''
+          {/* Scrollable cars list using native scrolling */}
+          <div className="max-h-64 overflow-y-auto">
+            <div className="p-3 space-y-1">
+              {cars.map((car) => {
+                const isSelected = selectedCarIds.includes(car.id);
+                const bookingStatus = getCarBookingStatus(car.id);
+                const isGenerallyAvailable = car.is_available;
+                const isBookingAvailable = bookingStatus.isAvailable;
+                const canSelect = isGenerallyAvailable && isBookingAvailable;
+                
+                return (
+                  <div
+                    key={car.id}
+                    className={`flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-200 ${
+                      !canSelect && !isSelected ? 'opacity-60' : ''
+                    }`}
+                    onClick={() => (canSelect || isSelected) && onCarToggle(car.id)}
+                  >
+                    <input
+                      type="checkbox"
+                      id={`car-${car.id}`}
+                      checked={isSelected}
+                      onChange={() => (canSelect || isSelected) && onCarToggle(car.id)}
+                      disabled={!canSelect && !isSelected}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor={`car-${car.id}`}
+                      className={`flex-1 text-sm cursor-pointer ${
+                        !canSelect && !isSelected ? 'text-gray-400' : ''
                       }`}
-                      onClick={() => (canSelect || isSelected) && onCarToggle(car.id)}
                     >
-                      <input
-                        type="checkbox"
-                        id={`car-${car.id}`}
-                        checked={isSelected}
-                        onChange={() => (canSelect || isSelected) && onCarToggle(car.id)}
-                        disabled={!canSelect && !isSelected}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <label
-                        htmlFor={`car-${car.id}`}
-                        className={`flex-1 text-sm cursor-pointer ${
-                          !canSelect && !isSelected ? 'text-gray-400' : ''
-                        }`}
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
-                            <Car className="h-4 w-4 flex-shrink-0" />
-                            <span className="font-medium truncate">{car.name}</span>
-                            {car.car_number && (
-                              <span className="text-gray-500 text-xs">({car.car_number})</span>
-                            )}
-                          </div>
-                          <div className="flex gap-1 flex-shrink-0 ml-2">
-                            {!isGenerallyAvailable ? (
-                              <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
-                                {t('planner.unavailable')}
-                              </Badge>
-                            ) : canSelect ? (
-                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                                {t('planner.available')}
-                              </Badge>
-                            ) : !isSelected && (
-                              <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
-                                {bookingStatus.endTime 
-                                  ? t('planner.bookedUntil', { time: bookingStatus.endTime })
-                                  : t('planner.carNotAvailable')
-                                }
-                              </Badge>
-                            )}
-                          </div>
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <Car className="h-4 w-4 flex-shrink-0" />
+                          <span className="font-medium truncate">{car.name}</span>
+                          {car.car_number && (
+                            <span className="text-gray-500 text-xs">({car.car_number})</span>
+                          )}
                         </div>
-                      </label>
-                    </div>
-                  );
-                })}
-              </div>
-            </ScrollArea>
+                        <div className="flex gap-1 flex-shrink-0 ml-2">
+                          {!isGenerallyAvailable ? (
+                            <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
+                              {t('planner.unavailable')}
+                            </Badge>
+                          ) : canSelect ? (
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                              {t('planner.available')}
+                            </Badge>
+                          ) : !isSelected && (
+                            <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                              {bookingStatus.endTime 
+                                ? t('planner.bookedUntil', { time: bookingStatus.endTime })
+                                : t('planner.carNotAvailable')
+                              }
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </PopoverContent>
       </Popover>

@@ -1,11 +1,19 @@
+
 const vacation = {
   title: "Ferie",
   pageDescription: "Administrer dine ferieanmodninger her",
   requestVacation: "Anmod om ferie",
+  requestVacationAdmin: "Anmod om ferie for medarbejder",
   vacationRequest: "Ferieanmodning",
   editVacationRequest: "Rediger ferieanmodning",
   deleteVacationRequest: "Slet ferieanmodning",
+  vacationDetails: "Feriedetaljer",
+  employee: "Medarbejder",
   date: "Dato",
+  dateRange: "Datointerval",
+  from: "Fra",
+  to: "Til",
+  requestedOn: "Anmodet den",
   reason: "Årsag",
   notes: "Noter",
   status: "Status",
@@ -18,6 +26,7 @@ const vacation = {
   submit: "Indsend",
   update: "Opdater",
   cancel: "Annuller",
+  close: "Luk",
   delete: "Slet",
   approve: "Godkend",
   reject: "Afvis",
@@ -45,6 +54,13 @@ const vacation = {
   days: "dage",
   cleanupComplete: "Oprydning Fuldført",
   cleanupCompleteDescription: "Forældede ferieansøgninger er blevet ryddet op",
+  // Tab names
+  tabs: {
+    all: "Alle",
+    pending: "Afventende",
+    approved: "Godkendt",
+    rejected: "Afvist"
+  }
 };
 
 export default vacation;
