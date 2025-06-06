@@ -19,6 +19,7 @@ import VacationPage from './pages/VacationPage';
 import AdminPage from './pages/AdminPage';
 import ScreenDisplayPage from './pages/ScreenDisplayPage';
 import NotFound from './pages/NotFound';
+import VacationCleanupHandler from './components/Vacation/VacationCleanupHandler';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './App.css';
 
@@ -57,6 +58,8 @@ function App() {
                 <NotificationProvider>
                   <Router>
                     <div className="App">
+                      {/* Add the VacationCleanupHandler here so it runs in the background */}
+                      <VacationCleanupHandler />
                       <Routes>
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/password-reset" element={<PasswordResetPage />} />

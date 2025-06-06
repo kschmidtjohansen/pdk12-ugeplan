@@ -17,19 +17,19 @@ export const useVacationCleanup = () => {
   const cleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const cleaningUpRef = useRef(false);
 
-  // Function to perform the cleanup
+  // Function to perform the cleanup of rejected vacations
   const cleanupRejectedVacations = useCallback(async () => {
     if (cleaningUpRef.current || !user?.id) return;
     
     try {
       cleaningUpRef.current = true;
-      console.log('Checking for rejected vacation requests to clean up...');
+      console.log('Cleaning up rejected and expired vacation requests...');
       
-      // Call the database function to clean up rejected vacations
+      // Call the database function to clean up rejected and expired vacations
       const { data, error } = await supabase.rpc('delete_old_rejected_vacations');
       
       if (error) {
-        console.error('Error cleaning up rejected vacations:', error);
+        console.error('Error cleaning up vacation requests:', error);
         return;
       }
       
@@ -39,8 +39,40 @@ export const useVacationCleanup = () => {
       setLastCleanupDate(today);
       
       console.log('Vacation cleanup completed successfully');
+      
+      // Optionally show a toast notification for admins
+      if (user?.role === 'administrator') {
+        toast({
+          title: t('vacation.cleanupComplete'),
+          description: t('vacation.cleanupCompleteDescription'),
+        });
+      }
     } catch (err) {
       console.error('Error in vacation cleanup process:', err);
+    } finally {
+      cleaningUpRef.current = false;
+    }
+  }, [user?.id, user?.role, toast, t]);
+
+  // Function to clean up expired approved vacations
+  const cleanupExpiredVacations = useCallback(async () => {
+    if (cleaningUpRef.current || !user?.id) return;
+    
+    try {
+      cleaningUpRef.current = true;
+      console.log('Cleaning up expired approved vacation requests...');
+      
+      // Call the database function to clean up expired approved vacations
+      const { data, error } = await supabase.rpc('delete_expired_approved_vacations');
+      
+      if (error) {
+        console.error('Error cleaning up expired approved vacations:', error);
+        return;
+      }
+      
+      console.log('Expired vacation cleanup completed successfully');
+    } catch (err) {
+      console.error('Error in expired vacation cleanup process:', err);
     } finally {
       cleaningUpRef.current = false;
     }
@@ -64,11 +96,14 @@ export const useVacationCleanup = () => {
     console.log(`Scheduling next vacation cleanup in ${Math.floor(timeUntilNextCleanup / 1000 / 60 / 60)} hours and ${Math.floor((timeUntilNextCleanup / 1000 / 60) % 60)} minutes`);
     
     cleanupTimeoutRef.current = setTimeout(() => {
+      // Run both cleanup functions
       cleanupRejectedVacations();
+      cleanupExpiredVacations();
+      
       // Schedule the next cleanup after this one completes
       scheduleNextCleanup();
     }, timeUntilNextCleanup);
-  }, [cleanupRejectedVacations]);
+  }, [cleanupRejectedVacations, cleanupExpiredVacations]);
 
   // Clean up the timeout on component unmount
   useEffect(() => {
@@ -89,14 +124,16 @@ export const useVacationCleanup = () => {
     if (lastCleanupDate !== today && user.role === 'administrator') {
       console.log('Running initial vacation cleanup check');
       cleanupRejectedVacations();
+      cleanupExpiredVacations();
     }
     
     // Schedule the next cleanup
     scheduleNextCleanup();
-  }, [user, lastCleanupDate, cleanupRejectedVacations, scheduleNextCleanup]);
+  }, [user, lastCleanupDate, cleanupRejectedVacations, cleanupExpiredVacations, scheduleNextCleanup]);
   
   return {
     lastCleanupDate,
-    cleanupRejectedVacations
+    cleanupRejectedVacations,
+    cleanupExpiredVacations
   };
 };
