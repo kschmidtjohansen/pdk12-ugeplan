@@ -117,14 +117,30 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
             </div>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-80 p-0 z-[60] bg-white border shadow-lg" sideOffset={4}>
+        <PopoverContent 
+          className="w-80 p-0 z-[60] bg-white border shadow-lg" 
+          sideOffset={4}
+          onPointerDownOutside={(event) => {
+            // Allow scrolling without closing the popover
+            const target = event.target as Element;
+            if (target.closest('[data-radix-popper-content-wrapper]')) {
+              event.preventDefault();
+            }
+          }}
+        >
           {/* Header with padding */}
           <div className="p-3 pb-2 border-b border-gray-100">
             <h4 className="font-medium text-sm">{t('planner.selectCars')}</h4>
           </div>
           
           {/* Scrollable cars list using native scrolling */}
-          <div className="max-h-64 overflow-y-auto">
+          <div 
+            className="max-h-64 overflow-y-auto"
+            onWheel={(e) => {
+              // Prevent event from bubbling up to prevent popover from closing
+              e.stopPropagation();
+            }}
+          >
             <div className="p-3 space-y-1">
               {cars.map((car) => {
                 const isSelected = selectedCarIds.includes(car.id);

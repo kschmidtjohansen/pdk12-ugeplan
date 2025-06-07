@@ -54,6 +54,34 @@ const vacation = {
   cleanupComplete: "Cleanup Complete",
   cleanupCompleteDescription: "Outdated vacation requests have been cleaned up",
   days: "days",
+  
+  // New missing keys
+  applyForVacation: "Apply for Vacation",
+  requestForEmployee: "Request for Employee",
+  selectEmployee: "Select Employee",
+  selectEmployeeAndDates: "Select employee and date range for vacation request",
+  selectDatesAndReason: "Select your vacation dates and provide a reason",
+  reasonPlaceholder: "Enter reason for vacation request...",
+  submitRequest: "Submit Request",
+  noRequests: "No vacation requests found",
+  approveRequest: "Approve Request",
+  rejectRequest: "Reject Request",
+  approveRequestBtn: "Approve",
+  rejectRequestBtn: "Reject",
+  approveNoteDesc: "Add an optional note for approval",
+  rejectReasonDesc: "Please provide a reason for rejection",
+  rejectionReason: "Rejection Reason",
+  rejectionReasonPlaceholder: "Enter reason for rejection...",
+  noteOptional: "Note",
+  approveNotePlaceholder: "Add an optional note...",
+  
+  // Nested status keys for better organization
+  status: {
+    pending: "Pending",
+    approved: "Approved", 
+    rejected: "Rejected"
+  },
+  
   // Tab names
   tabs: {
     all: "All",

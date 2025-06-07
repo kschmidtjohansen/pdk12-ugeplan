@@ -54,6 +54,34 @@ const vacation = {
   days: "dage",
   cleanupComplete: "Oprydning Fuldført",
   cleanupCompleteDescription: "Forældede ferieansøgninger er blevet ryddet op",
+  
+  // New missing keys
+  applyForVacation: "Ansøg om ferie",
+  requestForEmployee: "Anmod for medarbejder",
+  selectEmployee: "Vælg medarbejder",
+  selectEmployeeAndDates: "Vælg medarbejder og datointerval for ferieanmodning",
+  selectDatesAndReason: "Vælg dine feriedatoer og angiv en årsag",
+  reasonPlaceholder: "Indtast årsag til ferieanmodning...",
+  submitRequest: "Indsend anmodning",
+  noRequests: "Ingen ferieanmodninger fundet",
+  approveRequest: "Godkend anmodning",
+  rejectRequest: "Afvis anmodning",
+  approveRequestBtn: "Godkend",
+  rejectRequestBtn: "Afvis",
+  approveNoteDesc: "Tilføj en valgfri note til godkendelsen",
+  rejectReasonDesc: "Angiv venligst en årsag til afvisningen",
+  rejectionReason: "Afvisningsårsag",
+  rejectionReasonPlaceholder: "Indtast årsag til afvisning...",
+  noteOptional: "Note",
+  approveNotePlaceholder: "Tilføj en valgfri note...",
+  
+  // Nested status keys for better organization
+  status: {
+    pending: "Afventende",
+    approved: "Godkendt",
+    rejected: "Afvist"
+  },
+  
   // Tab names
   tabs: {
     all: "Alle",
