@@ -1,4 +1,5 @@
 
+
 const vacation = {
   title: "Vacation",
   pageDescription: "Request and manage your vacations",
@@ -16,11 +17,7 @@ const vacation = {
   requestedOn: "Requested on",
   reason: "Reason",
   notes: "Notes",
-  status: "Status",
   actions: "Actions",
-  pending: "Pending",
-  approved: "Approved",
-  rejected: "Rejected",
   all: "All",
   mine: "Mine",
   submit: "Submit",
@@ -92,3 +89,4 @@ const vacation = {
 };
 
 export default vacation;
+

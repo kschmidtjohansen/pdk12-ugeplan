@@ -1,4 +1,5 @@
 
+
 const vacation = {
   title: "Ferie",
   pageDescription: "Administrer dine ferieanmodninger her",
@@ -16,11 +17,7 @@ const vacation = {
   requestedOn: "Anmodet den",
   reason: "Årsag",
   notes: "Noter",
-  status: "Status",
   actions: "Handlinger",
-  pending: "Afventer",
-  approved: "Godkendt",
-  rejected: "Afvist",
   all: "Alle",
   mine: "Mine",
   submit: "Indsend",
@@ -92,3 +89,4 @@ const vacation = {
 };
 
 export default vacation;
+
