@@ -236,6 +236,30 @@ export type Database = {
         }
         Relationships: []
       }
+      system_cleanup_tracking: {
+        Row: {
+          cleanup_type: string
+          created_at: string
+          id: string
+          last_run_date: string
+          updated_at: string
+        }
+        Insert: {
+          cleanup_type: string
+          created_at?: string
+          id?: string
+          last_run_date: string
+          updated_at?: string
+        }
+        Update: {
+          cleanup_type?: string
+          created_at?: string
+          id?: string
+          last_run_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
