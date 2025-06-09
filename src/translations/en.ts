@@ -11,6 +11,7 @@ import login from './en/login';
 import planner from './en/planner';
 import cars from './en/cars';
 import { admin } from './en/admin';
+import { auth } from './en/auth';
 
 const enTranslations = {
   // Common components
@@ -44,6 +45,8 @@ const enTranslations = {
   cars: cars,
   // Admin
   admin: admin,
+  // Auth
+  auth: auth,
 };
 
 export type EnTranslations = typeof enTranslations;

@@ -13,6 +13,7 @@ import vacation from './da/vacation';
 import cars from './da/cars';
 import deleteConfirm from './da/deleteConfirm';
 import { profile } from './da/profile';
+import { auth } from './da/auth';
 
 const daTranslations = {
   // Common components
@@ -50,6 +51,8 @@ const daTranslations = {
   deleteConfirm: deleteConfirm,
   // Profile
   profile: profile,
+  // Auth
+  auth: auth,
 };
 
 export type DaTranslations = typeof daTranslations;

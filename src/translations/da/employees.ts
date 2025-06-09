@@ -21,7 +21,8 @@ export const employees = {
   deleteError: 'Fejl ved sletning af medarbejder',
   createError: 'Fejl ved oprettelse af medarbejder',
   
-  // New error messages for better error handling
+  // RLS and database access errors
+  rlsError: 'Der opstod en adgangsfejl ved indlæsning af medarbejdere. Dette er blevet rapporteret og vil blive rettet snarest.',
   rlsErrorTitle: 'Adgangsfejl',
   rlsErrorDescription: 'Der opstod en adgangsfejl ved indlæsning af medarbejdere. Dette er blevet rapporteret og vil blive rettet snarest.',
   permissionErrorTitle: 'Ingen tilladelse',

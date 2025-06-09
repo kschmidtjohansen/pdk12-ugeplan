@@ -12,6 +12,7 @@ import admin from './admin';
 import { profile } from './profile';
 import accessDenied from './accessDenied';
 import deleteConfirm from './deleteConfirm';
+import { auth } from './auth';
 
 export const da = {
   common,
@@ -26,5 +27,6 @@ export const da = {
   admin,
   profile,
   accessDenied,
-  deleteConfirm
+  deleteConfirm,
+  auth
 };
