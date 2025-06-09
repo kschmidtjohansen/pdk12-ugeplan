@@ -5,6 +5,10 @@ export const employees = {
   addEmployee: 'Tilføj medarbejder',
   editEmployee: 'Rediger medarbejder',
   deleteEmployee: 'Slet medarbejder',
+  addNewEmployee: 'Tilføj ny medarbejder',
+  updateInfo: 'Opdater medarbejderinformation og adgang.',
+  createAccount: 'Opret en ny medarbejderkonto.',
+  fullName: 'Fulde navn',
   name: 'Navn',
   email: 'Email',
   phone: 'Telefon',
@@ -36,10 +40,24 @@ export const employees = {
   employeeDeleted: 'Medarbejder slettet',
   
   // Confirmation dialogs
+  deleteConfirm: 'Slet medarbejder',
   deleteConfirmTitle: 'Slet medarbejder',
   deleteConfirmMessage: 'Er du sikker på, at du vil slette denne medarbejder? Denne handling kan ikke fortrydes.',
+  deleteWarning: 'Er du sikker på, at du vil slette {name}? Denne handling kan ikke fortrydes.',
   markLeaveTitle: 'Marker som på orlov',
   markLeaveMessage: 'Marker denne medarbejder som værende på orlov?',
   markAvailableTitle: 'Marker som tilgængelig',
-  markAvailableMessage: 'Marker denne medarbejder som tilgængelig igen?'
+  markAvailableMessage: 'Marker denne medarbejder som tilgængelig igen?',
+  markOnLeaveTitle: 'Marker på orlov',
+  markOnLeaveDescription: 'Marker {name} som på orlov?',
+  markAvailableDescription: 'Marker {name} som tilgængelig igen?',
+  
+  // Notes and actions
+  notesPlaceholder: 'Tilføj noter om denne medarbejder...',
+  viewNotes: 'Se noter',
+  viewNotesOnly: 'Du kan se noter, men ikke redigere dem.',
+  markOnLeave: 'Marker på orlov',
+  markAvailable: 'Marker tilgængelig',
+  removeNote: 'Fjern note og marker tilgængelig',
+  keepNote: 'Behold note og marker tilgængelig'
 };

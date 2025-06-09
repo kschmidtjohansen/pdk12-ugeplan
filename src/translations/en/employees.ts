@@ -5,6 +5,10 @@ const employees = {
   addEmployee: 'Add Employee',
   editEmployee: 'Edit Employee',
   deleteEmployee: 'Delete Employee',
+  addNewEmployee: 'Add New Employee',
+  updateInfo: 'Update employee information and access.',
+  createAccount: 'Create a new employee account.',
+  fullName: 'Full Name',
   name: 'Name',
   email: 'Email',
   phone: 'Phone',
@@ -36,12 +40,26 @@ const employees = {
   employeeDeleted: 'Employee deleted',
   
   // Confirmation dialogs
+  deleteConfirm: 'Delete Employee',
   deleteConfirmTitle: 'Delete Employee',
   deleteConfirmMessage: 'Are you sure you want to delete this employee? This action cannot be undone.',
+  deleteWarning: 'Are you sure you want to delete {name}? This action cannot be undone.',
   markLeaveTitle: 'Mark as on leave',
   markLeaveMessage: 'Mark this employee as being on leave?',
   markAvailableTitle: 'Mark as available',
-  markAvailableMessage: 'Mark this employee as available again?'
+  markAvailableMessage: 'Mark this employee as available again?',
+  markOnLeaveTitle: 'Mark On Leave',
+  markOnLeaveDescription: 'Mark {name} as on leave?',
+  markAvailableDescription: 'Mark {name} as available again?',
+  
+  // Notes and actions
+  notesPlaceholder: 'Add notes about this employee...',
+  viewNotes: 'View notes',
+  viewNotesOnly: 'You can view notes but cannot edit them.',
+  markOnLeave: 'Mark on leave',
+  markAvailable: 'Mark available',
+  removeNote: 'Remove note and mark available',
+  keepNote: 'Keep note and mark available'
 };
 
 export default employees;

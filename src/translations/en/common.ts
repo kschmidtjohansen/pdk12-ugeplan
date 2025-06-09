@@ -23,6 +23,8 @@ export const common = {
   password: 'Password',
   retry: 'Retry',
   retrying: 'Retrying...',
+  add: 'Add',
+  remove: 'Remove',
   
   // Status messages
   success: 'Success',
@@ -83,10 +85,5 @@ export const common = {
   selectDate: 'Select date',
   
   yes: 'Yes',
-  no: 'No',
-  
-  // Session and authentication
-  sessionExpired: 'Your session has expired. Please log in again.',
-  sessionExpiredTitle: 'Session Expired',
-  sessionExpiredDescription: 'Your session has expired. Please log in again to continue.'
+  no: 'No'
 };

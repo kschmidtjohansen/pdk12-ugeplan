@@ -1,57 +1,84 @@
 
 export const admin = {
   title: 'Administration',
-  description: 'Administrer systemindstillinger og brugere',
-  userManagement: 'Brugerstyring',
-  users: 'Brugere',
-  createUser: 'Opret bruger',
-  editUser: 'Rediger bruger',
-  deleteUser: 'Slet bruger',
-  systemMetrics: 'Systemmetrikker',
-  
-  // User form
-  userForm: {
+  description: 'Systemadministration og indstillinger',
+  tabs: {
+    metrics: 'Metrikker',
+    users: 'Brugerstyring'
+  },
+  systemMetrics: {
+    totalUsers: 'Samlede brugere',
+    totalUsersDesc: '{count} aktive i dag',
+    vehicles: 'Køretøjer',
+    vehiclesDesc: '{count} i brug nu',
+    vacationRequests: 'Ferieansøgninger',
+    vacationRequestsDesc: 'afventer godkendelse',
+    scheduledTasks: 'Planlagte opgaver',
+    scheduledTasksDesc: 'Opgaver denne uge'
+  },
+  userManagement: {
+    title: 'Brugerstyring',
+    description: 'Administrer systembrugere og deres tilladelser',
+    addUser: 'Tilføj bruger',
     name: 'Navn',
     email: 'Email',
     role: 'Rolle',
-    password: 'Adgangskode',
-    confirmPassword: 'Bekræft adgangskode',
-    passwordsMustMatch: 'Adgangskoder skal være ens',
-    passwordMinLength: 'Adgangskoden skal være mindst 6 tegn',
-    emailRequired: 'Email er påkrævet',
-    nameRequired: 'Navn er påkrævet',
-    roleRequired: 'Rolle er påkrævet'
+    phone: 'Telefonnummer',
+    position: 'Stilling',
+    actions: 'Handlinger',
+    editUser: 'Rediger bruger',
+    addNewUser: 'Tilføj ny bruger',
+    updateInfo: 'Opdater brugerinformation og tilladelser.',
+    createAccount: 'Opret en ny brugerkonto.',
+    fullName: 'Fulde navn',
+    selectRole: 'Vælg en rolle',
+    userUpdated: 'Bruger opdateret',
+    userAdded: 'Bruger tilføjet',
+    userDeleted: 'Bruger slettet',
+    userUpdateMsg: '{name}s information er blevet opdateret.',
+    userAddedMsg: '{name} er blevet tilføjet som {role}.',
+    userDeletedMsg: '{name}s konto er blevet fjernet.',
+    deleteConfirm: 'Er du sikker?',
+    deleteWarning: 'Du er ved at slette {name}s konto. Denne handling kan ikke fortrydes.',
+    createSuccess: 'Bruger oprettet med succes',
+    updateSuccess: 'Bruger opdateret med succes',
+    createError: 'Fejl ved oprettelse af bruger',
+    updateError: 'Fejl ved opdatering af bruger',
+    deleteError: 'Fejl ved sletning af bruger',
+    fetchError: 'Fejl ved indlæsning af brugere',
+    confirmActivate: 'Aktiver {name}?',
+    confirmDeactivate: 'Deaktiver {name}?',
+    userActivatedMsg: '{name} er blevet aktiveret',
+    userDeactivatedMsg: '{name} er blevet deaktiveret',
+    userActivated: 'Bruger aktiveret',
+    userDeactivated: 'Bruger deaktiveret',
+    deactivateWarning: 'Dette vil forhindre brugeren i at få adgang til systemet.',
+    activateUser: 'Aktiver bruger',
+    deactivateUser: 'Deaktiver bruger',
+    activateError: 'Fejl ved aktivering af bruger',
+    deactivateError: 'Fejl ved deaktivering af bruger'
   },
-  
-  // Roles
+  passwords: {
+    changePassword: 'Skift adgangskode',
+    resetPasswordFor: 'Nulstil adgangskode for denne medarbejder',
+    enterNewPassword: 'Indtast ny adgangskode for denne medarbejder',
+    newPassword: 'Ny adgangskode',
+    confirmPassword: 'Bekræft adgangskode',
+    resetPassword: 'Nulstil adgangskode',
+    resetting: 'Nulstiller...',
+    resetSuccess: 'Adgangskode nulstillet',
+    resetDescription: '{name}s adgangskode er blevet nulstillet',
+    resetError: 'Fejl. Kunne ikke nulstille adgangskode. Prøv igen.',
+    passwordMismatch: 'Adgangskoder matcher ikke',
+    passwordMinLength: 'Adgangskoden skal være mindst 8 tegn lang',
+    passwordChanged: 'Adgangskode ændret',
+    passwordChangedMsg: 'Adgangskoden er blevet ændret.',
+    passwordTooShort: 'Adgangskode for kort. Skal indeholde 6 tegn.',
+    passwordsMustMatch: 'Adgangskoder skal være ens'
+  },
   roles: {
     administrator: 'Administrator',
     skadeleder: 'Skadeleder',
     servicemedarbejder: 'Servicemedarbejder'
-  },
-  
-  // Actions
-  createUserSuccess: 'Bruger oprettet med succes',
-  updateUserSuccess: 'Bruger opdateret med succes',
-  deleteUserSuccess: 'Bruger slettet med succes',
-  createUserError: 'Fejl ved oprettelse af bruger',
-  updateUserError: 'Fejl ved opdatering af bruger',
-  deleteUserError: 'Fejl ved sletning af bruger',
-  
-  // Confirmations
-  deleteUserConfirm: 'Er du sikker på, at du vil slette denne bruger?',
-  deleteUserWarning: 'Denne handling kan ikke fortrydes.',
-  
-  // Status
-  active: 'Aktiv',
-  inactive: 'Inaktiv',
-  changeStatus: 'Skift status',
-  activateUser: 'Aktiver bruger',
-  deactivateUser: 'Deaktiver bruger',
-  
-  // Password reset
-  resetPassword: 'Nulstil adgangskode',
-  resetPasswordSuccess: 'Adgangskode nulstillet med succes',
-  resetPasswordError: 'Fejl ved nulstilling af adgangskode',
-  resetPasswordConfirm: 'Er du sikker på, at du vil nulstille adgangskoden for denne bruger?'
+  }
 };

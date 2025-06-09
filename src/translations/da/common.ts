@@ -23,6 +23,8 @@ export const common = {
   password: 'Adgangskode',
   retry: 'Prøv igen',
   retrying: 'Prøver igen...',
+  add: 'Tilføj',
+  remove: 'Fjern',
   
   // Status messages
   success: 'Succes',
@@ -83,10 +85,5 @@ export const common = {
   selectDate: 'Vælg dato',
   
   yes: 'Ja',
-  no: 'Nej',
-  
-  // Session and authentication
-  sessionExpired: 'Din session er udløbet. Log venligst ind igen.',
-  sessionExpiredTitle: 'Session Udløbet',
-  sessionExpiredDescription: 'Din session er udløbet. Log venligst ind igen for at fortsætte.'
+  no: 'Nej'
 };

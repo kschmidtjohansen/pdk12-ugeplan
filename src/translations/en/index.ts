@@ -10,6 +10,7 @@ import notifications from './notifications';
 import { admin } from './admin';
 import { profile } from './profile';
 import login from './login';
+import { auth } from './auth';
 
 export const en = {
   common,
@@ -22,5 +23,6 @@ export const en = {
   notifications,
   admin,
   profile,
-  login
+  login,
+  auth
 };

@@ -43,7 +43,20 @@ export const admin = {
     createSuccess: 'User created successfully',
     updateSuccess: 'User updated successfully',
     createError: 'Error creating user',
-    updateError: 'Error updating user'
+    updateError: 'Error updating user',
+    deleteError: 'Error deleting user',
+    fetchError: 'Error loading users',
+    confirmActivate: 'Activate {name}?',
+    confirmDeactivate: 'Deactivate {name}?',
+    userActivatedMsg: '{name} has been activated',
+    userDeactivatedMsg: '{name} has been deactivated',
+    userActivated: 'User activated',
+    userDeactivated: 'User deactivated',
+    deactivateWarning: 'This will prevent the user from accessing the system.',
+    activateUser: 'Activate User',
+    deactivateUser: 'Deactivate User',
+    activateError: 'Error activating user',
+    deactivateError: 'Error deactivating user'
   },
   passwords: {
     changePassword: 'Change password',
@@ -60,7 +73,8 @@ export const admin = {
     passwordMinLength: 'Password must be at least 8 characters long',
     passwordChanged: 'Password changed',
     passwordChangedMsg: 'The password has been changed.',
-    passwordTooShort: 'Password too short. Must contain 6 characters.'
+    passwordTooShort: 'Password too short. Must contain 6 characters.',
+    passwordsMustMatch: 'Passwords must match'
   },
   roles: {
     administrator: 'Administrator',
