@@ -72,7 +72,9 @@ const planner = {
   previousDays: 'Tidligere dage',
   nothingPlannedToday: 'Intet planlagt for i dag',
   publishDayTasks: 'Publicer dagens opgaver',
-  copyAssignment: 'Kopier opgave'
+  copyAssignment: 'Kopier opgave',
+  createNew: 'Opret ny',
+  weekView: 'Uge {week}, {year} ({start} - {end})'
 };
 
 export default planner;

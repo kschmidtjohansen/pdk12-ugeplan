@@ -72,7 +72,9 @@ const planner = {
   previousDays: 'Previous Days',
   nothingPlannedToday: 'Nothing planned for today',
   publishDayTasks: 'Publish Day Tasks',
-  copyAssignment: 'Copy Assignment'
+  copyAssignment: 'Copy Assignment',
+  createNew: 'Create New',
+  weekView: 'Week {week}, {year} ({start} - {end})'
 };
 
 export default planner;
