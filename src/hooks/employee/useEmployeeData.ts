@@ -1,10 +1,9 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Employee } from '@/types/employee';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { UserRole } from '@/context/AuthContext';
 
 export const useEmployeeData = () => {
   const { toast } = useToast();
@@ -12,25 +11,23 @@ export const useEmployeeData = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const fetchInProgressRef = useRef<boolean>(false);
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch employees from Supabase with improved error handling
   const fetchEmployees = async () => {
-    // Prevent concurrent fetches
-    if (fetchInProgressRef.current) {
-      console.log('[useEmployeeData] Fetch already in progress, skipping duplicate request');
-      return;
-    }
-
     try {
-      fetchInProgressRef.current = true;
       setLoading(true);
       setError(null);
       
-      console.log('[useEmployeeData] Starting to fetch employees...');
+      console.log('[useEmployeeData] Fetching employees with improved error handling...');
       
-      // First get all profiles including avatar_url
+      // First, verify we have a valid session
+      const { data: session, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.session) {
+        throw new Error('Authentication required to load employees');
+      }
+      
+      console.log('[useEmployeeData] Session verified, fetching profiles...');
+      
+      // Fetch all profiles with better error handling
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -41,191 +38,156 @@ export const useEmployeeData = () => {
           job_title,
           on_leave,
           notes,
-          avatar_url
+          created_at,
+          updated_at
         `)
-        .order('name');
+        .order('name', { ascending: true });
       
       if (profilesError) {
-        console.error('[useEmployeeData] Error fetching profiles:', profilesError);
+        console.error('[useEmployeeData] Profiles query error:', profilesError);
         throw new Error(`Failed to fetch employee profiles: ${profilesError.message}`);
       }
       
-      console.log('[useEmployeeData] Fetched profiles:', profilesData?.length || 0);
+      if (!profilesData) {
+        console.log('[useEmployeeData] No profiles data returned');
+        setEmployees([]);
+        return;
+      }
       
-      // Then get all roles for these users - with better error handling
-      let rolesData: any[] = [];
-      if (profilesData && profilesData.length > 0) {
-        const userIds = profilesData.map(profile => profile.id);
+      console.log(`[useEmployeeData] Fetched ${profilesData.length} profiles`);
+      
+      // Fetch user roles with improved error handling
+      const userIds = profilesData.map(profile => profile.id);
+      
+      if (userIds.length === 0) {
+        console.log('[useEmployeeData] No user IDs to fetch roles for');
+        setEmployees([]);
+        return;
+      }
+      
+      console.log('[useEmployeeData] Fetching user roles...');
+      
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
         
-        const { data: fetchedRolesData, error: rolesError } = await supabase
-          .from('user_roles')
-          .select('user_id, role')
-          .in('user_id', userIds);
-        
-        if (rolesError) {
-          // Only log role errors in development mode, don't break the flow
-          console.warn('[useEmployeeData] Error fetching roles, using default roles:', rolesError);
-          // Don't throw error, just use empty array and default roles
-          rolesData = [];
-        } else {
-          rolesData = fetchedRolesData || [];
-        }
-        
-        console.log('[useEmployeeData] Fetched roles:', rolesData.length);
-        
-        // Combine the data with better error handling
-        const formattedEmployees: Employee[] = profilesData.map(item => {
-          // Validate required fields
-          if (!item.id || typeof item.name !== 'string' || item.name.trim() === '') {
-            console.warn('[useEmployeeData] Invalid employee data, skipping:', item);
-            return null;
-          }
-          
-          // Find the role for this user, with fallback to default
-          const userRole = rolesData.find(r => r.user_id === item.id);
-          const defaultRole: UserRole = 'servicemedarbejder';
+      if (rolesError) {
+        console.error('[useEmployeeData] Roles query error:', rolesError);
+        // Don't throw here, just log and continue with default roles
+        console.warn('[useEmployeeData] Continuing with default roles due to error:', rolesError.message);
+      }
+      
+      console.log(`[useEmployeeData] Fetched ${rolesData?.length || 0} role assignments`);
+      
+      // Transform data to Employee format with better error handling
+      const transformedEmployees: Employee[] = profilesData.map(profile => {
+        try {
+          const userRole = rolesData?.find(r => r.user_id === profile.id);
           
           const employee: Employee = {
-            id: item.id,
-            name: item.name.trim(),
-            email: item.email || '',
-            phone: item.phone || '',
-            jobTitle: item.job_title || '',
-            role: userRole ? userRole.role as UserRole : defaultRole,
-            onLeave: item.on_leave || false,
-            notes: item.notes || '',
-            onApprovedVacation: false, // Will be calculated date-specifically when needed
-            avatar_url: item.avatar_url || undefined
+            id: profile.id,
+            name: profile.name || 'Unknown',
+            email: profile.email || '',
+            phone: profile.phone || '',
+            jobTitle: profile.job_title || '',
+            role: userRole?.role || 'servicemedarbejder',
+            onLeave: profile.on_leave || false,
+            notes: profile.notes || '',
+            createdAt: new Date(profile.created_at),
+            updatedAt: new Date(profile.updated_at)
           };
           
-          console.log('[useEmployeeData] Processed employee:', {
-            id: employee.id,
-            name: employee.name,
-            role: employee.role,
-            onLeave: employee.onLeave,
-            hasUserRole: !!userRole
-          });
+          console.log(`[useEmployeeData] Transformed employee: ${employee.name} (${employee.role})`);
           
           return employee;
-        }).filter((emp): emp is Employee => emp !== null); // Filter out invalid employees
-        
-        // Filter and log servicemedarbejder employees specifically
-        const serviceEmployees = formattedEmployees.filter(emp => emp.role === 'servicemedarbejder');
-        console.log('[useEmployeeData] Service employees (servicemedarbejder role):', serviceEmployees.length);
-        serviceEmployees.forEach(emp => {
-          console.log(`  - ${emp.name} (${emp.id}) - onLeave: ${emp.onLeave}`);
-        });
-        
-        setEmployees(formattedEmployees);
-      } else {
-        console.log('[useEmployeeData] No profiles found');
-        setEmployees([]);
-      }
+        } catch (transformError) {
+          console.error(`[useEmployeeData] Error transforming profile ${profile.id}:`, transformError);
+          // Return a safe default employee
+          return {
+            id: profile.id,
+            name: profile.name || 'Unknown',
+            email: profile.email || '',
+            phone: '',
+            jobTitle: '',
+            role: 'servicemedarbejder',
+            onLeave: false,
+            notes: '',
+            createdAt: new Date(),
+            updatedAt: new Date()
+          } as Employee;
+        }
+      });
+      
+      console.log(`[useEmployeeData] Successfully transformed ${transformedEmployees.length} employees`);
+      setEmployees(transformedEmployees);
+      
     } catch (err) {
-      console.error('[useEmployeeData] Error fetching employees:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch employees';
+      console.error('[useEmployeeData] Error in fetchEmployees:', err);
+      
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
-      // Only show toast if translation context is available
-      try {
+      // Show user-friendly error message
+      if (errorMessage.includes('Authentication required')) {
+        toast({
+          title: t('common.error'),
+          description: t('auth.sessionExpired'),
+          variant: 'destructive',
+        });
+      } else if (errorMessage.includes('infinite recursion')) {
+        toast({
+          title: t('common.error'),
+          description: t('employees.rlsError'),
+          variant: 'destructive',
+        });
+      } else {
         toast({
           title: t('common.error'),
           description: t('employees.fetchError'),
           variant: 'destructive',
         });
-      } catch (toastError) {
-        console.warn('[useEmployeeData] Could not show error toast, translation context may not be ready:', toastError);
       }
       
-      // Set empty array so UI doesn't break
+      // Set empty array on error to prevent undefined issues
       setEmployees([]);
-      
-      // Retry after 3 seconds if it's a network error
-      if (err instanceof Error && err.message.includes('Failed to fetch')) {
-        console.log('[useEmployeeData] Network error detected, retrying in 3 seconds...');
-        retryTimeoutRef.current = setTimeout(() => {
-          fetchEmployees();
-        }, 3000);
-      }
     } finally {
       setLoading(false);
-      fetchInProgressRef.current = false;
     }
   };
 
   // Load employees on component mount
   useEffect(() => {
     fetchEmployees();
-    
-    // Cleanup retry timeout on unmount
-    return () => {
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current);
-      }
-    };
   }, []);
 
-  // Subscribe to employee changes with better error handling
+  // Set up realtime subscription for profile changes
   useEffect(() => {
-    let channel: any = null;
+    console.log('[useEmployeeData] Setting up realtime subscription for profiles...');
     
-    try {
-      channel = supabase
-        .channel('employee_changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'profiles'
-          },
-          (payload) => {
-            console.log('[useEmployeeData] Received profile change:', payload);
-            // Debounce rapid changes
-            if (retryTimeoutRef.current) {
-              clearTimeout(retryTimeoutRef.current);
-            }
-            retryTimeoutRef.current = setTimeout(() => {
-              fetchEmployees();
-            }, 500);
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'user_roles'
-          },
-          (payload) => {
-            console.log('[useEmployeeData] Received role change:', payload);
-            // Debounce rapid changes
-            if (retryTimeoutRef.current) {
-              clearTimeout(retryTimeoutRef.current);
-            }
-            retryTimeoutRef.current = setTimeout(() => {
-              fetchEmployees();
-            }, 500);
-          }
-        )
-        .subscribe((status) => {
-          console.log('[useEmployeeData] Subscription status:', status);
-        });
-    } catch (subscriptionError) {
-      console.warn('[useEmployeeData] Error setting up real-time subscription:', subscriptionError);
-    }
-      
-    return () => {
-      if (channel) {
-        try {
-          supabase.removeChannel(channel);
-        } catch (cleanupError) {
-          console.warn('[useEmployeeData] Error cleaning up subscription:', cleanupError);
+    const channel = supabase
+      .channel('profiles_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          console.log('[useEmployeeData] Received profile change:', payload.eventType);
+          
+          // Refresh employee data when profiles change
+          fetchEmployees();
         }
-      }
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current);
-      }
+      )
+      .subscribe((status) => {
+        console.log('[useEmployeeData] Profiles realtime subscription status:', status);
+      });
+
+    return () => {
+      console.log('[useEmployeeData] Cleaning up profiles realtime subscription');
+      supabase.removeChannel(channel);
     };
   }, []);
 

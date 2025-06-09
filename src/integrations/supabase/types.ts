@@ -358,6 +358,10 @@ export type Database = {
         Args: { assignment_id: string }
         Returns: boolean
       }
+      can_user_access_assignment: {
+        Args: { assignment_id: string; user_id: string }
+        Returns: boolean
+      }
       delete_expired_approved_vacations: {
         Args: Record<PropertyKey, never>
         Returns: undefined

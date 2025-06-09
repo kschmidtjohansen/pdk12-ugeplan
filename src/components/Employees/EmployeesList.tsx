@@ -1,208 +1,110 @@
 
 import React from 'react';
-import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Edit, Trash2, AlertCircle, Mail, Phone, UserCheck, UserMinus } from 'lucide-react';
+import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import EmployeeTableRow from './EmployeeTableRow';
+import EmployeeDataErrorBoundary from '../ErrorBoundary/EmployeeDataErrorBoundary';
 
 interface EmployeesListProps {
   employees: Employee[];
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   onToggleLeave: (employee: Employee) => void;
+  error?: string | null;
+  loading?: boolean;
+  onRetry?: () => void;
 }
 
 const EmployeesList: React.FC<EmployeesListProps> = ({
   employees,
   onEdit,
   onDelete,
-  onToggleLeave
+  onToggleLeave,
+  error,
+  loading,
+  onRetry
 }) => {
+  const { isAdmin } = usePermissions();
   const { t } = useTranslation();
-  const { isAdmin, isSkadeleder } = usePermissions();
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part.charAt(0))
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
-  };
+  // Show error boundary if there's an error
+  if (error && onRetry) {
+    return (
+      <EmployeeDataErrorBoundary
+        error={error}
+        onRetry={onRetry}
+        loading={loading || false}
+      />
+    );
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-polygon-blue"></div>
+      </div>
+    );
+  }
+
+  // Show empty state
+  if (employees.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500 mb-4">{t('employees.noEmployees')}</p>
+        {isAdmin && (
+          <Button onClick={() => onEdit({} as Employee)}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t('employees.addEmployee')}
+          </Button>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <TooltipProvider>
-      <div className="bg-white shadow rounded-md overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t("employees.name")}
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t("employees.contactInfo")}
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t("employees.jobTitle")}
-                </th>
-                {/* Show role column to admin and skadeleder users only */}
-                {(isAdmin || isSkadeleder) && (
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t("employees.role")}
-                  </th>
-                )}
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t("common.status")}
-                </th>
-                {isAdmin && (
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t("common.actions")}
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {employees.map((employee) => (
-                <tr key={employee.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <Avatar className="h-10 w-10 mr-4">
-                        <AvatarImage 
-                          src={employee.avatar_url || undefined} 
-                          alt={employee.name}
-                        />
-                        <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                          {getInitials(employee.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center">
-                          <span className="text-sm font-medium text-gray-900">
-                            {employee.name}
-                          </span>
-                          
-                          {/* Display notes tooltip for employees on leave */}
-                          {(isAdmin || isSkadeleder) && employee.notes && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <AlertCircle size={16} className="text-orange-500 ml-2 cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-xs">
-                                <p>{employee.notes}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 flex items-center">
-                      <Mail size={16} className="mr-2 text-gray-500" /> {employee.email}
-                    </div>
-                    <div className="text-sm text-gray-500 flex items-center mt-1">
-                      <Phone size={16} className="mr-2 text-gray-500" /> {employee.phone}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {employee.jobTitle}
-                  </td>
-                  {/* Show role to admin and skadeleder users only */}
-                  {(isAdmin || isSkadeleder) && (
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {t(`admin.roles.${employee.role}`)}
-                    </td>
-                  )}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {employee.onLeave ? (
-                      <Badge variant="outline" className="border-orange-200 bg-orange-100 text-orange-800 hover:bg-orange-100">
-                        {t("employees.onLeave")}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="border-green-200 bg-green-100 text-green-800 hover:bg-green-100">
-                        {t("dashboard.available")}
-                      </Badge>
-                    )}
-                  </td>
-                  {isAdmin && (
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => onEdit(employee)} 
-                              className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800"
-                            >
-                              <span className="sr-only">{t("common.edit")}</span>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="top">
-                            {t("common.edit")}
-                          </TooltipContent>
-                        </Tooltip>
-                        
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => onDelete(employee)} 
-                              className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
-                            >
-                              <span className="sr-only">{t("common.delete")}</span>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="top">
-                            {t("common.delete")}
-                          </TooltipContent>
-                        </Tooltip>
-                        
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="ghost"
-                              size="icon" 
-                              onClick={() => onToggleLeave(employee)} 
-                              className={`h-8 w-8 p-0 ${employee.onLeave ? 'text-green-600 hover:text-green-800' : 'text-amber-600 hover:text-amber-800'}`}
-                            >
-                              <span className="sr-only">
-                                {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
-                              </span>
-                              {employee.onLeave ? (
-                                <UserCheck className="h-4 w-4" />
-                              ) : (
-                                <UserMinus className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="top">
-                            {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </TooltipProvider>
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="border-b border-gray-200">
+            <th className="text-left p-4 font-medium text-gray-700">
+              {t('employees.name')}
+            </th>
+            <th className="text-left p-4 font-medium text-gray-700">
+              {t('employees.email')}
+            </th>
+            <th className="text-left p-4 font-medium text-gray-700">
+              {t('employees.jobTitle')}
+            </th>
+            <th className="text-left p-4 font-medium text-gray-700">
+              {t('employees.role')}
+            </th>
+            <th className="text-left p-4 font-medium text-gray-700">
+              {t('employees.status')}
+            </th>
+            {isAdmin && (
+              <th className="text-right p-4 font-medium text-gray-700">
+                {t('common.actions')}
+              </th>
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {employees.map((employee) => (
+            <EmployeeTableRow
+              key={employee.id}
+              employee={employee}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onToggleLeave={onToggleLeave}
+            />
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
