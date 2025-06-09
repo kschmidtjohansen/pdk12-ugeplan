@@ -19,8 +19,8 @@ const planner = {
   noAssignments: 'No assignments found',
   
   // Form fields
-  title: 'Title',
-  description: 'Description',
+  assignmentTitle: 'Title',
+  assignmentDescription: 'Description',
   date: 'Date',
   time: 'Time',
   fromTime: 'From Time',
@@ -33,6 +33,7 @@ const planner = {
   
   // Status and actions
   published: 'Published',
+  notPublished: 'Not Published',
   draft: 'Draft',
   publish: 'Publish',
   unpublish: 'Unpublish',
@@ -65,7 +66,13 @@ const planner = {
   // Empty states
   noAssignmentsToday: 'No assignments for today',
   noAssignmentsWeek: 'No assignments this week',
-  createFirst: 'Create your first assignment'
+  createFirst: 'Create your first assignment',
+  
+  // Additional planner-specific translations
+  previousDays: 'Previous Days',
+  nothingPlannedToday: 'Nothing planned for today',
+  publishDayTasks: 'Publish Day Tasks',
+  copyAssignment: 'Copy Assignment'
 };
 
 export default planner;

@@ -19,8 +19,8 @@ const planner = {
   noAssignments: 'Ingen opgaver fundet',
   
   // Form fields
-  title: 'Titel',
-  description: 'Beskrivelse',
+  assignmentTitle: 'Titel',
+  assignmentDescription: 'Beskrivelse',
   date: 'Dato',
   time: 'Tid',
   fromTime: 'Fra tid',
@@ -33,6 +33,7 @@ const planner = {
   
   // Status and actions
   published: 'Publiceret',
+  notPublished: 'Ikke publiceret',
   draft: 'Kladde',
   publish: 'Publicer',
   unpublish: 'Afpublicer',
@@ -65,7 +66,13 @@ const planner = {
   // Empty states
   noAssignmentsToday: 'Ingen opgaver for i dag',
   noAssignmentsWeek: 'Ingen opgaver denne uge',
-  createFirst: 'Opret din første opgave'
+  createFirst: 'Opret din første opgave',
+  
+  // Additional planner-specific translations
+  previousDays: 'Tidligere dage',
+  nothingPlannedToday: 'Intet planlagt for i dag',
+  publishDayTasks: 'Publicer dagens opgaver',
+  copyAssignment: 'Kopier opgave'
 };
 
 export default planner;
