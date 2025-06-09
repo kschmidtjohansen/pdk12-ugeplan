@@ -6,7 +6,7 @@ import { da } from './da/index';
 import accessDenied from './da/accessDenied';
 import login from './da/login';
 import admin from './da/admin';
-import employees from './da/employees';
+import { employees } from './da/employees';
 import planner from './da/planner';
 import dashboard from './da/dashboard';
 import vacation from './da/vacation';

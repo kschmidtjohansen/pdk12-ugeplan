@@ -93,9 +93,7 @@ export const useEmployeeData = () => {
             jobTitle: profile.job_title || '',
             role: userRole?.role || 'servicemedarbejder',
             onLeave: profile.on_leave || false,
-            notes: profile.notes || '',
-            createdAt: new Date(profile.created_at),
-            updatedAt: new Date(profile.updated_at)
+            notes: profile.notes || ''
           };
           
           console.log(`[useEmployeeData] Transformed employee: ${employee.name} (${employee.role})`);
@@ -112,9 +110,7 @@ export const useEmployeeData = () => {
             jobTitle: '',
             role: 'servicemedarbejder',
             onLeave: false,
-            notes: '',
-            createdAt: new Date(),
-            updatedAt: new Date()
+            notes: ''
           } as Employee;
         }
       });
