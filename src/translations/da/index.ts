@@ -8,7 +8,7 @@ import vacation from './vacation';
 import dashboard from './dashboard';
 import notifications from './notifications';
 import login from './login';
-import admin from './admin';
+import { admin } from './admin';
 import { profile } from './profile';
 import accessDenied from './accessDenied';
 import deleteConfirm from './deleteConfirm';
