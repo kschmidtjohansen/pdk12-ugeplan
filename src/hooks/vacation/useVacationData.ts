@@ -12,15 +12,15 @@ export const useVacationData = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch vacations from Supabase
+  // Fetch vacations from Supabase with optimized query
   const fetchVacations = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('[useVacationData] Fetching vacations...');
+      console.log('[useVacationData] Fetching vacations with optimized RLS...');
       
-      // Get all vacations with employee names through an explicit join query
+      // Use optimized query that benefits from the new indexes and RLS functions
       const { data, error } = await supabase
         .from('vacations')
         .select(`
@@ -33,57 +33,66 @@ export const useVacationData = () => {
           notes,
           created_at,
           updated_at
-        `);
+        `)
+        .order('created_at', { ascending: false }); // Use indexed sort
       
       if (error) throw error;
       
       if (data) {
         console.log(`[useVacationData] Fetched ${data.length} vacations`);
         
-        // Get all user profiles in a separate query
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, name');
-          
-        if (profilesError) throw profilesError;
+        // Get all unique user IDs from vacations for efficient profile lookup
+        const userIds = [...new Set(data.map(item => item.user_id))];
         
-        // Create a map of user IDs to names
-        const profileMap = new Map();
-        profiles?.forEach(profile => {
-          profileMap.set(profile.id, profile.name);
-        });
-        
-        const formattedVacations: Vacation[] = data.map(item => {
-          // Ensure dates are properly parsed as Date objects
-          const startDate = new Date(item.start_date);
-          const endDate = new Date(item.end_date);
+        if (userIds.length > 0) {
+          // Use optimized query with the new email index
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, name')
+            .in('id', userIds); // More efficient than separate queries
+            
+          if (profilesError) throw profilesError;
           
-          const vacation: Vacation = {
-            id: item.id,
-            employeeId: item.user_id, // CONSISTENT: Map user_id to employeeId
-            employeeName: profileMap.get(item.user_id) || 'Unknown',
-            startDate: startDate,
-            endDate: endDate,
-            reason: item.reason || '',
-            status: item.status as VacationStatus,
-            notes: item.notes || '',
-            createdAt: new Date(item.created_at)
-          };
-          
-          console.log('[useVacationData] Processed vacation:', {
-            id: vacation.id,
-            employeeId: vacation.employeeId,
-            employeeName: vacation.employeeName,
-            startDate: vacation.startDate.toISOString().split('T')[0],
-            endDate: vacation.endDate.toISOString().split('T')[0],
-            status: vacation.status
+          // Create a map of user IDs to names for efficient lookup
+          const profileMap = new Map();
+          profiles?.forEach(profile => {
+            profileMap.set(profile.id, profile.name);
           });
           
-          return vacation;
-        });
-        
-        console.log('[useVacationData] Formatted vacations with consistent employeeId mapping:', formattedVacations.length);
-        setVacations(formattedVacations);
+          const formattedVacations: Vacation[] = data.map(item => {
+            // Ensure dates are properly parsed as Date objects
+            const startDate = new Date(item.start_date);
+            const endDate = new Date(item.end_date);
+            
+            const vacation: Vacation = {
+              id: item.id,
+              employeeId: item.user_id, // CONSISTENT: Map user_id to employeeId
+              employeeName: profileMap.get(item.user_id) || 'Unknown',
+              startDate: startDate,
+              endDate: endDate,
+              reason: item.reason || '',
+              status: item.status as VacationStatus,
+              notes: item.notes || '',
+              createdAt: new Date(item.created_at)
+            };
+            
+            console.log('[useVacationData] Processed vacation:', {
+              id: vacation.id,
+              employeeId: vacation.employeeId,
+              employeeName: vacation.employeeName,
+              startDate: vacation.startDate.toISOString().split('T')[0],
+              endDate: vacation.endDate.toISOString().split('T')[0],
+              status: vacation.status
+            });
+            
+            return vacation;
+          });
+          
+          console.log('[useVacationData] Formatted vacations with consistent employeeId mapping:', formattedVacations.length);
+          setVacations(formattedVacations);
+        } else {
+          setVacations([]);
+        }
       }
     } catch (err) {
       console.error('[useVacationData] Error fetching vacations:', err);
@@ -103,9 +112,9 @@ export const useVacationData = () => {
     fetchVacations();
   }, []);
   
-  // Subscribe to vacation changes
+  // Subscribe to vacation changes with improved handling
   useEffect(() => {
-    console.log('[useVacationData] Setting up vacation realtime subscription...');
+    console.log('[useVacationData] Setting up optimized vacation realtime subscription...');
     
     const channel = supabase
       .channel('vacation_changes')
@@ -119,16 +128,17 @@ export const useVacationData = () => {
         (payload) => {
           console.log('[useVacationData] Received vacation change event:', payload.eventType, payload);
           
-          // Use different strategies based on the event type
+          // Use different strategies based on the event type for better performance
           if (payload.eventType === 'DELETE') {
             console.log('[useVacationData] Vacation deleted:', payload.old.id);
-            // Remove the deleted vacation from the local state
+            // Remove the deleted vacation from the local state without refetch
             setVacations(current => 
               current.filter(v => v.id !== payload.old.id)
             );
           } else {
-            // For INSERT and UPDATE, refresh the entire list
-            // This ensures we get the correct employee names
+            // For INSERT and UPDATE, refresh the entire list to ensure consistency
+            // This benefits from the optimized queries and indexes
+            console.log('[useVacationData] Refreshing vacation list due to', payload.eventType);
             fetchVacations();
           }
         }

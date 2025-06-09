@@ -284,6 +284,24 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          id: number
+          role: string
+          username: string
+        }
+        Insert: {
+          id?: never
+          role: string
+          username: string
+        }
+        Update: {
+          id?: never
+          role?: string
+          username?: string
+        }
+        Relationships: []
+      }
       vacations: {
         Row: {
           created_at: string
@@ -322,7 +340,18 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      performance_metrics: {
+        Row: {
+          index_scans: number | null
+          index_tuples_fetched: number | null
+          schemaname: unknown | null
+          sequential_scan_percentage: number | null
+          sequential_scans: number | null
+          sequential_tuples_read: number | null
+          table_name: unknown | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_access_assignment: {
@@ -348,6 +377,14 @@ export type Database = {
       get_user_role_safe: {
         Args: { user_uuid: string }
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      is_admin_or_skadeleder: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
       is_current_user_admin: {
         Args: Record<PropertyKey, never>

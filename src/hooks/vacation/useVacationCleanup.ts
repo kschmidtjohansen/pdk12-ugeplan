@@ -15,11 +15,21 @@ export const useVacationCleanup = () => {
   const retryCountRef = useRef(0);
   const maxRetries = 3;
 
-  // Check if cleanup is needed today (system-wide check)
+  // Check if cleanup is needed today (system-wide check using optimized function)
   const checkCleanupNeeded = useCallback(async (): Promise<boolean> => {
-    if (!user?.id || user.role !== 'administrator') return false;
+    if (!user?.id) return false;
     
     try {
+      // Use the new optimized function instead of checking role manually
+      const { data: isAdmin, error: roleError } = await supabase.rpc('is_admin_user');
+      
+      if (roleError) {
+        console.error('Error checking user role:', roleError);
+        return false;
+      }
+      
+      if (!isAdmin) return false;
+      
       const { data, error } = await supabase
         .from('system_cleanup_tracking')
         .select('last_run_date')
@@ -42,17 +52,21 @@ export const useVacationCleanup = () => {
       console.error('Error in cleanup check:', err);
       return true; // If we can't check, assume cleanup is needed
     }
-  }, [user?.id, user?.role]);
+  }, [user?.id]);
 
-  // Update cleanup tracking
+  // Update cleanup tracking with better error handling
   const updateCleanupTracking = useCallback(async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
       
       const { error } = await supabase
         .from('system_cleanup_tracking')
-        .update({ last_run_date: today })
-        .eq('cleanup_type', 'vacation_cleanup');
+        .upsert({ 
+          cleanup_type: 'vacation_cleanup',
+          last_run_date: today 
+        }, { 
+          onConflict: 'cleanup_type' 
+        });
       
       if (error) {
         console.error('Error updating cleanup tracking:', error);
@@ -65,11 +79,19 @@ export const useVacationCleanup = () => {
     }
   }, []);
 
-  // Function to perform the cleanup with retry logic
+  // Function to perform the cleanup with retry logic and optimized permissions
   const performCleanupWithRetry = useCallback(async () => {
-    if (cleaningUpRef.current || !user?.id || user.role !== 'administrator') return;
+    if (cleaningUpRef.current || !user?.id) return;
     
     try {
+      // Double-check admin status using the optimized function
+      const { data: isAdmin, error: roleError } = await supabase.rpc('is_admin_user');
+      
+      if (roleError || !isAdmin) {
+        console.log('[useVacationCleanup] User is not admin, skipping cleanup');
+        return;
+      }
+      
       cleaningUpRef.current = true;
       console.log(`[useVacationCleanup] Starting cleanup attempt ${retryCountRef.current + 1}/${maxRetries}`);
       
@@ -120,7 +142,7 @@ export const useVacationCleanup = () => {
     } finally {
       cleaningUpRef.current = false;
     }
-  }, [user?.id, user?.role, toast, t, updateCleanupTracking]);
+  }, [user?.id, toast, t, updateCleanupTracking]);
 
   // Function to perform the cleanup of rejected vacations
   const cleanupRejectedVacations = useCallback(async () => {
@@ -177,12 +199,27 @@ export const useVacationCleanup = () => {
     };
   }, []);
 
-  // Initialize cleanup system
+  // Initialize cleanup system with optimized role checking
   useEffect(() => {
-    if (!user?.id || user.role !== 'administrator') return;
+    if (!user?.id) return;
     
     const initializeCleanup = async () => {
-      console.log('[useVacationCleanup] Initializing cleanup system for administrator');
+      console.log('[useVacationCleanup] Initializing cleanup system...');
+      
+      // Use optimized function to check if user is admin
+      const { data: isAdmin, error } = await supabase.rpc('is_admin_user');
+      
+      if (error) {
+        console.error('[useVacationCleanup] Error checking admin status:', error);
+        return;
+      }
+      
+      if (!isAdmin) {
+        console.log('[useVacationCleanup] User is not admin, cleanup system disabled');
+        return;
+      }
+      
+      console.log('[useVacationCleanup] Admin user detected, enabling cleanup system');
       
       // Check if cleanup is needed and run if so
       const cleanupNeeded = await checkCleanupNeeded();
@@ -196,7 +233,7 @@ export const useVacationCleanup = () => {
     };
     
     initializeCleanup();
-  }, [user?.id, user?.role, checkCleanupNeeded, performCleanupWithRetry, scheduleNextCleanup]);
+  }, [user?.id, checkCleanupNeeded, performCleanupWithRetry, scheduleNextCleanup]);
   
   return {
     lastCleanupDate,
