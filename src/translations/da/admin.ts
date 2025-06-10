@@ -4,7 +4,11 @@ export const admin = {
   description: 'Systemadministration og indstillinger',
   tabs: {
     metrics: 'Metrikker',
-    users: 'Brugerstyring'
+    users: 'Brugerstyring',
+    overview: 'Oversigt'
+  },
+  systemOverview: {
+    description: 'Administrer systemet og overvåg nøglemetrikker'
   },
   systemMetrics: {
     totalUsers: 'Samlede brugere',
@@ -15,6 +19,31 @@ export const admin = {
     vacationRequestsDesc: 'afventer godkendelse',
     scheduledTasks: 'Planlagte opgaver',
     scheduledTasksDesc: 'Opgaver denne uge'
+  },
+  quickStats: {
+    vehicles: 'Køretøjer',
+    available: 'tilgængelige',
+    pendingVacations: 'Afventende ferier',
+    approved: 'godkendt',
+    todaysTasks: 'Dagens opgaver',
+    total: 'total'
+  },
+  systemHealth: {
+    title: 'Systemsundhed',
+    assignmentPublishing: 'Opgavepublicering',
+    allAssignmentsPublished: 'Alle opgaver er publiceret',
+    unpublishedTasks: '{count} upublicerede opgaver',
+    vehicleUtilization: 'Køretøjsudnyttelse',
+    vehiclesInUse: '{inUse} af {total} køretøjer i brug',
+    staffAvailability: 'Personale tilgængelighed',
+    staffAvailable: '{available} af {total} medarbejdere tilgængelige'
+  },
+  quickActions: {
+    title: 'Hurtige handlinger',
+    viewPlanner: 'Se planlægger',
+    manageStaff: 'Administrer personale',
+    fleetManagement: 'Flådestyring',
+    vacationRequests: 'Ferieansøgninger'
   },
   userManagement: {
     title: 'Brugerstyring',
