@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { usePermissions } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { TableRow, TableCell } from "@/components/ui/table";
@@ -33,7 +33,7 @@ interface EmployeeTableRowProps {
   onToggleLeave?: (employee: Employee) => void;
 }
 
-const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, onDelete, onToggleLeave }) => {
+const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, onEdit, onDelete, onToggleLeave }) => {
   const { isAdmin, isSkadeleder } = usePermissions();
   const { t } = useTranslation();
 
@@ -187,6 +187,8 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, o
       )}
     </TableRow>
   );
-};
+});
+
+EmployeeTableRow.displayName = 'EmployeeTableRow';
 
 export default EmployeeTableRow;

@@ -53,6 +53,7 @@ serve(async (req: Request) => {
       .single();
 
     if (roleError) {
+      console.error('Error fetching user role:', roleError);
       return new Response(
         JSON.stringify({ error: 'Error fetching user role: ' + roleError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -82,32 +83,94 @@ serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
     
-    // First, delete all notifications for the user
-    const { error: notificationError } = await adminAuthClient
-      .from('notifications')
-      .delete()
-      .eq('user_id', userId);
+    console.log('Starting user deletion process for user:', userId);
+    
+    // First, delete all related data for the user in order
+    try {
+      // Delete notifications for the user
+      const { error: notificationError } = await adminAuthClient
+        .from('notifications')
+        .delete()
+        .eq('user_id', userId);
+        
+      if (notificationError) {
+        console.error('Error deleting user notifications:', notificationError);
+        // Continue with deletion, but log the error
+      }
       
-    if (notificationError) {
-      console.error('Error deleting user notifications:', notificationError);
-      // Log the error but continue with user deletion
+      // Delete assignment-employee relationships
+      const { error: assignmentEmployeeError } = await adminAuthClient
+        .from('assignments_employees')
+        .delete()
+        .eq('user_id', userId);
+        
+      if (assignmentEmployeeError) {
+        console.error('Error deleting assignment-employee relationships:', assignmentEmployeeError);
+        // Continue with deletion, but log the error
+      }
+      
+      // Delete vacation requests
+      const { error: vacationError } = await adminAuthClient
+        .from('vacations')
+        .delete()
+        .eq('user_id', userId);
+        
+      if (vacationError) {
+        console.error('Error deleting vacation requests:', vacationError);
+        // Continue with deletion, but log the error
+      }
+      
+      // Delete user role
+      const { error: roleDeleteError } = await adminAuthClient
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+        
+      if (roleDeleteError) {
+        console.error('Error deleting user role:', roleDeleteError);
+        // Continue with deletion, but log the error
+      }
+      
+      // Delete profile
+      const { error: profileError } = await adminAuthClient
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+        
+      if (profileError) {
+        console.error('Error deleting user profile:', profileError);
+        // Continue with deletion, but log the error
+      }
+      
+      console.log('Successfully deleted all related data for user:', userId);
+      
+    } catch (dataDeleteError) {
+      console.error('Error during data deletion:', dataDeleteError);
+      // Continue with auth user deletion even if some data deletion failed
     }
     
-    // Delete the user
-    const { error } = await adminAuthClient.auth.admin.deleteUser(userId);
+    // Finally, delete the auth user
+    const { error: authDeleteError } = await adminAuthClient.auth.admin.deleteUser(userId);
     
-    if (error) {
-      throw error;
+    if (authDeleteError) {
+      console.error('Error deleting auth user:', authDeleteError);
+      throw new Error(`Failed to delete user from auth: ${authDeleteError.message}`);
     }
+    
+    console.log('Successfully deleted auth user:', userId);
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ success: true, message: 'User deleted successfully' }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+    
   } catch (error) {
-    console.error('User deletion error:', error.message);
+    console.error('User deletion error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message || 'An unexpected error occurred during user deletion',
+        details: error.toString()
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

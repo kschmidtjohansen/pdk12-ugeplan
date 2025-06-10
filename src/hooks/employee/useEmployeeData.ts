@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Employee } from '@/types/employee';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -12,7 +12,7 @@ export const useEmployeeData = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -153,16 +153,26 @@ export const useEmployeeData = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, t]);
 
   // Load employees on component mount
   useEffect(() => {
     fetchEmployees();
-  }, []);
+  }, [fetchEmployees]);
 
-  // Set up realtime subscription for profile changes
+  // Set up realtime subscription for profile changes with debouncing
   useEffect(() => {
     console.log('[useEmployeeData] Setting up realtime subscription for profiles...');
+    
+    let timeoutId: NodeJS.Timeout;
+    
+    const debouncedRefresh = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        console.log('[useEmployeeData] Debounced refresh triggered');
+        fetchEmployees();
+      }, 1000); // Wait 1 second before refreshing
+    };
     
     const channel = supabase
       .channel('profiles_changes')
@@ -175,9 +185,7 @@ export const useEmployeeData = () => {
         },
         (payload) => {
           console.log('[useEmployeeData] Received profile change:', payload.eventType);
-          
-          // Refresh employee data when profiles change
-          fetchEmployees();
+          debouncedRefresh();
         }
       )
       .subscribe((status) => {
@@ -186,9 +194,10 @@ export const useEmployeeData = () => {
 
     return () => {
       console.log('[useEmployeeData] Cleaning up profiles realtime subscription');
+      clearTimeout(timeoutId);
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchEmployees]);
 
   return {
     employees,

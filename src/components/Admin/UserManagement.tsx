@@ -41,6 +41,7 @@ const UserManagement: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [isActivating, setIsActivating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -276,31 +277,55 @@ const UserManagement: React.FC = () => {
   };
 
   const confirmDeleteUser = async () => {
-    if (currentUser) {
-      try {
-        // Use Supabase edge function to delete user
-        const { error } = await supabase.functions.invoke('admin-user-delete', {
-          body: { userId: currentUser.id }
-        });
-        
-        if (error) throw error;
-        
-        setUsers(users.filter(user => user.id !== currentUser.id));
-        
-        toast({
-          title: t('admin.userManagement.userDeleted'),
-          description: t('admin.userManagement.userDeletedMsg', { name: currentUser.name }),
-        });
-        
-        setDeleteDialogOpen(false);
-      } catch (err) {
-        console.error('Error deleting user:', err);
-        toast({
-          title: t('common.error'),
-          description: t('admin.userManagement.deleteError'),
-          variant: 'destructive',
-        });
+    if (!currentUser) return;
+
+    try {
+      setIsDeleting(true);
+      console.log('Starting user deletion for:', currentUser.id);
+      
+      // Use Supabase edge function to delete user
+      const { data, error } = await supabase.functions.invoke('admin-user-delete', {
+        body: { userId: currentUser.id }
+      });
+      
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to call deletion function');
       }
+      
+      if (data?.error) {
+        console.error('Deletion function returned error:', data.error);
+        throw new Error(data.error);
+      }
+      
+      console.log('User deletion successful:', data);
+      
+      // Remove user from local state
+      setUsers(users.filter(user => user.id !== currentUser.id));
+      
+      toast({
+        title: t('admin.userManagement.userDeleted'),
+        description: t('admin.userManagement.userDeletedMsg', { name: currentUser.name }),
+      });
+      
+      setDeleteDialogOpen(false);
+      setCurrentUser(null);
+      
+      // Refresh the user list to ensure consistency
+      await fetchUsers();
+      
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      
+      toast({
+        title: t('common.error'),
+        description: `${t('admin.userManagement.deleteError')}: ${errorMessage}`,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
