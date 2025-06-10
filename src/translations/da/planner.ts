@@ -73,6 +73,7 @@ const planner = {
   // Responsible user selection
   responsibleUser: 'Ansvarlig bruger',
   selectResponsibleUser: 'Vælg ansvarlig bruger',
+  noResponsibleUser: 'Ingen ansvarlig',
   
   // Screen display
   showOnScreen: 'Vis på skærm',
@@ -120,7 +121,14 @@ const planner = {
   publishDayTasks: 'Publicer dagens opgaver',
   copyAssignment: 'Kopier opgave',
   createNew: 'Opret ny',
-  weekView: 'Uge {week}, {year} ({start} - {end})'
+  weekView: 'Uge {week}, {year} ({start} - {end})',
+  
+  // Unassigned resources section
+  unassignedResources: 'Ubrugte ressourcer',
+  unassignedCars: 'Ikke brugte biler',
+  allCarsAssigned: 'Alle biler er tildelt',
+  showMore: 'Vis mere',
+  showLess: 'Vis mindre'
 };
 
 export default planner;

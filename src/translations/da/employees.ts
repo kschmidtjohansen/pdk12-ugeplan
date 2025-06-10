@@ -59,5 +59,13 @@ export const employees = {
   markOnLeave: 'Marker på orlov',
   markAvailable: 'Marker tilgængelig',
   removeNote: 'Fjern note og marker tilgængelig',
-  keepNote: 'Behold note og marker tilgængelig'
+  keepNote: 'Behold note og marker tilgængelig',
+  
+  // Employee selector and availability
+  selectEmployees: 'Vælg medarbejdere',
+  selected: 'valgt',
+  fullyBooked: 'Ikke ledig',
+  availableAfter: 'Medarbejder ledig efter kl. {time}',
+  autoRemovedUnavailable: 'Følgende medarbejdere blev automatisk fjernet da de ikke er tilgængelige'
 };
+
