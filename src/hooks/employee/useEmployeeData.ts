@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Employee } from '@/types/employee';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -127,23 +127,41 @@ export const useEmployeeData = () => {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
-      // Show user-friendly error message
-      if (errorMessage.includes('Authentication required')) {
+      // DEBUG: Log exactly what we're sending to toast
+      console.log('[useEmployeeData] About to show toast with:', {
+        title: t('common.error'),
+        description: t('employees.fetchError'),
+        titleRaw: 'common.error',
+        descriptionRaw: 'employees.fetchError'
+      });
+      
+      // Show user-friendly error message with better error handling
+      try {
+        if (errorMessage.includes('Authentication required')) {
+          toast({
+            title: t('common.error') || 'Error',
+            description: t('auth.sessionExpired') || 'Session expired',
+            variant: 'destructive',
+          });
+        } else if (errorMessage.includes('infinite recursion')) {
+          toast({
+            title: t('common.error') || 'Error',
+            description: t('employees.rlsError') || 'Access error occurred',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: t('common.error') || 'Error',
+            description: t('employees.fetchError') || 'Error loading employees',
+            variant: 'destructive',
+          });
+        }
+      } catch (toastError) {
+        console.error('[useEmployeeData] Error showing toast:', toastError);
+        // Fallback toast without translation
         toast({
-          title: t('common.error'),
-          description: t('auth.sessionExpired'),
-          variant: 'destructive',
-        });
-      } else if (errorMessage.includes('infinite recursion')) {
-        toast({
-          title: t('common.error'),
-          description: t('employees.rlsError'),
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: t('common.error'),
-          description: t('employees.fetchError'),
+          title: 'Error',
+          description: 'Failed to load employees',
           variant: 'destructive',
         });
       }

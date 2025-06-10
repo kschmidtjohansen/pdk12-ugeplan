@@ -31,8 +31,17 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
   const { isAdmin } = usePermissions();
   const { t } = useTranslation();
 
+  // DEBUG: Log the error state
+  console.log('[EmployeesList] Current state:', {
+    error,
+    loading,
+    employeeCount: employees.length,
+    hasRetry: !!onRetry
+  });
+
   // Show error boundary if there's an error
   if (error && onRetry) {
+    console.log('[EmployeesList] Showing error boundary for error:', error);
     return (
       <EmployeeDataErrorBoundary
         error={error}
@@ -44,6 +53,7 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
 
   // Show loading state
   if (loading) {
+    console.log('[EmployeesList] Showing loading state');
     return (
       <div className="flex justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-polygon-blue"></div>
@@ -53,6 +63,7 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
 
   // Show empty state
   if (employees.length === 0) {
+    console.log('[EmployeesList] Showing empty state');
     return (
       <div className="text-center py-8">
         <p className="text-gray-500 mb-4">{t('employees.noEmployees')}</p>
@@ -65,6 +76,8 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
       </div>
     );
   }
+
+  console.log('[EmployeesList] Rendering employee table with', employees.length, 'employees');
 
   return (
     <div className="overflow-x-auto">

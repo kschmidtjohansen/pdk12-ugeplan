@@ -15,12 +15,28 @@ export function Toaster() {
   return (
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, ...props }) {
+        // DEBUG: Log what we're rendering
+        console.log('[Toaster] Rendering toast:', {
+          id,
+          title,
+          description,
+          titleType: typeof title,
+          descriptionType: typeof description,
+          hasAction: !!action
+        });
+
         return (
           <Toast key={id} {...props}>
             <div className="grid gap-2">
-              {title && <ToastTitle className="font-semibold text-sm">{title}</ToastTitle>}
+              {title && (
+                <ToastTitle className="font-semibold text-sm">
+                  {typeof title === 'string' ? title : String(title)}
+                </ToastTitle>
+              )}
               {description && (
-                <ToastDescription className="text-sm leading-relaxed">{description}</ToastDescription>
+                <ToastDescription className="text-sm leading-relaxed">
+                  {typeof description === 'string' ? description : String(description)}
+                </ToastDescription>
               )}
             </div>
             {action}
