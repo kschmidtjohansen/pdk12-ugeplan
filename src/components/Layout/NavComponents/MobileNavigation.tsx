@@ -11,6 +11,7 @@ import { NavigationItem } from '../../../types/navigation';
 import { useTranslation } from '@/context/TranslationContext';
 import { NotificationType } from '../../../types/notification';
 import { languageNames } from '../../../translations';
+import ThemeToggle from './ThemeToggle';
 
 interface MobileNavigationProps {
   items: NavigationItem[];
@@ -57,7 +58,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
   if (!mobileMenuOpen) return null;
   
   return (
-    <div className="md:hidden bg-white">
+    <div className="md:hidden bg-white dark:bg-gray-900">
       <div className="px-2 pt-2 pb-3 space-y-1">
         {items.map((item) => (
           <Link
@@ -67,7 +68,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
               "block px-3 py-2 rounded-md text-base font-medium flex items-center relative",
               location.pathname === item.path 
                 ? "bg-polygon-purple text-white" 
-                : "text-gray-700 hover:bg-polygon-lightgray"
+                : "text-gray-700 hover:bg-polygon-lightgray dark:text-gray-300 dark:hover:bg-gray-800"
             )}
             onClick={() => setMobileMenuOpen(false)}
           >
@@ -80,7 +81,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
         ))}
         
         {/* User profile */}
-        <div className="pt-4 pb-3 border-t border-gray-200">
+        <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center px-5">
             <div className="flex-shrink-0">
               <Avatar>
@@ -88,35 +89,38 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
               </Avatar>
             </div>
             <div className="ml-3">
-              <div className="text-base font-medium text-gray-800">{user?.name}</div>
-              <div className="text-sm font-medium text-gray-500">{user?.email}</div>
+              <div className="text-base font-medium text-gray-800 dark:text-gray-200">{user?.name}</div>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">{user?.email}</div>
             </div>
-            {/* Notifications - show for everyone */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="ml-auto flex-shrink-0 p-1 relative"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                // Navigate to a notifications page or show notification dropdown
-              }}
-            >
-              <span className="sr-only">{t('notifications.title')}</span>
-              <Bell className="h-5 w-5 text-gray-500" />
-              {unreadCount > 0 && (
-                <Badge 
-                  variant="destructive" 
-                  className="absolute top-0 right-0 transform translate-x-1 -translate-y-1 flex items-center justify-center h-4 w-4 text-[10px] p-0"
-                >
-                  {unreadCount}
-                </Badge>
-              )}
-            </Button>
+            {/* Notifications and Theme Toggle - show for everyone */}
+            <div className="ml-auto flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex-shrink-0 p-1 relative"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  // Navigate to a notifications page or show notification dropdown
+                }}
+              >
+                <span className="sr-only">{t('notifications.title')}</span>
+                <Bell className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                {unreadCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute top-0 right-0 transform translate-x-1 -translate-y-1 flex items-center justify-center h-4 w-4 text-[10px] p-0"
+                  >
+                    {unreadCount}
+                  </Badge>
+                )}
+              </Button>
+              <ThemeToggle />
+            </div>
           </div>
           
           <div className="mt-3 space-y-1 px-2">
             {/* Language selector */}
-            <div className="flex items-center px-3 py-2 text-gray-700">
+            <div className="flex items-center px-3 py-2 text-gray-700 dark:text-gray-300">
               <span className="mr-2">{t('common.language')}:</span>
               <div className="flex gap-2">
                 <Button 
