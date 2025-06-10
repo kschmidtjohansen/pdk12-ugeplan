@@ -31,6 +31,52 @@ const planner = {
   selectEmployee: 'Vælg medarbejder',
   selectCar: 'Vælg bil',
   
+  // Additional form fields
+  enterTitle: 'Indtast titel',
+  enterLocation: 'Indtast lokation',
+  assignmentDate: 'Opgavedato',
+  startTime: 'Starttid',
+  endTime: 'Sluttid',
+  description: 'Beskrivelse',
+  notesPlaceholder: 'Tilføj noter eller beskrivelse...',
+  
+  // Form actions
+  updateDetails: 'Opdater opgavedetaljer og tildeling.',
+  addAssignment: 'Tilføj en ny opgave til planlæggeren.',
+  saveChanges: 'Gem ændringer',
+  createAssignment: 'Opret opgave',
+  
+  // Assignment types
+  type: 'Type',
+  selectType: 'Vælg type',
+  assignmentTypes: {
+    ordinary_damage: 'Almindelig skade',
+    flood_damage: 'Vandskade',
+    roof_damage: 'Tagskade',
+    storm_damage: 'Stormskade',
+    fire_damage: 'Brandskade',
+    other: 'Andet'
+  },
+  
+  // Car selection
+  selectCars: 'Vælg biler',
+  carsSelected: '{count} biler valgt',
+  available: 'Tilgængelig',
+  unavailable: 'Ikke tilgængelig',
+  bookedUntil: 'Optaget til {time}',
+  carNotAvailable: 'Bil ikke tilgængelig',
+  
+  // Employee selection
+  selectEmployees: 'Vælg medarbejdere',
+  onVacation: 'På ferie',
+  
+  // Responsible user selection
+  responsibleUser: 'Ansvarlig bruger',
+  selectResponsibleUser: 'Vælg ansvarlig bruger',
+  
+  // Screen display
+  showOnScreen: 'Vis på skærm',
+  
   // Status and actions
   published: 'Publiceret',
   notPublished: 'Ikke publiceret',
