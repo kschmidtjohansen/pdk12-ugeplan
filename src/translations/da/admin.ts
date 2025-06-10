@@ -15,7 +15,7 @@ export const admin = {
     totalUsersDesc: '{count} aktive i dag',
     vehicles: 'Køretøjer',
     vehiclesDesc: '{count} i brug nu',
-    vacationRequests: 'Ferieansøgninger',
+    vacationRequests: 'Ansøgninger om fridage',
     vacationRequestsDesc: 'afventer godkendelse',
     scheduledTasks: 'Planlagte opgaver',
     scheduledTasksDesc: 'Opgaver denne uge'
@@ -33,17 +33,17 @@ export const admin = {
     assignmentPublishing: 'Opgavepublicering',
     allAssignmentsPublished: 'Alle opgaver er publiceret',
     unpublishedTasks: '{count} upublicerede opgaver',
-    vehicleUtilization: 'Køretøjsudnyttelse',
+    vehicleUtilization: 'Køretøjer',
     vehiclesInUse: '{inUse} af {total} køretøjer i brug',
     staffAvailability: 'Personale tilgængelighed',
     staffAvailable: '{available} af {total} medarbejdere tilgængelige'
   },
   quickActions: {
     title: 'Hurtige handlinger',
-    viewPlanner: 'Se planlægger',
+    viewPlanner: 'Se ugeplan',
     manageStaff: 'Administrer personale',
-    fleetManagement: 'Flådestyring',
-    vacationRequests: 'Ferieansøgninger'
+    fleetManagement: 'Biler',
+    vacationRequests: 'Ansøgninger om fridage'
   },
   userManagement: {
     title: 'Brugerstyring',

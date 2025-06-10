@@ -1,5 +1,4 @@
 
-
 const vacation = {
   title: "Ferie",
   pageDescription: "Administrer dine ferieanmodninger her",
@@ -11,10 +10,14 @@ const vacation = {
   vacationDetails: "Feriedetaljer",
   employee: "Medarbejder",
   date: "Dato",
-  dateRange: "Datointerval",
+  dateRange: "Datoer",
   from: "Fra",
   to: "Til",
-  requestedOn: "Anmodet den",
+  startDate: "Start dato",
+  endDate: "Slut dato",
+  selectStartDate: "Vælg startdato",
+  selectEndDate: "Vælg slutdato",
+  requestedOn: "Dato for ansøgning",
   reason: "Årsag",
   notes: "Noter",
   actions: "Handlinger",
@@ -53,13 +56,13 @@ const vacation = {
   cleanupCompleteDescription: "Forældede ferieansøgninger er blevet ryddet op",
   
   // New missing keys
-  applyForVacation: "Ansøg om ferie",
-  requestForEmployee: "Anmod for medarbejder",
+  applyForVacation: "Ansøg om fri",
+  requestForEmployee: "Ansøg for medarbejder",
   selectEmployee: "Vælg medarbejder",
   selectEmployeeAndDates: "Vælg medarbejder og datointerval for ferieanmodning",
-  selectDatesAndReason: "Vælg dine feriedatoer og angiv en årsag",
-  reasonPlaceholder: "Indtast årsag til ferieanmodning...",
-  submitRequest: "Indsend anmodning",
+  selectDatesAndReason: "Vælg datoer for anmodning om fridag og en årsag",
+  reasonPlaceholder: "Indtast årsag til anmodning om fridag...",
+  submitRequest: "Indsend",
   noRequests: "Ingen ferieanmodninger fundet",
   approveRequest: "Godkend anmodning",
   rejectRequest: "Afvis anmodning",
@@ -89,4 +92,3 @@ const vacation = {
 };
 
 export default vacation;
-

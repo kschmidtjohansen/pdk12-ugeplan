@@ -1,7 +1,7 @@
 
 export const employees = {
   title: 'Medarbejdere',
-  description: 'Administrer medarbejdere og deres tilgange',
+  description: 'Vis og administrer medarbejdere.',
   addEmployee: 'Tilføj medarbejder',
   editEmployee: 'Rediger medarbejder',
   deleteEmployee: 'Slet medarbejder',
@@ -17,6 +17,7 @@ export const employees = {
   status: 'Status',
   onLeave: 'På orlov',
   available: 'Tilgængelig',
+  availability: 'Tilgængelighed',
   notes: 'Noter',
   actions: 'Handlinger',
   noEmployees: 'Ingen medarbejdere fundet',
@@ -68,4 +69,3 @@ export const employees = {
   availableAfter: 'Medarbejder ledig efter kl. {time}',
   autoRemovedUnavailable: 'Følgende medarbejdere blev automatisk fjernet da de ikke er tilgængelige'
 };
-

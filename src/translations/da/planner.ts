@@ -1,8 +1,7 @@
 
-
 const planner = {
   title: 'Planlægger',
-  description: 'Planlæg og administrer arbejdsopgaver',
+  description: 'Beskrivelse',
   
   // Basic actions
   cancel: 'Annuller',
@@ -26,15 +25,15 @@ const planner = {
   time: 'Tid',
   fromTime: 'Fra tid',
   toTime: 'Til tid',
-  location: 'Lokation',
+  location: 'Adresse',
   employees: 'Medarbejdere',
   cars: 'Biler',
   selectEmployee: 'Vælg medarbejder',
   selectCar: 'Vælg bil',
   
   // Additional form fields
-  enterTitle: 'Indtast titel',
-  enterLocation: 'Indtast lokation',
+  enterTitle: 'Sagsnummer',
+  enterLocation: 'Indtast adresse',
   assignmentDate: 'Opgavedato',
   startTime: 'Starttid',
   endTime: 'Sluttid',
@@ -42,7 +41,7 @@ const planner = {
   
   // Form actions
   updateDetails: 'Opdater opgavedetaljer og tildeling.',
-  addAssignment: 'Tilføj en ny opgave til planlæggeren.',
+  addAssignment: 'Tilføj en ny opgave til ugeplanen.',
   saveChanges: 'Gem ændringer',
   createAssignment: 'Opret opgave',
   
@@ -71,8 +70,8 @@ const planner = {
   onVacation: 'På ferie',
   
   // Responsible user selection
-  responsibleUser: 'Ansvarlig bruger',
-  selectResponsibleUser: 'Vælg ansvarlig bruger',
+  responsibleUser: 'Sagsansvarlig',
+  selectResponsibleUser: 'Vælg sagsansvarlig',
   noResponsibleUser: 'Ingen ansvarlig',
   
   // Screen display
@@ -132,4 +131,3 @@ const planner = {
 };
 
 export default planner;
-
