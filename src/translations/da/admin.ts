@@ -85,7 +85,8 @@ export const admin = {
     activateUser: 'Aktiver bruger',
     deactivateUser: 'Deaktiver bruger',
     activateError: 'Fejl ved aktivering af bruger',
-    deactivateError: 'Fejl ved deaktivering af bruger'
+    deactivateError: 'Fejl ved deaktivering af bruger',
+    inactive: 'inaktiv'
   },
   passwords: {
     changePassword: 'Skift adgangskode',

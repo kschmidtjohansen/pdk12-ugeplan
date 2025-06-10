@@ -6,6 +6,7 @@ import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
 import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Employee } from '@/types/employee';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -48,16 +49,27 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, o
     }
   };
 
+  // Get initials for avatar fallback
+  const getInitials = (name: string): string => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   return (
     <TableRow>
       <TableCell className="font-medium">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={employee.avatar_url || undefined} />
+            <AvatarFallback className="text-xs bg-polygon-blue text-white">
+              {getInitials(employee.name)}
+            </AvatarFallback>
+          </Avatar>
           <span>{employee.name}</span>
-          {employee.onLeave && (
-            <StatusBadge variant="error">
-              {t('employees.onLeave')}
-            </StatusBadge>
-          )}
         </div>
         {(isAdmin || isSkadeleder) && employee.notes && (
           <TooltipProvider>
@@ -87,14 +99,22 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = ({ employee, onEdit, o
         </div>
       </TableCell>
       <TableCell>{employee.jobTitle}</TableCell>
-      {/* Show role to admin users only */}
-      {isAdmin && (
-        <TableCell>
-          <StatusBadge variant={getRoleVariant(employee.role)}>
-            {USER_ROLES.find(role => role.value === employee.role)?.label}
+      <TableCell>
+        <StatusBadge variant={getRoleVariant(employee.role)}>
+          {USER_ROLES.find(role => role.value === employee.role)?.label}
+        </StatusBadge>
+      </TableCell>
+      <TableCell>
+        {employee.onLeave ? (
+          <StatusBadge variant="error">
+            {t('employees.onLeave')}
           </StatusBadge>
-        </TableCell>
-      )}
+        ) : (
+          <StatusBadge variant="success">
+            {t('employees.available')}
+          </StatusBadge>
+        )}
+      </TableCell>
       {isAdmin && (
         <TableCell>
           <div className="flex space-x-2">

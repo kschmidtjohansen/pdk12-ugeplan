@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Car } from '@/types/car';
 import { Assignment } from '@/types/assignment';
@@ -5,8 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '@/context/TranslationContext';
 import { Label } from '@/components/ui/label';
 import { X, ChevronDown } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
 interface CarSelectorProps {
   cars: Car[];
   selectedCarId: string;
@@ -15,6 +17,7 @@ interface CarSelectorProps {
   assignments?: Assignment[];
   currentAssignmentId?: string;
 }
+
 export const CarSelector: React.FC<CarSelectorProps> = ({
   cars,
   selectedCarId,
@@ -23,9 +26,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
   assignments = [],
   currentAssignmentId
 }) => {
-  const {
-    t
-  } = useTranslation();
+  const { t } = useTranslation();
 
   // Improved time normalization function
   const normalizeTime = (time: string): string => {
@@ -64,6 +65,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       console.error(`[CarSelector] Error parsing currentDate: ${currentDate}`, e);
       targetDateStr = new Date().toISOString().split('T')[0];
     }
+
     const carAssignments = assignments.filter(assignment => {
       if (currentAssignmentId && assignment.id === currentAssignmentId) {
         return false;
@@ -84,6 +86,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
         console.error(`[CarSelector] Error parsing assignment date: ${assignment.date}`, e);
         assignmentDateStr = assignment.date;
       }
+
       const isOnDate = assignmentDateStr === targetDateStr;
       const isAssigned = assignment.car && (typeof assignment.car === 'string' ? assignment.car === carId : assignment.car.id === carId);
       return isOnDate && isAssigned;
@@ -103,6 +106,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       const normalizedEndTime = normalizeTime(assignment.toTime);
       return normalizedEndTime === "16:00";
     });
+
     return {
       isAssigned: carAssignments.length > 0,
       hasEndTimeAtSixteen,
@@ -127,62 +131,111 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       onCarSelect(carId);
     }
   };
-  return <div className="space-y-2">
+
+  return (
+    <div className="space-y-2">
       <Label>{t('planner.selectCar')}</Label>
       
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+      <Popover>
+        <PopoverTrigger asChild>
           <Button variant="outline" className="w-full justify-between p-2">
             <span className="truncate px-[15px]">{getSelectedCarDisplay()}</span>
             <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto">
-          {/* No car option */}
-          <DropdownMenuItem onClick={() => handleCarSelect('none')} className="cursor-pointer">
-            <div className="flex items-center justify-between w-full space-x-2">
-              <span>{t('cars.noCar')}</span>
-            </div>
-          </DropdownMenuItem>
-          
-          {cars.map(car => {
-          const isUnavailable = !car.is_available;
-          const carUsage = isCarInUse(car.id);
-          const hasRedStyling = carUsage.hasEndTimeAtSixteen;
-          return <DropdownMenuItem key={car.id} onClick={() => !isUnavailable && handleCarSelect(car.id)} className={`cursor-pointer ${isUnavailable ? 'opacity-50 cursor-not-allowed' : ''} ${hasRedStyling ? '!bg-red-50 !border-l-4 !border-red-600 hover:!bg-red-100' : ''}`} disabled={isUnavailable}>
-                <div className="flex items-center justify-between w-full space-x-2">
-                  <span className={`truncate ${hasRedStyling ? 'text-red-700 font-bold' : ''}`}>
-                    {car.name}
-                  </span>
-                  <div className="flex gap-1 flex-shrink-0">
-                    {isUnavailable && <Badge variant="outline" className="text-xs">
-                        {t('cars.unavailable')}
-                      </Badge>}
-                    {carUsage.isAssigned && !isUnavailable && <Badge className={`text-xs font-medium ${hasRedStyling ? 'bg-red-600 text-white border-red-700' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>
-                        {t('cars.inUse', {
-                    time: carUsage.latestEndTime
-                  })}
-                      </Badge>}
+        </PopoverTrigger>
+        <PopoverContent 
+          className="w-80 p-0 z-[60] bg-white border shadow-lg" 
+          sideOffset={4}
+          onPointerDownOutside={(event) => {
+            // Allow scrolling without closing the popover
+            const target = event.target as Element;
+            if (target.closest('[data-radix-popper-content-wrapper]')) {
+              event.preventDefault();
+            }
+          }}
+        >
+          {/* Scrollable container with proper wheel event handling */}
+          <div 
+            className="max-h-60 overflow-y-auto"
+            onWheel={(e) => {
+              // Prevent event from bubbling up to prevent popover from closing
+              e.stopPropagation();
+            }}
+          >
+            <div className="p-2 space-y-1">
+              {/* No car option */}
+              <div
+                onClick={() => handleCarSelect('none')}
+                className="flex items-center justify-between w-full space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+              >
+                <span>{t('cars.noCar')}</span>
+              </div>
+              
+              {cars.map(car => {
+                const isUnavailable = !car.is_available;
+                const carUsage = isCarInUse(car.id);
+                const hasRedStyling = carUsage.hasEndTimeAtSixteen;
+                
+                return (
+                  <div
+                    key={car.id}
+                    onClick={() => !isUnavailable && handleCarSelect(car.id)}
+                    className={`flex items-center justify-between w-full space-x-2 p-2 rounded-md transition-colors cursor-pointer ${
+                      isUnavailable ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
+                    } ${hasRedStyling ? '!bg-red-50 !border-l-4 !border-red-600 hover:!bg-red-100' : ''}`}
+                  >
+                    <span className={`truncate ${hasRedStyling ? 'text-red-700 font-bold' : ''}`}>
+                      {car.name}
+                    </span>
+                    <div className="flex gap-1 flex-shrink-0">
+                      {isUnavailable && (
+                        <Badge variant="outline" className="text-xs">
+                          {t('cars.unavailable')}
+                        </Badge>
+                      )}
+                      {carUsage.isAssigned && !isUnavailable && (
+                        <Badge 
+                          className={`text-xs font-medium ${
+                            hasRedStyling 
+                              ? 'bg-red-600 text-white border-red-700' 
+                              : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                          }`}
+                        >
+                          {t('cars.inUse', { time: carUsage.latestEndTime })}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </DropdownMenuItem>;
-        })}
-        </DropdownMenuContent>
-      </DropdownMenu>
+                );
+              })}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
       
       {/* Display selected car as removable chip */}
-      {selectedCarId && selectedCarId !== '' && <div className="flex flex-wrap gap-1">
+      {selectedCarId && selectedCarId !== '' && (
+        <div className="flex flex-wrap gap-1">
           {(() => {
-        const car = cars.find(c => c.id === selectedCarId);
-        if (!car) return null;
-        return <Badge key={selectedCarId} variant="secondary" className="flex items-center gap-1">
+            const car = cars.find(c => c.id === selectedCarId);
+            if (!car) return null;
+            
+            return (
+              <Badge key={selectedCarId} variant="secondary" className="flex items-center gap-1">
                 {car.name}
-                <button onClick={() => onCarSelect('')} className="ml-1 hover:bg-muted rounded-full p-0.5">
+                <button 
+                  onClick={() => onCarSelect('')} 
+                  className="ml-1 hover:bg-muted rounded-full p-0.5"
+                >
                   <X className="h-3 w-3" />
                 </button>
-              </Badge>;
-      })()}
-        </div>}
-    </div>;
+              </Badge>
+            );
+          })()}
+        </div>
+      )}
+    </div>
+  );
 };
+
 export default CarSelector;

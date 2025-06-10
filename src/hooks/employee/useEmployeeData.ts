@@ -27,7 +27,7 @@ export const useEmployeeData = () => {
       
       console.log('[useEmployeeData] Session verified, fetching profiles...');
       
-      // Fetch all profiles with better error handling
+      // Fetch all profiles with better error handling including avatar_url
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -38,6 +38,7 @@ export const useEmployeeData = () => {
           job_title,
           on_leave,
           notes,
+          avatar_url,
           created_at,
           updated_at
         `)
@@ -93,7 +94,8 @@ export const useEmployeeData = () => {
             jobTitle: profile.job_title || '',
             role: userRole?.role || 'servicemedarbejder',
             onLeave: profile.on_leave || false,
-            notes: profile.notes || ''
+            notes: profile.notes || '',
+            avatar_url: profile.avatar_url
           };
           
           console.log(`[useEmployeeData] Transformed employee: ${employee.name} (${employee.role})`);
@@ -110,7 +112,8 @@ export const useEmployeeData = () => {
             jobTitle: '',
             role: 'servicemedarbejder',
             onLeave: false,
-            notes: ''
+            notes: '',
+            avatar_url: profile.avatar_url
           } as Employee;
         }
       });

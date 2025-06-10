@@ -54,7 +54,7 @@ const UserManagement: React.FC = () => {
     try {
       setLoading(true);
       
-      // Get all users with their roles
+      // Get all users with their roles including avatar_url
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -62,7 +62,8 @@ const UserManagement: React.FC = () => {
           name,
           email,
           phone,
-          job_title
+          job_title,
+          avatar_url
         `);
       
       if (profilesError) throw profilesError;
@@ -110,7 +111,8 @@ const UserManagement: React.FC = () => {
           phone: profile.phone || '',
           jobTitle: profile.job_title || '',
           role: (userRole?.role || 'servicemedarbejder') as UserRole,
-          banned_until: getBannedUntil(authUser)
+          banned_until: getBannedUntil(authUser),
+          avatar_url: profile.avatar_url
         };
       });
 
@@ -153,6 +155,29 @@ const UserManagement: React.FC = () => {
   // Load users on component mount
   useEffect(() => {
     fetchUsers();
+  }, []);
+
+  // Set up realtime subscription for profile changes to update avatars
+  useEffect(() => {
+    const channel = supabase
+      .channel('profiles_admin_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          console.log('Profile change detected in admin:', payload.eventType);
+          fetchUsers(); // Refresh user data when profiles change
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Helper function to get role label

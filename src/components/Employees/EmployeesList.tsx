@@ -5,6 +5,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import EmployeeTableRow from './EmployeeTableRow';
 import EmployeeDataErrorBoundary from '../ErrorBoundary/EmployeeDataErrorBoundary';
 
@@ -67,32 +68,18 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b border-gray-200">
-            <th className="text-left p-4 font-medium text-gray-700">
-              {t('employees.name')}
-            </th>
-            <th className="text-left p-4 font-medium text-gray-700">
-              {t('employees.email')}
-            </th>
-            <th className="text-left p-4 font-medium text-gray-700">
-              {t('employees.jobTitle')}
-            </th>
-            <th className="text-left p-4 font-medium text-gray-700">
-              {t('employees.role')}
-            </th>
-            <th className="text-left p-4 font-medium text-gray-700">
-              {t('employees.status')}
-            </th>
-            {isAdmin && (
-              <th className="text-right p-4 font-medium text-gray-700">
-                {t('common.actions')}
-              </th>
-            )}
-          </tr>
-        </thead>
-        <tbody>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t('employees.name')}</TableHead>
+            <TableHead>{t('employees.email')}</TableHead>
+            <TableHead>{t('employees.jobTitle')}</TableHead>
+            <TableHead>{t('employees.role')}</TableHead>
+            <TableHead>{t('employees.status')}</TableHead>
+            {isAdmin && <TableHead className="text-right">{t('employees.actions')}</TableHead>}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {employees.map((employee) => (
             <EmployeeTableRow
               key={employee.id}
@@ -102,8 +89,8 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
               onToggleLeave={onToggleLeave}
             />
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 };

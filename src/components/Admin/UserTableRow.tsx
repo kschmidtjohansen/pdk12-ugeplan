@@ -5,6 +5,7 @@ import { Edit, Key, Trash, UserCheck, UserX } from 'lucide-react';
 import {
   Avatar,
   AvatarFallback,
+  AvatarImage,
 } from '@/components/ui/avatar';
 import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
@@ -18,6 +19,7 @@ export interface AdminUser {
   phone?: string;
   jobTitle?: string;
   banned_until?: string | null;
+  avatar_url?: string;
 }
 
 interface UserTableRowProps {
@@ -49,6 +51,7 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
       <td className="py-4 pl-4 pr-3 text-sm sm:pl-6">
         <div className="flex items-center">
           <Avatar className="h-8 w-8 bg-polygon-blue text-white">
+            <AvatarImage src={user.avatar_url || undefined} />
             <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
           </Avatar>
           <div className="ml-4">
