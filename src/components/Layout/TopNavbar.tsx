@@ -14,7 +14,6 @@ import DesktopNavigation from './NavComponents/DesktopNavigation';
 import MobileNavigation from './NavComponents/MobileNavigation';
 import NotificationsDropdown from './NavComponents/NotificationsDropdown';
 import UserMenu from './NavComponents/UserMenu';
-import ThemeToggle from './NavComponents/ThemeToggle';
 import { getNavigationItems } from './NavigationItems';
 
 const TopNavbar: React.FC = () => {
@@ -93,7 +92,7 @@ const TopNavbar: React.FC = () => {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-soft navbar-height dark:bg-gray-900/95 dark:border-gray-800">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-soft navbar-height">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20">
           {/* Logo and desktop navigation */}
@@ -108,7 +107,7 @@ const TopNavbar: React.FC = () => {
             <div className="flex md:hidden">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none transition-colors duration-200 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:bg-gray-800"
+                className="inline-flex items-center justify-center p-2 rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none transition-colors duration-200"
               >
                 {mobileMenuOpen ? (
                   <X className="h-6 w-6" aria-hidden="true" />
@@ -127,11 +126,6 @@ const TopNavbar: React.FC = () => {
                 handleNotificationClick={handleNotificationClick}
                 clearNotification={deleteNotification}
               />
-            </div>
-            
-            {/* Theme Toggle - Desktop */}
-            <div className="hidden md:flex md:items-center">
-              <ThemeToggle />
             </div>
             
             {/* User dropdown */}
