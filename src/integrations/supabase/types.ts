@@ -340,18 +340,7 @@ export type Database = {
       }
     }
     Views: {
-      performance_metrics: {
-        Row: {
-          index_scans: number | null
-          index_tuples_fetched: number | null
-          schemaname: unknown | null
-          sequential_scan_percentage: number | null
-          sequential_scans: number | null
-          sequential_tuples_read: number | null
-          table_name: unknown | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       can_access_assignment: {
