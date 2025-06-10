@@ -1,4 +1,5 @@
 
+
 const planner = {
   title: 'Planlægger',
   description: 'Planlæg og administrer arbejdsopgaver',
@@ -37,7 +38,6 @@ const planner = {
   assignmentDate: 'Opgavedato',
   startTime: 'Starttid',
   endTime: 'Sluttid',
-  description: 'Beskrivelse',
   notesPlaceholder: 'Tilføj noter eller beskrivelse...',
   
   // Form actions
@@ -124,3 +124,4 @@ const planner = {
 };
 
 export default planner;
+
