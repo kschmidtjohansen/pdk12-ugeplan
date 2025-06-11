@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Edit, Trash2, UserX, UserCheck, Users } from 'lucide-react';
+import { Edit, Trash2, UserX, UserCheck, Users, RefreshCw } from 'lucide-react';
 import EmployeeLoadingError from '@/components/ErrorBoundary/EmployeeLoadingError';
 
 interface EmployeesListProps {

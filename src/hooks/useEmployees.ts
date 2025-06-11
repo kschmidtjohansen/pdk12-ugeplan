@@ -49,6 +49,7 @@ export const useEmployees = () => {
     employees,
     loading,
     error,
+    fetchEmployees,
     currentEmployee,
     formData,
     prepareForCreate,
