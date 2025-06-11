@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Employee } from '@/types/employee';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, ensureValidSession } from '@/integrations/supabase/client';
 
 export const useEmployeeData = () => {
   const { toast } = useToast();
@@ -17,17 +17,17 @@ export const useEmployeeData = () => {
       setLoading(true);
       setError(null);
       
-      console.log('[useEmployeeData] Fetching employees with improved error handling...');
+      console.log('[useEmployeeData] Starting employee fetch...');
       
-      // First, verify we have a valid session
-      const { data: session, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session?.session) {
-        throw new Error('Authentication required to load employees');
+      // Step 1: Ensure we have a valid authenticated session
+      const sessionValid = await ensureValidSession();
+      if (!sessionValid) {
+        throw new Error('Authentication session is invalid or expired');
       }
       
-      console.log('[useEmployeeData] Session verified, fetching profiles...');
+      console.log('[useEmployeeData] Session validated, fetching profiles...');
       
-      // Fetch all profiles with better error handling including avatar_url
+      // Step 2: Fetch all profiles with enhanced error handling
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -46,30 +46,19 @@ export const useEmployeeData = () => {
       
       if (profilesError) {
         console.error('[useEmployeeData] Profiles query error:', profilesError);
-        
-        // Handle specific RLS errors more gracefully
-        if (profilesError.message.includes('row-level security')) {
-          throw new Error('Access denied - please ensure you are logged in with proper permissions');
-        }
         throw new Error(`Failed to fetch employee profiles: ${profilesError.message}`);
       }
       
-      if (!profilesData) {
-        console.log('[useEmployeeData] No profiles data returned');
+      if (!profilesData || profilesData.length === 0) {
+        console.log('[useEmployeeData] No profiles found');
         setEmployees([]);
         return;
       }
       
       console.log(`[useEmployeeData] Fetched ${profilesData.length} profiles`);
       
-      // Fetch user roles with improved error handling
+      // Step 3: Fetch user roles with improved error handling
       const userIds = profilesData.map(profile => profile.id);
-      
-      if (userIds.length === 0) {
-        console.log('[useEmployeeData] No user IDs to fetch roles for');
-        setEmployees([]);
-        return;
-      }
       
       console.log('[useEmployeeData] Fetching user roles...');
       
@@ -79,48 +68,28 @@ export const useEmployeeData = () => {
         .in('user_id', userIds);
         
       if (rolesError) {
-        console.warn('[useEmployeeData] Roles query error:', rolesError);
-        // Don't throw here, just log and continue with default roles
-        console.warn('[useEmployeeData] Continuing with default roles due to error:', rolesError.message);
+        console.error('[useEmployeeData] Roles query error:', rolesError);
+        // Continue with default roles instead of failing completely
+        console.warn('[useEmployeeData] Continuing with default roles');
       }
       
       console.log(`[useEmployeeData] Fetched ${rolesData?.length || 0} role assignments`);
       
-      // Transform data to Employee format with better error handling
+      // Step 4: Transform data to Employee format
       const transformedEmployees: Employee[] = profilesData.map(profile => {
-        try {
-          const userRole = rolesData?.find(r => r.user_id === profile.id);
-          
-          const employee: Employee = {
-            id: profile.id,
-            name: profile.name || 'Unknown',
-            email: profile.email || '',
-            phone: profile.phone || '',
-            jobTitle: profile.job_title || '',
-            role: userRole?.role || 'servicemedarbejder',
-            onLeave: profile.on_leave || false,
-            notes: profile.notes || '',
-            avatar_url: profile.avatar_url
-          };
-          
-          console.log(`[useEmployeeData] Transformed employee: ${employee.name} (${employee.role})`);
-          
-          return employee;
-        } catch (transformError) {
-          console.error(`[useEmployeeData] Error transforming profile ${profile.id}:`, transformError);
-          // Return a safe default employee
-          return {
-            id: profile.id,
-            name: profile.name || 'Unknown',
-            email: profile.email || '',
-            phone: '',
-            jobTitle: '',
-            role: 'servicemedarbejder',
-            onLeave: false,
-            notes: '',
-            avatar_url: profile.avatar_url
-          } as Employee;
-        }
+        const userRole = rolesData?.find(r => r.user_id === profile.id);
+        
+        return {
+          id: profile.id,
+          name: profile.name || 'Unknown',
+          email: profile.email || '',
+          phone: profile.phone || '',
+          jobTitle: profile.job_title || '',
+          role: userRole?.role || 'servicemedarbejder',
+          onLeave: profile.on_leave || false,
+          notes: profile.notes || '',
+          avatar_url: profile.avatar_url
+        };
       });
       
       console.log(`[useEmployeeData] Successfully transformed ${transformedEmployees.length} employees`);
@@ -132,38 +101,21 @@ export const useEmployeeData = () => {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
-      // Show user-friendly error message with better error handling
-      try {
-        if (errorMessage.includes('Authentication required') || errorMessage.includes('Access denied')) {
-          toast({
-            title: t('common.error') || 'Error',
-            description: t('auth.sessionExpired') || 'Session expired - please log in again',
-            variant: 'destructive',
-          });
-        } else if (errorMessage.includes('row-level security')) {
-          toast({
-            title: t('common.error') || 'Error',
-            description: 'Access error - insufficient permissions',
-            variant: 'destructive',
-          });
-        } else {
-          toast({
-            title: t('common.error') || 'Error',
-            description: t('employees.fetchError') || 'Error loading employees',
-            variant: 'destructive',
-          });
-        }
-      } catch (toastError) {
-        console.error('[useEmployeeData] Error showing toast:', toastError);
-        // Fallback toast without translation
+      // Show user-friendly error message
+      if (errorMessage.includes('Authentication') || errorMessage.includes('session')) {
         toast({
-          title: 'Error',
-          description: 'Failed to load employees',
+          title: t('common.error') || 'Error',
+          description: t('auth.sessionExpired') || 'Session expired - please refresh the page',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: t('common.error') || 'Error',
+          description: t('employees.fetchError') || 'Error loading employees',
           variant: 'destructive',
         });
       }
       
-      // Set empty array on error to prevent undefined issues
       setEmployees([]);
     } finally {
       setLoading(false);
@@ -175,18 +127,18 @@ export const useEmployeeData = () => {
     fetchEmployees();
   }, [fetchEmployees]);
 
-  // Set up realtime subscription for profile changes with debouncing
+  // Set up realtime subscription for profile changes
   useEffect(() => {
-    console.log('[useEmployeeData] Setting up realtime subscription for profiles...');
+    console.log('[useEmployeeData] Setting up realtime subscription...');
     
     let timeoutId: NodeJS.Timeout;
     
     const debouncedRefresh = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        console.log('[useEmployeeData] Debounced refresh triggered');
+        console.log('[useEmployeeData] Realtime refresh triggered');
         fetchEmployees();
-      }, 1000); // Wait 1 second before refreshing
+      }, 1000);
     };
     
     const channel = supabase
@@ -204,11 +156,11 @@ export const useEmployeeData = () => {
         }
       )
       .subscribe((status) => {
-        console.log('[useEmployeeData] Profiles realtime subscription status:', status);
+        console.log('[useEmployeeData] Realtime subscription status:', status);
       });
 
     return () => {
-      console.log('[useEmployeeData] Cleaning up profiles realtime subscription');
+      console.log('[useEmployeeData] Cleaning up realtime subscription');
       clearTimeout(timeoutId);
       supabase.removeChannel(channel);
     };
