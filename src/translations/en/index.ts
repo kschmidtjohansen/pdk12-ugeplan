@@ -11,6 +11,8 @@ import { admin } from './admin';
 import { profile } from './profile';
 import login from './login';
 import { auth } from './auth';
+import accessDenied from './accessDenied';
+import deleteConfirm from './deleteConfirm';
 
 export const en = {
   common,

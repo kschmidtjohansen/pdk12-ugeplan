@@ -25,6 +25,7 @@ export const common = {
   retrying: 'Retrying...',
   add: 'Add',
   remove: 'Remove',
+  deleting: 'Deleting...',
   
   // Status messages
   success: 'Success',
@@ -83,6 +84,11 @@ export const common = {
   available: 'Available',
   unavailable: 'Unavailable',
   selectDate: 'Select date',
+  
+  // Theme
+  lightMode: 'Light mode',
+  darkMode: 'Dark mode',
+  toggleTheme: 'Toggle theme',
   
   yes: 'Yes',
   no: 'No'

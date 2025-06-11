@@ -1,5 +1,5 @@
 
-export const employees = {
+const employees = {
   title: 'Medarbejdere',
   description: 'Vis og administrer medarbejdere.',
   addEmployee: 'Tilføj medarbejder',
@@ -69,3 +69,5 @@ export const employees = {
   availableAfter: 'Medarbejder ledig efter kl. {time}',
   autoRemovedUnavailable: 'Følgende medarbejdere blev automatisk fjernet da de ikke er tilgængelige'
 };
+
+export default employees;

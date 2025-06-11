@@ -21,7 +21,11 @@ const enTranslations = {
     no: 'No',
     week: 'Week',
     available: 'Available',
-    unavailable: 'Unavailable'
+    unavailable: 'Unavailable',
+    deleting: 'Deleting...',
+    lightMode: 'Light mode',
+    darkMode: 'Dark mode',
+    toggleTheme: 'Toggle theme'
   },
   // Navigation items
   navigation: navigation,
@@ -47,6 +51,19 @@ const enTranslations = {
   admin: admin,
   // Auth
   auth: auth,
+  // Access denied - adding for consistency
+  accessDenied: {
+    title: 'Access Denied',
+    message: 'You need to be logged in to access this page.',
+    restricted: 'You do not have permission to perform this action.'
+  },
+  // Delete confirmations - adding for consistency
+  deleteConfirm: {
+    title: 'Are you absolutely sure?',
+    carWarning: 'You are about to delete {name} from the department. This action cannot be undone.',
+    cancel: 'Cancel',
+    delete: 'Delete'
+  }
 };
 
 export type EnTranslations = typeof enTranslations;

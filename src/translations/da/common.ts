@@ -25,6 +25,7 @@ export const common = {
   retrying: 'Prøver igen...',
   add: 'Tilføj',
   remove: 'Fjern',
+  deleting: 'Sletter...',
   
   // Status messages
   success: 'Succes',
@@ -83,6 +84,11 @@ export const common = {
   available: 'Tilgængelig',
   unavailable: 'Ikke tilgængelig',
   selectDate: 'Vælg dato',
+  
+  // Theme
+  lightMode: 'Lys tilstand',
+  darkMode: 'Mørk tilstand',
+  toggleTheme: 'Skift tema',
   
   yes: 'Ja',
   no: 'Nej'
