@@ -26,5 +26,7 @@ export const en = {
   admin,
   profile,
   login,
-  auth
+  auth,
+  accessDenied,
+  deleteConfirm
 };

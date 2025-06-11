@@ -284,24 +284,6 @@ export type Database = {
         }
         Relationships: []
       }
-      users: {
-        Row: {
-          id: number
-          role: string
-          username: string
-        }
-        Insert: {
-          id?: never
-          role: string
-          username: string
-        }
-        Update: {
-          id?: never
-          role?: string
-          username?: string
-        }
-        Relationships: []
-      }
       vacations: {
         Row: {
           created_at: string

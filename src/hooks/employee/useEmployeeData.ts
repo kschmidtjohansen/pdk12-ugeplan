@@ -46,6 +46,11 @@ export const useEmployeeData = () => {
       
       if (profilesError) {
         console.error('[useEmployeeData] Profiles query error:', profilesError);
+        
+        // Handle specific RLS errors more gracefully
+        if (profilesError.message.includes('row-level security')) {
+          throw new Error('Access denied - please ensure you are logged in with proper permissions');
+        }
         throw new Error(`Failed to fetch employee profiles: ${profilesError.message}`);
       }
       
@@ -74,7 +79,7 @@ export const useEmployeeData = () => {
         .in('user_id', userIds);
         
       if (rolesError) {
-        console.error('[useEmployeeData] Roles query error:', rolesError);
+        console.warn('[useEmployeeData] Roles query error:', rolesError);
         // Don't throw here, just log and continue with default roles
         console.warn('[useEmployeeData] Continuing with default roles due to error:', rolesError.message);
       }
@@ -127,26 +132,18 @@ export const useEmployeeData = () => {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
-      // DEBUG: Log exactly what we're sending to toast
-      console.log('[useEmployeeData] About to show toast with:', {
-        title: t('common.error'),
-        description: t('employees.fetchError'),
-        titleRaw: 'common.error',
-        descriptionRaw: 'employees.fetchError'
-      });
-      
       // Show user-friendly error message with better error handling
       try {
-        if (errorMessage.includes('Authentication required')) {
+        if (errorMessage.includes('Authentication required') || errorMessage.includes('Access denied')) {
           toast({
             title: t('common.error') || 'Error',
-            description: t('auth.sessionExpired') || 'Session expired',
+            description: t('auth.sessionExpired') || 'Session expired - please log in again',
             variant: 'destructive',
           });
-        } else if (errorMessage.includes('infinite recursion')) {
+        } else if (errorMessage.includes('row-level security')) {
           toast({
             title: t('common.error') || 'Error',
-            description: t('employees.rlsError') || 'Access error occurred',
+            description: 'Access error - insufficient permissions',
             variant: 'destructive',
           });
         } else {

@@ -26,5 +26,7 @@ export const da = {
   admin,
   profile,
   login,
-  auth
+  auth,
+  accessDenied,
+  deleteConfirm
 };
