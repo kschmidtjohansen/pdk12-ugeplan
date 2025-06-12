@@ -143,7 +143,7 @@ export const usePlannerPage = () => {
       employees: Array.isArray(assignment.employees) ? [...assignment.employees] : []
     });
     
-    // Show a success toast
+    // Show a success toast with proper translation
     toast({
       title: t('planner.copyAssignment'),
       description: t('planner.selectDateForCopy')
@@ -154,20 +154,43 @@ export const usePlannerPage = () => {
   }, [setIsDialogOpen, toast, t, getFreshToday]);
 
   const handleSubmit = useCallback((data: Partial<Assignment>) => {
-    if (currentAssignment) {
-      // Set the edited assignment as unpublished
-      const unpublishedData = getUnpublishedAssignment(data as Assignment);
-      updateAssignment(currentAssignment.id, unpublishedData);
-    } else {
-      // This handles both new assignments and copied assignments
-      createAssignment({
-        ...data,
-        id: Date.now().toString(),
-        published: false
-      } as Assignment);
+    try {
+      if (currentAssignment) {
+        // Set the edited assignment as unpublished
+        const unpublishedData = getUnpublishedAssignment(data as Assignment);
+        updateAssignment(currentAssignment.id, unpublishedData);
+        
+        // Show success toast for update
+        toast({
+          title: t('planner.assignmentUpdated'),
+          description: t('planner.assignmentUpdatedMsg', { title: data.title || data.location || 'Assignment' })
+        });
+      } else {
+        // This handles both new assignments and copied assignments
+        const newAssignment = {
+          ...data,
+          id: Date.now().toString(),
+          published: false
+        } as Assignment;
+        
+        createAssignment(newAssignment);
+        
+        // Show success toast for creation
+        toast({
+          title: t('planner.assignmentCreated'),
+          description: t('planner.assignmentCreatedMsg', { title: data.title || data.location || 'Assignment' })
+        });
+      }
+      setIsDialogOpen(false);
+    } catch (error) {
+      // Show error toast with proper translation
+      toast({
+        title: currentAssignment ? t('planner.errorUpdatingAssignment') : t('planner.errorCreatingAssignment'),
+        description: error instanceof Error ? error.message : 'An error occurred',
+        variant: 'destructive'
+      });
     }
-    setIsDialogOpen(false);
-  }, [currentAssignment, createAssignment, updateAssignment, setIsDialogOpen]);
+  }, [currentAssignment, createAssignment, updateAssignment, setIsDialogOpen, toast, t]);
 
   // Fixed wrapper function that uses selectedDay internally
   const handlePublishDay = useCallback(() => {

@@ -90,12 +90,16 @@ const planner = {
   createError: 'Fejl ved oprettelse af opgave',
   updateError: 'Fejl ved opdatering af opgave',
   deleteError: 'Fejl ved sletning af opgave',
+  errorCreatingAssignment: 'Fejl ved oprettelse af opgave',
+  errorUpdatingAssignment: 'Fejl ved opdatering af opgave',
   
   // Success messages
   assignmentCreated: 'Opgave oprettet',
   assignmentUpdated: 'Opgave opdateret',
   assignmentDeleted: 'Opgave slettet',
   assignmentPublished: 'Opgave publiceret',
+  assignmentCreatedMsg: 'Opgave "{title}" blev oprettet med succes',
+  assignmentUpdatedMsg: 'Opgave "{title}" blev opdateret med succes',
   
   // Confirmation dialogs
   deleteConfirm: 'Slet opgave',
@@ -121,6 +125,7 @@ const planner = {
   copyAssignment: 'Kopier opgave',
   createNew: 'Opret ny',
   weekView: 'Uge {week}, {year} ({start} - {end})',
+  selectDateForCopy: 'Vælg en ny dato for den kopierede opgave',
   
   // Unassigned resources section
   unassignedResources: 'Ubrugte ressourcer',

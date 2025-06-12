@@ -40,7 +40,6 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
     canPublishTasks 
   } = usePermissions();
   const { t } = useTranslation();
-  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const { filterByPermissions, groupByDate } = useAssignmentFilters();
 
@@ -88,6 +87,21 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   
   // Sort past dates (descending - newest first)
   pastDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+  // Initialize expansion state with better defaults
+  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() => {
+    const initialState: Record<string, boolean> = {};
+    const today = format(new Date(), 'yyyy-MM-dd');
+    
+    // Set default expansion states
+    allWeekDays.forEach(dateKey => {
+      const status = getDateStatus(dateKey);
+      // Expand today by default, collapse future and past days
+      initialState[dateKey] = status === 'today';
+    });
+    
+    return initialState;
+  });
 
   // Effect to update time at midnight to refresh sorting
   useEffect(() => {

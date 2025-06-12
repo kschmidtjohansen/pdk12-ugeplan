@@ -5,7 +5,7 @@ import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { formatDateWithCapital, getDateStatus } from '@/utils/dateUtils';
 import { Button } from '@/components/ui/button';
-import { Send } from 'lucide-react';
+import { Send, ChevronDown, ChevronRight } from 'lucide-react';
 import AssignmentCard from './AssignmentCard';
 
 interface DaySectionProps {
@@ -60,13 +60,30 @@ const DaySection: React.FC<DaySectionProps> = ({
     <div className="w-full space-y-3">
       <div className="flex items-center justify-between">
         <div 
-          className="flex items-center cursor-pointer" 
+          className="flex items-center cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors duration-200" 
           onClick={() => onToggleExpansion(dateKey)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onToggleExpansion(dateKey);
+            }
+          }}
+          aria-expanded={isExpanded}
+          aria-label={`${isExpanded ? 'Collapse' : 'Expand'} assignments for ${formattedDate}`}
         >
-          <h3 className="text-lg font-medium">
+          {/* Chevron icon to indicate expand/collapse state */}
+          {isExpanded ? (
+            <ChevronDown className="h-5 w-5 text-gray-500 mr-2 transition-transform duration-200" />
+          ) : (
+            <ChevronRight className="h-5 w-5 text-gray-500 mr-2 transition-transform duration-200" />
+          )}
+          
+          <h3 className="text-lg font-medium select-none">
             {formattedDate}
           </h3>
-          <div className="ml-2 text-sm text-gray-500">
+          <div className="ml-2 text-sm text-gray-500 select-none">
             ({assignmentsCount} {taskText})
           </div>
         </div>
@@ -83,7 +100,7 @@ const DaySection: React.FC<DaySectionProps> = ({
       </div>
       
       {isExpanded && (
-        <div className="w-full grid grid-cols-1 gap-4">
+        <div className="w-full grid grid-cols-1 gap-4 animate-in slide-in-from-top-2 duration-200">
           {Array.isArray(dayAssignments) && dayAssignments.length > 0 ? (
             dayAssignments.map((assignment) => (
               <AssignmentCard

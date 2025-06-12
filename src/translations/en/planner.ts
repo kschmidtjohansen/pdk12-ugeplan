@@ -44,12 +44,16 @@ const planner = {
   createError: 'Error creating assignment',
   updateError: 'Error updating assignment',
   deleteError: 'Error deleting assignment',
+  errorCreatingAssignment: 'Error creating assignment',
+  errorUpdatingAssignment: 'Error updating assignment',
   
   // Success messages
   assignmentCreated: 'Assignment created',
   assignmentUpdated: 'Assignment updated',
   assignmentDeleted: 'Assignment deleted',
   assignmentPublished: 'Assignment published',
+  assignmentCreatedMsg: 'Assignment "{title}" created successfully',
+  assignmentUpdatedMsg: 'Assignment "{title}" updated successfully',
   
   // Confirmation dialogs
   deleteConfirm: 'Delete Assignment',
@@ -74,7 +78,8 @@ const planner = {
   publishDayTasks: 'Publish Day Tasks',
   copyAssignment: 'Copy Assignment',
   createNew: 'Create New',
-  weekView: 'Week {week}, {year} ({start} - {end})'
+  weekView: 'Week {week}, {year} ({start} - {end})',
+  selectDateForCopy: 'Select a new date for the copied assignment'
 };
 
 export default planner;
