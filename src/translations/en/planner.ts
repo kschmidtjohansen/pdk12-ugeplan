@@ -46,6 +46,9 @@ const planner = {
   deleteError: 'Error deleting assignment',
   errorCreatingAssignment: 'Error creating assignment',
   errorUpdatingAssignment: 'Error updating assignment',
+  errorDeletingAssignment: 'Error deleting assignment',
+  errorPublishingAssignment: 'Error publishing assignment',
+  errorPublishingDay: 'Error publishing day tasks',
   
   // Success messages
   assignmentCreated: 'Assignment created',
@@ -54,6 +57,10 @@ const planner = {
   assignmentPublished: 'Assignment published',
   assignmentCreatedMsg: 'Assignment "{title}" created successfully',
   assignmentUpdatedMsg: 'Assignment "{title}" updated successfully',
+  assignmentDeletedMsg: 'Assignment deleted successfully',
+  assignmentPublishedMsg: 'Assignment published successfully',
+  dayPublished: 'Day tasks published',
+  dayPublishedMsg: 'All tasks for the day were published successfully',
   
   // Confirmation dialogs
   deleteConfirm: 'Delete Assignment',

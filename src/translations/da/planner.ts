@@ -92,6 +92,9 @@ const planner = {
   deleteError: 'Fejl ved sletning af opgave',
   errorCreatingAssignment: 'Fejl ved oprettelse af opgave',
   errorUpdatingAssignment: 'Fejl ved opdatering af opgave',
+  errorDeletingAssignment: 'Fejl ved sletning af opgave',
+  errorPublishingAssignment: 'Fejl ved publicering af opgave',
+  errorPublishingDay: 'Fejl ved publicering af dagens opgaver',
   
   // Success messages
   assignmentCreated: 'Opgave oprettet',
@@ -100,6 +103,10 @@ const planner = {
   assignmentPublished: 'Opgave publiceret',
   assignmentCreatedMsg: 'Opgave "{title}" blev oprettet med succes',
   assignmentUpdatedMsg: 'Opgave "{title}" blev opdateret med succes',
+  assignmentDeletedMsg: 'Opgaven blev slettet med succes',
+  assignmentPublishedMsg: 'Opgaven blev publiceret med succes',
+  dayPublished: 'Dagens opgaver publiceret',
+  dayPublishedMsg: 'Alle opgaver for dagen blev publiceret med succes',
   
   // Confirmation dialogs
   deleteConfirm: 'Slet opgave',
