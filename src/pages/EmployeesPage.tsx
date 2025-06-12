@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { usePermissions } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Users } from 'lucide-react';
 
 // Import custom components and hooks
-import EmployeesList from '../components/Employees/EmployeesList';
+import EmployeesTable from '../components/Employees/EmployeesTable';
 import EmployeeDialogManager from '../components/Employees/EmployeeDialogManager';
 import { useEmployees } from '@/hooks/useEmployees';
 import { Employee } from '@/types/employee';
@@ -109,23 +110,23 @@ const EmployeesPage: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
-        {/* Header */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 text-white shadow-2xl animate-fade-in-up">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-4 space-y-6">
+        {/* Compact Header */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 text-white shadow-xl animate-fade-in-up">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
+          <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-2xl transform translate-x-16 -translate-y-16"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-xl transform -translate-x-8 translate-y-8"></div>
           
           <div className="relative z-10 flex items-center justify-between">
-            <div className="space-y-3">
-              <h1 className="text-3xl font-bold tracking-tight">
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold tracking-tight">
                 {t("employees.title")}
               </h1>
-              <p className="text-blue-100 text-lg font-medium">
+              <p className="text-blue-100 font-medium">
                 {t("employees.description")}
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               {isAdmin && (
                 <Button
                   onClick={handleCreateNew}
@@ -136,17 +137,17 @@ const EmployeesPage: React.FC = () => {
                   {t("employees.addEmployee")}
                 </Button>
               )}
-              <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30">
-                <Users className="h-6 w-6 text-white" />
+              <div className="hidden md:flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30">
+                <Users className="h-5 w-5 text-white" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Employees Content */}
+        {/* Employees Content - Compact Table Layout */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          <div className="p-6">
-            <EmployeesList 
+          <div className="p-4">
+            <EmployeesTable 
               employees={employees}
               onEdit={handleEdit}
               onDelete={handleDelete}
