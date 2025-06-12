@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -143,7 +142,7 @@ export const usePlannerPage = () => {
       employees: Array.isArray(assignment.employees) ? [...assignment.employees] : []
     });
     
-    // Show a success toast with proper translation
+    // Show a success toast with proper translation - this is the only toast we keep
     toast({
       title: t('planner.copyAssignment'),
       description: t('planner.selectDateForCopy')
@@ -159,12 +158,6 @@ export const usePlannerPage = () => {
         // Set the edited assignment as unpublished
         const unpublishedData = getUnpublishedAssignment(data as Assignment);
         updateAssignment(currentAssignment.id, unpublishedData);
-        
-        // Show success toast for update
-        toast({
-          title: t('planner.assignmentUpdated'),
-          description: t('planner.assignmentUpdatedMsg', { title: data.title || data.location || 'Assignment' })
-        });
       } else {
         // This handles both new assignments and copied assignments
         const newAssignment = {
@@ -174,23 +167,13 @@ export const usePlannerPage = () => {
         } as Assignment;
         
         createAssignment(newAssignment);
-        
-        // Show success toast for creation
-        toast({
-          title: t('planner.assignmentCreated'),
-          description: t('planner.assignmentCreatedMsg', { title: data.title || data.location || 'Assignment' })
-        });
       }
       setIsDialogOpen(false);
     } catch (error) {
-      // Show error toast with proper translation
-      toast({
-        title: currentAssignment ? t('planner.errorUpdatingAssignment') : t('planner.errorCreatingAssignment'),
-        description: error instanceof Error ? error.message : 'An error occurred',
-        variant: 'destructive'
-      });
+      // Don't show error toast here - useAssignmentsConsolidated handles all error cases
+      console.error('Error in handleSubmit:', error);
     }
-  }, [currentAssignment, createAssignment, updateAssignment, setIsDialogOpen, toast, t]);
+  }, [currentAssignment, createAssignment, updateAssignment, setIsDialogOpen]);
 
   // Fixed wrapper function that uses selectedDay internally
   const handlePublishDay = useCallback(() => {
