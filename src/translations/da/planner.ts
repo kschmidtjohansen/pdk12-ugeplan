@@ -19,7 +19,7 @@ const planner = {
   noAssignments: 'Ingen opgaver fundet',
   
   // Form fields
-  assignmentTitle: 'Titel',
+  assignmentTitle: 'Sagsnummer',
   assignmentDescription: 'Beskrivelse',
   date: 'Dato',
   time: 'Tid',

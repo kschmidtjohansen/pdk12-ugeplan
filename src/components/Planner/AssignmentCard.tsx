@@ -27,8 +27,10 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   onCopy
 }) => {
   // DEBUGGING: Log assignment data received by the card
-  console.log(`[AssignmentCard] Rendering assignment card for ${assignment.location}:`);
+  console.log(`[AssignmentCard] Rendering assignment card for ${assignment.title || assignment.location}:`);
   console.log(`  - Assignment ID: ${assignment.id}`);
+  console.log(`  - Title (case number): ${assignment.title}`);
+  console.log(`  - Location: ${assignment.location}`);
   console.log(`  - Assignment object:`, assignment);
   console.log(`  - Employees array:`, assignment.employees);
   console.log(`  - Employees length:`, assignment.employees?.length || 0);
@@ -50,7 +52,12 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     <Card className="w-full p-4 bg-white hover:border-polygon-purple transition-colors">
       <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
         <div className="flex items-center gap-2">
-          <h3 className="font-medium text-lg">{assignment.location}</h3>
+          <div className="flex flex-col">
+            <h3 className="font-medium text-lg">{assignment.title || 'Untitled'}</h3>
+            {assignment.location && (
+              <p className="text-sm text-gray-600">{assignment.location}</p>
+            )}
+          </div>
           <AssignmentStatusBadge isPublished={isPublished} />
         </div>
         
@@ -63,7 +70,9 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         />
       </div>
       
-      <p className="text-gray-600 mb-3">{assignment.description}</p>
+      {assignment.description && (
+        <p className="text-gray-600 mb-3">{assignment.description}</p>
+      )}
       
       <AssignmentDetails assignment={assignment} cars={cars} />
     </Card>

@@ -129,9 +129,16 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                   
                   <div className="relative z-10">
                     <div className="flex flex-wrap justify-between items-start gap-3 mb-3">
-                      <h3 className="font-bold text-lg text-left">
-                        {assignment.location}
-                      </h3>
+                      <div className="flex flex-col">
+                        <h3 className="font-bold text-lg text-left">
+                          {assignment.title || 'Untitled'}
+                        </h3>
+                        {assignment.location && (
+                          <p className="text-sm text-gray-600 text-left">
+                            {assignment.location}
+                          </p>
+                        )}
+                      </div>
                       <div className="px-3 py-1 bg-primary/10 text-primary rounded-full font-semibold text-sm border border-primary/20">
                         {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
                       </div>
@@ -142,9 +149,6 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                         {assignment.description}
                       </p>
                     )}
-                    <p className="text-foreground mb-3 font-medium text-left text-sm">
-                      {assignment.title}
-                    </p>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {/* FIXED: Display car information properly */}

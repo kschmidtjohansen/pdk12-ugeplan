@@ -19,7 +19,7 @@ const planner = {
   noAssignments: 'No assignments found',
   
   // Form fields
-  assignmentTitle: 'Title',
+  assignmentTitle: 'Case Number',
   assignmentDescription: 'Description',
   date: 'Date',
   time: 'Time',
