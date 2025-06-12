@@ -83,159 +83,221 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [initializationAttempts, setInitializationAttempts] = useState<number>(0);
   const { toast } = useToast();
   
-  // Set up authentication state
-  useEffect(() => {
-    console.log('Auth provider initializing');
+  // Enhanced initialization with retry mechanism for production domains
+  const initializeUserData = async (currentSession: Session, attempt: number = 1) => {
+    const maxRetries = 3;
+    const retryDelay = Math.pow(2, attempt) * 1000; // Exponential backoff
     
-    // Security enhancement: Validate localStorage to detect potential XSS
-    const validateLocalStorage = () => {
+    try {
+      console.log(`[AuthProvider] Initializing user data - attempt ${attempt} for domain: ${window.location.hostname}`);
+      
+      // Add timeout for database queries
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database query timeout')), 10000)
+      );
+      
+      // Fetch the user's role with timeout
+      const rolePromise = supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', currentSession.user.id)
+        .single();
+      
+      // Fetch the user's profile with timeout
+      const profilePromise = supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', currentSession.user.id)
+        .single();
+      
+      const [roleResult, profileResult] = await Promise.race([
+        Promise.all([rolePromise, profilePromise]),
+        timeoutPromise
+      ]) as [any, any];
+      
+      const { data: roleData, error: roleError } = roleResult;
+      const { data: profileData, error: profileError } = profileResult;
+      
+      if (!roleError && !profileError && roleData && profileData) {
+        const appUser = {
+          id: currentSession.user.id,
+          name: profileData.name || currentSession.user.email || '',
+          email: currentSession.user.email || '',
+          role: roleData.role as UserRole
+        };
+        console.log(`[AuthProvider] Successfully set user:`, appUser);
+        setUser(appUser);
+        setLoading(false);
+        return true;
+      } else {
+        // If we can't get the role, set a default but log the issue
+        console.warn(`[AuthProvider] Using default role due to errors - Role error:`, roleError, 'Profile error:', profileError);
+        const appUser = {
+          id: currentSession.user.id,
+          name: currentSession.user.email || '',
+          email: currentSession.user.email || '',
+          role: 'servicemedarbejder' as UserRole
+        };
+        setUser(appUser);
+        setLoading(false);
+        return true;
+      }
+    } catch (error) {
+      console.error(`[AuthProvider] Error on attempt ${attempt}:`, error);
+      
+      if (attempt < maxRetries) {
+        console.log(`[AuthProvider] Retrying initialization in ${retryDelay}ms...`);
+        setTimeout(() => {
+          initializeUserData(currentSession, attempt + 1);
+        }, retryDelay);
+        return false;
+      } else {
+        console.error(`[AuthProvider] Failed to initialize after ${maxRetries} attempts`);
+        // Set basic user data as fallback
+        const fallbackUser = {
+          id: currentSession.user.id,
+          name: currentSession.user.email || '',
+          email: currentSession.user.email || '',
+          role: 'servicemedarbejder' as UserRole
+        };
+        setUser(fallbackUser);
+        setLoading(false);
+        
+        // Show user-friendly error for production domains
+        if (window.location.hostname.includes('pdk12.dk')) {
+          toast({
+            title: "Connection Issue",
+            description: "Having trouble loading user data. Please refresh the page.",
+            variant: "destructive",
+          });
+        }
+        return false;
+      }
+    }
+  };
+  
+  // Set up authentication state with enhanced error handling
+  useEffect(() => {
+    console.log(`[AuthProvider] Initializing on domain: ${window.location.hostname}`);
+    
+    // Enhanced localStorage validation for production domains
+    const validateStorage = () => {
       try {
-        const testKey = '_security_test_' + Math.random().toString(36).substring(2);
+        const testKey = '_auth_test_' + Math.random().toString(36).substring(2);
         localStorage.setItem(testKey, '1');
         localStorage.removeItem(testKey);
         return true;
       } catch (e) {
-        console.error('LocalStorage access error:', e);
+        console.error('[AuthProvider] LocalStorage access error:', e);
         return false;
       }
     };
     
-    if (!validateLocalStorage()) {
+    if (!validateStorage()) {
       toast({
-        title: "Security Warning",
-        description: "Browser storage is not accessible. Authentication features may not work.",
+        title: "Storage Warning",
+        description: "Browser storage is not accessible. Please check your browser settings.",
         variant: "destructive",
       });
       setLoading(false);
       return;
     }
     
-    // Set up auth state listener FIRST
+    let mounted = true;
+    
+    // Set up auth state listener with enhanced error handling
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        console.log('Auth state changed:', event, currentSession?.user?.email);
+      async (event, currentSession) => {
+        if (!mounted) return;
+        
+        console.log(`[AuthProvider] Auth state changed: ${event} on domain: ${window.location.hostname}`);
         setSession(currentSession);
         
         if (currentSession?.user) {
-          // Use setTimeout to avoid potential race conditions with onAuthStateChange
-          setTimeout(async () => {
-            try {
-              // Fetch the user's role
-              const { data: roleData, error: roleError } = await supabase
-                .from('user_roles')
-                .select('role')
-                .eq('user_id', currentSession.user.id)
-                .single();
-              
-              // Fetch the user's profile
-              const { data: profileData, error: profileError } = await supabase
-                .from('profiles')
-                .select('name')
-                .eq('id', currentSession.user.id)
-                .single();
-                
-              if (!roleError && !profileError && roleData && profileData) {
-                const appUser = {
-                  id: currentSession.user.id,
-                  name: profileData.name || currentSession.user.email || '',
-                  email: currentSession.user.email || '',
-                  role: roleData.role as UserRole
-                };
-                console.log('Setting user:', appUser);
-                setUser(appUser);
-              } else {
-                // If we can't get the role, set a default
-                const appUser = {
-                  id: currentSession.user.id,
-                  name: currentSession.user.email || '',
-                  email: currentSession.user.email || '',
-                  role: 'servicemedarbejder' as UserRole
-                };
-                console.log('Setting default user:', appUser);
-                setUser(appUser);
-                console.error('Error fetching user role or profile:', roleError, profileError);
-              }
-              setLoading(false);
-            } catch (error) {
-              console.error('Error setting up user after auth state change:', error);
-              setLoading(false);
-            }
-          }, 0);
+          await initializeUserData(currentSession);
         } else {
-          console.log('No session, setting user to null');
+          console.log('[AuthProvider] No session, clearing user state');
           setUser(null);
           setLoading(false);
         }
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
-      console.log('Initial session check:', existingSession?.user?.email);
-      setSession(existingSession);
-      
-      if (existingSession?.user) {
-        // Use setTimeout to avoid loading race conditions with onAuthStateChange
-        setTimeout(async () => {
-          try {
-            // Fetch the user's role
-            const { data: roleData, error: roleError } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', existingSession.user.id)
-              .single();
-            
-            // Fetch the user's profile
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('name')
-              .eq('id', existingSession.user.id)
-              .single();
-              
-            if (!roleError && !profileError && roleData && profileData) {
-              const appUser = {
-                id: existingSession.user.id,
-                name: profileData.name || existingSession.user.email || '',
-                email: existingSession.user.email || '',
-                role: roleData.role as UserRole
-              };
-              console.log('Setting user from initial session:', appUser);
-              setUser(appUser);
-            } else {
-              // If we can't get the role, set a default
-              const appUser = {
-                id: existingSession.user.id,
-                name: existingSession.user.email || '',
-                email: existingSession.user.email || '',
-                role: 'servicemedarbejder' as UserRole
-              };
-              console.log('Setting default user from initial session:', appUser);
-              setUser(appUser);
-              console.error('Error fetching user role or profile:', roleError, profileError);
-            }
-            setLoading(false);
-          } catch (error) {
-            console.error('Error setting up user from initial session:', error);
-            setLoading(false);
-          }
-        }, 0);
-      } else {
-        console.log('No initial session, setting user to null');
-        setUser(null);
+    // Check for existing session with timeout
+    const checkExistingSession = async () => {
+      try {
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 8000)
+        );
+        
+        const { data: { session: existingSession }, error } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]) as any;
+        
+        if (error) {
+          console.error('[AuthProvider] Session check error:', error);
+          setLoading(false);
+          return;
+        }
+        
+        console.log(`[AuthProvider] Initial session check on ${window.location.hostname}:`, existingSession?.user?.email || 'No session');
+        setSession(existingSession);
+        
+        if (existingSession?.user && mounted) {
+          await initializeUserData(existingSession);
+        } else {
+          setUser(null);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('[AuthProvider] Session initialization failed:', error);
         setLoading(false);
+        
+        // Show error for production domains
+        if (window.location.hostname.includes('pdk12.dk')) {
+          toast({
+            title: "Loading Issue",
+            description: "Having trouble connecting. Please refresh the page.",
+            variant: "destructive",
+          });
+        }
       }
-    }).catch(error => {
-      console.error('Error checking session:', error);
-      setLoading(false);
-    });
+    };
     
+    checkExistingSession();
+    
+    // Cleanup function
     return () => {
-      console.log('Auth provider cleanup - unsubscribing');
+      mounted = false;
+      console.log('[AuthProvider] Cleaning up auth subscription');
       subscription.unsubscribe();
     };
   }, [toast]);
+
+  // Add loading timeout as safety net
+  useEffect(() => {
+    const loadingTimeout = setTimeout(() => {
+      if (loading) {
+        console.warn('[AuthProvider] Loading timeout reached, forcing completion');
+        setLoading(false);
+        
+        if (window.location.hostname.includes('pdk12.dk')) {
+          toast({
+            title: "Loading Timeout",
+            description: "App took too long to load. Please refresh the page.",
+            variant: "destructive",
+          });
+        }
+      }
+    }, 15000); // 15 second timeout
+    
+    return () => clearTimeout(loadingTimeout);
+  }, [loading, toast]);
 
   // Define permissions based on roles
   const isAdmin = user?.role === 'administrator';
@@ -293,24 +355,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Authentication functions with rate limiting
   const login = async (email: string, password: string) => {
     try {
-      console.log('Attempting login for:', email);
+      console.log(`[AuthProvider] Attempting login for: ${email} on domain: ${window.location.hostname}`);
       
-      // Rate limiting implementation
       const now = Date.now();
       const userAttempts = loginAttempts.get(email) || { count: 0, timestamp: now };
       
-      // Reset count if last attempt was more than 15 minutes ago
       if (now - userAttempts.timestamp > 15 * 60 * 1000) {
         userAttempts.count = 0;
         userAttempts.timestamp = now;
       }
       
-      // Check for too many attempts
       if (userAttempts.count >= 5) {
         return { error: 'Too many login attempts. Please try again later.' };
       }
       
-      // Increment attempt count
       userAttempts.count++;
       userAttempts.timestamp = now;
       loginAttempts.set(email, userAttempts);
@@ -320,16 +378,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         password 
       });
       
-      console.log('Login response:', data?.user?.email, error?.message);
+      console.log(`[AuthProvider] Login response on ${window.location.hostname}:`, data?.user?.email, error?.message);
       
-      // Reset attempt count on successful login
       if (!error) {
         loginAttempts.delete(email);
       }
       
       return { error: error ? error.message : null };
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('[AuthProvider] Login error:', error);
       return { error: 'An unexpected error occurred during login.' };
     }
   };
@@ -337,33 +394,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Enhanced logout function to properly clear all session data
   const logout = async () => {
     try {
-      console.log("Logging out user...");
+      console.log(`[AuthProvider] Logging out on domain: ${window.location.hostname}`);
       
-      // Use global scope to sign out from all tabs/windows
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
-        console.error('Error during signOut:', error);
+        console.error('[AuthProvider] Error during signOut:', error);
         throw error;
       }
       
-      // Clear user state
       setUser(null);
       setSession(null);
       
-      // Clear any local storage items that might persist state
       try {
-        // Optional: Clear specific items that might contain auth data
         localStorage.removeItem('supabase.auth.token');
-        // Note: Don't clear everything as it might affect other app functionality
-        // localStorage.clear(); 
       } catch (e) {
-        console.warn('Unable to clear localStorage items:', e);
+        console.warn('[AuthProvider] Unable to clear localStorage items:', e);
       }
 
-      console.log("Logout successful");
+      console.log(`[AuthProvider] Logout successful on ${window.location.hostname}`);
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('[AuthProvider] Logout error:', error);
       // Still clear local state even if there was an API error
       setUser(null);
       setSession(null);
