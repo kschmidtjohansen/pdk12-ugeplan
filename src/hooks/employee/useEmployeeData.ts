@@ -17,7 +17,7 @@ export const useEmployeeData = () => {
       setLoading(true);
       setError(null);
       
-      console.log('[useEmployeeData] Starting employee fetch...');
+      console.log('[useEmployeeData] Starting employee fetch with new RLS policies...');
       
       // Step 1: Ensure we have a valid authenticated session
       const sessionValid = await ensureValidSession();
@@ -27,7 +27,7 @@ export const useEmployeeData = () => {
       
       console.log('[useEmployeeData] Session validated, fetching profiles...');
       
-      // Step 2: Fetch all profiles with enhanced error handling
+      // Step 2: Fetch all profiles with the new RLS policies
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -55,9 +55,9 @@ export const useEmployeeData = () => {
         return;
       }
       
-      console.log(`[useEmployeeData] Fetched ${profilesData.length} profiles`);
+      console.log(`[useEmployeeData] Successfully fetched ${profilesData.length} profiles`);
       
-      // Step 3: Fetch user roles with improved error handling
+      // Step 3: Fetch user roles with the new RLS policies
       const userIds = profilesData.map(profile => profile.id);
       
       console.log('[useEmployeeData] Fetching user roles...');
@@ -70,10 +70,10 @@ export const useEmployeeData = () => {
       if (rolesError) {
         console.error('[useEmployeeData] Roles query error:', rolesError);
         // Continue with default roles instead of failing completely
-        console.warn('[useEmployeeData] Continuing with default roles');
+        console.warn('[useEmployeeData] Continuing with default roles due to error:', rolesError.message);
       }
       
-      console.log(`[useEmployeeData] Fetched ${rolesData?.length || 0} role assignments`);
+      console.log(`[useEmployeeData] Successfully fetched ${rolesData?.length || 0} role assignments`);
       
       // Step 4: Transform data to Employee format
       const transformedEmployees: Employee[] = profilesData.map(profile => {
@@ -95,6 +95,9 @@ export const useEmployeeData = () => {
       console.log(`[useEmployeeData] Successfully transformed ${transformedEmployees.length} employees`);
       setEmployees(transformedEmployees);
       
+      // Clear any previous errors
+      setError(null);
+      
     } catch (err) {
       console.error('[useEmployeeData] Error in fetchEmployees:', err);
       
@@ -106,6 +109,12 @@ export const useEmployeeData = () => {
         toast({
           title: t('common.error') || 'Error',
           description: t('auth.sessionExpired') || 'Session expired - please refresh the page',
+          variant: 'destructive',
+        });
+      } else if (errorMessage.includes('row-level security')) {
+        toast({
+          title: t('employees.rlsErrorTitle') || 'Access Error',
+          description: t('employees.rlsErrorDescription') || 'Access error loading employees. This has been reported.',
           variant: 'destructive',
         });
       } else {
