@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -33,8 +34,19 @@ const useNotifications = () => {
         throw error;
       }
 
-      setNotifications(data || []);
-      setUnreadCount(data?.filter(n => !n.read).length || 0);
+      // Transform database data to match NotificationType
+      const transformedNotifications: NotificationType[] = (data || []).map(notification => ({
+        id: notification.id,
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        link: notification.link,
+        read: notification.read,
+        date: new Date(notification.created_at)
+      }));
+
+      setNotifications(transformedNotifications);
+      setUnreadCount(transformedNotifications.filter(n => !n.read).length);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch notifications');
     } finally {
@@ -52,17 +64,33 @@ const useNotifications = () => {
         { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user?.id}` },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            const newNotification = payload.new as NotificationType;
+            const newNotification: NotificationType = {
+              id: payload.new.id,
+              type: payload.new.type,
+              title: payload.new.title,
+              message: payload.new.message,
+              link: payload.new.link,
+              read: payload.new.read,
+              date: new Date(payload.new.created_at)
+            };
             setNotifications(prev => [newNotification, ...prev]);
             setUnreadCount(prev => prev + 1);
           } else if (payload.eventType === 'UPDATE') {
-            const updatedNotification = payload.new as NotificationType;
+            const updatedNotification: NotificationType = {
+              id: payload.new.id,
+              type: payload.new.type,
+              title: payload.new.title,
+              message: payload.new.message,
+              link: payload.new.link,
+              read: payload.new.read,
+              date: new Date(payload.new.created_at)
+            };
             setNotifications(prev =>
               prev.map(n => (n.id === updatedNotification.id ? updatedNotification : n))
             );
             setUnreadCount(prev => prev.filter(n => !n.read).length);
           } else if (payload.eventType === 'DELETE') {
-            const deletedNotificationId = payload.old?.id as number;
+            const deletedNotificationId = payload.old?.id as string;
             setNotifications(prev => prev.filter(n => n.id !== deletedNotificationId));
             setUnreadCount(prev => prev.filter(n => !n.read).length);
           }
@@ -75,7 +103,7 @@ const useNotifications = () => {
     };
   }, [fetchNotifications, user?.id]);
 
-  const markAsRead = async (id: number) => {
+  const markAsRead = async (id: string) => {
     try {
       const { error } = await supabase
         .from('notifications')
@@ -117,7 +145,7 @@ const useNotifications = () => {
     }
   };
 
-  const deleteNotification = async (id: number) => {
+  const deleteNotification = async (id: string) => {
     try {
       const { error } = await supabase
         .from('notifications')
@@ -136,14 +164,14 @@ const useNotifications = () => {
     }
   };
 
-  const createAssignmentNotification = async (assignment: Assignment, user: { id: string; name?: string }) => {
-    if (!assignment || !user?.id) return;
+  const createAssignmentNotification = async (assignment: Assignment, targetUser: { id: string; name?: string }) => {
+    if (!assignment || !targetUser?.id) return;
 
     try {
-      const userName = user.name || 'Unknown User';
+      const userName = targetUser.name || user?.user_metadata?.name || user?.email || 'Unknown User';
       
       const notificationData = {
-        user_id: user.id,
+        user_id: targetUser.id,
         type: 'assignment',
         title: t('notifications.newAssignment'),
         message: t('notifications.assignedTo', { 

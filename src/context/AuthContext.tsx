@@ -6,7 +6,7 @@ import { sessionManager } from '@/utils/sessionManager';
 
 export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder';
 
-// Export the User type from Supabase
+// Export the User type from Supabase with name extension
 export type { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
@@ -22,6 +22,7 @@ interface AuthContextType {
   // Add missing authentication methods
   isAuthenticated: boolean;
   logout: () => Promise<void>;
+  login: (email: string, password: string) => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   adminResetPassword: (userId: string, newPassword: string) => Promise<{ error: any }>;
   updateUserRole: (userId: string, role: UserRole) => Promise<{ error: any }>;
@@ -32,6 +33,7 @@ interface PermissionsContextType {
   canPublishTasks: boolean;
   canManageUsers: boolean;
   canViewReports: boolean;
+  canViewFuelCardCode: boolean;
   // Add missing permission properties
   isAdmin: boolean;
   isSkadeleder: boolean;
@@ -118,6 +120,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Add missing authentication methods
   const logout = signOut; // Alias for signOut
 
+  const login = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      return { error };
+    } catch (error) {
+      return { error };
+    }
+  };
+
   const resetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -165,6 +179,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     canPublishTasks: canPublishTasks,
     canManageUsers: isAdmin,
     canViewReports: isAdmin || isSkadeleder,
+    canViewFuelCardCode: isAdmin || isSkadeleder,
     isAdmin,
     isSkadeleder,
     isServicemedarbejder,
@@ -184,6 +199,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     canPublishTasks,
     isAuthenticated,
     logout,
+    login,
     resetPassword,
     adminResetPassword,
     updateUserRole,

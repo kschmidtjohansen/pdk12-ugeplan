@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/context/AuthContext';
 import { Assignment } from '@/types/assignment';
 
@@ -28,5 +29,9 @@ export const useViewSpecificFilters = () => {
     }
   };
 
-  return { getFilteredAssignments };
+  const filterForScreenDisplay = (assignments: Assignment[]): Assignment[] => {
+    return assignments.filter(assignment => assignment.published);
+  };
+
+  return { getFilteredAssignments, filterForScreenDisplay };
 };

@@ -16,6 +16,9 @@ export class PerformanceMonitor {
       timestamp: Date.now()
     } as any);
     
+    // Send to console for now since we don't have performance_metrics table
+    console.log(`[Performance] ${name}:`, value, tags);
+    
     // Send to database every 10 metrics or every 30 seconds
     if (this.metrics.length >= 10) {
       this.flushMetrics();
@@ -35,19 +38,21 @@ export class PerformanceMonitor {
     if (this.metrics.length === 0) return;
     
     try {
-      const { supabase } = await import('@/integrations/supabase/client');
-      
+      // Log to console for now since we don't have the performance_metrics table
       const metricsToSend = this.metrics.splice(0); // Clear and get all metrics
+      console.log('[Performance] Flushing metrics:', metricsToSend);
       
-      await supabase
-        .from('performance_metrics')
-        .insert(
-          metricsToSend.map(metric => ({
-            metric_name: metric.name,
-            metric_value: metric.value,
-            tags: metric.tags || {}
-          }))
-        );
+      // TODO: When performance_metrics table is added to database, uncomment below:
+      // const { supabase } = await import('@/integrations/supabase/client');
+      // await supabase
+      //   .from('performance_metrics')
+      //   .insert(
+      //     metricsToSend.map(metric => ({
+      //       metric_name: metric.name,
+      //       metric_value: metric.value,
+      //       tags: metric.tags || {}
+      //     }))
+      //   );
         
     } catch (error) {
       console.error('Failed to flush performance metrics:', error);

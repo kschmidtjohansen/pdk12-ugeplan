@@ -17,6 +17,11 @@ export class SessionManager {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
       
+      // Log session tracking to console for now since we don't have user_sessions table
+      console.log('[SessionManager] Tracking session for user:', session.user.id);
+      
+      // TODO: When user_sessions table is added to database, uncomment below:
+      /*
       const sessionData = {
         user_id: session.user.id,
         session_token: session.access_token.slice(-20), // Store partial token for identification
@@ -31,6 +36,7 @@ export class SessionManager {
           onConflict: 'session_token',
           ignoreDuplicates: false 
         });
+      */
       
     } catch (error) {
       console.error('Session tracking error:', error);
@@ -68,12 +74,17 @@ export class SessionManager {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
+        console.log('[SessionManager] Invalidating session for user:', session.user?.id);
+        
+        // TODO: When user_sessions table is added to database, uncomment below:
+        /*
         const sessionToken = session.access_token.slice(-20);
         
         await supabase
           .from('user_sessions')
           .update({ is_active: false })
           .eq('session_token', sessionToken);
+        */
       }
     } catch (error) {
       console.error('Session invalidation error:', error);
