@@ -109,9 +109,9 @@ const AssignmentDetailsDialog: React.FC<AssignmentDetailsDialogProps> = ({
               <div>
                 <span className="font-medium">{t('planner.employees')}: </span>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {assignment.employees.map((employee, index) => (
+                  {assignment.employees.map((employeeId, index) => (
                     <Badge key={index} variant="outline">
-                      {employee}
+                      {employeeId}
                     </Badge>
                   ))}
                 </div>

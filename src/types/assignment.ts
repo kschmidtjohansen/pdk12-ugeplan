@@ -8,8 +8,8 @@ export interface Assignment {
   toTime: string;
   location: string;
   car: string | { id: string; name: string } | null; // Keep for backward compatibility
-  cars: Array<{ id: string; name: string; carNumber: string }>; // Updated to match the data structure
-  employees: Array<{ id: string; name: string; email: string }>; // Updated to match the data structure  
+  cars: string[]; // Changed to string array of IDs for form compatibility
+  employees: string[]; // Changed to string array of IDs for form compatibility
   published: boolean;
   responsibleUser?: { id: string; name: string } | null;
   createdAt?: Date;
