@@ -96,6 +96,32 @@ serve(async (req: Request) => {
     
     // First, delete all related data for the user in order
     try {
+      // Handle assignments where the user is the responsible user
+      const { data: assignmentsData, error: assignmentsQueryError } = await adminAuthClient
+        .from('assignments')
+        .select('id, title')
+        .eq('responsible_user_id', userId);
+        
+      if (assignmentsQueryError) {
+        console.error('Error querying assignments:', assignmentsQueryError);
+        // Continue with deletion, but log the error
+      } else if (assignmentsData && assignmentsData.length > 0) {
+        console.log(`Found ${assignmentsData.length} assignments with user as responsible user`);
+        
+        // Set responsible_user_id to NULL for these assignments
+        const { error: assignmentsUpdateError } = await adminAuthClient
+          .from('assignments')
+          .update({ responsible_user_id: null })
+          .eq('responsible_user_id', userId);
+          
+        if (assignmentsUpdateError) {
+          console.error('Error updating assignments responsible_user_id:', assignmentsUpdateError);
+          throw new Error(`Failed to update assignments: ${assignmentsUpdateError.message}`);
+        }
+        
+        console.log('Successfully updated assignments to remove responsible user reference');
+      }
+      
       // Delete notifications for the user
       const { error: notificationError } = await adminAuthClient
         .from('notifications')
@@ -148,14 +174,32 @@ serve(async (req: Request) => {
         
       if (profileError) {
         console.error('Error deleting user profile:', profileError);
-        // Continue with deletion, but log the error
+        
+        // Check if this is a foreign key constraint error
+        if (profileError.code === '23503') {
+          const constraintDetails = profileError.details || '';
+          if (constraintDetails.includes('assignments')) {
+            throw new Error('Cannot delete user: User is still assigned as responsible for some assignments. Please reassign or delete those assignments first.');
+          } else {
+            throw new Error(`Cannot delete user due to existing references: ${constraintDetails}`);
+          }
+        } else {
+          throw new Error(`Failed to delete user profile: ${profileError.message}`);
+        }
       }
       
       console.log('Successfully deleted all related data for user:', userId);
       
     } catch (dataDeleteError) {
       console.error('Error during data deletion:', dataDeleteError);
-      // Continue with auth user deletion even if some data deletion failed
+      
+      // If it's our custom error, re-throw it
+      if (dataDeleteError instanceof Error && dataDeleteError.message.includes('Cannot delete user')) {
+        throw dataDeleteError;
+      }
+      
+      // For other errors, continue with auth user deletion but log the issue
+      console.error('Some data deletion failed, but continuing with auth user deletion:', dataDeleteError);
     }
     
     // Finally, delete the auth user
@@ -175,9 +219,25 @@ serve(async (req: Request) => {
     
   } catch (error) {
     console.error('User deletion error:', error);
+    
+    // Provide more specific error messages
+    let errorMessage = 'An unexpected error occurred during user deletion';
+    
+    if (error instanceof Error) {
+      if (error.message.includes('Cannot delete user')) {
+        errorMessage = error.message;
+      } else if (error.message.includes('foreign key constraint')) {
+        errorMessage = 'Cannot delete user: User has associated data that must be removed first';
+      } else if (error.message.includes('Failed to delete user from auth')) {
+        errorMessage = 'Failed to delete user account: ' + error.message;
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'An unexpected error occurred during user deletion',
+        error: errorMessage,
         details: error.toString()
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

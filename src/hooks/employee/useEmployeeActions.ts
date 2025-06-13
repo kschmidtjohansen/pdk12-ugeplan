@@ -297,6 +297,8 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
           throw new Error('Authentication error: Please refresh the page and try again.');
         } else if (error.message?.includes('Unauthorized')) {
           throw new Error('You do not have permission to delete users.');
+        } else if (error.message?.includes('non-2xx status code')) {
+          throw new Error('Server error: The deletion operation failed. The user may have associated data that prevents deletion.');
         }
         
         throw new Error(`Server error: ${error.message}`);
@@ -304,6 +306,14 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       
       if (data?.error) {
         console.error('Function returned error:', data.error);
+        
+        // Handle specific business logic errors from the edge function
+        if (data.error.includes('Cannot delete user: User is still assigned')) {
+          throw new Error('Cannot delete user: This employee is assigned as responsible for some assignments. Please reassign those assignments to another employee first.');
+        } else if (data.error.includes('Cannot delete user')) {
+          throw new Error(data.error);
+        }
+        
         throw new Error(data.error);
       }
       

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -300,6 +301,8 @@ const UserManagement: React.FC = () => {
           errorMessage = 'Authentication expired. Please refresh the page and try again.';
         } else if (error.message?.includes('Unauthorized')) {
           errorMessage = 'You do not have permission to delete users.';
+        } else if (error.message?.includes('non-2xx status code')) {
+          errorMessage = 'Deletion failed. The user may have associated assignments or data that prevents deletion.';
         } else {
           errorMessage = error.message || 'Failed to delete user';
         }
@@ -309,6 +312,14 @@ const UserManagement: React.FC = () => {
       
       if (data?.error) {
         console.error('Deletion function returned error:', data.error);
+        
+        // Handle specific business logic errors from the edge function
+        if (data.error.includes('Cannot delete user: User is still assigned')) {
+          throw new Error('Cannot delete user: This user is assigned as responsible for some assignments. Please reassign those assignments to another user first, or delete the assignments.');
+        } else if (data.error.includes('Cannot delete user')) {
+          throw new Error(data.error);
+        }
+        
         throw new Error(data.error);
       }
       
@@ -500,6 +511,7 @@ const UserManagement: React.FC = () => {
         <UserDeleteDialog 
           currentUser={currentUser}
           onConfirmDelete={confirmDeleteUser}
+          isDeleting={isDeleting}
         />
       </AlertDialog>
 
