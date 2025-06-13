@@ -1,110 +1,181 @@
-import { useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
-import { useNotificationFetching } from './notifications/notificationFetching';
-import { useNotificationActions } from './notifications/notificationActions'; 
-import { useNotificationCreate } from './notifications/notificationCreate';
-import { useNotificationRealtime } from './notifications/notificationRealtime';
-import { useVacationNotifications } from './notifications/vacationNotifications';
+import { useTranslation } from '@/context/TranslationContext';
+import { Assignment } from '@/types/assignment';
+import { NotificationType } from '@/types/notification';
 
-// Key for tracking fetch status in localStorage
-const NOTIFICATION_SYSTEM_READY_KEY = "polygon-notification-system-ready";
-
-// Track if the notification system initialization has happened in this browser
-const isNotificationSystemReady = (): boolean => {
-  try {
-    return localStorage.getItem(NOTIFICATION_SYSTEM_READY_KEY) === 'true';
-  } catch (err) {
-    return false;
-  }
-};
-
-// Mark notification system as ready
-const markNotificationSystemReady = (): void => {
-  try {
-    localStorage.setItem(NOTIFICATION_SYSTEM_READY_KEY, 'true');
-  } catch (err) {
-    console.error("Error saving notification system status:", err);
-  }
-};
-
-export const useNotifications = () => {
+const useNotifications = () => {
+  const [notifications, setNotifications] = useState<NotificationType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { user } = useAuth();
-  const systemReadyRef = useRef<boolean>(isNotificationSystemReady());
-  
-  // Use the separate notification hooks
-  const { 
-    notifications, 
-    setNotifications,
-    unreadCount, 
-    setUnreadCount,
-    loading, 
-    fetchNotifications 
-  } = useNotificationFetching(user);
-  
-  const { 
-    markAsRead, 
-    markAllAsRead, 
-    deleteNotification,
-    deleteAllNotifications
-  } = useNotificationActions(user, notifications, setNotifications, setUnreadCount);
-  
-  const { addNotification } = useNotificationCreate(user, setNotifications, setUnreadCount);
-  
-  // Set up realtime notifications
-  useNotificationRealtime(user, setNotifications, setUnreadCount);
-  
-  // Set up vacation notifications processing
-  const { createNotificationsForPendingRequests } = useVacationNotifications(user, addNotification);
-  
-  // Filter notifications based on user role
-  useEffect(() => {
-    if (user && user.role !== 'administrator' && notifications.length > 0) {
-      // Filter out notifications about other users' vacations for non-admin users
-      const filteredNotifications = notifications.filter(notification => {
-        // Keep notifications targeted specifically to this user
-        if (notification.targetUserId === user.id) {
-          return true;
-        }
-        
-        // If it's a vacation notification and user is not admin, only show if it's their own
-        if (notification.type === 'vacation' && !notification.message?.includes(user.name)) {
-          return false;
-        }
-        
-        return true;
-      });
-      
-      if (filteredNotifications.length !== notifications.length) {
-        console.log(`Filtered out ${notifications.length - filteredNotifications.length} notifications for non-admin user`);
-        setNotifications(filteredNotifications);
-        
-        // Update unread count
-        const unreadFiltered = filteredNotifications.filter(n => !n.read).length;
-        setUnreadCount(unreadFiltered);
+  const { t } = useTranslation();
+
+  const fetchNotifications = useCallback(async () => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
       }
+
+      setNotifications(data || []);
+      setUnreadCount(data?.filter(n => !n.read).length || 0);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch notifications');
+    } finally {
+      setLoading(false);
     }
-  }, [user, notifications, setNotifications, setUnreadCount]);
-  
-  // Run once after notifications are fetched to check for missing admin notifications
+  }, [user?.id]);
+
   useEffect(() => {
-    // Only run once per browser session/reload
-    if (user?.role === 'administrator' && !loading && notifications.length >= 0 && !systemReadyRef.current) {
-      console.log('Checking for any missing admin notifications for pending vacations');
-      createNotificationsForPendingRequests();
-      systemReadyRef.current = true;
-      markNotificationSystemReady();
+    fetchNotifications();
+
+    const channel = supabase
+      .channel('notifications')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user?.id}` },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newNotification = payload.new as NotificationType;
+            setNotifications(prev => [newNotification, ...prev]);
+            setUnreadCount(prev => prev + 1);
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedNotification = payload.new as NotificationType;
+            setNotifications(prev =>
+              prev.map(n => (n.id === updatedNotification.id ? updatedNotification : n))
+            );
+            setUnreadCount(prev => prev.filter(n => !n.read).length);
+          } else if (payload.eventType === 'DELETE') {
+            const deletedNotificationId = payload.old?.id as number;
+            setNotifications(prev => prev.filter(n => n.id !== deletedNotificationId));
+            setUnreadCount(prev => prev.filter(n => !n.read).length);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchNotifications, user?.id]);
+
+  const markAsRead = async (id: number) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+
+      setNotifications(prev =>
+        prev.map(n => (n.id === id ? { ...n, read: true } : n))
+      );
+      setUnreadCount(prev => prev > 0 ? prev - 1 : 0);
+    } catch (err: any) {
+      console.error('Error marking notification as read:', err);
+      setError(err.message || 'Failed to mark as read');
     }
-  }, [user, loading, notifications.length, createNotificationsForPendingRequests]);
-  
+  };
+
+  const markAllAsRead = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch (err: any) {
+      console.error('Error marking all as read:', err);
+      setError(err.message || 'Failed to mark all as read');
+    }
+  };
+
+  const deleteNotification = async (id: number) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+
+      setNotifications(prev => prev.filter(n => n.id !== id));
+      setUnreadCount(prev => prev.filter(n => !n.read).length);
+    } catch (err: any) {
+      console.error('Error deleting notification:', err);
+      setError(err.message || 'Failed to delete notification');
+    }
+  };
+
+  const createAssignmentNotification = async (assignment: Assignment, user: { id: string; name?: string }) => {
+    if (!assignment || !user?.id) return;
+
+    try {
+      const userName = user.name || 'Unknown User';
+      
+      const notificationData = {
+        user_id: user.id,
+        type: 'assignment',
+        title: t('notifications.newAssignment'),
+        message: t('notifications.assignedTo', { 
+          assignment: assignment.title, 
+          user: userName 
+        }),
+        link: '/planner'
+      };
+
+      const { error } = await supabase
+        .from('notifications')
+        .insert([notificationData]);
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error creating assignment notification:', error);
+    }
+  };
+
   return {
     notifications,
-    unreadCount,
     loading,
+    error,
+    unreadCount,
     fetchNotifications,
     markAsRead,
     markAllAsRead,
     deleteNotification,
-    deleteAllNotifications,
-    addNotification
+    createAssignmentNotification
   };
 };
+
+export default useNotifications;

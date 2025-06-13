@@ -1,7 +1,13 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { sessionManager } from '@/utils/sessionManager';
+
+export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder';
+
+// Export the User type from Supabase
+export type { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
@@ -13,6 +19,12 @@ interface AuthContextType {
   isSkadeleder: boolean;
   canCreate: boolean;
   canPublishTasks: boolean;
+  // Add missing authentication methods
+  isAuthenticated: boolean;
+  logout: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
+  adminResetPassword: (userId: string, newPassword: string) => Promise<{ error: any }>;
+  updateUserRole: (userId: string, role: UserRole) => Promise<{ error: any }>;
 }
 
 interface PermissionsContextType {
@@ -20,6 +32,12 @@ interface PermissionsContextType {
   canPublishTasks: boolean;
   canManageUsers: boolean;
   canViewReports: boolean;
+  // Add missing permission properties
+  isAdmin: boolean;
+  isSkadeleder: boolean;
+  isServicemedarbejder: boolean;
+  canEdit: boolean;
+  canSeeUnpublishedTasks: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -97,16 +115,61 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Add missing authentication methods
+  const logout = signOut; // Alias for signOut
+
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      return { error };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const adminResetPassword = async (userId: string, newPassword: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('admin-reset-password', {
+        body: { userId, newPassword }
+      });
+      return { error };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const updateUserRole = async (userId: string, role: UserRole) => {
+    try {
+      const { error } = await supabase.functions.invoke('admin-user-role', {
+        body: { userId, role }
+      });
+      return { error };
+    } catch (error) {
+      return { error };
+    }
+  };
+
   const isAdmin = userRole === 'administrator';
   const isSkadeleder = userRole === 'skadeleder';
+  const isServicemedarbejder = userRole === 'servicemedarbejder';
   const canCreate = isAdmin || isSkadeleder;
   const canPublishTasks = isAdmin || isSkadeleder;
+  const canEdit = isAdmin || isSkadeleder;
+  const canSeeUnpublishedTasks = isAdmin || isSkadeleder;
+  const isAuthenticated = !!user;
 
   const permissions: PermissionsContextType = {
     canCreate: canCreate,
     canPublishTasks: canPublishTasks,
     canManageUsers: isAdmin,
     canViewReports: isAdmin || isSkadeleder,
+    isAdmin,
+    isSkadeleder,
+    isServicemedarbejder,
+    canEdit,
+    canSeeUnpublishedTasks,
   };
 
   const value: AuthContextType = {
@@ -119,6 +182,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isSkadeleder,
     canCreate,
     canPublishTasks,
+    isAuthenticated,
+    logout,
+    resetPassword,
+    adminResetPassword,
+    updateUserRole,
   };
 
   return (

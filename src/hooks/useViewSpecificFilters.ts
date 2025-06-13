@@ -1,32 +1,32 @@
-
-import { Assignment } from '@/types/assignment';
-import { AssignmentFilterService } from '@/services/assignmentFilterService';
 import { useAuth } from '@/context/AuthContext';
+import { Assignment } from '@/types/assignment';
 
 export const useViewSpecificFilters = () => {
   const { user } = useAuth();
+  
+  const getFilteredAssignments = (assignments: Assignment[], view: string): Assignment[] => {
+    if (!assignments) return [];
 
-  const filterForDashboard = (assignments: Assignment[]): Assignment[] => {
-    return AssignmentFilterService.filterForDashboard(assignments, {
-      userRole: user?.role,
-      userName: user?.name
-    });
+    const userName = user?.user_metadata?.name || user?.email || 'Unknown User';
+    
+    switch (view) {
+      case 'my-assignments':
+        if (!user) return [];
+        return assignments.filter(assignment => 
+          assignment.employees?.some(emp => emp.id === user.id) ||
+          assignment.responsibleUser?.id === user.id
+        );
+      
+      case 'published':
+        return assignments.filter(assignment => assignment.published);
+
+      case 'unpublished':
+        return assignments.filter(assignment => !assignment.published);
+
+      default:
+        return assignments;
+    }
   };
 
-  const filterForPlanner = (assignments: Assignment[]): Assignment[] => {
-    return AssignmentFilterService.filterForPlanner(assignments, {
-      userRole: user?.role,
-      includeUnpublished: user?.role !== 'servicemedarbejder'
-    });
-  };
-
-  const filterForScreenDisplay = (assignments: Assignment[]): Assignment[] => {
-    return assignments.filter(a => a.published);
-  };
-
-  return {
-    filterForDashboard,
-    filterForPlanner,
-    filterForScreenDisplay
-  };
+  return { getFilteredAssignments };
 };
