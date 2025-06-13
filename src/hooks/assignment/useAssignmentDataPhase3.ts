@@ -6,6 +6,41 @@ import { Assignment } from '@/types/assignment';
 import { supabaseOptimized, enhancedSupabaseOptimized } from '@/integrations/supabase/clientOptimized';
 import { PerformanceMonitor, ErrorRecovery } from '@/utils/performanceOptimizations';
 
+// Type definitions for better type safety
+interface AssignmentRow {
+  id: string;
+  title: string;
+  description: string | null;
+  assignment_date: string;
+  from_time: string;
+  to_time: string;
+  location: string;
+  car_id: string | null;
+  car_ids: string[] | null;
+  published: boolean;
+  responsible_user_id: string | null;
+  created_at: string;
+  updated_at: string;
+  cars: { id: string; name: string } | null;
+  responsible_user: { id: string; name: string } | null;
+}
+
+interface EmployeeRelation {
+  assignment_id: string;
+  user_id: string;
+}
+
+interface ProfileData {
+  id: string;
+  name: string;
+}
+
+interface CarData {
+  id: string;
+  name: string;
+  car_number: string;
+}
+
 // Advanced caching layer with TTL and invalidation
 class AssignmentCache {
   private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
@@ -151,7 +186,7 @@ export const useAssignmentDataPhase3 = () => {
         return await ErrorRecovery.withRetry(
           async () => {
             // Step 1: Fetch core assignment data with optimized query
-            const { data: assignmentsData, error: assignmentsError } = await enhancedSupabaseOptimized.safeQuery(
+            const assignmentsResult = await enhancedSupabaseOptimized.safeQuery(
               () => supabaseOptimized
                 .from('assignments')
                 .select(`
@@ -168,14 +203,16 @@ export const useAssignmentDataPhase3 = () => {
                   responsible_user_id,
                   created_at,
                   updated_at,
-                  cars:car_id (id, name, car_number),
+                  cars:car_id (id, name),
                   responsible_user:responsible_user_id (id, name)
                 `)
                 .order('assignment_date', { ascending: true }),
               'assignment_fetch_phase3'
             );
             
-            if (assignmentsError) throw assignmentsError;
+            if (assignmentsResult.error) throw assignmentsResult.error;
+            const assignmentsData = assignmentsResult.data as AssignmentRow[];
+            
             if (!assignmentsData || assignmentsData.length === 0) {
               return [];
             }
@@ -230,7 +267,7 @@ export const useAssignmentDataPhase3 = () => {
                 
                 if (employeeRelationsResult.error) return { data: [], error: null };
                 
-                const userIds = employeeRelationsResult.data?.map(emp => emp.user_id) || [];
+                const userIds = (employeeRelationsResult.data as EmployeeRelation[] || []).map(emp => emp.user_id);
                 const uniqueUserIds = [...new Set(userIds)];
                 
                 if (uniqueUserIds.length === 0) return { data: [], error: null };
@@ -246,9 +283,9 @@ export const useAssignmentDataPhase3 = () => {
             ]);
             
             // Step 3: Process and optimize data mapping
-            const employeeData = employeeRelations.data || [];
-            const profiles = profilesData.data || [];
-            const cars = carsData.data || [];
+            const employeeData = (employeeRelations.data as EmployeeRelation[]) || [];
+            const profiles = (profilesData.data as ProfileData[]) || [];
+            const cars = (carsData.data as CarData[]) || [];
             
             // Create lookup maps for O(1) access
             const profileMap = new Map(profiles.map(p => [p.id, p]));
