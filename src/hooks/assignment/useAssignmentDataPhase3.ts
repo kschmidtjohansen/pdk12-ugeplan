@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -186,26 +187,29 @@ export const useAssignmentDataPhase3 = () => {
           async () => {
             // Step 1: Fetch core assignment data with optimized query
             const assignmentsResult = await enhancedSupabaseOptimized.safeQuery(
-              () => supabaseOptimized
-                .from('assignments')
-                .select(`
-                  id,
-                  title,
-                  description,
-                  assignment_date,
-                  from_time,
-                  to_time,
-                  location,
-                  car_id,
-                  car_ids,
-                  published,
-                  responsible_user_id,
-                  created_at,
-                  updated_at,
-                  cars:car_id (id, name),
-                  responsible_user:responsible_user_id (id, name)
-                `)
-                .order('assignment_date', { ascending: true }),
+              async () => {
+                const { data, error } = await supabaseOptimized
+                  .from('assignments')
+                  .select(`
+                    id,
+                    title,
+                    description,
+                    assignment_date,
+                    from_time,
+                    to_time,
+                    location,
+                    car_id,
+                    car_ids,
+                    published,
+                    responsible_user_id,
+                    created_at,
+                    updated_at,
+                    cars:car_id (id, name),
+                    responsible_user:responsible_user_id (id, name)
+                  `)
+                  .order('assignment_date', { ascending: true });
+                return { data, error };
+              },
               'assignment_fetch_phase3'
             );
             
@@ -224,10 +228,13 @@ export const useAssignmentDataPhase3 = () => {
             const [employeeRelations, profilesData, carsData] = await Promise.all([
               // Get assignment-employee relationships
               enhancedSupabaseOptimized.safeQuery(
-                () => supabaseOptimized
-                  .from('assignments_employees')
-                  .select('assignment_id, user_id')
-                  .in('assignment_id', assignmentIds),
+                async () => {
+                  const { data, error } = await supabaseOptimized
+                    .from('assignments_employees')
+                    .select('assignment_id, user_id')
+                    .in('assignment_id', assignmentIds);
+                  return { data, error };
+                },
                 'employee_relations_fetch'
               ),
               
@@ -246,10 +253,13 @@ export const useAssignmentDataPhase3 = () => {
                 if (allCarIds.size === 0) return { data: [], error: null };
                 
                 return enhancedSupabaseOptimized.safeQuery(
-                  () => supabaseOptimized
-                    .from('cars')
-                    .select('id, name, car_number')
-                    .in('id', Array.from(allCarIds)),
+                  async () => {
+                    const { data, error } = await supabaseOptimized
+                      .from('cars')
+                      .select('id, name, car_number')
+                      .in('id', Array.from(allCarIds));
+                    return { data, error };
+                  },
                   'cars_batch_fetch'
                 );
               })(),
@@ -257,10 +267,13 @@ export const useAssignmentDataPhase3 = () => {
               // Get profiles data
               (async () => {
                 const employeeRelationsResult = await enhancedSupabaseOptimized.safeQuery(
-                  () => supabaseOptimized
-                    .from('assignments_employees')
-                    .select('user_id')
-                    .in('assignment_id', assignmentIds),
+                  async () => {
+                    const { data, error } = await supabaseOptimized
+                      .from('assignments_employees')
+                      .select('user_id')
+                      .in('assignment_id', assignmentIds);
+                    return { data, error };
+                  },
                   'employee_ids_fetch'
                 );
                 
@@ -272,10 +285,13 @@ export const useAssignmentDataPhase3 = () => {
                 if (uniqueUserIds.length === 0) return { data: [], error: null };
                 
                 return enhancedSupabaseOptimized.safeQuery(
-                  () => supabaseOptimized
-                    .from('profiles')
-                    .select('id, name')
-                    .in('id', uniqueUserIds),
+                  async () => {
+                    const { data, error } = await supabaseOptimized
+                      .from('profiles')
+                      .select('id, name')
+                      .in('id', uniqueUserIds);
+                    return { data, error };
+                  },
                   'profiles_batch_fetch'
                 );
               })()
