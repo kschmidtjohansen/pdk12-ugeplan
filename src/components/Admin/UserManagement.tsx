@@ -281,16 +281,30 @@ const UserManagement: React.FC = () => {
 
     try {
       setIsDeleting(true);
-      console.log('Starting user deletion for:', currentUser.id);
+      console.log('Starting user deletion for:', currentUser.id, 'Name:', currentUser.name);
       
-      // Use Supabase edge function to delete user
+      // Use Supabase edge function to delete user with improved error handling
       const { data, error } = await supabase.functions.invoke('admin-user-delete', {
         body: { userId: currentUser.id }
       });
       
       if (error) {
         console.error('Edge function error:', error);
-        throw new Error(error.message || 'Failed to call deletion function');
+        
+        // Provide more specific error messages based on error type
+        let errorMessage = 'An unexpected error occurred';
+        
+        if (error.message?.includes('Failed to send a request')) {
+          errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+        } else if (error.message?.includes('Not authenticated')) {
+          errorMessage = 'Authentication expired. Please refresh the page and try again.';
+        } else if (error.message?.includes('Unauthorized')) {
+          errorMessage = 'You do not have permission to delete users.';
+        } else {
+          errorMessage = error.message || 'Failed to delete user';
+        }
+        
+        throw new Error(errorMessage);
       }
       
       if (data?.error) {
@@ -321,7 +335,7 @@ const UserManagement: React.FC = () => {
       
       toast({
         title: t('common.error'),
-        description: `${t('admin.userManagement.deleteError')}: ${errorMessage}`,
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

@@ -260,7 +260,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   };
 
   /**
-   * Delete an employee with enhanced validation
+   * Delete an employee with enhanced validation and error handling
    */
   const deleteEmployee = async (employeeId: string, allEmployees: any[]) => {
     if (!isValidUUID(employeeId)) {
@@ -278,9 +278,9 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       const employee = allEmployees.find(e => e.id === employeeId);
       if (!employee) throw new Error('Employee not found');
       
-      console.log('[deleteEmployee] Deleting employee:', employeeId);
+      console.log('[deleteEmployee] Deleting employee:', employeeId, 'Name:', employee.name);
       
-      // Delete the user through the admin function
+      // Delete the user through the admin function with improved error handling
       const { data, error } = await supabase.functions.invoke('admin-user-delete', {
         body: {
           userId: employeeId
@@ -289,13 +289,25 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       
       if (error) {
         console.error('Error calling admin-user-delete function:', error);
-        throw error;
+        
+        // Check for specific error types
+        if (error.message?.includes('Failed to send a request')) {
+          throw new Error('Network error: Unable to connect to the server. Please check your connection and try again.');
+        } else if (error.message?.includes('Not authenticated')) {
+          throw new Error('Authentication error: Please refresh the page and try again.');
+        } else if (error.message?.includes('Unauthorized')) {
+          throw new Error('You do not have permission to delete users.');
+        }
+        
+        throw new Error(`Server error: ${error.message}`);
       }
       
       if (data?.error) {
         console.error('Function returned error:', data.error);
         throw new Error(data.error);
       }
+      
+      console.log('[deleteEmployee] Employee deleted successfully:', data);
       
       toast({
         title: t('employees.employeeDeleted'),

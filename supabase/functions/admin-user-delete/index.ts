@@ -3,8 +3,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.1/dist/module';
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://www.pdk12.dk',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 serve(async (req: Request) => {
@@ -14,10 +15,13 @@ serve(async (req: Request) => {
   }
 
   try {
+    console.log('User deletion request received from:', req.headers.get('origin'));
+    
     // Get the authorization header from the request
     const authHeader = req.headers.get('Authorization');
     
     if (!authHeader) {
+      console.error('No authorization header provided');
       return new Response(
         JSON.stringify({ error: 'No authorization header provided' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -39,11 +43,14 @@ serve(async (req: Request) => {
     } = await supabase.auth.getUser();
     
     if (!user) {
+      console.error('User not authenticated');
       return new Response(
         JSON.stringify({ error: 'Not authenticated' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('Authenticated user:', user.email);
 
     // Check if user is an administrator
     const { data: roleData, error: roleError } = await supabase
@@ -61,6 +68,7 @@ serve(async (req: Request) => {
     }
 
     if (!roleData || roleData.role !== 'administrator') {
+      console.error('Unauthorized user attempting deletion:', user.email, 'Role:', roleData?.role);
       return new Response(
         JSON.stringify({ error: 'Unauthorized - requires administrator role' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -71,6 +79,7 @@ serve(async (req: Request) => {
     const { userId } = await req.json();
     
     if (!userId) {
+      console.error('No user ID provided in request');
       return new Response(
         JSON.stringify({ error: 'User ID is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
