@@ -62,14 +62,14 @@ export const useAssignmentDataOptimized = () => {
       
       console.log('[useAssignmentDataOptimized] Fetched assignments:', assignmentsData.length);
       
-      // Optimized employee relationship fetch with batch processing
+      // Separate query for assignment employees with proper join
       const assignmentIds = assignmentsData.map(a => a.id);
       const { data: assignmentEmployees, error: employeeError } = await supabase
         .from('assignments_employees')
         .select(`
           assignment_id,
           user_id,
-          profiles:user_id (
+          profiles!inner (
             id,
             name
           )
