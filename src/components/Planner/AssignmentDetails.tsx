@@ -24,7 +24,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
     console.log('[AssignmentDetails] Available cars:', cars);
     
     if (assignment.cars && Array.isArray(assignment.cars) && assignment.cars.length > 0) {
-      // New format: multiple cars array (now string IDs)
+      // New format: multiple cars array
       assignment.cars.forEach(carId => {
         console.log('[AssignmentDetails] Looking for car with ID:', carId);
         const car = cars.find(c => c.id === carId);
@@ -106,9 +106,9 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
               <Users className="h-3.5 w-3.5 text-purple-600" />
             </div>
             <div className="flex flex-wrap gap-1">
-              {assignment.employees.map((employeeId, index) => (
+              {assignment.employees.map((employee, index) => (
                 <Badge key={index} variant="secondary" className="text-xs">
-                  {employeeId}
+                  {employee}
                 </Badge>
               ))}
             </div>

@@ -89,7 +89,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({ onClo
           toTime: assignment.toTime,
           location: assignment.location || '',
           car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : '',
-          employees: assignment.employees || [] // Now both are string arrays
+          employees: assignment.employees || []
         });
       } else {
         navigate('/planner');

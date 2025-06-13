@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext } from 'react';
 import { NotificationType } from '@/types/notification';
-import useNotificationsHook from '@/hooks/useNotifications';
+import { useNotifications as useNotificationsHook } from '@/hooks/useNotifications';
 
 // Key for tracking initial fetch in localStorage
 const NOTIFICATION_FETCHED_KEY = "polygon-notifications-fetched";

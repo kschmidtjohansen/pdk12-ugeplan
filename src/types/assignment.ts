@@ -8,13 +8,10 @@ export interface Assignment {
   toTime: string;
   location: string;
   car: string | { id: string; name: string } | null; // Keep for backward compatibility
-  cars: string[]; // Changed to string array of IDs for form compatibility
-  employees: string[]; // Changed to string array of IDs for form compatibility
+  cars: string[]; // New field for multiple cars
+  employees: string[]; // Guaranteed array of employee names as strings
   published: boolean;
   responsibleUser?: { id: string; name: string } | null;
-  createdAt?: Date;
-  updatedAt?: Date;
-  type?: 'waterDamage' | 'fireDamage' | 'mold' | 'other';
 }
 
 export interface AssignmentFormData {
