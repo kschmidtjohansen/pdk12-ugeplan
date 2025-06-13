@@ -90,6 +90,9 @@ export const common = {
   darkMode: 'Dark mode',
   toggleTheme: 'Toggle theme',
   
+  // New missing keys for authentication and errors
+  authRequired: 'Authentication required',
+  
   yes: 'Yes',
   no: 'No'
 };

@@ -90,6 +90,9 @@ export const common = {
   darkMode: 'Mørk tilstand',
   toggleTheme: 'Skift tema',
   
+  // New missing keys for authentication and errors
+  authRequired: 'Autentifikation påkrævet',
+  
   yes: 'Ja',
   no: 'Nej'
 };

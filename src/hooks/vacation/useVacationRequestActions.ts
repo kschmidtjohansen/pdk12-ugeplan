@@ -1,3 +1,4 @@
+
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -53,7 +54,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
           requestEmployeeName = selectedEmployee.name;
         } else {
           toast({
-            title: t("vacation.error"),
+            title: t("common.error"),
             description: t("vacation.employeeNotFound"),
             variant: "destructive"
           });
@@ -145,7 +146,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
       console.error('Error submitting vacation request:', err);
       toast({
         title: t('common.error'),
-        description: err instanceof Error ? err.message : 'Error submitting vacation request',
+        description: err instanceof Error ? err.message : t('vacation.requestError'),
         variant: 'destructive',
       });
       return false;
@@ -190,7 +191,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
           try {
             console.log(`Sending notification to admin: ${admin.user_id}`);
             
-            const notifyMessage = t("notifications.newVacationRequestActionRequired", {
+            const notifyMessage = t("vacation.newVacationRequestActionRequired", {
               name: employeeName,
               from: formattedStartDate,
               to: formattedEndDate
@@ -199,7 +200,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
             // Add notification using the context
             await addNotification({
               type: 'vacation',
-              title: t("notifications.newVacationRequest"),
+              title: t("vacation.newVacationRequest"),
               message: notifyMessage,
               link: '/vacation',
               targetUserId: admin.user_id

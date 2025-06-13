@@ -1,5 +1,4 @@
 
-
 const vacation = {
   title: "Vacation",
   pageDescription: "Request and manage your vacations",
@@ -72,6 +71,23 @@ const vacation = {
   noteOptional: "Note",
   approveNotePlaceholder: "Add an optional note...",
   
+  // New toast notification keys
+  missingDates: "Missing Dates",
+  selectBothDates: "Please select both start and end dates",
+  employeeNotFound: "Employee not found",
+  adminRequestSubmitted: "Request submitted for employee",
+  adminRequestSent: "Vacation request submitted for {name}",
+  requestSubmitted: "Request Submitted",
+  requestSent: "Your vacation request has been submitted",
+  requestSubmittedForYou: "Vacation request submitted for you",
+  adminRequestedForYou: "{adminName} has submitted a vacation request for you from {from} to {to}",
+  requestUpdated: "Request Updated",
+  requestUpdatedMsg: "The vacation request has been updated",
+  requestDeleted: "Request Deleted",
+  requestDeletedMsg: "The vacation request has been deleted",
+  editError: "Error editing vacation request",
+  rejectionReasonRequired: "Rejection reason is required",
+  
   // Nested status keys for better organization
   status: {
     pending: "Pending",
@@ -89,4 +105,3 @@ const vacation = {
 };
 
 export default vacation;
-

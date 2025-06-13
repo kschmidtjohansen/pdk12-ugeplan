@@ -75,6 +75,23 @@ const vacation = {
   noteOptional: "Note",
   approveNotePlaceholder: "Tilføj en valgfri note...",
   
+  // New toast notification keys
+  missingDates: "Manglende datoer",
+  selectBothDates: "Vælg venligst både start- og slutdato",
+  employeeNotFound: "Medarbejder ikke fundet",
+  adminRequestSubmitted: "Anmodning indsendt for medarbejder",
+  adminRequestSent: "Ferieanmodning indsendt for {name}",
+  requestSubmitted: "Anmodning indsendt",
+  requestSent: "Din ferieanmodning er blevet indsendt",
+  requestSubmittedForYou: "Ferieanmodning indsendt for dig",
+  adminRequestedForYou: "{adminName} har indsendt en ferieanmodning for dig fra {from} til {to}",
+  requestUpdated: "Anmodning opdateret",
+  requestUpdatedMsg: "Ferieanmodningen er blevet opdateret",
+  requestDeleted: "Anmodning slettet",
+  requestDeletedMsg: "Ferieanmodningen er blevet slettet",
+  editError: "Fejl ved redigering af ferieanmodning",
+  rejectionReasonRequired: "Afvisningsårsag er påkrævet",
+  
   // Nested status keys for better organization
   status: {
     pending: "Afventende",

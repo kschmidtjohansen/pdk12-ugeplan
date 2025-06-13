@@ -35,8 +35,8 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       // Add notification for the employee
       addNotification({
         type: 'vacation',
-        title: t('notifications.vacationStatusChanged'),
-        message: t('notifications.vacationApproved'),
+        title: t('vacation.vacationStatusChanged'),
+        message: t('vacation.yourRequestApproved'),
         link: '/vacation',
         targetUserId: vacation.employeeId
       });
@@ -63,7 +63,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
     } catch (err) {
       console.error('Error approving vacation:', err);
       toast(t('common.error'), {
-        description: err instanceof Error ? err.message : 'Error approving vacation request',
+        description: err instanceof Error ? err.message : t('vacation.updateError'),
       });
     }
   };
@@ -96,8 +96,8 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       // Add notification for the employee
       addNotification({
         type: 'vacation',
-        title: t('notifications.vacationStatusChanged'),
-        message: t('notifications.vacationRejected', { reason }),
+        title: t('vacation.vacationStatusChanged'),
+        message: t('vacation.yourRequestRejected', { reason }),
         link: '/vacation',
         targetUserId: vacation.employeeId
       });
@@ -108,7 +108,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
     } catch (err) {
       console.error('Error rejecting vacation:', err);
       toast(t('common.error'), {
-        description: err instanceof Error ? err.message : 'Error rejecting vacation request',
+        description: err instanceof Error ? err.message : t('vacation.updateError'),
       });
     }
   };
@@ -127,11 +127,11 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       
       // Ensure we have valid date objects
       if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {
-        throw new Error("Invalid start date provided");
+        throw new Error(t("common.invalid") + " start date");
       }
       
       if (!(endDate instanceof Date) || isNaN(endDate.getTime())) {
-        throw new Error("Invalid end date provided");
+        throw new Error(t("common.invalid") + " end date");
       }
       
       // Normalize dates to mitigate timezone issues by setting time to noon UTC
@@ -186,7 +186,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
     } catch (err) {
       console.error('Error editing vacation:', err);
       toast(t('common.error'), {
-        description: err instanceof Error ? err.message : 'Error updating vacation request',
+        description: err instanceof Error ? err.message : t('vacation.editError'),
       });
       return false;
     }
