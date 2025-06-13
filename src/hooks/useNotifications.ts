@@ -88,11 +88,11 @@ const useNotifications = () => {
             setNotifications(prev =>
               prev.map(n => (n.id === updatedNotification.id ? updatedNotification : n))
             );
-            setUnreadCount(prev => prev.filter(n => !n.read).length);
+            setUnreadCount(prev => notifications.filter(n => !n.read).length);
           } else if (payload.eventType === 'DELETE') {
             const deletedNotificationId = payload.old?.id as string;
             setNotifications(prev => prev.filter(n => n.id !== deletedNotificationId));
-            setUnreadCount(prev => prev.filter(n => !n.read).length);
+            setUnreadCount(prev => notifications.filter(n => !n.read).length);
           }
         }
       )
@@ -101,7 +101,7 @@ const useNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchNotifications, user?.id]);
+  }, [fetchNotifications, user?.id, notifications]);
 
   const markAsRead = async (id: string) => {
     try {
@@ -157,10 +157,31 @@ const useNotifications = () => {
       }
 
       setNotifications(prev => prev.filter(n => n.id !== id));
-      setUnreadCount(prev => prev.filter(n => !n.read).length);
+      setUnreadCount(prev => notifications.filter(n => !n.read).length);
     } catch (err: any) {
       console.error('Error deleting notification:', err);
       setError(err.message || 'Failed to delete notification');
+    }
+  };
+
+  const deleteAllNotifications = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (err: any) {
+      console.error('Error deleting all notifications:', err);
+      setError(err.message || 'Failed to delete all notifications');
     }
   };
 
@@ -202,6 +223,7 @@ const useNotifications = () => {
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    deleteAllNotifications,
     createAssignmentNotification
   };
 };

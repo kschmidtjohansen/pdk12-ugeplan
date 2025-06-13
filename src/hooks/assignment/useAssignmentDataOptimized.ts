@@ -115,54 +115,25 @@ export const useAssignmentDataOptimized = (selectedDate?: string) => {
         }
       }
 
-      // Fetch cars separately
-      const carIds = [...new Set([
-        ...assignmentsData.map(a => a.car_id).filter(Boolean),
-        ...assignmentsData.flatMap(a => a.car_ids || [])
-      ])];
-
-      let cars: any[] = [];
-      if (carIds.length > 0) {
-        const { data: carsData, error: carsError } = await supabase
-          .from('cars')
-          .select('id, name, car_number')
-          .in('id', carIds);
-
-        if (carsError) {
-          console.error('Error fetching cars:', carsError);
-        } else {
-          cars = carsData || [];
-        }
-      }
-
       // Transform and combine data
       const transformedAssignments: Assignment[] = assignmentsData.map(assignment => {
-        // Get assigned employees for this assignment
+        // Get assigned employee IDs for this assignment
         const assignedEmployeeIds = employeeAssignments
           .filter(ea => ea.assignment_id === assignment.id)
           .map(ea => ea.user_id);
-        
-        const assignedEmployees = profiles
-          .filter(profile => assignedEmployeeIds.includes(profile.id))
-          .map(profile => ({
-            id: profile.id,
-            name: profile.name || 'Unknown',
-            email: profile.email
-          }));
 
         // Get responsible user
         const responsibleUser = assignment.responsible_user_id 
           ? profiles.find(p => p.id === assignment.responsible_user_id)
           : null;
 
-        // Get car information
-        const car = assignment.car_id 
-          ? cars.find(c => c.id === assignment.car_id)
-          : null;
-
-        const multipleCars = assignment.car_ids 
-          ? cars.filter(c => assignment.car_ids.includes(c.id))
-          : [];
+        // Get car IDs (convert car objects to IDs)
+        let carIds: string[] = [];
+        if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
+          carIds = assignment.car_ids;
+        } else if (assignment.car_id) {
+          carIds = [assignment.car_id];
+        }
 
         return {
           id: assignment.id,
@@ -176,22 +147,13 @@ export const useAssignmentDataOptimized = (selectedDate?: string) => {
           published: assignment.published || false,
           createdAt: new Date(assignment.created_at),
           updatedAt: new Date(assignment.updated_at),
-          employees: assignedEmployees,
+          employees: assignedEmployeeIds, // Return employee IDs as strings
           responsibleUser: responsibleUser ? {
             id: responsibleUser.id,
-            name: responsibleUser.name || 'Unknown',
-            email: responsibleUser.email
+            name: responsibleUser.name || 'Unknown'
           } : null,
-          car: car ? {
-            id: car.id,
-            name: car.name,
-            carNumber: car.car_number
-          } : null,
-          cars: multipleCars.map(c => ({
-            id: c.id,
-            name: c.name,
-            carNumber: c.car_number
-          }))
+          car: assignment.car_id ? assignment.car_id : null, // Return car ID as string
+          cars: carIds // Return car IDs as string array
         };
       });
 

@@ -14,7 +14,7 @@ export const useViewSpecificFilters = () => {
       case 'my-assignments':
         if (!user) return [];
         return assignments.filter(assignment => 
-          assignment.employees?.some(emp => emp.id === user.id) ||
+          assignment.employees?.some(empId => empId === user.id) ||
           assignment.responsibleUser?.id === user.id
         );
       

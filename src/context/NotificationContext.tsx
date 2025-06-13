@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext } from 'react';
 import { NotificationType } from '@/types/notification';
-import useNotifications from '@/hooks/useNotifications';
+import useNotificationsHook from '@/hooks/useNotifications';
 
 // Key for tracking initial fetch in localStorage
 const NOTIFICATION_FETCHED_KEY = "polygon-notifications-fetched";
@@ -47,7 +47,7 @@ export const NotificationProvider: React.FC<{
   
   try {
     // Use the notification hook to get all notification functionality
-    notificationHookData = useNotifications();
+    notificationHookData = useNotificationsHook();
   } catch (error) {
     // If there's an error during hook initialization, use default values
     console.warn('[NotificationProvider] Error initializing notification hook, using defaults:', error);
