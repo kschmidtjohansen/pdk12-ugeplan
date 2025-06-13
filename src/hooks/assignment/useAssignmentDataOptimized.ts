@@ -62,23 +62,37 @@ export const useAssignmentDataOptimized = () => {
       
       console.log('[useAssignmentDataOptimized] Fetched assignments:', assignmentsData.length);
       
-      // Separate query for assignment employees with proper join using explicit foreign key
+      // Separate queries for assignment employees and profiles to avoid join issues
       const assignmentIds = assignmentsData.map(a => a.id);
+      
+      // Get assignment-employee relationships
       const { data: assignmentEmployees, error: employeeError } = await supabase
         .from('assignments_employees')
-        .select(`
-          assignment_id,
-          user_id,
-          profiles!assignments_employees_user_id_fkey (
-            id,
-            name
-          )
-        `)
+        .select('assignment_id, user_id')
         .in('assignment_id', assignmentIds);
       
       if (employeeError) {
         console.warn('[useAssignmentDataOptimized] Employee fetch warning:', employeeError);
         // Continue without employee data rather than failing
+      }
+      
+      // Get all unique user IDs from assignment employees
+      const userIds = assignmentEmployees?.map(emp => emp.user_id) || [];
+      const uniqueUserIds = [...new Set(userIds)];
+      
+      // Fetch profiles for these users
+      let profilesData: any[] = [];
+      if (uniqueUserIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .in('id', uniqueUserIds);
+          
+        if (profilesError) {
+          console.warn('[useAssignmentDataOptimized] Profiles fetch warning:', profilesError);
+        } else {
+          profilesData = profiles || [];
+        }
       }
       
       // Optimized car data fetch for multiple cars
@@ -108,13 +122,16 @@ export const useAssignmentDataOptimized = () => {
       
       // Process assignments with optimized data mapping
       const processedAssignments = assignmentsData.map(assignment => {
-        // Map employee relationships efficiently
+        // Map employee relationships efficiently using lookup maps
         const assignmentEmployeeData = assignmentEmployees?.filter(
           emp => emp.assignment_id === assignment.id
         ) || [];
         
         const employeeNames = assignmentEmployeeData
-          .map(emp => emp.profiles?.name)
+          .map(emp => {
+            const profile = profilesData.find(p => p.id === emp.user_id);
+            return profile?.name;
+          })
           .filter(name => name && typeof name === 'string')
           .map(name => name.trim());
         
