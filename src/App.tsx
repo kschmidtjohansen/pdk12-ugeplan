@@ -47,40 +47,51 @@ const NotificationErrorBoundary: React.FC<{ children: React.ReactNode }> = ({ ch
   );
 };
 
+// Error boundary specifically for the translation provider
+const TranslationErrorBoundary: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <ErrorBoundary fallback={<div className="p-4">Loading translations...</div>}>
+      {children}
+    </ErrorBoundary>
+  );
+};
+
 function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="light" storageKey="polygon-theme">
           <AuthProvider>
-            <TranslationProvider>
-              <NotificationErrorBoundary>
-                <NotificationProvider>
-                  <Router>
-                    <div className="App">
-                      {/* Add the VacationCleanupHandler here so it runs in the background */}
-                      <VacationCleanupHandler />
-                      <Routes>
-                        <Route path="/login" element={<LoginPage />} />
-                        <Route path="/password-reset" element={<PasswordResetPage />} />
-                        <Route path="/screen-display" element={<ScreenDisplayPage />} />
-                        <Route path="/" element={<MainLayout />}>
-                          <Route index element={<Index />} />
-                          <Route path="dashboard" element={<DashboardPage />} />
-                          <Route path="planner" element={<PlannerPage />} />
-                          <Route path="employees" element={<EmployeesPage />} />
-                          <Route path="cars" element={<CarsPage />} />
-                          <Route path="vacation" element={<VacationPage />} />
-                          <Route path="admin" element={<AdminPage />} />
-                        </Route>
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                      <Toaster />
-                    </div>
-                  </Router>
-                </NotificationProvider>
-              </NotificationErrorBoundary>
-            </TranslationProvider>
+            <TranslationErrorBoundary>
+              <TranslationProvider>
+                <NotificationErrorBoundary>
+                  <NotificationProvider>
+                    <Router>
+                      <div className="App">
+                        {/* Add the VacationCleanupHandler here so it runs in the background */}
+                        <VacationCleanupHandler />
+                        <Routes>
+                          <Route path="/login" element={<LoginPage />} />
+                          <Route path="/password-reset" element={<PasswordResetPage />} />
+                          <Route path="/screen-display" element={<ScreenDisplayPage />} />
+                          <Route path="/" element={<MainLayout />}>
+                            <Route index element={<Index />} />
+                            <Route path="dashboard" element={<DashboardPage />} />
+                            <Route path="planner" element={<PlannerPage />} />
+                            <Route path="employees" element={<EmployeesPage />} />
+                            <Route path="cars" element={<CarsPage />} />
+                            <Route path="vacation" element={<VacationPage />} />
+                            <Route path="admin" element={<AdminPage />} />
+                          </Route>
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                        <Toaster />
+                      </div>
+                    </Router>
+                  </NotificationProvider>
+                </NotificationErrorBoundary>
+              </TranslationProvider>
+            </TranslationErrorBoundary>
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>

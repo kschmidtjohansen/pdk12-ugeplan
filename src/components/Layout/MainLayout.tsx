@@ -7,9 +7,22 @@ import TopNavbar from './TopNavbar';
 
 const MainLayout: React.FC = () => {
   const { isAuthenticated, loading } = useAuth();
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Safely access translation context with fallback
+  let t: (key: string) => string;
+  try {
+    const translationContext = useTranslation();
+    t = translationContext.t;
+  } catch (error) {
+    console.warn('Translation context not available, using fallback');
+    // Fallback function for when translation context is not available
+    t = (key: string) => {
+      if (key === 'common.loading') return 'Loading...';
+      return key;
+    };
+  }
 
   // Don't show layout for login page or password reset page
   if (location.pathname === "/login" || location.pathname === "/password-reset") {
