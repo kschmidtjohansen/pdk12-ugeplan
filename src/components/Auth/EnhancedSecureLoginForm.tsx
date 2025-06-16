@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useSecurity } from '@/context/SecurityContext';
@@ -224,11 +223,11 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
                         passwordStrength.score >= 3 ? 'bg-yellow-500' :
                         passwordStrength.score >= 2 ? 'bg-orange-500' : 'bg-red-500'
                       }`}
-                      style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                      style={{ width: `${(passwordStrength.score / 4) * 100}%` }}
                     />
                   </div>
                   <span className="text-xs text-gray-600">
-                    {passwordStrength.score}/5
+                    {passwordStrength.score}/4
                   </span>
                 </div>
                 {passwordStrength.errors.length > 0 && (
