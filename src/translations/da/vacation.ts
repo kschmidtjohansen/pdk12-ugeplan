@@ -1,6 +1,7 @@
 
 
 
+
 const vacation = {
   title: "Ferie",
   pageDescription: "Administrer dine frianmodninger her",
@@ -61,7 +62,7 @@ const vacation = {
   applyForVacation: "Ansøg om fri",
   requestForEmployee: "Ansøg for medarbejder",
   selectEmployee: "Vælg medarbejder",
-  selectEmployeeAndDates: "Vælg medarbejder og datointerval for ferieanmodning",
+  selectEmployeeAndDates: "Vælg medarbejder og datointerval for frianmodning",
   selectDatesAndReason: "Vælg datoer for anmodning om fridag og en årsag",
   reasonPlaceholder: "Indtast årsag til anmodning om fridag...",
   submitRequest: "Indsend",
@@ -133,5 +134,6 @@ const vacation = {
 };
 
 export default vacation;
+
 
 

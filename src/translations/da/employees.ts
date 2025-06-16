@@ -1,4 +1,5 @@
 
+
 const employees = {
   title: 'Medarbejdere',
   description: 'Vis og administrer medarbejdere.',
@@ -25,6 +26,7 @@ const employees = {
   updateError: 'Fejl ved opdatering af medarbejder',
   deleteError: 'Fejl ved sletning af medarbejder',
   createError: 'Fejl ved oprettelse af medarbejder',
+  contact: 'Kontaktoplysninger',
   
   // RLS and database access errors
   rlsError: 'Der opstod en adgangsfejl ved indlæsning af medarbejdere. Dette er blevet rapporteret og vil blive rettet snarest.',
@@ -71,3 +73,4 @@ const employees = {
 };
 
 export default employees;
+
