@@ -68,14 +68,28 @@ export const useSystemHealthMonitoring = () => {
         console.warn('[useSystemHealthMonitoring] Could not fetch recent errors:', recentError);
       }
       
+      // Safely convert the health data to SystemHealth type
+      let systemHealth: SystemHealth | null = null;
+      if (healthData && typeof healthData === 'object' && !Array.isArray(healthData)) {
+        const healthObj = healthData as Record<string, any>;
+        systemHealth = {
+          status: String(healthObj.status || 'unknown'),
+          timestamp: String(healthObj.timestamp || new Date().toISOString()),
+          policy_count: Number(healthObj.policy_count || 0),
+          function_count: Number(healthObj.function_count || 0),
+          table_count: Number(healthObj.table_count || 0),
+          rls_enabled_tables: Number(healthObj.rls_enabled_tables || 0)
+        };
+      }
+      
       setMetrics({
         totalSecurityEvents: totalEvents || 0,
         recentErrors: recentErrorCount || 0,
-        systemHealth: healthData as SystemHealth,
+        systemHealth,
         lastHealthCheck: new Date()
       });
       
-      console.log('[useSystemHealthMonitoring] System health check completed:', healthData);
+      console.log('[useSystemHealthMonitoring] System health check completed:', systemHealth);
       
     } catch (err) {
       console.error('[useSystemHealthMonitoring] System health check failed:', err);
