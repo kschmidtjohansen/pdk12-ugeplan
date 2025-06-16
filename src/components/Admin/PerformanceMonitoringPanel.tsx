@@ -128,7 +128,7 @@ export const PerformanceMonitoringPanel: React.FC = () => {
               {metrics.slowQueries.length}
             </div>
             <div className="text-xs text-muted-foreground">
-              >2s response time
+              {'>'}2s response time
             </div>
           </CardContent>
         </Card>
@@ -166,7 +166,7 @@ export const PerformanceMonitoringPanel: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle>Slow Rendering Components</CardTitle>
-            <CardDescription>Components with render times > 100ms</CardDescription>
+            <CardDescription>Components with render times {'>'}100ms</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
