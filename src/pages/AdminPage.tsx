@@ -1,4 +1,3 @@
-
 import React from 'react';
 import PageHeader from '../components/Layout/PageHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -50,12 +49,12 @@ const AdminPage: React.FC = () => {
     todayDate.setHours(0, 0, 0, 0);
     
     return vacations.some(vacation => {
-      if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
+      if (vacation.user_id !== employeeId || vacation.status !== 'approved') {
         return false;
       }
       
-      const startDate = new Date(vacation.startDate);
-      const endDate = new Date(vacation.endDate);
+      const startDate = new Date(vacation.start_date);
+      const endDate = new Date(vacation.end_date);
       
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(0, 0, 0, 0);
