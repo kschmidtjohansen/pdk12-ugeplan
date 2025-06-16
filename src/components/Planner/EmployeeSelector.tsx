@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Users } from 'lucide-react';
-import { getEmployeeAvailabilityStatus, isEmployeeOnVacation } from '@/utils/employeeAvailability';
+import { getEmployeeAvailabilityStatus, getEmployeeVacationStatus } from '@/utils/employeeAvailability';
 import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUtils';
 
 interface EmployeeSelectorProps {
@@ -131,8 +131,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           {filteredEmployees.map(employee => {
             const isSelected = selectedEmployees.includes(employee.name);
             
-            // Use date-specific vacation checking
-            const isOnVacationToday = isEmployeeOnVacation(employee.id, dateForComparison, vacations);
+            // Get detailed vacation status
+            const vacationStatus = getEmployeeVacationStatus(employee.id, dateForComparison, vacations);
             
             // Use manual on leave status (not vacation-based)
             const isManuallyOnLeave = employee.onLeave;
@@ -140,12 +140,13 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             // Get comprehensive availability info
             const availabilityInfo = getEmployeeAvailabilityStatus(employee, dateForComparison, assignments, vacations, t);
             
-            // Employee is disabled if they're on vacation today OR manually on leave
-            const isDisabled = isOnVacationToday || isManuallyOnLeave;
+            // Employee is disabled only for full-day vacation OR manually on leave
+            // Partial vacation employees should remain selectable
+            const isDisabled = (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day') || isManuallyOnLeave;
             
             // Apply red styling for workday end times with higher CSS specificity
             const hasRedStyling = availabilityInfo.status === 'fullyBooked';
-            console.log(`[EmployeeSelector] Employee ${employee.name} red styling applied: ${hasRedStyling}, disabled: ${isDisabled}`);
+            console.log(`[EmployeeSelector] Employee ${employee.name} red styling applied: ${hasRedStyling}, disabled: ${isDisabled}, vacation type: ${vacationStatus.vacationType}`);
             
             return (
               <DropdownMenuItem
@@ -175,9 +176,14 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                       </span>
                     </div>
                     <div className="flex gap-1 ml-2 flex-shrink-0">
-                      {isOnVacationToday && (
+                      {vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day' && (
                         <Badge variant="outline" className="text-xs">
                           {t('planner.onVacation')}
+                        </Badge>
+                      )}
+                      {vacationStatus.isOnVacation && vacationStatus.vacationType === 'partial_day' && (
+                        <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
+                          {availabilityInfo.statusText}
                         </Badge>
                       )}
                       {isManuallyOnLeave && (
@@ -185,7 +191,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                           {t('employees.onLeave')}
                         </Badge>
                       )}
-                      {availabilityInfo.status !== 'available' && !isDisabled && (
+                      {availabilityInfo.status !== 'available' && !vacationStatus.isOnVacation && !isDisabled && (
                         <Badge className={`text-xs font-medium ${availabilityInfo.badgeColor}`}>
                           {availabilityInfo.statusText}
                         </Badge>

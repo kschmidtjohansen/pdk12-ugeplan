@@ -64,6 +64,13 @@ export const useEmployeeStatus = ({
         color: 'bg-orange-100 text-orange-800 border-orange-200',
         hasEndTimeAtSixteen: false
       };
+    case 'partialVacation':
+      return {
+        status: 'partialVacation',
+        label: availabilityInfo.statusText, // This will show "Fri fra XX:XX"
+        color: 'bg-orange-100 text-orange-800 border-orange-200',
+        hasEndTimeAtSixteen: false
+      };
     case 'onLeave':
       return {
         status: 'leave',

@@ -1,3 +1,4 @@
+
 const vacation = {
   title: "Vacation",
   pageDescription: "Request and manage your vacations",
@@ -72,7 +73,7 @@ const vacation = {
   
   // New toast notification keys
   missingDates: "Missing Dates",
-  selectBothDates: "Please select both start and end dates",
+  selectBoth Dates: "Please select both start and end dates",
   employeeNotFound: "Employee not found",
   adminRequestSubmitted: "Request submitted for employee",
   adminRequestSent: "Vacation request submitted for {name}",
@@ -107,6 +108,7 @@ const vacation = {
   partialDayRejected: "Your partial day request from {startTime} to {endTime} has been rejected",
   availableHours: "Available {startTime} - {endTime}",
   offHours: "Off {startTime} - {endTime}",
+  offFrom: "Off from {time}",
   
   // Nested status keys for better organization
   status: {

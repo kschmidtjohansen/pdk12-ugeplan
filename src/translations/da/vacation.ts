@@ -1,4 +1,3 @@
-
 const vacation = {
   title: "Ferie",
   pageDescription: "Administrer dine ferieanmodninger her",
@@ -127,6 +126,7 @@ const vacation = {
   partialDayRejected: "Din anmodning om delvis fridag fra {startTime} til {endTime} er blevet afvist",
   availableHours: "Tilgængelig {startTime} - {endTime}",
   offHours: "Fri {startTime} - {endTime}",
+  offFrom: "Fri fra {time}",
 };
 
 export default vacation;

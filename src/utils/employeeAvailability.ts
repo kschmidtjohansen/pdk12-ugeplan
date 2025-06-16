@@ -4,7 +4,7 @@ import { Assignment } from '@/types/assignment';
 import { Vacation } from '@/types/vacation';
 import { format } from 'date-fns';
 
-export type EmployeeAvailabilityStatus = 'available' | 'partiallyBooked' | 'fullyBooked' | 'onLeave' | 'onVacation';
+export type EmployeeAvailabilityStatus = 'available' | 'partiallyBooked' | 'fullyBooked' | 'onLeave' | 'onVacation' | 'partialVacation';
 
 export interface EmployeeAvailabilityInfo {
   status: EmployeeAvailabilityStatus;
@@ -13,20 +13,19 @@ export interface EmployeeAvailabilityInfo {
   availableAt?: string;
 }
 
-// Helper function to check if an employee is on vacation for a specific date
-export const isEmployeeOnVacation = (employeeId: string, selectedDate: Date, vacations: Vacation[]): boolean => {
-  console.log(`[isEmployeeOnVacation] Checking vacation for employee ${employeeId} on ${format(selectedDate, 'yyyy-MM-dd')}`);
-  console.log(`[isEmployeeOnVacation] Available vacations:`, vacations.length);
+export interface EmployeeVacationInfo {
+  isOnVacation: boolean;
+  vacationType: 'none' | 'full_day' | 'partial_day';
+  startTime?: string;
+  endTime?: string;
+  vacation?: Vacation;
+}
+
+// Enhanced function to get detailed vacation information
+export const getEmployeeVacationStatus = (employeeId: string, selectedDate: Date, vacations: Vacation[]): EmployeeVacationInfo => {
+  console.log(`[getEmployeeVacationStatus] Checking vacation for employee ${employeeId} on ${format(selectedDate, 'yyyy-MM-dd')}`);
   
-  const checkResult = vacations.some(vacation => {
-    console.log(`[isEmployeeOnVacation] Checking vacation:`, {
-      id: vacation.id,
-      user_id: vacation.user_id,
-      start_date: vacation.start_date,
-      end_date: vacation.end_date,
-      status: vacation.status
-    });
-    
+  const applicableVacation = vacations.find(vacation => {
     if (vacation.user_id !== employeeId || vacation.status !== 'approved') {
       return false;
     }
@@ -41,17 +40,44 @@ export const isEmployeeOnVacation = (employeeId: string, selectedDate: Date, vac
     startDate.setHours(0, 0, 0, 0);
     endDate.setHours(0, 0, 0, 0);
     
-    const isInRange = normalizedSelectedDate >= startDate && normalizedSelectedDate <= endDate;
-    
-    if (isInRange) {
-      console.log(`[isEmployeeOnVacation] Employee ${employeeId} is on vacation on ${format(selectedDate, 'yyyy-MM-dd')}: vacation from ${format(startDate, 'yyyy-MM-dd')} to ${format(endDate, 'yyyy-MM-dd')}`);
-    }
-    
-    return isInRange;
+    return normalizedSelectedDate >= startDate && normalizedSelectedDate <= endDate;
   });
-  
-  console.log(`[isEmployeeOnVacation] Final result for employee ${employeeId}: ${checkResult}`);
-  return checkResult;
+
+  if (!applicableVacation) {
+    return {
+      isOnVacation: false,
+      vacationType: 'none'
+    };
+  }
+
+  console.log(`[getEmployeeVacationStatus] Found vacation:`, {
+    id: applicableVacation.id,
+    request_type: applicableVacation.request_type,
+    start_time: applicableVacation.start_time,
+    end_time: applicableVacation.end_time
+  });
+
+  if (applicableVacation.request_type === 'partial_day' && applicableVacation.start_time && applicableVacation.end_time) {
+    return {
+      isOnVacation: true,
+      vacationType: 'partial_day',
+      startTime: applicableVacation.start_time,
+      endTime: applicableVacation.end_time,
+      vacation: applicableVacation
+    };
+  }
+
+  return {
+    isOnVacation: true,
+    vacationType: 'full_day',
+    vacation: applicableVacation
+  };
+};
+
+// Helper function to check if an employee is on vacation for a specific date (legacy compatibility)
+export const isEmployeeOnVacation = (employeeId: string, selectedDate: Date, vacations: Vacation[]): boolean => {
+  const vacationStatus = getEmployeeVacationStatus(employeeId, selectedDate, vacations);
+  return vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day';
 };
 
 // Helper function to normalize time
@@ -80,17 +106,27 @@ export const getEmployeeAvailabilityStatus = (
 ): EmployeeAvailabilityInfo => {
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
   console.log(`[getEmployeeAvailabilityStatus] Checking employee: ${employee.name} (${employee.id}) for date: ${dateStr}`);
-  console.log(`[getEmployeeAvailabilityStatus] Employee role: ${employee.role}, manual onLeave: ${employee.onLeave}`);
   
-  // PRIORITY 1: Check if employee is on vacation FOR THIS SPECIFIC DATE
-  const isOnVacationToday = isEmployeeOnVacation(employee.id, selectedDate, vacations);
-  if (isOnVacationToday) {
-    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on vacation on ${dateStr}`);
-    return {
-      status: 'onVacation',
-      statusText: t('planner.onVacation'),
-      badgeColor: 'bg-blue-100 text-blue-800 border-blue-200'
-    };
+  // PRIORITY 1: Check vacation status with detailed information
+  const vacationStatus = getEmployeeVacationStatus(employee.id, selectedDate, vacations);
+  
+  if (vacationStatus.isOnVacation) {
+    if (vacationStatus.vacationType === 'full_day') {
+      console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on full day vacation on ${dateStr}`);
+      return {
+        status: 'onVacation',
+        statusText: t('planner.onVacation'),
+        badgeColor: 'bg-blue-100 text-blue-800 border-blue-200'
+      };
+    } else if (vacationStatus.vacationType === 'partial_day' && vacationStatus.startTime) {
+      const formattedStartTime = normalizeTime(vacationStatus.startTime);
+      console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on partial vacation from ${formattedStartTime} on ${dateStr}`);
+      return {
+        status: 'partialVacation',
+        statusText: t('vacation.offFrom', { time: formattedStartTime }),
+        badgeColor: 'bg-orange-100 text-orange-800 border-orange-200'
+      };
+    }
   }
 
   // PRIORITY 2: Check if employee is manually marked as on leave
