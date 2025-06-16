@@ -13,7 +13,7 @@ interface VacationPageContainerProps {
 
 const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerComponent }) => {
   const { t } = useTranslation();
-  const {SYMBOL isAdmin, isSkadeleder, isServicemedarbejder } = usePermissions();
+  const { isAdmin, isSkadeleder, isServicemedarbejder } = usePermissions();
   const [activeTab, setActiveTab] = React.useState("all");
   
   const {
