@@ -17,6 +17,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   // Always call useTranslation hook - never conditionally
   const { t } = useTranslation();
 
+  // Always call useEffect - never conditionally
+  React.useEffect(() => {
+    // Only redirect if not authenticated and not on login/password-reset pages
+    if (!isAuthenticated && !loading && 
+        location.pathname !== "/login" && 
+        location.pathname !== "/password-reset") {
+      console.log(`[MainLayout] Redirecting unauthenticated user to login on domain: ${window.location.hostname}`);
+      navigate('/login', { replace: true });
+    }
+  }, [isAuthenticated, loading, navigate, location.pathname]);
+
   // Don't show layout for login page or password reset page
   if (location.pathname === "/login" || location.pathname === "/password-reset") {
     return <>{children}</>;
@@ -37,14 +48,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
-  // If not authenticated, redirect to login
+  // If not authenticated, show brief loading state while redirecting
   if (!isAuthenticated) {
-    React.useEffect(() => {
-      console.log(`[MainLayout] Redirecting unauthenticated user to login on domain: ${window.location.hostname}`);
-      navigate('/login', { replace: true });
-    }, [navigate]);
-    
-    // Show brief loading state while redirecting
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="text-center">
