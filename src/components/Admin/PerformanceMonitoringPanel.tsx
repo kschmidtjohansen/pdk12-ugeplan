@@ -10,7 +10,7 @@ import {
   Clock, 
   AlertTriangle, 
   TrendingUp, 
-  Memory,
+  HardDrive,
   X
 } from 'lucide-react';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
@@ -105,7 +105,7 @@ export const PerformanceMonitoringPanel: React.FC = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Memory Usage</CardTitle>
-            <Memory className="h-4 w-4 text-muted-foreground" />
+            <HardDrive className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">

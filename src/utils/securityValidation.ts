@@ -1,4 +1,3 @@
-
 import { logInputValidationError } from './securityLogger';
 
 export const validateEmailFormat = (email: string): boolean => {
@@ -12,35 +11,46 @@ export const validateEmailFormat = (email: string): boolean => {
          !email.endsWith('.');
 };
 
-export const validatePasswordStrength = (password: string): { valid: boolean; errors: string[] } => {
+export const validatePasswordStrength = (password: string): { valid: boolean; score: number; errors: string[] } => {
   const errors: string[] = [];
+  let score = 0;
   
   if (!password || typeof password !== 'string') {
     errors.push('Password is required');
-    return { valid: false, errors };
+    return { valid: false, score: 0, errors };
   }
   
-  if (password.length < 8) {
+  if (password.length >= 8) {
+    score++;
+  } else {
     errors.push('Password must be at least 8 characters long');
   }
   
-  if (!/[A-Z]/.test(password)) {
+  if (/[A-Z]/.test(password)) {
+    score++;
+  } else {
     errors.push('Password must contain at least one uppercase letter');
   }
   
-  if (!/[a-z]/.test(password)) {
+  if (/[a-z]/.test(password)) {
+    score++;
+  } else {
     errors.push('Password must contain at least one lowercase letter');
   }
   
-  if (!/[0-9]/.test(password)) {
+  if (/[0-9]/.test(password)) {
+    score++;
+  } else {
     errors.push('Password must contain at least one number');
   }
   
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>?]/.test(password)) {
+  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>?]/.test(password)) {
+    score++;
+  } else {
     errors.push('Password must contain at least one special character');
   }
   
-  return { valid: errors.length === 0, errors };
+  return { valid: errors.length === 0, score, errors };
 };
 
 export const sanitizeInput = (input: string, maxLength: number = 1000): string => {

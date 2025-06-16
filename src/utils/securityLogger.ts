@@ -38,6 +38,24 @@ export const logAuthEvent = (eventType: string, details: Record<string, any> = {
   logSecurityEvent(`auth_${eventType}`, `Authentication event: ${eventType}`, details, 'info');
 };
 
+export const logAuthAttempt = (email: string, success: boolean, error?: string) => {
+  logSecurityEvent(
+    'auth_attempt',
+    `Login attempt for ${email}: ${success ? 'success' : 'failed'}`,
+    { email, success, error },
+    success ? 'info' : 'warning'
+  );
+};
+
+export const logUnauthorizedAccess = (resource: string, reason: string, details: Record<string, any> = {}) => {
+  logSecurityEvent(
+    'unauthorized_access',
+    `Unauthorized access attempt to ${resource}: ${reason}`,
+    { resource, reason, ...details },
+    'warning'
+  );
+};
+
 export const logAccessAttempt = (resource: string, allowed: boolean, details: Record<string, any> = {}) => {
   logSecurityEvent(
     'access_attempt',
