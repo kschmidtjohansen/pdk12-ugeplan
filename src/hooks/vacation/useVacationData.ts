@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Vacation } from '@/types/vacation';
+import { Vacation, VacationRequestType } from '@/types/vacation';
 
 export const useVacationData = () => {
   const { toast } = useToast();
@@ -34,12 +34,7 @@ export const useVacationData = () => {
           reason,
           notes,
           created_at,
-          updated_at,
-          profiles:user_id (
-            id,
-            name,
-            email
-          )
+          updated_at
         `)
         .order('created_at', { ascending: false });
 
@@ -48,29 +43,44 @@ export const useVacationData = () => {
         throw vacationsError;
       }
 
+      // Fetch user profiles separately
+      const userIds = [...new Set(vacationsData?.map(v => v.user_id) || [])];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('[useVacationData] Error fetching profiles:', profilesError);
+      }
+
       console.log(`[useVacationData] Successfully fetched ${vacationsData?.length || 0} vacations`);
 
       // Transform the data to match our Vacation interface
-      const transformedVacations: Vacation[] = (vacationsData || []).map(vacation => ({
-        id: vacation.id,
-        user_id: vacation.user_id,
-        start_date: vacation.start_date,
-        end_date: vacation.end_date,
-        request_type: vacation.request_type || 'full_day',
-        start_time: vacation.start_time || undefined,
-        end_time: vacation.end_time || undefined,
-        is_same_day: vacation.is_same_day ?? true,
-        status: vacation.status,
-        reason: vacation.reason || undefined,
-        notes: vacation.notes || undefined,
-        created_at: vacation.created_at,
-        updated_at: vacation.updated_at,
-        user: vacation.profiles ? {
-          id: vacation.profiles.id,
-          name: vacation.profiles.name || 'Unknown',
-          email: vacation.profiles.email || ''
-        } : undefined
-      }));
+      const transformedVacations: Vacation[] = (vacationsData || []).map(vacation => {
+        const userProfile = profilesData?.find(p => p.id === vacation.user_id);
+        
+        return {
+          id: vacation.id,
+          user_id: vacation.user_id,
+          start_date: vacation.start_date,
+          end_date: vacation.end_date,
+          request_type: (vacation.request_type as VacationRequestType) || 'full_day',
+          start_time: vacation.start_time || undefined,
+          end_time: vacation.end_time || undefined,
+          is_same_day: vacation.is_same_day ?? true,
+          status: vacation.status,
+          reason: vacation.reason || undefined,
+          notes: vacation.notes || undefined,
+          created_at: vacation.created_at,
+          updated_at: vacation.updated_at,
+          user: userProfile ? {
+            id: userProfile.id,
+            name: userProfile.name || 'Unknown',
+            email: userProfile.email || ''
+          } : undefined
+        };
+      });
 
       setVacations(transformedVacations);
       console.log('[useVacationData] Vacation data transformed and set');

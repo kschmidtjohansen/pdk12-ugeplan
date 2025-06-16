@@ -21,19 +21,19 @@ export const isEmployeeOnVacation = (employeeId: string, selectedDate: Date, vac
   const checkResult = vacations.some(vacation => {
     console.log(`[isEmployeeOnVacation] Checking vacation:`, {
       id: vacation.id,
-      employeeId: vacation.employeeId,
-      startDate: vacation.startDate,
-      endDate: vacation.endDate,
+      user_id: vacation.user_id,
+      start_date: vacation.start_date,
+      end_date: vacation.end_date,
       status: vacation.status
     });
     
-    if (vacation.employeeId !== employeeId || vacation.status !== 'approved') {
+    if (vacation.user_id !== employeeId || vacation.status !== 'approved') {
       return false;
     }
     
     // Ensure we're working with Date objects
-    const startDate = vacation.startDate instanceof Date ? vacation.startDate : new Date(vacation.startDate);
-    const endDate = vacation.endDate instanceof Date ? vacation.endDate : new Date(vacation.endDate);
+    const startDate = new Date(vacation.start_date);
+    const endDate = new Date(vacation.end_date);
     
     // Normalize all dates to avoid time zone issues
     const normalizedSelectedDate = new Date(selectedDate);

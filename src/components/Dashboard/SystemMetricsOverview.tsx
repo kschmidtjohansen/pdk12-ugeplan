@@ -29,9 +29,9 @@ const SystemMetricsOverview: React.FC<SystemMetricsOverviewProps> = ({
   // Count active assignments (assuming published ones are active)
   const activeAssignments = assignments.filter(a => a.published === true).length;
   
-  // Count upcoming approved vacations
+  // Count upcoming approved vacations - fix property name
   const upcomingVacations = vacations.filter(v => 
-    v.status === 'approved' && new Date(v.startDate) >= new Date()
+    v.status === 'approved' && new Date(v.start_date) >= new Date()
   ).length;
   
   return (
