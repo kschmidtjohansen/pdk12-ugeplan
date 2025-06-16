@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Shield, Database, AlertTriangle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useSystemHealthMonitoring } from '@/hooks/useSystemHealthMonitoring';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from '@/context/TranslationContext';
 
 export const SystemHealthDashboard: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { metrics, loading, error, checkSystemHealth, isHealthy } = useSystemHealthMonitoring();
   
   // Only show to admin users
@@ -20,8 +22,8 @@ export const SystemHealthDashboard: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">System Health Dashboard</h2>
-          <p className="text-muted-foreground">Monitor security and database status</p>
+          <h2 className="text-2xl font-bold">{t('admin.systemHealth.dashboard')}</h2>
+          <p className="text-muted-foreground">{t('admin.systemHealth.dashboardDesc')}</p>
         </div>
         <Button 
           onClick={checkSystemHealth} 
@@ -30,7 +32,7 @@ export const SystemHealthDashboard: React.FC = () => {
           variant="outline"
         >
           <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
+          {t('admin.common.refresh')}
         </Button>
       </div>
 
@@ -39,7 +41,7 @@ export const SystemHealthDashboard: React.FC = () => {
           <CardContent className="pt-6">
             <div className="flex items-center space-x-2 text-red-600">
               <AlertTriangle className="h-5 w-5" />
-              <span>Health check failed: {error}</span>
+              <span>{t('admin.systemHealth.healthCheckFailed')}: {error}</span>
             </div>
           </CardContent>
         </Card>
@@ -49,7 +51,7 @@ export const SystemHealthDashboard: React.FC = () => {
         {/* System Status */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Status</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.systemHealth.systemStatus')}</CardTitle>
             {isHealthy ? (
               <CheckCircle2 className="h-4 w-4 text-green-600" />
             ) : (
@@ -59,11 +61,11 @@ export const SystemHealthDashboard: React.FC = () => {
           <CardContent>
             <div className="text-2xl font-bold">
               <Badge variant={isHealthy ? "default" : "secondary"}>
-                {metrics.systemHealth?.status || 'Unknown'}
+                {metrics.systemHealth?.status || t('admin.systemHealth.unknown')}
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground">
-              Last checked: {metrics.lastHealthCheck?.toLocaleTimeString() || 'Never'}
+              {t('admin.systemHealth.lastChecked')}: {metrics.lastHealthCheck?.toLocaleTimeString() || t('admin.systemHealth.never')}
             </p>
           </CardContent>
         </Card>
@@ -71,13 +73,13 @@ export const SystemHealthDashboard: React.FC = () => {
         {/* Security Events */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Security Events</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.systemHealth.securityEvents')}</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.totalSecurityEvents}</div>
             <p className="text-xs text-muted-foreground">
-              {metrics.recentErrors} errors in last 24h
+              {metrics.recentErrors} {t('admin.systemHealth.errorsIn24h')}
             </p>
           </CardContent>
         </Card>
@@ -85,7 +87,7 @@ export const SystemHealthDashboard: React.FC = () => {
         {/* Database Policies */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">RLS Policies</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.systemHealth.rlsPolicies')}</CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -93,7 +95,7 @@ export const SystemHealthDashboard: React.FC = () => {
               {metrics.systemHealth?.policy_count || 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              {metrics.systemHealth?.rls_enabled_tables || 0} tables secured
+              {metrics.systemHealth?.rls_enabled_tables || 0} {t('admin.systemHealth.securedTables')}
             </p>
           </CardContent>
         </Card>
@@ -101,7 +103,7 @@ export const SystemHealthDashboard: React.FC = () => {
         {/* Database Functions */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Functions</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.systemHealth.functions')}</CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -109,7 +111,7 @@ export const SystemHealthDashboard: React.FC = () => {
               {metrics.systemHealth?.function_count || 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              {metrics.systemHealth?.table_count || 0} total tables
+              {metrics.systemHealth?.table_count || 0} {t('admin.systemHealth.totalTables')}
             </p>
           </CardContent>
         </Card>
@@ -119,29 +121,29 @@ export const SystemHealthDashboard: React.FC = () => {
       {metrics.systemHealth && (
         <Card>
           <CardHeader>
-            <CardTitle>System Details</CardTitle>
+            <CardTitle>{t('admin.systemHealth.systemDetails')}</CardTitle>
             <CardDescription>
-              Detailed information about the current system state
+              {t('admin.systemHealth.description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <h4 className="font-semibold mb-2">Database Statistics</h4>
+                <h4 className="font-semibold mb-2">{t('admin.systemHealth.databaseStatistics')}</h4>
                 <ul className="space-y-1 text-sm">
-                  <li>Tables: {metrics.systemHealth.table_count}</li>
-                  <li>Functions: {metrics.systemHealth.function_count}</li>
-                  <li>RLS Policies: {metrics.systemHealth.policy_count}</li>
-                  <li>Secured Tables: {metrics.systemHealth.rls_enabled_tables}</li>
+                  <li>{t('admin.systemHealth.tables')}: {metrics.systemHealth.table_count}</li>
+                  <li>{t('admin.systemHealth.functions')}: {metrics.systemHealth.function_count}</li>
+                  <li>{t('admin.systemHealth.rlsPolicies')}: {metrics.systemHealth.policy_count}</li>
+                  <li>{t('admin.systemHealth.securedTables')}: {metrics.systemHealth.rls_enabled_tables}</li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Security Overview</h4>
+                <h4 className="font-semibold mb-2">{t('admin.systemHealth.securityOverview')}</h4>
                 <ul className="space-y-1 text-sm">
-                  <li>Total Events: {metrics.totalSecurityEvents}</li>
-                  <li>Recent Errors: {metrics.recentErrors}</li>
-                  <li>Status: {metrics.systemHealth.status}</li>
-                  <li>Last Check: {new Date(metrics.systemHealth.timestamp).toLocaleString()}</li>
+                  <li>{t('admin.systemHealth.totalEvents')}: {metrics.totalSecurityEvents}</li>
+                  <li>{t('admin.systemHealth.recentErrors')}: {metrics.recentErrors}</li>
+                  <li>{t('admin.common.status')}: {metrics.systemHealth.status}</li>
+                  <li>{t('admin.systemHealth.lastCheck')}: {new Date(metrics.systemHealth.timestamp).toLocaleString()}</li>
                 </ul>
               </div>
             </div>

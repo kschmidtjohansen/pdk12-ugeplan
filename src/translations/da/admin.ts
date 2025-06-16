@@ -1,4 +1,3 @@
-
 export const admin = {
   title: 'Administration',
   description: 'Systemadministration og indstillinger',
@@ -21,10 +20,29 @@ export const admin = {
   },
   systemHealth: {
     title: 'Systemsundhed',
-    description: 'Overvåg database- og applikationssundhed'
-  },
-  systemOverview: {
-    description: 'Administrer systemet og overvåg nøglemetrikker'
+    description: 'Overvåg database- og applikationssundhed',
+    dashboard: 'System Sundhed Dashboard',
+    dashboardDesc: 'Overvåg sikkerhed og database status',
+    systemStatus: 'System Status',
+    securityEvents: 'Sikkerhedshændelser',
+    rlsPolicies: 'RLS Politikker',
+    functions: 'Funktioner',
+    systemDetails: 'System Detaljer',
+    databaseStatistics: 'Database Statistikker',
+    securityOverview: 'Sikkerheds Oversigt',
+    tables: 'Tabeller',
+    securedTables: 'Sikrede Tabeller',
+    totalEvents: 'Samlede Hændelser',
+    recentErrors: 'Seneste Fejl',
+    lastCheck: 'Sidste Kontrol',
+    lastChecked: 'Sidst kontrolleret',
+    never: 'Aldrig',
+    errorsIn24h: 'fejl i sidste 24t',
+    totalTables: 'totale tabeller',
+    unknown: 'Ukendt',
+    healthy: 'Sund',
+    issuesDetected: 'Problemer Opdaget',
+    healthCheckFailed: 'Sundhedskontrol fejlede'
   },
   systemMetrics: {
     totalUsers: 'Samlede brugere',
@@ -36,30 +54,72 @@ export const admin = {
     scheduledTasks: 'Planlagte opgaver',
     scheduledTasksDesc: 'Opgaver denne uge'
   },
-  quickStats: {
-    vehicles: 'Køretøjer',
-    available: 'tilgængelige',
-    pendingVacations: 'Afventende ferier',
-    approved: 'godkendt',
-    todaysTasks: 'Dagens opgaver',
-    total: 'total'
+  securityLogs: {
+    title: 'Sikkerhedslogfiler',
+    description: 'Overvåg sikkerhedshændelser og systemaktiviteter',
+    filterLogs: 'Filtrer logfiler',
+    allEvents: 'Alle Hændelser',
+    authAttempts: 'Auth Forsøg',
+    authFailures: 'Auth Fejl',
+    securityErrors: 'Sikkerhedsfejl',
+    unauthorizedAccess: 'Uautoriseret Adgang',
+    validationErrors: 'Valideringsfejl',
+    adminActions: 'Admin Handlinger',
+    noLogsFound: 'Ingen sikkerhedslogfiler fundet',
+    eventDetails: 'Hændelses Detaljer',
+    showDetails: 'Vis detaljer',
+    fetchError: 'Fejl ved hentning af sikkerhedslogfiler'
   },
-  systemHealth: {
-    title: 'Systemsundhed',
-    assignmentPublishing: 'Opgavepublicering',
-    allAssignmentsPublished: 'Alle opgaver er publiceret',
-    unpublishedTasks: '{count} upublicerede opgaver',
-    vehicleUtilization: 'Køretøjer',
-    vehiclesInUse: '{inUse} af {total} køretøjer i brug',
-    staffAvailability: 'Personale tilgængelighed',
-    staffAvailable: '{available} af {total} medarbejdere tilgængelige'
+  diagnostics: {
+    title: 'System Diagnostik',
+    description: 'Omfattende system sundhedsanalyse',
+    runDiagnostics: 'Kør Diagnostik',
+    overallStatus: 'Samlet Status',
+    totalIssues: 'Samlede Problemer',
+    critical: 'Kritisk',
+    warnings: 'Advarsler',
+    diagnosticResults: 'Diagnostiske Resultater',
+    lastRun: 'Sidste kørsel',
+    never: 'Aldrig',
+    runningDiagnostics: 'Kører diagnostik...',
+    healthy: 'Sund',
+    issuesDetected: 'Problemer Opdaget',
+    pass: 'BESTÅET',
+    fail: 'FEJLET',
+    warning: 'ADVARSEL',
+    showDetails: 'Vis detaljer'
   },
-  quickActions: {
-    title: 'Hurtige handlinger',
-    viewPlanner: 'Se ugeplan',
-    manageStaff: 'Administrer personale',
-    fleetManagement: 'Biler',
-    vacationRequests: 'Ansøgninger om fridage'
+  performance: {
+    title: 'Ydeevne Overvågning',
+    description: 'Realtids applikations ydeevne metrikker',
+    clearAlerts: 'Ryd Advarsler',
+    performanceAlerts: 'Ydeevne Advarsler',
+    avgQueryTime: 'Gns. Forespørgselstid',
+    operations: 'operationer',
+    errorRate: 'Fejlrate',
+    memoryUsage: 'Hukommelsesforbrug',
+    slowQueries: 'Langsomme Forespørgsler',
+    responseTime: 's svartid',
+    recentSlowQueries: 'Seneste Langsomme Forespørgsler',
+    queriesSlowerThan: 'Forespørgsler der tager længere end 2 sekunder',
+    slowRenderingComponents: 'Langsomme Rendering Komponenter',
+    componentsSlowerThan: 'Komponenter med rendertider >100ms',
+    avg: 'Gns',
+    max: 'Maks',
+    high: 'høj',
+    medium: 'medium',
+    low: 'lav'
+  },
+  common: {
+    refresh: 'Opdater',
+    status: 'Status',
+    details: 'Detaljer',
+    actions: 'Handlinger',
+    loading: 'Indlæser...',
+    error: 'Fejl',
+    success: 'Succes',
+    warning: 'Advarsel',
+    info: 'Information'
   },
   userManagement: {
     title: 'Brugerstyring',

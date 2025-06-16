@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, AlertTriangle, Info, Eye, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from '@/context/TranslationContext';
 
 interface SecurityLog {
   id: string;
@@ -19,6 +20,7 @@ interface SecurityLog {
 
 export const SecurityLogViewer: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<SecurityLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +56,7 @@ export const SecurityLogViewer: React.FC = () => {
       setLogs(data || []);
     } catch (err) {
       console.error('[SecurityLogViewer] Error fetching logs:', err);
-      setError('Failed to fetch security logs');
+      setError(t('admin.securityLogs.fetchError'));
     } finally {
       setLoading(false);
     }
@@ -88,27 +90,27 @@ export const SecurityLogViewer: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Security Logs</h2>
-          <p className="text-muted-foreground">Monitor security events and system activities</p>
+          <h2 className="text-2xl font-bold">{t('admin.securityLogs.title')}</h2>
+          <p className="text-muted-foreground">{t('admin.securityLogs.description')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Filter logs" />
+              <SelectValue placeholder={t('admin.securityLogs.filterLogs')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Events</SelectItem>
-              <SelectItem value="auth_attempt">Auth Attempts</SelectItem>
-              <SelectItem value="auth_failure">Auth Failures</SelectItem>
-              <SelectItem value="security_error">Security Errors</SelectItem>
-              <SelectItem value="unauthorized_access">Unauthorized Access</SelectItem>
-              <SelectItem value="input_validation_error">Validation Errors</SelectItem>
-              <SelectItem value="admin_action">Admin Actions</SelectItem>
+              <SelectItem value="all">{t('admin.securityLogs.allEvents')}</SelectItem>
+              <SelectItem value="auth_attempt">{t('admin.securityLogs.authAttempts')}</SelectItem>
+              <SelectItem value="auth_failure">{t('admin.securityLogs.authFailures')}</SelectItem>
+              <SelectItem value="security_error">{t('admin.securityLogs.securityErrors')}</SelectItem>
+              <SelectItem value="unauthorized_access">{t('admin.securityLogs.unauthorizedAccess')}</SelectItem>
+              <SelectItem value="input_validation_error">{t('admin.securityLogs.validationErrors')}</SelectItem>
+              <SelectItem value="admin_action">{t('admin.securityLogs.adminActions')}</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={fetchLogs} disabled={loading} size="sm" variant="outline">
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('admin.common.refresh')}
           </Button>
         </div>
       </div>
@@ -124,7 +126,7 @@ export const SecurityLogViewer: React.FC = () => {
         {logs.length === 0 && !loading ? (
           <Card>
             <CardContent className="pt-6">
-              <p className="text-center text-muted-foreground">No security logs found</p>
+              <p className="text-center text-muted-foreground">{t('admin.securityLogs.noLogsFound')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -155,7 +157,7 @@ export const SecurityLogViewer: React.FC = () => {
               {expandedLog === log.id && (
                 <CardContent className="pt-0">
                   <div className="bg-gray-50 p-3 rounde-md">
-                    <h4 className="font-semibold mb-2">Event Details</h4>
+                    <h4 className="font-semibold mb-2">{t('admin.securityLogs.eventDetails')}</h4>
                     <pre className="text-xs bg-white p-2 rounded border overflow-auto max-h-40">
                       {JSON.stringify(log.details, null, 2)}
                     </pre>

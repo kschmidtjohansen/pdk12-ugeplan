@@ -15,9 +15,11 @@ import {
 } from 'lucide-react';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from '@/context/TranslationContext';
 
 export const PerformanceMonitoringPanel: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { metrics, alerts, getSlowComponents, clearAlerts } = usePerformanceMonitoring();
 
   // Only show to admin users
@@ -31,13 +33,13 @@ export const PerformanceMonitoringPanel: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Performance Monitoring</h2>
-          <p className="text-muted-foreground">Real-time application performance metrics</p>
+          <h2 className="text-2xl font-bold">{t('admin.performance.title')}</h2>
+          <p className="text-muted-foreground">{t('admin.performance.description')}</p>
         </div>
         {alerts.length > 0 && (
           <Button onClick={clearAlerts} size="sm" variant="outline">
             <X className="h-4 w-4 mr-2" />
-            Clear Alerts ({alerts.length})
+            {t('admin.performance.clearAlerts')} ({alerts.length})
           </Button>
         )}
       </div>
@@ -45,7 +47,7 @@ export const PerformanceMonitoringPanel: React.FC = () => {
       {/* Performance Alerts */}
       {alerts.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Performance Alerts</h3>
+          <h3 className="text-lg font-semibold">{t('admin.performance.performanceAlerts')}</h3>
           {alerts.slice(-5).map((alert, index) => (
             <Alert 
               key={index}
@@ -57,7 +59,9 @@ export const PerformanceMonitoringPanel: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span>{alert.message}</span>
                   <Badge variant={alert.severity === 'high' ? 'destructive' : 'secondary'}>
-                    {alert.severity}
+                    {alert.severity === 'high' ? t('admin.performance.high') :
+                     alert.severity === 'medium' ? t('admin.performance.medium') :
+                     t('admin.performance.low')}
                   </Badge>
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">
@@ -73,7 +77,7 @@ export const PerformanceMonitoringPanel: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Query Time</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.performance.avgQueryTime')}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -81,14 +85,14 @@ export const PerformanceMonitoringPanel: React.FC = () => {
               {Math.round(metrics.averageQueryTime)}ms
             </div>
             <div className="text-xs text-muted-foreground">
-              {metrics.totalOperations} operations
+              {metrics.totalOperations} {t('admin.performance.operations')}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Error Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.performance.errorRate')}</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -104,7 +108,7 @@ export const PerformanceMonitoringPanel: React.FC = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Memory Usage</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.performance.memoryUsage')}</CardTitle>
             <HardDrive className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -120,7 +124,7 @@ export const PerformanceMonitoringPanel: React.FC = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Slow Queries</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.performance.slowQueries')}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -128,7 +132,7 @@ export const PerformanceMonitoringPanel: React.FC = () => {
               {metrics.slowQueries.length}
             </div>
             <div className="text-xs text-muted-foreground">
-              {'>'}2s response time
+              {'>'}{2}{t('admin.performance.responseTime')}
             </div>
           </CardContent>
         </Card>
@@ -138,8 +142,8 @@ export const PerformanceMonitoringPanel: React.FC = () => {
       {metrics.slowQueries.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Recent Slow Queries</CardTitle>
-            <CardDescription>Queries taking longer than 2 seconds</CardDescription>
+            <CardTitle>{t('admin.performance.recentSlowQueries')}</CardTitle>
+            <CardDescription>{t('admin.performance.queriesSlowerThan')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -165,8 +169,8 @@ export const PerformanceMonitoringPanel: React.FC = () => {
       {slowComponents.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Slow Rendering Components</CardTitle>
-            <CardDescription>Components with render times {'>'}100ms</CardDescription>
+            <CardTitle>{t('admin.performance.slowRenderingComponents')}</CardTitle>
+            <CardDescription>{t('admin.performance.componentsSlowerThan')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -175,10 +179,10 @@ export const PerformanceMonitoringPanel: React.FC = () => {
                   <span className="font-medium">{component.component}</span>
                   <div className="text-right">
                     <Badge variant="secondary">
-                      Avg: {Math.round(component.averageTime)}ms
+                      {t('admin.performance.avg')}: {Math.round(component.averageTime)}ms
                     </Badge>
                     <div className="text-xs text-muted-foreground">
-                      Max: {Math.round(component.maxTime)}ms
+                      {t('admin.performance.max')}: {Math.round(component.maxTime)}ms
                     </div>
                   </div>
                 </div>
