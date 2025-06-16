@@ -1,9 +1,8 @@
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import { format } from 'date-fns';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { safeProperty } from '@/utils/dbHelpers';
 
 export const useVacationNotifications = (
   user: any | null,
@@ -65,8 +64,7 @@ export const useVacationNotifications = (
         });
       }
       
-      // Check if we already have notifications for these pending requests
-      // This is the key improvement - we check the database directly instead of using localStorage
+      // Check existing notifications - only check for unread vacation notifications
       const { data: existingNotifications, error: notifError } = await supabase
         .from('notifications')
         .select('*')
@@ -83,19 +81,14 @@ export const useVacationNotifications = (
       
       // Create notifications for pending requests if needed
       for (const vacation of pendingVacations) {
-        // Get employee name from our mapping
         const employeeName = profileNameMap.get(vacation.user_id) || 'Employee';
         
         const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
         const formattedStartDate = format(new Date(vacation.start_date), dateFormat);
         const formattedEndDate = format(new Date(vacation.end_date), dateFormat);
         
-        // Check if we already have a notification for this vacation by matching vacation details
-        const vacationIdentifier = `${vacation.id}-${vacation.user_id}-${vacation.start_date}-${vacation.end_date}`;
-        
-        // Check the database for existing notifications about this vacation
+        // Check if we already have a notification for this specific vacation request
         const hasNotification = existingNotifications?.some(n => {
-          // Match by checking if the message contains the employee name and both dates
           return n.message?.includes(employeeName) && 
                 n.message?.includes(formattedStartDate) &&
                 n.message?.includes(formattedEndDate);
@@ -111,7 +104,6 @@ export const useVacationNotifications = (
           });
           
           try {
-            // Add notification using the context
             const notificationId = await addNotification({
               type: 'vacation',
               title: t('notifications.newVacationRequest'),
@@ -131,14 +123,6 @@ export const useVacationNotifications = (
       console.error('Error checking for pending vacation requests:', err);
     }
   }, [user, t, currentLanguage, addNotification]);
-
-  // Run when user becomes an admin
-  useEffect(() => {
-    if (user?.role === 'administrator') {
-      console.log('Admin user detected, checking for pending vacation notifications');
-      createNotificationsForPendingRequests();
-    }
-  }, [user?.role, createNotificationsForPendingRequests]);
 
   return {
     createNotificationsForPendingRequests

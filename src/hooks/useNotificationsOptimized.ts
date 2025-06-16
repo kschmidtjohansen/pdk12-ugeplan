@@ -1,16 +1,15 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useNotificationFetchingOptimized } from './notifications/notificationFetchingOptimized';
-import { useNotificationActionsOptimized } from './notifications/notificationActionsOptimized'; 
-import { useNotificationCreate } from './notifications/notificationCreate';
-import { useNotificationRealtimeOptimized } from './notifications/notificationRealtimeOptimized';
-import { useVacationNotifications } from './notifications/vacationNotifications';
 import { useNotificationState } from './notifications/notificationState';
+import { useNotificationFetchingOptimized } from './notifications/notificationFetchingOptimized';
+import { useNotificationActionsOptimized } from './notifications/notificationActionsOptimized';
+import { useNotificationRealtimeOptimized } from './notifications/notificationRealtimeOptimized';
+import { useNotificationCreate } from './notifications/notificationCreate';
+import { useVacationNotifications } from './notifications/vacationNotifications';
 
-export const useNotifications = () => {
+export const useNotificationsOptimized = () => {
   const { user } = useAuth();
-  const systemReadyRef = useRef<boolean>(false);
   
   const {
     notifications,
@@ -29,44 +28,43 @@ export const useNotifications = () => {
     updateNotifications,
     setLoading
   );
-  
-  const { 
-    markAsRead, 
-    markAllAsRead, 
+
+  const {
+    markAsRead,
+    markAllAsRead,
     deleteNotification,
     deleteAllNotifications
   } = useNotificationActionsOptimized(
-    user, 
-    notifications, 
+    user,
+    notifications,
     markNotificationAsRead,
     markAllNotificationsAsRead,
     removeNotificationFromState,
     updateNotifications
   );
-  
+
   const { addNotification } = useNotificationCreate(user, addNotificationToState, () => {});
-  
+
   useNotificationRealtimeOptimized(user, addNotificationToState, fetchNotifications);
-  
+
   const { createNotificationsForPendingRequests } = useVacationNotifications(user, addNotification);
-  
+
   // Initial fetch
   useEffect(() => {
     if (user) {
-      console.log('[useNotifications] Initial fetch for user:', user.id);
+      console.log('[useNotificationsOptimized] Initial fetch for user:', user.id);
       fetchNotifications();
     }
   }, [user?.id, fetchNotifications]);
-  
-  // Run once after notifications are fetched to check for missing admin notifications
+
+  // Admin vacation notification check - only once per session
   useEffect(() => {
-    if (user?.role === 'administrator' && !loading && notifications.length >= 0 && !systemReadyRef.current) {
-      console.log('Checking for any missing admin notifications for pending vacations');
+    if (user?.role === 'administrator' && !loading && notifications.length >= 0) {
+      console.log('[useNotificationsOptimized] Checking for missing admin notifications');
       createNotificationsForPendingRequests();
-      systemReadyRef.current = true;
     }
-  }, [user, loading, notifications.length, createNotificationsForPendingRequests]);
-  
+  }, [user?.role, loading, createNotificationsForPendingRequests]);
+
   return {
     notifications,
     unreadCount,

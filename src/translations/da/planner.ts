@@ -1,4 +1,3 @@
-
 const planner = {
   title: 'Planlægger',
   description: 'Beskrivelse',
@@ -17,6 +16,7 @@ const planner = {
   deleteAssignment: 'Slet opgave',
   assignmentDetails: 'Opgavedetaljer',
   noAssignments: 'Ingen opgaver fundet',
+  noAssignmentsThisWeek: 'Ingen opgaver planlagt for denne uge',
   
   // Form fields
   assignmentTitle: 'Sagsnummer',
