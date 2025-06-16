@@ -1,11 +1,12 @@
 
+
 const vacation = {
   title: "Ferie",
   pageDescription: "Administrer dine ferieanmodninger her",
   requestVacation: "Anmod om ferie",
   requestVacationAdmin: "Anmod om ferie for medarbejder",
   vacationRequest: "Ferieanmodning",
-  editVacationRequest: "Rediger ferieanmodning",
+  editVacationRequest: "Rediger frianmodning",
   deleteVacationRequest: "Slet ferieanmodning",
   vacationDetails: "Feriedetaljer",
   employee: "Medarbejder",
@@ -131,3 +132,4 @@ const vacation = {
 };
 
 export default vacation;
+
