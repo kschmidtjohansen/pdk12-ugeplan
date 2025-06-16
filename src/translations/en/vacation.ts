@@ -1,4 +1,3 @@
-
 const vacation = {
   title: "Vacation",
   pageDescription: "Request and manage your vacations",
@@ -87,6 +86,27 @@ const vacation = {
   requestDeletedMsg: "The vacation request has been deleted",
   editError: "Error editing vacation request",
   rejectionReasonRequired: "Rejection reason is required",
+  
+  // New keys for partial day support
+  requestType: "Request Type",
+  fullDay: "Full Day",
+  partialDay: "Partial Day",
+  selectRequestType: "Select request type",
+  workingHours: "Working Hours",
+  startTime: "Start Time",
+  endTime: "End Time",
+  selectStartTime: "Select start time",
+  selectEndTime: "Select end time",
+  timeRange: "Time Range",
+  partialDayDescription: "Specify the hours you need off",
+  fullDayDescription: "Request the entire day off",
+  invalidTimeRange: "End time must be after start time",
+  timeMissing: "Please select both start and end times for partial day requests",
+  partialDayRequest: "{name} requesting partial day off from {startTime} to {endTime}",
+  partialDayApproved: "Your partial day request from {startTime} to {endTime} has been approved",
+  partialDayRejected: "Your partial day request from {startTime} to {endTime} has been rejected",
+  availableHours: "Available {startTime} - {endTime}",
+  offHours: "Off {startTime} - {endTime}",
   
   // Nested status keys for better organization
   status: {

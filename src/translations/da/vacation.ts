@@ -1,4 +1,3 @@
-
 const vacation = {
   title: "Ferie",
   pageDescription: "Administrer dine ferieanmodninger her",
@@ -105,7 +104,28 @@ const vacation = {
     pending: "Afventende",
     approved: "Godkendt",
     rejected: "Afvist"
-  }
+  },
+  
+  // New keys for partial day support
+  requestType: "Anmodningstype",
+  fullDay: "Hele dagen",
+  partialDay: "Del af dagen",
+  selectRequestType: "Vælg anmodningstype",
+  workingHours: "Arbejdstimer",
+  startTime: "Starttid",
+  endTime: "Sluttid",
+  selectStartTime: "Vælg starttid",
+  selectEndTime: "Vælg sluttid",
+  timeRange: "Tidsinterval",
+  partialDayDescription: "Angiv de timer du har brug for fri",
+  fullDayDescription: "Anmod om hele dagen fri",
+  invalidTimeRange: "Sluttid skal være efter starttid",
+  timeMissing: "Vælg venligst både start- og sluttid for delvise fridage",
+  partialDayRequest: "{name} anmoder om delvis fridag fra {startTime} til {endTime}",
+  partialDayApproved: "Din anmodning om delvis fridag fra {startTime} til {endTime} er blevet godkendt",
+  partialDayRejected: "Din anmodning om delvis fridag fra {startTime} til {endTime} er blevet afvist",
+  availableHours: "Tilgængelig {startTime} - {endTime}",
+  offHours: "Fri {startTime} - {endTime}",
 };
 
 export default vacation;
