@@ -1,4 +1,3 @@
-
 import { useVacationData } from './vacation/useVacationData';
 import { useVacationFormState } from './vacation/useVacationFormState';
 import { useVacationActions } from './vacation/useVacationActions';
@@ -123,7 +122,7 @@ export const useVacations = () => {
     setEditDialogOpen(true);
   };
   
-  // Submit edit handler - updated with better date handling
+  // Submit edit handler - updated with request type and time handling
   const submitEditVacation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedVacation) return;
@@ -144,16 +143,22 @@ export const useVacations = () => {
     const endDateObj = editEndDate instanceof Date ? 
       editEndDate : new Date(editEndDate);
     
-    console.log("Submitting edit with dates:", {
+    console.log("Submitting edit with dates and request type:", {
       startDate: startDateObj instanceof Date ? startDateObj.toISOString() : "undefined",
-      endDate: endDateObj instanceof Date ? endDateObj.toISOString() : "undefined"
+      endDate: endDateObj instanceof Date ? endDateObj.toISOString() : "undefined",
+      requestType,
+      startTime,
+      endTime
     });
     
     await editVacation(
       selectedVacation,
       startDateObj,
       endDateObj,
-      reason
+      reason,
+      requestType,
+      requestType === 'partial_day' ? startTime : undefined,
+      requestType === 'partial_day' ? endTime : undefined
     );
     
     setEditDialogOpen(false);

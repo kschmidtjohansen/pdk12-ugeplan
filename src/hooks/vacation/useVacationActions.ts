@@ -4,7 +4,7 @@ import { toast } from '@/components/ui/sonner';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { useVacationRequestActions } from './useVacationRequestActions';
-import { Vacation } from '@/types/vacation';
+import { Vacation, VacationRequestType } from '@/types/vacation';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
@@ -117,12 +117,18 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
     vacation: Vacation, 
     startDate: Date,
     endDate: Date,
-    reason: string
+    reason: string,
+    requestType: VacationRequestType,
+    startTime?: string,
+    endTime?: string
   ) => {
     try {
       console.log("Editing vacation:", vacation.id);
       console.log("Start date:", startDate);
       console.log("End date:", endDate);
+      console.log("Request type:", requestType);
+      console.log("Start time:", startTime);
+      console.log("End time:", endTime);
       console.log("User role - isAdmin:", isAdmin);
       
       // Ensure we have valid date objects
@@ -142,23 +148,33 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
       endDate.setHours(12, 0, 0, 0);
       
       // Format dates correctly - ensuring we're using YYYY-MM-DD format for Supabase
-      // Use EXACTLY the column names in the database: start_date and end_date
       const formattedStartDate = startDate.toISOString().split('T')[0];
       const formattedEndDate = endDate.toISOString().split('T')[0];
+      
+      // Calculate if it's the same day
+      const isSameDay = formattedStartDate === formattedEndDate;
       
       console.log("Formatted data to be sent:", {
         start_date: formattedStartDate,
         end_date: formattedEndDate,
-        reason
+        reason,
+        request_type: requestType,
+        start_time: requestType === 'partial_day' ? startTime : null,
+        end_time: requestType === 'partial_day' ? endTime : null,
+        is_same_day: isSameDay
       });
       
-      // Update the vacation record in Supabase - use the correct column names
+      // Update the vacation record in Supabase with all fields
       const { error, data } = await supabase
         .from('vacations')
         .update({
           start_date: formattedStartDate,
           end_date: formattedEndDate,
           reason,
+          request_type: requestType,
+          start_time: requestType === 'partial_day' ? startTime : null,
+          end_time: requestType === 'partial_day' ? endTime : null,
+          is_same_day: isSameDay,
           updated_at: new Date().toISOString()
         })
         .eq('id', vacation.id)
