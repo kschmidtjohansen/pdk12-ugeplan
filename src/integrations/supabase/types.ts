@@ -377,6 +377,22 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_strong_password: {
+        Args: { password: string }
+        Returns: boolean
+      }
+      is_valid_email: {
+        Args: { email: string }
+        Returns: boolean
+      }
+      log_security_event: {
+        Args: {
+          event_type: string
+          event_message: string
+          event_details?: Json
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       assignment_type: "waterDamage" | "fireDamage" | "mold" | "other"

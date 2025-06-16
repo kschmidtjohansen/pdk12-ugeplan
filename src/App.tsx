@@ -1,102 +1,95 @@
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { SecurityProvider } from "./context/SecurityContext";
+import { TranslationProvider } from "./context/TranslationContext";
+import { NotificationProvider } from "./context/NotificationContext";
+import { ThemeProvider } from "./components/theme-provider";
+import Index from "./pages/Index";
+import LoginPage from "./pages/LoginPage";
+import DashboardPage from "./pages/DashboardPage";
+import PlannerPage from "./pages/PlannerPage";
+import EmployeesPage from "./pages/EmployeesPage";
+import CarsPage from "./pages/CarsPage";
+import VacationPage from "./pages/VacationPage";
+import AdminPage from "./pages/AdminPage";
+import PasswordResetPage from "./pages/PasswordResetPage";
+import ScreenDisplayPage from "./pages/ScreenDisplayPage";
+import NotFound from "./pages/NotFound";
+import MainLayout from "./components/Layout/MainLayout";
 
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from './context/AuthContext';
-import { TranslationProvider } from './context/TranslationContext';
-import { NotificationProvider } from './context/NotificationContext';
-import { ThemeProvider } from './components/theme-provider';
-import { Toaster } from './components/ui/toaster';
-import MainLayout from './components/Layout/MainLayout';
-import Index from './pages/Index';
-import LoginPage from './pages/LoginPage';
-import PasswordResetPage from './pages/PasswordResetPage';
-import DashboardPage from './pages/DashboardPage';
-import PlannerPage from './pages/PlannerPage';
-import EmployeesPage from './pages/EmployeesPage';
-import CarsPage from './pages/CarsPage';
-import VacationPage from './pages/VacationPage';
-import AdminPage from './pages/AdminPage';
-import ScreenDisplayPage from './pages/ScreenDisplayPage';
-import NotFound from './pages/NotFound';
-import VacationCleanupHandler from './components/Vacation/VacationCleanupHandler';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import './App.css';
+const queryClient = new QueryClient();
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: (failureCount, error) => {
-        // Don't retry on 4xx errors
-        if (error instanceof Error && error.message.includes('40')) {
-          return false;
-        }
-        return failureCount < 2;
-      },
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
-
-// Error boundary specifically for the notification provider
-const NotificationErrorBoundary: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const App = () => {
   return (
-    <ErrorBoundary fallback={<>{children}</>}>
-      {children}
-    </ErrorBoundary>
-  );
-};
-
-// Error boundary specifically for the translation provider
-const TranslationErrorBoundary: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return (
-    <ErrorBoundary fallback={<div className="p-4">Loading translations...</div>}>
-      {children}
-    </ErrorBoundary>
-  );
-};
-
-function App() {
-  return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme="light" storageKey="polygon-theme">
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="light" storageKey="ui-theme">
+        <SecurityProvider>
           <AuthProvider>
-            <TranslationErrorBoundary>
-              <TranslationProvider>
-                <NotificationErrorBoundary>
-                  <NotificationProvider>
-                    <Router>
-                      <div className="App">
-                        {/* Add the VacationCleanupHandler here so it runs in the background */}
-                        <VacationCleanupHandler />
-                        <Routes>
-                          <Route path="/login" element={<LoginPage />} />
-                          <Route path="/password-reset" element={<PasswordResetPage />} />
-                          <Route path="/screen-display" element={<ScreenDisplayPage />} />
-                          <Route path="/" element={<MainLayout />}>
-                            <Route index element={<Index />} />
-                            <Route path="dashboard" element={<DashboardPage />} />
-                            <Route path="planner" element={<PlannerPage />} />
-                            <Route path="employees" element={<EmployeesPage />} />
-                            <Route path="cars" element={<CarsPage />} />
-                            <Route path="vacation" element={<VacationPage />} />
-                            <Route path="admin" element={<AdminPage />} />
-                          </Route>
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                        <Toaster />
-                      </div>
-                    </Router>
-                  </NotificationProvider>
-                </NotificationErrorBoundary>
-              </TranslationProvider>
-            </TranslationErrorBoundary>
+            <TranslationProvider>
+              <NotificationProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/login" element={<LoginPage />} />
+                      <Route path="/password-reset" element={<PasswordResetPage />} />
+                      
+                      {/* Protected routes wrapped with MainLayout */}
+                      <Route path="/dashboard" element={
+                        <MainLayout>
+                          <DashboardPage />
+                        </MainLayout>
+                      } />
+                      <Route path="/planner" element={
+                        <MainLayout>
+                          <PlannerPage />
+                        </MainLayout>
+                      } />
+                      <Route path="/planner/:assignmentId" element={
+                        <MainLayout>
+                          <PlannerPage />
+                        </MainLayout>
+                      } />
+                      <Route path="/employees" element={
+                        <MainLayout>
+                          <EmployeesPage />
+                        </MainLayout>
+                      } />
+                      <Route path="/cars" element={
+                        <MainLayout>
+                          <CarsPage />
+                        </MainLayout>
+                      } />
+                      <Route path="/vacation" element={
+                        <MainLayout>
+                          <VacationPage />
+                        </MainLayout>
+                      } />
+                      <Route path="/admin" element={
+                        <MainLayout>
+                          <AdminPage />
+                        </MainLayout>
+                      } />
+                      <Route path="/screen-display" element={<ScreenDisplayPage />} />
+                      
+                      {/* Catch all other routes and redirect to NotFound */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </BrowserRouter>
+                </TooltipProvider>
+              </NotificationProvider>
+            </TranslationProvider>
           </AuthProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+        </SecurityProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
-}
+};
 
 export default App;
