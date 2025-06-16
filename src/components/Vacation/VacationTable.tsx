@@ -45,6 +45,16 @@ const VacationTable: React.FC<VacationTableProps> = ({
     return `${startDate.toLocaleDateString(locale)} - ${endDate.toLocaleDateString(locale)}`;
   };
 
+  const formatRequestType = (vacation: Vacation) => {
+    if (vacation.request_type === 'partial_day' && vacation.start_time && vacation.end_time) {
+      // Format times from HH:MM:SS to HH:MM format
+      const startTime = vacation.start_time.substring(0, 5);
+      const endTime = vacation.end_time.substring(0, 5);
+      return t("vacation.offHours", { startTime, endTime });
+    }
+    return t("vacation.fullDay");
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
@@ -79,6 +89,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
           <TableRow>
             <TableHead>{t("employees.name")}</TableHead>
             <TableHead>{t("vacation.dateRange")}</TableHead>
+            <TableHead>{t("vacation.requestType")}</TableHead>
             <TableHead>{t("vacation.reason")}</TableHead>
             <TableHead>{t("common.status")}</TableHead>
             <TableHead>{t("vacation.requestedOn")}</TableHead>
@@ -93,6 +104,11 @@ const VacationTable: React.FC<VacationTableProps> = ({
               </TableCell>
               <TableCell>
                 {formatDateRange(new Date(vacation.start_date), new Date(vacation.end_date))}
+              </TableCell>
+              <TableCell>
+                <span className="text-sm text-muted-foreground">
+                  {formatRequestType(vacation)}
+                </span>
               </TableCell>
               <TableCell>
                 <span className="max-w-xs truncate block" title={vacation.reason}>
