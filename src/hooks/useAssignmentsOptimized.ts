@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -79,11 +78,7 @@ export const useAssignmentsOptimized = ({
         .from('assignments_employees')
         .select(`
           assignment_id,
-          user_id,
-          profiles:user_id (
-            id,
-            name
-          )
+          user_id
         `)
         .in('assignment_id', assignmentIds);
 
@@ -91,7 +86,25 @@ export const useAssignmentsOptimized = ({
         console.warn('[useAssignmentsOptimized] Employee assignments fetch error:', empError);
       }
 
-      // Step 3: Fetch car data
+      // Step 3: Get profiles for employee assignments
+      const userIds = employeeAssignments?.map(emp => emp.user_id) || [];
+      const uniqueUserIds = [...new Set(userIds)];
+
+      let profilesData: any[] = [];
+      if (uniqueUserIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .in('id', uniqueUserIds);
+        
+        if (profilesError) {
+          console.warn('[useAssignmentsOptimized] Profiles fetch error:', profilesError);
+        } else {
+          profilesData = profiles || [];
+        }
+      }
+
+      // Step 4: Fetch car data
       const allCarIds = new Set<string>();
       assignmentsData.forEach(assignment => {
         if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
@@ -114,7 +127,7 @@ export const useAssignmentsOptimized = ({
         }
       }
 
-      // Step 4: Fetch responsible users
+      // Step 5: Fetch responsible users
       const responsibleUserIds = assignmentsData
         .filter(a => a.responsible_user_id)
         .map(a => a.responsible_user_id);
@@ -131,7 +144,7 @@ export const useAssignmentsOptimized = ({
         }
       }
       
-      // Step 5: Process and combine the data
+      // Step 6: Process and combine the data
       const processedAssignments = assignmentsData.map(assignment => {
         // Extract employee names
         const assignmentEmployees = employeeAssignments?.filter(
@@ -139,7 +152,10 @@ export const useAssignmentsOptimized = ({
         ) || [];
         
         const employeeNames = assignmentEmployees
-          .map(emp => emp.profiles?.name)
+          .map(emp => {
+            const profile = profilesData.find(p => p.id === emp.user_id);
+            return profile?.name;
+          })
           .filter(name => name && typeof name === 'string')
           .map(name => name.trim());
 

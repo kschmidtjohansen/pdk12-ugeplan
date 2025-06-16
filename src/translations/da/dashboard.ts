@@ -1,65 +1,71 @@
 
 const dashboard = {
-  title: "Dashboard",
-  welcome: "Velkommen",
-  today: "I dag er det {date}, Vi er i uge {week}",
-  week: "Uge", // Added missing translation
-  myTasks: "Mine Opgaver",
-  weekOverview: "Ugeoversigt",
-  upcomingVacations: "Kommende Ferie",
-  systemMetrics: "System Metrikker",
-  assignmentDistribution: "Opgave Fordeling",
-  vehicleStatus: "Køretøj Status",
-  unassignedResources: "Ikke brugte Ressourcer",
-  noTasksThisWeek: "Ingen opgaver denne uge",
-  noUpcomingVacations: "Ingen kommende ferier",
-  viewAll: "Se alle",
-  employeeAvailability: "Medarbejder Ledighed",
-  availableEmployees: "Ledige medarbejdere",
-  unavailableEmployees: "Ikke ledige medarbejdere",
-  onVacation: "På ferie",
-  onLeave: "Ikke på arbejde",
-  fullyBooked: "Ikke ledig",
-  partiallyAvailable: "Delvist ledig",
-  available: "Ledig",
-  availableAfter: "Ledig efter kl. {time}",
-  totalEmployees: "{count} medarbejdere i alt",
-  totalCars: "{count} biler i alt",
-  todaysDate: "{date}",
-  onLeaveEmployees: "Medarbejdere fraværende",
-  availableCars: "Tilgængelige biler",
-  todayAssignments: "Dagens opgaver",
-  scheduledToday: "Planlagt i dag",
-  myAssignments: "Mine Opgaver",
-  noAssignments: "Ingen opgaver denne uge",
-  quickAccess: {
-    title: "Hurtig adgang",
-    planner: {
-      title: "Ugeplan",
-      description: "Se opgaver for ugen og tilføj nye opgaver."
-    },
-    vacation: {
-      title: "Ferie",
-      description: "Administrer og se ferier."
-    },
-    employees: {
-      title: "Medarbejdere",
-      description: "Administrer og se medarbejdere."
-    },
-    cars: {
-      title: "Biler",
-      description: "Se biler"
-    }
-  },
-  // Add comprehensive metrics translations
-  metrics: {
-    availableEmployees: "Ledige medarbejdere",
-    unavailableEmployees: "Ikke ledige medarbejdere",
-    unavailableSubtitle: "På ferie eller fraværende",
-    availableCars: "Tilgængelige biler",
-    carsInUse: "Biler i brug",
-    carsInUseSubtitle: "I dag"
-  }
+  title: 'Dashboard',
+  description: 'Oversigt over vigtige oplysninger og hurtige handlinger.',
+  
+  // Quick access
+  quickAccess: 'Hurtig adgang',
+  createAssignment: 'Opret opgave',
+  manageEmployees: 'Administrer medarbejdere',
+  manageCars: 'Administrer biler',
+  manageVacations: 'Administrer ferie',
+  
+  // Metrics
+  metricsToday: 'Dagens tal',
+  availableEmployees: 'Ledige medarbejdere',
+  totalAssignments: 'Samlede opgaver',
+  availableCars: 'Ledige biler',
+  pendingVacations: 'Afventende ferier',
+  
+  // Assignments
+  myAssignments: 'Mine opgaver - Uge {week}',
+  viewAll: 'Se alle',
+  noAssignments: 'Ingen opgaver',
+  noAssignmentsThisWeek: 'Ingen opgaver planlagt for denne uge',
+  assignmentDetails: 'Opgavedetaljer',
+  
+  // Notifications
+  notifications: 'Notifikationer',
+  noNotifications: 'Ingen notifikationer',
+  markAllRead: 'Marker alle som læst',
+  
+  // Vacations
+  upcomingVacations: 'Kommende ferier',
+  noUpcomingVacations: 'Ingen kommende ferier',
+  vacationRequests: 'Ferieansøgninger',
+  
+  // Employee availability
+  employeeAvailability: 'Medarbejdertilgængelighed',
+  checkAvailability: 'Tjek tilgængelighed',
+  
+  // System metrics
+  systemOverview: 'Systemoversigt',
+  performanceMetrics: 'Ydeevnemålinger',
+  
+  // Errors
+  loadingError: 'Fejl ved indlæsning af dashboard data',
+  
+  // Time periods
+  today: 'I dag',
+  thisWeek: 'Denne uge',
+  thisMonth: 'Denne måned',
+  
+  // Status indicators
+  online: 'Online',
+  offline: 'Offline',
+  maintenance: 'Vedligeholdelse',
+  
+  // Actions
+  refresh: 'Opdater',
+  configure: 'Konfigurer',
+  export: 'Eksporter',
+  
+  // Welcome message
+  welcome: 'Velkommen',
+  welcomeBack: 'Velkommen tilbage',
+  goodMorning: 'God morgen',
+  goodAfternoon: 'God eftermiddag',
+  goodEvening: 'God aften'
 };
 
 export default dashboard;
