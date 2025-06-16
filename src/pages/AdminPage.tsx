@@ -5,10 +5,12 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Users, Settings, BarChart3 } from 'lucide-react';
+import { Shield, Users, Settings, BarChart3, Activity, Zap } from 'lucide-react';
 import UserManagement from '@/components/Admin/UserManagement';
 import { SystemHealthDashboard } from '@/components/Admin/SystemHealthDashboard';
 import { SecurityLogViewer } from '@/components/Admin/SecurityLogViewer';
+import { ComprehensiveDiagnosticsPanel } from '@/components/Admin/ComprehensiveDiagnosticsPanel';
+import { PerformanceMonitoringPanel } from '@/components/Admin/PerformanceMonitoringPanel';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
 
 const AdminPage: React.FC = () => {
@@ -47,10 +49,18 @@ const AdminPage: React.FC = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <BarChart3 className="h-4 w-4" />
               <span>Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="diagnostics" className="flex items-center space-x-2">
+              <Activity className="h-4 w-4" />
+              <span>Diagnostics</span>
+            </TabsTrigger>
+            <TabsTrigger value="performance" className="flex items-center space-x-2">
+              <Zap className="h-4 w-4" />
+              <span>Performance</span>
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
@@ -78,6 +88,14 @@ const AdminPage: React.FC = () => {
                 <SystemHealthDashboard />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="diagnostics" className="space-y-6">
+            <ComprehensiveDiagnosticsPanel />
+          </TabsContent>
+
+          <TabsContent value="performance" className="space-y-6">
+            <PerformanceMonitoringPanel />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">

@@ -1,107 +1,75 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-type SecurityEventType = 
-  | 'auth_attempt' 
-  | 'auth_failure' 
-  | 'unauthorized_access' 
-  | 'input_validation_error'
-  | 'suspicious_activity'
-  | 'admin_action'
-  | 'data_access'
-  | 'security_error';
-
-type SecuritySeverity = 'info' | 'warning' | 'error' | 'critical';
-
-interface SecurityEventDetails {
-  [key: string]: any;
+export interface SecurityEvent {
+  event_type: string;
+  message: string;
+  details?: Record<string, any>;
+  severity?: 'info' | 'warning' | 'error' | 'critical';
 }
 
 export const logSecurityEvent = async (
-  eventType: SecurityEventType,
+  eventType: string,
   message: string,
-  details?: SecurityEventDetails,
-  severity: SecuritySeverity = 'info'
-): Promise<void> => {
+  details: Record<string, any> = {},
+  severity: 'info' | 'warning' | 'error' | 'critical' = 'info'
+) => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    const enrichedDetails = {
-      ...details,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-      severity,
-      userId: user?.id || null
-    };
-
-    const { error } = await supabase
-      .from('logs')
-      .insert({
-        event_type: eventType,
-        message,
-        details: enrichedDetails
-      });
+    const { error } = await supabase.rpc('log_security_event_safe', {
+      event_type: eventType,
+      event_message: message,
+      event_details: details,
+      severity
+    });
 
     if (error) {
-      console.error('Failed to log security event:', error);
+      console.error('[SecurityLogger] Failed to log security event:', error);
+      // Fallback: log to console if database logging fails
+      console.log(`[SecurityEvent] ${eventType}: ${message}`, details);
     }
-  } catch (error) {
-    console.error('Security logging error:', error);
+  } catch (err) {
+    console.error('[SecurityLogger] Security logging error:', err);
+    // Always ensure security events are visible in development
+    console.log(`[SecurityEvent] ${eventType}: ${message}`, details);
   }
 };
 
-export const logAuthAttempt = (email: string, success: boolean, errorMessage?: string) => {
+export const logAuthEvent = (eventType: string, details: Record<string, any> = {}) => {
+  logSecurityEvent(`auth_${eventType}`, `Authentication event: ${eventType}`, details, 'info');
+};
+
+export const logAccessAttempt = (resource: string, allowed: boolean, details: Record<string, any> = {}) => {
   logSecurityEvent(
-    success ? 'auth_attempt' : 'auth_failure',
-    `Authentication ${success ? 'successful' : 'failed'} for ${email}`,
-    {
-      email: email.toLowerCase(),
-      success,
-      errorMessage,
-      timestamp: new Date().toISOString()
-    },
-    success ? 'info' : 'warning'
+    'access_attempt',
+    `Access ${allowed ? 'granted' : 'denied'} to ${resource}`,
+    { resource, allowed, ...details },
+    allowed ? 'info' : 'warning'
   );
 };
 
-export const logUnauthorizedAccess = (resource: string, attemptedAction: string) => {
-  logSecurityEvent(
-    'unauthorized_access',
-    `Unauthorized access attempt to ${resource}`,
-    {
-      resource,
-      attemptedAction,
-      timestamp: new Date().toISOString()
-    },
-    'warning'
-  );
-};
-
-export const logInputValidationError = (field: string, value: string, error: string) => {
+export const logInputValidationError = (field: string, input: string, error: string) => {
   logSecurityEvent(
     'input_validation_error',
-    `Input validation failed for ${field}`,
-    {
-      field,
-      value: value.substring(0, 100), // Limit logged value length
-      error,
-      timestamp: new Date().toISOString()
-    },
+    `Input validation failed for ${field}: ${error}`,
+    { field, input: input.substring(0, 100), error },
     'warning'
   );
 };
 
-export const logAdminAction = (action: string, targetUserId?: string, details?: any) => {
+export const logPerformanceIssue = (operation: string, duration: number, threshold: number) => {
   logSecurityEvent(
-    'admin_action',
-    `Admin action: ${action}`,
-    {
-      action,
-      targetUserId,
-      details,
-      timestamp: new Date().toISOString()
-    },
-    'info'
+    'performance_issue',
+    `Slow operation detected: ${operation} took ${duration}ms (threshold: ${threshold}ms)`,
+    { operation, duration, threshold },
+    'warning'
+  );
+};
+
+export const logSystemError = (component: string, error: any, context: Record<string, any> = {}) => {
+  logSecurityEvent(
+    'system_error',
+    `System error in ${component}: ${String(error)}`,
+    { component, error: String(error), stack: error?.stack, ...context },
+    'error'
   );
 };
