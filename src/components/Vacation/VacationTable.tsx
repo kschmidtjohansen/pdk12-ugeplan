@@ -89,10 +89,10 @@ const VacationTable: React.FC<VacationTableProps> = ({
           {vacations.map((vacation) => (
             <TableRow key={vacation.id}>
               <TableCell className="font-medium">
-                {vacation.employeeName || 'Unknown Employee'}
+                {vacation.user?.name || 'Unknown Employee'}
               </TableCell>
               <TableCell>
-                {formatDateRange(vacation.startDate, vacation.endDate)}
+                {formatDateRange(new Date(vacation.start_date), new Date(vacation.end_date))}
               </TableCell>
               <TableCell>
                 <span className="max-w-xs truncate block" title={vacation.reason}>
@@ -103,7 +103,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
                 {getStatusBadge(vacation.status)}
               </TableCell>
               <TableCell>
-                {vacation.createdAt.toLocaleDateString(
+                {new Date(vacation.created_at).toLocaleDateString(
                   currentLanguage === 'da' ? 'da-DK' : 'en-GB'
                 )}
               </TableCell>

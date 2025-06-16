@@ -35,7 +35,7 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
     filtered = filtered.filter(v => {
       if (v.status === 'rejected') {
         // Rejected vacations are only visible to the applicant
-        return v.employeeId === user.id;
+        return v.user_id === user.id;
       }
       return true;
     });
@@ -45,7 +45,7 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
       if (v.status === 'pending') {
         // Pending applications are only visible to admins and the applicant
         if (isAdmin) return true;
-        return v.employeeId === user.id;
+        return v.user_id === user.id;
       }
       return true;
     });
@@ -57,7 +57,7 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
       case 'approved':
         return filtered.filter(v => v.status === 'approved');
       case 'mine':
-        return filtered.filter(v => v.employeeId === user.id);
+        return filtered.filter(v => v.user_id === user.id);
       default: // 'all'
         filtered = filtered;
     }
@@ -73,7 +73,7 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
       }
       
       // If both have the same status, sort by creation date (newest first)
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
   }, [vacations, tabValue, user, isAdmin, isSkadeleder]);
 

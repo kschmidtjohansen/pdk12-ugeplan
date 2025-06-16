@@ -288,10 +288,14 @@ export type Database = {
         Row: {
           created_at: string
           end_date: string
+          end_time: string | null
           id: string
+          is_same_day: boolean | null
           notes: string | null
           reason: string | null
+          request_type: string | null
           start_date: string
+          start_time: string | null
           status: Database["public"]["Enums"]["vacation_status"] | null
           updated_at: string
           user_id: string
@@ -299,10 +303,14 @@ export type Database = {
         Insert: {
           created_at?: string
           end_date: string
+          end_time?: string | null
           id?: string
+          is_same_day?: boolean | null
           notes?: string | null
           reason?: string | null
+          request_type?: string | null
           start_date: string
+          start_time?: string | null
           status?: Database["public"]["Enums"]["vacation_status"] | null
           updated_at?: string
           user_id: string
@@ -310,10 +318,14 @@ export type Database = {
         Update: {
           created_at?: string
           end_date?: string
+          end_time?: string | null
           id?: string
+          is_same_day?: boolean | null
           notes?: string | null
           reason?: string | null
+          request_type?: string | null
           start_date?: string
+          start_time?: string | null
           status?: Database["public"]["Enums"]["vacation_status"] | null
           updated_at?: string
           user_id?: string

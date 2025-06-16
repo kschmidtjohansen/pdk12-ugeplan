@@ -58,9 +58,11 @@ export const useVacations = () => {
     }
     
     const result = await submitRequest(
-      e, 
-      { from: requestStartDate, to: requestEndDate }, 
-      reason, 
+      { 
+        dateRange: { from: requestStartDate, to: requestEndDate },
+        requestType: 'full_day',
+        reason
+      }, 
       isAdminRequest, 
       selectedEmployeeId, 
       employees
@@ -86,8 +88,8 @@ export const useVacations = () => {
     
     // Then set the new values
     // Convert string dates to Date objects
-    const vacationStartDate = new Date(vacation.startDate);
-    const vacationEndDate = new Date(vacation.endDate);
+    const vacationStartDate = new Date(vacation.start_date);
+    const vacationEndDate = new Date(vacation.end_date);
     
     console.log("Setting dates for editing:", {
       startDate: vacationStartDate.toISOString(),
@@ -102,7 +104,7 @@ export const useVacations = () => {
     
     setStartDate(vacationStartDate);
     setEndDate(vacationEndDate);
-    setReason(vacation.reason);
+    setReason(vacation.reason || '');
     setEditDialogOpen(true);
   };
   

@@ -30,7 +30,7 @@ const VacationCard: React.FC<VacationCardProps> = ({
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { user, isAdmin } = useAuth();
-  const isOwner = user?.id === vacation.employeeId;
+  const isOwner = user?.id === vacation.user_id;
   
   // Determine if the user can edit/delete this vacation
   // Admins can edit/delete any vacation
@@ -62,7 +62,7 @@ const VacationCard: React.FC<VacationCardProps> = ({
         vacation.status === 'rejected' && "bg-red-50", 
         vacation.status === 'pending' && "bg-amber-50")}>
         <CardTitle className="flex justify-between items-start">
-          <span>{vacation.employeeName}</span>
+          <span>{vacation.user?.name || 'Unknown'}</span>
           <span className={cn("text-xs font-medium px-2 py-1 rounded-full", 
             vacation.status === 'approved' && "bg-green-100 text-green-800", 
             vacation.status === 'rejected' && "bg-red-100 text-red-800", 
@@ -77,8 +77,8 @@ const VacationCard: React.FC<VacationCardProps> = ({
             <dt className="font-medium text-gray-500">{t("vacation.dateRange")}</dt>
             <dd>
               {formatDateRangeWithWeeks(
-                vacation.startDate,
-                vacation.endDate,
+                new Date(vacation.start_date),
+                new Date(vacation.end_date),
                 currentLanguage,
                 t('common.week')
               )}
@@ -96,7 +96,7 @@ const VacationCard: React.FC<VacationCardProps> = ({
           )}
           <div className="flex flex-col">
             <dt className="font-medium text-gray-500">{t("vacation.requestedOn")}</dt>
-            <dd>{format(vacation.createdAt, 'd. MMM yyyy', { locale })}</dd>
+            <dd>{format(new Date(vacation.created_at), 'd. MMM yyyy', { locale })}</dd>
           </div>
         </dl>
       </CardContent>

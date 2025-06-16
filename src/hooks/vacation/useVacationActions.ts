@@ -29,7 +29,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
 
       // Display toast notification
       toast(t('vacation.requestApproved'), {
-        description: t('vacation.requestApprovedMsg', { name: vacation.employeeName })
+        description: t('vacation.requestApprovedMsg', { name: vacation.user?.name || 'Unknown' })
       });
 
       // Add notification for the employee
@@ -38,14 +38,14 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         title: t('vacation.vacationStatusChanged'),
         message: t('vacation.yourRequestApproved'),
         link: '/vacation',
-        targetUserId: vacation.employeeId
+        targetUserId: vacation.user_id
       });
       
       // After approval, update employee leave status if vacation starts today
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      const startDate = new Date(vacation.startDate);
+      const startDate = new Date(vacation.start_date);
       startDate.setHours(0, 0, 0, 0);
       
       if (startDate.getTime() <= today.getTime()) {
@@ -54,7 +54,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
           .update({
             on_leave: true
           })
-          .eq('id', vacation.employeeId);
+          .eq('id', vacation.user_id);
       }
       
       // Refresh vacation list
@@ -90,7 +90,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
 
       // Display toast notification
       toast(t('vacation.requestRejected'), {
-        description: t('vacation.requestRejectedMsg', { name: vacation.employeeName })
+        description: t('vacation.requestRejectedMsg', { name: vacation.user?.name || 'Unknown' })
       });
 
       // Add notification for the employee
@@ -99,7 +99,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         title: t('vacation.vacationStatusChanged'),
         message: t('vacation.yourRequestRejected', { reason }),
         link: '/vacation',
-        targetUserId: vacation.employeeId
+        targetUserId: vacation.user_id
       });
       
       // Refresh vacation list
@@ -226,10 +226,10 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        const startDate = new Date(vacation.startDate);
+        const startDate = new Date(vacation.start_date);
         startDate.setHours(0, 0, 0, 0);
         
-        const endDate = new Date(vacation.endDate);
+        const endDate = new Date(vacation.end_date);
         endDate.setHours(0, 0, 0, 0);
         
         if (today >= startDate && today <= endDate) {
@@ -237,7 +237,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
           const { data: otherVacations } = await supabase
             .from('vacations')
             .select('*')
-            .eq('user_id', vacation.employeeId)
+            .eq('user_id', vacation.user_id)
             .eq('status', 'approved')
             .lte('start_date', today.toISOString().split('T')[0])
             .gte('end_date', today.toISOString().split('T')[0])
@@ -250,7 +250,7 @@ export const useVacationActions = (fetchVacations: () => Promise<void>) => {
               .update({
                 on_leave: false
               })
-              .eq('id', vacation.employeeId);
+              .eq('id', vacation.user_id);
           }
         }
       }
