@@ -26,14 +26,8 @@ export const useAssignmentsConsolidated = ({
   const { employees } = useEmployees();
   const { vacations } = useVacations();
 
-  // Debounced fetch to prevent excessive calls
-  const debouncedFetch = useCallback(
-    debounce(() => fetchAssignments(), 300),
-    []
-  );
-
   // Fetch assignments from Supabase with optimized query
-  const fetchAssignments = async () => {
+  const fetchAssignments = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -184,7 +178,7 @@ export const useAssignmentsConsolidated = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [includeUnpublished, employees, vacations, toast, t]);
 
   // Create assignment with enhanced validation
   const createAssignment = async (assignmentData: Partial<Assignment>) => {
@@ -550,17 +544,17 @@ export const useAssignmentsConsolidated = ({
   // Load assignments on component mount
   useEffect(() => {
     fetchAssignments();
-  }, []);
-  
-  // Refresh assignments when employees or vacations change
-  useEffect(() => {
-    if (employees.length > 0) {
-      debouncedFetch();
-    }
-  }, [employees, vacations, debouncedFetch]);
+  }, [fetchAssignments]);
   
   // Optimized realtime subscription with debouncing
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    const debouncedRefresh = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(fetchAssignments, 300);
+    };
+    
     const channel = supabase
       .channel('assignment_changes_optimized')
       .on(
@@ -571,7 +565,7 @@ export const useAssignmentsConsolidated = ({
           table: 'assignments'
         },
         () => {
-          debouncedFetch();
+          debouncedRefresh();
         }
       )
       .on(
@@ -582,15 +576,16 @@ export const useAssignmentsConsolidated = ({
           table: 'assignments_employees'
         },
         () => {
-          debouncedFetch();
+          debouncedRefresh();
         }
       )
       .subscribe();
       
     return () => {
+      clearTimeout(timeoutId);
       supabase.removeChannel(channel);
     };
-  }, [debouncedFetch]);
+  }, [fetchAssignments]);
 
   return {
     assignments,
@@ -607,12 +602,3 @@ export const useAssignmentsConsolidated = ({
     setIsDialogOpen
   };
 };
-
-// Debounce utility function
-function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
-  let timeout: NodeJS.Timeout;
-  return ((...args: any[]) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  }) as T;
-}
