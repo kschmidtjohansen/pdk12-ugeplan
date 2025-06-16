@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
@@ -50,7 +49,19 @@ const VacationTable: React.FC<VacationTableProps> = ({
       // Format times from HH:MM:SS to HH:MM format
       const startTime = vacation.start_time.substring(0, 5);
       const endTime = vacation.end_time.substring(0, 5);
-      return t("vacation.offHours", { startTime, endTime });
+      
+      // For partial day vacations, we need to determine what to show
+      // If the vacation starts at 08:00 (beginning of workday), show "off until {endTime}"
+      // If the vacation starts later in the day, show "off from {startTime}"
+      // This handles cases like Julie being off from 13:00 onwards
+      
+      if (startTime === "08:00") {
+        // Off from beginning of day until endTime - show working hours after vacation
+        return t("vacation.availableHours", { startTime: endTime, endTime: "16:00" });
+      } else {
+        // Off from startTime onwards - this is the case for Julie (off from 13:00)
+        return t("vacation.offFrom", { time: startTime });
+      }
     }
     return t("vacation.fullDay");
   };

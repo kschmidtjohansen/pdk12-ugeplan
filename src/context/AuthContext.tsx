@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
@@ -86,6 +86,112 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [initializationAttempts, setInitializationAttempts] = useState<number>(0);
   const { toast } = useToast();
   
+  // Session timeout states
+  const [lastActivity, setLastActivity] = useState<number>(Date.now());
+  const sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const activityListenersAttached = useRef<boolean>(false);
+  
+  const SESSION_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
+  const WARNING_TIME = 30 * 1000; // 30 seconds before logout
+  
+  // Reset activity timer
+  const resetActivityTimer = useCallback(() => {
+    const now = Date.now();
+    setLastActivity(now);
+    
+    // Clear existing timers
+    if (sessionTimeoutRef.current) {
+      clearTimeout(sessionTimeoutRef.current);
+    }
+    if (warningTimeoutRef.current) {
+      clearTimeout(warningTimeoutRef.current);
+    }
+    
+    // Only set timers if user is authenticated
+    if (user) {
+      // Set warning timer (4.5 minutes)
+      warningTimeoutRef.current = setTimeout(() => {
+        toast({
+          title: "Session Warning",
+          description: "Your session will expire in 30 seconds due to inactivity.",
+          variant: "destructive",
+        });
+      }, SESSION_TIMEOUT - WARNING_TIME);
+      
+      // Set logout timer (5 minutes)
+      sessionTimeoutRef.current = setTimeout(() => {
+        console.log('[AuthProvider] Session expired due to inactivity');
+        toast({
+          title: "Session Expired",
+          description: "You have been logged out due to inactivity.",
+          variant: "destructive",
+        });
+        logout();
+      }, SESSION_TIMEOUT);
+    }
+  }, [user, toast]);
+  
+  // Activity event handler
+  const handleActivity = useCallback(() => {
+    resetActivityTimer();
+  }, [resetActivityTimer]);
+  
+  // Set up activity listeners
+  useEffect(() => {
+    if (user && !activityListenersAttached.current) {
+      const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+      
+      events.forEach(event => {
+        document.addEventListener(event, handleActivity, { passive: true });
+      });
+      
+      activityListenersAttached.current = true;
+      resetActivityTimer(); // Start the timer
+      
+      console.log('[AuthProvider] Activity listeners attached');
+    } else if (!user && activityListenersAttached.current) {
+      // Remove listeners when user logs out
+      const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+      
+      events.forEach(event => {
+        document.removeEventListener(event, handleActivity);
+      });
+      
+      activityListenersAttached.current = false;
+      
+      // Clear timers
+      if (sessionTimeoutRef.current) {
+        clearTimeout(sessionTimeoutRef.current);
+        sessionTimeoutRef.current = null;
+      }
+      if (warningTimeoutRef.current) {
+        clearTimeout(warningTimeoutRef.current);
+        warningTimeoutRef.current = null;
+      }
+      
+      console.log('[AuthProvider] Activity listeners removed');
+    }
+    
+    // Cleanup function
+    return () => {
+      if (activityListenersAttached.current) {
+        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+        events.forEach(event => {
+          document.removeEventListener(event, handleActivity);
+        });
+        activityListenersAttached.current = false;
+      }
+      
+      if (sessionTimeoutRef.current) {
+        clearTimeout(sessionTimeoutRef.current);
+      }
+      if (warningTimeoutRef.current) {
+        clearTimeout(warningTimeoutRef.current);
+      }
+    };
+  }, [user, handleActivity, resetActivityTimer]);
+
   // Enhanced initialization with retry mechanism for production domains
   const initializeUserData = async (currentSession: Session, attempt: number = 1) => {
     const maxRetries = 3;
@@ -395,6 +501,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       console.log(`[AuthProvider] Logging out on domain: ${window.location.hostname}`);
+      
+      // Clear session timeout timers
+      if (sessionTimeoutRef.current) {
+        clearTimeout(sessionTimeoutRef.current);
+        sessionTimeoutRef.current = null;
+      }
+      if (warningTimeoutRef.current) {
+        clearTimeout(warningTimeoutRef.current);
+        warningTimeoutRef.current = null;
+      }
       
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
