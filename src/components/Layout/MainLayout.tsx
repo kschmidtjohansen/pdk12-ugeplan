@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
 import { SecurityHeaders } from '@/components/Auth/SecurityHeaders';
+import { SecurityErrorBoundary } from '@/components/Layout/SecurityErrorBoundary';
 import TopNavbar from './TopNavbar';
 
 interface MainLayoutProps {
@@ -17,7 +18,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const { t } = useTranslation();
 
-  // Initialize security monitoring
+  // Initialize security monitoring with optimized settings
   const { checkUnauthorizedAccess } = useSecurityMonitoring({
     enableThreatDetection: true,
     sessionTimeoutMinutes: 30,
@@ -31,7 +32,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         location.pathname !== "/login" && 
         location.pathname !== "/password-reset") {
       
-      // Log unauthorized access attempt
+      // Log unauthorized access attempt with new standardized policies
       checkUnauthorizedAccess(location.pathname, undefined);
       
       console.log(`[MainLayout] Redirecting unauthenticated user to login on domain: ${window.location.hostname}`);
@@ -42,17 +43,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   // Don't show layout for login page or password reset page
   if (location.pathname === "/login" || location.pathname === "/password-reset") {
     return (
-      <>
+      <SecurityErrorBoundary>
         <SecurityHeaders />
         {children}
-      </>
+      </SecurityErrorBoundary>
     );
   }
 
   // Enhanced loading state with security context
   if (loading) {
     return (
-      <>
+      <SecurityErrorBoundary>
         <SecurityHeaders />
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
           <div className="text-center space-y-4">
@@ -63,14 +64,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             )}
           </div>
         </div>
-      </>
+      </SecurityErrorBoundary>
     );
   }
 
   // If not authenticated, show brief loading state while redirecting
   if (!isAuthenticated) {
     return (
-      <>
+      <SecurityErrorBoundary>
         <SecurityHeaders />
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
           <div className="text-center">
@@ -78,24 +79,26 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <p className="text-muted-foreground">Redirecting to secure login...</p>
           </div>
         </div>
-      </>
+      </SecurityErrorBoundary>
     );
   }
 
   return (
-    <>
+    <SecurityErrorBoundary>
       <SecurityHeaders />
       <div className="flex flex-col min-h-screen w-full">
         <TopNavbar />
         
-        {/* Main Content with enhanced security context */}
+        {/* Main Content with enhanced security context and error boundary */}
         <main className="flex-1 w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 pt-20">
           <div className="animate-fade-in-up w-full">
-            {children}
+            <SecurityErrorBoundary>
+              {children}
+            </SecurityErrorBoundary>
           </div>
         </main>
       </div>
-    </>
+    </SecurityErrorBoundary>
   );
 };
 

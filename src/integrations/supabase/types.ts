@@ -345,6 +345,10 @@ export type Database = {
         Args: { assignment_id: string; user_id: string }
         Returns: boolean
       }
+      check_system_health: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       delete_expired_approved_vacations: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -392,6 +396,23 @@ export type Database = {
           event_details?: Json
         }
         Returns: undefined
+      }
+      log_security_event_safe: {
+        Args: {
+          event_type: string
+          event_message: string
+          event_details?: Json
+          severity?: string
+        }
+        Returns: undefined
+      }
+      sanitize_text_input: {
+        Args: { input_text: string; max_length?: number }
+        Returns: string
+      }
+      validate_email_format_enhanced: {
+        Args: { email: string }
+        Returns: boolean
       }
     }
     Enums: {
