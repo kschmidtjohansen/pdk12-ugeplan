@@ -49,6 +49,7 @@ const planner = {
   errorDeletingAssignment: 'Error deleting assignment',
   errorPublishingAssignment: 'Error publishing assignment',
   errorPublishingDay: 'Error publishing day tasks',
+  partialVacationConflict: 'One or more employees have time off earlier than the specified end time. Please correct this and try again',
   
   // Success messages
   assignmentCreated: 'Assignment created',

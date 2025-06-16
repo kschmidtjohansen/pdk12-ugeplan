@@ -95,6 +95,7 @@ const planner = {
   errorDeletingAssignment: 'Fejl ved sletning af opgave',
   errorPublishingAssignment: 'Fejl ved publicering af opgave',
   errorPublishingDay: 'Fejl ved publicering af dagens opgaver',
+  partialVacationConflict: 'En eller flere medarbejdere har tidligere fri end det angivet tidspunkt. Ret venligst dette og prøv igen',
   
   // Success messages
   assignmentCreated: 'Opgave oprettet',

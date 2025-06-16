@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useTranslation } from '../context/TranslationContext';
 import { usePlannerPage } from '../hooks/usePlannerPage';
@@ -15,6 +16,7 @@ const PlannerPage: React.FC = () => {
     selectedYear,
     weekDates,
     weekAssignments,
+    isLoading,
     isDialogOpen,
     setIsDialogOpen,
     currentAssignment,
@@ -33,7 +35,6 @@ const PlannerPage: React.FC = () => {
     handleCopyAssignment
   } = usePlannerPage();
 
-  // Sort weekAssignments by date (ascending - earliest first), then by time
   const sortedWeekAssignments = React.useMemo(() => {
     if (!weekAssignments) return [];
     return [...weekAssignments].sort((a, b) => {
@@ -43,6 +44,7 @@ const PlannerPage: React.FC = () => {
       return a.fromTime.localeCompare(b.fromTime);
     });
   }, [weekAssignments]);
+  
   const handleShowOnScreen = () => {
     const today = new Date().toISOString().split('T')[0];
     const screenUrl = `/screen-display?date=${today}`;
@@ -59,9 +61,7 @@ const PlannerPage: React.FC = () => {
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
           
           <div className="relative z-10">
-            {/* Header Content - Responsive Layout */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              {/* Title Section */}
               <div className="flex items-center gap-4">
                 <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30">
                   <Clock className="h-6 w-6 text-white" />
@@ -81,9 +81,7 @@ const PlannerPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Controls Section - Responsive */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:gap-4">
-                {/* Week Navigation */}
                 <div className="flex items-center justify-center gap-2">
                   <Button 
                     variant="outline" 
@@ -108,7 +106,6 @@ const PlannerPage: React.FC = () => {
                   </Button>
                 </div>
 
-                {/* Create Button - Full width on mobile, auto on larger screens */}
                 {canCreate && (
                   <Button 
                     onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} 
@@ -140,6 +137,7 @@ const PlannerPage: React.FC = () => {
               selectedYear={selectedYear} 
               weekDates={weekDates}
               handleShowOnScreen={handleShowOnScreen}
+              isLoading={isLoading}
             />
           </div>
         </div>
