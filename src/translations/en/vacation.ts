@@ -73,7 +73,7 @@ const vacation = {
   
   // New toast notification keys
   missingDates: "Missing Dates",
-  selectBoth Dates: "Please select both start and end dates",
+  selectBothDates: "Please select both start and end dates",
   employeeNotFound: "Employee not found",
   adminRequestSubmitted: "Request submitted for employee",
   adminRequestSent: "Vacation request submitted for {name}",
