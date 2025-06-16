@@ -27,6 +27,13 @@ export const useVacations = () => {
     setAdminDialogOpen,
     dialogOpen,
     setDialogOpen,
+    // New request type and time fields
+    requestType,
+    setRequestType,
+    startTime,
+    setStartTime,
+    endTime,
+    setEndTime,
     resetFormState
   } = useVacationFormState();
   
@@ -60,7 +67,9 @@ export const useVacations = () => {
     const result = await submitRequest(
       { 
         dateRange: { from: requestStartDate, to: requestEndDate },
-        requestType: 'full_day',
+        requestType,
+        startTime: requestType === 'partial_day' ? startTime : undefined,
+        endTime: requestType === 'partial_day' ? endTime : undefined,
         reason
       }, 
       isAdminRequest, 
@@ -105,6 +114,12 @@ export const useVacations = () => {
     setStartDate(vacationStartDate);
     setEndDate(vacationEndDate);
     setReason(vacation.reason || '');
+    
+    // Set request type and times if available
+    setRequestType(vacation.request_type || 'full_day');
+    setStartTime(vacation.start_time || '');
+    setEndTime(vacation.end_time || '');
+    
     setEditDialogOpen(true);
   };
   
@@ -208,6 +223,13 @@ export const useVacations = () => {
     setReason,
     note,
     setNote,
+    // Add request type and time fields
+    requestType,
+    setRequestType,
+    startTime,
+    setStartTime,
+    endTime,
+    setEndTime,
     dialogOpen,
     setDialogOpen,
     adminDialogOpen,

@@ -13,7 +13,7 @@ interface VacationPageContainerProps {
 
 const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerComponent }) => {
   const { t } = useTranslation();
-  const { isAdmin, isSkadeleder, isServicemedarbejder } = usePermissions();
+  const {SYMBOL isAdmin, isSkadeleder, isServicemedarbejder } = usePermissions();
   const [activeTab, setActiveTab] = React.useState("all");
   
   const {
@@ -30,6 +30,13 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     setReason,
     note,
     setNote,
+    // New request type and time fields
+    requestType,
+    setRequestType,
+    startTime,
+    setStartTime,
+    endTime,
+    setEndTime,
     dialogOpen,
     setDialogOpen,
     adminDialogOpen,
@@ -155,6 +162,13 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         endDate={endDate}
         setStartDate={setStartDate}
         setEndDate={setEndDate}
+        // New request type and time props
+        requestType={requestType}
+        setRequestType={setRequestType}
+        startTime={startTime}
+        setStartTime={setStartTime}
+        endTime={endTime}
+        setEndTime={setEndTime}
         dialogOpen={dialogOpen}
         setDialogOpen={setDialogOpen}
         adminDialogOpen={adminDialogOpen}

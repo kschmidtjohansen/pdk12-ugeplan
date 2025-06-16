@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DateRange } from 'react-day-picker';
-import { Vacation } from '@/types/vacation';
+import { Vacation, VacationRequestType } from '@/types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
 import VacationFormDialog from './VacationFormDialog';
 import VacationActionDialog from './VacationActionDialog';
@@ -22,6 +22,14 @@ interface VacationDialogsProps {
   endDate: Date | undefined;
   setStartDate: (date: Date | undefined) => void;
   setEndDate: (date: Date | undefined) => void;
+  
+  // New request type and time fields
+  requestType: VacationRequestType;
+  setRequestType: (type: VacationRequestType) => void;
+  startTime: string;
+  setStartTime: (time: string) => void;
+  endTime: string;
+  setEndTime: (time: string) => void;
   
   // Dialog visibility
   dialogOpen: boolean;
@@ -55,6 +63,8 @@ const VacationDialogs: React.FC<VacationDialogsProps> = ({
   date, setDate, reason, setReason, note, setNote,
   // New separate date fields
   startDate, endDate, setStartDate, setEndDate,
+  // New request type and time fields
+  requestType, setRequestType, startTime, setStartTime, endTime, setEndTime,
   dialogOpen, setDialogOpen,
   adminDialogOpen, setAdminDialogOpen,
   editDialogOpen, setEditDialogOpen,
@@ -85,6 +95,13 @@ const VacationDialogs: React.FC<VacationDialogsProps> = ({
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
         useSeparateDateFields={true}
+        // Request type and time props
+        requestType={requestType}
+        setRequestType={setRequestType}
+        startTime={startTime}
+        setStartTime={setStartTime}
+        endTime={endTime}
+        setEndTime={setEndTime}
       />
       
       {/* Admin vacation request dialog */}
@@ -104,6 +121,13 @@ const VacationDialogs: React.FC<VacationDialogsProps> = ({
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
         useSeparateDateFields={true}
+        // Request type and time props
+        requestType={requestType}
+        setRequestType={setRequestType}
+        startTime={startTime}
+        setStartTime={setStartTime}
+        endTime={endTime}
+        setEndTime={setEndTime}
       />
       
       {/* Vacation action dialog (approve/reject) */}
@@ -134,6 +158,13 @@ const VacationDialogs: React.FC<VacationDialogsProps> = ({
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
         useSeparateDateFields={true}
+        // Request type and time props
+        requestType={requestType}
+        setRequestType={setRequestType}
+        startTime={startTime}
+        setStartTime={setStartTime}
+        endTime={endTime}
+        setEndTime={setEndTime}
       />
       
       {/* Delete confirmation dialog */}

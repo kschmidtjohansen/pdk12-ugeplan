@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { DateRange } from 'react-day-picker';
+import { VacationRequestType } from '@/types/vacation';
 
 export const useVacationFormState = () => {
   // Combined date range for the legacy date selection
@@ -18,6 +19,11 @@ export const useVacationFormState = () => {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [adminDialogOpen, setAdminDialogOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  
+  // New fields for request type and times
+  const [requestType, setRequestType] = useState<VacationRequestType>('full_day');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
 
   // Update both date representations when either is changed
   const handleStartDateChange = (newStartDate: Date | undefined) => {
@@ -61,6 +67,9 @@ export const useVacationFormState = () => {
     setReason('');
     setNote('');
     setSelectedEmployeeId('');
+    setRequestType('full_day');
+    setStartTime('');
+    setEndTime('');
   };
 
   return {
@@ -84,6 +93,15 @@ export const useVacationFormState = () => {
     setAdminDialogOpen,
     dialogOpen,
     setDialogOpen,
+    
+    // New request type and time fields
+    requestType,
+    setRequestType,
+    startTime,
+    setStartTime,
+    endTime,
+    setEndTime,
+    
     resetFormState
   };
 };

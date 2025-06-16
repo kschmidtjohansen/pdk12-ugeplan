@@ -11,8 +11,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DateRange } from 'react-day-picker';
 import { useTranslation } from '../../context/TranslationContext';
+import { VacationRequestType } from '@/types/vacation';
 import VacationDateSelector from './VacationDateSelector';
 import SeparateVacationDateFields from './SeparateVacationDateFields';
 import { Trash2 } from 'lucide-react';
@@ -33,6 +36,13 @@ interface VacationFormDialogProps {
   onStartDateChange: (date: Date | undefined) => void;
   onEndDateChange: (date: Date | undefined) => void;
   useSeparateDateFields?: boolean;
+  // New props for request type and times
+  requestType: VacationRequestType;
+  setRequestType: (type: VacationRequestType) => void;
+  startTime: string;
+  setStartTime: (time: string) => void;
+  endTime: string;
+  setEndTime: (time: string) => void;
 }
 
 const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
@@ -50,7 +60,14 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
   endDate,
   onStartDateChange,
   onEndDateChange,
-  useSeparateDateFields = true
+  useSeparateDateFields = true,
+  // New props for request type and times
+  requestType,
+  setRequestType,
+  startTime,
+  setStartTime,
+  endTime,
+  setEndTime
 }) => {
   const { t } = useTranslation();
 
@@ -62,13 +79,25 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
         date,
         startDate: startDate instanceof Date ? startDate.toISOString() : startDate,
         endDate: endDate instanceof Date ? endDate.toISOString() : endDate,
-        reason
+        reason,
+        requestType,
+        startTime,
+        endTime
       });
     }
-  }, [open, isEditing, date, startDate, endDate, reason]);
+  }, [open, isEditing, date, startDate, endDate, reason, requestType, startTime, endTime]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate partial day times
+    if (requestType === 'partial_day' && (!startTime || !endTime)) {
+      return;
+    }
+    
+    if (requestType === 'partial_day' && startTime >= endTime) {
+      return;
+    }
     
     // Make sure that both start and end dates have the time set to 12:00 to avoid timezone issues
     if (useSeparateDateFields && startDate && endDate) {
@@ -93,7 +122,10 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
       isEditing,
       startDate: startDate instanceof Date ? startDate.toISOString() : startDate,
       endDate: endDate instanceof Date ? endDate.toISOString() : endDate,
-      reason
+      reason,
+      requestType,
+      startTime,
+      endTime
     });
     
     onSubmit(e);
@@ -114,6 +146,32 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Request Type Selection */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">{t('vacation.requestType')}</Label>
+            <RadioGroup 
+              value={requestType} 
+              onValueChange={(value) => setRequestType(value as VacationRequestType)}
+              className="space-y-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="full_day" id="full_day" />
+                <Label htmlFor="full_day" className="cursor-pointer">
+                  {t('vacation.fullDay')}
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="partial_day" id="partial_day" />
+                <Label htmlFor="partial_day" className="cursor-pointer">
+                  {t('vacation.partialDay')}
+                </Label>
+              </div>
+            </RadioGroup>
+            <p className="text-sm text-muted-foreground">
+              {requestType === 'full_day' ? t('vacation.fullDayDescription') : t('vacation.partialDayDescription')}
+            </p>
+          </div>
+
           <div className="space-y-2">
             <Label>{t("vacation.dateRange")}</Label>
             
@@ -128,6 +186,38 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
               <VacationDateSelector date={date} setDate={setDate} />
             )}
           </div>
+
+          {/* Time Selection for Partial Days */}
+          {requestType === 'partial_day' && (
+            <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+              <Label className="text-sm font-medium">{t('vacation.workingHours')}</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="startTime">{t('vacation.startTime')}</Label>
+                  <Input
+                    id="startTime"
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="endTime">{t('vacation.endTime')}</Label>
+                  <Input
+                    id="endTime"
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              {startTime && endTime && startTime >= endTime && (
+                <p className="text-sm text-destructive">{t('vacation.invalidTimeRange')}</p>
+              )}
+            </div>
+          )}
           
           <div className="space-y-2">
             <Label htmlFor="reason">{t("vacation.reason")}</Label>
@@ -156,7 +246,11 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
                 {t("common.cancel")}
               </Button>
-              <Button type="submit" className="bg-polygon-purple hover:bg-polygon-darkpurple w-full sm:w-auto">
+              <Button 
+                type="submit" 
+                className="bg-polygon-purple hover:bg-polygon-darkpurple w-full sm:w-auto"
+                disabled={requestType === 'partial_day' && (!startTime || !endTime || startTime >= endTime)}
+              >
                 {isEditing 
                   ? t("common.save") 
                   : t("vacation.submitRequest")}
