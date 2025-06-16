@@ -197,7 +197,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
             {emailValid === true && (
               <div className="flex items-center gap-1 text-sm text-green-600">
                 <CheckCircle2 className="h-3 w-3" />
-                Valid email format
+                Korrekt email format
               </div>
             )}
           </div>
@@ -233,7 +233,9 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
                 </div>
                 {passwordStrength.errors.length > 0 && (
                   <div className="text-xs text-red-600">
-                    {passwordStrength.errors.map((error, index) => (
+                    {passwordStrength.errors.filter(error => 
+                      error !== 'Password must contain at least one special character'
+                    ).map((error, index) => (
                       <div key={index} className="flex items-center gap-1">
                         <AlertTriangle className="h-3 w-3" />
                         {error}
@@ -273,7 +275,6 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
 
         <div className="text-center text-sm text-gray-600">
           <p>Beskyttet af avancerede beskyttelsesmetoder</p>
-          <p className="text-xs mt-1">Enhanced security validation active</p>
         </div>
       </CardContent>
     </Card>

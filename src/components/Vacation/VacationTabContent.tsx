@@ -1,4 +1,3 @@
-
 import React from 'react';
 import VacationList from './VacationList';
 import { Vacation } from '@/types/vacation';
@@ -53,16 +52,20 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
     // Now apply tab filtering
     switch (tabValue) {
       case 'pending':
-        return filtered.filter(v => v.status === 'pending');
+        filtered = filtered.filter(v => v.status === 'pending');
+        break;
       case 'approved':
-        return filtered.filter(v => v.status === 'approved');
+        filtered = filtered.filter(v => v.status === 'approved');
+        break;
       case 'mine':
-        return filtered.filter(v => v.user_id === user.id);
+        filtered = filtered.filter(v => v.user_id === user.id);
+        break;
       default: // 'all'
-        filtered = filtered;
+        // Keep all filtered vacations
+        break;
     }
 
-    // Sort vacations to always show pending applications first
+    // Sort vacations to prioritize by upcoming dates and status
     return filtered.sort((a, b) => {
       // If one is pending and the other is not, pending comes first
       if (a.status === 'pending' && b.status !== 'pending') {
@@ -72,8 +75,10 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
         return 1;
       }
       
-      // If both have the same status, sort by creation date (newest first)
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      // Within the same status, sort by start_date ascending (next date first)
+      const dateA = new Date(a.start_date).getTime();
+      const dateB = new Date(b.start_date).getTime();
+      return dateA - dateB;
     });
   }, [vacations, tabValue, user, isAdmin, isSkadeleder]);
 

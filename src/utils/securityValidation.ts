@@ -44,13 +44,16 @@ export const validatePasswordStrength = (password: string): { valid: boolean; sc
     errors.push('Password must contain at least one number');
   }
   
+  // Removed special character requirement - only give score if present
   if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>?]/.test(password)) {
     score++;
-  } else {
-    errors.push('Password must contain at least one special character');
   }
   
-  return { valid: errors.length === 0, score, errors };
+  // Password is valid if it meets the minimum requirements (length + number)
+  const hasMinLength = password.length >= 8;
+  const hasNumber = /[0-9]/.test(password);
+  
+  return { valid: hasMinLength && hasNumber, score, errors };
 };
 
 export const sanitizeInput = (input: string, maxLength: number = 1000): string => {
