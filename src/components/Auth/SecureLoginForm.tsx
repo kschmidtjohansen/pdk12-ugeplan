@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useSecurity } from '@/context/SecurityContext';
+import { useTranslation } from '@/context/TranslationContext';
 import { SecureInput } from '@/components/ui/secure-input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +24,7 @@ export const SecureLoginForm: React.FC<SecureLoginFormProps> = ({ onSuccess }) =
   const { login } = useAuth();
   const { checkRateLimit, csrfToken, isSecureContext } = useSecurity();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const maxAttempts = 5;
   const isBlocked = attempts >= maxAttempts;
@@ -33,7 +35,7 @@ export const SecureLoginForm: React.FC<SecureLoginFormProps> = ({ onSuccess }) =
 
     // Rate limiting check
     if (!checkRateLimit('login', maxAttempts)) {
-      setError('Too many login attempts. Please wait before trying again.');
+      setError(t('login.tooManyRequests'));
       return;
     }
 
@@ -54,7 +56,7 @@ export const SecureLoginForm: React.FC<SecureLoginFormProps> = ({ onSuccess }) =
       
       if (result.error) {
         setAttempts(prev => prev + 1);
-        setError(result.error);
+        setError(t('login.invalidCredentials'));
         
         // Show different messages based on attempt count
         if (attempts >= 3) {
@@ -68,7 +70,7 @@ export const SecureLoginForm: React.FC<SecureLoginFormProps> = ({ onSuccess }) =
         // Reset attempts on successful login
         setAttempts(0);
         toast({
-          title: "Login Successful",
+          title: t('login.success'),
           description: "Welcome back!",
         });
         onSuccess?.();
@@ -87,10 +89,10 @@ export const SecureLoginForm: React.FC<SecureLoginFormProps> = ({ onSuccess }) =
       <CardHeader className="space-y-1">
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-green-600" />
-          <CardTitle className="text-2xl">Secure Login</CardTitle>
+          <CardTitle className="text-2xl">{t('login.title')}</CardTitle>
         </div>
         <CardDescription>
-          Enter your credentials to access your account
+          {t('login.description')}
         </CardDescription>
       </CardHeader>
       
@@ -123,7 +125,7 @@ export const SecureLoginForm: React.FC<SecureLoginFormProps> = ({ onSuccess }) =
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
+            placeholder={t('login.emailPlaceholder')}
             required
             validateEmail={true}
             disabled={isLoading || isBlocked}
@@ -132,11 +134,11 @@ export const SecureLoginForm: React.FC<SecureLoginFormProps> = ({ onSuccess }) =
           
           <SecureInput
             id="password"
-            label="Password"
+            label={t('common.password')}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
+            placeholder={t('login.passwordPlaceholder')}
             required
             disabled={isLoading || isBlocked}
             autoComplete="current-password"
@@ -164,12 +166,12 @@ export const SecureLoginForm: React.FC<SecureLoginFormProps> = ({ onSuccess }) =
             className="w-full" 
             disabled={isLoading || isBlocked}
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? t('login.buttonLoading') : t('login.button')}
           </Button>
         </form>
 
         <div className="text-center text-sm text-gray-600">
-          <p>Protected by advanced security measures</p>
+          <p>Beskyttet af avancerede beskyttelsesmetoder</p>
         </div>
       </CardContent>
     </Card>
