@@ -1,11 +1,17 @@
 
 import React from 'react';
 import { Assignment } from '@/types/assignment';
-import { WeekDates } from '@/hooks/usePlannerPage';
 import { PlannerSkeleton } from './PlannerSkeleton';
 import CurrentAndFutureDays from './CurrentAndFutureDays';
 import PastAssignments from './PastAssignments';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
+
+interface WeekDates {
+  start: Date;
+  end: Date;
+  weekNumber: number;
+  year: number;
+}
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
@@ -76,16 +82,10 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         handleShowOnScreen={handleShowOnScreen}
       />
 
-      {/* Unassigned Resources */}
-      <UnassignedResourcesSection 
-        assignments={currentAndFutureAssignments}
-        weekDates={weekDates}
-      />
-
       {/* Past Assignments */}
       {pastAssignments.length > 0 && (
         <PastAssignments
-          assignments={pastAssignments}
+          pastAssignments={pastAssignments}
           onEditAssignment={onEditAssignment}
           onDeleteAssignment={onDeleteAssignment}
           onPublishAssignment={onPublishAssignment}

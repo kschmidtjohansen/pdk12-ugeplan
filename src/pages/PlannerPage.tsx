@@ -2,6 +2,7 @@
 import React from 'react';
 import { useTranslation } from '../context/TranslationContext';
 import { usePlannerPage } from '../hooks/usePlannerPage';
+import { useAssignmentsConsolidated } from '../hooks/useAssignmentsConsolidated';
 import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
 import { Clock, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -15,8 +16,6 @@ const PlannerPage: React.FC = () => {
     selectedWeek,
     selectedYear,
     weekDates,
-    weekAssignments,
-    isLoading,
     isDialogOpen,
     setIsDialogOpen,
     currentAssignment,
@@ -34,6 +33,8 @@ const PlannerPage: React.FC = () => {
     publishAssignment,
     handleCopyAssignment
   } = usePlannerPage();
+
+  const { assignments: weekAssignments, isLoading } = useAssignmentsConsolidated(selectedWeek, selectedYear);
 
   const sortedWeekAssignments = React.useMemo(() => {
     if (!weekAssignments) return [];
@@ -126,7 +127,7 @@ const PlannerPage: React.FC = () => {
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
           <div className="p-6">
             <PlannerContent 
-              weekAssignments={weekAssignments} 
+              weekAssignments={sortedWeekAssignments} 
               onEditAssignment={handleOpenEditDialog} 
               onDeleteAssignment={deleteAssignment} 
               onPublishAssignment={publishAssignment} 
@@ -151,7 +152,7 @@ const PlannerPage: React.FC = () => {
           onSubmit={handleSubmit} 
           onDelete={deleteAssignment} 
           onPublish={publishAssignment} 
-          assignments={weekAssignments} 
+          assignments={sortedWeekAssignments} 
           selectedDay={selectedDay} 
           onPublishDay={handlePublishDay} 
         />
