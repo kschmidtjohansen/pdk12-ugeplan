@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { useTranslation } from '../context/TranslationContext';
 import { usePlannerPage } from '../hooks/usePlannerPage';
-import { useAssignmentsConsolidated } from '../hooks/useAssignmentsConsolidated';
+import { useAssignmentsOptimized } from '../hooks/useAssignmentsOptimized';
 import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
 import PlannerErrorBoundary from '../components/ErrorBoundary/PlannerErrorBoundary';
@@ -34,7 +35,8 @@ const PlannerPage: React.FC = () => {
     handleCopyAssignment
   } = usePlannerPage();
 
-  const { assignments: weekAssignments, loading: isLoading } = useAssignmentsConsolidated({ filter: 'planner' });
+  // Use the optimized hook instead of the consolidated one
+  const { assignments: weekAssignments, loading: isLoading } = useAssignmentsOptimized({ filter: 'planner' });
 
   const sortedWeekAssignments = React.useMemo(() => {
     if (!weekAssignments) return [];
