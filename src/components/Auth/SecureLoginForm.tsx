@@ -71,7 +71,7 @@ export const SecureLoginForm: React.FC<SecureLoginFormProps> = ({ onSuccess }) =
         setAttempts(0);
         toast({
           title: t('login.success'),
-          description: "Welcome back!",
+          description: "Velkommen tilbage!",
         });
         onSuccess?.();
       }
