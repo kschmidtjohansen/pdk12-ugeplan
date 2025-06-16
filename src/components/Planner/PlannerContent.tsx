@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Assignment } from '@/types/assignment';
 import { PlannerSkeleton } from './PlannerSkeleton';
@@ -67,29 +66,80 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     return assignmentDate < today;
   });
 
+  // Group assignments by date for the new component structure
+  const groupCurrentAndFutureByDate = () => {
+    const grouped: Record<string, Assignment[]> = {};
+    currentAndFutureAssignments.forEach(assignment => {
+      if (!grouped[assignment.date]) {
+        grouped[assignment.date] = [];
+      }
+      grouped[assignment.date].push(assignment);
+    });
+    return grouped;
+  };
+
+  const groupPastByDate = () => {
+    const grouped: Record<string, Assignment[]> = {};
+    pastAssignments.forEach(assignment => {
+      if (!grouped[assignment.date]) {
+        grouped[assignment.date] = [];
+      }
+      grouped[assignment.date].push(assignment);
+    });
+    return grouped;
+  };
+
+  const currentAndFutureGrouped = groupCurrentAndFutureByDate();
+  const pastGrouped = groupPastByDate();
+
+  // Get sorted date keys
+  const currentAndFutureDates = Object.keys(currentAndFutureGrouped).sort();
+  const pastDates = Object.keys(pastGrouped).sort().reverse(); // Past dates in reverse chronological order
+
+  // Create expanded state (default to expanded for all days)
+  const expandedDays: Record<string, boolean> = {};
+  [...currentAndFutureDates, ...pastDates].forEach(date => {
+    expandedDays[date] = true;
+  });
+
+  const handleToggleExpansion = (date: string) => {
+    // This would normally update state, but for now we'll keep all expanded
+    console.log('Toggle expansion for date:', date);
+  };
+
   return (
     <div className="space-y-8">
       {/* Current and Future Days */}
       <CurrentAndFutureDays
-        assignments={currentAndFutureAssignments}
-        weekDates={weekDates}
+        dates={currentAndFutureDates}
+        groupedAssignments={currentAndFutureGrouped}
+        expandedDays={expandedDays}
+        onToggleExpansion={handleToggleExpansion}
+        onPublishDay={() => onPublishDay(new Date().toISOString().split('T')[0])}
         onEditAssignment={onEditAssignment}
         onDeleteAssignment={onDeleteAssignment}
         onPublishAssignment={onPublishAssignment}
-        onPublishDay={onPublishDay}
-        onCreateAssignment={onCreateAssignment}
         onCopyAssignment={onCopyAssignment}
-        handleShowOnScreen={handleShowOnScreen}
+        canEdit={true}
+        canPublishTasks={true}
+        cars={[]}
       />
 
       {/* Past Assignments */}
-      {pastAssignments.length > 0 && (
+      {pastDates.length > 0 && (
         <PastAssignments
-          pastAssignments={pastAssignments}
+          pastDates={pastDates}
+          groupedAssignments={pastGrouped}
+          expandedDays={expandedDays}
+          onToggleExpansion={handleToggleExpansion}
+          onPublishDay={() => onPublishDay(new Date().toISOString().split('T')[0])}
           onEditAssignment={onEditAssignment}
           onDeleteAssignment={onDeleteAssignment}
           onPublishAssignment={onPublishAssignment}
           onCopyAssignment={onCopyAssignment}
+          canEdit={true}
+          canPublishTasks={true}
+          cars={[]}
         />
       )}
     </div>

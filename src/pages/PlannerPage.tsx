@@ -34,7 +34,7 @@ const PlannerPage: React.FC = () => {
     handleCopyAssignment
   } = usePlannerPage();
 
-  const { assignments: weekAssignments, isLoading } = useAssignmentsConsolidated(selectedWeek, selectedYear);
+  const { assignments: weekAssignments, loading: isLoading } = useAssignmentsConsolidated({ filter: 'planner' });
 
   const sortedWeekAssignments = React.useMemo(() => {
     if (!weekAssignments) return [];
