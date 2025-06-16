@@ -52,36 +52,36 @@ const AdminPage: React.FC = () => {
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <BarChart3 className="h-4 w-4" />
-              <span>Overview</span>
+              <span>{t('admin.tabs.overview')}</span>
             </TabsTrigger>
             <TabsTrigger value="diagnostics" className="flex items-center space-x-2">
               <Activity className="h-4 w-4" />
-              <span>Diagnostics</span>
+              <span>{t('admin.tabs.diagnostics')}</span>
             </TabsTrigger>
             <TabsTrigger value="performance" className="flex items-center space-x-2">
               <Zap className="h-4 w-4" />
-              <span>Performance</span>
+              <span>{t('admin.tabs.performance')}</span>
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
-              <span>{t('admin.userManagement')}</span>
+              <span>{t('admin.tabs.users')}</span>
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center space-x-2">
               <Shield className="h-4 w-4" />
-              <span>Security</span>
+              <span>{t('admin.tabs.security')}</span>
             </TabsTrigger>
             <TabsTrigger value="system" className="flex items-center space-x-2">
               <Settings className="h-4 w-4" />
-              <span>System</span>
+              <span>{t('admin.tabs.system')}</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Admin Dashboard</CardTitle>
+                <CardTitle>{t('admin.dashboard.title')}</CardTitle>
                 <CardDescription>
-                  System overview and quick access to administrative functions
+                  {t('admin.dashboard.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -101,9 +101,9 @@ const AdminPage: React.FC = () => {
           <TabsContent value="users" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>{t('admin.userManagement')}</CardTitle>
+                <CardTitle>{t('admin.userManagement.title')}</CardTitle>
                 <CardDescription>
-                  {t('admin.userManagementDesc')}
+                  {t('admin.userManagement.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -115,9 +115,9 @@ const AdminPage: React.FC = () => {
           <TabsContent value="security" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Security Monitoring</CardTitle>
+                <CardTitle>{t('admin.security.title')}</CardTitle>
                 <CardDescription>
-                  Monitor security events and access logs
+                  {t('admin.security.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -129,9 +129,9 @@ const AdminPage: React.FC = () => {
           <TabsContent value="system" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>System Health</CardTitle>
+                <CardTitle>{t('admin.systemHealth.title')}</CardTitle>
                 <CardDescription>
-                  Monitor database and application health
+                  {t('admin.systemHealth.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>

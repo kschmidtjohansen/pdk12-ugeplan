@@ -5,7 +5,23 @@ export const admin = {
   tabs: {
     metrics: 'Metrikker',
     users: 'Brugerstyring',
-    overview: 'Oversigt'
+    overview: 'Oversigt',
+    diagnostics: 'Diagnostik',
+    performance: 'Ydeevne',
+    security: 'Sikkerhed',
+    system: 'System'
+  },
+  dashboard: {
+    title: 'Administrationspanel',
+    description: 'Systemoversigt og hurtig adgang til administrative funktioner'
+  },
+  security: {
+    title: 'Sikkerhedsovervågning',
+    description: 'Overvåg sikkerhedshændelser og adgangslogfiler'
+  },
+  systemHealth: {
+    title: 'Systemsundhed',
+    description: 'Overvåg database- og applikationssundhed'
   },
   systemOverview: {
     description: 'Administrer systemet og overvåg nøglemetrikker'

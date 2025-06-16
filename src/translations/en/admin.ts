@@ -4,7 +4,24 @@ export const admin = {
   description: 'System administration and settings',
   tabs: {
     metrics: 'Metrics',
-    users: 'User Management'
+    users: 'User Management',
+    overview: 'Overview',
+    diagnostics: 'Diagnostics',
+    performance: 'Performance',
+    security: 'Security',
+    system: 'System'
+  },
+  dashboard: {
+    title: 'Admin Dashboard',
+    description: 'System overview and quick access to administrative functions'
+  },
+  security: {
+    title: 'Security Monitoring',
+    description: 'Monitor security events and access logs'
+  },
+  systemHealth: {
+    title: 'System Health',
+    description: 'Monitor database and application health'
   },
   systemMetrics: {
     totalUsers: 'Total Users',
