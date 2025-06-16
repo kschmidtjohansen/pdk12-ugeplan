@@ -105,7 +105,7 @@ export const SecureInput = forwardRef<HTMLInputElement, SecureInputProps>(
         {label && (
           <Label htmlFor={props.id} className="flex items-center gap-1">
             {label}
-            {sanitize && <Shield className="h-3 w-3 text-green-600" title="Input is sanitized for security" />}
+            {sanitize && <Shield className="h-3 w-3 text-green-600" />}
           </Label>
         )}
         

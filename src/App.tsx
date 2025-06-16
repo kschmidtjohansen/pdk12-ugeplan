@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -40,42 +41,14 @@ const App = () => {
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/password-reset" element={<PasswordResetPage />} />
                       
-                      {/* Protected routes wrapped with MainLayout */}
-                      <Route path="/dashboard" element={
-                        <MainLayout>
-                          <DashboardPage />
-                        </MainLayout>
-                      } />
-                      <Route path="/planner" element={
-                        <MainLayout>
-                          <PlannerPage />
-                        </MainLayout>
-                      } />
-                      <Route path="/planner/:assignmentId" element={
-                        <MainLayout>
-                          <PlannerPage />
-                        </MainLayout>
-                      } />
-                      <Route path="/employees" element={
-                        <MainLayout>
-                          <EmployeesPage />
-                        </MainLayout>
-                      } />
-                      <Route path="/cars" element={
-                        <MainLayout>
-                          <CarsPage />
-                        </MainLayout>
-                      } />
-                      <Route path="/vacation" element={
-                        <MainLayout>
-                          <VacationPage />
-                        </MainLayout>
-                      } />
-                      <Route path="/admin" element={
-                        <MainLayout>
-                          <AdminPage />
-                        </MainLayout>
-                      } />
+                      {/* Protected routes - MainLayout will handle the layout internally */}
+                      <Route path="/dashboard" element={<MainLayout><DashboardPage /></MainLayout>} />
+                      <Route path="/planner" element={<MainLayout><PlannerPage /></MainLayout>} />
+                      <Route path="/planner/:assignmentId" element={<MainLayout><PlannerPage /></MainLayout>} />
+                      <Route path="/employees" element={<MainLayout><EmployeesPage /></MainLayout>} />
+                      <Route path="/cars" element={<MainLayout><CarsPage /></MainLayout>} />
+                      <Route path="/vacation" element={<MainLayout><VacationPage /></MainLayout>} />
+                      <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />
                       <Route path="/screen-display" element={<ScreenDisplayPage />} />
                       
                       {/* Catch all other routes and redirect to NotFound */}
