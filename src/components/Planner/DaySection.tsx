@@ -103,9 +103,9 @@ const DaySection: React.FC<DaySectionProps> = ({
                   key={assignment.id}
                   assignment={assignment}
                   onEdit={onEditAssignment}
-                  onDelete={onDeleteAssignment}
-                  onPublish={onPublishAssignment}
-                  onCopy={onCopyAssignment}
+                  onDelete={() => onDeleteAssignment(assignment.id)}
+                  onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
+                  onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
                   canEdit={canEdit}
                   canPublish={canPublishTasks}
                   cars={cars}
