@@ -1,3 +1,4 @@
+
 const vacation = {
   title: "Ferie",
   pageDescription: "Administrer dine ferieanmodninger her",
@@ -108,6 +109,7 @@ const vacation = {
   
   // New keys for partial day support
   requestType: "Anmodningstype",
+  timeRange: "Tidspunkt",
   fullDay: "Hele dagen",
   partialDay: "Del af dagen",
   selectRequestType: "Vælg anmodningstype",
@@ -116,7 +118,6 @@ const vacation = {
   endTime: "Sluttid",
   selectStartTime: "Vælg starttid",
   selectEndTime: "Vælg sluttid",
-  timeRange: "Tidsinterval",
   partialDayDescription: "Angiv de timer du har brug for fri",
   fullDayDescription: "Anmod om hele dagen fri",
   invalidTimeRange: "Sluttid skal være efter starttid",

@@ -89,7 +89,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
           <TableRow>
             <TableHead>{t("employees.name")}</TableHead>
             <TableHead>{t("vacation.dateRange")}</TableHead>
-            <TableHead>{t("vacation.requestType")}</TableHead>
+            <TableHead>{t("vacation.timeRange")}</TableHead>
             <TableHead>{t("vacation.reason")}</TableHead>
             <TableHead>{t("common.status")}</TableHead>
             <TableHead>{t("vacation.requestedOn")}</TableHead>
