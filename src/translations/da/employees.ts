@@ -25,7 +25,6 @@ const employees = {
   updateError: 'Fejl ved opdatering af medarbejder',
   deleteError: 'Fejl ved sletning af medarbejder',
   createError: 'Fejl ved oprettelse af medarbejder',
-  contact: 'Kontaktoplysninger',
   
   // RLS and database access errors
   rlsError: 'Der opstod en adgangsfejl ved indlæsning af medarbejdere. Dette er blevet rapporteret og vil blive rettet snarest.',
@@ -46,19 +45,19 @@ const employees = {
   deleteConfirmTitle: 'Slet medarbejder',
   deleteConfirmMessage: 'Er du sikker på, at du vil slette denne medarbejder? Denne handling kan ikke fortrydes.',
   deleteWarning: 'Er du sikker på, at du vil slette {name}? Denne handling kan ikke fortrydes.',
-  markLeaveTitle: 'Marker som utilgængelig',
-  markLeaveMessage: 'Marker denne medarbejder som værende utilgængelig?',
+  markLeaveTitle: 'Marker som på orlov',
+  markLeaveMessage: 'Marker denne medarbejder som værende på orlov?',
   markAvailableTitle: 'Marker som tilgængelig',
   markAvailableMessage: 'Marker denne medarbejder som tilgængelig igen?',
-  markOnLeaveTitle: 'Marker som utilgængelig',
-  markOnLeaveDescription: 'Marker {name} som utilgængelig?',
+  markOnLeaveTitle: 'Marker på orlov',
+  markOnLeaveDescription: 'Marker {name} som på orlov?',
   markAvailableDescription: 'Marker {name} som tilgængelig igen?',
   
   // Notes and actions
   notesPlaceholder: 'Tilføj noter om denne medarbejder...',
   viewNotes: 'Se noter',
   viewNotesOnly: 'Du kan se noter, men ikke redigere dem.',
-  markOnLeave: 'Marker som utilgængelig',
+  markOnLeave: 'Marker på orlov',
   markAvailable: 'Marker tilgængelig',
   removeNote: 'Fjern note og marker tilgængelig',
   keepNote: 'Behold note og marker tilgængelig',

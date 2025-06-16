@@ -42,15 +42,15 @@ export const useNotifications = () => useContext(NotificationContext);
 export const NotificationProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  // Use the optimized notification hook instead
+  // Use a try-catch wrapper to prevent provider initialization errors from cascading
   let notificationHookData;
   
   try {
-    // Import the optimized hook
-    const { useNotificationsOptimized } = require('@/hooks/useNotificationsOptimized');
-    notificationHookData = useNotificationsOptimized();
+    // Use the notification hook to get all notification functionality
+    notificationHookData = useNotificationsHook();
   } catch (error) {
-    console.warn('[NotificationProvider] Error initializing optimized notification hook, using defaults:', error);
+    // If there's an error during hook initialization, use default values
+    console.warn('[NotificationProvider] Error initializing notification hook, using defaults:', error);
     notificationHookData = defaultContext;
   }
   

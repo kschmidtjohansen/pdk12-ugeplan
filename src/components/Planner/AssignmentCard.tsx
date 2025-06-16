@@ -11,7 +11,6 @@ interface AssignmentCardProps {
   assignment: Assignment;
   cars: Car[];
   canEdit: boolean;
-  canPublish: boolean;
   onEdit: (assignment: Assignment) => void;
   onDelete: () => void;
   onPublish?: () => void;
@@ -22,7 +21,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   assignment,
   cars,
   canEdit,
-  canPublish,
   onEdit,
   onDelete,
   onPublish,

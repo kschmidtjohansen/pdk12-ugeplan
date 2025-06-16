@@ -3,11 +3,10 @@ import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatDateWithCapital, getDateStatus } from '@/utils/dateUtils';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Calendar, Plus } from 'lucide-react';
+import { Send, ChevronDown, ChevronRight } from 'lucide-react';
 import AssignmentCard from './AssignmentCard';
-import { format, parseISO } from 'date-fns';
 
 interface DaySectionProps {
   dateKey: string;
@@ -26,7 +25,7 @@ interface DaySectionProps {
 
 const DaySection: React.FC<DaySectionProps> = ({
   dateKey,
-  dayAssignments,
+  dayAssignments = [], // Initialize with empty array as fallback
   isExpanded,
   onToggleExpansion,
   onPublishDay,
@@ -39,83 +38,90 @@ const DaySection: React.FC<DaySectionProps> = ({
   cars = []
 }) => {
   const { t, currentLanguage } = useTranslation();
+  
+  // Use the formatDateWithCapital function with the current language
+  const formattedDate = formatDateWithCapital(dateKey, currentLanguage);
+  
+  // Log the formatted date for troubleshooting
+  console.log(`Formatted date for ${dateKey}: ${formattedDate} (${currentLanguage})`);
+  
+  // Fix: Make sure dayAssignments is an array before calling some()
+  const hasUnpublishedAssignments = Array.isArray(dayAssignments) && dayAssignments.some(a => !a.published);
 
-  // Format the date for display
-  const formattedDate = format(parseISO(dateKey), 'EEEE, d. MMMM yyyy', {
-    locale: currentLanguage === 'da' ? require('date-fns/locale/da') : require('date-fns/locale/en-US')
-  });
+  // Ensure dayAssignments is an array and then get its length
+  const assignmentsCount = Array.isArray(dayAssignments) ? dayAssignments.length : 0;
 
-  const hasUnpublishedAssignments = dayAssignments.some(assignment => !assignment.published);
+  // Determine task text based on language and count
+  const taskText = currentLanguage === 'da' 
+    ? (assignmentsCount === 1 ? 'opgave' : 'opgaver')
+    : (assignmentsCount === 1 ? 'task' : 'tasks');
 
   return (
-    <Card className="mb-6">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Calendar className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg font-semibold">
-              {formattedDate}
-            </CardTitle>
-            <span className="text-sm text-muted-foreground">
-              ({dayAssignments.length} {t('planner.assignments').toLowerCase()})
-            </span>
-          </div>
+    <div className="w-full space-y-3">
+      <div className="flex items-center justify-between">
+        <div 
+          className="flex items-center cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors duration-200" 
+          onClick={() => onToggleExpansion(dateKey)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onToggleExpansion(dateKey);
+            }
+          }}
+          aria-expanded={isExpanded}
+          aria-label={`${isExpanded ? 'Collapse' : 'Expand'} assignments for ${formattedDate}`}
+        >
+          {/* Chevron icon to indicate expand/collapse state */}
+          {isExpanded ? (
+            <ChevronDown className="h-5 w-5 text-gray-500 mr-2 transition-transform duration-200" />
+          ) : (
+            <ChevronRight className="h-5 w-5 text-gray-500 mr-2 transition-transform duration-200" />
+          )}
           
-          <div className="flex items-center gap-2">
-            {canPublishTasks && hasUnpublishedAssignments && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onPublishDay}
-                className="text-xs"
-              >
-                {t('planner.publishDayTasks')}
-              </Button>
-            )}
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onToggleExpansion(dateKey)}
-              className="p-1 h-8 w-8"
-            >
-              {isExpanded ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
+          <h3 className="text-lg font-medium select-none">
+            {formattedDate}
+          </h3>
+          <div className="ml-2 text-sm text-gray-500 select-none">
+            ({assignmentsCount} {taskText})
           </div>
         </div>
-      </CardHeader>
+        
+        {canPublishTasks && hasUnpublishedAssignments && onPublishDay && (
+          <Button 
+            onClick={onPublishDay}
+            className="bg-green-600 hover:bg-green-700"
+            size="sm"
+          >
+            <Send className="mr-2 h-4 w-4" /> {t("planner.publishDayTasks")}
+          </Button>
+        )}
+      </div>
       
       {isExpanded && (
-        <CardContent className="pt-0">
-          {dayAssignments.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Calendar className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>{t('planner.noAssignmentsToday')}</p>
-            </div>
+        <div className="w-full grid grid-cols-1 gap-4 animate-in slide-in-from-top-2 duration-200">
+          {Array.isArray(dayAssignments) && dayAssignments.length > 0 ? (
+            dayAssignments.map((assignment) => (
+              <AssignmentCard
+                key={assignment.id}
+                assignment={assignment}
+                cars={cars}
+                canEdit={canEdit}
+                onEdit={() => onEditAssignment(assignment)}
+                onDelete={() => onDeleteAssignment(assignment.id)}
+                onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
+                onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
+              />
+            ))
           ) : (
-            <div className="space-y-3">
-              {dayAssignments.map((assignment) => (
-                <AssignmentCard
-                  key={assignment.id}
-                  assignment={assignment}
-                  onEdit={onEditAssignment}
-                  onDelete={() => onDeleteAssignment(assignment.id)}
-                  onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
-                  onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
-                  canEdit={canEdit}
-                  canPublish={canPublishTasks}
-                  cars={cars}
-                />
-              ))}
+            <div className="p-4 border border-dashed rounded-md text-center text-gray-500">
+              {t("planner.nothingPlannedToday")}
             </div>
           )}
-        </CardContent>
+        </div>
       )}
-    </Card>
+    </div>
   );
 };
 
