@@ -1,11 +1,15 @@
 
 import React from 'react';
-import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import TopNavbar from './TopNavbar';
 
-const MainLayout: React.FC = () => {
+interface MainLayoutProps {
+  children: React.ReactNode;
+}
+
+const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,7 +30,7 @@ const MainLayout: React.FC = () => {
 
   // Don't show layout for login page or password reset page
   if (location.pathname === "/login" || location.pathname === "/password-reset") {
-    return <Outlet />;
+    return <>{children}</>;
   }
 
   // Show enhanced loading state while authentication is being determined
@@ -69,7 +73,7 @@ const MainLayout: React.FC = () => {
       {/* Main Content with top padding to account for fixed navbar */}
       <main className="flex-1 w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 pt-20">
         <div className="animate-fade-in-up w-full">
-          <Outlet />
+          {children}
         </div>
       </main>
     </div>
