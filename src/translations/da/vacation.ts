@@ -1,3 +1,4 @@
+
 const vacation = {
   title: "Ferie",
   pageDescription: "Administrer dine ferieanmodninger her",
@@ -76,7 +77,7 @@ const vacation = {
   
   // New toast notification keys
   missingDates: "Manglende datoer",
-  selectBothDates: "Vælg venligst både start- og slutdato",
+  selectBothDates: "Vælg venligst både start- og slutdato", 
   employeeNotFound: "Medarbejder ikke fundet",
   adminRequestSubmitted: "Anmodning indsendt for medarbejder",
   adminRequestSent: "Ferieanmodning indsendt for {name}",
@@ -85,7 +86,7 @@ const vacation = {
   requestSubmittedForYou: "Ferieanmodning indsendt for dig",
   adminRequestedForYou: "{adminName} har indsendt en ferieanmodning for dig fra {from} til {to}",
   requestUpdated: "Anmodning opdateret",
-  requestUpdatedMsg: "Ferieanmodningen er blevet opdateret",
+  requestUpdatedMsg: "Ferieanmodningen er blev opdateret",
   requestDeleted: "Anmodning slettet",
   requestDeletedMsg: "Ferieanmodningen er blevet slettet",
   editError: "Fejl ved redigering af ferieanmodning",
@@ -106,13 +107,13 @@ const vacation = {
     rejected: "Afvist"
   },
   
-  // New keys for partial day support
+  // New keys for partial day support - updated workingHours
   requestType: "Anmodningstype",
   timeRange: "Tidspunkt",
   fullDay: "Hele dagen",
   partialDay: "Del af dagen",
   selectRequestType: "Vælg anmodningstype",
-  workingHours: "Arbejdstimer",
+  workingHours: "Timer der holdes fri",
   startTime: "Starttid",
   endTime: "Sluttid",
   selectStartTime: "Vælg starttid",
