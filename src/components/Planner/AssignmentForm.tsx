@@ -82,6 +82,19 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     }
   };
 
+  // Helper function to get car ID as string
+  const getCarId = (car: string | { id: string; name: string } | null): string => {
+    if (typeof car === 'string') return car;
+    if (car && typeof car === 'object' && 'id' in car) return car.id;
+    return '';
+  };
+
+  // Helper function to get responsible user ID as string
+  const getResponsibleUserId = (user: { id: string; name: string } | null): string => {
+    if (user && typeof user === 'object' && 'id' in user) return user.id;
+    return '';
+  };
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="space-y-4">
@@ -102,11 +115,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           setToTime={(value) => setFormData({ ...formData, toTime: value })}
           description={formData.description || ''}
           setDescription={(value) => setFormData({ ...formData, description: value })}
-          assignmentType={formData.assignmentType || 'ordinary_damage'}
-          setAssignmentType={(value) => setFormData({ ...formData, assignmentType: value })}
-          selectedCarId={formData.car || ''}
+          assignmentType={formData.type || 'ordinary_damage'}
+          setAssignmentType={(value) => setFormData({ ...formData, type: value })}
+          selectedCarId={getCarId(formData.car)}
           setSelectedCarId={(value) => setFormData({ ...formData, car: value })}
-          selectedResponsibleUserId={formData.responsibleUser || ''}
+          selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)}
           setSelectedResponsibleUserId={(value) => setFormData({ ...formData, responsibleUser: value })}
           cars={[]}
           assignmentId={currentAssignment?.id}
