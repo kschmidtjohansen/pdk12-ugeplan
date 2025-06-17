@@ -31,20 +31,20 @@ export const SystemCleanupPanel: React.FC = () => {
       
       if (result.success) {
         toast({
-          title: "Cleanup Successful",
-          description: `Removed ${result.deletedCount} false positive security logs`,
+          title: t('admin.cleanup.falsePositives.success'),
+          description: t('admin.cleanup.falsePositives.successMessage', { count: result.deletedCount }),
         });
       } else {
         toast({
-          title: "Cleanup Failed",
-          description: result.error || "Unknown error occurred",
+          title: t('admin.cleanup.falsePositives.failed'),
+          description: result.error || t('admin.cleanup.falsePositives.error'),
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
-        title: "Cleanup Error",
-        description: "Failed to cleanup false positive logs",
+        title: t('admin.cleanup.falsePositives.failed'),
+        description: t('admin.cleanup.falsePositives.error'),
         variant: "destructive",
       });
     } finally {
@@ -61,20 +61,20 @@ export const SystemCleanupPanel: React.FC = () => {
       
       if (result.success) {
         toast({
-          title: "Cleanup Successful",
-          description: `Removed ${result.deletedCount} old security logs`,
+          title: t('admin.cleanup.oldLogs.success'),
+          description: t('admin.cleanup.oldLogs.successMessage', { count: result.deletedCount }),
         });
       } else {
         toast({
-          title: "Cleanup Failed",
-          description: result.error || "Unknown error occurred",
+          title: t('admin.cleanup.oldLogs.failed'),
+          description: result.error || t('admin.cleanup.oldLogs.error'),
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
-        title: "Cleanup Error",
-        description: "Failed to cleanup old logs",
+        title: t('admin.cleanup.oldLogs.failed'),
+        description: t('admin.cleanup.oldLogs.error'),
         variant: "destructive",
       });
     } finally {
@@ -91,20 +91,20 @@ export const SystemCleanupPanel: React.FC = () => {
       
       if (result.success) {
         toast({
-          title: "Optimization Requested",
-          description: "Table optimization has been logged for review",
+          title: t('admin.cleanup.optimization.success'),
+          description: t('admin.cleanup.optimization.successMessage'),
         });
       } else {
         toast({
-          title: "Optimization Failed",
-          description: result.error || "Unknown error occurred",
+          title: t('admin.cleanup.optimization.failed'),
+          description: result.error || t('admin.cleanup.optimization.error'),
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
-        title: "Optimization Error",
-        description: "Failed to request table optimization",
+        title: t('admin.cleanup.optimization.failed'),
+        description: t('admin.cleanup.optimization.error'),
         variant: "destructive",
       });
     } finally {
@@ -122,7 +122,7 @@ export const SystemCleanupPanel: React.FC = () => {
     if (!result) return null;
     return (
       <Badge variant={result.success ? "default" : "destructive"}>
-        {result.success ? "Success" : "Failed"}
+        {result.success ? t('admin.common.success') : t('admin.common.error')}
       </Badge>
     );
   };
@@ -130,18 +130,16 @@ export const SystemCleanupPanel: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">System Cleanup & Maintenance</h2>
+        <h2 className="text-2xl font-bold">{t('admin.cleanup.title')}</h2>
         <p className="text-muted-foreground">
-          Manage database cleanup and system optimization tasks
+          {t('admin.cleanup.description')}
         </p>
       </div>
 
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          <strong>Important:</strong> These operations will modify your database. 
-          False positive cleanup removes incorrectly flagged security events, 
-          while old logs cleanup removes non-critical logs older than 30 days.
+          <strong>{t('admin.cleanup.important.title')}</strong> {t('admin.cleanup.important.description')}
         </AlertDescription>
       </Alert>
 
@@ -150,11 +148,11 @@ export const SystemCleanupPanel: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>False Positives</span>
+              <span>{t('admin.cleanup.falsePositives.title')}</span>
               {getResultIcon(results.falsePositives)}
             </CardTitle>
             <CardDescription>
-              Remove incorrectly flagged security events like normal mouse movements
+              {t('admin.cleanup.falsePositives.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -165,7 +163,7 @@ export const SystemCleanupPanel: React.FC = () => {
               variant="outline"
             >
               <Trash2 className={`h-4 w-4 mr-2 ${loading.falsePositives ? 'animate-spin' : ''}`} />
-              Clean False Positives
+              {t('admin.cleanup.falsePositives.button')}
             </Button>
             
             {results.falsePositives && (
@@ -173,8 +171,8 @@ export const SystemCleanupPanel: React.FC = () => {
                 {getResultBadge(results.falsePositives)}
                 <p className="text-sm text-muted-foreground">
                   {results.falsePositives.success 
-                    ? `Removed ${results.falsePositives.deletedCount} false positive logs`
-                    : `Error: ${results.falsePositives.error}`
+                    ? t('admin.cleanup.falsePositives.successMessage', { count: results.falsePositives.deletedCount })
+                    : `${t('admin.common.error')}: ${results.falsePositives.error}`
                   }
                 </p>
               </div>
@@ -186,11 +184,11 @@ export const SystemCleanupPanel: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Old Logs</span>
+              <span>{t('admin.cleanup.oldLogs.title')}</span>
               {getResultIcon(results.oldLogs)}
             </CardTitle>
             <CardDescription>
-              Remove non-critical security logs older than 30 days
+              {t('admin.cleanup.oldLogs.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -201,7 +199,7 @@ export const SystemCleanupPanel: React.FC = () => {
               variant="outline"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading.oldLogs ? 'animate-spin' : ''}`} />
-              Clean Old Logs
+              {t('admin.cleanup.oldLogs.button')}
             </Button>
             
             {results.oldLogs && (
@@ -209,8 +207,8 @@ export const SystemCleanupPanel: React.FC = () => {
                 {getResultBadge(results.oldLogs)}
                 <p className="text-sm text-muted-foreground">
                   {results.oldLogs.success 
-                    ? `Removed ${results.oldLogs.deletedCount} old logs`
-                    : `Error: ${results.oldLogs.error}`
+                    ? t('admin.cleanup.oldLogs.successMessage', { count: results.oldLogs.deletedCount })
+                    : `${t('admin.common.error')}: ${results.oldLogs.error}`
                   }
                 </p>
               </div>
@@ -222,11 +220,11 @@ export const SystemCleanupPanel: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Optimize Tables</span>
+              <span>{t('admin.cleanup.optimization.title')}</span>
               {getResultIcon(results.optimize)}
             </CardTitle>
             <CardDescription>
-              Request database table optimization for better performance
+              {t('admin.cleanup.optimization.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -237,7 +235,7 @@ export const SystemCleanupPanel: React.FC = () => {
               variant="outline"
             >
               <Database className={`h-4 w-4 mr-2 ${loading.optimize ? 'animate-spin' : ''}`} />
-              Optimize Tables
+              {t('admin.cleanup.optimization.button')}
             </Button>
             
             {results.optimize && (
@@ -245,8 +243,8 @@ export const SystemCleanupPanel: React.FC = () => {
                 {getResultBadge(results.optimize)}
                 <p className="text-sm text-muted-foreground">
                   {results.optimize.success 
-                    ? "Optimization request logged"
-                    : `Error: ${results.optimize.error}`
+                    ? t('admin.cleanup.optimization.successMessage')
+                    : `${t('admin.common.error')}: ${results.optimize.error}`
                   }
                 </p>
               </div>
@@ -257,29 +255,29 @@ export const SystemCleanupPanel: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Cleanup Summary</CardTitle>
+          <CardTitle>{t('admin.cleanup.summary.title')}</CardTitle>
           <CardDescription>
-            Overview of all cleanup operations performed
+            {t('admin.cleanup.summary.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span>False Positives Cleaned:</span>
+              <span>{t('admin.cleanup.summary.falsePositivesCleaned')}</span>
               <span className="font-medium">
-                {results.falsePositives?.success ? results.falsePositives.deletedCount : 'N/A'}
+                {results.falsePositives?.success ? results.falsePositives.deletedCount : t('admin.cleanup.summary.notAvailable')}
               </span>
             </div>
             <div className="flex justify-between">
-              <span>Old Logs Cleaned:</span>
+              <span>{t('admin.cleanup.summary.oldLogsCleaned')}</span>
               <span className="font-medium">
-                {results.oldLogs?.success ? results.oldLogs.deletedCount : 'N/A'}
+                {results.oldLogs?.success ? results.oldLogs.deletedCount : t('admin.cleanup.summary.notAvailable')}
               </span>
             </div>
             <div className="flex justify-between">
-              <span>Table Optimization:</span>
+              <span>{t('admin.cleanup.summary.tableOptimization')}</span>
               <span className="font-medium">
-                {results.optimize?.success ? 'Requested' : 'N/A'}
+                {results.optimize?.success ? t('admin.cleanup.summary.requested') : t('admin.cleanup.summary.notAvailable')}
               </span>
             </div>
           </div>

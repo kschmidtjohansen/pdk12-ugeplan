@@ -57,7 +57,7 @@ const AdminPage: React.FC = () => {
             </TabsTrigger>
             <TabsTrigger value="cleanup" className="flex items-center space-x-2">
               <Trash2 className="h-4 w-4" />
-              <span>Cleanup</span>
+              <span>{t('admin.tabs.cleanup')}</span>
             </TabsTrigger>
             <TabsTrigger value="diagnostics" className="flex items-center space-x-2">
               <Activity className="h-4 w-4" />
@@ -98,9 +98,9 @@ const AdminPage: React.FC = () => {
           <TabsContent value="cleanup" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>System Cleanup & Maintenance</CardTitle>
+                <CardTitle>{t('admin.cleanup.title')}</CardTitle>
                 <CardDescription>
-                  Manage database cleanup operations and system optimization
+                  {t('admin.cleanup.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>

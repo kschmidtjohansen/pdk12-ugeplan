@@ -1,3 +1,4 @@
+
 export const admin = {
   title: 'Administration',
   description: 'Systemadministration og indstillinger',
@@ -8,7 +9,8 @@ export const admin = {
     diagnostics: 'Diagnostik',
     performance: 'Ydeevne',
     security: 'Sikkerhed',
-    system: 'System'
+    system: 'System',
+    cleanup: 'Oprydning'
   },
   dashboard: {
     title: 'Administrationspanel',
@@ -17,6 +19,50 @@ export const admin = {
   security: {
     title: 'Sikkerhedsovervågning',
     description: 'Overvåg sikkerhedshændelser og adgangslogfiler'
+  },
+  cleanup: {
+    title: 'System Oprydning & Vedligeholdelse',
+    description: 'Administrer database oprydning og system optimering',
+    falsePositives: {
+      title: 'Falske Positiver',
+      description: 'Fjern forkert markerede sikkerhedshændelser som normale musebevægelser',
+      button: 'Ryd Falske Positiver',
+      success: 'Oprydning Gennemført',
+      successMessage: 'Fjernede {count} falske positive logfiler',
+      failed: 'Oprydning Fejlede',
+      error: 'Fejl ved oprydning af falske positive logfiler'
+    },
+    oldLogs: {
+      title: 'Gamle Logfiler',
+      description: 'Fjern ikke-kritiske sikkerhedslogfiler ældre end 30 dage',
+      button: 'Ryd Gamle Logfiler',
+      success: 'Oprydning Gennemført',
+      successMessage: 'Fjernede {count} gamle logfiler',
+      failed: 'Oprydning Fejlede',
+      error: 'Fejl ved oprydning af gamle logfiler'
+    },
+    optimization: {
+      title: 'Optimer Tabeller',
+      description: 'Anmod om database tabel optimering for bedre ydeevne',
+      button: 'Optimer Tabeller',
+      success: 'Optimering Anmodet',
+      successMessage: 'Tabel optimering er blevet logget',
+      failed: 'Optimering Fejlede',
+      error: 'Fejl ved anmodning om tabel optimering'
+    },
+    summary: {
+      title: 'Oprydning Sammendrag',
+      description: 'Oversigt over alle udførte oprydningsoperationer',
+      falsePositivesCleaned: 'Falske Positiver Ryddet:',
+      oldLogsCleaned: 'Gamle Logfiler Ryddet:',
+      tableOptimization: 'Tabel Optimering:',
+      requested: 'Anmodet',
+      notAvailable: 'N/A'
+    },
+    important: {
+      title: 'Vigtigt:',
+      description: 'Disse operationer vil ændre din database. Falske positive oprydning fjerner forkert markerede sikkerhedshændelser, mens gamle logfiler oprydning fjerner ikke-kritiske logfiler ældre end 30 dage.'
+    }
   },
   systemHealth: {
     title: 'Systemsundhed',
@@ -42,7 +88,15 @@ export const admin = {
     unknown: 'Ukendt',
     healthy: 'Sund',
     issuesDetected: 'Problemer Opdaget',
-    healthCheckFailed: 'Sundhedskontrol fejlede'
+    healthCheckFailed: 'Sundhedskontrol fejlede',
+    excellent: 'Fremragende',
+    good: 'God',
+    warning: 'Advarsel',
+    critical: 'Kritisk',
+    performance: 'Ydeevne',
+    systemUptimeScore: 'System oppetid score',
+    highErrorRateDetected: 'Høj Fejlrate Opdaget',
+    highErrorRateMessage: 'Systemet har logget {count} fejl i de sidste 24 timer. Gennemgå venligst sikkerhedslogfiler for detaljer.'
   },
   systemMetrics: {
     totalUsers: 'Samlede brugere',

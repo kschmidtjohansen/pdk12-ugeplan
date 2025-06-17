@@ -25,10 +25,10 @@ export const SystemHealthDashboard: React.FC = () => {
   };
 
   const getHealthStatusText = () => {
-    if (isHealthy && metrics.recentErrors === 0) return 'Excellent';
-    if (isHealthy && metrics.recentErrors <= 2) return 'Good';
-    if (metrics.recentErrors <= 5) return 'Warning';
-    return 'Critical';
+    if (isHealthy && metrics.recentErrors === 0) return t('admin.systemHealth.excellent');
+    if (isHealthy && metrics.recentErrors <= 2) return t('admin.systemHealth.good');
+    if (metrics.recentErrors <= 5) return t('admin.systemHealth.warning');
+    return t('admin.systemHealth.critical');
   };
 
   return (
@@ -116,7 +116,7 @@ export const SystemHealthDashboard: React.FC = () => {
         {/* System Performance */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Performance</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.systemHealth.performance')}</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -124,7 +124,7 @@ export const SystemHealthDashboard: React.FC = () => {
               {metrics.recentErrors === 0 ? '100%' : `${Math.max(0, 100 - metrics.recentErrors * 5)}%`}
             </div>
             <p className="text-xs text-muted-foreground">
-              System uptime score
+              {t('admin.systemHealth.systemUptimeScore')}
             </p>
           </CardContent>
         </Card>
@@ -136,7 +136,7 @@ export const SystemHealthDashboard: React.FC = () => {
           <CardHeader>
             <CardTitle>{t('admin.systemHealth.systemDetails')}</CardTitle>
             <CardDescription>
-              Comprehensive system health overview and security metrics
+              {t('admin.systemHealth.description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -167,10 +167,10 @@ export const SystemHealthDashboard: React.FC = () => {
               <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
                 <div className="flex items-center space-x-2 text-red-600">
                   <AlertTriangle className="h-4 w-4" />
-                  <span className="font-medium">High Error Rate Detected</span>
+                  <span className="font-medium">{t('admin.systemHealth.highErrorRateDetected')}</span>
                 </div>
                 <p className="text-sm text-red-600 mt-1">
-                  System has logged {metrics.recentErrors} errors in the last 24 hours. Please review security logs for details.
+                  {t('admin.systemHealth.highErrorRateMessage', { count: metrics.recentErrors })}
                 </p>
               </div>
             )}

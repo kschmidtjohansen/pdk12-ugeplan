@@ -1,3 +1,4 @@
+
 export const admin = {
   title: 'Admin Dashboard',
   description: 'System administration and settings',
@@ -8,7 +9,8 @@ export const admin = {
     diagnostics: 'Diagnostics',
     performance: 'Performance',
     security: 'Security',
-    system: 'System'
+    system: 'System',
+    cleanup: 'Cleanup'
   },
   dashboard: {
     title: 'Admin Dashboard',
@@ -17,6 +19,50 @@ export const admin = {
   security: {
     title: 'Security Monitoring',
     description: 'Monitor security events and access logs'
+  },
+  cleanup: {
+    title: 'System Cleanup & Maintenance',
+    description: 'Manage database cleanup operations and system optimization',
+    falsePositives: {
+      title: 'False Positives',
+      description: 'Remove incorrectly flagged security events like normal mouse movements',
+      button: 'Clean False Positives',
+      success: 'Cleanup Successful',
+      successMessage: 'Removed {count} false positive security logs',
+      failed: 'Cleanup Failed',
+      error: 'Failed to cleanup false positive logs'
+    },
+    oldLogs: {
+      title: 'Old Logs',
+      description: 'Remove non-critical security logs older than 30 days',
+      button: 'Clean Old Logs',
+      success: 'Cleanup Successful',
+      successMessage: 'Removed {count} old security logs',
+      failed: 'Cleanup Failed',
+      error: 'Failed to cleanup old logs'
+    },
+    optimization: {
+      title: 'Optimize Tables',
+      description: 'Request database table optimization for better performance',
+      button: 'Optimize Tables',
+      success: 'Optimization Requested',
+      successMessage: 'Table optimization has been logged for review',
+      failed: 'Optimization Failed',
+      error: 'Failed to request table optimization'
+    },
+    summary: {
+      title: 'Cleanup Summary',
+      description: 'Overview of all cleanup operations performed',
+      falsePositivesCleaned: 'False Positives Cleaned:',
+      oldLogsCleaned: 'Old Logs Cleaned:',
+      tableOptimization: 'Table Optimization:',
+      requested: 'Requested',
+      notAvailable: 'N/A'
+    },
+    important: {
+      title: 'Important:',
+      description: 'These operations will modify your database. False positive cleanup removes incorrectly flagged security events, while old logs cleanup removes non-critical logs older than 30 days.'
+    }
   },
   systemHealth: {
     title: 'System Health',
@@ -42,7 +88,15 @@ export const admin = {
     unknown: 'Unknown',
     healthy: 'Healthy',
     issuesDetected: 'Issues Detected',
-    healthCheckFailed: 'Health check failed'
+    healthCheckFailed: 'Health check failed',
+    excellent: 'Excellent',
+    good: 'Good',
+    warning: 'Warning',
+    critical: 'Critical',
+    performance: 'Performance',
+    systemUptimeScore: 'System uptime score',
+    highErrorRateDetected: 'High Error Rate Detected',
+    highErrorRateMessage: 'System has logged {count} errors in the last 24 hours. Please review security logs for details.'
   },
   systemMetrics: {
     totalUsers: 'Total Users',
