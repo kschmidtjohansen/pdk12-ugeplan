@@ -3,12 +3,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "./components/theme-provider";
 import { SecurityProvider } from "./context/SecurityContext";
+import { AuthProvider } from "./context/AuthContext";
 import { TranslationProvider } from "./context/TranslationContext";
 import { NotificationProvider } from "./context/NotificationContext";
-import { ThemeProvider } from "./components/theme-provider";
 import Index from "./pages/Index";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -28,9 +28,9 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="ui-theme">
-        <SecurityProvider>
-          <AuthProvider>
-            <TranslationProvider>
+        <TranslationProvider>
+          <SecurityProvider>
+            <AuthProvider>
               <NotificationProvider>
                 <TooltipProvider>
                   <Toaster />
@@ -57,9 +57,9 @@ const App = () => {
                   </BrowserRouter>
                 </TooltipProvider>
               </NotificationProvider>
-            </TranslationProvider>
-          </AuthProvider>
-        </SecurityProvider>
+            </AuthProvider>
+          </SecurityProvider>
+        </TranslationProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
