@@ -17,7 +17,7 @@ interface AssignmentFormProps {
   onPublish: (assignmentId: string) => void;
   assignments: Assignment[];
   selectedDay: string;
-  onPublishDay: (date: string) => void; // FIXED: Updated to accept date parameter
+  onPublishDay: (date: string) => void;
 }
 
 const AssignmentForm: React.FC<AssignmentFormProps> = ({
@@ -90,12 +90,26 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
         </h2>
         
         <AssignmentFormFields
-          register={register}
-          errors={errors}
-          watch={watch}
-          setValue={setValue}
-          formData={formData}
-          setFormData={setFormData}
+          title={formData.title || ''}
+          setTitle={(value) => setFormData({ ...formData, title: value })}
+          location={formData.location || ''}
+          setLocation={(value) => setFormData({ ...formData, location: value })}
+          selectedDate={formData.date ? new Date(formData.date) : undefined}
+          setSelectedDate={(date) => setFormData({ ...formData, date: date ? date.toISOString().split('T')[0] : '' })}
+          fromTime={formData.fromTime || '08:00'}
+          setFromTime={(value) => setFormData({ ...formData, fromTime: value })}
+          toTime={formData.toTime || '16:00'}
+          setToTime={(value) => setFormData({ ...formData, toTime: value })}
+          description={formData.description || ''}
+          setDescription={(value) => setFormData({ ...formData, description: value })}
+          assignmentType={formData.assignmentType || 'ordinary_damage'}
+          setAssignmentType={(value) => setFormData({ ...formData, assignmentType: value })}
+          selectedCarId={formData.car || ''}
+          setSelectedCarId={(value) => setFormData({ ...formData, car: value })}
+          selectedResponsibleUserId={formData.responsibleUser || ''}
+          setSelectedResponsibleUserId={(value) => setFormData({ ...formData, responsibleUser: value })}
+          cars={[]}
+          assignmentId={currentAssignment?.id}
           assignments={assignments}
         />
       </div>
