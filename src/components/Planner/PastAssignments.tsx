@@ -10,7 +10,7 @@ interface PastAssignmentsProps {
   groupedAssignments: Record<string, Assignment[]>;
   expandedDays: Record<string, boolean>;
   onToggleExpansion: (date: string) => void;
-  onPublishDay?: () => void;
+  onPublishDay: (date: string) => void; // FIXED: Updated to accept date parameter
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
@@ -51,7 +51,7 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
             dayAssignments={groupedAssignments[dateKey] || []} // Provide an empty array if undefined
             isExpanded={expandedDays[dateKey] !== false} // Default to expanded
             onToggleExpansion={onToggleExpansion}
-            onPublishDay={onPublishDay}
+            onPublishDay={() => onPublishDay(dateKey)} // FIXED: Pass the dateKey to onPublishDay
             onEditAssignment={onEditAssignment}
             onDeleteAssignment={onDeleteAssignment}
             onPublishAssignment={onPublishAssignment}

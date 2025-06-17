@@ -1,13 +1,13 @@
-
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Users, Car, Clock, ArrowRight, UserCheck, Plus, Edit, Trash2, AlertCircle } from 'lucide-react';
+import { Calendar, Users, Car, Clock, ArrowRight, UserCheck, Plus, Edit, Trash2, AlertCircle, Send } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { Assignment } from '@/types/assignment';
 import { useAssignmentActions } from '@/hooks/assignment/useAssignmentActions';
+import { useAssignmentPublishing } from '@/hooks/useAssignmentPublishing';
 import WeekNavigation from './WeekNavigation';
 import AssignmentDetailsDialog from './AssignmentDetailsDialog';
 import AssignmentManagementDialog from './AssignmentManagementDialog';
@@ -57,6 +57,20 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
   const { createAssignment, updateAssignment, deleteAssignment } = useAssignmentActions(
     onRefresh || (() => {}),
     () => setIsManagementDialogOpen(false)
+  );
+
+  // Add publishing functionality
+  const { publishAssignment, publishAssignmentsByDate } = useAssignmentPublishing(
+    assignments,
+    async (assignment: Assignment) => {
+      try {
+        await updateAssignment(assignment.id, assignment);
+        return true;
+      } catch (error) {
+        console.error('Failed to update assignment:', error);
+        return false;
+      }
+    }
   );
 
   const handleAssignmentClick = (assignment: Assignment) => {
@@ -123,7 +137,9 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
       if (managementMode === 'create') {
         await createAssignment(assignmentData);
       } else if (assignmentToEdit) {
-        await updateAssignment(assignmentToEdit.id, assignmentData);
+        // When editing, mark as unpublished
+        const unpublishedData = { ...assignmentData, published: false };
+        await updateAssignment(assignmentToEdit.id, unpublishedData);
       }
     } catch (error) {
       console.error('[WeeklyAssignments] Save error:', error);
@@ -132,6 +148,35 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
         description: managementMode === 'create' ? t('planner.errorCreatingAssignment') : t('planner.errorUpdatingAssignment'),
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // New publishing handlers
+  const handlePublishAssignment = async (assignmentId: string) => {
+    setIsLoading(true);
+    try {
+      const success = await publishAssignment(assignmentId);
+      if (success && onRefresh) {
+        onRefresh();
+      }
+    } catch (error) {
+      console.error('[WeeklyAssignments] Publish assignment error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePublishDay = async (date: string) => {
+    setIsLoading(true);
+    try {
+      const success = await publishAssignmentsByDate(date);
+      if (success && onRefresh) {
+        onRefresh();
+      }
+    } catch (error) {
+      console.error('[WeeklyAssignments] Publish day error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -165,13 +210,26 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
     });
   }, [assignments]);
 
+  // Group assignments by date for bulk publishing
+  const groupedByDate = useMemo(() => {
+    const grouped: Record<string, Assignment[]> = {};
+    sortedAssignments.forEach(assignment => {
+      if (!grouped[assignment.date]) {
+        grouped[assignment.date] = [];
+      }
+      grouped[assignment.date].push(assignment);
+    });
+    return grouped;
+  }, [sortedAssignments]);
+
   console.log('[WeeklyAssignments] Rendering assignments:', sortedAssignments.map(a => ({
     id: a.id,
     title: a.title,
     location: a.location,
     car: a.car,
     responsibleUser: a.responsibleUser,
-    employees: a.employees
+    employees: a.employees,
+    published: a.published
   })));
 
   return (
@@ -203,15 +261,44 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
               {/* Action Buttons Row */}
               <div className="flex justify-between items-center gap-2">
                 {canManageAssignments && (
-                  <Button 
-                    onClick={handleCreateAssignment}
-                    size="sm"
-                    className="shadow-lg"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">{t('planner.newAssignment')}</span>
-                    <span className="sm:hidden">{t('planner.create')}</span>
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleCreateAssignment}
+                      size="sm"
+                      className="shadow-lg"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      <span className="hidden sm:inline">{t('planner.newAssignment')}</span>
+                      <span className="sm:hidden">{t('planner.create')}</span>
+                    </Button>
+                    
+                    {/* Add bulk publish buttons for each date */}
+                    {Object.keys(groupedByDate).map(date => {
+                      const dayAssignments = groupedByDate[date];
+                      const unpublishedCount = dayAssignments.filter(a => !a.published).length;
+                      
+                      if (unpublishedCount === 0) return null;
+                      
+                      return (
+                        <Button
+                          key={date}
+                          onClick={() => handlePublishDay(date)}
+                          size="sm"
+                          variant="outline"
+                          disabled={isLoading}
+                          className="shadow-lg"
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          <span className="hidden sm:inline">
+                            {t('planner.publishDay')} ({new Date(date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')})
+                          </span>
+                          <span className="sm:hidden">
+                            Publish {unpublishedCount}
+                          </span>
+                        </Button>
+                      );
+                    })}
+                  </div>
                 )}
                 
                 <Button variant="gradient" size="sm" asChild className="shadow-lg w-full sm:w-auto">
@@ -259,9 +346,19 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                         className="flex flex-col flex-1 cursor-pointer"
                         onClick={() => handleAssignmentClick(assignment)}
                       >
-                        <h3 className="font-bold text-lg text-left">
-                          {assignment.title || 'Untitled'}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-lg text-left">
+                            {assignment.title || 'Untitled'}
+                          </h3>
+                          {/* Published/Unpublished indicator */}
+                          <div className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            assignment.published 
+                              ? 'bg-green-100 text-green-800 border border-green-200' 
+                              : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                          }`}>
+                            {assignment.published ? t('planner.published') : t('planner.unpublished')}
+                          </div>
+                        </div>
                         {assignment.location && (
                           <p className="text-sm text-gray-600 text-left">
                             {assignment.location}
@@ -276,6 +373,21 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                         
                         {canManageAssignments && (
                           <div className="flex gap-1">
+                            {!assignment.published && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePublishAssignment(assignment.id);
+                                }}
+                                className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                                title={t('planner.publishAssignment')}
+                                disabled={isLoading}
+                              >
+                                <Send className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"

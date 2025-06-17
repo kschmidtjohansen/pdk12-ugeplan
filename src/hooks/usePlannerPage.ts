@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -155,8 +156,11 @@ export const usePlannerPage = () => {
   const handleSubmit = useCallback((data: Partial<Assignment>) => {
     try {
       if (currentAssignment) {
-        // Set the edited assignment as unpublished
-        const unpublishedData = getUnpublishedAssignment(data as Assignment);
+        // FIXED: When editing, always mark as unpublished
+        const unpublishedData = {
+          ...data,
+          published: false // Always unpublish when editing
+        };
         updateAssignment(currentAssignment.id, unpublishedData);
       } else {
         // This handles both new assignments and copied assignments
@@ -175,12 +179,22 @@ export const usePlannerPage = () => {
     }
   }, [currentAssignment, createAssignment, updateAssignment, setIsDialogOpen]);
 
-  // Fixed wrapper function that uses selectedDay internally
-  const handlePublishDay = useCallback(() => {
-    if (selectedDay) {
-      publishAssignmentsByDate(selectedDay);
+  // FIXED: Update handlePublishDay to accept and use date parameter
+  const handlePublishDay = useCallback((date?: string) => {
+    const dateToPublish = date || selectedDay;
+    console.log(`[usePlannerPage] Publishing assignments for date: ${dateToPublish}`);
+    
+    if (dateToPublish) {
+      publishAssignmentsByDate(dateToPublish);
+    } else {
+      console.error('[usePlannerPage] No date provided for publishing');
+      toast({
+        title: t('common.error'),
+        description: 'No date selected for publishing',
+        variant: 'destructive'
+      });
     }
-  }, [selectedDay, publishAssignmentsByDate]);
+  }, [selectedDay, publishAssignmentsByDate, toast, t]);
 
   // New function to publish all unpublished assignments
   const handlePublishAllUnpublished = useCallback(() => {

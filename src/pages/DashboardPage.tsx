@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -24,8 +23,8 @@ const DashboardPage: React.FC = () => {
   // Enhanced authentication monitoring
   const { authStatus } = useAuthenticationMonitor();
   
-  // Optimize data fetching - use single source for all assignments
-  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError, refetch: refetchAssignments } = useAssignmentsConsolidated({ 
+  // Fixed: Use fetchAssignments instead of refetch
+  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError, fetchAssignments } = useAssignmentsConsolidated({ 
     filter: 'all', 
     includeUnpublished: true 
   });
@@ -239,7 +238,7 @@ const DashboardPage: React.FC = () => {
             selectedWeek={selectedWeek}
             onPreviousWeek={handlePreviousWeek}
             onNextWeek={handleNextWeek}
-            onRefresh={refetchAssignments}
+            onRefresh={fetchAssignments}
           />
         </div>
       </div>
