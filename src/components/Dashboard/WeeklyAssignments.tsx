@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,30 +31,33 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
     setIsAssignmentDialogOpen(true);
   };
 
-  const sortedAssignments = assignments.sort((a, b) => {
-    const today = new Date().toISOString().split('T')[0];
-    const aIsToday = a.date === today;
-    const bIsToday = b.date === today;
-    const aIsFuture = a.date > today;
-    const bIsFuture = b.date > today;
-    const aIsPast = a.date < today;
-    const bIsPast = b.date < today;
-    
-    if (aIsToday && !bIsToday) return -1;
-    if (!aIsToday && bIsToday) return 1;
-    if (aIsFuture && bIsPast) return -1;
-    if (aIsPast && bIsFuture) return 1;
-    if (a.date !== b.date) {
-      if (aIsFuture && bIsFuture) {
+  // Memoize the sorted assignments to prevent unnecessary recalculations
+  const sortedAssignments = useMemo(() => {
+    return assignments.sort((a, b) => {
+      const today = new Date().toISOString().split('T')[0];
+      const aIsToday = a.date === today;
+      const bIsToday = b.date === today;
+      const aIsFuture = a.date > today;
+      const bIsFuture = b.date > today;
+      const aIsPast = a.date < today;
+      const bIsPast = b.date < today;
+      
+      if (aIsToday && !bIsToday) return -1;
+      if (!aIsToday && bIsToday) return 1;
+      if (aIsFuture && bIsPast) return -1;
+      if (aIsPast && bIsFuture) return 1;
+      if (a.date !== b.date) {
+        if (aIsFuture && bIsFuture) {
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        }
+        if (aIsPast && bIsPast) {
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        }
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       }
-      if (aIsPast && bIsPast) {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      }
-      return new Date(a.date).getTime() - new Date(b.date).getTime();
-    }
-    return a.fromTime.localeCompare(b.fromTime);
-  });
+      return a.fromTime.localeCompare(b.fromTime);
+    });
+  }, [assignments]);
 
   console.log('[WeeklyAssignments] Rendering assignments:', sortedAssignments.map(a => ({
     id: a.id,
@@ -113,7 +116,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                 {t('dashboard.noAssignments')}
               </h3>
               <p className="text-muted-foreground">
-                No assignments scheduled for this week
+                {t('dashboard.noAssignmentsScheduled')}
               </p>
             </div>
           ) : (

@@ -32,6 +32,7 @@ const dashboard = {
   scheduledToday: "Planlagt i dag",
   myAssignments: "Mine Opgaver",
   noAssignments: "Ingen opgaver denne uge",
+  noAssignmentsScheduled: "Ingen opgaver planlagt for denne uge",
   quickAccess: {
     title: "Hurtig adgang",
     planner: {
