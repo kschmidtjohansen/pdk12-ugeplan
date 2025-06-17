@@ -9,7 +9,7 @@ interface CurrentAndFutureDaysProps {
   groupedAssignments: Record<string, Assignment[]>;
   expandedDays: Record<string, boolean>;
   onToggleExpansion: (date: string) => void;
-  onPublishDay: (date: string) => void; // FIXED: Updated to accept date parameter
+  onPublishDay?: () => void;
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
@@ -44,7 +44,7 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
           dayAssignments={groupedAssignments[dateKey] || []} // Ensure we provide an empty array if undefined
           isExpanded={expandedDays[dateKey] !== false} // Default to expanded
           onToggleExpansion={onToggleExpansion}
-          onPublishDay={() => onPublishDay(dateKey)} // FIXED: Pass the dateKey to onPublishDay
+          onPublishDay={onPublishDay}
           onEditAssignment={onEditAssignment}
           onDeleteAssignment={onDeleteAssignment}
           onPublishAssignment={onPublishAssignment}

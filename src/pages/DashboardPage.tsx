@@ -23,8 +23,8 @@ const DashboardPage: React.FC = () => {
   // Enhanced authentication monitoring
   const { authStatus } = useAuthenticationMonitor();
   
-  // Fixed: Use fetchAssignments instead of refetch
-  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError, fetchAssignments } = useAssignmentsConsolidated({ 
+  // Optimize data fetching - use single source for all assignments
+  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError } = useAssignmentsConsolidated({ 
     filter: 'all', 
     includeUnpublished: true 
   });
@@ -107,7 +107,7 @@ const DashboardPage: React.FC = () => {
   }, [user?.id, updateEmployeeLeaveStatusFromVacations]);
 
   // Get the dates for the selected week
-  const weekDates = getCurrentWeekDates(selectedWeek,selectedYear);
+  const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
   const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
   const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
 
@@ -238,7 +238,6 @@ const DashboardPage: React.FC = () => {
             selectedWeek={selectedWeek}
             onPreviousWeek={handlePreviousWeek}
             onNextWeek={handleNextWeek}
-            onRefresh={fetchAssignments}
           />
         </div>
       </div>

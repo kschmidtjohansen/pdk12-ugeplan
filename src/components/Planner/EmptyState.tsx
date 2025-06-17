@@ -7,19 +7,13 @@ interface EmptyStateProps {
   onCreateNew?: (date: string) => void;
   canCreate?: boolean;
   selectedWeek?: number;
-  selectedYear?: number; // Add the missing prop
-  onCreateAssignment?: (date: string) => void; // Add this prop for consistency
-  canEdit?: boolean; // Add this prop for consistency
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({ 
   message,
   onCreateNew,
   canCreate,
-  selectedWeek,
-  selectedYear,
-  onCreateAssignment,
-  canEdit
+  selectedWeek
 }) => {
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">

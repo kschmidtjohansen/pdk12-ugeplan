@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,24 +14,16 @@ import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 
 interface UnassignedResourcesSectionProps {
   assignments: Assignment[];
-  employees?: Employee[];
+  employees: Employee[];
   cars: CarType[];
-  vacations?: Vacation[];
-  onCreateAssignment?: (date: string) => void; // Add the missing prop
-  weekDates?: { start: Date; end: Date } | null;
-  canEdit?: boolean;
-  handleShowOnScreen?: () => void;
+  vacations: Vacation[];
 }
 
 const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   assignments,
-  employees = [],
+  employees,
   cars,
-  vacations = [],
-  onCreateAssignment,
-  weekDates,
-  canEdit,
-  handleShowOnScreen
+  vacations
 }) => {
   const { t, currentLanguage } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
