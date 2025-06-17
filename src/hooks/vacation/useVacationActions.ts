@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -74,12 +75,12 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
         end_time: requestData.requestType === 'partial_day' ? requestData.endTime : null,
         is_same_day: isSameDay,
         reason: requestData.reason,
-        status: 'pending'
+        status: 'pending' as const
       };
 
       const { data, error } = await supabase
         .from('vacations')
-        .insert([vacationData])
+        .insert(vacationData)
         .select()
         .single();
 
@@ -337,7 +338,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
       const { error } = await supabase
         .from('vacations')
         .update({
-          status: 'approved',
+          status: 'approved' as const,
           notes: notes || null,
           updated_at: new Date().toISOString()
         })
@@ -450,7 +451,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
       const { error } = await supabase
         .from('vacations')
         .update({
-          status: 'rejected',
+          status: 'rejected' as const,
           notes: reason,
           updated_at: new Date().toISOString()
         })
