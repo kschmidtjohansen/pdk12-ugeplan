@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -343,7 +344,7 @@ export const useAssignmentsConsolidated = ({
     }
   };
 
-  // Update assignment
+  // Update assignment - FIXED: Always unpublish when editing
   const updateAssignment = async (id: string, assignmentData: Partial<Assignment>) => {
     try {
       console.log("Updating assignment with data:", assignmentData);
@@ -377,7 +378,7 @@ export const useAssignmentsConsolidated = ({
         }
       }
       
-      // Update the assignment
+      // Update the assignment - ALWAYS UNPUBLISH WHEN EDITING
       const { error } = await supabase
         .from('assignments')
         .update({
@@ -390,7 +391,7 @@ export const useAssignmentsConsolidated = ({
           car_id: carId, // Keep for backward compatibility
           car_ids: carIds.length > 0 ? carIds : null, // New field for multiple cars
           responsible_user_id: responsibleUserId,
-          published: assignmentData.published,
+          published: false, // ALWAYS unpublish when editing
           updated_at: new Date().toISOString()
         })
         .eq('id', id);
@@ -508,9 +509,11 @@ export const useAssignmentsConsolidated = ({
     }
   };
 
-  // Publish single assignment
+  // FIXED: Publish single assignment
   const publishAssignment = async (id: string) => {
     try {
+      console.log('[Publishing] Publishing single assignment:', id);
+      
       const { error } = await supabase
         .from('assignments')
         .update({ published: true })
@@ -536,9 +539,11 @@ export const useAssignmentsConsolidated = ({
     }
   };
 
-  // Publish assignments by date
+  // FIXED: Publish assignments by date
   const publishAssignmentsByDate = async (date: string) => {
     try {
+      console.log('[Publishing] Publishing assignments for date:', date);
+      
       const { error } = await supabase
         .from('assignments')
         .update({ published: true })

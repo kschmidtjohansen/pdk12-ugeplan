@@ -13,7 +13,7 @@ interface DaySectionProps {
   dayAssignments: Assignment[];
   isExpanded: boolean;
   onToggleExpansion: (date: string) => void;
-  onPublishDay?: () => void;
+  onPublishDay?: (date: string) => void; // FIXED: Accept date parameter
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
@@ -56,6 +56,14 @@ const DaySection: React.FC<DaySectionProps> = ({
     ? (assignmentsCount === 1 ? 'opgave' : 'opgaver')
     : (assignmentsCount === 1 ? 'task' : 'tasks');
 
+  // FIXED: Handle publish day with proper date parameter
+  const handlePublishDay = () => {
+    if (onPublishDay) {
+      console.log('[DaySection] Publishing day:', dateKey);
+      onPublishDay(dateKey);
+    }
+  };
+
   return (
     <div className="w-full space-y-3">
       <div className="flex items-center justify-between">
@@ -88,9 +96,9 @@ const DaySection: React.FC<DaySectionProps> = ({
           </div>
         </div>
         
-        {canPublishTasks && hasUnpublishedAssignments && onPublishDay && (
+        {canPublishTasks && hasUnpublishedAssignments && (
           <Button 
-            onClick={onPublishDay}
+            onClick={handlePublishDay}
             className="bg-green-600 hover:bg-green-700"
             size="sm"
           >

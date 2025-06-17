@@ -9,7 +9,6 @@ import {
   getNextWeekInfo
 } from '@/utils/dates';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
-import { getUnpublishedAssignment } from '@/hooks/useAssignmentPublishing';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 
@@ -108,7 +107,10 @@ export const usePlannerPage = () => {
     setIsDialogOpen(true);
   }, [setIsDialogOpen, getFreshToday]);
 
+  // FIXED: Properly handle edit dialog opening
   const handleOpenEditDialog = useCallback((assignment: Assignment) => {
+    console.log('[usePlannerPage] Opening edit dialog for assignment:', assignment);
+    
     setCurrentAssignment(assignment);
     setSelectedDay(assignment.date);
     
@@ -152,11 +154,18 @@ export const usePlannerPage = () => {
     setIsDialogOpen(true);
   }, [setIsDialogOpen, toast, t, getFreshToday]);
 
+  // FIXED: Handle form submission with proper unpublishing for edits
   const handleSubmit = useCallback((data: Partial<Assignment>) => {
     try {
+      console.log('[usePlannerPage] Submitting form with data:', data);
+      
       if (currentAssignment) {
-        // Set the edited assignment as unpublished
-        const unpublishedData = getUnpublishedAssignment(data as Assignment);
+        // Editing existing assignment - automatically unpublish
+        const unpublishedData = {
+          ...data,
+          published: false // Always unpublish when editing
+        };
+        console.log('[usePlannerPage] Updating assignment with unpublished data:', unpublishedData);
         updateAssignment(currentAssignment.id, unpublishedData);
       } else {
         // This handles both new assignments and copied assignments
@@ -166,6 +175,7 @@ export const usePlannerPage = () => {
           published: false
         } as Assignment;
         
+        console.log('[usePlannerPage] Creating new assignment:', newAssignment);
         createAssignment(newAssignment);
       }
       setIsDialogOpen(false);
@@ -175,12 +185,11 @@ export const usePlannerPage = () => {
     }
   }, [currentAssignment, createAssignment, updateAssignment, setIsDialogOpen]);
 
-  // Fixed wrapper function that uses selectedDay internally
-  const handlePublishDay = useCallback(() => {
-    if (selectedDay) {
-      publishAssignmentsByDate(selectedDay);
-    }
-  }, [selectedDay, publishAssignmentsByDate]);
+  // FIXED: Publish day function that accepts date parameter
+  const handlePublishDay = useCallback((date: string) => {
+    console.log('[usePlannerPage] Publishing day:', date);
+    publishAssignmentsByDate(date);
+  }, [publishAssignmentsByDate]);
 
   // New function to publish all unpublished assignments
   const handlePublishAllUnpublished = useCallback(() => {
