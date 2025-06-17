@@ -1,5 +1,4 @@
 
-
 const employees = {
   title: 'Medarbejdere',
   description: 'Vis og administrer medarbejdere.',
@@ -16,7 +15,7 @@ const employees = {
   jobTitle: 'Jobtitel',
   role: 'Rolle',
   status: 'Status',
-  onLeave: 'På orlov',
+  onLeave: 'Ikke ledig',
   available: 'Tilgængelig',
   availability: 'Tilgængelighed',
   notes: 'Noter',
@@ -73,4 +72,3 @@ const employees = {
 };
 
 export default employees;
-
