@@ -5,12 +5,13 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Users, Settings, BarChart3, Activity, Zap } from 'lucide-react';
+import { Shield, Users, Settings, BarChart3, Activity, Zap, Trash2 } from 'lucide-react';
 import UserManagement from '@/components/Admin/UserManagement';
 import { SystemHealthDashboard } from '@/components/Admin/SystemHealthDashboard';
 import { SecurityLogViewer } from '@/components/Admin/SecurityLogViewer';
 import { ComprehensiveDiagnosticsPanel } from '@/components/Admin/ComprehensiveDiagnosticsPanel';
 import { PerformanceMonitoringPanel } from '@/components/Admin/PerformanceMonitoringPanel';
+import { SystemCleanupPanel } from '@/components/Admin/SystemCleanupPanel';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
 
 const AdminPage: React.FC = () => {
@@ -49,10 +50,14 @@ const AdminPage: React.FC = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <BarChart3 className="h-4 w-4" />
               <span>{t('admin.tabs.overview')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="cleanup" className="flex items-center space-x-2">
+              <Trash2 className="h-4 w-4" />
+              <span>Cleanup</span>
             </TabsTrigger>
             <TabsTrigger value="diagnostics" className="flex items-center space-x-2">
               <Activity className="h-4 w-4" />
@@ -86,6 +91,20 @@ const AdminPage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <SystemHealthDashboard />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="cleanup" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>System Cleanup & Maintenance</CardTitle>
+                <CardDescription>
+                  Manage database cleanup operations and system optimization
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SystemCleanupPanel />
               </CardContent>
             </Card>
           </TabsContent>

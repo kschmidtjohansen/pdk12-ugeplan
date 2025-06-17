@@ -26,10 +26,14 @@ export const useSecurityMonitoring = (config: Partial<SecurityConfig> = {}) => {
     suspiciousActivities: Array<{ type: string; timestamp: number; details: any }>;
     rapidClicks: number;
     lastClickTime: number;
+    mouseMoveCount: number;
+    lastMouseMoveTime: number;
   }>({
     suspiciousActivities: [],
     rapidClicks: 0,
-    lastClickTime: 0
+    lastClickTime: 0,
+    mouseMoveCount: 0,
+    lastMouseMoveTime: 0
   });
 
   // Track user activity for session management
@@ -37,56 +41,108 @@ export const useSecurityMonitoring = (config: Partial<SecurityConfig> = {}) => {
     lastActivityRef.current = Date.now();
   }, []);
 
-  // Detect suspicious activity patterns
+  // Improved suspicious activity detection with better thresholds
   const detectSuspiciousActivity = useCallback((activityType: string, details: any = {}) => {
     if (!finalConfig.enableThreatDetection) return;
 
     const now = Date.now();
     const threat = threatDetectionRef.current;
 
-    // Track rapid clicking (potential bot behavior)
-    if (activityType === 'click') {
-      if (now - threat.lastClickTime < 100) {
-        threat.rapidClicks++;
-        if (threat.rapidClicks > 10) {
+    // Handle mouse movements with realistic thresholds
+    if (activityType === 'mousemove') {
+      const timeSinceLastMove = now - threat.lastMouseMoveTime;
+      
+      // Only consider it suspicious if it's extremely rapid (less than 5ms between moves)
+      // Normal mouse movement is 16-33ms between events
+      if (timeSinceLastMove < 5 && timeSinceLastMove > 0) {
+        threat.mouseMoveCount++;
+        
+        // Only log if we have sustained ultra-rapid movement (100+ events in rapid succession)
+        if (threat.mouseMoveCount > 100) {
           logSecurityEvent(
             'suspicious_activity',
-            'Rapid clicking detected - possible bot behavior',
-            { rapidClicks: threat.rapidClicks, timeWindow: now - threat.lastClickTime },
+            'Ultra-rapid mouse movement detected - possible automation',
+            { 
+              mouseMoveCount: threat.mouseMoveCount, 
+              avgInterval: timeSinceLastMove,
+              timeWindow: '5ms threshold' 
+            },
+            'warning'
+          );
+          threat.mouseMoveCount = 0; // Reset after logging
+        }
+      } else {
+        // Reset counter for normal mouse movement
+        threat.mouseMoveCount = Math.max(0, threat.mouseMoveCount - 1);
+      }
+      
+      threat.lastMouseMoveTime = now;
+      return; // Don't add normal mouse moves to suspicious activities
+    }
+
+    // Handle clicks with improved thresholds
+    if (activityType === 'mousedown') {
+      const timeSinceLastClick = now - threat.lastClickTime;
+      
+      // Only consider clicks suspicious if they're under 50ms apart (inhuman speed)
+      if (timeSinceLastClick < 50 && timeSinceLastClick > 0) {
+        threat.rapidClicks++;
+        
+        // Require 20+ rapid clicks before flagging (was 10)
+        if (threat.rapidClicks > 20) {
+          logSecurityEvent(
+            'suspicious_activity',
+            'Rapid clicking detected - possible automation',
+            { 
+              rapidClicks: threat.rapidClicks, 
+              avgInterval: timeSinceLastClick,
+              threshold: '50ms' 
+            },
             'warning'
           );
           threat.rapidClicks = 0; // Reset after logging
         }
-      } else {
+      } else if (timeSinceLastClick > 200) {
+        // Reset counter after normal pause between clicks
         threat.rapidClicks = 0;
       }
+      
       threat.lastClickTime = now;
     }
 
-    // Track suspicious activities
-    threat.suspiciousActivities.push({
-      type: activityType,
-      timestamp: now,
-      details
-    });
+    // Only track actually suspicious activities, not normal user interactions
+    if (activityType !== 'mousemove' && activityType !== 'scroll' && activityType !== 'keypress') {
+      threat.suspiciousActivities.push({
+        type: activityType,
+        timestamp: now,
+        details
+      });
 
-    // Clean old activities (keep last 5 minutes)
-    threat.suspiciousActivities = threat.suspiciousActivities.filter(
-      activity => now - activity.timestamp < 300000
-    );
-
-    // Detect patterns in suspicious activities
-    const recentActivities = threat.suspiciousActivities.filter(
-      activity => now - activity.timestamp < 60000
-    );
-
-    if (recentActivities.length > 20) {
-      logSecurityEvent(
-        'suspicious_activity',
-        'High frequency of activities detected',
-        { activitiesCount: recentActivities.length, activities: recentActivities.slice(-5) },
-        'warning'
+      // Clean old activities (keep last 5 minutes)
+      threat.suspiciousActivities = threat.suspiciousActivities.filter(
+        activity => now - activity.timestamp < 300000
       );
+
+      // Only alert on truly unusual patterns (increased threshold from 20 to 50)
+      const recentActivities = threat.suspiciousActivities.filter(
+        activity => now - activity.timestamp < 60000
+      );
+
+      if (recentActivities.length > 50) {
+        logSecurityEvent(
+          'suspicious_activity',
+          'High frequency of unusual activities detected',
+          { 
+            activitiesCount: recentActivities.length, 
+            activities: recentActivities.slice(-3), // Only show last 3 instead of 5
+            threshold: '50 activities per minute'
+          },
+          'warning'
+        );
+        
+        // Clear some activities to prevent spam
+        threat.suspiciousActivities = threat.suspiciousActivities.slice(-10);
+      }
     }
   }, [finalConfig.enableThreatDetection]);
 
@@ -136,15 +192,31 @@ export const useSecurityMonitoring = (config: Partial<SecurityConfig> = {}) => {
     };
   }, [isAuthenticated, finalConfig, logout]);
 
-  // Activity listeners for session management
+  // Improved activity listeners with better filtering
   useEffect(() => {
     if (!isAuthenticated || !finalConfig.enableActivityLogging) return;
 
-    const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    // Throttle mouse move events to prevent spam
+    let mouseMoveThrottle: NodeJS.Timeout | null = null;
     
     const handleActivity = (e: Event) => {
       updateActivity();
-      if (finalConfig.enableThreatDetection) {
+      
+      if (!finalConfig.enableThreatDetection) return;
+
+      // Throttle mouse moves to max once per 100ms to reduce false positives
+      if (e.type === 'mousemove') {
+        if (mouseMoveThrottle) return;
+        
+        mouseMoveThrottle = setTimeout(() => {
+          mouseMoveThrottle = null;
+          detectSuspiciousActivity(e.type, {
+            target: e.target instanceof Element ? e.target.tagName : 'unknown',
+            timestamp: Date.now()
+          });
+        }, 100);
+      } else {
+        // Handle other events normally
         detectSuspiciousActivity(e.type, {
           target: e.target instanceof Element ? e.target.tagName : 'unknown',
           timestamp: Date.now()
@@ -152,6 +224,9 @@ export const useSecurityMonitoring = (config: Partial<SecurityConfig> = {}) => {
       }
     };
 
+    // Only monitor truly relevant events
+    const activityEvents = ['mousedown', 'keypress', 'mousemove'];
+    
     activityEvents.forEach(event => {
       document.addEventListener(event, handleActivity, { passive: true });
     });
@@ -160,6 +235,10 @@ export const useSecurityMonitoring = (config: Partial<SecurityConfig> = {}) => {
       activityEvents.forEach(event => {
         document.removeEventListener(event, handleActivity);
       });
+      
+      if (mouseMoveThrottle) {
+        clearTimeout(mouseMoveThrottle);
+      }
     };
   }, [isAuthenticated, finalConfig, updateActivity, detectSuspiciousActivity]);
 

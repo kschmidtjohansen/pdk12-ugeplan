@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Shield, Database, AlertTriangle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Shield, Database, AlertTriangle, CheckCircle2, RefreshCw, Activity } from 'lucide-react';
 import { useSystemHealthMonitoring } from '@/hooks/useSystemHealthMonitoring';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
@@ -17,6 +17,19 @@ export const SystemHealthDashboard: React.FC = () => {
   if (!user || user.role !== 'administrator') {
     return null;
   }
+
+  const getHealthStatusColor = () => {
+    if (isHealthy) return 'text-green-600';
+    if (metrics.recentErrors > 5) return 'text-red-600';
+    return 'text-yellow-600';
+  };
+
+  const getHealthStatusText = () => {
+    if (isHealthy && metrics.recentErrors === 0) return 'Excellent';
+    if (isHealthy && metrics.recentErrors <= 2) return 'Good';
+    if (metrics.recentErrors <= 5) return 'Warning';
+    return 'Critical';
+  };
 
   return (
     <div className="space-y-6">
@@ -52,7 +65,7 @@ export const SystemHealthDashboard: React.FC = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('admin.systemHealth.systemStatus')}</CardTitle>
-            {isHealthy ? (
+            {isHealthy && metrics.recentErrors <= 2 ? (
               <CheckCircle2 className="h-4 w-4 text-green-600" />
             ) : (
               <AlertTriangle className="h-4 w-4 text-yellow-600" />
@@ -60,8 +73,8 @@ export const SystemHealthDashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              <Badge variant={isHealthy ? "default" : "secondary"}>
-                {metrics.systemHealth?.status || t('admin.systemHealth.unknown')}
+              <Badge variant={isHealthy && metrics.recentErrors <= 2 ? "default" : "secondary"}>
+                {getHealthStatusText()}
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -78,7 +91,7 @@ export const SystemHealthDashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.totalSecurityEvents}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className={`text-xs ${metrics.recentErrors > 5 ? 'text-red-600' : 'text-muted-foreground'}`}>
               {metrics.recentErrors} {t('admin.systemHealth.errorsIn24h')}
             </p>
           </CardContent>
@@ -100,18 +113,18 @@ export const SystemHealthDashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Database Functions */}
+        {/* System Performance */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('admin.systemHealth.functions')}</CardTitle>
-            <Database className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Performance</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {metrics.systemHealth?.function_count || 0}
+            <div className={`text-2xl font-bold ${getHealthStatusColor()}`}>
+              {metrics.recentErrors === 0 ? '100%' : `${Math.max(0, 100 - metrics.recentErrors * 5)}%`}
             </div>
             <p className="text-xs text-muted-foreground">
-              {metrics.systemHealth?.table_count || 0} {t('admin.systemHealth.totalTables')}
+              System uptime score
             </p>
           </CardContent>
         </Card>
@@ -123,7 +136,7 @@ export const SystemHealthDashboard: React.FC = () => {
           <CardHeader>
             <CardTitle>{t('admin.systemHealth.systemDetails')}</CardTitle>
             <CardDescription>
-              {t('admin.systemHealth.description')}
+              Comprehensive system health overview and security metrics
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -141,12 +154,26 @@ export const SystemHealthDashboard: React.FC = () => {
                 <h4 className="font-semibold mb-2">{t('admin.systemHealth.securityOverview')}</h4>
                 <ul className="space-y-1 text-sm">
                   <li>{t('admin.systemHealth.totalEvents')}: {metrics.totalSecurityEvents}</li>
-                  <li>{t('admin.systemHealth.recentErrors')}: {metrics.recentErrors}</li>
-                  <li>{t('admin.common.status')}: {metrics.systemHealth.status}</li>
+                  <li className={metrics.recentErrors > 5 ? 'text-red-600' : ''}>
+                    {t('admin.systemHealth.recentErrors')}: {metrics.recentErrors}
+                  </li>
+                  <li>{t('admin.common.status')}: {getHealthStatusText()}</li>
                   <li>{t('admin.systemHealth.lastCheck')}: {new Date(metrics.systemHealth.timestamp).toLocaleString()}</li>
                 </ul>
               </div>
             </div>
+            
+            {metrics.recentErrors > 5 && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                <div className="flex items-center space-x-2 text-red-600">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span className="font-medium">High Error Rate Detected</span>
+                </div>
+                <p className="text-sm text-red-600 mt-1">
+                  System has logged {metrics.recentErrors} errors in the last 24 hours. Please review security logs for details.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
