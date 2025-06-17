@@ -58,16 +58,34 @@ export const useErrorRecovery = (options: ErrorRecoveryOptions = {}) => {
           console.warn(`[ErrorRecovery] ${operationName} failed on attempt ${attempts}:`, error);
         }
 
-        // Log critical errors to database
+        // Enhanced error categorization
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        let errorCategory = 'unknown';
+        
+        if (errorMessage.includes('JWT') || errorMessage.includes('auth') || errorMessage.includes('unauthorized')) {
+          errorCategory = 'authentication';
+        } else if (errorMessage.includes('RLS') || errorMessage.includes('policy') || errorMessage.includes('permission')) {
+          errorCategory = 'authorization';
+        } else if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('timeout')) {
+          errorCategory = 'network';
+        } else if (errorMessage.includes('relation') || errorMessage.includes('column') || errorMessage.includes('table')) {
+          errorCategory = 'database_schema';
+        }
+
+        // Log critical errors to database with enhanced details
         if (attempts === 1) {
           try {
             await supabase.rpc('log_security_event_safe', {
-              event_type: 'operation_failure',
-              event_message: `${operationName} failed: ${error}`,
+              event_type: `${operationName.toLowerCase()}_failure`,
+              event_message: `${operationName} failed: ${errorMessage}`,
               event_details: { 
                 operation: operationName, 
-                error: String(error),
-                attempt: attempts
+                error: errorMessage,
+                error_category: errorCategory,
+                attempt: attempts,
+                timestamp: new Date().toISOString(),
+                user_agent: navigator.userAgent,
+                url: window.location.href
               },
               severity: 'error'
             });
@@ -84,15 +102,26 @@ export const useErrorRecovery = (options: ErrorRecoveryOptions = {}) => {
       }
     }
 
-    // All attempts failed
+    // All attempts failed - provide specific error messaging
     if (enableLogging) {
       console.error(`[ErrorRecovery] ${operationName} failed after ${maxRetries} attempts:`, lastError);
+    }
+
+    const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
+    let userFriendlyMessage = `${operationName} failed after ${maxRetries} attempts. Please try again later.`;
+    
+    if (errorMessage.includes('JWT') || errorMessage.includes('auth')) {
+      userFriendlyMessage = 'Session expired. Please log in again.';
+    } else if (errorMessage.includes('RLS') || errorMessage.includes('policy')) {
+      userFriendlyMessage = 'Access denied. You may not have permission to view this data.';
+    } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+      userFriendlyMessage = 'Network error. Please check your connection and try again.';
     }
 
     // Show user-friendly error message
     toast({
       title: `${operationName} Failed`,
-      description: `Operation failed after ${maxRetries} attempts. Please try again later.`,
+      description: userFriendlyMessage,
       variant: 'destructive'
     });
 

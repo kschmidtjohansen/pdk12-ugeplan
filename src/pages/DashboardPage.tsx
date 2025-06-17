@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -7,6 +6,7 @@ import { useAssignmentsConsolidated } from '@/hooks/useAssignmentsConsolidated';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
+import { useAuthenticationMonitor } from '@/hooks/useAuthenticationMonitor';
 import { AssignmentFilterService } from '@/services/assignmentFilterService';
 import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
 import { getDailyQuote } from '@/utils/dailyQuotes';
@@ -20,8 +20,11 @@ const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   
+  // Enhanced authentication monitoring
+  const { authStatus } = useAuthenticationMonitor();
+  
   // Optimize data fetching - use single source for all assignments
-  const { assignments: allAssignments, loading: assignmentsLoading } = useAssignmentsConsolidated({ 
+  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError } = useAssignmentsConsolidated({ 
     filter: 'all', 
     includeUnpublished: true 
   });
@@ -37,6 +40,9 @@ const DashboardPage: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(todayISOYear);
 
   const dailyQuote = getDailyQuote();
+
+  // Show connection status if there are issues
+  const showConnectionIssue = !authStatus.sessionValid || authStatus.connectionStatus === 'disconnected';
 
   // Memoize filtered assignments to prevent recalculation on every render
   const { publishedAssignments, userAssignments } = useMemo(() => {
@@ -131,11 +137,31 @@ const DashboardPage: React.FC = () => {
   const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
   const selectedDateForMetrics = getSelectedDateForMetrics();
 
-  // Show loading state while assignments are being fetched
+  // Enhanced loading state with connection status
   if (assignmentsLoading) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
+          {showConnectionIssue && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    Connection Status: {authStatus.connectionStatus}
+                  </h3>
+                  <div className="mt-1 text-sm text-yellow-700">
+                    {!authStatus.sessionValid && <p>Session validation failed</p>}
+                    {authStatus.tokenExpiring && <p>Token expiring soon</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded mb-4"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -150,9 +176,48 @@ const DashboardPage: React.FC = () => {
     );
   }
 
+  // Show error state if there are critical errors
+  if (assignmentsError && assignmentsError.includes('auth')) {
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+        <div className="text-center p-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Authentication Required</h2>
+          <p className="text-gray-600 mb-4">Please log in to access the dashboard.</p>
+          <button 
+            onClick={() => window.location.href = '/login'} 
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
+        {/* Connection Status Warning */}
+        {showConnectionIssue && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-yellow-800">
+                  Connection Issue Detected
+                </h3>
+                <div className="mt-1 text-sm text-yellow-700">
+                  Some data may not be up to date. Check your internet connection or try refreshing the page.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Welcome Header */}
         <WelcomeHeader userName={user?.name} dailyQuote={dailyQuote} />
 

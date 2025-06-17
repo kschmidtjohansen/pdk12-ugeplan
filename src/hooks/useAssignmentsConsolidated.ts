@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -6,6 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useEmployees } from './useEmployees';
 import { useVacations } from './useVacations';
 import { cleanupAssignmentEmployees } from '@/utils/employeeAssignmentUtils';
+import { useErrorRecovery } from './useErrorRecovery';
+import { dataFetchingService } from '@/services/dataFetchingService';
 
 interface UseAssignmentsConsolidatedProps {
   filter?: 'all' | 'dashboard' | 'planner';
@@ -24,94 +27,93 @@ export const useAssignmentsConsolidated = ({
   const { t } = useTranslation();
   const { employees } = useEmployees();
   const { vacations } = useVacations();
+  const { executeWithRecovery } = useErrorRecovery();
 
-  // Fetch assignments from Supabase with optimized single query
+  // Fetch assignments with enhanced error handling and caching
   const fetchAssignments = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('[useAssignmentsConsolidated] Starting optimized assignment fetch...');
-      
-      // Single optimized query with all necessary joins
-      let query = supabase
-        .from('assignments')
-        .select(`
-          id,
-          title,
-          description,
-          assignment_date,
-          from_time,
-          to_time,
-          location,
-          car_id,
-          car_ids,
-          published,
-          responsible_user_id,
-          created_at,
-          updated_at,
-          cars:car_id (
-            id,
-            name,
-            car_number
-          ),
-          responsible_user:responsible_user_id (
-            id,
-            name
-          )
-        `)
-        .order('assignment_date', { ascending: true });
+      console.log('[useAssignmentsConsolidated] Starting enhanced assignment fetch...');
 
-      // Apply filter based on published status
-      if (!includeUnpublished) {
-        query = query.eq('published', true);
+      const result = await executeWithRecovery(
+        async () => {
+          // Use the new data fetching service
+          const { data: assignmentsData, error: assignmentsError, fromCache } = await dataFetchingService.fetchAssignments(includeUnpublished);
+          
+          if (assignmentsError) throw assignmentsError;
+          
+          if (fromCache) {
+            console.log('[useAssignmentsConsolidated] Using cached assignment data');
+          }
+          
+          return assignmentsData;
+        },
+        'Assignment Data Fetch'
+      );
+
+      if (result.error || !result.data) {
+        throw result.error || new Error('No assignment data received');
       }
 
-      const { data: assignmentsData, error: assignmentsError } = await query;
+      const assignmentsData = result.data;
+      console.log('[useAssignmentsConsolidated] Fetched assignments:', assignmentsData.length);
       
-      if (assignmentsError) throw assignmentsError;
-      
-      console.log('[useAssignmentsConsolidated] Fetched assignments:', assignmentsData?.length || 0);
-      
-      if (assignmentsData) {
-        // Optimize employee relationship fetching with separate queries to avoid join issues
+      if (assignmentsData && assignmentsData.length > 0) {
+        // Process employee relationships with better error handling
         const assignmentIds = assignmentsData.map(a => a.id);
         
-        // First, get assignment-employee relationships
-        const { data: assignmentEmployees, error: employeeError } = await supabase
-          .from('assignments_employees')
-          .select('assignment_id, user_id')
-          .in('assignment_id', assignmentIds);
-        
-        if (employeeError) {
-          if (process.env.NODE_ENV === 'development') {
-            console.warn('[useAssignmentsConsolidated] Error fetching assignment employees:', employeeError);
-          }
-        }
+        const employeeResult = await executeWithRecovery(
+          async () => {
+            const { data: assignmentEmployees, error: employeeError } = await supabase
+              .from('assignments_employees')
+              .select('assignment_id, user_id')
+              .in('assignment_id', assignmentIds);
+            
+            if (employeeError) throw employeeError;
+            return assignmentEmployees;
+          },
+          'Assignment Employees Fetch'
+        );
 
-        // Then, get the profile names for the user IDs
-        let profileNames: Record<string, string> = {};
-        if (assignmentEmployees && assignmentEmployees.length > 0) {
-          const userIds = [...new Set(assignmentEmployees.map(ae => ae.user_id))];
+        let employeesByAssignment = new Map<string, string[]>();
+        
+        if (employeeResult.data && employeeResult.data.length > 0) {
+          const userIds = [...new Set(employeeResult.data.map(ae => ae.user_id))];
           
-          const { data: profiles, error: profileError } = await supabase
-            .from('profiles')
-            .select('id, name')
-            .in('id', userIds);
-          
-          if (profileError) {
-            if (process.env.NODE_ENV === 'development') {
-              console.warn('[useAssignmentsConsolidated] Error fetching profiles:', profileError);
-            }
-          } else if (profiles) {
-            profileNames = profiles.reduce((acc, profile) => {
+          const profileResult = await executeWithRecovery(
+            async () => {
+              const { data: profiles, error: profileError } = await supabase
+                .from('profiles')
+                .select('id, name')
+                .in('id', userIds);
+              
+              if (profileError) throw profileError;
+              return profiles;
+            },
+            'Employee Profiles Fetch'
+          );
+
+          if (profileResult.data) {
+            const profileNames = profileResult.data.reduce((acc, profile) => {
               acc[profile.id] = profile.name;
               return acc;
             }, {} as Record<string, string>);
+
+            employeeResult.data.forEach(ae => {
+              if (!employeesByAssignment.has(ae.assignment_id)) {
+                employeesByAssignment.set(ae.assignment_id, []);
+              }
+              const employeeName = profileNames[ae.user_id];
+              if (employeeName) {
+                employeesByAssignment.get(ae.assignment_id)?.push(employeeName);
+              }
+            });
           }
         }
 
-        // Batch fetch car data for multiple cars
+        // Process car data with better error handling
         const allCarIds = new Set<string>();
         assignmentsData.forEach(assignment => {
           if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
@@ -122,37 +124,25 @@ export const useAssignmentsConsolidated = ({
           }
         });
 
-        let carsData: any[] = [];
+        let carLookup = new Map();
         if (allCarIds.size > 0) {
-          const { data: cars, error: carsError } = await supabase
-            .from('cars')
-            .select('id, name, car_number')
-            .in('id', Array.from(allCarIds));
-          
-          if (carsError) {
-            if (process.env.NODE_ENV === 'development') {
-              console.warn('[useAssignmentsConsolidated] Error fetching cars:', carsError);
-            }
-          } else {
-            carsData = cars || [];
+          const carResult = await executeWithRecovery(
+            async () => {
+              const { data: cars, error: carsError } = await supabase
+                .from('cars')
+                .select('id, name, car_number')
+                .in('id', Array.from(allCarIds));
+              
+              if (carsError) throw carsError;
+              return cars;
+            },
+            'Car Data Fetch'
+          );
+
+          if (carResult.data) {
+            carLookup = new Map(carResult.data.map(car => [car.id, car]));
           }
         }
-        
-        // Create lookup maps for O(1) access instead of nested loops
-        const employeesByAssignment = new Map<string, string[]>();
-        if (assignmentEmployees) {
-          assignmentEmployees.forEach(ae => {
-            if (!employeesByAssignment.has(ae.assignment_id)) {
-              employeesByAssignment.set(ae.assignment_id, []);
-            }
-            const employeeName = profileNames[ae.user_id];
-            if (employeeName) {
-              employeesByAssignment.get(ae.assignment_id)?.push(employeeName);
-            }
-          });
-        }
-
-        const carLookup = new Map(carsData.map(car => [car.id, car]));
         
         // Process assignments with optimized lookups
         const processedAssignments = assignmentsData.map(assignment => {
@@ -202,24 +192,27 @@ export const useAssignmentsConsolidated = ({
         let cleanedAssignments = processedAssignments;
         if (employees.length > 0 && vacations.length >= 0) {
           cleanedAssignments = cleanupAssignmentEmployees(processedAssignments, employees, vacations);
-          if (process.env.NODE_ENV === 'development') {
-            console.log('[useAssignmentsConsolidated] Applied employee availability cleanup');
-          }
+          console.log('[useAssignmentsConsolidated] Applied employee availability cleanup');
         }
         
         setAssignments(cleanedAssignments);
-        console.log('[useAssignmentsConsolidated] Optimized fetch completed:', cleanedAssignments.length, 'assignments');
+        console.log('[useAssignmentsConsolidated] Enhanced fetch completed:', cleanedAssignments.length, 'assignments');
       } else {
         setAssignments([]);
       }
     } catch (err) {
       console.error('[useAssignmentsConsolidated] Error fetching assignments:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch assignments');
-      toast({
-        title: t('common.error'),
-        description: t('planner.fetchError'),
-        variant: 'destructive',
-      });
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch assignments';
+      setError(errorMessage);
+      
+      // Don't show toast for authentication errors (user will be redirected)
+      if (!errorMessage.includes('JWT') && !errorMessage.includes('auth')) {
+        toast({
+          title: t('common.error'),
+          description: t('planner.fetchError'),
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -584,7 +577,7 @@ export const useAssignmentsConsolidated = ({
     }
   }, [employees, vacations]);
   
-  // Optimize realtime subscription with debouncing
+  // Optimize realtime subscription with better error handling
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     
@@ -592,12 +585,14 @@ export const useAssignmentsConsolidated = ({
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         console.log('[useAssignmentsConsolidated] Debounced realtime refresh');
+        // Clear cache before refresh to ensure fresh data
+        dataFetchingService.clearCache('assignments');
         fetchAssignments();
-      }, 1000); // 1 second debounce
+      }, 1500); // Increased debounce time to reduce load
     };
 
     const channel = supabase
-      .channel('assignment_changes_optimized_v2')
+      .channel('assignment_changes_enhanced')
       .on(
         'postgres_changes',
         {
@@ -605,7 +600,8 @@ export const useAssignmentsConsolidated = ({
           schema: 'public',
           table: 'assignments'
         },
-        () => {
+        (payload) => {
+          console.log('[useAssignmentsConsolidated] Assignment change detected:', payload.eventType);
           debouncedRefresh();
         }
       )
@@ -616,11 +612,24 @@ export const useAssignmentsConsolidated = ({
           schema: 'public',
           table: 'assignments_employees'
         },
-        () => {
+        (payload) => {
+          console.log('[useAssignmentsConsolidated] Assignment employee change detected:', payload.eventType);
           debouncedRefresh();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[useAssignmentsConsolidated] Realtime subscription status:', status);
+        if (status === 'SUBSCRIPTION_ERROR') {
+          console.error('[useAssignmentsConsolidated] Realtime subscription failed');
+          // Fallback to polling if realtime fails
+          const pollInterval = setInterval(() => {
+            console.log('[useAssignmentsConsolidated] Polling for updates (realtime failed)');
+            fetchAssignments();
+          }, 30000); // Poll every 30 seconds
+          
+          return () => clearInterval(pollInterval);
+        }
+      });
       
     return () => {
       clearTimeout(timeoutId);

@@ -5,6 +5,8 @@ import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Vacation, VacationRequestType } from '@/types/vacation';
 import { logSecurityEvent, logSystemError } from '@/utils/securityLogger';
+import { useErrorRecovery } from '@/hooks/useErrorRecovery';
+import { dataFetchingService } from '@/services/dataFetchingService';
 
 export const useVacationData = () => {
   const { toast } = useToast();
@@ -12,72 +14,57 @@ export const useVacationData = () => {
   const [vacations, setVacations] = useState<Vacation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { executeWithRecovery } = useErrorRecovery();
 
   const fetchVacations = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      console.log('[useVacationData] Fetching vacations with enhanced security...');
+      console.log('[useVacationData] Fetching vacations with enhanced error handling...');
 
-      // Log data access attempt
-      await logSecurityEvent(
-        'vacation_data_access',
-        'User accessing vacation data',
-        { action: 'fetch_vacations' },
-        'info'
+      const result = await executeWithRecovery(
+        async () => {
+          const { data: vacationsData, error: vacationsError, fromCache } = await dataFetchingService.fetchVacations();
+          
+          if (vacationsError) throw vacationsError;
+          
+          if (fromCache) {
+            console.log('[useVacationData] Using cached vacation data');
+          }
+          
+          return vacationsData;
+        },
+        'Vacation Data Fetch'
       );
 
-      const { data: vacationsData, error: vacationsError } = await supabase
-        .from('vacations')
-        .select(`
-          id,
-          user_id,
-          start_date,
-          end_date,
-          request_type,
-          start_time,
-          end_time,
-          is_same_day,
-          status,
-          reason,
-          notes,
-          created_at,
-          updated_at
-        `)
-        .order('created_at', { ascending: false });
-
-      if (vacationsError) {
-        console.error('[useVacationData] Error fetching vacations:', vacationsError);
-        
-        // Log security event for data access failure
-        await logSecurityEvent(
-          'vacation_data_access_failed',
-          'Failed to fetch vacation data',
-          { error: vacationsError.message, code: vacationsError.code },
-          'error'
-        );
-        
-        throw vacationsError;
+      if (result.error || !result.data) {
+        throw result.error || new Error('No vacation data received');
       }
 
-      // Fetch user profiles separately
-      const userIds = [...new Set(vacationsData?.map(v => v.user_id) || [])];
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, name, email')
-        .in('id', userIds);
+      const vacationsData = result.data;
 
-      if (profilesError) {
-        console.error('[useVacationData] Error fetching profiles:', profilesError);
-        await logSystemError('useVacationData', profilesError, { context: 'profile_fetch' });
-      }
+      // Fetch user profiles separately with error recovery
+      const userIds = [...new Set(vacationsData.map(v => v.user_id))];
+      
+      const profileResult = await executeWithRecovery(
+        async () => {
+          const { data: profilesData, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, name, email')
+            .in('id', userIds);
 
-      console.log(`[useVacationData] Successfully fetched ${vacationsData?.length || 0} vacations`);
+          if (profilesError) throw profilesError;
+          return profilesData;
+        },
+        'Vacation User Profiles Fetch'
+      );
+
+      console.log(`[useVacationData] Successfully processed ${vacationsData.length} vacations`);
 
       // Transform the data to match our Vacation interface
-      const transformedVacations: Vacation[] = (vacationsData || []).map(vacation => {
-        const userProfile = profilesData?.find(p => p.id === vacation.user_id);
+      const transformedVacations: Vacation[] = vacationsData.map(vacation => {
+        const userProfile = profileResult.data?.find(p => p.id === vacation.user_id);
         
         return {
           id: vacation.id,
@@ -102,7 +89,7 @@ export const useVacationData = () => {
       });
 
       setVacations(transformedVacations);
-      console.log('[useVacationData] Vacation data transformed and set');
+      console.log('[useVacationData] Vacation data transformed and set successfully');
 
     } catch (err) {
       console.error('[useVacationData] Error in fetchVacations:', err);
@@ -110,42 +97,49 @@ export const useVacationData = () => {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
-      // Log system error
-      await logSystemError('useVacationData', err, { context: 'fetch_vacations' });
-      
-      toast({
-        title: t('common.error') || 'Error',
-        description: t('vacation.fetchError') || 'Error loading vacation requests',
-        variant: 'destructive',
+      // Log system error with enhanced details
+      await logSystemError('useVacationData', err, { 
+        context: 'fetch_vacations',
+        timestamp: new Date().toISOString()
       });
+      
+      // Don't show toast for authentication errors
+      if (!errorMessage.includes('JWT') && !errorMessage.includes('auth')) {
+        toast({
+          title: t('common.error') || 'Error',
+          description: t('vacation.fetchError') || 'Error loading vacation requests',
+          variant: 'destructive',
+        });
+      }
       
       setVacations([]);
     } finally {
       setLoading(false);
     }
-  }, [toast, t]);
+  }, [toast, t, executeWithRecovery]);
 
   // Load vacations on component mount
   useEffect(() => {
     fetchVacations();
   }, [fetchVacations]);
 
-  // Set up realtime subscription for vacation changes
+  // Set up enhanced realtime subscription
   useEffect(() => {
-    console.log('[useVacationData] Setting up realtime subscription...');
+    console.log('[useVacationData] Setting up enhanced realtime subscription...');
     
     let timeoutId: NodeJS.Timeout;
     
     const debouncedRefresh = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        console.log('[useVacationData] Realtime refresh triggered');
+        console.log('[useVacationData] Debounced realtime refresh triggered');
+        dataFetchingService.clearCache('vacations');
         fetchVacations();
-      }, 1000);
+      }, 1500);
     };
     
     const channel = supabase
-      .channel('vacations_changes')
+      .channel('vacations_changes_enhanced')
       .on(
         'postgres_changes',
         {
@@ -180,10 +174,20 @@ export const useVacationData = () => {
       )
       .subscribe((status) => {
         console.log('[useVacationData] Realtime subscription status:', status);
+        if (status === 'SUBSCRIPTION_ERROR') {
+          console.error('[useVacationData] Realtime subscription failed, implementing fallback polling');
+          // Fallback to polling if realtime fails
+          const pollInterval = setInterval(() => {
+            console.log('[useVacationData] Polling for updates (realtime failed)');
+            fetchVacations();
+          }, 30000); // Poll every 30 seconds
+          
+          return () => clearInterval(pollInterval);
+        }
       });
 
     return () => {
-      console.log('[useVacationData] Cleaning up realtime subscription');
+      console.log('[useVacationData] Cleaning up enhanced realtime subscription');
       clearTimeout(timeoutId);
       supabase.removeChannel(channel);
     };
