@@ -45,7 +45,7 @@ export const useVacationData = () => {
       const vacationsData = result.data;
 
       // Fetch user profiles separately with error recovery
-      const userIds = [...new Set(vacationsData.map(v => v.user_id))];
+      const userIds = [...new Set(vacationsData.map(v => v.user_id).filter(id => typeof id === 'string'))] as string[];
       
       const profileResult = await executeWithRecovery(
         async () => {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -386,7 +385,7 @@ export const useAssignmentsConsolidated = ({
           location: assignmentData.location,
           assignment_date: assignmentData.date,
           from_time: assignmentData.fromTime,
-          to_time: assignmentData.toTime,
+          to_time: assignmentData.to_time,
           car_id: carId, // Keep for backward compatibility
           car_ids: carIds.length > 0 ? carIds : null, // New field for multiple cars
           responsible_user_id: responsibleUserId,
