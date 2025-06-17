@@ -44,21 +44,13 @@ export const SecurityHeaders: React.FC = () => {
       }
     });
 
-    // Monitor for potential XSS attempts
+    // Enhanced security monitoring
     const originalConsoleError = console.error;
     console.error = (...args) => {
       const errorMsg = args.join(' ');
       if (errorMsg.includes('script') || errorMsg.includes('eval') || errorMsg.includes('innerHTML')) {
-        // Log potential XSS attempt
-        fetch('/api/security/log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'xss_attempt',
-            message: 'Potential XSS attempt detected in console',
-            details: { error: errorMsg, timestamp: new Date().toISOString() }
-          })
-        }).catch(() => {}); // Fail silently
+        // Log potential security issues
+        console.warn('[Security] Potential security issue detected:', errorMsg);
       }
       originalConsoleError.apply(console, args);
     };

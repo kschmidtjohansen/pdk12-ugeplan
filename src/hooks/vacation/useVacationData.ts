@@ -4,6 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Vacation, VacationRequestType } from '@/types/vacation';
+import { logSecurityEvent, logSystemError } from '@/utils/securityLogger';
 
 export const useVacationData = () => {
   const { toast } = useToast();
@@ -17,7 +18,15 @@ export const useVacationData = () => {
       setLoading(true);
       setError(null);
 
-      console.log('[useVacationData] Fetching vacations with enhanced fields...');
+      console.log('[useVacationData] Fetching vacations with enhanced security...');
+
+      // Log data access attempt
+      await logSecurityEvent(
+        'vacation_data_access',
+        'User accessing vacation data',
+        { action: 'fetch_vacations' },
+        'info'
+      );
 
       const { data: vacationsData, error: vacationsError } = await supabase
         .from('vacations')
@@ -40,6 +49,15 @@ export const useVacationData = () => {
 
       if (vacationsError) {
         console.error('[useVacationData] Error fetching vacations:', vacationsError);
+        
+        // Log security event for data access failure
+        await logSecurityEvent(
+          'vacation_data_access_failed',
+          'Failed to fetch vacation data',
+          { error: vacationsError.message, code: vacationsError.code },
+          'error'
+        );
+        
         throw vacationsError;
       }
 
@@ -52,6 +70,7 @@ export const useVacationData = () => {
 
       if (profilesError) {
         console.error('[useVacationData] Error fetching profiles:', profilesError);
+        await logSystemError('useVacationData', profilesError, { context: 'profile_fetch' });
       }
 
       console.log(`[useVacationData] Successfully fetched ${vacationsData?.length || 0} vacations`);
@@ -90,6 +109,9 @@ export const useVacationData = () => {
       
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
+      
+      // Log system error
+      await logSystemError('useVacationData', err, { context: 'fetch_vacations' });
       
       toast({
         title: t('common.error') || 'Error',
@@ -133,6 +155,19 @@ export const useVacationData = () => {
         },
         (payload) => {
           console.log('[useVacationData] Received vacation change:', payload.eventType);
+          
+          // Log realtime data changes for monitoring
+          logSecurityEvent(
+            'vacation_realtime_change',
+            `Vacation ${payload.eventType} detected via realtime`,
+            { 
+              event_type: payload.eventType, 
+              table: 'vacations',
+              record_id: payload.new?.id || payload.old?.id 
+            },
+            'info'
+          );
+          
           debouncedRefresh();
         }
       )

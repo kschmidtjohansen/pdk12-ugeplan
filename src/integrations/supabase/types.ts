@@ -406,6 +406,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_vacation_security_event: {
+        Args: { event_type: string; vacation_id: string; details?: Json }
+        Returns: undefined
+      }
       sanitize_text_input: {
         Args: { input_text: string; max_length?: number }
         Returns: string
