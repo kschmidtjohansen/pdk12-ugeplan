@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from '@/components/ui/sonner';
 import { useTranslation } from '@/context/TranslationContext';
@@ -26,6 +25,27 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
   const confirmDelete = async () => {
     if (currentCar) {
       try {
+        // First check if the car is referenced in any assignments
+        const { data: assignments, error: checkError } = await supabase
+          .from('assignments')
+          .select('id')
+          .or(`car_id.eq.${currentCar.id},car_ids.cs.{${currentCar.id}}`)
+          .limit(1);
+        
+        if (checkError) {
+          console.error('Error checking car assignments:', checkError);
+          throw checkError;
+        }
+        
+        // If car is referenced in assignments, prevent deletion
+        if (assignments && assignments.length > 0) {
+          toast(t('cars.cannotDeleteCarInUse'), {
+            description: t('cars.cannotDeleteCarInUseDesc'),
+          });
+          setDeleteDialogOpen(false);
+          return;
+        }
+        
         const { error } = await supabase
           .from('cars')
           .delete()
@@ -40,9 +60,18 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         });
       } catch (err) {
         console.error('Error deleting car:', err);
-        toast(t('common.error'), {
-          description: err instanceof Error ? err.message : 'Error deleting vehicle',
-        });
+        
+        // Check if it's a foreign key constraint error
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        if (errorMessage.includes('foreign key') || errorMessage.includes('violates')) {
+          toast(t('cars.cannotDeleteCarInUse'), {
+            description: t('cars.cannotDeleteCarInUseDesc'),
+          });
+        } else {
+          toast(t('common.error'), {
+            description: t('cars.deleteError'),
+          });
+        }
       } finally {
         setDeleteDialogOpen(false);
       }

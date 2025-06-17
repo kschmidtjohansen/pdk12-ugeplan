@@ -36,7 +36,9 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
           <AlertDialogDescription>
             {currentCar && (
               <>
-                {t('deleteConfirm.carWarning', { name: <strong>{currentCar.name}</strong> })}
+                {t('deleteConfirm.carWarning', { 
+                  name: `${currentCar.name} (${currentCar.car_number})` 
+                })}
               </>
             )}
           </AlertDialogDescription>

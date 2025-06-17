@@ -58,7 +58,30 @@ const cars = {
   // Added missing translations for note management
   keepNoteQuestion: 'Vil du beholde den nuværende note?',
   keepNote: 'Behold note',
-  deleteNote: 'Slet note'
+  deleteNote: 'Slet note',
+
+  // New error message translations
+  cannotDeleteCarInUse: 'Kan ikke slette køretøj',
+  cannotDeleteCarInUseDesc: 'Dette køretøj kan ikke slettes, fordi det er tildelt en eller flere opgaver. Fjern det fra alle opgaver først eller marker det som utilgængeligt i stedet.',
+  deleteError: 'Fejl ved sletning af køretøj. Prøv igen.',
+
+  // Additional translations to match English version
+  addVehicle: 'Tilføj Køretøj',
+  editVehicle: 'Rediger Køretøj',
+  addNewVehicle: 'Tilføj Nyt Køretøj',
+  updateVehicleInfo: 'Opdater køretøjsinformation.',
+  addNewVehicleDesc: 'Tilføj et nyt køretøj til afdelingen.',
+  vehicleUpdated: 'Køretøj opdateret',
+  vehicleAdded: 'Køretøj tilføjet',
+  vehicleDeleted: 'Køretøj slettet',
+  vehicleUpdatedMsg: '{name}s information er blevet opdateret.',
+  vehicleAddedMsg: '{name} er blevet tilføjet til afdelingen.',
+  vehicleDeletedMsg: '{name} er blevet fjernet fra afdelingen.',
+  vehicleAvailable: 'Køretøj tilgængeligt',
+  vehicleUnavailable: 'Køretøj utilgængeligt',
+  vehicleAvailableMsg: '{name} er nu markeret som tilgængelig.',
+  vehicleUnavailableMsg: '{name} er nu markeret som utilgængelig.',
+  notesFeatureUnavailable: 'Notefunktionen er ikke fuldt tilgængelig endnu. Tilgængelighedsstatus er blevet opdateret.'
 };
 
 export default cars;

@@ -34,6 +34,9 @@ const cars = {
   notesFeatureUnavailable: 'Notes feature is not fully available yet. Availability status has been updated.',
   noCar: 'No car selected',
   inUse: 'In use until {time}',
+  cannotDeleteCarInUse: 'Cannot delete vehicle',
+  cannotDeleteCarInUseDesc: 'This vehicle cannot be deleted because it is assigned to one or more tasks. Please unassign it from all tasks first or mark it as unavailable instead.',
+  deleteError: 'Failed to delete vehicle. Please try again.'
 };
 
 export default cars;
