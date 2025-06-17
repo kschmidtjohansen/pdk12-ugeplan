@@ -7,6 +7,7 @@ import { Vacation, VacationRequestType } from '@/types/vacation';
 import { logSecurityEvent, logSystemError } from '@/utils/securityLogger';
 import { useErrorRecovery } from '@/hooks/useErrorRecovery';
 import { dataFetchingService } from '@/services/dataFetchingService';
+import { realtimeManager } from '@/services/realtimeManager';
 
 export const useVacationData = () => {
   const { toast } = useToast();
@@ -123,73 +124,48 @@ export const useVacationData = () => {
     fetchVacations();
   }, [fetchVacations]);
 
-  // Set up enhanced realtime subscription
+  // Use centralized realtime manager for vacation subscriptions
   useEffect(() => {
     console.log('[useVacationData] Setting up enhanced realtime subscription...');
     
-    let timeoutId: NodeJS.Timeout;
+    const subscriptionId = 'vacations_enhanced';
     
-    const debouncedRefresh = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        console.log('[useVacationData] Debounced realtime refresh triggered');
-        dataFetchingService.clearCache('vacations');
-        fetchVacations();
-      }, 1500);
-    };
-    
-    const channel = supabase
-      .channel('vacations_changes_enhanced')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'vacations'
+    const handleRealtimeUpdate = () => {
+      console.log('[useVacationData] Realtime refresh triggered');
+      dataFetchingService.clearCache('vacations');
+      fetchVacations();
+      
+      // Log realtime data changes for monitoring
+      logSecurityEvent(
+        'vacation_realtime_change',
+        'Vacation change detected via centralized realtime manager',
+        { 
+          subscription_id: subscriptionId,
+          timestamp: new Date().toISOString()
         },
-        (payload) => {
-          console.log('[useVacationData] Received vacation change:', payload.eventType);
-          
-          // Safely get record ID with proper type checking
-          const recordId = (payload.new && typeof payload.new === 'object' && 'id' in payload.new) 
-            ? payload.new.id 
-            : (payload.old && typeof payload.old === 'object' && 'id' in payload.old) 
-              ? payload.old.id 
-              : 'unknown';
-          
-          // Log realtime data changes for monitoring
-          logSecurityEvent(
-            'vacation_realtime_change',
-            `Vacation ${payload.eventType} detected via realtime`,
-            { 
-              event_type: payload.eventType, 
-              table: 'vacations',
-              record_id: recordId 
-            },
-            'info'
-          );
-          
-          debouncedRefresh();
-        }
-      )
-      .subscribe((status) => {
-        console.log('[useVacationData] Realtime subscription status:', status);
-        if (status === 'SUBSCRIPTION_ERROR') {
-          console.error('[useVacationData] Realtime subscription failed, implementing fallback polling');
-          // Fallback to polling if realtime fails
-          const pollInterval = setInterval(() => {
-            console.log('[useVacationData] Polling for updates (realtime failed)');
-            fetchVacations();
-          }, 30000); // Poll every 30 seconds
-          
-          return () => clearInterval(pollInterval);
-        }
-      });
+        'info'
+      );
+    };
+
+    const subscription = realtimeManager.subscribe(
+      subscriptionId,
+      ['vacations'],
+      handleRealtimeUpdate
+    );
+
+    if (!subscription) {
+      console.warn('[useVacationData] Failed to create realtime subscription, using polling fallback');
+      const pollInterval = setInterval(() => {
+        console.log('[useVacationData] Polling for updates (realtime failed)');
+        fetchVacations();
+      }, 30000);
+      
+      return () => clearInterval(pollInterval);
+    }
 
     return () => {
       console.log('[useVacationData] Cleaning up enhanced realtime subscription');
-      clearTimeout(timeoutId);
-      supabase.removeChannel(channel);
+      realtimeManager.unsubscribe(subscriptionId);
     };
   }, [fetchVacations]);
 

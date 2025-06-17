@@ -8,6 +8,7 @@ import { useVacations } from './useVacations';
 import { cleanupAssignmentEmployees } from '@/utils/employeeAssignmentUtils';
 import { useErrorRecovery } from './useErrorRecovery';
 import { dataFetchingService } from '@/services/dataFetchingService';
+import { realtimeManager } from '@/services/realtimeManager';
 
 interface UseAssignmentsConsolidatedProps {
   filter?: 'all' | 'dashboard' | 'planner';
@@ -35,7 +36,7 @@ export const useAssignmentsConsolidated = ({
       setError(null);
       
       console.log('[useAssignmentsConsolidated] Starting enhanced assignment fetch...');
-
+      
       const result = await executeWithRecovery(
         async () => {
           // Use the new data fetching service
@@ -576,65 +577,38 @@ export const useAssignmentsConsolidated = ({
     }
   }, [employees, vacations]);
   
-  // Optimize realtime subscription with better error handling
+  // Use centralized realtime manager for subscriptions
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    const subscriptionId = `assignments_consolidated_${filter}`;
     
-    const debouncedRefresh = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        console.log('[useAssignmentsConsolidated] Debounced realtime refresh');
-        // Clear cache before refresh to ensure fresh data
-        dataFetchingService.clearCache('assignments');
-        fetchAssignments();
-      }, 1500); // Increased debounce time to reduce load
+    const handleRealtimeUpdate = () => {
+      console.log('[useAssignmentsConsolidated] Realtime update triggered');
+      // Clear cache before refresh to ensure fresh data
+      dataFetchingService.clearCache('assignments');
+      fetchAssignments();
     };
 
-    const channel = supabase
-      .channel('assignment_changes_enhanced')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'assignments'
-        },
-        (payload) => {
-          console.log('[useAssignmentsConsolidated] Assignment change detected:', payload.eventType);
-          debouncedRefresh();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'assignments_employees'
-        },
-        (payload) => {
-          console.log('[useAssignmentsConsolidated] Assignment employee change detected:', payload.eventType);
-          debouncedRefresh();
-        }
-      )
-      .subscribe((status) => {
-        console.log('[useAssignmentsConsolidated] Realtime subscription status:', status);
-        if (status === 'SUBSCRIPTION_ERROR') {
-          console.error('[useAssignmentsConsolidated] Realtime subscription failed');
-          // Fallback to polling if realtime fails
-          const pollInterval = setInterval(() => {
-            console.log('[useAssignmentsConsolidated] Polling for updates (realtime failed)');
-            fetchAssignments();
-          }, 30000); // Poll every 30 seconds
-          
-          return () => clearInterval(pollInterval);
-        }
-      });
+    // Subscribe to assignments and assignments_employees tables
+    const subscription = realtimeManager.subscribe(
+      subscriptionId,
+      ['assignments', 'assignments_employees'],
+      handleRealtimeUpdate
+    );
+
+    if (!subscription) {
+      console.warn('[useAssignmentsConsolidated] Failed to create realtime subscription, using polling fallback');
+      const pollInterval = setInterval(() => {
+        console.log('[useAssignmentsConsolidated] Polling for updates (realtime failed)');
+        fetchAssignments();
+      }, 30000);
       
+      return () => clearInterval(pollInterval);
+    }
+
     return () => {
-      clearTimeout(timeoutId);
-      supabase.removeChannel(channel);
+      realtimeManager.unsubscribe(subscriptionId);
     };
-  }, []);
+  }, [filter]);
 
   return {
     assignments,
