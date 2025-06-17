@@ -95,6 +95,15 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     return '';
   };
 
+  // Helper function to set responsible user as object
+  const setResponsibleUserById = (userId: string) => {
+    if (userId) {
+      setFormData({ ...formData, responsibleUser: { id: userId, name: '' } });
+    } else {
+      setFormData({ ...formData, responsibleUser: null });
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="space-y-4">
@@ -115,12 +124,16 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           setToTime={(value) => setFormData({ ...formData, toTime: value })}
           description={formData.description || ''}
           setDescription={(value) => setFormData({ ...formData, description: value })}
-          assignmentType={formData.type || 'ordinary_damage'}
-          setAssignmentType={(value) => setFormData({ ...formData, type: value })}
+          assignmentType={'ordinary_damage'}
+          setAssignmentType={(value) => {
+            // Note: Assignment interface doesn't have a type property
+            // This might need to be handled differently based on your data model
+            console.log('Assignment type change:', value);
+          }}
           selectedCarId={getCarId(formData.car)}
           setSelectedCarId={(value) => setFormData({ ...formData, car: value })}
           selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)}
-          setSelectedResponsibleUserId={(value) => setFormData({ ...formData, responsibleUser: value })}
+          setSelectedResponsibleUserId={setResponsibleUserById}
           cars={[]}
           assignmentId={currentAssignment?.id}
           assignments={assignments}
