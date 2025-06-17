@@ -10,7 +10,7 @@ interface PastAssignmentsProps {
   groupedAssignments: Record<string, Assignment[]>;
   expandedDays: Record<string, boolean>;
   onToggleExpansion: (date: string) => void;
-  onPublishDay?: () => void;
+  onPublishDay?: (date: string) => void; // FIXED: Updated to accept date parameter
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;

@@ -14,12 +14,13 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
 import { Monitor } from 'lucide-react';
+
 interface PlannerContentProps {
   weekAssignments: Assignment[];
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment: (assignmentId: string) => void;
-  onPublishDay: () => void;
+  onPublishDay: (date: string) => void;
   onCreateAssignment: (date: string) => void;
   onCopyAssignment: (assignment: Assignment) => void;
   selectedWeek: number;
@@ -27,6 +28,7 @@ interface PlannerContentProps {
   weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
   handleShowOnScreen: () => void;
 }
+
 const PlannerContent: React.FC<PlannerContentProps> = ({
   weekAssignments = [],
   onEditAssignment,
@@ -149,9 +151,11 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       currentAndFutureDates: []
     });
   }, [weekDateStrings, today]);
+
   if (Array.isArray(weekAssignments) && weekAssignments.length === 0 && !canEdit) {
     return <EmptyState message={t("planner.noAssignmentsWeek")} />;
   }
+
   return (
     <div className="space-y-6 pb-6">
       {/* Unassigned Resources Section for admin/skadeleder only */}
@@ -210,4 +214,5 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     </div>
   );
 };
+
 export default PlannerContent;
