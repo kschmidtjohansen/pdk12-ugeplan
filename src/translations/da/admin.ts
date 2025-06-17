@@ -54,6 +54,9 @@ export const admin = {
     scheduledTasks: 'Planlagte opgaver',
     scheduledTasksDesc: 'Opgaver denne uge'
   },
+  quickStats: {
+    total: 'i alt'
+  },
   securityLogs: {
     title: 'Sikkerhedslogfiler',
     description: 'Overvåg sikkerhedshændelser og systemaktiviteter',
