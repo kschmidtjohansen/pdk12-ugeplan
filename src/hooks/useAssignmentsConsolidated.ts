@@ -385,7 +385,7 @@ export const useAssignmentsConsolidated = ({
           location: assignmentData.location,
           assignment_date: assignmentData.date,
           from_time: assignmentData.fromTime,
-          to_time: assignmentData.to_time,
+          to_time: assignmentData.toTime,
           car_id: carId, // Keep for backward compatibility
           car_ids: carIds.length > 0 ? carIds : null, // New field for multiple cars
           responsible_user_id: responsibleUserId,
