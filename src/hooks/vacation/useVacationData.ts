@@ -156,6 +156,13 @@ export const useVacationData = () => {
         (payload) => {
           console.log('[useVacationData] Received vacation change:', payload.eventType);
           
+          // Safely get record ID with proper type checking
+          const recordId = (payload.new && typeof payload.new === 'object' && 'id' in payload.new) 
+            ? payload.new.id 
+            : (payload.old && typeof payload.old === 'object' && 'id' in payload.old) 
+              ? payload.old.id 
+              : 'unknown';
+          
           // Log realtime data changes for monitoring
           logSecurityEvent(
             'vacation_realtime_change',
@@ -163,7 +170,7 @@ export const useVacationData = () => {
             { 
               event_type: payload.eventType, 
               table: 'vacations',
-              record_id: payload.new?.id || payload.old?.id 
+              record_id: recordId 
             },
             'info'
           );
