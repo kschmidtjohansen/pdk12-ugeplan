@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/components/ui/sonner';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData, CarFormData } from '@/components/Cars/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,7 +28,6 @@ export const useCarFormState = ({
     is_available: true,
     notes: '',
   });
-  const { toast } = useToast();
   const { t } = useTranslation();
 
   const handleCreateNew = () => {
@@ -102,8 +100,7 @@ export const useCarFormState = ({
           )
         );
         
-        toast({
-          title: t('cars.vehicleUpdated'),
+        toast(t('cars.vehicleUpdated'), {
           description: t('cars.vehicleUpdatedMsg', { name: formData.name }),
         });
       } else {
@@ -129,8 +126,7 @@ export const useCarFormState = ({
           // Add new car to local state
           setCars([...cars, data[0]]);
           
-          toast({
-            title: t('cars.vehicleAdded'),
+          toast(t('cars.vehicleAdded'), {
             description: t('cars.vehicleAddedMsg', { name: formData.name }),
           });
         }
@@ -139,10 +135,8 @@ export const useCarFormState = ({
       setDialogOpen(false);
     } catch (err) {
       console.error('Error saving car:', err);
-      toast({
-        title: t('common.error'),
+      toast(t('common.error'), {
         description: err instanceof Error ? err.message : 'Error saving vehicle',
-        variant: 'destructive',
       });
     }
   };
