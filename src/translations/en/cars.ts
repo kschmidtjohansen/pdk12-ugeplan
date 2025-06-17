@@ -17,6 +17,7 @@ const cars = {
   vehicleUpdatedMsg: '{name}\'s information has been updated.',
   vehicleAddedMsg: '{name} has been added to the department.',
   vehicleDeletedMsg: '{name} has been removed from the department.',
+  vehicleDeletedWithCleanup: '{name} has been removed from the department and {count} assignments have been updated.',
   hasTrailerHitch: 'Has Trailer Hitch',
   isAvailable: 'Is Available',
   markAvailable: 'Mark as Available',

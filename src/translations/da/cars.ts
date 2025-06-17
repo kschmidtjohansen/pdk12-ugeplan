@@ -77,6 +77,7 @@ const cars = {
   vehicleUpdatedMsg: '{name}s information er blevet opdateret.',
   vehicleAddedMsg: '{name} er blevet tilføjet til afdelingen.',
   vehicleDeletedMsg: '{name} er blevet fjernet fra afdelingen.',
+  vehicleDeletedWithCleanup: '{name} er blevet fjernet fra afdelingen og {count} opgaver er blevet opdateret.',
   vehicleAvailable: 'Køretøj tilgængeligt',
   vehicleUnavailable: 'Køretøj utilgængeligt',
   vehicleAvailableMsg: '{name} er nu markeret som tilgængelig.',
