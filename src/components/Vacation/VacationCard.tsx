@@ -1,155 +1,177 @@
 
 import React from 'react';
-import { format, getISOWeek } from 'date-fns';
-import { da } from 'date-fns/locale';
-import { Check, X, Edit, Trash2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { format } from 'date-fns';
+import { Calendar, Clock, User, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Vacation } from '../../types/vacation';
-import { useTranslation } from '../../context/TranslationContext';
+import { Vacation } from '@/types/vacation';
+import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
-import { formatDateRangeWithWeeks } from '@/utils/dateUtils';
+import { useVacationSecurity } from '@/hooks/vacation/useVacationSecurity';
 
 interface VacationCardProps {
   vacation: Vacation;
-  canApprove: boolean;
-  onApprove: (vacation: Vacation) => void;
-  onReject: (vacation: Vacation) => void;
+  onApprove?: (vacation: Vacation) => void;
+  onReject?: (vacation: Vacation) => void;
   onEdit?: (vacation: Vacation) => void;
   onDelete?: (vacation: Vacation) => void;
 }
 
 const VacationCard: React.FC<VacationCardProps> = ({
   vacation,
-  canApprove,
   onApprove,
-  onReject,
+  onReject, 
   onEdit,
   onDelete
 }) => {
   const { t, currentLanguage } = useTranslation();
-  const { user, isAdmin } = useAuth();
-  const isOwner = user?.id === vacation.user_id;
-  
-  // Determine if the user can edit/delete this vacation
-  // Admins can edit/delete any vacation
-  // Regular users can only edit/delete their own pending vacations
-  const canEditVacation = isAdmin || (isOwner && vacation.status === 'pending');
-  const canDeleteVacation = isAdmin || (isOwner && vacation.status === 'pending');
+  const { user, isAdmin, isSkadeleder } = useAuth();
+  const { canViewVacation, canEditVacation, canDeleteVacation, canManageVacationStatus } = useVacationSecurity();
 
-  // Set locale based on current language
-  const locale = currentLanguage === 'da' ? da : undefined;
-  
-  // Add handlers with debug logs
-  const handleEdit = () => {
-    console.log("Edit button clicked for vacation:", vacation.id);
-    if (onEdit && canEditVacation) onEdit(vacation);
+  // Security check - don't render if user can't view this vacation
+  if (!canViewVacation(vacation)) {
+    return null;
+  }
+
+  const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
+  const startDate = format(new Date(vacation.start_date), dateFormat);
+  const endDate = format(new Date(vacation.end_date), dateFormat);
+
+  const getStatusIcon = () => {
+    switch (vacation.status) {
+      case 'approved':
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'rejected':
+        return <XCircle className="h-4 w-4 text-red-600" />;
+      default:
+        return <AlertCircle className="h-4 w-4 text-yellow-600" />;
+    }
   };
-  
-  const handleDelete = () => {
-    console.log("Delete button clicked for vacation:", vacation.id);
-    if (onDelete && canDeleteVacation) onDelete(vacation);
+
+  const getStatusColor = () => {
+    switch (vacation.status) {
+      case 'approved':
+        return 'success';
+      case 'rejected':
+        return 'destructive';
+      default:
+        return 'secondary';
+    }
   };
+
+  const canUserEdit = canEditVacation(vacation);
+  const canUserDelete = canDeleteVacation(vacation);
+  const canUserManageStatus = canManageVacationStatus();
 
   return (
-    <Card className={cn("overflow-hidden", 
-      vacation.status === 'approved' && "border-green-500", 
-      vacation.status === 'rejected' && "border-red-500", 
-      vacation.status === 'pending' && "border-amber-500")}>
-      <CardHeader className={cn("pb-3", 
-        vacation.status === 'approved' && "bg-green-50", 
-        vacation.status === 'rejected' && "bg-red-50", 
-        vacation.status === 'pending' && "bg-amber-50")}>
-        <CardTitle className="flex justify-between items-start">
-          <span>{vacation.user?.name || 'Unknown'}</span>
-          <span className={cn("text-xs font-medium px-2 py-1 rounded-full", 
-            vacation.status === 'approved' && "bg-green-100 text-green-800", 
-            vacation.status === 'rejected' && "bg-red-100 text-red-800", 
-            vacation.status === 'pending' && "bg-amber-100 text-amber-800")}>
-            {t(`vacation.status.${vacation.status}`)}
-          </span>
-        </CardTitle>
+    <Card className="w-full">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium">
+              {vacation.user?.name || 'Unknown Employee'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {getStatusIcon()}
+            <Badge variant={getStatusColor() as any}>
+              {t(`vacation.status.${vacation.status}`)}
+            </Badge>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="pt-4">
-        <dl className="space-y-3 text-sm">
-          <div className="flex flex-col">
-            <dt className="font-medium text-gray-500">{t("vacation.dateRange")}</dt>
-            <dd>
-              {formatDateRangeWithWeeks(
-                new Date(vacation.start_date),
-                new Date(vacation.end_date),
-                currentLanguage,
-                t('common.week')
-              )}
-            </dd>
-          </div>
-          <div className="flex flex-col">
-            <dt className="font-medium text-gray-500">{t("vacation.reason")}</dt>
-            <dd>{vacation.reason}</dd>
-          </div>
-          {vacation.notes && (
-            <div className="flex flex-col">
-              <dt className="font-medium text-gray-500">{t("vacation.notes")}</dt>
-              <dd>{vacation.notes}</dd>
-            </div>
-          )}
-          <div className="flex flex-col">
-            <dt className="font-medium text-gray-500">{t("vacation.requestedOn")}</dt>
-            <dd>{format(new Date(vacation.created_at), 'd. MMM yyyy', { locale })}</dd>
-          </div>
-        </dl>
-      </CardContent>
-      
-      <CardFooter className="flex justify-between border-t pt-4 pb-4">
-        {/* Edit/delete buttons - shown based on permission checks */}
-        {onEdit && onDelete && canEditVacation && (
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="border-blue-200 hover:bg-blue-50" 
-              onClick={handleEdit}
-            >
-              <Edit className="mr-1 h-4 w-4" />
-              {t("common.edit")}
-            </Button>
-            {canDeleteVacation && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="border-red-200 text-red-600 hover:bg-red-50" 
-                onClick={handleDelete}
-              >
-                <Trash2 className="mr-1 h-4 w-4" />
-                {t("common.delete")}
-              </Button>
+
+      <CardContent className="space-y-3">
+        {/* Date Information */}
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm">
+            {vacation.is_same_day ? (
+              startDate
+            ) : (
+              `${startDate} - ${endDate}`
             )}
+          </span>
+        </div>
+
+        {/* Request Type and Time Information */}
+        {vacation.request_type === 'partial_day' && vacation.start_time && vacation.end_time && (
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm">
+              {t('vacation.workingHours')}: {vacation.start_time} - {vacation.end_time}
+            </span>
           </div>
         )}
-        
-        {/* Admin-only approval actions (for pending requests only) */}
-        {canApprove && vacation.status === 'pending' && (
-          <div className="flex gap-2 ml-auto">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="text-red-600 border-red-200 hover:bg-red-50" 
-              onClick={() => onReject(vacation)}
-            >
-              <X className="mr-1 h-4 w-4" />
-              {t("vacation.reject")}
-            </Button>
-            <Button 
-              size="sm" 
-              className="bg-green-600 hover:bg-green-700" 
-              onClick={() => onApprove(vacation)}
-            >
-              <Check className="mr-1 h-4 w-4" />
-              {t("vacation.approve")}
-            </Button>
+
+        {/* Reason */}
+        {vacation.reason && (
+          <div className="text-sm text-muted-foreground">
+            <strong>{t('vacation.reason')}:</strong> {vacation.reason}
           </div>
         )}
+
+        {/* Notes for approved/rejected requests */}
+        {vacation.notes && vacation.status !== 'pending' && (
+          <div className="text-sm text-muted-foreground">
+            <strong>{t('vacation.notes')}:</strong> {vacation.notes}
+          </div>
+        )}
+
+        {/* Request Date */}
+        <div className="text-xs text-muted-foreground">
+          {t('vacation.requestedOn')}: {format(new Date(vacation.created_at), dateFormat)}
+        </div>
+      </CardContent>
+
+      <CardFooter className="pt-3">
+        <div className="flex gap-2 flex-wrap">
+          {/* Admin/Skadeleder Actions for Pending Requests */}
+          {vacation.status === 'pending' && canUserManageStatus && (
+            <>
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => onApprove?.(vacation)}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {t('vacation.approve')}
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => onReject?.(vacation)}
+              >
+                {t('vacation.reject')}
+              </Button>
+            </>
+          )}
+
+          {/* Edit Button - for user's own pending requests or admin/skadeleder */}
+          {canUserEdit && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onEdit?.(vacation)}
+            >
+              {t('vacation.edit')}
+            </Button>
+          )}
+
+          {/* Delete Button - for user's own pending requests or admin/skadeleder */}
+          {canUserDelete && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onDelete?.(vacation)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              {t('vacation.delete')}
+            </Button>
+          )}
+        </div>
       </CardFooter>
     </Card>
   );
