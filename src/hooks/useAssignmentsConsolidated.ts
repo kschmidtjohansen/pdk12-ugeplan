@@ -74,25 +74,40 @@ export const useAssignmentsConsolidated = ({
       console.log('[useAssignmentsConsolidated] Fetched assignments:', assignmentsData?.length || 0);
       
       if (assignmentsData) {
-        // Optimize employee relationship fetching with batch query
+        // Optimize employee relationship fetching with separate queries to avoid join issues
         const assignmentIds = assignmentsData.map(a => a.id);
         
-        // Batch fetch all assignment-employee relationships
+        // First, get assignment-employee relationships
         const { data: assignmentEmployees, error: employeeError } = await supabase
           .from('assignments_employees')
-          .select(`
-            assignment_id, 
-            user_id,
-            profiles:user_id (
-              id,
-              name
-            )
-          `)
+          .select('assignment_id, user_id')
           .in('assignment_id', assignmentIds);
         
         if (employeeError) {
           if (process.env.NODE_ENV === 'development') {
             console.warn('[useAssignmentsConsolidated] Error fetching assignment employees:', employeeError);
+          }
+        }
+
+        // Then, get the profile names for the user IDs
+        let profileNames: Record<string, string> = {};
+        if (assignmentEmployees && assignmentEmployees.length > 0) {
+          const userIds = [...new Set(assignmentEmployees.map(ae => ae.user_id))];
+          
+          const { data: profiles, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, name')
+            .in('id', userIds);
+          
+          if (profileError) {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('[useAssignmentsConsolidated] Error fetching profiles:', profileError);
+            }
+          } else if (profiles) {
+            profileNames = profiles.reduce((acc, profile) => {
+              acc[profile.id] = profile.name;
+              return acc;
+            }, {} as Record<string, string>);
           }
         }
 
@@ -124,14 +139,15 @@ export const useAssignmentsConsolidated = ({
         }
         
         // Create lookup maps for O(1) access instead of nested loops
-        const employeesByAssignment = new Map<string, any[]>();
+        const employeesByAssignment = new Map<string, string[]>();
         if (assignmentEmployees) {
           assignmentEmployees.forEach(ae => {
             if (!employeesByAssignment.has(ae.assignment_id)) {
               employeesByAssignment.set(ae.assignment_id, []);
             }
-            if (ae.profiles?.name) {
-              employeesByAssignment.get(ae.assignment_id)?.push(ae.profiles.name);
+            const employeeName = profileNames[ae.user_id];
+            if (employeeName) {
+              employeesByAssignment.get(ae.assignment_id)?.push(employeeName);
             }
           });
         }
