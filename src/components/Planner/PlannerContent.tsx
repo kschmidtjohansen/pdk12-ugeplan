@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
@@ -85,6 +86,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   if (weekAssignments.length === 0) {
     return (
       <EmptyState 
+        message={t('planner.noAssignmentsForWeek')}
         selectedWeek={selectedWeek} 
         selectedYear={selectedYear} 
         onCreateAssignment={onCreateAssignment}
