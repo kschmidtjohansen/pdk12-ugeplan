@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -24,7 +25,7 @@ const DashboardPage: React.FC = () => {
   const { authStatus } = useAuthenticationMonitor();
   
   // Optimize data fetching - use single source for all assignments
-  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError } = useAssignmentsConsolidated({ 
+  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError, refetch: refetchAssignments } = useAssignmentsConsolidated({ 
     filter: 'all', 
     includeUnpublished: true 
   });
@@ -107,7 +108,7 @@ const DashboardPage: React.FC = () => {
   }, [user?.id, updateEmployeeLeaveStatusFromVacations]);
 
   // Get the dates for the selected week
-  const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
+  const weekDates = getCurrentWeekDates(selectedWeek,selectedYear);
   const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
   const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
 
@@ -238,6 +239,7 @@ const DashboardPage: React.FC = () => {
             selectedWeek={selectedWeek}
             onPreviousWeek={handlePreviousWeek}
             onNextWeek={handleNextWeek}
+            onRefresh={refetchAssignments}
           />
         </div>
       </div>
