@@ -28,6 +28,13 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
 }) => {
   const { t } = useTranslation();
 
+  console.log('[CarSelector] Rendering with:', {
+    selectedCarId,
+    carsCount: cars.length,
+    currentDate,
+    currentAssignmentId
+  });
+
   // Improved time normalization function
   const normalizeTime = (time: string): string => {
     if (!time) return '';
@@ -123,13 +130,27 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
     return car ? car.name : t('planner.selectCar');
   };
 
-  // Handle car selection
+  // Handle car selection with enhanced debugging
   const handleCarSelect = (carId: string) => {
-    if (carId === 'none') {
+    console.log('[CarSelector] Car selection triggered:', {
+      carId,
+      isNone: carId === 'none',
+      previousSelection: selectedCarId
+    });
+    
+    if (carId === 'none' || carId === '') {
+      console.log('[CarSelector] Setting car to empty (no car)');
       onCarSelect('');
     } else {
+      console.log('[CarSelector] Setting car to:', carId);
       onCarSelect(carId);
     }
+  };
+
+  // Handle car removal
+  const handleCarRemove = () => {
+    console.log('[CarSelector] Removing selected car');
+    onCarSelect('');
   };
 
   return (
@@ -168,7 +189,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                 onClick={() => handleCarSelect('none')}
                 className="flex items-center justify-between w-full space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
               >
-                <span>{t('cars.noCar')}</span>
+                <span className="font-medium">{t('cars.noCar')}</span>
               </div>
               
               {cars.map(car => {
@@ -224,8 +245,9 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
               <Badge key={selectedCarId} variant="secondary" className="flex items-center gap-1">
                 {car.name}
                 <button 
-                  onClick={() => onCarSelect('')} 
+                  onClick={handleCarRemove} 
                   className="ml-1 hover:bg-muted rounded-full p-0.5"
+                  type="button"
                 >
                   <X className="h-3 w-3" />
                 </button>

@@ -73,6 +73,12 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   const { t, currentLanguage } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
 
+  console.log('[AssignmentFormFields] Rendering with car state:', {
+    selectedCarId,
+    carType: typeof selectedCarId,
+    isEmpty: selectedCarId === '' || !selectedCarId
+  });
+
   const currentDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
 
   // Format date with Danish locale and proper timezone handling
@@ -105,10 +111,19 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   // Show responsible user field only for admin and skadeleder
   const canAssignResponsibleUser = isAdmin || isSkadeleder;
 
-  // Handle car selection with debugging
+  // Handle car selection with comprehensive debugging
   const handleCarSelect = (carId: string) => {
-    console.log('[AssignmentFormFields] Car selected:', carId);
-    setSelectedCarId(carId);
+    console.log('[AssignmentFormFields] Car selection handler called:', {
+      carId,
+      carType: typeof carId,
+      isEmpty: carId === '' || !carId,
+      previousSelection: selectedCarId
+    });
+    
+    // Ensure we always pass a string (empty string for no car)
+    const normalizedCarId = carId || '';
+    console.log('[AssignmentFormFields] Setting normalized car ID:', normalizedCarId);
+    setSelectedCarId(normalizedCarId);
   };
 
   // Handle employee toggle with debugging
@@ -236,7 +251,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       )}
 
-      {/* Car Selector */}
+      {/* Car Selector with enhanced debugging */}
       <CarSelector
         cars={cars}
         selectedCarId={selectedCarId}

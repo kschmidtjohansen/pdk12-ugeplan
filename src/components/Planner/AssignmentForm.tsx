@@ -49,7 +49,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     formDataDate: formData.date,
     selectedDay,
     formDataTitle: formData.title,
-    formDataEmployees: formData.employees
+    formDataEmployees: formData.employees,
+    formDataCar: formData.car,
+    carType: typeof formData.car
   });
 
   const {
@@ -67,6 +69,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     console.log('[AssignmentForm] Current form data:', formData);
     console.log('[AssignmentForm] Is editing:', !!currentAssignment);
     console.log('[AssignmentForm] Assignment ID:', currentAssignment?.id);
+    console.log('[AssignmentForm] Car data in form:', {
+      car: formData.car,
+      carType: typeof formData.car,
+      isEmpty: !formData.car || formData.car === ''
+    });
     
     // Validate required fields
     if (!formData.title || !formData.location || !formData.date) {
@@ -112,6 +119,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
   // Helper function to get car ID as string
   const getCarId = (car: string | { id: string; name: string; } | null): string => {
+    console.log('[AssignmentForm] Getting car ID from:', car, 'type:', typeof car);
     if (typeof car === 'string') return car;
     if (car && typeof car === 'object' && 'id' in car) return car.id;
     return '';
@@ -146,11 +154,30 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     setFormData(updatedData);
   };
 
-  // Helper function to handle car selection
+  // Enhanced helper function to handle car selection with proper debugging
   const handleCarChange = (carId: string) => {
-    console.log('[AssignmentForm] Car changed to:', carId);
-    const updatedData = { ...formData, car: carId };
-    console.log('[AssignmentForm] Updated form data with car:', updatedData);
+    console.log('[AssignmentForm] Car change handler called:', {
+      carId,
+      carType: typeof carId,
+      isEmpty: carId === '' || !carId,
+      currentCar: formData.car
+    });
+    
+    // Normalize the car value - empty string for no car, or the car ID
+    const normalizedCar = carId === '' || !carId ? '' : carId;
+    
+    const updatedData = { 
+      ...formData, 
+      car: normalizedCar 
+    };
+    
+    console.log('[AssignmentForm] Updated form data with car:', {
+      updatedData,
+      carValue: updatedData.car,
+      carType: typeof updatedData.car,
+      isEmpty: updatedData.car === '' || !updatedData.car
+    });
+    
     setFormData(updatedData);
   };
 
