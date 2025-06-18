@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -344,10 +343,13 @@ export const useAssignmentsConsolidated = ({
     }
   };
 
-  // Update assignment - FIXED: Always unpublish when editing
+  // Update assignment - FIXED: Enhanced logging for unpublishing behavior
   const updateAssignment = async (id: string, assignmentData: Partial<Assignment>) => {
     try {
-      console.log("Updating assignment with data:", assignmentData);
+      console.log('[useAssignmentsConsolidated] ===== UPDATE ASSIGNMENT =====');
+      console.log('[useAssignmentsConsolidated] Updating assignment ID:', id);
+      console.log('[useAssignmentsConsolidated] Assignment data received:', assignmentData);
+      console.log('[useAssignmentsConsolidated] Original published status in data:', assignmentData.published);
       
       // Format car information for storage - handle both single car and multiple cars
       let carId = null;
@@ -378,25 +380,36 @@ export const useAssignmentsConsolidated = ({
         }
       }
       
+      // CRITICAL: Always unpublish when editing - this is the main fix
+      const updatePayload = {
+        title: assignmentData.title,
+        description: assignmentData.description,
+        location: assignmentData.location,
+        assignment_date: assignmentData.date,
+        from_time: assignmentData.fromTime,
+        to_time: assignmentData.toTime,
+        car_id: carId, // Keep for backward compatibility
+        car_ids: carIds.length > 0 ? carIds : null, // New field for multiple cars
+        responsible_user_id: responsibleUserId,
+        published: false, // ALWAYS unpublish when editing - this is the key fix
+        updated_at: new Date().toISOString()
+      };
+      
+      console.log('[useAssignmentsConsolidated] Update payload being sent to database:', updatePayload);
+      console.log('[useAssignmentsConsolidated] PUBLISHED STATUS BEING SET TO:', false);
+      
       // Update the assignment - ALWAYS UNPUBLISH WHEN EDITING
       const { error } = await supabase
         .from('assignments')
-        .update({
-          title: assignmentData.title,
-          description: assignmentData.description,
-          location: assignmentData.location,
-          assignment_date: assignmentData.date,
-          from_time: assignmentData.fromTime,
-          to_time: assignmentData.toTime,
-          car_id: carId, // Keep for backward compatibility
-          car_ids: carIds.length > 0 ? carIds : null, // New field for multiple cars
-          responsible_user_id: responsibleUserId,
-          published: false, // ALWAYS unpublish when editing
-          updated_at: new Date().toISOString()
-        })
+        .update(updatePayload)
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('[useAssignmentsConsolidated] Database update error:', error);
+        throw error;
+      }
+      
+      console.log('[useAssignmentsConsolidated] Database update successful - assignment should now be unpublished');
       
       // Remove existing employee assignments
       const { error: deleteError } = await supabase
@@ -457,10 +470,11 @@ export const useAssignmentsConsolidated = ({
         description: t('planner.assignmentUpdatedMsg', { title: assignmentData.title }),
       });
       
+      console.log('[useAssignmentsConsolidated] Refreshing assignments after update...');
       fetchAssignments();
       return true;
     } catch (error: any) {
-      console.error('Error updating assignment:', error);
+      console.error('[useAssignmentsConsolidated] Error updating assignment:', error);
       toast({
         title: t('common.error'),
         description: t('planner.errorUpdatingAssignment'),

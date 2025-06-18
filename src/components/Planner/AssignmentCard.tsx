@@ -26,25 +26,32 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   onPublish,
   onCopy
 }) => {
-  // DEBUGGING: Log assignment data received by the card
+  // Enhanced debugging for assignment card
   console.log(`[AssignmentCard] Rendering assignment card for ${assignment.title || assignment.location}:`);
   console.log(`  - Assignment ID: ${assignment.id}`);
   console.log(`  - Title (case number): ${assignment.title}`);
   console.log(`  - Location: ${assignment.location}`);
-  console.log(`  - Assignment object:`, assignment);
-  console.log(`  - Employees array:`, assignment.employees);
-  console.log(`  - Employees length:`, assignment.employees?.length || 0);
-  console.log(`  - Employees type:`, typeof assignment.employees);
-  console.log(`  - Is employees array:`, Array.isArray(assignment.employees));
-  console.log(`  - Published status:`, assignment.published);
-  
-  if (assignment.employees && Array.isArray(assignment.employees)) {
-    assignment.employees.forEach((emp, index) => {
-      console.log(`    - Employee ${index}: "${emp}" (type: ${typeof emp})`);
-    });
-  } else {
-    console.log(`    - No valid employees array found`);
-  }
+  console.log(`  - Published status: ${assignment.published}`);
+
+  const handleEditClick = (assignment: Assignment) => {
+    console.log('[AssignmentCard] Edit clicked for assignment:', assignment.id);
+    console.log('[AssignmentCard] Calling onEdit prop function...');
+    onEdit(assignment);
+  };
+
+  const handleCopyClick = () => {
+    if (onCopy) {
+      console.log('[AssignmentCard] Copy clicked for assignment:', assignment.id);
+      onCopy(assignment);
+    }
+  };
+
+  const handlePublishClick = () => {
+    if (onPublish) {
+      console.log('[AssignmentCard] Publish clicked for assignment:', assignment.id);
+      onPublish();
+    }
+  };
 
   const isPublished = assignment.published === true;
 
@@ -63,10 +70,10 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         
         <AssignmentActionButtons 
           assignment={assignment}
-          onEdit={() => onEdit(assignment)}
+          onEdit={handleEditClick}
           onDelete={onDelete}
-          onPublish={onPublish}
-          onCopy={onCopy}
+          onPublish={handlePublishClick}
+          onCopy={handleCopyClick}
         />
       </div>
       

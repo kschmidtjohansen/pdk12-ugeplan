@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -85,6 +86,7 @@ export const usePlannerPage = () => {
 
   // Handle assignment creation/editing - always use the current date if no date provided
   const handleOpenCreateDialog = useCallback((date: string) => {
+    console.log('[usePlannerPage] Opening CREATE dialog for date:', date);
     setCurrentAssignment(null);
     
     // FIXED: Ensure we have a valid date - use provided date or fresh today's date
@@ -104,29 +106,40 @@ export const usePlannerPage = () => {
       employees: []
     });
     
+    console.log('[usePlannerPage] Setting dialog open to true for CREATE');
     setIsDialogOpen(true);
   }, [setIsDialogOpen, getFreshToday]);
 
-  // FIXED: Properly handle edit dialog opening
+  // FIXED: Properly handle edit dialog opening with enhanced debugging
   const handleOpenEditDialog = useCallback((assignment: Assignment) => {
-    console.log('[usePlannerPage] Opening edit dialog for assignment:', assignment);
+    console.log('[usePlannerPage] ===== EDIT DIALOG OPENING =====');
+    console.log('[usePlannerPage] Assignment received:', assignment);
+    console.log('[usePlannerPage] Assignment ID:', assignment.id);
+    console.log('[usePlannerPage] Assignment title:', assignment.title);
+    console.log('[usePlannerPage] Assignment published status:', assignment.published);
     
     setCurrentAssignment(assignment);
     setSelectedDay(assignment.date);
     
     // Set form data at once to avoid multiple renders
-    // Make sure to preserve the car ID and employees properly
-    // Fix: Ensure employees array is properly copied, not referenced
-    setFormData({
+    // Make sure to preserve the employees properly
+    const editFormData = {
       ...assignment,
       employees: Array.isArray(assignment.employees) ? [...assignment.employees] : []
-    });
+    };
     
+    console.log('[usePlannerPage] Setting form data for edit:', editFormData);
+    setFormData(editFormData);
+    
+    console.log('[usePlannerPage] Setting dialog open to true for EDIT');
     setIsDialogOpen(true);
+    
+    console.log('[usePlannerPage] Current dialog state should be true:', true);
   }, [setIsDialogOpen]);
 
   // New function to handle copying an assignment
   const handleCopyAssignment = useCallback((assignment: Assignment) => {
+    console.log('[usePlannerPage] Opening COPY dialog for assignment:', assignment.id);
     // Set the assignment to be copied
     setCurrentAssignment(null);
     
@@ -154,10 +167,12 @@ export const usePlannerPage = () => {
     setIsDialogOpen(true);
   }, [setIsDialogOpen, toast, t, getFreshToday]);
 
-  // FIXED: Handle form submission with proper unpublishing for edits
+  // FIXED: Handle form submission with proper unpublishing for edits and enhanced debugging
   const handleSubmit = useCallback((data: Partial<Assignment>) => {
     try {
+      console.log('[usePlannerPage] ===== FORM SUBMISSION =====');
       console.log('[usePlannerPage] Submitting form with data:', data);
+      console.log('[usePlannerPage] Current assignment:', currentAssignment);
       
       if (currentAssignment) {
         // Editing existing assignment - automatically unpublish
@@ -165,7 +180,10 @@ export const usePlannerPage = () => {
           ...data,
           published: false // Always unpublish when editing
         };
-        console.log('[usePlannerPage] Updating assignment with unpublished data:', unpublishedData);
+        console.log('[usePlannerPage] EDITING - Data with unpublished status:', unpublishedData);
+        console.log('[usePlannerPage] Original assignment published status:', currentAssignment.published);
+        console.log('[usePlannerPage] New assignment will be published:', false);
+        
         updateAssignment(currentAssignment.id, unpublishedData);
       } else {
         // This handles both new assignments and copied assignments
@@ -175,13 +193,14 @@ export const usePlannerPage = () => {
           published: false
         } as Assignment;
         
-        console.log('[usePlannerPage] Creating new assignment:', newAssignment);
+        console.log('[usePlannerPage] CREATING new assignment:', newAssignment);
         createAssignment(newAssignment);
       }
+      
+      console.log('[usePlannerPage] Closing dialog after submission');
       setIsDialogOpen(false);
     } catch (error) {
-      // Don't show error toast here - useAssignmentsConsolidated handles all error cases
-      console.error('Error in handleSubmit:', error);
+      console.error('[usePlannerPage] Error in handleSubmit:', error);
     }
   }, [currentAssignment, createAssignment, updateAssignment, setIsDialogOpen]);
 

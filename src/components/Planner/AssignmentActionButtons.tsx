@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { Assignment } from '@/types/assignment';
 import { Edit3, Trash2, Eye, Copy, Monitor } from 'lucide-react';
+
 interface AssignmentActionButtonsProps {
   assignment: Assignment;
   onEdit: (assignment: Assignment) => void;
@@ -11,6 +13,7 @@ interface AssignmentActionButtonsProps {
   onPublish: (assignmentId: string) => void;
   onCopy: (assignment: Assignment) => void;
 }
+
 export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = ({
   assignment,
   onEdit,
@@ -18,21 +21,26 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
   onPublish,
   onCopy
 }) => {
-  const {
-    t
-  } = useTranslation();
-  const {
-    user
-  } = useAuth();
+  const { t } = useTranslation();
+  const { user } = useAuth();
 
   // Only show action buttons for administrators and skadeledere
   const canPerformActions = user?.role === 'administrator' || user?.role === 'skadeleder';
 
   // Screen display button should be available for administrators and skadeledere only
   const canShowOnScreen = user?.role === 'administrator' || user?.role === 'skadeleder';
+
   if (!canPerformActions) {
     return null;
   }
+
+  const handleEditClick = () => {
+    console.log('[AssignmentActionButtons] Edit button clicked for assignment:', assignment.id);
+    console.log('[AssignmentActionButtons] Assignment data:', assignment);
+    console.log('[AssignmentActionButtons] Calling onEdit function...');
+    onEdit(assignment);
+  };
+
   const handleShowOnScreen = () => {
     try {
       const screenUrl = `/screen-display?date=${assignment.date}`;
@@ -41,24 +49,64 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
       console.error('Error opening screen display:', error);
     }
   };
-  return <div className="flex gap-1">
-      <Button variant="ghost" size="sm" onClick={() => onEdit(assignment)} className="h-7 w-7 p-0" title={t('planner.editAssignment')}>
+
+  return (
+    <div className="flex gap-1">
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={handleEditClick}
+        className="h-7 w-7 p-0" 
+        title={t('planner.editAssignment')}
+      >
         <Edit3 className="h-3 w-3" />
       </Button>
       
-      <Button variant="ghost" size="sm" onClick={() => onCopy(assignment)} className="h-7 w-7 p-0" title={t('planner.copyAssignment')}>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={() => onCopy(assignment)} 
+        className="h-7 w-7 p-0" 
+        title={t('planner.copyAssignment')}
+      >
         <Copy className="h-3 w-3" />
       </Button>
       
-      {!assignment.published && <Button variant="ghost" size="sm" onClick={() => onPublish(assignment.id)} className="h-7 w-7 p-0" title={t('planner.publish')}>
+      {!assignment.published && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => onPublish(assignment.id)} 
+          className="h-7 w-7 p-0" 
+          title={t('planner.publish')}
+        >
           <Eye className="h-3 w-3" />
-        </Button>}
+        </Button>
+      )}
       
-      {canShowOnScreen && assignment.published}
+      {canShowOnScreen && assignment.published && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleShowOnScreen} 
+          className="h-7 w-7 p-0" 
+          title={t('common.showOnScreen')}
+        >
+          <Monitor className="h-3 w-3" />
+        </Button>
+      )}
       
-      <Button variant="ghost" size="sm" onClick={() => onDelete(assignment.id)} className="h-7 w-7 p-0 text-red-600 hover:text-red-700" title={t('planner.deleteAssignment')}>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={() => onDelete(assignment.id)} 
+        className="h-7 w-7 p-0 text-red-600 hover:text-red-700" 
+        title={t('planner.deleteAssignment')}
+      >
         <Trash2 className="h-3 w-3" />
       </Button>
-    </div>;
+    </div>
+  );
 };
+
 export default AssignmentActionButtons;
