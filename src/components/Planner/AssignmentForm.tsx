@@ -124,12 +124,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           setToTime={(value) => setFormData({ ...formData, toTime: value })}
           description={formData.description || ''}
           setDescription={(value) => setFormData({ ...formData, description: value })}
-          assignmentType={'ordinary_damage'}
-          setAssignmentType={(value) => {
-            // Note: Assignment interface doesn't have a type property
-            // This might need to be handled differently based on your data model
-            console.log('Assignment type change:', value);
-          }}
           selectedCarId={getCarId(formData.car)}
           setSelectedCarId={(value) => setFormData({ ...formData, car: value })}
           selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)}
@@ -173,7 +167,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           </Button>
         )}
 
-        {canPublishTasks && (
+        {/* Only show publish day button when editing existing assignment */}
+        {currentAssignment && canPublishTasks && (
           <Button
             type="button"
             onClick={handlePublishDayClick}

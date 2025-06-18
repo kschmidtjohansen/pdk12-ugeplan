@@ -4,7 +4,6 @@ import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -30,8 +29,6 @@ interface AssignmentFormFieldsProps {
   setToTime: (value: string) => void;
   description: string;
   setDescription: (value: string) => void;
-  assignmentType: string;
-  setAssignmentType: (value: string) => void;
   selectedCarId: string;
   setSelectedCarId: (value: string) => void;
   selectedResponsibleUserId: string;
@@ -54,8 +51,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   setToTime,
   description,
   setDescription,
-  assignmentType,
-  setAssignmentType,
   selectedCarId,
   setSelectedCarId,
   selectedResponsibleUserId,
@@ -66,15 +61,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
-
-  const assignmentTypes = [
-    { value: 'ordinary_damage', label: t('planner.assignmentTypes.ordinary_damage') },
-    { value: 'flood_damage', label: t('planner.assignmentTypes.flood_damage') },
-    { value: 'roof_damage', label: t('planner.assignmentTypes.roof_damage') },
-    { value: 'storm_damage', label: t('planner.assignmentTypes.storm_damage') },
-    { value: 'fire_damage', label: t('planner.assignmentTypes.fire_damage') },
-    { value: 'other', label: t('planner.assignmentTypes.other') }
-  ];
 
   const currentDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
 
@@ -172,23 +158,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         </div>
       </div>
 
-      {/* Assignment Type */}
-      <div className="space-y-2">
-        <Label>{t('planner.type')}</Label>
-        <Select value={assignmentType} onValueChange={setAssignmentType}>
-          <SelectTrigger>
-            <SelectValue placeholder={t('planner.selectType')} />
-          </SelectTrigger>
-          <SelectContent>
-            {assignmentTypes.map((type) => (
-              <SelectItem key={type.value} value={type.value}>
-                {type.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Responsible User Selector - Only for Admin and Skadeleder */}
       {canAssignResponsibleUser && (
         <ResponsibleUserSelector
@@ -197,18 +166,15 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       )}
 
-      {/* Car Selector */}
-      <div className="space-y-2">
-        <Label>{t('planner.selectCar')}</Label>
-        <CarSelector
-          cars={cars}
-          selectedCarId={selectedCarId}
-          onCarSelect={handleCarSelect}
-          currentDate={currentDateStr}
-          assignments={assignments}
-          currentAssignmentId={assignmentId}
-        />
-      </div>
+      {/* Car Selector - Remove duplicate label since CarSelector has its own */}
+      <CarSelector
+        cars={cars}
+        selectedCarId={selectedCarId}
+        onCarSelect={handleCarSelect}
+        currentDate={currentDateStr}
+        assignments={assignments}
+        currentAssignmentId={assignmentId}
+      />
 
       {/* Description Field */}
       <div className="space-y-2">
