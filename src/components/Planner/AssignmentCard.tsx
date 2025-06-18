@@ -42,7 +42,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const handleCopyClick = () => {
     if (onCopy) {
       console.log('[AssignmentCard] Copy clicked for assignment:', assignment.id);
-      onCopy(assignment);
+      onCopy(); // Fixed: Remove assignment parameter since onCopy expects no arguments
     }
   };
 
