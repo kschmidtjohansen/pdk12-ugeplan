@@ -75,32 +75,56 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
   const currentDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
 
-  // Format date with Danish locale
+  // Format date with Danish locale and proper timezone handling
   const formatDateDisplay = (date: Date) => {
     try {
+      console.log('[AssignmentFormFields] Formatting date:', date);
       const locale = currentLanguage === 'da' ? da : undefined;
-      return format(date, "PPP", { locale });
+      const formatted = format(date, "PPP", { locale });
+      console.log('[AssignmentFormFields] Formatted date:', formatted);
+      return formatted;
     } catch (e) {
       console.error("Error formatting date:", e);
       return format(date, "PPP");
     }
   };
 
+  // Handle date selection with proper timezone handling
+  const handleDateSelect = (date: Date | undefined) => {
+    console.log('[AssignmentFormFields] Date selected:', date);
+    if (date) {
+      // Ensure we're working with the correct date by creating a new date in local timezone
+      const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      console.log('[AssignmentFormFields] Local date created:', localDate);
+      setSelectedDate(localDate);
+    } else {
+      setSelectedDate(undefined);
+    }
+  };
+
   // Show responsible user field only for admin and skadeleder
   const canAssignResponsibleUser = isAdmin || isSkadeleder;
 
-  // Handle car selection (single car ID)
+  // Handle car selection with debugging
   const handleCarSelect = (carId: string) => {
+    console.log('[AssignmentFormFields] Car selected:', carId);
     setSelectedCarId(carId);
   };
 
-  // Handle employee toggle
+  // Handle employee toggle with debugging
   const handleEmployeeToggle = (employeeName: string) => {
+    console.log('[AssignmentFormFields] Employee toggled:', employeeName);
+    console.log('[AssignmentFormFields] Current employees:', selectedEmployees);
+    
+    let newEmployees;
     if (selectedEmployees.includes(employeeName)) {
-      setSelectedEmployees(selectedEmployees.filter(name => name !== employeeName));
+      newEmployees = selectedEmployees.filter(name => name !== employeeName);
     } else {
-      setSelectedEmployees([...selectedEmployees, employeeName]);
+      newEmployees = [...selectedEmployees, employeeName];
     }
+    
+    console.log('[AssignmentFormFields] New employees:', newEmployees);
+    setSelectedEmployees(newEmployees);
   };
 
   return (
@@ -111,7 +135,10 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         <Input
           id="title"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            console.log('[AssignmentFormFields] Title changed:', e.target.value);
+            setTitle(e.target.value);
+          }}
           placeholder={t('planner.enterTitle')}
           required
         />
@@ -123,13 +150,16 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         <Input
           id="location"
           value={location}
-          onChange={(e) => setLocation(e.target.value)}
+          onChange={(e) => {
+            console.log('[AssignmentFormFields] Location changed:', e.target.value);
+            setLocation(e.target.value);
+          }}
           placeholder={t('planner.enterLocation')}
           required
         />
       </div>
 
-      {/* Date Field */}
+      {/* Date Field with Enhanced Calendar */}
       <div className="space-y-2">
         <Label>{t('planner.assignmentDate')}</Label>
         <Popover>
@@ -142,13 +172,14 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
               {selectedDate ? formatDateDisplay(selectedDate) : t('common.selectDate')}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
             <Calendar
               mode="single"
               selected={selectedDate}
-              onSelect={setSelectedDate}
+              onSelect={handleDateSelect}
               initialFocus
               locale={currentLanguage === 'da' ? da : undefined}
+              className="pointer-events-auto"
             />
           </PopoverContent>
         </Popover>
@@ -162,7 +193,10 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             id="fromTime"
             type="time"
             value={fromTime}
-            onChange={(e) => setFromTime(e.target.value)}
+            onChange={(e) => {
+              console.log('[AssignmentFormFields] From time changed:', e.target.value);
+              setFromTime(e.target.value);
+            }}
             required
           />
         </div>
@@ -172,7 +206,10 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             id="toTime"
             type="time"
             value={toTime}
-            onChange={(e) => setToTime(e.target.value)}
+            onChange={(e) => {
+              console.log('[AssignmentFormFields] To time changed:', e.target.value);
+              setToTime(e.target.value);
+            }}
             required
           />
         </div>
@@ -192,11 +229,14 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       {canAssignResponsibleUser && (
         <ResponsibleUserSelector
           selectedUserId={selectedResponsibleUserId}
-          onUserSelect={setSelectedResponsibleUserId}
+          onUserSelect={(userId) => {
+            console.log('[AssignmentFormFields] Responsible user selected:', userId);
+            setSelectedResponsibleUserId(userId);
+          }}
         />
       )}
 
-      {/* Car Selector - Remove duplicate label since CarSelector has its own */}
+      {/* Car Selector */}
       <CarSelector
         cars={cars}
         selectedCarId={selectedCarId}
@@ -212,7 +252,10 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         <Textarea
           id="description"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            console.log('[AssignmentFormFields] Description changed:', e.target.value);
+            setDescription(e.target.value);
+          }}
           placeholder={t('planner.notesPlaceholder')}
           rows={3}
         />

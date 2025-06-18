@@ -86,7 +86,9 @@ export const usePlannerPage = () => {
 
   // Handle assignment creation/editing - always use the current date if no date provided
   const handleOpenCreateDialog = useCallback((date: string) => {
+    console.log('[usePlannerPage] ===== OPENING CREATE DIALOG =====');
     console.log('[usePlannerPage] Opening CREATE dialog for date:', date);
+    
     setCurrentAssignment(null);
     
     // FIXED: Ensure we have a valid date - use provided date or fresh today's date
@@ -95,7 +97,7 @@ export const usePlannerPage = () => {
     setSelectedDay(taskDate);
     
     // Set form data in one update to avoid race conditions
-    setFormData({
+    const newFormData = {
       title: '',
       description: '',
       date: taskDate,
@@ -104,7 +106,10 @@ export const usePlannerPage = () => {
       location: '',
       car: '',
       employees: []
-    });
+    };
+    
+    console.log('[usePlannerPage] Setting form data for CREATE:', newFormData);
+    setFormData(newFormData);
     
     console.log('[usePlannerPage] Setting dialog open to true for CREATE');
     setIsDialogOpen(true);
@@ -117,15 +122,18 @@ export const usePlannerPage = () => {
     console.log('[usePlannerPage] Assignment ID:', assignment.id);
     console.log('[usePlannerPage] Assignment title:', assignment.title);
     console.log('[usePlannerPage] Assignment published status:', assignment.published);
+    console.log('[usePlannerPage] Assignment employees:', assignment.employees);
+    console.log('[usePlannerPage] Assignment car:', assignment.car);
     
     setCurrentAssignment(assignment);
     setSelectedDay(assignment.date);
     
     // Set form data at once to avoid multiple renders
-    // Make sure to preserve the employees properly
+    // Make sure to preserve the employees and car data properly
     const editFormData = {
       ...assignment,
-      employees: Array.isArray(assignment.employees) ? [...assignment.employees] : []
+      employees: Array.isArray(assignment.employees) ? [...assignment.employees] : [],
+      car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : ''
     };
     
     console.log('[usePlannerPage] Setting form data for edit:', editFormData);
@@ -139,7 +147,9 @@ export const usePlannerPage = () => {
 
   // New function to handle copying an assignment
   const handleCopyAssignment = useCallback((assignment: Assignment) => {
+    console.log('[usePlannerPage] ===== OPENING COPY DIALOG =====');
     console.log('[usePlannerPage] Opening COPY dialog for assignment:', assignment.id);
+    
     // Set the assignment to be copied
     setCurrentAssignment(null);
     
@@ -149,15 +159,19 @@ export const usePlannerPage = () => {
     
     // Pre-fill the form with the assignment data but change the date to today
     // and mark as unpublished
-    setFormData({
+    const copyFormData = {
       ...assignment,
       id: undefined,  // Remove the ID to force creation of a new assignment
       date: freshTodayDate,
       published: false,
-      employees: Array.isArray(assignment.employees) ? [...assignment.employees] : []
-    });
+      employees: Array.isArray(assignment.employees) ? [...assignment.employees] : [],
+      car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : ''
+    };
     
-    // Show a success toast with proper translation - this is the only toast we keep
+    console.log('[usePlannerPage] Setting form data for COPY:', copyFormData);
+    setFormData(copyFormData);
+    
+    // Show a success toast with proper translation
     toast({
       title: t('planner.copyAssignment'),
       description: t('planner.selectDateForCopy')
@@ -173,6 +187,13 @@ export const usePlannerPage = () => {
       console.log('[usePlannerPage] ===== FORM SUBMISSION =====');
       console.log('[usePlannerPage] Submitting form with data:', data);
       console.log('[usePlannerPage] Current assignment:', currentAssignment);
+      console.log('[usePlannerPage] Form data received:', {
+        title: data.title,
+        location: data.location,
+        date: data.date,
+        employees: data.employees,
+        car: data.car
+      });
       
       if (currentAssignment) {
         // Editing existing assignment - automatically unpublish
