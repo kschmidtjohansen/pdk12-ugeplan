@@ -9,6 +9,7 @@ import { cleanupAssignmentEmployees } from '@/utils/employeeAssignmentUtils';
 import { useErrorRecovery } from './useErrorRecovery';
 import { dataFetchingService } from '@/services/dataFetchingService';
 import { realtimeManager } from '@/services/realtimeManager';
+import { useCarDataHandler } from './assignment/useCarDataHandler';
 
 interface UseAssignmentsConsolidatedProps {
   filter?: 'all' | 'dashboard' | 'planner';
@@ -28,6 +29,7 @@ export const useAssignmentsConsolidated = ({
   const { employees } = useEmployees();
   const { vacations } = useVacations();
   const { executeWithRecovery } = useErrorRecovery();
+  const { transformCarForDatabase } = useCarDataHandler();
 
   // Fetch assignments with enhanced error handling and caching
   const fetchAssignments = async () => {
@@ -226,26 +228,14 @@ export const useAssignmentsConsolidated = ({
         throw new Error('Title, location, and date are required');
       }
 
-      console.log("Creating assignment with data:", assignmentData);
+      console.log('[useAssignmentsConsolidated] Creating assignment with data:', assignmentData);
       
-      // Format car information for storage - handle both single car and multiple cars
-      let carId = null;
-      let carIds: string[] = [];
-      
-      if (assignmentData.cars && Array.isArray(assignmentData.cars) && assignmentData.cars.length > 0) {
-        // New format: multiple cars
-        carIds = assignmentData.cars;
-        carId = assignmentData.cars[0]; // Set first car as primary for backward compatibility
-      } else if (assignmentData.car) {
-        // Fallback: single car format
-        if (typeof assignmentData.car === 'string') {
-          carId = assignmentData.car;
-          carIds = [assignmentData.car];
-        } else if (typeof assignmentData.car === 'object') {
-          carId = assignmentData.car.id;
-          carIds = [assignmentData.car.id];
-        }
-      }
+      // Use car data handler for consistent transformation
+      const transformedData = transformCarForDatabase(assignmentData);
+      console.log('[useAssignmentsConsolidated] Transformed car data for create:', {
+        car_id: transformedData.car_id,
+        car_ids: transformedData.car_ids
+      });
 
       // Format responsible user ID
       let responsibleUserId = null;
@@ -267,8 +257,8 @@ export const useAssignmentsConsolidated = ({
           assignment_date: assignmentData.date,
           from_time: assignmentData.fromTime,
           to_time: assignmentData.toTime,
-          car_id: carId, // Keep for backward compatibility
-          car_ids: carIds.length > 0 ? carIds : null, // New field for multiple cars
+          car_id: transformedData.car_id,
+          car_ids: transformedData.car_ids,
           responsible_user_id: responsibleUserId,
           published: assignmentData.published || false,
           created_at: new Date().toISOString()
@@ -343,32 +333,24 @@ export const useAssignmentsConsolidated = ({
     }
   };
 
-  // Update assignment - FIXED: Enhanced logging for unpublishing behavior
+  // Update assignment - FIXED: Enhanced car handling with useCarDataHandler
   const updateAssignment = async (id: string, assignmentData: Partial<Assignment>) => {
     try {
       console.log('[useAssignmentsConsolidated] ===== UPDATE ASSIGNMENT =====');
       console.log('[useAssignmentsConsolidated] Updating assignment ID:', id);
       console.log('[useAssignmentsConsolidated] Assignment data received:', assignmentData);
-      console.log('[useAssignmentsConsolidated] Original published status in data:', assignmentData.published);
+      console.log('[useAssignmentsConsolidated] Car data before transformation:', {
+        car: assignmentData.car,
+        carType: typeof assignmentData.car,
+        isEmpty: !assignmentData.car || assignmentData.car === ''
+      });
       
-      // Format car information for storage - handle both single car and multiple cars
-      let carId = null;
-      let carIds: string[] = [];
-      
-      if (assignmentData.cars && Array.isArray(assignmentData.cars) && assignmentData.cars.length > 0) {
-        // New format: multiple cars
-        carIds = assignmentData.cars;
-        carId = assignmentData.cars[0]; // Set first car as primary for backward compatibility
-      } else if (assignmentData.car) {
-        // Fallback: single car format
-        if (typeof assignmentData.car === 'string') {
-          carId = assignmentData.car;
-          carIds = [assignmentData.car];
-        } else if (typeof assignmentData.car === 'object') {
-          carId = assignmentData.car.id;
-          carIds = [assignmentData.car.id];
-        }
-      }
+      // Use car data handler for consistent transformation
+      const transformedData = transformCarForDatabase(assignmentData);
+      console.log('[useAssignmentsConsolidated] Transformed car data for update:', {
+        car_id: transformedData.car_id,
+        car_ids: transformedData.car_ids
+      });
 
       // Format responsible user ID
       let responsibleUserId = null;
@@ -388,8 +370,8 @@ export const useAssignmentsConsolidated = ({
         assignment_date: assignmentData.date,
         from_time: assignmentData.fromTime,
         to_time: assignmentData.toTime,
-        car_id: carId, // Keep for backward compatibility
-        car_ids: carIds.length > 0 ? carIds : null, // New field for multiple cars
+        car_id: transformedData.car_id,
+        car_ids: transformedData.car_ids,
         responsible_user_id: responsibleUserId,
         published: false, // ALWAYS unpublish when editing - this is the key fix
         updated_at: new Date().toISOString()
@@ -397,6 +379,10 @@ export const useAssignmentsConsolidated = ({
       
       console.log('[useAssignmentsConsolidated] Update payload being sent to database:', updatePayload);
       console.log('[useAssignmentsConsolidated] PUBLISHED STATUS BEING SET TO:', false);
+      console.log('[useAssignmentsConsolidated] CAR FIELDS BEING SET TO:', {
+        car_id: updatePayload.car_id,
+        car_ids: updatePayload.car_ids
+      });
       
       // Update the assignment - ALWAYS UNPUBLISH WHEN EDITING
       const { error } = await supabase
@@ -409,7 +395,7 @@ export const useAssignmentsConsolidated = ({
         throw error;
       }
       
-      console.log('[useAssignmentsConsolidated] Database update successful - assignment should now be unpublished');
+      console.log('[useAssignmentsConsolidated] Database update successful - assignment should now be unpublished with correct car data');
       
       // Remove existing employee assignments
       const { error: deleteError } = await supabase
