@@ -1,6 +1,10 @@
+
 import React from 'react';
 import { useTranslation } from '../context/TranslationContext';
 import { usePlannerPage } from '../hooks/usePlannerPage';
+import { useEmployees } from '../hooks/useEmployees';
+import { useCars } from '../hooks/car';
+import { useVacations } from '../hooks/useVacations';
 import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
 import { Clock, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -10,6 +14,9 @@ import { usePermissions } from '@/context/AuthContext';
 const PlannerPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
   const { canCreate, canPublishTasks } = usePermissions();
+  const { employees } = useEmployees();
+  const { cars } = useCars();
+  const { vacations } = useVacations();
   const {
     selectedWeek,
     selectedYear,
@@ -43,6 +50,7 @@ const PlannerPage: React.FC = () => {
       return a.fromTime.localeCompare(b.fromTime);
     });
   }, [weekAssignments]);
+  
   const handleShowOnScreen = () => {
     const today = new Date().toISOString().split('T')[0];
     const screenUrl = `/screen-display?date=${today}`;
@@ -154,6 +162,9 @@ const PlannerPage: React.FC = () => {
           onDelete={deleteAssignment} 
           onPublish={publishAssignment} 
           assignments={weekAssignments} 
+          cars={cars}
+          employees={employees}
+          vacations={vacations}
           selectedDay={selectedDay} 
           onPublishDay={handlePublishDay} 
         />

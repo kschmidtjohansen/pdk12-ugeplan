@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Assignment } from '@/types/assignment';
+import { Car } from '@/types/car';
+import { Employee } from '@/types/employee';
+import { Vacation } from '@/types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -16,6 +19,9 @@ interface AssignmentFormProps {
   onDelete: (assignmentId: string) => void;
   onPublish: (assignmentId: string) => void;
   assignments: Assignment[];
+  cars: Car[];
+  employees: Employee[];
+  vacations: Vacation[];
   selectedDay: string;
   onPublishDay: (date: string) => void;
 }
@@ -28,6 +34,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   onDelete,
   onPublish,
   assignments,
+  cars,
+  employees,
+  vacations,
   selectedDay,
   onPublishDay
 }) => {
@@ -104,6 +113,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     }
   };
 
+  // Helper function to handle employees as array of strings
+  const handleEmployeesChange = (employees: string[]) => {
+    setFormData({ ...formData, employees });
+  };
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="space-y-4">
@@ -128,7 +142,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           setSelectedCarId={(value) => setFormData({ ...formData, car: value })}
           selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)}
           setSelectedResponsibleUserId={setResponsibleUserById}
-          cars={[]}
+          selectedEmployees={formData.employees || []}
+          setSelectedEmployees={handleEmployeesChange}
+          cars={cars}
+          employees={employees}
+          vacations={vacations}
           assignmentId={currentAssignment?.id}
           assignments={assignments}
         />

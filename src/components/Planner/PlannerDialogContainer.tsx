@@ -1,6 +1,9 @@
 
 import React from 'react';
 import { Assignment } from '@/types/assignment';
+import { Car } from '@/types/car';
+import { Employee } from '@/types/employee';
+import { Vacation } from '@/types/vacation';
 import AssignmentDialogManager from './AssignmentDialogManager';
 
 interface PlannerDialogContainerProps {
@@ -13,8 +16,11 @@ interface PlannerDialogContainerProps {
   onDelete: (assignmentId: string) => void;
   onPublish: (assignmentId: string) => void;
   assignments: Assignment[];
+  cars: Car[];
+  employees: Employee[];
+  vacations: Vacation[];
   selectedDay: string;
-  onPublishDay: (date: string) => void; // FIXED: Updated to accept date parameter
+  onPublishDay: (date: string) => void;
 }
 
 const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
@@ -27,6 +33,9 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   onDelete,
   onPublish,
   assignments,
+  cars,
+  employees,
+  vacations,
   selectedDay,
   onPublishDay
 }) => {
@@ -41,6 +50,9 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
       onDelete={onDelete}
       onPublish={onPublish}
       assignments={assignments}
+      cars={cars}
+      employees={employees}
+      vacations={vacations}
       selectedDay={selectedDay}
       onPublishDay={onPublishDay}
     />

@@ -13,8 +13,11 @@ import { da } from 'date-fns/locale';
 import { Textarea } from '@/components/ui/textarea';
 import { Car } from '@/types/car';
 import { Assignment } from '@/types/assignment';
+import { Employee } from '@/types/employee';
+import { Vacation } from '@/types/vacation';
 import { CarSelector } from './CarSelector';
 import ResponsibleUserSelector from './ResponsibleUserSelector';
+import EmployeeSelector from './EmployeeSelector';
 
 interface AssignmentFormFieldsProps {
   title: string;
@@ -33,7 +36,11 @@ interface AssignmentFormFieldsProps {
   setSelectedCarId: (value: string) => void;
   selectedResponsibleUserId: string;
   setSelectedResponsibleUserId: (value: string) => void;
+  selectedEmployees: string[];
+  setSelectedEmployees: (employees: string[]) => void;
   cars: Car[];
+  employees: Employee[];
+  vacations: Vacation[];
   assignmentId?: string;
   assignments?: Assignment[];
 }
@@ -55,7 +62,11 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   setSelectedCarId,
   selectedResponsibleUserId,
   setSelectedResponsibleUserId,
+  selectedEmployees,
+  setSelectedEmployees,
   cars,
+  employees,
+  vacations,
   assignmentId,
   assignments = []
 }) => {
@@ -81,6 +92,15 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   // Handle car selection (single car ID)
   const handleCarSelect = (carId: string) => {
     setSelectedCarId(carId);
+  };
+
+  // Handle employee toggle
+  const handleEmployeeToggle = (employeeName: string) => {
+    if (selectedEmployees.includes(employeeName)) {
+      setSelectedEmployees(selectedEmployees.filter(name => name !== employeeName));
+    } else {
+      setSelectedEmployees([...selectedEmployees, employeeName]);
+    }
   };
 
   return (
@@ -157,6 +177,16 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
           />
         </div>
       </div>
+
+      {/* Employee Selector */}
+      <EmployeeSelector
+        employees={employees}
+        selectedEmployees={selectedEmployees}
+        onToggle={handleEmployeeToggle}
+        vacations={vacations}
+        currentDate={currentDateStr}
+        assignments={assignments}
+      />
 
       {/* Responsible User Selector - Only for Admin and Skadeleder */}
       {canAssignResponsibleUser && (
