@@ -24,18 +24,18 @@ export const useOptimizedAssignments = ({
   const { t } = useTranslation();
   const { canPublishTasks } = usePermissions();
 
-  // FIXED: Enhanced fetch that returns ALL assignments regardless of filter
+  // FIXED: Always fetch ALL assignments regardless of filter - no user-based filtering
   const fetchAssignments = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log(`[useOptimizedAssignments] Fetching ALL assignments for filter: ${filter}...`);
+      console.log(`[useOptimizedAssignments] FIXED: Fetching ALL assignments regardless of filter (${filter}) - no user restrictions`);
       
-      // FIXED: Always fetch ALL assignments - no user-based filtering
+      // Always fetch ALL assignments - filter only affects publication status, not user access
       const optimizedData = await optimizedAssignmentService.fetchAssignmentsOptimized(includeUnpublished);
       
-      console.log(`[useOptimizedAssignments] Loaded ${optimizedData.assignments.length} assignments for ALL users`);
+      console.log(`[useOptimizedAssignments] FIXED: Successfully loaded ${optimizedData.assignments.length} assignments for ALL users with complete employee data`);
       console.log('[useOptimizedAssignments] Sample assignments with employees:', 
         optimizedData.assignments.slice(0, 3).map(a => ({ 
           title: a.title, 
@@ -255,11 +255,14 @@ export const useOptimizedAssignments = ({
       return false;
     }
     
-    setOperationState(assignmentId, 'updating');
+    setOperationStates(prev => ({ ...prev, [assignmentId]: 'updating' }));
     
     const originalAssignment = assignments.find(a => a.id === assignmentId);
     if (!originalAssignment) {
-      setOperationState(assignmentId, null);
+      setOperationStates(prev => {
+        const { [assignmentId]: _, ...rest } = prev;
+        return rest;
+      });
       return false;
     }
     
@@ -299,9 +302,12 @@ export const useOptimizedAssignments = ({
       });
       return false;
     } finally {
-      setOperationState(assignmentId, null);
+      setOperationStates(prev => {
+        const { [assignmentId]: _, ...rest } = prev;
+        return rest;
+      });
     }
-  }, [assignments, toast, t, setOperationState, operationStates]);
+  }, [assignments, toast, t, operationStates]);
 
   // FIXED: Enhanced publish day with better validation
   const publishAssignmentsByDate = useCallback(async (date: string) => {
@@ -409,10 +415,303 @@ export const useOptimizedAssignments = ({
     error,
     operationStates,
     fetchAssignments,
-    createAssignment,
-    updateAssignment,
-    publishAssignment,
-    deleteAssignment,
-    publishAssignmentsByDate
+    createAssignment: useCallback(async (assignmentData: Partial<Assignment>) => {
+      try {
+        if (!assignmentData.title || !assignmentData.location || !assignmentData.date) {
+          throw new Error('Title, location, and date are required');
+        }
+
+        console.log('[useOptimizedAssignments] Creating assignment:', assignmentData);
+        
+        const tempId = `temp_${Date.now()}`;
+        const tempAssignment: Assignment = {
+          id: tempId,
+          title: assignmentData.title,
+          description: assignmentData.description || '',
+          date: assignmentData.date,
+          fromTime: assignmentData.fromTime || '08:00',
+          toTime: assignmentData.toTime || '16:00',
+          location: assignmentData.location,
+          car: assignmentData.car || null,
+          cars: assignmentData.cars || [],
+          employees: assignmentData.employees || [],
+          published: false,
+          responsibleUser: assignmentData.responsibleUser || null
+        };
+
+        setAssignments(prev => [...prev, tempAssignment]);
+
+        const success = await optimizedAssignmentService.createAssignmentOptimistic(assignmentData);
+        
+        if (success) {
+          setAssignments(prev => prev.filter(a => a.id !== tempId));
+          await fetchAssignments();
+          
+          toast({
+            title: t('planner.assignmentCreated'),
+            description: t('planner.assignmentCreatedMsg'),
+          });
+          return true;
+        } else {
+          throw new Error('Create operation failed');
+        }
+      } catch (error) {
+        console.error('[useOptimizedAssignments] Error creating assignment:', error);
+        
+        setAssignments(prev => prev.filter(a => !a.id.startsWith('temp_')));
+        
+        toast({
+          title: t('common.error'),
+          description: error instanceof Error ? error.message : t('planner.errorCreatingAssignment'),
+          variant: "destructive",
+        });
+        return false;
+      }
+    }, [fetchAssignments, toast, t]),
+    updateAssignment: useCallback(async (assignmentId: string, assignmentData: Partial<Assignment>) => {
+      console.log('[useOptimizedAssignments] Updating assignment:', assignmentId);
+      
+      if (operationStates[assignmentId]) {
+        console.log('[useOptimizedAssignments] Operation already in progress for:', assignmentId);
+        return false;
+      }
+      
+      setOperationStates(prev => ({ ...prev, [assignmentId]: 'updating' }));
+      
+      const originalAssignment = assignments.find(a => a.id === assignmentId);
+      if (!originalAssignment) {
+        setOperationStates(prev => {
+          const { [assignmentId]: _, ...rest } = prev;
+          return rest;
+        });
+        return false;
+      }
+      
+      setAssignments(prev => 
+        prev.map(assignment => 
+          assignment.id === assignmentId 
+            ? { ...assignment, ...assignmentData, published: false }
+            : assignment
+        )
+      );
+
+      try {
+        const success = await optimizedAssignmentService.updateAssignmentOptimistic(assignmentId, assignmentData);
+        
+        if (success) {
+          toast({
+            title: t('planner.assignmentUpdated'),
+            description: t('planner.assignmentUpdatedMsg'),
+          });
+          return true;
+        } else {
+          throw new Error('Update operation failed');
+        }
+      } catch (error) {
+        console.error('[useOptimizedAssignments] Error updating assignment:', error);
+        
+        setAssignments(prev => 
+          prev.map(assignment => 
+            assignment.id === assignmentId ? originalAssignment : assignment
+          )
+        );
+        
+        toast({
+          title: t('common.error'),
+          description: t('planner.errorUpdatingAssignment'),
+          variant: "destructive",
+        });
+        return false;
+      } finally {
+        setOperationStates(prev => {
+          const { [assignmentId]: _, ...rest } = prev;
+          return rest;
+        });
+      }
+    }, [assignments, toast, t, operationStates]),
+    publishAssignment: useCallback(async (assignmentId: string) => {
+      if (!canPublishTasks) {
+        toast({
+          title: t('common.error'),
+          description: t('planner.noPermissionPublish'),
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      console.log('[useOptimizedAssignments] Publishing assignment:', assignmentId);
+      
+      if (operationStates[assignmentId]) {
+        console.log('[useOptimizedAssignments] Operation already in progress for:', assignmentId);
+        return false;
+      }
+      
+      setOperationStates(prev => ({ ...prev, [assignmentId]: 'publishing' }));
+      
+      const originalAssignment = assignments.find(a => a.id === assignmentId);
+      if (!originalAssignment) {
+        setOperationStates(prev => {
+          const { [assignmentId]: _, ...rest } = prev;
+          return rest;
+        });
+        return false;
+      }
+
+      setAssignments(prev => 
+        prev.map(assignment => 
+          assignment.id === assignmentId 
+            ? { ...assignment, published: true }
+            : assignment
+        )
+      );
+
+      try {
+        const success = await optimizedAssignmentService.publishAssignmentOptimistic(assignmentId);
+        
+        if (success) {
+          toast({
+            title: t('planner.assignmentPublished'),
+            description: t('planner.assignmentPublishedMsg'),
+          });
+          return true;
+        } else {
+          throw new Error(t('planner.operationFailed'));
+        }
+      } catch (error) {
+        console.error('[useOptimizedAssignments] Error publishing assignment:', error);
+        
+        setAssignments(prev => 
+          prev.map(assignment => 
+            assignment.id === assignmentId 
+              ? originalAssignment
+              : assignment
+          )
+        );
+        
+        toast({
+          title: t('common.error'),
+          description: t('planner.errorPublishingAssignment'),
+          variant: "destructive",
+        });
+        return false;
+      } finally {
+        setOperationStates(prev => {
+          const { [assignmentId]: _, ...rest } = prev;
+          return rest;
+        });
+      }
+    }, [canPublishTasks, toast, t, operationStates, assignments]),
+    deleteAssignment: useCallback(async (assignmentId: string) => {
+      console.log('[useOptimizedAssignments] Deleting assignment:', assignmentId);
+      
+      if (operationStates[assignmentId]) {
+        console.log('[useOptimizedAssignments] Operation already in progress for:', assignmentId);
+        return false;
+      }
+      
+      setOperationStates(prev => ({ ...prev, [assignmentId]: 'deleting' }));
+      
+      const assignmentToDelete = assignments.find(a => a.id === assignmentId);
+      if (!assignmentToDelete) {
+        setOperationStates(prev => {
+          const { [assignmentId]: _, ...rest } = prev;
+          return rest;
+        });
+        return false;
+      }
+      
+      setAssignments(prev => prev.filter(assignment => assignment.id !== assignmentId));
+
+      try {
+        const success = await optimizedAssignmentService.deleteAssignmentOptimistic(assignmentId);
+        
+        if (success) {
+          toast({
+            title: t('planner.assignmentDeleted'),
+            description: t('planner.assignmentDeletedMsg'),
+          });
+          return true;
+        } else {
+          throw new Error('Delete operation failed');
+        }
+      } catch (error) {
+        console.error('[useOptimizedAssignments] Error deleting assignment:', error);
+        
+        setAssignments(prev => [...prev, assignmentToDelete]);
+        
+        toast({
+          title: t('common.error'),
+          description: t('planner.errorDeletingAssignment'),
+          variant: "destructive",
+        });
+        return false;
+      } finally {
+        setOperationStates(prev => {
+          const { [assignmentId]: _, ...rest } = prev;
+          return rest;
+        });
+      }
+    }, [assignments, toast, t, operationStates]),
+    publishAssignmentsByDate: useCallback(async (date: string) => {
+      if (!canPublishTasks) {
+        toast({
+          title: t('common.error'),
+          description: t('planner.noPermissionPublish'),
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      const unpublishedAssignments = assignments.filter(a => a.date === date && !a.published);
+      
+      if (unpublishedAssignments.length === 0) {
+        toast({
+          title: t('common.info'),
+          description: t('planner.noUnpublishedAssignments'),
+        });
+        return false;
+      }
+
+      console.log('[useOptimizedAssignments] Publishing day:', date, unpublishedAssignments.length, 'assignments');
+      
+      setAssignments(prev => 
+        prev.map(assignment => 
+          assignment.date === date 
+            ? { ...assignment, published: true }
+            : assignment
+        )
+      );
+
+      try {
+        const success = await optimizedAssignmentService.publishAssignmentsByDateOptimistic(date);
+        
+        if (success) {
+          toast({
+            title: t('planner.dayPublished'),
+            description: t('planner.dayPublishedMsg'),
+          });
+          return true;
+        } else {
+          throw new Error(t('planner.publishOperationFailed'));
+        }
+      } catch (error) {
+        console.error('[useOptimizedAssignments] Error publishing day:', error);
+        
+        setAssignments(prev => 
+          prev.map(assignment => 
+            unpublishedAssignments.some(ua => ua.id === assignment.id)
+              ? { ...assignment, published: false }
+              : assignment
+          )
+        );
+        
+        toast({
+          title: t('common.error'),
+          description: t('planner.errorPublishingDay'),
+          variant: "destructive",
+        });
+        return false;
+      }
+    }, [assignments, canPublishTasks, toast, t])
   };
 };

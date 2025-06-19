@@ -1,208 +1,96 @@
 
-import React, { useEffect, useState, useMemo } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useTranslation } from '../context/TranslationContext';
-import { format, getISOWeek, getISOWeekYear } from 'date-fns';
-import { useAssignmentsConsolidated } from '@/hooks/useAssignmentsConsolidated';
+import React, { useMemo } from 'react';
+import { useTranslation } from '@/context/TranslationContext';
+import { usePermissions } from '@/context/AuthContext';
+import { useOptimizedAssignments } from '@/hooks/useOptimizedAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
-import { useAuthenticationMonitor } from '@/hooks/useAuthenticationMonitor';
-import { AssignmentFilterService } from '@/services/assignmentFilterService';
-import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
-import { getDailyQuote } from '@/utils/dailyQuotes';
-import { isValidUUID } from '@/utils/uuidValidation';
-import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
+import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
+import { getCurrentWeekInfo, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/dates';
 import WelcomeHeader from '@/components/Dashboard/WelcomeHeader';
-import QuickAccessGrid from '@/components/Dashboard/QuickAccessGrid';
+import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import WeeklyAssignments from '@/components/Dashboard/WeeklyAssignments';
+import QuickAccessGrid from '@/components/Dashboard/QuickAccessGrid';
+import UpcomingVacationsWidget from '@/components/Dashboard/UpcomingVacationsWidget';
+import VehicleStatusWidget from '@/components/Dashboard/VehicleStatusWidget';
+import SystemMetricsOverview from '@/components/Dashboard/SystemMetricsOverview';
+import { Spinner } from '@/components/ui/spinner';
 
 const DashboardPage: React.FC = () => {
-  const { user } = useAuth();
   const { t } = useTranslation();
-  
-  // Enhanced authentication monitoring
-  const { authStatus } = useAuthenticationMonitor();
-  
-  // FIXED: Fetch ALL assignments for proper filtering and metrics
-  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError } = useAssignmentsConsolidated({ 
-    filter: 'all', 
-    includeUnpublished: true 
-  });
-  
-  const { employees, updateEmployeeLeaveStatusFromVacations } = useEmployees();
+  const { isAdmin, isSkadeleder, userId } = usePermissions();
+  const { employees } = useEmployees();
   const { cars } = useCars();
   const { vacations } = useVacations();
+  
+  // Get current week info
+  const currentWeekInfo = getCurrentWeekInfo();
+  const [selectedWeek, setSelectedWeek] = React.useState(currentWeekInfo.week);
+  
+  // FIXED: Use 'all' filter to get complete assignment data with all employees
+  const { 
+    assignments, 
+    loading: assignmentsLoading, 
+    error: assignmentsError 
+  } = useOptimizedAssignments({ filter: 'all', includeUnpublished: true });
 
-  const today = new Date();
-  const todayISOWeek = getISOWeek(today);
-  const todayISOYear = getISOWeekYear(today);
-  const [selectedWeek, setSelectedWeek] = useState(todayISOWeek);
-  const [selectedYear, setSelectedYear] = useState(todayISOYear);
+  const { filterByWeek, filterUserAssignments } = useAssignmentFilters();
 
-  const dailyQuote = getDailyQuote();
+  // Filter assignments for the selected week
+  const weekAssignments = useMemo(() => {
+    const filtered = filterByWeek(assignments, selectedWeek, currentWeekInfo.year);
+    console.log(`[DashboardPage] Week ${selectedWeek} assignments:`, filtered.length);
+    return filtered;
+  }, [assignments, selectedWeek, currentWeekInfo.year, filterByWeek]);
 
-  // Show connection status if there are issues
-  const showConnectionIssue = !authStatus.sessionValid || authStatus.connectionStatus === 'disconnected';
-
-  // FIXED: Improved filtering for user assignments - check employees array properly
-  const { publishedAssignments, userAssignments } = useMemo(() => {
-    console.log('[DashboardPage] Processing assignments for user:', user?.name, user?.role);
-    console.log('[DashboardPage] Total assignments:', allAssignments.length);
+  // FIXED: Filter user's assignments but preserve complete employee data
+  const userAssignments = useMemo(() => {
+    if (!userId) return [];
     
-    // Filter published assignments for metrics (all users now)
-    const published = allAssignments.filter(assignment => assignment.published);
+    // Get user's assignments while preserving ALL employee data for each assignment
+    const userFiltered = filterUserAssignments(weekAssignments, userId);
     
-    // FIXED: Better user-specific assignments filtering for "Mine opgaver"
-    const userFiltered = allAssignments.filter(assignment => {
-      if (!user) return false;
-      
-      console.log(`[DashboardPage] Checking assignment "${assignment.title}":`);
-      console.log(`  - Employees: [${assignment.employees?.join(', ') || 'none'}]`);
-      console.log(`  - Responsible user: ${assignment.responsibleUser?.name || 'none'}`);
-      console.log(`  - User name: ${user.name}`);
-      
-      // For all users, check if they are in the employees array OR responsible user
-      const isInEmployees = assignment.employees && assignment.employees.includes(user.name || '');
-      const isResponsibleUser = assignment.responsibleUser && assignment.responsibleUser.id === user.id;
-      
-      const shouldInclude = isInEmployees || isResponsibleUser;
-      console.log(`  - Should include: ${shouldInclude} (isInEmployees: ${isInEmployees}, isResponsibleUser: ${isResponsibleUser})`);
-      
-      return shouldInclude;
-    });
-    
-    console.log('[DashboardPage] FINAL RESULTS:');
-    console.log(`  - Published assignments: ${published.length}`);
-    console.log(`  - User assignments: ${userFiltered.length}`);
-    userFiltered.forEach(a => console.log(`    * ${a.title} (${a.date}) - Employees: [${a.employees?.join(', ') || 'none'}]`));
-    
-    return { publishedAssignments: published, userAssignments: userFiltered };
-  }, [allAssignments, user]);
-
-  // Calculate the selected date for metrics based on current week selection
-  const getSelectedDateForMetrics = () => {
-    const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-    const weekStartStr = format(weekDates.start, 'yyyy-MM-dd');
-    const weekEndStr = format(weekDates.end, 'yyyy-MM-dd');
-    
-    if (todayStr >= weekStartStr && todayStr <= weekEndStr) {
-      return todayStr;
-    }
-    
-    return weekStartStr;
-  };
-
-  // Update employee leave status based on vacations when dashboard loads
-  useEffect(() => {
-    const updateEmployeeStatuses = async () => {
-      try {
-        if (user?.id && isValidUUID(user.id)) {
-          await updateEmployeeLeaveStatusFromVacations();
-        }
-      } catch (error) {
-        console.error('Failed to update employee statuses:', error);
-      }
-    };
-
-    if (user?.id && isValidUUID(user.id)) {
-      updateEmployeeStatuses();
-      // Reduce frequency of status updates to improve performance
-      const intervalId = setInterval(() => {
-        updateEmployeeStatuses();
-      }, 5 * 60 * 1000); // Every 5 minutes instead of 30
-
-      return () => {
-        clearInterval(intervalId);
-      };
-    }
-  }, [user?.id, updateEmployeeLeaveStatusFromVacations]);
-
-  // Get the dates for the selected week
-  const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
-  const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
-  const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
-
-  // Function to handle navigation to previous week
-  const handlePreviousWeek = () => {
-    const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
-    setSelectedWeek(week);
-    setSelectedYear(year);
-  };
-
-  // Function to handle navigation to next week
-  const handleNextWeek = () => {
-    const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
-    setSelectedWeek(week);
-    setSelectedYear(year);
-  };
-
-  // Memoize filtered assignments for the week to prevent recalculation
-  const myWeekAssignments = useMemo(() => {
-    return AssignmentFilterService.filterByDateRange(
-      userAssignments,
-      startDateISO,
-      endDateISO
+    console.log(`[DashboardPage] FIXED: User ${userId} assignments with complete employee data:`, 
+      userFiltered.map(a => ({
+        title: a.title,
+        id: a.id,
+        employees: a.employees, // This should show ALL colleagues including the user
+        responsibleUser: a.responsibleUser?.name
+      }))
     );
-  }, [userAssignments, startDateISO, endDateISO]);
+    
+    return userFiltered;
+  }, [weekAssignments, userId, filterUserAssignments]);
 
-  // FIXED: Allow ALL authenticated users to see metrics, not just admin/skadeleder
-  const shouldShowMetrics = !!user; // Any authenticated user can see metrics
-  const selectedDateForMetrics = getSelectedDateForMetrics();
+  // Navigation handlers
+  const handlePreviousWeek = React.useCallback(() => {
+    const { week } = getPreviousWeekInfo(selectedWeek, currentWeekInfo.year);
+    setSelectedWeek(week);
+  }, [selectedWeek, currentWeekInfo.year]);
 
-  // Enhanced loading state with connection status
+  const handleNextWeek = React.useCallback(() => {
+    const { week } = getNextWeekInfo(selectedWeek, currentWeekInfo.year);
+    setSelectedWeek(week);
+  }, [selectedWeek, currentWeekInfo.year]);
+
   if (assignmentsLoading) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
-          {showConnectionIssue && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-yellow-800">
-                    Connection Status: {authStatus.connectionStatus}
-                  </h3>
-                  <div className="mt-1 text-sm text-yellow-700">
-                    {!authStatus.sessionValid && <p>Session validation failed</p>}
-                    {authStatus.tokenExpiring && <p>Token expiring soon</p>}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded mb-4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-            <div className="h-96 bg-gray-200 rounded"></div>
-          </div>
+      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="lg" />
+          <p className="text-lg font-medium text-gray-600">{t('common.loading')}...</p>
         </div>
       </div>
     );
   }
 
-  // Show error state if there are critical errors
-  if (assignmentsError && assignmentsError.includes('auth')) {
+  if (assignmentsError) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
-        <div className="text-center p-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Authentication Required</h2>
-          <p className="text-gray-600 mb-4">Please log in to access the dashboard.</p>
-          <button 
-            onClick={() => window.location.href = '/login'} 
-            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-          >
-            Go to Login
-          </button>
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600 mb-2">{t('common.error')}</h2>
+          <p className="text-gray-600">{assignmentsError}</p>
         </div>
       </div>
     );
@@ -210,49 +98,31 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
-        {/* Connection Status Warning */}
-        {showConnectionIssue && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-yellow-800">
-                  Connection Issue Detected
-                </h3>
-                <div className="mt-1 text-sm text-yellow-700">
-                  Some data may not be up to date. Check your internet connection or try refreshing the page.
-                </div>
-              </div>
-            </div>
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
+        <WelcomeHeader />
+        
+        <DashboardMetrics 
+          selectedDate={new Date().toISOString().split('T')[0]}
+          assignments={weekAssignments}
+        />
+        
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          <div className="xl:col-span-2 space-y-8">
+            <WeeklyAssignments 
+              assignments={userAssignments}
+              selectedWeek={selectedWeek}
+              onPreviousWeek={handlePreviousWeek}
+              onNextWeek={handleNextWeek}
+            />
+            
+            <QuickAccessGrid />
           </div>
-        )}
-
-        {/* Welcome Header */}
-        <WelcomeHeader userName={user?.name} dailyQuote={dailyQuote} />
-
-        {/* Quick Access Grid */}
-        <QuickAccessGrid userRole={user?.role} />
-
-        {/* Dashboard Metrics - Now available to ALL users including servicemedarbejder */}
-        {shouldShowMetrics && (
-          <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <DashboardMetrics selectedDate={selectedDateForMetrics} assignments={publishedAssignments} />
+          
+          <div className="space-y-8">
+            <UpcomingVacationsWidget />
+            <VehicleStatusWidget />
+            {(isAdmin || isSkadeleder) && <SystemMetricsOverview />}
           </div>
-        )}
-
-        {/* Weekly Assignments */}
-        <div style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
-          <WeeklyAssignments
-            assignments={myWeekAssignments}
-            selectedWeek={selectedWeek}
-            onPreviousWeek={handlePreviousWeek}
-            onNextWeek={handleNextWeek}
-          />
         </div>
       </div>
     </div>

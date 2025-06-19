@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -24,7 +23,7 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Use the optimized assignments hook
+  // FIXED: Use 'all' filter to get ALL assignments, not just user's assignments
   const { 
     assignments, 
     loading,
@@ -35,7 +34,7 @@ export const usePlannerPage = () => {
     deleteAssignment,
     publishAssignment,
     publishAssignmentsByDate
-  } = useOptimizedAssignments({ filter: 'planner' });
+  } = useOptimizedAssignments({ filter: 'all', includeUnpublished: true });
 
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
@@ -69,8 +68,10 @@ export const usePlannerPage = () => {
   // Get the date range for the selected week with ISO week calculation
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // Filter assignments for the current week
+  // FIXED: Filter ALL assignments for the current week (not just user's assignments)
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
+
+  console.log(`[usePlannerPage] FIXED: Showing ALL ${weekAssignments.length} assignments for week ${selectedWeek}, not filtered by user`);
 
   // Navigate to previous week
   const handlePreviousWeek = useCallback(() => {
