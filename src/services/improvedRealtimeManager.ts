@@ -62,7 +62,7 @@ class ImprovedRealtimeManager {
           subscription.retryCount++;
           
           setTimeout(() => {
-            this.subscribe(subscriptionId, tables, callback, options);
+            this.subscribe(subscriptionId, subscription.tables, subscription.callback, subscription.options);
           }, 1000 * subscription.retryCount);
         }
       });
