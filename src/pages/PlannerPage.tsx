@@ -177,7 +177,7 @@ const PlannerPage: React.FC = () => {
 
         {/* Assignment Dialog */}
         <PlannerDialogContainer
-          isOpen={isDialogOpen}
+          isDialogOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           onSubmit={handleSubmit}
           currentAssignment={currentAssignment}

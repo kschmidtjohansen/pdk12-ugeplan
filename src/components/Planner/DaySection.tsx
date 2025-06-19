@@ -11,9 +11,10 @@ import AssignmentCard from './AssignmentCard';
 interface DaySectionProps {
   dateKey: string;
   dayAssignments: Assignment[];
+  operationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
   isExpanded: boolean;
   onToggleExpansion: (date: string) => void;
-  onPublishDay?: (date: string) => void; // FIXED: Accept date parameter
+  onPublishDay?: (date: string) => void;
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
@@ -25,7 +26,8 @@ interface DaySectionProps {
 
 const DaySection: React.FC<DaySectionProps> = ({
   dateKey,
-  dayAssignments = [], // Initialize with empty array as fallback
+  dayAssignments = [],
+  operationStates,
   isExpanded,
   onToggleExpansion,
   onPublishDay,
@@ -39,24 +41,17 @@ const DaySection: React.FC<DaySectionProps> = ({
 }) => {
   const { t, currentLanguage } = useTranslation();
   
-  // Use the formatDateWithCapital function with the current language
   const formattedDate = formatDateWithCapital(dateKey, currentLanguage);
   
-  // Log the formatted date for troubleshooting
   console.log(`Formatted date for ${dateKey}: ${formattedDate} (${currentLanguage})`);
   
-  // Fix: Make sure dayAssignments is an array before calling some()
   const hasUnpublishedAssignments = Array.isArray(dayAssignments) && dayAssignments.some(a => !a.published);
-
-  // Ensure dayAssignments is an array and then get its length
   const assignmentsCount = Array.isArray(dayAssignments) ? dayAssignments.length : 0;
 
-  // Determine task text based on language and count
   const taskText = currentLanguage === 'da' 
     ? (assignmentsCount === 1 ? 'opgave' : 'opgaver')
     : (assignmentsCount === 1 ? 'task' : 'tasks');
 
-  // FIXED: Handle publish day with proper date parameter
   const handlePublishDay = () => {
     if (onPublishDay) {
       console.log('[DaySection] Publishing day:', dateKey);
@@ -81,7 +76,6 @@ const DaySection: React.FC<DaySectionProps> = ({
           aria-expanded={isExpanded}
           aria-label={`${isExpanded ? 'Collapse' : 'Expand'} assignments for ${formattedDate}`}
         >
-          {/* Chevron icon to indicate expand/collapse state */}
           {isExpanded ? (
             <ChevronDown className="h-5 w-5 text-gray-500 mr-2 transition-transform duration-200" />
           ) : (
@@ -120,6 +114,7 @@ const DaySection: React.FC<DaySectionProps> = ({
                 onDelete={() => onDeleteAssignment(assignment.id)}
                 onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
                 onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
+                operationState={operationStates[assignment.id]}
               />
             ))
           ) : (

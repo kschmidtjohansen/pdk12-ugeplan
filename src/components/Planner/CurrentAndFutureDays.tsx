@@ -7,9 +7,10 @@ import DaySection from './DaySection';
 interface CurrentAndFutureDaysProps {
   dates: string[];
   groupedAssignments: Record<string, Assignment[]>;
+  operationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
   expandedDays: Record<string, boolean>;
   onToggleExpansion: (date: string) => void;
-  onPublishDay?: (date: string) => void; // FIXED: Updated to accept date parameter
+  onPublishDay?: (date: string) => void;
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
@@ -21,7 +22,8 @@ interface CurrentAndFutureDaysProps {
 
 const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
   dates,
-  groupedAssignments = {}, // Ensure this is initialized
+  groupedAssignments = {},
+  operationStates,
   expandedDays,
   onToggleExpansion,
   onPublishDay,
@@ -41,8 +43,8 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
         <DaySection 
           key={dateKey}
           dateKey={dateKey}
-          dayAssignments={groupedAssignments[dateKey] || []} // Ensure we provide an empty array if undefined
-          isExpanded={expandedDays[dateKey] !== false} // Default to expanded
+          dayAssignments={groupedAssignments[dateKey] || []}
+          isExpanded={expandedDays[dateKey] !== false}
           onToggleExpansion={onToggleExpansion}
           onPublishDay={onPublishDay}
           onEditAssignment={onEditAssignment}
@@ -52,6 +54,7 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
           canEdit={canEdit}
           canPublishTasks={canPublishTasks}
           cars={cars}
+          operationStates={operationStates}
         />
       ))}
     </div>

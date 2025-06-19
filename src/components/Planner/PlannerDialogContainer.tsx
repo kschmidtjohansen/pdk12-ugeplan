@@ -8,53 +8,47 @@ import AssignmentDialogManager from './AssignmentDialogManager';
 
 interface PlannerDialogContainerProps {
   isDialogOpen: boolean;
-  setIsDialogOpen: (open: boolean) => void;
+  onClose: () => void;
   currentAssignment: Assignment | null;
   formData: Partial<Assignment>;
   setFormData: (data: Partial<Assignment>) => void;
-  onSubmit: (data: Partial<Assignment>) => void;
-  onDelete: (assignmentId: string) => void;
-  onPublish: (assignmentId: string) => void;
+  onSubmit: (data: Partial<Assignment>) => Promise<void>;
   assignments: Assignment[];
   cars: Car[];
   employees: Employee[];
   vacations: Vacation[];
   selectedDay: string;
-  onPublishDay: (date: string) => void;
 }
 
 const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   isDialogOpen,
-  setIsDialogOpen,
+  onClose,
   currentAssignment,
   formData,
   setFormData,
   onSubmit,
-  onDelete,
-  onPublish,
   assignments,
   cars,
   employees,
   vacations,
-  selectedDay,
-  onPublishDay
+  selectedDay
 }) => {
   return (
     <AssignmentDialogManager
       isDialogOpen={isDialogOpen}
-      setIsDialogOpen={setIsDialogOpen}
+      setIsDialogOpen={onClose}
       currentAssignment={currentAssignment}
       formData={formData}
       setFormData={setFormData}
       onSubmit={onSubmit}
-      onDelete={onDelete}
-      onPublish={onPublish}
+      onDelete={() => {}} // Not used in this context
+      onPublish={() => {}} // Not used in this context
       assignments={assignments}
       cars={cars}
       employees={employees}
       vacations={vacations}
       selectedDay={selectedDay}
-      onPublishDay={onPublishDay}
+      onPublishDay={() => {}} // Not used in this context
     />
   );
 };
