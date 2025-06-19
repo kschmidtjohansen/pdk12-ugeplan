@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
+import { Car } from '@/types/car';
 import EmptyState from './EmptyState';
 import { getAllWeekDays, getDateStatus } from '@/utils/dateUtils';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
@@ -12,26 +12,32 @@ import { format } from 'date-fns';
 
 interface AssignmentListProps {
   assignments: Assignment[];
+  operationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
-  onPublishDay?: () => void;
+  onPublishDay?: (date: string) => void;
   onCreateAssignment: (date: string) => void;
+  onCopyAssignment?: (assignment: Assignment) => void;
   selectedWeek?: number;
   selectedYear?: number;
   weekDates?: { start: Date; end: Date; weekNumber: number; year: number };
+  cars?: Car[];
 }
 
 const AssignmentList: React.FC<AssignmentListProps> = ({
   assignments,
+  operationStates,
   onEditAssignment,
   onDeleteAssignment,
   onPublishAssignment,
   onPublishDay,
   onCreateAssignment,
+  onCopyAssignment,
   selectedWeek,
   selectedYear,
-  weekDates
+  weekDates,
+  cars = []
 }) => {
   const { 
     canEdit, 
@@ -144,28 +150,34 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
       <CurrentAndFutureDays 
         dates={[...todayDate, ...futureDates]}
         groupedAssignments={groupedAssignments}
+        operationStates={operationStates}
         expandedDays={expandedDays}
         onToggleExpansion={toggleDayExpansion}
         onPublishDay={onPublishDay}
         onEditAssignment={onEditAssignment}
         onDeleteAssignment={onDeleteAssignment}
         onPublishAssignment={onPublishAssignment}
+        onCopyAssignment={onCopyAssignment}
         canEdit={canEdit}
         canPublishTasks={canPublishTasks}
+        cars={cars}
       />
       
       {/* Past dates section */}
       <PastAssignments 
         pastDates={pastDates}
         groupedAssignments={groupedAssignments}
+        operationStates={operationStates}
         expandedDays={expandedDays}
         onToggleExpansion={toggleDayExpansion}
         onPublishDay={onPublishDay}
         onEditAssignment={onEditAssignment}
         onDeleteAssignment={onDeleteAssignment}
         onPublishAssignment={onPublishAssignment}
+        onCopyAssignment={onCopyAssignment}
         canEdit={canEdit}
         canPublishTasks={canPublishTasks}
+        cars={cars}
       />
     </div>
   );
