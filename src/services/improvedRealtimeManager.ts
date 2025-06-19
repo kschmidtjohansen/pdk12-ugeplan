@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -66,8 +67,8 @@ class ImprovedRealtimeManager {
         }
       });
 
-      // Subscribe and store
-      channel.subscribe((status, error) => {
+      // FIXED: Subscribe with proper callback typing
+      channel.subscribe((status: string, error?: any) => {
         console.log('[ImprovedRealtimeManager] Subscription status for:', subscriptionId, status);
         
         if (status === 'SUBSCRIBED') {
