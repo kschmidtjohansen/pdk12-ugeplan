@@ -75,17 +75,10 @@ class OptimizedAssignmentService {
 
     // Parallel queries for optimal performance
     const [employeeResult, carResult] = await Promise.all([
-      // Fetch assignment-employee relationships with profile data in one query
+      // Fetch assignment-employee relationships with profile data using separate queries
       supabase
         .from('assignments_employees')
-        .select(`
-          assignment_id,
-          user_id,
-          profiles!assignments_employees_user_id_fkey (
-            id,
-            name
-          )
-        `)
+        .select('assignment_id, user_id')
         .in('assignment_id', assignmentIds),
       
       // Fetch car data
@@ -98,18 +91,33 @@ class OptimizedAssignmentService {
     if (employeeResult.error) throw employeeResult.error;
     if (carResult.error) throw carResult.error;
 
+    // Get all unique user IDs from assignments_employees
+    const userIds = employeeResult.data ? [...new Set(employeeResult.data.map(ae => ae.user_id))] : [];
+    
+    // Fetch profiles for all users in a separate query
+    const { data: profiles, error: profilesError } = userIds.length > 0 
+      ? await supabase
+          .from('profiles')
+          .select('id, name')
+          .in('id', userIds)
+      : { data: [], error: null };
+
+    if (profilesError) throw profilesError;
+
     // Build lookup maps for O(1) access
     const employeeLookup = new Map<string, string[]>();
     const carLookup = new Map<string, any>();
+    const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
-    // Process employee data
+    // Process employee data with profile lookup
     if (employeeResult.data) {
       employeeResult.data.forEach(ae => {
         if (!employeeLookup.has(ae.assignment_id)) {
           employeeLookup.set(ae.assignment_id, []);
         }
-        if (ae.profiles?.name) {
-          employeeLookup.get(ae.assignment_id)?.push(ae.profiles.name);
+        const profile = profilesMap.get(ae.user_id);
+        if (profile?.name) {
+          employeeLookup.get(ae.assignment_id)?.push(profile.name);
         }
       });
     }
