@@ -20,9 +20,13 @@ export const useAssignmentFilters = () => {
 
   const filterUserAssignments = (assignments: Assignment[], userId: string): Assignment[] => {
     return assignments.filter(assignment => 
-      assignment.employees && assignment.employees.some(emp => 
-        typeof emp === 'string' ? emp === userId : emp.id === userId
-      )
+      assignment.employees && assignment.employees.some(emp => {
+        if (typeof emp === 'string') {
+          return emp === userId;
+        }
+        // Handle employee object with id property
+        return emp && typeof emp === 'object' && 'id' in emp && emp.id === userId;
+      })
     );
   };
 

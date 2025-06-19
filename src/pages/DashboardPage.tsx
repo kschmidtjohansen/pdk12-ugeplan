@@ -67,8 +67,7 @@ const DashboardPage: React.FC = () => {
     return userFiltered;
   }, [weekAssignments, userId, filterUserAssignments]);
 
-  // Calculate metrics for system overview
-  const availableEmployees = employees.filter(emp => emp.is_available).length;
+  // Calculate metrics for system overview - note: employees don't have is_available, cars do
   const totalEmployees = employees.length;
   const availableVehicles = cars.filter(car => car.is_available).length;
   const totalVehicles = cars.length;
@@ -113,7 +112,7 @@ const DashboardPage: React.FC = () => {
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
         <WelcomeHeader 
-          userName={user?.user_metadata?.name || user?.email || 'Bruger'}
+          userName={user?.name || user?.email || 'Bruger'}
           dailyQuote={dailyQuote}
         />
         
@@ -141,7 +140,7 @@ const DashboardPage: React.FC = () => {
               <SystemMetricsOverview 
                 assignments={assignments}
                 vacations={vacations}
-                availableEmployees={availableEmployees}
+                availableEmployees={0}
                 totalEmployees={totalEmployees}
                 availableVehicles={availableVehicles}
                 totalVehicles={totalVehicles}
