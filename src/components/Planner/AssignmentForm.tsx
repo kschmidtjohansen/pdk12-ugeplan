@@ -8,7 +8,9 @@ import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Send, Trash2, Edit3 } from 'lucide-react';
+import { format } from 'date-fns';
 import AssignmentFormFields from './AssignmentFormFields';
+
 interface AssignmentFormProps {
   currentAssignment: Assignment | null;
   formData: Partial<Assignment>;
@@ -23,6 +25,7 @@ interface AssignmentFormProps {
   selectedDay: string;
   onPublishDay: (date: string) => void;
 }
+
 const AssignmentForm: React.FC<AssignmentFormProps> = ({
   currentAssignment,
   formData,
@@ -200,6 +203,24 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     console.log('[AssignmentForm] ===== CAR CHANGE END =====');
   };
 
+  // FIXED: Timezone-safe date handling to prevent date shifts
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      // Use date-fns format to ensure timezone-safe conversion
+      const dateString = format(date, 'yyyy-MM-dd');
+      console.log('[AssignmentForm] FIXED Date updated (timezone-safe):', dateString);
+      console.log('[AssignmentForm] Original date object:', date);
+      console.log('[AssignmentForm] Local date components:', {
+        year: date.getFullYear(),
+        month: date.getMonth() + 1,
+        day: date.getDate()
+      });
+      setFormData({ ...formData, date: dateString });
+    } else {
+      setFormData({ ...formData, date: '' });
+    }
+  };
+
   // Check if we can publish this assignment
   const canPublishAssignment = currentAssignment && canPublishTasks && !currentAssignment.published;
   return <form onSubmit={handleFormSubmit} className="space-y-6">
@@ -208,44 +229,46 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           {currentAssignment ? t('planner.editAssignment') : t('planner.createNew')}
         </h2>
         
-        <AssignmentFormFields title={formData.title || ''} setTitle={value => {
-        console.log('[AssignmentForm] Title updated:', value);
-        setFormData({
-          ...formData,
-          title: value
-        });
-      }} location={formData.location || ''} setLocation={value => {
-        console.log('[AssignmentForm] Location updated:', value);
-        setFormData({
-          ...formData,
-          location: value
-        });
-      }} selectedDate={formData.date ? new Date(formData.date) : undefined} setSelectedDate={date => {
-        const dateString = date ? date.toISOString().split('T')[0] : '';
-        console.log('[AssignmentForm] Date updated:', dateString);
-        setFormData({
-          ...formData,
-          date: dateString
-        });
-      }} fromTime={formData.fromTime || '08:00'} setFromTime={value => {
-        console.log('[AssignmentForm] From time updated:', value);
-        setFormData({
-          ...formData,
-          fromTime: value
-        });
-      }} toTime={formData.toTime || '16:00'} setToTime={value => {
-        console.log('[AssignmentForm] To time updated:', value);
-        setFormData({
-          ...formData,
-          toTime: value
-        });
-      }} description={formData.description || ''} setDescription={value => {
-        console.log('[AssignmentForm] Description updated:', value);
-        setFormData({
-          ...formData,
-          description: value
-        });
-      }} selectedCarId={getCarId(formData.car)} setSelectedCarId={handleCarChange} selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)} setSelectedResponsibleUserId={setResponsibleUserById} selectedEmployees={formData.employees || []} setSelectedEmployees={handleEmployeesChange} cars={cars} employees={employees} vacations={vacations} assignmentId={currentAssignment?.id} assignments={assignments} />
+        <AssignmentFormFields
+          title={formData.title || ''}
+          setTitle={value => {
+            console.log('[AssignmentForm] Title updated:', value);
+            setFormData({ ...formData, title: value });
+          }}
+          location={formData.location || ''}
+          setLocation={value => {
+            console.log('[AssignmentForm] Location updated:', value);
+            setFormData({ ...formData, location: value });
+          }}
+          selectedDate={formData.date ? new Date(formData.date) : undefined}
+          setSelectedDate={handleDateChange}
+          fromTime={formData.fromTime || '08:00'}
+          setFromTime={value => {
+            console.log('[AssignmentForm] From time updated:', value);
+            setFormData({ ...formData, fromTime: value });
+          }}
+          toTime={formData.toTime || '16:00'}
+          setToTime={value => {
+            console.log('[AssignmentForm] To time updated:', value);
+            setFormData({ ...formData, toTime: value });
+          }}
+          description={formData.description || ''}
+          setDescription={value => {
+            console.log('[AssignmentForm] Description updated:', value);
+            setFormData({ ...formData, description: value });
+          }}
+          selectedCarId={getCarId(formData.car)}
+          setSelectedCarId={handleCarChange}
+          selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)}
+          setSelectedResponsibleUserId={setResponsibleUserById}
+          selectedEmployees={formData.employees || []}
+          setSelectedEmployees={handleEmployeesChange}
+          cars={cars}
+          employees={employees}
+          vacations={vacations}
+          assignmentId={currentAssignment?.id}
+          assignments={assignments}
+        />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
@@ -256,13 +279,20 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
         {currentAssignment && canEdit}
 
-        {canPublishAssignment && <Button type="button" onClick={handlePublishClick} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
+        {canPublishAssignment && (
+          <Button
+            type="button"
+            onClick={handlePublishClick}
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+          >
             <Send className="mr-2 h-4 w-4" />
             {t('planner.publishAssignment')}
-          </Button>}
+          </Button>
+        )}
 
         {canPublishTasks && selectedDay}
       </div>
     </form>;
 };
+
 export default AssignmentForm;
