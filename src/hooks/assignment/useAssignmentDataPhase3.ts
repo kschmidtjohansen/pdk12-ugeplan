@@ -116,19 +116,12 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
 
       console.log(`[useAssignmentData] Successfully fetched ${assignmentsData.length} assignments`);
 
-      // Step 3: Fetch employee assignments mapping with corrected join syntax
+      // Step 3: Fetch employee assignments mapping separately
       const assignmentIds = assignmentsData.map(a => a.id);
       const employeeAssignmentsResult = await withRetry(async () => {
         return await supabaseOptimized
           .from('assignments_employees')
-          .select(`
-            assignment_id,
-            user_id,
-            profiles!user_id (
-              id,
-              name
-            )
-          `)
+          .select('assignment_id, user_id')
           .in('assignment_id', assignmentIds);
       }, 'Employee assignments fetch');
 
@@ -139,7 +132,28 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
         // Continue without employee data rather than failing completely
       }
 
-      // Step 4: Fetch responsible users
+      // Step 4: Fetch employee profiles separately
+      let employeeProfilesData = [];
+      if (employeeAssignmentsData && employeeAssignmentsData.length > 0) {
+        const employeeUserIds = [...new Set(employeeAssignmentsData.map(ea => ea.user_id))];
+        
+        const employeeProfilesResult = await withRetry(async () => {
+          return await supabaseOptimized
+            .from('profiles')
+            .select('id, name')
+            .in('id', employeeUserIds);
+        }, 'Employee profiles fetch');
+
+        const { data, error: employeeProfilesError } = employeeProfilesResult;
+        if (employeeProfilesError) {
+          console.error('[useAssignmentData] Employee profiles query error:', employeeProfilesError);
+          // Continue without employee profile data
+        } else {
+          employeeProfilesData = data || [];
+        }
+      }
+
+      // Step 5: Fetch responsible users
       const responsibleUserIds = assignmentsData
         .map(a => a.responsible_user_id)
         .filter(id => id !== null);
@@ -162,7 +176,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
         }
       }
 
-      // Step 5: Fetch car data
+      // Step 6: Fetch car data
       const carIds = assignmentsData
         .map(a => a.car_id)
         .filter(id => id !== null);
@@ -185,13 +199,19 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
         }
       }
 
-      // Step 6: Transform and aggregate data
+      // Step 7: Transform and aggregate data
       const transformedAssignments: Assignment[] = assignmentsData.map(assignment => {
-        // Get employees for this assignment
-        const assignmentEmployees = employeeAssignmentsData
+        // Get employees for this assignment by joining the data in JavaScript
+        const assignmentEmployeeIds = employeeAssignmentsData
           ?.filter(ae => ae.assignment_id === assignment.id)
-          ?.map(ae => ae.profiles?.name)
-          ?.filter(name => name) || [];
+          ?.map(ae => ae.user_id) || [];
+
+        const assignmentEmployees = assignmentEmployeeIds
+          .map(userId => {
+            const profile = employeeProfilesData.find(ep => ep.id === userId);
+            return profile?.name;
+          })
+          .filter(name => name) as string[];
 
         // Get responsible user
         const responsibleUser = responsibleUsersData.find(ru => ru.id === assignment.responsible_user_id);
