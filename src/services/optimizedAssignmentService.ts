@@ -16,7 +16,7 @@ class OptimizedAssignmentService {
   private cache = new Map<string, { data: OptimizedAssignmentData; timestamp: number }>();
   private readonly CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
-  // Single optimized query to fetch all assignment data with relationships
+  // FIXED: Single optimized query to fetch ALL assignment data without user filtering
   async fetchAssignmentsOptimized(includeUnpublished: boolean = true): Promise<OptimizedAssignmentData> {
     const cacheKey = `optimized_assignments_${includeUnpublished}`;
     const cached = this.cache.get(cacheKey);
@@ -25,9 +25,9 @@ class OptimizedAssignmentService {
       return cached.data;
     }
 
-    console.log('[OptimizedAssignmentService] Fetching assignments with fixed query...');
+    console.log('[OptimizedAssignmentService] Fetching ALL assignments for all users...');
     
-    // FIXED: Remove the broken join syntax that was causing silent failures
+    // FIXED: Fetch ALL assignments without any user-based filtering
     let assignmentQuery = supabase
       .from('assignments')
       .select(`
@@ -64,7 +64,7 @@ class OptimizedAssignmentService {
       return emptyData;
     }
 
-    console.log(`[OptimizedAssignmentService] Successfully fetched ${assignments.length} assignments`);
+    console.log(`[OptimizedAssignmentService] Successfully fetched ${assignments.length} assignments for ALL users`);
 
     // Batch fetch all related data in parallel
     const assignmentIds = assignments.map(a => a.id);
@@ -83,9 +83,9 @@ class OptimizedAssignmentService {
       }
     });
 
-    // Parallel queries for optimal performance
+    // FIXED: Parallel queries for complete data aggregation
     const [employeeResult, carResult, responsibleUsersResult] = await Promise.all([
-      // Fetch assignment-employee relationships
+      // Fetch ALL assignment-employee relationships
       supabase
         .from('assignments_employees')
         .select('assignment_id, user_id')
@@ -97,7 +97,7 @@ class OptimizedAssignmentService {
         .select('id, name, car_number')
         .in('id', Array.from(allCarIds)) : { data: [], error: null },
 
-      // FIXED: Fetch responsible users separately (not as a join)
+      // Fetch responsible users
       responsibleUserIds.size > 0 ? supabase
         .from('profiles')
         .select('id, name')
@@ -117,10 +117,10 @@ class OptimizedAssignmentService {
       throw responsibleUsersResult.error;
     }
 
-    // Get all unique user IDs from assignments_employees
+    // Get ALL unique user IDs from assignments_employees for complete data
     const userIds = employeeResult.data ? [...new Set(employeeResult.data.map(ae => ae.user_id))] : [];
     
-    // Fetch profiles for all users in a separate query
+    // Fetch ALL profiles for complete employee data
     const { data: profiles, error: profilesError } = userIds.length > 0 
       ? await supabase
           .from('profiles')
@@ -157,7 +157,7 @@ class OptimizedAssignmentService {
       });
     }
 
-    // Process employee data with profile lookup
+    // FIXED: Process ALL employee data with complete profile lookup
     if (employeeResult.data) {
       employeeResult.data.forEach(ae => {
         if (!employeeLookup.has(ae.assignment_id)) {
@@ -177,7 +177,7 @@ class OptimizedAssignmentService {
       });
     }
 
-    // Transform assignments with lookup data
+    // FIXED: Transform assignments with complete lookup data for ALL users
     const processedAssignments: Assignment[] = assignments.map(assignment => {
       const assignmentEmployees = employeeLookup.get(assignment.id) || [];
       
@@ -198,7 +198,7 @@ class OptimizedAssignmentService {
         }
       }
 
-      // FIXED: Properly lookup responsible user from the separate fetch
+      // Properly lookup responsible user
       const responsibleUser = assignment.responsible_user_id 
         ? responsibleUsersMap.get(assignment.responsible_user_id)
         : null;
@@ -215,7 +215,7 @@ class OptimizedAssignmentService {
         location: assignment.location,
         car: carData,
         cars: carsArray,
-        employees: assignmentEmployees,
+        employees: assignmentEmployees, // Complete employee list for ALL assignments
         published: assignment.published || false,
         responsibleUser: responsibleUser ? {
           id: responsibleUser.id,
@@ -224,7 +224,7 @@ class OptimizedAssignmentService {
       };
     });
 
-    console.log(`[OptimizedAssignmentService] Successfully transformed ${processedAssignments.length} assignments with complete data`);
+    console.log(`[OptimizedAssignmentService] Successfully transformed ${processedAssignments.length} assignments with COMPLETE employee data for all users`);
 
     const optimizedData = {
       assignments: processedAssignments,
@@ -233,7 +233,7 @@ class OptimizedAssignmentService {
     };
 
     this.cache.set(cacheKey, { data: optimizedData, timestamp: Date.now() });
-    console.log('[OptimizedAssignmentService] Cached optimized assignment data');
+    console.log('[OptimizedAssignmentService] Cached complete assignment data for all users');
     
     return optimizedData;
   }
@@ -256,7 +256,6 @@ class OptimizedAssignmentService {
     console.log('[OptimizedAssignmentService] Creating assignment optimistically:', assignmentData);
     
     try {
-      // Format responsible user ID
       let responsibleUserId = null;
       if (assignmentData.responsibleUser) {
         if (typeof assignmentData.responsibleUser === 'string') {
@@ -266,7 +265,6 @@ class OptimizedAssignmentService {
         }
       }
 
-      // Transform car data for database
       let carId = null;
       let carIds = null;
 
@@ -280,7 +278,6 @@ class OptimizedAssignmentService {
         }
       }
       
-      // Insert the new assignment
       const { data: newAssignment, error } = await supabase
         .from('assignments')
         .insert({
@@ -301,7 +298,6 @@ class OptimizedAssignmentService {
 
       if (error) throw error;
       
-      // Handle employee assignments
       if (assignmentData.employees && assignmentData.employees.length > 0 && newAssignment?.id) {
         const employeeInserts = [];
         
@@ -329,7 +325,6 @@ class OptimizedAssignmentService {
         }
       }
       
-      // Invalidate cache
       this.invalidateCache('assignments');
       return true;
     } catch (error) {
@@ -343,7 +338,6 @@ class OptimizedAssignmentService {
     console.log('[OptimizedAssignmentService] Updating assignment optimistically:', assignmentId);
     
     try {
-      // Format responsible user ID
       let responsibleUserId = null;
       if (assignmentData.responsibleUser) {
         if (typeof assignmentData.responsibleUser === 'string') {
@@ -353,7 +347,6 @@ class OptimizedAssignmentService {
         }
       }
 
-      // Transform car data for database
       let carId = null;
       let carIds = null;
 
@@ -367,7 +360,6 @@ class OptimizedAssignmentService {
         }
       }
       
-      // Update the assignment - ALWAYS unpublish when editing
       const { error } = await supabase
         .from('assignments')
         .update({
@@ -380,20 +372,18 @@ class OptimizedAssignmentService {
           car_id: carId,
           car_ids: carIds,
           responsible_user_id: responsibleUserId,
-          published: false, // Always unpublish when editing
+          published: false,
           updated_at: new Date().toISOString()
         })
         .eq('id', assignmentId);
 
       if (error) throw error;
       
-      // Remove existing employee assignments
       await supabase
         .from('assignments_employees')
         .delete()
         .eq('assignment_id', assignmentId);
       
-      // Handle employee assignments
       if (assignmentData.employees && assignmentData.employees.length > 0) {
         const employeeInserts = [];
         
@@ -421,7 +411,6 @@ class OptimizedAssignmentService {
         }
       }
       
-      // Invalidate cache
       this.invalidateCache('assignments');
       return true;
     } catch (error) {
@@ -442,7 +431,6 @@ class OptimizedAssignmentService {
 
       if (error) throw error;
       
-      // Selectively invalidate cache
       this.invalidateCache('assignments');
       return true;
     } catch (error) {
@@ -463,7 +451,6 @@ class OptimizedAssignmentService {
 
       if (error) throw error;
       
-      // Selectively invalidate cache
       this.invalidateCache('assignments');
       return true;
     } catch (error) {
@@ -476,13 +463,11 @@ class OptimizedAssignmentService {
     console.log('[OptimizedAssignmentService] Deleting assignment optimistically:', assignmentId);
     
     try {
-      // Delete employee associations first
       await supabase
         .from('assignments_employees')
         .delete()
         .eq('assignment_id', assignmentId);
 
-      // Delete assignment
       const { error } = await supabase
         .from('assignments')
         .delete()
@@ -490,7 +475,6 @@ class OptimizedAssignmentService {
 
       if (error) throw error;
       
-      // Selectively invalidate cache
       this.invalidateCache('assignments');
       return true;
     } catch (error) {
