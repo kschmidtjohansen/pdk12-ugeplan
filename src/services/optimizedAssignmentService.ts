@@ -8,6 +8,11 @@ interface OptimizedAssignmentData {
   carLookup: Map<string, any>;
 }
 
+interface Profile {
+  id: string;
+  name: string;
+}
+
 class OptimizedAssignmentService {
   private cache = new Map<string, { data: OptimizedAssignmentData; timestamp: number }>();
   private readonly CACHE_TTL = 2 * 60 * 1000; // 2 minutes
@@ -107,7 +112,16 @@ class OptimizedAssignmentService {
     // Build lookup maps for O(1) access
     const employeeLookup = new Map<string, string[]>();
     const carLookup = new Map<string, any>();
-    const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+    
+    // Create profiles map with proper typing
+    const profilesMap = new Map<string, Profile>();
+    if (profiles) {
+      profiles.forEach(profile => {
+        if (profile && typeof profile === 'object' && 'id' in profile && 'name' in profile) {
+          profilesMap.set(profile.id, profile as Profile);
+        }
+      });
+    }
 
     // Process employee data with profile lookup
     if (employeeResult.data) {
@@ -116,7 +130,7 @@ class OptimizedAssignmentService {
           employeeLookup.set(ae.assignment_id, []);
         }
         const profile = profilesMap.get(ae.user_id);
-        if (profile?.name) {
+        if (profile && profile.name) {
           employeeLookup.get(ae.assignment_id)?.push(profile.name);
         }
       });
