@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useAuth } from '@/context/AuthContext';
@@ -95,10 +96,12 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
       }
 
       // Execute the query with retry
-      const { data, error } = await withRetry(
+      const result = await withRetry(
         () => query.order('date', { ascending: true }),
         'Assignments fetch'
       );
+
+      const { data, error } = result;
 
       if (error) {
         console.error('[useAssignmentData] Assignments query error:', error);

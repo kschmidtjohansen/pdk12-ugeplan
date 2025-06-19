@@ -1,3 +1,4 @@
+
 const planner = {
   title: 'Planlægger',
   description: 'Beskrivelse',
@@ -60,7 +61,6 @@ const planner = {
   // Car selector translations
   selectCars: 'Vælg biler',
   carsSelected: '{count} biler valgt',
-  cars: 'Biler',
   available: 'Tilgængelig',
   unavailable: 'Ikke tilgængelig',
   bookedUntil: 'Optaget til {time}',

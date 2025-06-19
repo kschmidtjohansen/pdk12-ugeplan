@@ -1,3 +1,4 @@
+
 const planner = {
   title: 'Planner',
   description: 'Plan and manage work assignments',
@@ -90,7 +91,6 @@ const planner = {
   // Car selector translations
   selectCars: 'Select Cars',
   carsSelected: '{count} cars selected',
-  cars: 'Cars',
   available: 'Available',
   unavailable: 'Unavailable',
   bookedUntil: 'Booked until {time}',
