@@ -26,6 +26,10 @@ export const common = {
   add: 'Tilføj',
   remove: 'Fjern',
   deleting: 'Sletter...',
+  saving: 'Gemmer...',
+  updating: 'Opdaterer...',
+  publishing: 'Publicerer...',
+  selected: 'valgt',
   
   // Status messages
   success: 'Succes',
@@ -84,6 +88,7 @@ export const common = {
   available: 'Tilgængelig',
   unavailable: 'Ikke tilgængelig',
   selectDate: 'Vælg dato',
+  showOnScreen: 'Vis på skærm',
   
   // Theme
   lightMode: 'Lys tilstand',

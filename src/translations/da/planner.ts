@@ -44,6 +44,7 @@ const planner = {
   addAssignment: 'Tilføj en ny opgave til ugeplanen.',
   saveChanges: 'Gem ændringer',
   createAssignment: 'Opret opgave',
+  publishAssignment: 'Publicer opgave',
   
   // Assignment types
   type: 'Type',
@@ -85,6 +86,12 @@ const planner = {
   unpublish: 'Afpublicer',
   duplicate: 'Duplikér',
   
+  // Permission error messages
+  noPermissionPublish: 'Du har ikke tilladelse til at publicere opgaver.',
+  noPermissionCreate: 'Du har ikke tilladelse til at oprette opgaver.',
+  noPermissionEdit: 'Du har ikke tilladelse til at redigere opgaver.',
+  noPermissionDelete: 'Du har ikke tilladelse til at slette opgaver.',
+  
   // Error messages
   fetchError: 'Fejl ved indlæsning af opgaver',
   createError: 'Fejl ved oprettelse af opgave',
@@ -95,18 +102,23 @@ const planner = {
   errorDeletingAssignment: 'Fejl ved sletning af opgave',
   errorPublishingAssignment: 'Fejl ved publicering af opgave',
   errorPublishingDay: 'Fejl ved publicering af dagens opgaver',
+  operationFailed: 'Handlingen mislykkedes',
+  publishOperationFailed: 'Nogle opgaver kunne ikke publiceres',
   
   // Success messages
   assignmentCreated: 'Opgave oprettet',
   assignmentUpdated: 'Opgave opdateret',
   assignmentDeleted: 'Opgave slettet',
   assignmentPublished: 'Opgave publiceret',
-  assignmentCreatedMsg: 'Opgave "{title}" blev oprettet med succes',
-  assignmentUpdatedMsg: 'Opgave "{title}" blev opdateret med succes',
+  assignmentCreatedMsg: 'Opgave blev oprettet med succes',
+  assignmentUpdatedMsg: 'Opgave blev opdateret med succes',
   assignmentDeletedMsg: 'Opgaven blev slettet med succes',
   assignmentPublishedMsg: 'Opgaven blev publiceret med succes',
   dayPublished: 'Dagens opgaver publiceret',
   dayPublishedMsg: 'Alle opgaver for dagen blev publiceret med succes',
+  
+  // Info messages
+  noUnpublishedAssignments: 'Ingen ikke-publicerede opgaver fundet for denne dato.',
   
   // Confirmation dialogs
   deleteConfirm: 'Slet opgave',

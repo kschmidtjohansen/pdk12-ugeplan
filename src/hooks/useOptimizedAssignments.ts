@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -37,7 +38,7 @@ export const useOptimizedAssignments = ({
       console.log('[useOptimizedAssignments] Loaded', optimizedData.assignments.length, 'assignments');
     } catch (err) {
       console.error('[useOptimizedAssignments] Error fetching assignments:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch assignments';
+      const errorMessage = err instanceof Error ? err.message : t('planner.fetchError');
       setError(errorMessage);
       
       // Enhanced error handling with retry mechanism
@@ -72,7 +73,7 @@ export const useOptimizedAssignments = ({
     if (!canPublishTasks) {
       toast({
         title: t('common.error'),
-        description: 'You do not have permission to publish assignments.',
+        description: t('planner.noPermissionPublish'),
         variant: "destructive",
       });
       return false;
@@ -114,7 +115,7 @@ export const useOptimizedAssignments = ({
         });
         return true;
       } else {
-        throw new Error('Publish operation failed');
+        throw new Error(t('planner.operationFailed'));
       }
     } catch (error) {
       console.error('[useOptimizedAssignments] Error publishing assignment:', error);
@@ -313,7 +314,7 @@ export const useOptimizedAssignments = ({
     if (!canPublishTasks) {
       toast({
         title: t('common.error'),
-        description: 'You do not have permission to publish assignments.',
+        description: t('planner.noPermissionPublish'),
         variant: "destructive",
       });
       return false;
@@ -324,7 +325,7 @@ export const useOptimizedAssignments = ({
     if (unpublishedAssignments.length === 0) {
       toast({
         title: t('common.info'),
-        description: 'No unpublished assignments found for this date.',
+        description: t('planner.noUnpublishedAssignments'),
       });
       return false;
     }
@@ -350,7 +351,7 @@ export const useOptimizedAssignments = ({
         });
         return true;
       } else {
-        throw new Error('Some assignments failed to publish');
+        throw new Error(t('planner.publishOperationFailed'));
       }
     } catch (error) {
       console.error('[useOptimizedAssignments] Error publishing day:', error);
