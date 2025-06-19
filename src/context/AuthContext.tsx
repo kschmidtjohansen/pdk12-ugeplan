@@ -560,7 +560,74 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // ... keep existing code (updateUserRole and other functions)
+  // Enhanced updateUserRole function with better error handling
+  const updateUserRole = async (userId: string, role: UserRole) => {
+    try {
+      console.log('[AuthContext] Starting role update for user:', userId, 'to role:', role);
+      
+      if (!validateAdminAccess()) {
+        return { error: 'Unauthorized - requires administrator role' };
+      }
+      
+      // Call the admin-user-role edge function to update the user's role
+      console.log('[AuthContext] Calling admin-user-role edge function...');
+      const { data, error: fnError } = await supabase.functions.invoke('admin-user-role', {
+        body: { userId, role },
+      });
+      
+      console.log('[AuthContext] Edge function response:', { data, error: fnError });
+      
+      if (fnError) {
+        console.error('[AuthContext] Edge function error:', fnError);
+        
+        // Handle specific error types from the edge function
+        if (fnError.message?.includes('Failed to send a request')) {
+          throw new Error('Network connection failed. Please check your internet connection and try again.');
+        } else if (fnError.message?.includes('Not authenticated') || fnError.message?.includes('Invalid authentication')) {
+          throw new Error('Authentication expired. Please refresh the page and try again.');
+        } else if (fnError.message?.includes('Insufficient privileges')) {
+          throw new Error('You do not have permission to update user roles.');
+        } else if (fnError.message?.includes('Origin not allowed')) {
+          throw new Error('Access denied. Please contact support if this continues.');
+        } else if (fnError.message?.includes('Rate limit')) {
+          throw new Error('Too many requests. Please wait a moment and try again.');
+        } else if (fnError.message?.includes('Missing required fields')) {
+          throw new Error('Invalid request data. Please try again.');
+        } else if (fnError.message?.includes('Invalid role')) {
+          throw new Error('Invalid role specified. Please select a valid role.');
+        } else if (fnError.message?.includes('User not found')) {
+          throw new Error('User not found. They may have been deleted.');
+        } else if (fnError.message?.includes('Database permission denied')) {
+          throw new Error('Database access denied. Please contact support.');
+        }
+        
+        throw new Error(fnError.message || 'Failed to update user role');
+      }
+      
+      if (data?.error) {
+        console.error('[AuthContext] Function returned error:', data.error);
+        throw new Error(data.error);
+      }
+      
+      if (!data?.success) {
+        console.error('[AuthContext] Function did not return success:', data);
+        throw new Error('Role update failed - no success confirmation received');
+      }
+      
+      console.log('[AuthContext] Role update successful');
+      return { error: null };
+      
+    } catch (error) {
+      console.error('[AuthContext] Update user role error:', error);
+      
+      let errorMessage = 'An unexpected error occurred while updating the user role.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      return { error: errorMessage };
+    }
+  };
 
   return (
     <AuthContext.Provider value={{
@@ -637,25 +704,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       },
       register,
-      updateUserRole: async (userId, role) => {
-        try {
-          if (!validateAdminAccess()) {
-            return { error: 'Unauthorized - requires administrator role' };
-          }
-          
-          // Call the admin-user-role edge function to update the user's role
-          const { error: fnError } = await supabase.functions.invoke('admin-user-role', {
-            body: { userId, role },
-          });
-          
-          if (fnError) throw fnError;
-          
-          return { error: null };
-        } catch (error) {
-          console.error('Update user role error:', error);
-          return { error: 'An unexpected error occurred while updating the user role.' };
-        }
-      },
+      updateUserRole,
       loading,
       canViewFuelCardCode,
       canPublishTasks,
