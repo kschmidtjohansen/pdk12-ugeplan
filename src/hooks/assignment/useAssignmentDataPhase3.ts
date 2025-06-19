@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useAuth } from '@/context/AuthContext';
@@ -30,12 +29,12 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
   const [retryCount, setRetryCount] = useState(0);
   const MAX_RETRIES = 3;
 
-  // Memoize the filter criteria
+  // Memoize the filter criteria - FIXED: Removed user-based filtering for assignments data
   const filterCriteria = useMemo(() => ({
     filter,
-    userId: user?.id,
     includeUnpublished
-  }), [filter, user?.id, includeUnpublished]);
+    // Removed userId filtering - let components handle user-specific filtering
+  }), [filter, includeUnpublished]);
 
   // Enhanced fetchAssignments function with deduplication, error handling, and retry logic
   const fetchAssignments = useCallback(async () => {
@@ -67,7 +66,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
 
       console.log('[useAssignmentData] Session validated, fetching assignments...');
 
-      // Step 2: Fetch assignments with proper joins and aggregation
+      // Step 2: Fetch ALL assignments - no user-based filtering at this level
       let baseQuery = supabaseOptimized
         .from('assignments')
         .select(`
@@ -86,12 +85,8 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
           updated_at
         `);
 
-      // Apply user-based filter if specified
-      if (filterCriteria.filter === 'user' && filterCriteria.userId) {
-        baseQuery = baseQuery.or(`responsible_user_id.eq.${filterCriteria.userId}`);
-      }
-
-      // Conditionally include unpublished assignments
+      // FIXED: Only apply published filter, not user-based filter
+      // Let the components handle user-specific filtering based on employee assignments
       if (!filterCriteria.includeUnpublished) {
         baseQuery = baseQuery.eq('published', true);
       }

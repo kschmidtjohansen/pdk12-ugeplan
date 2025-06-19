@@ -45,9 +45,11 @@ const PlannerPage: React.FC = () => {
     handleCopyAssignment
   } = usePlannerPage();
 
+  // FIXED: Show ALL assignments in planner - everyone should see all assignments with employee lists
   // Sort weekAssignments by date (ascending - earliest first), then by time
   const sortedWeekAssignments = React.useMemo(() => {
     if (!weekAssignments) return [];
+    console.log('[PlannerPage] Displaying all assignments for all users:', weekAssignments.length);
     return [...weekAssignments].sort((a, b) => {
       if (a.date !== b.date) {
         return new Date(a.date).getTime() - new Date(b.date).getTime();

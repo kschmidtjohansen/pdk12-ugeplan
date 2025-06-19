@@ -24,7 +24,7 @@ const DashboardPage: React.FC = () => {
   // Enhanced authentication monitoring
   const { authStatus } = useAuthenticationMonitor();
   
-  // Optimize data fetching - use single source for all assignments
+  // FIXED: Fetch ALL assignments for proper filtering and metrics
   const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError } = useAssignmentsConsolidated({ 
     filter: 'all', 
     includeUnpublished: true 
@@ -45,25 +45,37 @@ const DashboardPage: React.FC = () => {
   // Show connection status if there are issues
   const showConnectionIssue = !authStatus.sessionValid || authStatus.connectionStatus === 'disconnected';
 
-  // Memoize filtered assignments to prevent recalculation on every render
+  // FIXED: Improved filtering for user assignments - check employees array properly
   const { publishedAssignments, userAssignments } = useMemo(() => {
+    console.log('[DashboardPage] Processing assignments for user:', user?.name, user?.role);
+    console.log('[DashboardPage] Total assignments:', allAssignments.length);
+    
     // Filter published assignments for metrics (all users now)
     const published = allAssignments.filter(assignment => assignment.published);
     
-    // Filter user-specific assignments for dashboard view
+    // FIXED: Better user-specific assignments filtering for "Mine opgaver"
     const userFiltered = allAssignments.filter(assignment => {
       if (!user) return false;
       
-      // Filter based on user role and assignment relationship
-      if (user.role === 'administrator' || user.role === 'skadeleder') {
-        return (assignment.responsibleUser && assignment.responsibleUser.id === user.id) ||
-               (assignment.employees && assignment.employees.includes(user.name || ''));
-      } else if (user.role === 'servicemedarbejder') {
-        return assignment.employees && assignment.employees.includes(user.name || '');
-      }
+      console.log(`[DashboardPage] Checking assignment "${assignment.title}":`);
+      console.log(`  - Employees: [${assignment.employees?.join(', ') || 'none'}]`);
+      console.log(`  - Responsible user: ${assignment.responsibleUser?.name || 'none'}`);
+      console.log(`  - User name: ${user.name}`);
       
-      return false;
+      // For all users, check if they are in the employees array OR responsible user
+      const isInEmployees = assignment.employees && assignment.employees.includes(user.name || '');
+      const isResponsibleUser = assignment.responsibleUser && assignment.responsibleUser.id === user.id;
+      
+      const shouldInclude = isInEmployees || isResponsibleUser;
+      console.log(`  - Should include: ${shouldInclude} (isInEmployees: ${isInEmployees}, isResponsibleUser: ${isResponsibleUser})`);
+      
+      return shouldInclude;
     });
+    
+    console.log('[DashboardPage] FINAL RESULTS:');
+    console.log(`  - Published assignments: ${published.length}`);
+    console.log(`  - User assignments: ${userFiltered.length}`);
+    userFiltered.forEach(a => console.log(`    * ${a.title} (${a.date}) - Employees: [${a.employees?.join(', ') || 'none'}]`));
     
     return { publishedAssignments: published, userAssignments: userFiltered };
   }, [allAssignments, user]);
@@ -136,7 +148,6 @@ const DashboardPage: React.FC = () => {
   }, [userAssignments, startDateISO, endDateISO]);
 
   // FIXED: Allow ALL authenticated users to see metrics, not just admin/skadeleder
-  // This was the second part of the issue preventing Mark from seeing metrics
   const shouldShowMetrics = !!user; // Any authenticated user can see metrics
   const selectedDateForMetrics = getSelectedDateForMetrics();
 
