@@ -1,6 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
+import { usePermissions } from '@/context/AuthContext';
 import { Assignment } from '@/types/assignment';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmployees } from './useEmployees';
@@ -26,6 +28,7 @@ export const useAssignmentsConsolidated = ({
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { canPublishTasks } = usePermissions();
   const { employees } = useEmployees();
   const { vacations } = useVacations();
   const { executeWithRecovery } = useErrorRecovery();
