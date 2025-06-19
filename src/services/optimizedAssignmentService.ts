@@ -81,7 +81,7 @@ class OptimizedAssignmentService {
         .select(`
           assignment_id,
           user_id,
-          profiles:user_id (
+          profiles!assignments_employees_user_id_fkey (
             id,
             name
           )

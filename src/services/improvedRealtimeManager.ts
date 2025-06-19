@@ -56,7 +56,14 @@ class ImprovedRealtimeManager {
             ...(options.filter && { filter: options.filter })
           },
           (payload) => {
-            console.log(`[ImprovedRealtimeManager] ${tableName} change:`, payload.eventType, payload.new?.id || payload.old?.id);
+            // Safe property access with type checking
+            const recordId = (payload.new && typeof payload.new === 'object' && 'id' in payload.new) 
+              ? payload.new.id 
+              : (payload.old && typeof payload.old === 'object' && 'id' in payload.old) 
+                ? payload.old.id 
+                : 'unknown';
+                
+            console.log(`[ImprovedRealtimeManager] ${tableName} change:`, payload.eventType, recordId);
             
             // Use custom debounce delay if provided
             const debounceDelay = options.debounceMs || 500;
