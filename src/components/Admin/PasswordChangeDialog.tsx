@@ -81,17 +81,27 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       if (error) {
         console.error('[PasswordChangeDialog] Password reset failed:', error);
         
-        // Enhanced error handling based on error type
+        // Enhanced error handling with more specific messages
         let errorMessage = t('admin.passwords.resetError');
         
-        if (error.includes('Network connection')) {
-          errorMessage = 'Network connection failed. Please check your internet connection.';
-        } else if (error.includes('Authentication expired')) {
+        if (error.includes('Origin not allowed')) {
+          errorMessage = 'Access denied: Origin not allowed. Please check your connection.';
+        } else if (error.includes('Rate limit exceeded')) {
+          errorMessage = 'Too many requests. Please wait before trying again.';
+        } else if (error.includes('Missing or invalid authorization')) {
           errorMessage = 'Your session has expired. Please refresh the page and try again.';
-        } else if (error.includes('permission') || error.includes('privileges')) {
+        } else if (error.includes('Invalid authentication token')) {
+          errorMessage = 'Authentication failed. Please log out and log back in.';
+        } else if (error.includes('Insufficient privileges')) {
           errorMessage = 'You do not have permission to reset passwords.';
+        } else if (error.includes('Invalid user ID format')) {
+          errorMessage = 'Invalid user selected. Please try selecting the user again.';
         } else if (error.includes('Password must')) {
-          errorMessage = error; // Use the specific validation error
+          errorMessage = error; // Use the specific password validation error
+        } else if (error.includes('Password reset failed:')) {
+          errorMessage = error; // Use the specific Supabase error
+        } else if (error.includes('Network') || error.includes('fetch')) {
+          errorMessage = 'Network error. Please check your internet connection and try again.';
         }
         
         toast({
@@ -114,9 +124,19 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       onClose();
     } catch (error) {
       console.error('[PasswordChangeDialog] Unexpected error:', error);
+      
+      // More specific error handling for different error types
+      let errorMessage = 'An unexpected error occurred. Please try again.';
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage = 'Network connection failed. Please check your internet connection.';
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: t('common.error'),
-        description: 'An unexpected error occurred. Please try again.',
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

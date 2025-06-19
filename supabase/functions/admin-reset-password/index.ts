@@ -60,20 +60,29 @@ serve(async (req) => {
   }
 
   try {
-    // Enhanced origin validation
+    // Enhanced origin validation - FIXED: Allow development domains
     const origin = req.headers.get('origin');
     const allowedOrigins = [
       'https://www.pdk12.dk',
       'https://pdk12.dk'
     ];
     
-    // Allow localhost and lovable.dev domains in development
-    const isDev = origin?.includes('localhost') || origin?.includes('lovable.dev');
+    // Allow localhost, lovable.dev domains, and any development URLs in development
+    const isDev = origin?.includes('localhost') || 
+                  origin?.includes('lovable.dev') || 
+                  origin?.includes('lovableproject.com') ||
+                  origin?.includes('127.0.0.1');
     const isAllowedOrigin = allowedOrigins.includes(origin || '') || isDev;
     
     if (!isAllowedOrigin) {
       console.error(`[admin-reset-password] Forbidden origin: ${origin}`);
-      throw new Error('Forbidden origin');
+      return new Response(
+        JSON.stringify({ error: 'Origin not allowed' }),
+        { 
+          status: 403, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     // Rate limiting
@@ -93,7 +102,13 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       console.error('[admin-reset-password] Missing or invalid authorization header');
-      throw new Error('Missing or invalid authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Missing or invalid authorization header' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     const token = authHeader.substring(7);
@@ -108,7 +123,13 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) {
       console.error('[admin-reset-password] Invalid authentication token:', userError);
-      throw new Error('Invalid authentication token');
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication token' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     console.log(`[admin-reset-password] User verified: ${user.email}`);
@@ -147,18 +168,36 @@ serve(async (req) => {
     // Input validation
     if (!userId || !newPassword) {
       console.error('[admin-reset-password] Missing required fields');
-      throw new Error('Missing required fields: userId and newPassword are required');
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields: userId and newPassword are required' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     if (!isValidUuid(userId)) {
       console.error(`[admin-reset-password] Invalid user ID format: ${userId}`);
-      throw new Error('Invalid user ID format');
+      return new Response(
+        JSON.stringify({ error: 'Invalid user ID format' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     const passwordValidation = validatePassword(newPassword);
     if (!passwordValidation.valid) {
       console.error(`[admin-reset-password] Password validation failed: ${passwordValidation.message}`);
-      throw new Error(passwordValidation.message || 'Invalid password');
+      return new Response(
+        JSON.stringify({ error: passwordValidation.message || 'Invalid password' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     console.log(`[admin-reset-password] Resetting password for user: ${userId}`);
@@ -170,7 +209,13 @@ serve(async (req) => {
 
     if (resetError) {
       console.error('[admin-reset-password] Password reset failed:', resetError);
-      throw resetError;
+      return new Response(
+        JSON.stringify({ error: `Password reset failed: ${resetError.message}` }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     console.log('[admin-reset-password] Password reset successful');
