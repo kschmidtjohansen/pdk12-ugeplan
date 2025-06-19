@@ -6,6 +6,7 @@ import { usePermissions } from '@/context/AuthContext';
 import { Assignment } from '@/types/assignment';
 import { optimizedAssignmentService } from '@/services/optimizedAssignmentService';
 import { improvedRealtimeManager } from '@/services/improvedRealtimeManager';
+import { Button } from '@/components/ui/button';
 
 interface UseOptimizedAssignmentsProps {
   filter?: 'all' | 'dashboard' | 'planner';
@@ -47,10 +48,15 @@ export const useOptimizedAssignments = ({
           title: t('common.error'),
           description: t('planner.fetchError'),
           variant: 'destructive',
-          action: {
-            label: 'Retry',
-            onClick: () => fetchAssignments()
-          }
+          action: (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => fetchAssignments()}
+            >
+              Retry
+            </Button>
+          )
         });
       }
     } finally {

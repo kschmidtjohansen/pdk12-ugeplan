@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { LogIn, Settings, Camera, Lock } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
@@ -8,21 +9,21 @@ import { languageNames } from '../../../translations';
 import PasswordChangeDialog from '../../Profile/PasswordChangeDialog';
 import ProfilePictureDialog from '../../Profile/ProfilePictureDialog';
 import { supabase } from '@/integrations/supabase/client';
+
 interface UserMenuProps {
   user: any;
   currentLanguage: string;
   setLanguage: (lang: any) => void;
   handleLogout: () => void;
 }
+
 const UserMenu: React.FC<UserMenuProps> = ({
   user,
   currentLanguage,
   setLanguage,
   handleLogout
 }) => {
-  const {
-    t
-  } = useTranslation();
+  const { t } = useTranslation();
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [profilePictureDialogOpen, setProfilePictureDialogOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -37,10 +38,12 @@ const UserMenu: React.FC<UserMenuProps> = ({
     const fetchUserProfile = async () => {
       if (user?.id) {
         try {
-          const {
-            data,
-            error
-          } = await supabase.from('profiles').select('avatar_url').eq('id', user.id).single();
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('avatar_url')
+            .eq('id', user.id)
+            .single();
+          
           if (data && !error && data.avatar_url) {
             setAvatarUrl(data.avatar_url);
           }
@@ -51,10 +54,13 @@ const UserMenu: React.FC<UserMenuProps> = ({
     };
     fetchUserProfile();
   }, [user?.id]);
+
   const handleAvatarUpdate = (newAvatarUrl: string | null) => {
     setAvatarUrl(newAvatarUrl);
   };
-  return <>
+
+  return (
+    <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -68,7 +74,6 @@ const UserMenu: React.FC<UserMenuProps> = ({
           <DropdownMenuLabel>
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">{user?.name}</p>
-              
               <p className="text-xs leading-none text-muted-foreground capitalize">{user?.role}</p>
             </div>
           </DropdownMenuLabel>
@@ -90,9 +95,11 @@ const UserMenu: React.FC<UserMenuProps> = ({
           {/* Language Selector */}
           <DropdownMenuLabel>{t('common.language')}</DropdownMenuLabel>
           <DropdownMenuRadioGroup value={currentLanguage} onValueChange={val => setLanguage(val as 'en' | 'da')}>
-            {Object.entries(languageNames).map(([code, name]) => <DropdownMenuRadioItem key={code} value={code} className="cursor-pointer">
+            {Object.entries(languageNames).map(([code, name]) => (
+              <DropdownMenuRadioItem key={code} value={code} className="cursor-pointer">
                 {name}
-              </DropdownMenuRadioItem>)}
+              </DropdownMenuRadioItem>
+            ))}
           </DropdownMenuRadioGroup>
           
           <DropdownMenuSeparator />
@@ -103,9 +110,20 @@ const UserMenu: React.FC<UserMenuProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <PasswordChangeDialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen} />
+      <PasswordChangeDialog 
+        isOpen={passwordDialogOpen} 
+        onClose={() => setPasswordDialogOpen(false)} 
+      />
 
-      <ProfilePictureDialog open={profilePictureDialogOpen} onOpenChange={setProfilePictureDialogOpen} currentAvatarUrl={avatarUrl} userName={user?.name || ''} onAvatarUpdate={handleAvatarUpdate} />
-    </>;
+      <ProfilePictureDialog 
+        open={profilePictureDialogOpen} 
+        onOpenChange={setProfilePictureDialogOpen} 
+        currentAvatarUrl={avatarUrl} 
+        userName={user?.name || ''} 
+        onAvatarUpdate={handleAvatarUpdate} 
+      />
+    </>
+  );
 };
+
 export default UserMenu;
