@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
@@ -12,6 +11,7 @@ import { useErrorRecovery } from './useErrorRecovery';
 import { dataFetchingService } from '@/services/dataFetchingService';
 import { realtimeManager } from '@/services/realtimeManager';
 import { useCarDataHandler } from './assignment/useCarDataHandler';
+import { useOptimizedAssignments } from './useOptimizedAssignments';
 
 interface UseAssignmentsConsolidatedProps {
   filter?: 'all' | 'dashboard' | 'planner';
@@ -26,6 +26,8 @@ export const useAssignmentsConsolidated = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [operationStates, setOperationStates] = useState<Record<string, 'publishing' | 'deleting' | 'updating' | null>>({});
+  
   const { toast } = useToast();
   const { t } = useTranslation();
   const { canPublishTasks } = usePermissions();
@@ -33,6 +35,34 @@ export const useAssignmentsConsolidated = ({
   const { vacations } = useVacations();
   const { executeWithRecovery } = useErrorRecovery();
   const { transformCarForDatabase } = useCarDataHandler();
+
+  // Use optimized assignment service
+  const { 
+    assignments: optimizedAssignments, 
+    loading: optimizedLoading,
+    error: optimizedError,
+    operationStates: optimizedOperationStates,
+    fetchAssignments: optimizedFetchAssignments,
+    publishAssignment: optimizedPublishAssignment,
+    deleteAssignment: optimizedDeleteAssignment,
+    publishAssignmentsByDate: optimizedPublishAssignmentsByDate
+  } = useOptimizedAssignments({ filter, includeUnpublished });
+
+  // Sync optimized data with local state
+  useEffect(() => {
+    setAssignments(optimizedAssignments);
+    setLoading(optimizedLoading);
+    setError(optimizedError);
+    setOperationStates(optimizedOperationStates);
+  }, [optimizedAssignments, optimizedLoading, optimizedError, optimizedOperationStates]);
+
+  // Set operation state for individual operations
+  const setOperationState = useCallback((assignmentId: string, state: 'publishing' | 'deleting' | 'updating' | null) => {
+    setOperationStates(prev => ({
+      ...prev,
+      [assignmentId]: state
+    }));
+  }, []);
 
   // Fetch assignments with enhanced error handling and caching
   const fetchAssignments = async () => {
@@ -348,6 +378,18 @@ export const useAssignmentsConsolidated = ({
         isEmpty: !assignmentData.car || assignmentData.car === ''
       });
       
+      // Set loading state immediately
+      setOperationState(id, 'updating');
+      
+      // Optimistic update - update UI immediately
+      setAssignments(prev => 
+        prev.map(assignment => 
+          assignment.id === id 
+            ? { ...assignment, ...assignmentData, published: false }
+            : assignment
+        )
+      );
+      
       // Use car data handler for consistent transformation
       const transformedData = transformCarForDatabase(assignmentData);
       console.log('[useAssignmentsConsolidated] Transformed car data for update:', {
@@ -464,12 +506,18 @@ export const useAssignmentsConsolidated = ({
       return true;
     } catch (error: any) {
       console.error('[useAssignmentsConsolidated] Error updating assignment:', error);
+      
+      // Revert optimistic update on error
+      fetchAssignments();
+      
       toast({
         title: t('common.error'),
         description: t('planner.errorUpdatingAssignment'),
         variant: "destructive",
       });
       return false;
+    } finally {
+      setOperationState(id, null);
     }
   };
   
@@ -747,6 +795,7 @@ export const useAssignmentsConsolidated = ({
     assignments,
     loading,
     error,
+    operationStates,
     fetchAssignments,
     setAssignments,
     createAssignment,
@@ -755,6 +804,7 @@ export const useAssignmentsConsolidated = ({
     publishAssignment,
     publishAssignmentsByDate,
     isDialogOpen,
-    setIsDialogOpen
+    setIsDialogOpen,
+    setOperationState
   };
 };

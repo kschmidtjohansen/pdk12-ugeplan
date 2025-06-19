@@ -15,6 +15,7 @@ interface AssignmentCardProps {
   onDelete: () => void;
   onPublish?: () => void;
   onCopy?: () => void;
+  operationState?: 'publishing' | 'deleting' | 'updating' | null;
 }
 
 const AssignmentCard: React.FC<AssignmentCardProps> = ({
@@ -24,19 +25,16 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   onEdit,
   onDelete,
   onPublish,
-  onCopy
+  onCopy,
+  operationState = null
 }) => {
-  // Enhanced debugging for assignment card
   console.log(`[AssignmentCard] Rendering assignment card for ${assignment.title || assignment.location}:`);
   console.log(`  - Assignment ID: ${assignment.id}`);
-  console.log(`  - Title (case number): ${assignment.title}`);
-  console.log(`  - Location: ${assignment.location}`);
   console.log(`  - Published status: ${assignment.published}`);
-  console.log(`  - onPublish function provided: ${typeof onPublish}`);
+  console.log(`  - Operation state: ${operationState}`);
 
   const handleEditClick = (assignment: Assignment) => {
     console.log('[AssignmentCard] Edit clicked for assignment:', assignment.id);
-    console.log('[AssignmentCard] Calling onEdit prop function...');
     onEdit(assignment);
   };
 
@@ -48,30 +46,22 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   };
 
   const handlePublishClick = async () => {
-    console.log('[AssignmentCard] ===== PUBLISH CLICKED IN ASSIGNMENT CARD =====');
-    console.log('[AssignmentCard] Assignment ID:', assignment.id);
-    console.log('[AssignmentCard] Published status:', assignment.published);
-    console.log('[AssignmentCard] onPublish function type:', typeof onPublish);
-    console.log('[AssignmentCard] onPublish function exists:', !!onPublish);
+    console.log('[AssignmentCard] Publish clicked for assignment:', assignment.id);
     
     if (onPublish) {
-      console.log('[AssignmentCard] Calling onPublish function...');
       try {
         await onPublish();
-        console.log('[AssignmentCard] onPublish function completed');
       } catch (error) {
         console.error('[AssignmentCard] Error in onPublish:', error);
       }
-    } else {
-      console.error('[AssignmentCard] onPublish function not provided!');
     }
-    console.log('[AssignmentCard] ===== PUBLISH CLICK END =====');
   };
 
   const isPublished = assignment.published === true;
+  const isLoading = operationState !== null;
 
   return (
-    <Card className="w-full p-4 bg-white hover:border-polygon-purple transition-colors">
+    <Card className={`w-full p-4 bg-white hover:border-polygon-purple transition-colors ${isLoading ? 'opacity-75' : ''}`}>
       <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
         <div className="flex items-center gap-2">
           <div className="flex flex-col">
@@ -81,6 +71,13 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
             )}
           </div>
           <AssignmentStatusBadge isPublished={isPublished} />
+          {operationState && (
+            <span className="text-xs text-blue-600 font-medium">
+              {operationState === 'publishing' && 'Publishing...'}
+              {operationState === 'deleting' && 'Deleting...'}
+              {operationState === 'updating' && 'Updating...'}
+            </span>
+          )}
         </div>
         
         <AssignmentActionButtons 
@@ -88,11 +85,10 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           onEdit={handleEditClick}
           onDelete={onDelete}
           onPublish={async (assignmentId: string) => {
-            console.log('[AssignmentCard] AssignmentActionButtons onPublish called with ID:', assignmentId);
-            console.log('[AssignmentCard] Forwarding to handlePublishClick...');
             await handlePublishClick();
           }}
           onCopy={handleCopyClick}
+          operationState={operationState}
         />
       </div>
       

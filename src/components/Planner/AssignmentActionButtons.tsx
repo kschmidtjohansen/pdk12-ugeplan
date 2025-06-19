@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { Assignment } from '@/types/assignment';
-import { Edit3, Trash2, Eye, Copy, Monitor } from 'lucide-react';
+import { Edit3, Trash2, Eye, Copy, Monitor, Loader2 } from 'lucide-react';
 
 interface AssignmentActionButtonsProps {
   assignment: Assignment;
@@ -12,6 +12,7 @@ interface AssignmentActionButtonsProps {
   onDelete: (assignmentId: string) => void;
   onPublish: (assignmentId: string) => void;
   onCopy: (assignment: Assignment) => void;
+  operationState?: 'publishing' | 'deleting' | 'updating' | null;
 }
 
 export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = ({
@@ -19,59 +20,43 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
   onEdit,
   onDelete,
   onPublish,
-  onCopy
+  onCopy,
+  operationState = null
 }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [isPublishing, setIsPublishing] = useState(false);
 
-  // Only show action buttons for administrators and skadeledere
   const canPerformActions = user?.role === 'administrator' || user?.role === 'skadeleder';
-
-  // Screen display button should be available for administrators and skadeledere only
   const canShowOnScreen = user?.role === 'administrator' || user?.role === 'skadeleder';
 
   if (!canPerformActions) {
     return null;
   }
 
+  const isLoading = operationState !== null;
+  const isPublishing = operationState === 'publishing';
+  const isDeleting = operationState === 'deleting';
+  const isUpdating = operationState === 'updating';
+
   const handleEditClick = () => {
+    if (isLoading) return;
     console.log('[AssignmentActionButtons] Edit button clicked for assignment:', assignment.id);
-    console.log('[AssignmentActionButtons] Assignment data:', assignment);
-    console.log('[AssignmentActionButtons] Calling onEdit function...');
     onEdit(assignment);
   };
 
   const handlePublishClick = async () => {
-    console.log('[AssignmentActionButtons] ===== PUBLISH ASSIGNMENT BUTTON CLICKED =====');
-    console.log('[AssignmentActionButtons] Assignment ID:', assignment.id);
-    console.log('[AssignmentActionButtons] Assignment title:', assignment.title);
-    console.log('[AssignmentActionButtons] Current published status:', assignment.published);
-    console.log('[AssignmentActionButtons] User role:', user?.role);
-    console.log('[AssignmentActionButtons] Can perform actions:', canPerformActions);
+    if (isLoading || assignment.published) return;
     
-    if (assignment.published) {
-      console.log('[AssignmentActionButtons] Assignment is already published, skipping');
-      return;
-    }
-    
-    setIsPublishing(true);
-    console.log('[AssignmentActionButtons] Setting isPublishing to true, calling onPublish...');
-    
+    console.log('[AssignmentActionButtons] Publish button clicked for assignment:', assignment.id);
     try {
       await onPublish(assignment.id);
-      console.log('[AssignmentActionButtons] onPublish completed');
     } catch (error) {
       console.error('[AssignmentActionButtons] Error in onPublish:', error);
-    } finally {
-      setIsPublishing(false);
-      console.log('[AssignmentActionButtons] Setting isPublishing to false');
     }
-    
-    console.log('[AssignmentActionButtons] ===== PUBLISH ASSIGNMENT BUTTON END =====');
   };
 
   const handleShowOnScreen = () => {
+    if (isLoading) return;
     try {
       console.log('[AssignmentActionButtons] Opening screen display for date:', assignment.date);
       const screenUrl = `/screen-display?date=${assignment.date}`;
@@ -82,11 +67,13 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
   };
 
   const handleDeleteClick = () => {
+    if (isLoading) return;
     console.log('[AssignmentActionButtons] Delete button clicked for assignment:', assignment.id);
     onDelete(assignment.id);
   };
 
   const handleCopyClick = () => {
+    if (isLoading) return;
     console.log('[AssignmentActionButtons] Copy button clicked for assignment:', assignment.id);
     onCopy(assignment);
   };
@@ -97,16 +84,22 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         variant="ghost" 
         size="sm" 
         onClick={handleEditClick}
+        disabled={isLoading}
         className="h-7 w-7 p-0" 
-        title={t('planner.editAssignment')}
+        title={isUpdating ? 'Updating...' : t('planner.editAssignment')}
       >
-        <Edit3 className="h-3 w-3" />
+        {isUpdating ? (
+          <Loader2 className="h-3 w-3 animate-spin" />
+        ) : (
+          <Edit3 className="h-3 w-3" />
+        )}
       </Button>
       
       <Button 
         variant="ghost" 
         size="sm" 
-        onClick={handleCopyClick} 
+        onClick={handleCopyClick}
+        disabled={isLoading}
         className="h-7 w-7 p-0" 
         title={t('planner.copyAssignment')}
       >
@@ -118,11 +111,15 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
           variant="ghost" 
           size="sm" 
           onClick={handlePublishClick}
-          disabled={isPublishing}
+          disabled={isLoading}
           className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 disabled:opacity-50" 
           title={isPublishing ? 'Publishing...' : t('planner.publish')}
         >
-          <Eye className="h-3 w-3" />
+          {isPublishing ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <Eye className="h-3 w-3" />
+          )}
         </Button>
       )}
       
@@ -130,7 +127,8 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={handleShowOnScreen} 
+          onClick={handleShowOnScreen}
+          disabled={isLoading}
           className="h-7 w-7 p-0" 
           title={t('common.showOnScreen')}
         >
@@ -141,11 +139,16 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
       <Button 
         variant="ghost" 
         size="sm" 
-        onClick={handleDeleteClick} 
-        className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50" 
-        title={t('planner.deleteAssignment')}
+        onClick={handleDeleteClick}
+        disabled={isLoading}
+        className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50" 
+        title={isDeleting ? 'Deleting...' : t('planner.deleteAssignment')}
       >
-        <Trash2 className="h-3 w-3" />
+        {isDeleting ? (
+          <Loader2 className="h-3 w-3 animate-spin" />
+        ) : (
+          <Trash2 className="h-3 w-3" />
+        )}
       </Button>
     </div>
   );
