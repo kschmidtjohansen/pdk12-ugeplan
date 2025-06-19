@@ -18,9 +18,18 @@ export const useAssignmentFilters = () => {
     return AssignmentFilterService.filterByWeek(assignments, weekNumber, year);
   };
 
+  const filterUserAssignments = (assignments: Assignment[], userId: string): Assignment[] => {
+    return assignments.filter(assignment => 
+      assignment.employees && assignment.employees.some(emp => 
+        typeof emp === 'string' ? emp === userId : emp.id === userId
+      )
+    );
+  };
+
   return {
     filterByPermissions,
     groupByDate,
-    filterByWeek
+    filterByWeek,
+    filterUserAssignments
   };
 };

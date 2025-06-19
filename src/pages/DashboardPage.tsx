@@ -2,12 +2,14 @@
 import React, { useMemo } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useOptimizedAssignments } from '@/hooks/useOptimizedAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import { getCurrentWeekInfo, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/dates';
+import { getDailyQuote } from '@/utils/dailyQuotes';
 import WelcomeHeader from '@/components/Dashboard/WelcomeHeader';
 import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import WeeklyAssignments from '@/components/Dashboard/WeeklyAssignments';
@@ -19,7 +21,9 @@ import { Spinner } from '@/components/ui/spinner';
 
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
-  const { isAdmin, isSkadeleder, userId } = usePermissions();
+  const { isAdmin, isSkadeleder } = usePermissions();
+  const { user } = useAuth();
+  const userId = user?.id;
   const { employees } = useEmployees();
   const { cars } = useCars();
   const { vacations } = useVacations();
@@ -63,6 +67,15 @@ const DashboardPage: React.FC = () => {
     return userFiltered;
   }, [weekAssignments, userId, filterUserAssignments]);
 
+  // Calculate metrics for system overview
+  const availableEmployees = employees.filter(emp => emp.is_available).length;
+  const totalEmployees = employees.length;
+  const availableVehicles = cars.filter(car => car.is_available).length;
+  const totalVehicles = cars.length;
+
+  // Get daily quote
+  const dailyQuote = getDailyQuote();
+
   // Navigation handlers
   const handlePreviousWeek = React.useCallback(() => {
     const { week } = getPreviousWeekInfo(selectedWeek, currentWeekInfo.year);
@@ -99,7 +112,10 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
-        <WelcomeHeader />
+        <WelcomeHeader 
+          userName={user?.user_metadata?.name || user?.email || 'Bruger'}
+          dailyQuote={dailyQuote}
+        />
         
         <DashboardMetrics 
           selectedDate={new Date().toISOString().split('T')[0]}
@@ -119,9 +135,18 @@ const DashboardPage: React.FC = () => {
           </div>
           
           <div className="space-y-8">
-            <UpcomingVacationsWidget />
+            <UpcomingVacationsWidget vacations={vacations} />
             <VehicleStatusWidget />
-            {(isAdmin || isSkadeleder) && <SystemMetricsOverview />}
+            {(isAdmin || isSkadeleder) && (
+              <SystemMetricsOverview 
+                assignments={assignments}
+                vacations={vacations}
+                availableEmployees={availableEmployees}
+                totalEmployees={totalEmployees}
+                availableVehicles={availableVehicles}
+                totalVehicles={totalVehicles}
+              />
+            )}
           </div>
         </div>
       </div>
