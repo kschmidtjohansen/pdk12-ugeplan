@@ -51,7 +51,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     formDataTitle: formData.title,
     formDataEmployees: formData.employees,
     formDataCar: formData.car,
-    carType: typeof formData.car
+    carType: typeof formData.car,
+    isPublished: currentAssignment?.published
   });
 
   const {
@@ -104,10 +105,18 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   };
 
   const handlePublishClick = () => {
-    console.log('[AssignmentForm] Publish clicked for assignment:', currentAssignment?.id);
+    console.log('[AssignmentForm] ===== PUBLISH BUTTON CLICKED =====');
+    console.log('[AssignmentForm] Publishing assignment:', currentAssignment?.id);
+    console.log('[AssignmentForm] Current published status:', currentAssignment?.published);
+    console.log('[AssignmentForm] Can publish tasks:', canPublishTasks);
+    
     if (currentAssignment?.id) {
+      console.log('[AssignmentForm] Calling onPublish function...');
       onPublish(currentAssignment.id);
+    } else {
+      console.error('[AssignmentForm] No assignment ID found for publishing');
     }
+    console.log('[AssignmentForm] ===== PUBLISH BUTTON END =====');
   };
 
   const handlePublishDayClick = () => {
@@ -156,6 +165,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
   // Enhanced helper function to handle car selection with proper debugging
   const handleCarChange = (carId: string) => {
+    console.log('[AssignmentForm] ===== CAR CHANGE =====');
     console.log('[AssignmentForm] Car change handler called:', {
       carId,
       carType: typeof carId,
@@ -179,7 +189,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     });
     
     setFormData(updatedData);
+    console.log('[AssignmentForm] ===== CAR CHANGE END =====');
   };
+
+  // Check if we can publish this assignment
+  const canPublishAssignment = currentAssignment && canPublishTasks && !currentAssignment.published;
 
   return (
     <form onSubmit={handleFormSubmit} className="space-y-6">
@@ -235,9 +249,13 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
+        <Button 
+          type="submit" 
+          disabled={isSubmitting} 
+          className="flex-1"
+        >
           <Edit3 className="mr-2 h-4 w-4" />
-          {currentAssignment ? t('common.update') : t('common.create')}
+          {isSubmitting ? t('common.saving') : (currentAssignment ? t('common.update') : t('common.create'))}
         </Button>
 
         {currentAssignment && canEdit && (
@@ -252,18 +270,18 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           </Button>
         )}
 
-        {currentAssignment && canPublishTasks && !currentAssignment.published && (
+        {canPublishAssignment && (
           <Button 
             type="button" 
             onClick={handlePublishClick} 
-            className="flex-1 bg-green-600 hover:bg-green-700"
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
           >
             <Send className="mr-2 h-4 w-4" />
             {t('planner.publishAssignment')}
           </Button>
         )}
 
-        {currentAssignment && canPublishTasks && (
+        {canPublishTasks && selectedDay && (
           <Button 
             type="button" 
             onClick={handlePublishDayClick} 

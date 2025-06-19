@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Car } from '@/types/car';
 import { Assignment } from '@/types/assignment';
@@ -32,7 +31,8 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
     selectedCarId,
     carsCount: cars.length,
     currentDate,
-    currentAssignmentId
+    currentAssignmentId,
+    hasSelectedCar: selectedCarId && selectedCarId !== ''
   });
 
   // Improved time normalization function
@@ -123,35 +123,53 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
 
   // Get display text for selected car
   const getSelectedCarDisplay = () => {
+    console.log('[CarSelector] Getting display text for car:', {
+      selectedCarId,
+      isEmpty: !selectedCarId || selectedCarId === '',
+      carExists: cars.find(car => car.id === selectedCarId)
+    });
+    
     if (!selectedCarId || selectedCarId === '') {
-      return t('planner.selectCar');
+      console.log('[CarSelector] No car selected, showing placeholder');
+      return t('cars.noCar');
     }
+    
     const car = cars.find(car => car.id === selectedCarId);
-    return car ? car.name : t('planner.selectCar');
+    const displayText = car ? car.name : t('cars.noCar');
+    console.log('[CarSelector] Display text:', displayText);
+    return displayText;
   };
 
   // Handle car selection with enhanced debugging
   const handleCarSelect = (carId: string) => {
+    console.log('[CarSelector] ===== CAR SELECTION =====');
     console.log('[CarSelector] Car selection triggered:', {
       carId,
       isNone: carId === 'none',
+      isEmpty: carId === '',
       previousSelection: selectedCarId
     });
     
-    if (carId === 'none' || carId === '') {
-      console.log('[CarSelector] Setting car to empty (no car)');
+    if (carId === 'none') {
+      console.log('[CarSelector] Setting car to empty (no car selected)');
       onCarSelect('');
     } else {
       console.log('[CarSelector] Setting car to:', carId);
       onCarSelect(carId);
     }
+    console.log('[CarSelector] ===== CAR SELECTION END =====');
   };
 
   // Handle car removal
   const handleCarRemove = () => {
+    console.log('[CarSelector] ===== CAR REMOVAL =====');
     console.log('[CarSelector] Removing selected car');
     onCarSelect('');
+    console.log('[CarSelector] ===== CAR REMOVAL END =====');
   };
+
+  // Check if we have a selected car for display purposes
+  const hasSelectedCar = selectedCarId && selectedCarId !== '';
 
   return (
     <div className="space-y-2">
@@ -160,7 +178,9 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" className="w-full justify-between p-2">
-            <span className="truncate px-[15px]">{getSelectedCarDisplay()}</span>
+            <span className={`truncate px-[15px] ${!hasSelectedCar ? 'text-muted-foreground' : ''}`}>
+              {getSelectedCarDisplay()}
+            </span>
             <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -184,15 +204,25 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
             }}
           >
             <div className="p-2 space-y-1">
-              {/* No car option */}
+              {/* No car option - ENHANCED */}
               <div
                 onClick={() => handleCarSelect('none')}
-                className="flex items-center justify-between w-full space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                className={`flex items-center justify-between w-full space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer transition-colors ${
+                  !hasSelectedCar ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                }`}
               >
-                <span className="font-medium">{t('cars.noCar')}</span>
+                <span className={`font-medium ${!hasSelectedCar ? 'text-blue-700' : ''}`}>
+                  {t('cars.noCar')}
+                </span>
+                {!hasSelectedCar && (
+                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                    {t('common.selected')}
+                  </Badge>
+                )}
               </div>
               
               {cars.map(car => {
+                const isSelected = selectedCarId === car.id;
                 const isUnavailable = !car.is_available;
                 const carUsage = isCarInUse(car.id);
                 const hasRedStyling = carUsage.hasEndTimeAtSixteen;
@@ -203,18 +233,28 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                     onClick={() => !isUnavailable && handleCarSelect(car.id)}
                     className={`flex items-center justify-between w-full space-x-2 p-2 rounded-md transition-colors cursor-pointer ${
                       isUnavailable ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
-                    } ${hasRedStyling ? '!bg-red-50 !border-l-4 !border-red-600 hover:!bg-red-100' : ''}`}
+                    } ${hasRedStyling ? '!bg-red-50 !border-l-4 !border-red-600 hover:!bg-red-100' : ''} ${
+                      isSelected ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                    }`}
                   >
-                    <span className={`truncate ${hasRedStyling ? 'text-red-700 font-bold' : ''}`}>
+                    <span className={`truncate ${
+                      hasRedStyling ? 'text-red-700 font-bold' : 
+                      isSelected ? 'text-blue-700 font-medium' : ''
+                    }`}>
                       {car.name}
                     </span>
                     <div className="flex gap-1 flex-shrink-0">
+                      {isSelected && (
+                        <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                          {t('common.selected')}
+                        </Badge>
+                      )}
                       {isUnavailable && (
                         <Badge variant="outline" className="text-xs">
                           {t('cars.unavailable')}
                         </Badge>
                       )}
-                      {carUsage.isAssigned && !isUnavailable && (
+                      {carUsage.isAssigned && !isUnavailable && !isSelected && (
                         <Badge 
                           className={`text-xs font-medium ${
                             hasRedStyling 
@@ -234,8 +274,8 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
         </PopoverContent>
       </Popover>
       
-      {/* Display selected car as removable chip */}
-      {selectedCarId && selectedCarId !== '' && (
+      {/* Display selected car as removable chip - ENHANCED */}
+      {hasSelectedCar && (
         <div className="flex flex-wrap gap-1">
           {(() => {
             const car = cars.find(c => c.id === selectedCarId);
@@ -248,6 +288,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                   onClick={handleCarRemove} 
                   className="ml-1 hover:bg-muted rounded-full p-0.5"
                   type="button"
+                  title={t('cars.removeCar')}
                 >
                   <X className="h-3 w-3" />
                 </button>
