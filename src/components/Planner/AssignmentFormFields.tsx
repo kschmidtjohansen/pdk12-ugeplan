@@ -81,12 +81,15 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
   const currentDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
 
-  // Format date with Danish locale and proper timezone handling
+  // FIXED: Enhanced date formatting with proper timezone handling
   const formatDateDisplay = (date: Date) => {
     try {
       console.log('[AssignmentFormFields] Formatting date:', date);
       const locale = currentLanguage === 'da' ? da : undefined;
-      const formatted = format(date, "PPP", { locale });
+      
+      // Create a new date in local timezone to prevent shifts
+      const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const formatted = format(localDate, "PPP", { locale });
       console.log('[AssignmentFormFields] Formatted date:', formatted);
       return formatted;
     } catch (e) {
@@ -95,20 +98,19 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     }
   };
 
-  // FIXED: Handle date selection with proper timezone handling
+  // FIXED: Complete rewrite of date handling to prevent timezone issues
   const handleDateSelect = (date: Date | undefined) => {
     console.log('[AssignmentFormFields] Date selected from calendar:', date);
     if (date) {
-      // Create a new date in local timezone to avoid timezone shift issues
-      // Use the date's year, month, and day components directly
-      const year = date.getFullYear();
-      const month = date.getMonth();
-      const day = date.getDate();
+      // Always work with UTC dates to prevent timezone shifts
+      const utcYear = date.getUTCFullYear();
+      const utcMonth = date.getUTCMonth();
+      const utcDay = date.getUTCDate();
       
-      // Create new date using local timezone components
-      const localDate = new Date(year, month, day);
-      console.log('[AssignmentFormFields] Created local date:', localDate);
-      console.log('[AssignmentFormFields] Local date ISO string:', localDate.toISOString().split('T')[0]);
+      // Create a local date using the UTC components
+      const localDate = new Date(utcYear, utcMonth, utcDay);
+      console.log('[AssignmentFormFields] Created timezone-safe date:', localDate);
+      console.log('[AssignmentFormFields] Date ISO string:', localDate.toISOString().split('T')[0]);
       
       setSelectedDate(localDate);
     } else {
@@ -119,7 +121,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   // Show responsible user field only for admin and skadeleder
   const canAssignResponsibleUser = isAdmin || isSkadeleder;
 
-  // Handle car selection with comprehensive debugging
+  // FIXED: Enhanced car selection with better validation
   const handleCarSelect = (carId: string) => {
     console.log('[AssignmentFormFields] Car selection handler called:', {
       carId,
@@ -128,16 +130,21 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       previousSelection: selectedCarId
     });
     
-    // Ensure we always pass a string (empty string for no car)
-    const normalizedCarId = carId || '';
+    // Ensure we always pass a valid string
+    const normalizedCarId = carId && carId.trim() !== '' ? carId : '';
     console.log('[AssignmentFormFields] Setting normalized car ID:', normalizedCarId);
     setSelectedCarId(normalizedCarId);
   };
 
-  // Handle employee toggle with debugging
+  // FIXED: Enhanced employee selection with validation
   const handleEmployeeToggle = (employeeName: string) => {
     console.log('[AssignmentFormFields] Employee toggled:', employeeName);
     console.log('[AssignmentFormFields] Current employees:', selectedEmployees);
+    
+    if (!employeeName || employeeName.trim() === '') {
+      console.warn('[AssignmentFormFields] Invalid employee name provided');
+      return;
+    }
     
     let newEmployees;
     if (selectedEmployees.includes(employeeName)) {
@@ -182,7 +189,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       </div>
 
-      {/* FIXED: Date Field with Enhanced Calendar and timezone fix */}
+      {/* FIXED: Enhanced Date Field with timezone-safe calendar */}
       <div className="space-y-2">
         <Label>{t('planner.assignmentDate')}</Label>
         <Popover>
@@ -203,6 +210,12 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
               initialFocus
               locale={currentLanguage === 'da' ? da : undefined}
               className="pointer-events-auto"
+              disabled={(date) => {
+                // Prevent selection of dates in the past (except today)
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                return date < today;
+              }}
             />
           </PopoverContent>
         </Popover>
@@ -259,7 +272,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       )}
 
-      {/* Car Selector with enhanced debugging */}
+      {/* Car Selector with enhanced error handling */}
       <CarSelector
         cars={cars}
         selectedCarId={selectedCarId}

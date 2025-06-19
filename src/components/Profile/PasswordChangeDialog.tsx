@@ -1,174 +1,287 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useTranslation } from '@/context/TranslationContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useTranslation } from '@/context/TranslationContext';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
 interface PasswordChangeDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
-  open,
-  onOpenChange
+  isOpen,
+  onClose
 }) => {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
+  const [passwords, setPasswords] = useState({
+    current: '',
+    new: '',
+    confirm: ''
+  });
+  const [errors, setErrors] = useState({
+    current: '',
+    new: '',
+    confirm: ''
+  });
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (newPassword !== confirmPassword) {
-      toast({
-        title: t('common.error'),
-        description: t('profile.passwordsDoNotMatch'),
-        variant: 'destructive'
-      });
+  // FIXED: Enhanced password validation
+  const validatePasswords = () => {
+    const newErrors = { current: '', new: '', confirm: '' };
+    let isValid = true;
+
+    if (!passwords.current.trim()) {
+      newErrors.current = t('profile.currentPasswordRequired');
+      isValid = false;
+    }
+
+    if (!passwords.new.trim()) {
+      newErrors.new = t('profile.newPasswordRequired');
+      isValid = false;
+    } else if (passwords.new.length < 8) {
+      newErrors.new = t('profile.passwordTooShort');
+      isValid = false;
+    }
+
+    if (!passwords.confirm.trim()) {
+      newErrors.confirm = t('profile.confirmPasswordRequired');
+      isValid = false;
+    } else if (passwords.new !== passwords.confirm) {
+      newErrors.confirm = t('profile.passwordsDoNotMatch');
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  // FIXED: Enhanced error handling for password change
+  const handlePasswordChange = async () => {
+    if (!validatePasswords()) {
       return;
     }
 
-    if (newPassword.length < 6) {
-      toast({
-        title: t('common.error'),
-        description: t('profile.passwordTooShort'),
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    setIsLoading(true);
+    setLoading(true);
+    setErrors({ current: '', new: '', confirm: '' });
 
     try {
-      // Update user password
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
+      console.log('[PasswordChangeDialog] Starting password change process');
+
+      // First, verify current password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: (await supabase.auth.getUser()).data.user?.email || '',
+        password: passwords.current
       });
 
-      if (error) throw error;
+      if (signInError) {
+        console.error('[PasswordChangeDialog] Current password verification failed:', signInError);
+        setErrors({ ...errors, current: t('profile.incorrectCurrentPassword') });
+        setLoading(false);
+        return;
+      }
 
+      // Update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: passwords.new
+      });
+
+      if (updateError) {
+        console.error('[PasswordChangeDialog] Password update failed:', updateError);
+        
+        // Enhanced error message handling
+        let errorMessage = t('profile.passwordChangeError');
+        
+        if (updateError.message.includes('weak')) {
+          errorMessage = t('profile.passwordTooWeak');
+        } else if (updateError.message.includes('same')) {
+          errorMessage = t('profile.passwordSameAsCurrent');
+        } else if (updateError.message.includes('invalid')) {
+          errorMessage = t('profile.invalidPassword');
+        }
+        
+        toast({
+          title: t('common.error'),
+          description: errorMessage,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      console.log('[PasswordChangeDialog] Password updated successfully');
+      
       toast({
         title: t('profile.passwordChanged'),
-        description: t('profile.passwordChangedSuccess'),
+        description: t('profile.passwordChangedSuccessfully'),
       });
 
       // Reset form and close dialog
-      setNewPassword('');
-      setConfirmPassword('');
-      onOpenChange(false);
-    } catch (error: any) {
-      console.error('Error changing password:', error);
+      setPasswords({ current: '', new: '', confirm: '' });
+      setErrors({ current: '', new: '', confirm: '' });
+      onClose();
+      
+    } catch (error) {
+      console.error('[PasswordChangeDialog] Unexpected error:', error);
       toast({
         title: t('common.error'),
-        description: error.message || t('profile.passwordChangeError'),
-        variant: 'destructive'
+        description: t('profile.unexpectedError'),
+        variant: 'destructive',
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleClose = () => {
-    setNewPassword('');
-    setConfirmPassword('');
-    onOpenChange(false);
+  const togglePasswordVisibility = (field: 'current' | 'new' | 'confirm') => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
+  const handleInputChange = (field: 'current' | 'new' | 'confirm', value: string) => {
+    setPasswords(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t('profile.changePassword')}</DialogTitle>
-          <DialogDescription>
-            {t('profile.changePasswordDescription')}
-          </DialogDescription>
         </DialogHeader>
-
-        <form onSubmit={handlePasswordChange} className="space-y-4">
+        
+        <div className="space-y-4">
+          {/* Current Password */}
           <div className="space-y-2">
-            <Label htmlFor="newPassword">{t('profile.newPassword')}</Label>
+            <Label htmlFor="current-password">{t('profile.currentPassword')}</Label>
             <div className="relative">
               <Input
-                id="newPassword"
-                type={showNewPassword ? 'text' : 'password'}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                id="current-password"
+                type={showPasswords.current ? 'text' : 'password'}
+                value={passwords.current}
+                onChange={(e) => handleInputChange('current', e.target.value)}
+                placeholder={t('profile.enterCurrentPassword')}
+                className={errors.current ? 'border-red-500' : ''}
+                disabled={loading}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => togglePasswordVisibility('current')}
+                disabled={loading}
+              >
+                {showPasswords.current ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            {errors.current && (
+              <p className="text-sm text-red-500">{errors.current}</p>
+            )}
+          </div>
+
+          {/* New Password */}
+          <div className="space-y-2">
+            <Label htmlFor="new-password">{t('profile.newPassword')}</Label>
+            <div className="relative">
+              <Input
+                id="new-password"
+                type={showPasswords.new ? 'text' : 'password'}
+                value={passwords.new}
+                onChange={(e) => handleInputChange('new', e.target.value)}
                 placeholder={t('profile.enterNewPassword')}
-                required
-                minLength={6}
+                className={errors.new ? 'border-red-500' : ''}
+                disabled={loading}
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                onClick={() => setShowNewPassword(!showNewPassword)}
+                onClick={() => togglePasswordVisibility('new')}
+                disabled={loading}
               >
-                {showNewPassword ? (
+                {showPasswords.new ? (
                   <EyeOff className="h-4 w-4" />
                 ) : (
                   <Eye className="h-4 w-4" />
                 )}
               </Button>
             </div>
+            {errors.new && (
+              <p className="text-sm text-red-500">{errors.new}</p>
+            )}
           </div>
 
+          {/* Confirm Password */}
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">{t('profile.confirmNewPassword')}</Label>
+            <Label htmlFor="confirm-password">{t('profile.confirmPassword')}</Label>
             <div className="relative">
               <Input
-                id="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                id="confirm-password"
+                type={showPasswords.confirm ? 'text' : 'password'}
+                value={passwords.confirm}
+                onChange={(e) => handleInputChange('confirm', e.target.value)}
                 placeholder={t('profile.confirmNewPassword')}
-                required
-                minLength={6}
+                className={errors.confirm ? 'border-red-500' : ''}
+                disabled={loading}
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                onClick={() => togglePasswordVisibility('confirm')}
+                disabled={loading}
               >
-                {showConfirmPassword ? (
+                {showPasswords.confirm ? (
                   <EyeOff className="h-4 w-4" />
                 ) : (
                   <Eye className="h-4 w-4" />
                 )}
               </Button>
             </div>
+            {errors.confirm && (
+              <p className="text-sm text-red-500">{errors.confirm}</p>
+            )}
           </div>
+        </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={isLoading}
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="bg-polygon-purple hover:bg-polygon-darkpurple"
-            >
-              {isLoading ? t('common.loading') : t('profile.changePassword')}
-            </Button>
-          </div>
-        </form>
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={loading}
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            onClick={handlePasswordChange}
+            disabled={loading}
+          >
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {t('profile.changePassword')}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

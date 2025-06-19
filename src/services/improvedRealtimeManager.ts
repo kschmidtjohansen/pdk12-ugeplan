@@ -2,142 +2,165 @@
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
-interface RealtimeSubscription {
-  id: string;
+interface SubscriptionOptions {
+  debounceMs?: number;
+  maxRetries?: number;
+}
+
+interface ActiveSubscription {
   channel: RealtimeChannel;
-  tables: string[];
   callback: () => void;
-  active: boolean;
+  tables: string[];
+  options: SubscriptionOptions;
+  retryCount: number;
 }
 
 class ImprovedRealtimeManager {
-  private subscriptions = new Map<string, RealtimeSubscription>();
+  private subscriptions = new Map<string, ActiveSubscription>();
   private debounceTimers = new Map<string, NodeJS.Timeout>();
-  private connectionStatus: 'connected' | 'disconnected' | 'connecting' = 'disconnected';
 
-  // Reduced debounce for faster UI responsiveness
-  private debounce(key: string, callback: () => void, delay: number = 500) {
-    const existingTimer = this.debounceTimers.get(key);
-    if (existingTimer) {
-      clearTimeout(existingTimer);
-    }
-
-    const timer = setTimeout(() => {
-      callback();
-      this.debounceTimers.delete(key);
-    }, delay);
-
-    this.debounceTimers.set(key, timer);
-  }
-
+  // FIXED: Enhanced subscription with better error handling
   subscribe(
-    id: string,
+    subscriptionId: string,
     tables: string[],
     callback: () => void,
-    options: { filter?: string; debounceMs?: number } = {}
-  ): RealtimeSubscription | null {
+    options: SubscriptionOptions = {}
+  ): boolean {
     try {
       // Clean up existing subscription
-      this.unsubscribe(id);
+      this.unsubscribe(subscriptionId);
 
-      console.log(`[ImprovedRealtimeManager] Creating subscription: ${id} for tables: ${tables.join(', ')}`);
+      const { debounceMs = 300, maxRetries = 3 } = options;
+      
+      console.log('[ImprovedRealtimeManager] Creating subscription:', subscriptionId, 'for tables:', tables);
 
-      const channelName = `improved_${id}_${Date.now()}`;
-      const channel = supabase.channel(channelName);
+      const channel = supabase.channel(`realtime_${subscriptionId}_${Date.now()}`);
 
-      // Add listeners for each table with specific event handling
-      tables.forEach(tableName => {
+      // Subscribe to each table
+      tables.forEach(table => {
         channel.on(
           'postgres_changes',
           {
             event: '*',
             schema: 'public',
-            table: tableName,
-            ...(options.filter && { filter: options.filter })
+            table: table
           },
           (payload) => {
-            // Safe property access with type checking
-            const recordId = (payload.new && typeof payload.new === 'object' && 'id' in payload.new) 
-              ? payload.new.id 
-              : (payload.old && typeof payload.old === 'object' && 'id' in payload.old) 
-                ? payload.old.id 
-                : 'unknown';
-                
-            console.log(`[ImprovedRealtimeManager] ${tableName} change:`, payload.eventType, recordId);
-            
-            // Use custom debounce delay if provided
-            const debounceDelay = options.debounceMs || 500;
-            this.debounce(`${id}_${tableName}`, callback, debounceDelay);
+            console.log('[ImprovedRealtimeManager] Received change for table:', table, payload);
+            this.debouncedCallback(subscriptionId, callback, debounceMs);
           }
         );
       });
 
-      const subscription: RealtimeSubscription = {
-        id,
-        channel,
-        tables,
-        callback,
-        active: false
-      };
+      // Enhanced error handling
+      channel.on('error', (error) => {
+        console.error('[ImprovedRealtimeManager] Channel error for:', subscriptionId, error);
+        
+        const subscription = this.subscriptions.get(subscriptionId);
+        if (subscription && subscription.retryCount < maxRetries) {
+          console.log('[ImprovedRealtimeManager] Retrying subscription:', subscriptionId);
+          subscription.retryCount++;
+          
+          setTimeout(() => {
+            this.subscribe(subscriptionId, tables, callback, options);
+          }, 1000 * subscription.retryCount);
+        }
+      });
 
-      // Subscribe with enhanced error handling
+      // Subscribe and store
       channel.subscribe((status) => {
-        console.log(`[ImprovedRealtimeManager] Subscription ${id} status:`, status);
+        console.log('[ImprovedRealtimeManager] Subscription status for:', subscriptionId, status);
         
         if (status === 'SUBSCRIBED') {
-          subscription.active = true;
-          this.connectionStatus = 'connected';
-          console.log(`[ImprovedRealtimeManager] Successfully subscribed to ${id}`);
+          console.log('[ImprovedRealtimeManager] Successfully subscribed:', subscriptionId);
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          subscription.active = false;
-          this.connectionStatus = 'disconnected';
-          console.warn(`[ImprovedRealtimeManager] Subscription error for ${id}:`, status);
+          console.error('[ImprovedRealtimeManager] Subscription failed:', subscriptionId, status);
         }
       });
 
-      this.subscriptions.set(id, subscription);
-      return subscription;
+      this.subscriptions.set(subscriptionId, {
+        channel,
+        callback,
+        tables,
+        options,
+        retryCount: 0
+      });
 
+      return true;
     } catch (error) {
-      console.error(`[ImprovedRealtimeManager] Error creating subscription ${id}:`, error);
-      return null;
+      console.error('[ImprovedRealtimeManager] Failed to create subscription:', subscriptionId, error);
+      return false;
     }
   }
 
-  unsubscribe(id: string) {
-    const subscription = this.subscriptions.get(id);
-    if (subscription) {
-      console.log(`[ImprovedRealtimeManager] Unsubscribing: ${id}`);
-      
-      // Clear debounce timers
-      subscription.tables.forEach(table => {
-        const timerKey = `${id}_${table}`;
-        const timer = this.debounceTimers.get(timerKey);
+  // FIXED: Enhanced debounced callback with cleanup
+  private debouncedCallback(subscriptionId: string, callback: () => void, debounceMs: number) {
+    // Clear existing timer
+    const existingTimer = this.debounceTimers.get(subscriptionId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    // Set new timer
+    const timer = setTimeout(() => {
+      try {
+        callback();
+      } catch (error) {
+        console.error('[ImprovedRealtimeManager] Error in callback for:', subscriptionId, error);
+      } finally {
+        this.debounceTimers.delete(subscriptionId);
+      }
+    }, debounceMs);
+
+    this.debounceTimers.set(subscriptionId, timer);
+  }
+
+  // FIXED: Enhanced unsubscribe with cleanup
+  unsubscribe(subscriptionId: string): boolean {
+    try {
+      const subscription = this.subscriptions.get(subscriptionId);
+      if (subscription) {
+        console.log('[ImprovedRealtimeManager] Unsubscribing:', subscriptionId);
+        
+        // Clean up debounce timer
+        const timer = this.debounceTimers.get(subscriptionId);
         if (timer) {
           clearTimeout(timer);
-          this.debounceTimers.delete(timerKey);
+          this.debounceTimers.delete(subscriptionId);
         }
-      });
-
-      // Remove channel
-      supabase.removeChannel(subscription.channel);
-      this.subscriptions.delete(id);
+        
+        // Unsubscribe from channel
+        subscription.channel.unsubscribe();
+        this.subscriptions.delete(subscriptionId);
+        
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('[ImprovedRealtimeManager] Error unsubscribing:', subscriptionId, error);
+      return false;
     }
   }
 
-  unsubscribeAll() {
-    console.log('[ImprovedRealtimeManager] Unsubscribing all connections');
-    Array.from(this.subscriptions.keys()).forEach(id => {
+  // Get subscription status
+  getSubscriptionStatus(subscriptionId: string): string | null {
+    const subscription = this.subscriptions.get(subscriptionId);
+    return subscription ? 'active' : null;
+  }
+
+  // Clean up all subscriptions
+  cleanup(): void {
+    console.log('[ImprovedRealtimeManager] Cleaning up all subscriptions');
+    
+    for (const [id] of this.subscriptions) {
       this.unsubscribe(id);
-    });
-  }
-
-  getConnectionStatus() {
-    return this.connectionStatus;
-  }
-
-  getActiveSubscriptions() {
-    return Array.from(this.subscriptions.values()).filter(sub => sub.active);
+    }
+    
+    // Clear any remaining timers
+    for (const [id, timer] of this.debounceTimers) {
+      clearTimeout(timer);
+    }
+    this.debounceTimers.clear();
   }
 }
 

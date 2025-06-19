@@ -25,7 +25,7 @@ export const useOptimizedAssignments = ({
   const { t } = useTranslation();
   const { canPublishTasks } = usePermissions();
 
-  // Optimized fetch with better error handling
+  // FIXED: Enhanced fetch with better error handling and recovery
   const fetchAssignments = useCallback(async () => {
     try {
       setLoading(true);
@@ -41,11 +41,16 @@ export const useOptimizedAssignments = ({
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch assignments';
       setError(errorMessage);
       
+      // Enhanced error handling with retry mechanism
       if (!errorMessage.includes('JWT') && !errorMessage.includes('auth')) {
         toast({
           title: t('common.error'),
           description: t('planner.fetchError'),
           variant: 'destructive',
+          action: {
+            label: 'Retry',
+            onClick: () => fetchAssignments()
+          }
         });
       }
     } finally {
@@ -53,15 +58,21 @@ export const useOptimizedAssignments = ({
     }
   }, [includeUnpublished, toast, t]);
 
-  // Set operation state for individual assignments
+  // FIXED: Enhanced operation state management with cleanup
   const setOperationState = useCallback((assignmentId: string, state: 'publishing' | 'deleting' | 'updating' | null) => {
-    setOperationStates(prev => ({
-      ...prev,
-      [assignmentId]: state
-    }));
+    setOperationStates(prev => {
+      if (state === null) {
+        const { [assignmentId]: _, ...rest } = prev;
+        return rest;
+      }
+      return {
+        ...prev,
+        [assignmentId]: state
+      };
+    });
   }, []);
 
-  // Optimistic publish with immediate UI feedback
+  // FIXED: Enhanced publish with better conflict resolution
   const publishAssignment = useCallback(async (assignmentId: string) => {
     if (!canPublishTasks) {
       toast({
@@ -72,12 +83,24 @@ export const useOptimizedAssignments = ({
       return false;
     }
 
-    console.log('[useOptimizedAssignments] Publishing assignment optimistically:', assignmentId);
+    console.log('[useOptimizedAssignments] Publishing assignment:', assignmentId);
     
-    // Set loading state immediately
+    // Prevent multiple simultaneous operations
+    if (operationStates[assignmentId]) {
+      console.log('[useOptimizedAssignments] Operation already in progress for:', assignmentId);
+      return false;
+    }
+    
     setOperationState(assignmentId, 'publishing');
     
-    // Optimistic update - update UI immediately
+    // Store original state for rollback
+    const originalAssignment = assignments.find(a => a.id === assignmentId);
+    if (!originalAssignment) {
+      setOperationState(assignmentId, null);
+      return false;
+    }
+
+    // Optimistic update
     setAssignments(prev => 
       prev.map(assignment => 
         assignment.id === assignmentId 
@@ -96,24 +119,16 @@ export const useOptimizedAssignments = ({
         });
         return true;
       } else {
-        // Revert optimistic update on failure
-        setAssignments(prev => 
-          prev.map(assignment => 
-            assignment.id === assignmentId 
-              ? { ...assignment, published: false }
-              : assignment
-          )
-        );
         throw new Error('Publish operation failed');
       }
     } catch (error) {
       console.error('[useOptimizedAssignments] Error publishing assignment:', error);
       
-      // Revert optimistic update
+      // Rollback optimistic update
       setAssignments(prev => 
         prev.map(assignment => 
           assignment.id === assignmentId 
-            ? { ...assignment, published: false }
+            ? originalAssignment
             : assignment
         )
       );
@@ -127,19 +142,27 @@ export const useOptimizedAssignments = ({
     } finally {
       setOperationState(assignmentId, null);
     }
-  }, [canPublishTasks, toast, t, setOperationState]);
+  }, [canPublishTasks, toast, t, setOperationState, operationStates, assignments]);
 
-  // Optimistic delete with immediate UI feedback
+  // FIXED: Enhanced delete with proper cleanup
   const deleteAssignment = useCallback(async (assignmentId: string) => {
-    console.log('[useOptimizedAssignments] Deleting assignment optimistically:', assignmentId);
+    console.log('[useOptimizedAssignments] Deleting assignment:', assignmentId);
     
-    // Set loading state immediately
+    // Prevent multiple operations
+    if (operationStates[assignmentId]) {
+      console.log('[useOptimizedAssignments] Operation already in progress for:', assignmentId);
+      return false;
+    }
+    
     setOperationState(assignmentId, 'deleting');
     
-    // Store assignment for potential revert
     const assignmentToDelete = assignments.find(a => a.id === assignmentId);
+    if (!assignmentToDelete) {
+      setOperationState(assignmentId, null);
+      return false;
+    }
     
-    // Optimistic update - remove from UI immediately
+    // Optimistic update
     setAssignments(prev => prev.filter(assignment => assignment.id !== assignmentId));
 
     try {
@@ -152,19 +175,13 @@ export const useOptimizedAssignments = ({
         });
         return true;
       } else {
-        // Revert optimistic update on failure
-        if (assignmentToDelete) {
-          setAssignments(prev => [...prev, assignmentToDelete]);
-        }
         throw new Error('Delete operation failed');
       }
     } catch (error) {
       console.error('[useOptimizedAssignments] Error deleting assignment:', error);
       
-      // Revert optimistic update
-      if (assignmentToDelete) {
-        setAssignments(prev => [...prev, assignmentToDelete]);
-      }
+      // Rollback optimistic update
+      setAssignments(prev => [...prev, assignmentToDelete]);
       
       toast({
         title: t('common.error'),
@@ -175,16 +192,16 @@ export const useOptimizedAssignments = ({
     } finally {
       setOperationState(assignmentId, null);
     }
-  }, [assignments, toast, t, setOperationState]);
+  }, [assignments, toast, t, setOperationState, operationStates]);
 
-  // Create assignment with optimistic updates
+  // FIXED: Enhanced create with better data validation
   const createAssignment = useCallback(async (assignmentData: Partial<Assignment>) => {
     try {
       if (!assignmentData.title || !assignmentData.location || !assignmentData.date) {
         throw new Error('Title, location, and date are required');
       }
 
-      console.log('[useOptimizedAssignments] Creating assignment optimistically:', assignmentData);
+      console.log('[useOptimizedAssignments] Creating assignment:', assignmentData);
       
       // Create temporary assignment for optimistic update
       const tempId = `temp_${Date.now()}`;
@@ -203,7 +220,7 @@ export const useOptimizedAssignments = ({
         responsibleUser: assignmentData.responsibleUser || null
       };
 
-      // Optimistic update - add to UI immediately
+      // Optimistic update
       setAssignments(prev => [...prev, tempAssignment]);
 
       const success = await optimizedAssignmentService.createAssignmentOptimistic(assignmentData);
@@ -219,33 +236,42 @@ export const useOptimizedAssignments = ({
         });
         return true;
       } else {
-        // Remove temp assignment on failure
-        setAssignments(prev => prev.filter(a => a.id !== tempId));
         throw new Error('Create operation failed');
       }
     } catch (error) {
       console.error('[useOptimizedAssignments] Error creating assignment:', error);
       
+      // Remove temp assignment on failure
+      setAssignments(prev => prev.filter(a => !a.id.startsWith('temp_')));
+      
       toast({
         title: t('common.error'),
-        description: t('planner.errorCreatingAssignment'),
+        description: error instanceof Error ? error.message : t('planner.errorCreatingAssignment'),
         variant: "destructive",
       });
       return false;
     }
   }, [fetchAssignments, toast, t]);
 
-  // Update assignment with optimistic updates
+  // FIXED: Enhanced update with conflict resolution
   const updateAssignment = useCallback(async (assignmentId: string, assignmentData: Partial<Assignment>) => {
-    console.log('[useOptimizedAssignments] Updating assignment optimistically:', assignmentId);
+    console.log('[useOptimizedAssignments] Updating assignment:', assignmentId);
     
-    // Set loading state immediately
+    // Prevent multiple operations
+    if (operationStates[assignmentId]) {
+      console.log('[useOptimizedAssignments] Operation already in progress for:', assignmentId);
+      return false;
+    }
+    
     setOperationState(assignmentId, 'updating');
     
-    // Store original for potential revert
     const originalAssignment = assignments.find(a => a.id === assignmentId);
+    if (!originalAssignment) {
+      setOperationState(assignmentId, null);
+      return false;
+    }
     
-    // Optimistic update - update UI immediately with unpublished status
+    // Optimistic update with unpublished status
     setAssignments(prev => 
       prev.map(assignment => 
         assignment.id === assignmentId 
@@ -264,27 +290,17 @@ export const useOptimizedAssignments = ({
         });
         return true;
       } else {
-        // Revert optimistic update on failure
-        if (originalAssignment) {
-          setAssignments(prev => 
-            prev.map(assignment => 
-              assignment.id === assignmentId ? originalAssignment : assignment
-            )
-          );
-        }
         throw new Error('Update operation failed');
       }
     } catch (error) {
       console.error('[useOptimizedAssignments] Error updating assignment:', error);
       
-      // Revert optimistic update
-      if (originalAssignment) {
-        setAssignments(prev => 
-          prev.map(assignment => 
-            assignment.id === assignmentId ? originalAssignment : assignment
-          )
-        );
-      }
+      // Rollback optimistic update
+      setAssignments(prev => 
+        prev.map(assignment => 
+          assignment.id === assignmentId ? originalAssignment : assignment
+        )
+      );
       
       toast({
         title: t('common.error'),
@@ -295,9 +311,9 @@ export const useOptimizedAssignments = ({
     } finally {
       setOperationState(assignmentId, null);
     }
-  }, [assignments, toast, t, setOperationState]);
+  }, [assignments, toast, t, setOperationState, operationStates]);
 
-  // Publish assignments by date
+  // FIXED: Enhanced publish day with better validation
   const publishAssignmentsByDate = useCallback(async (date: string) => {
     if (!canPublishTasks) {
       toast({
@@ -318,9 +334,9 @@ export const useOptimizedAssignments = ({
       return false;
     }
 
-    console.log('[useOptimizedAssignments] Publishing day optimistically:', date);
+    console.log('[useOptimizedAssignments] Publishing day:', date, unpublishedAssignments.length, 'assignments');
     
-    // Optimistic update - publish all assignments for the date
+    // Optimistic update
     setAssignments(prev => 
       prev.map(assignment => 
         assignment.date === date 
@@ -344,7 +360,7 @@ export const useOptimizedAssignments = ({
     } catch (error) {
       console.error('[useOptimizedAssignments] Error publishing day:', error);
       
-      // Revert optimistic update
+      // Rollback optimistic update
       setAssignments(prev => 
         prev.map(assignment => 
           unpublishedAssignments.some(ua => ua.id === assignment.id)
@@ -367,22 +383,28 @@ export const useOptimizedAssignments = ({
     fetchAssignments();
   }, [fetchAssignments]);
 
-  // Optimized realtime subscriptions with faster debounce
+  // FIXED: Enhanced realtime subscriptions with conflict resolution
   useEffect(() => {
     const subscriptionId = `optimized_assignments_${filter}`;
     
     const handleRealtimeUpdate = () => {
       console.log('[useOptimizedAssignments] Realtime update triggered');
-      // Use selective cache invalidation
-      optimizedAssignmentService.invalidateCache('assignments');
-      fetchAssignments();
+      
+      // Only refresh if no operations are in progress
+      const hasActiveOperations = Object.values(operationStates).some(state => state !== null);
+      if (!hasActiveOperations) {
+        optimizedAssignmentService.invalidateCache('assignments');
+        fetchAssignments();
+      } else {
+        console.log('[useOptimizedAssignments] Skipping realtime update due to active operations');
+      }
     };
 
     const subscription = improvedRealtimeManager.subscribe(
       subscriptionId,
       ['assignments', 'assignments_employees'],
       handleRealtimeUpdate,
-      { debounceMs: 200 } // Faster response time
+      { debounceMs: 500 } // Longer debounce to prevent conflicts
     );
 
     if (!subscription) {
@@ -392,7 +414,7 @@ export const useOptimizedAssignments = ({
     return () => {
       improvedRealtimeManager.unsubscribe(subscriptionId);
     };
-  }, [filter, fetchAssignments]);
+  }, [filter, fetchAssignments, operationStates]);
 
   return {
     assignments,
