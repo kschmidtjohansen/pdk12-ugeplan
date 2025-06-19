@@ -5,7 +5,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Users, Settings, BarChart3, Activity, Zap, Trash2 } from 'lucide-react';
+import { Shield, Users, Settings, BarChart3, Activity, Zap, Trash2, Bug } from 'lucide-react';
 import UserManagement from '@/components/Admin/UserManagement';
 import { SystemHealthDashboard } from '@/components/Admin/SystemHealthDashboard';
 import { SecurityLogViewer } from '@/components/Admin/SecurityLogViewer';
@@ -13,6 +13,7 @@ import { ComprehensiveDiagnosticsPanel } from '@/components/Admin/ComprehensiveD
 import { PerformanceMonitoringPanel } from '@/components/Admin/PerformanceMonitoringPanel';
 import { SystemCleanupPanel } from '@/components/Admin/SystemCleanupPanel';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
+import PasswordResetDebugger from '@/components/Admin/PasswordResetDebugger';
 
 const AdminPage: React.FC = () => {
   const { user, loading } = useAuth();
@@ -50,10 +51,14 @@ const AdminPage: React.FC = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <BarChart3 className="h-4 w-4" />
               <span>{t('admin.tabs.overview')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="debug" className="flex items-center space-x-2">
+              <Bug className="h-4 w-4" />
+              <span>Debug</span>
             </TabsTrigger>
             <TabsTrigger value="cleanup" className="flex items-center space-x-2">
               <Trash2 className="h-4 w-4" />
@@ -91,6 +96,20 @@ const AdminPage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <SystemHealthDashboard />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="debug" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Password Reset Debugger</CardTitle>
+                <CardDescription>
+                  Run comprehensive diagnostics to troubleshoot password reset issues
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PasswordResetDebugger />
               </CardContent>
             </Card>
           </TabsContent>

@@ -53,15 +53,20 @@ function isValidUuid(uuid: string): boolean {
 }
 
 serve(async (req) => {
-  console.log(`[admin-reset-password] ${req.method} request received from ${req.headers.get('origin')}`);
+  const requestId = crypto.randomUUID().substring(0, 8);
+  console.log(`[admin-reset-password:${requestId}] ${req.method} request received from ${req.headers.get('origin')}`);
+  console.log(`[admin-reset-password:${requestId}] Full request headers:`, Object.fromEntries(req.headers.entries()));
   
   if (req.method === 'OPTIONS') {
+    console.log(`[admin-reset-password:${requestId}] Responding to OPTIONS request`);
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Enhanced origin validation - FIXED: Allow development domains
+    // Enhanced origin validation - Allow all development domains for debugging
     const origin = req.headers.get('origin');
+    console.log(`[admin-reset-password:${requestId}] Request origin: ${origin}`);
+    
     const allowedOrigins = [
       'https://www.pdk12.dk',
       'https://pdk12.dk'
@@ -74,8 +79,10 @@ serve(async (req) => {
                   origin?.includes('127.0.0.1');
     const isAllowedOrigin = allowedOrigins.includes(origin || '') || isDev;
     
+    console.log(`[admin-reset-password:${requestId}] Origin check - isDev: ${isDev}, isAllowedOrigin: ${isAllowedOrigin}`);
+    
     if (!isAllowedOrigin) {
-      console.error(`[admin-reset-password] Forbidden origin: ${origin}`);
+      console.error(`[admin-reset-password:${requestId}] Forbidden origin: ${origin}`);
       return new Response(
         JSON.stringify({ error: 'Origin not allowed' }),
         { 
@@ -87,8 +94,10 @@ serve(async (req) => {
 
     // Rate limiting
     const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    console.log(`[admin-reset-password:${requestId}] Client IP: ${clientIp}`);
+    
     if (!checkRateLimit(clientIp)) {
-      console.warn(`[admin-reset-password] Rate limit exceeded for IP: ${clientIp}`);
+      console.warn(`[admin-reset-password:${requestId}] Rate limit exceeded for IP: ${clientIp}`);
       return new Response(
         JSON.stringify({ error: 'Rate limit exceeded. Too many requests.' }),
         { 
@@ -100,8 +109,11 @@ serve(async (req) => {
 
     // Verify JWT token
     const authHeader = req.headers.get('Authorization');
+    console.log(`[admin-reset-password:${requestId}] Auth header present: ${!!authHeader}`);
+    console.log(`[admin-reset-password:${requestId}] Auth header format: ${authHeader ? authHeader.substring(0, 20) + '...' : 'none'}`);
+    
     if (!authHeader?.startsWith('Bearer ')) {
-      console.error('[admin-reset-password] Missing or invalid authorization header');
+      console.error(`[admin-reset-password:${requestId}] Missing or invalid authorization header`);
       return new Response(
         JSON.stringify({ error: 'Missing or invalid authorization header' }),
         { 
@@ -112,19 +124,181 @@ serve(async (req) => {
     }
 
     const token = authHeader.substring(7);
+    console.log(`[admin-reset-password:${requestId}] Token length: ${token.length}`);
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
-    console.log('[admin-reset-password] Initializing Supabase client');
+    console.log(`[admin-reset-password:${requestId}] Supabase URL: ${supabaseUrl}`);
+    console.log(`[admin-reset-password:${requestId}] Service key present: ${!!serviceKey}`);
+    console.log(`[admin-reset-password:${requestId}] Initializing Supabase client`);
+    
     const supabase = createClient(supabaseUrl, serviceKey);
 
     // Verify the user's JWT and check if they're an admin
-    console.log('[admin-reset-password] Verifying user token');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    if (userError || !user) {
-      console.error('[admin-reset-password] Invalid authentication token:', userError);
+    console.log(`[admin-reset-password:${requestId}] Verifying user token`);
+    
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+      console.log(`[admin-reset-password:${requestId}] User verification result - error: ${!!userError}, user: ${!!user}`);
+      
+      if (userError) {
+        console.error(`[admin-reset-password:${requestId}] User verification error:`, userError);
+      }
+      
+      if (user) {
+        console.log(`[admin-reset-password:${requestId}] User ID: ${user.id}, Email: ${user.email}`);
+      }
+      
+      if (userError || !user) {
+        console.error(`[admin-reset-password:${requestId}] Invalid authentication token:`, userError);
+        return new Response(
+          JSON.stringify({ error: 'Invalid authentication token' }),
+          { 
+            status: 401, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      console.log(`[admin-reset-password:${requestId}] User verified: ${user.email}`);
+
+      // Check if user is admin
+      console.log(`[admin-reset-password:${requestId}] Checking user role`);
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+      console.log(`[admin-reset-password:${requestId}] Role check result - error: ${!!roleError}, role: ${roleData?.role}`);
+
+      if (roleError || !roleData || roleData.role !== 'administrator') {
+        console.error(`[admin-reset-password:${requestId}] Access denied for user ${user.email}, role: ${roleData?.role}`);
+        
+        // Log security event
+        try {
+          await supabase.rpc('log_security_event', {
+            event_type: 'unauthorized_admin_access',
+            event_message: `User ${user.email} attempted unauthorized password reset`,
+            event_details: { user_id: user.id, function: 'admin-reset-password' }
+          });
+        } catch (logError) {
+          console.warn(`[admin-reset-password:${requestId}] Failed to log security event:`, logError);
+        }
+        
+        return new Response(
+          JSON.stringify({ error: 'Insufficient privileges' }),
+          { 
+            status: 403, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      console.log(`[admin-reset-password:${requestId}] Admin access confirmed`);
+
+      // Parse request body
+      console.log(`[admin-reset-password:${requestId}] Parsing request body`);
+      let requestBody;
+      try {
+        requestBody = await req.json();
+        console.log(`[admin-reset-password:${requestId}] Request body parsed successfully`);
+      } catch (parseError) {
+        console.error(`[admin-reset-password:${requestId}] Failed to parse request body:`, parseError);
+        return new Response(
+          JSON.stringify({ error: 'Invalid request body' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      const { userId, newPassword } = requestBody;
+      console.log(`[admin-reset-password:${requestId}] Target user ID: ${userId}, Password length: ${newPassword?.length}`);
+
+      // Input validation
+      if (!userId || !newPassword) {
+        console.error(`[admin-reset-password:${requestId}] Missing required fields`);
+        return new Response(
+          JSON.stringify({ error: 'Missing required fields: userId and newPassword are required' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      if (!isValidUuid(userId)) {
+        console.error(`[admin-reset-password:${requestId}] Invalid user ID format: ${userId}`);
+        return new Response(
+          JSON.stringify({ error: 'Invalid user ID format' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      const passwordValidation = validatePassword(newPassword);
+      if (!passwordValidation.valid) {
+        console.error(`[admin-reset-password:${requestId}] Password validation failed: ${passwordValidation.message}`);
+        return new Response(
+          JSON.stringify({ error: passwordValidation.message || 'Invalid password' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      console.log(`[admin-reset-password:${requestId}] Resetting password for user: ${userId}`);
+
+      // Reset password
+      const { error: resetError } = await supabase.auth.admin.updateUserById(userId, {
+        password: newPassword
+      });
+
+      if (resetError) {
+        console.error(`[admin-reset-password:${requestId}] Password reset failed:`, resetError);
+        return new Response(
+          JSON.stringify({ error: `Password reset failed: ${resetError.message}` }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      console.log(`[admin-reset-password:${requestId}] Password reset successful`);
+
+      // Log successful password reset
+      try {
+        await supabase.rpc('log_security_event', {
+          event_type: 'password_reset',
+          event_message: `Admin ${user.email} reset password for user ${userId}`,
+          event_details: { 
+            admin_id: user.id, 
+            target_user_id: userId,
+            request_id: requestId
+          }
+        });
+      } catch (logError) {
+        console.warn(`[admin-reset-password:${requestId}] Failed to log password reset event:`, logError);
+      }
+
       return new Response(
-        JSON.stringify({ error: 'Invalid authentication token' }),
+        JSON.stringify({ success: true }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    } catch (authError) {
+      console.error(`[admin-reset-password:${requestId}] Authentication error:`, authError);
+      return new Response(
+        JSON.stringify({ error: `Authentication failed: ${authError.message}` }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -132,114 +306,8 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[admin-reset-password] User verified: ${user.email}`);
-
-    // Check if user is admin
-    console.log('[admin-reset-password] Checking user role');
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
-
-    if (roleError || !roleData || roleData.role !== 'administrator') {
-      console.error(`[admin-reset-password] Access denied for user ${user.email}, role: ${roleData?.role}`);
-      
-      // Log security event
-      await supabase.rpc('log_security_event', {
-        event_type: 'unauthorized_admin_access',
-        event_message: `User ${user.email} attempted unauthorized password reset`,
-        event_details: { user_id: user.id, function: 'admin-reset-password' }
-      });
-      
-      return new Response(
-        JSON.stringify({ error: 'Insufficient privileges' }),
-        { 
-          status: 403, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    console.log('[admin-reset-password] Admin access confirmed');
-
-    const { userId, newPassword } = await req.json();
-
-    // Input validation
-    if (!userId || !newPassword) {
-      console.error('[admin-reset-password] Missing required fields');
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields: userId and newPassword are required' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    if (!isValidUuid(userId)) {
-      console.error(`[admin-reset-password] Invalid user ID format: ${userId}`);
-      return new Response(
-        JSON.stringify({ error: 'Invalid user ID format' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    const passwordValidation = validatePassword(newPassword);
-    if (!passwordValidation.valid) {
-      console.error(`[admin-reset-password] Password validation failed: ${passwordValidation.message}`);
-      return new Response(
-        JSON.stringify({ error: passwordValidation.message || 'Invalid password' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    console.log(`[admin-reset-password] Resetting password for user: ${userId}`);
-
-    // Reset password
-    const { error: resetError } = await supabase.auth.admin.updateUserById(userId, {
-      password: newPassword
-    });
-
-    if (resetError) {
-      console.error('[admin-reset-password] Password reset failed:', resetError);
-      return new Response(
-        JSON.stringify({ error: `Password reset failed: ${resetError.message}` }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    console.log('[admin-reset-password] Password reset successful');
-
-    // Log successful password reset
-    await supabase.rpc('log_security_event', {
-      event_type: 'password_reset',
-      event_message: `Admin ${user.email} reset password for user ${userId}`,
-      event_details: { 
-        admin_id: user.id, 
-        target_user_id: userId
-      }
-    });
-
-    return new Response(
-      JSON.stringify({ success: true }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
-
   } catch (error) {
-    console.error('[admin-reset-password] Error:', error);
+    console.error(`[admin-reset-password:${requestId}] Unexpected error:`, error);
     
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     const statusCode = errorMessage.includes('Insufficient privileges') ? 403 :
