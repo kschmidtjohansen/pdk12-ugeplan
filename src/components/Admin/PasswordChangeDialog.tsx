@@ -37,7 +37,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
-  const { adminResetPassword, validateAdminAccess, user } = useAuth();
+  const { validateAdminAccess, user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
 
@@ -72,8 +72,10 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
     try {
       console.log('[PasswordChangeDialog] Testing edge function connectivity...');
       
-      // Test with a simple OPTIONS request first
-      const response = await fetch(`https://cyuyrpwtkljfiqwgasmn.supabase.co/functions/v1/admin-reset-password`, {
+      const testUrl = `https://cyuyrpwtkljfiqwgasmn.supabase.co/functions/v1/admin-reset-password`;
+      console.log('[PasswordChangeDialog] Test URL:', testUrl);
+      
+      const response = await fetch(testUrl, {
         method: 'OPTIONS',
         headers: {
           'Origin': window.location.origin,
@@ -82,6 +84,12 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       
       console.log('[PasswordChangeDialog] OPTIONS response status:', response.status);
       console.log('[PasswordChangeDialog] OPTIONS response headers:', Object.fromEntries(response.headers.entries()));
+      
+      if (!response.ok) {
+        console.error('[PasswordChangeDialog] OPTIONS request failed:', response.status, response.statusText);
+        const responseText = await response.text();
+        console.error('[PasswordChangeDialog] OPTIONS error response:', responseText);
+      }
       
       return response.ok;
     } catch (error) {
@@ -108,6 +116,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       
       console.log('[PasswordChangeDialog] Valid session found, expires at:', new Date(session.expires_at * 1000));
       console.log('[PasswordChangeDialog] Token length:', session.access_token.length);
+      console.log('[PasswordChangeDialog] Token preview:', session.access_token.substring(0, 50) + '...');
       
       // Check if token is close to expiry
       const expiryTime = session.expires_at * 1000;
@@ -135,6 +144,60 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
     }
   };
 
+  const makePasswordResetRequest = async (accessToken: string) => {
+    const url = `https://cyuyrpwtkljfiqwgasmn.supabase.co/functions/v1/admin-reset-password`;
+    const requestPayload = {
+      userId: currentUser!.id,
+      newPassword: newPassword
+    };
+
+    const requestHeaders = {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'Origin': window.location.origin,
+      'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5dXlycHd0a2xqZmlxd2dhc21uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3Njg5ODEsImV4cCI6MjA2MjM0NDk4MX0.j6NYT5jwYaYhZYVsRqW20T6_I9WkcqSmZ-rHyA78k5U'
+    };
+
+    console.log('[PasswordChangeDialog] Making password reset request...');
+    console.log('[PasswordChangeDialog] URL:', url);
+    console.log('[PasswordChangeDialog] Headers:', requestHeaders);
+    console.log('[PasswordChangeDialog] Payload:', { userId: requestPayload.userId, passwordLength: requestPayload.newPassword.length });
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: requestHeaders,
+        body: JSON.stringify(requestPayload)
+      });
+
+      console.log('[PasswordChangeDialog] Response status:', response.status);
+      console.log('[PasswordChangeDialog] Response statusText:', response.statusText);
+      console.log('[PasswordChangeDialog] Response headers:', Object.fromEntries(response.headers.entries()));
+
+      const responseText = await response.text();
+      console.log('[PasswordChangeDialog] Response body (raw):', responseText);
+
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+        console.log('[PasswordChangeDialog] Response data (parsed):', responseData);
+      } catch (parseError) {
+        console.error('[PasswordChangeDialog] Failed to parse response as JSON:', parseError);
+        throw new Error(`Invalid response format. Status: ${response.status}, Body: ${responseText}`);
+      }
+
+      if (!response.ok) {
+        console.error('[PasswordChangeDialog] Request failed with status:', response.status);
+        throw new Error(responseData?.error || `Request failed with status ${response.status}: ${responseText}`);
+      }
+
+      return responseData;
+    } catch (error) {
+      console.error('[PasswordChangeDialog] Request error:', error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser || !validateForm()) return;
@@ -142,6 +205,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
     console.log('[PasswordChangeDialog] Starting password reset process for user:', currentUser.id);
     console.log('[PasswordChangeDialog] Current user role:', user?.role);
     console.log('[PasswordChangeDialog] Current admin user:', user);
+    console.log('[PasswordChangeDialog] Current origin:', window.location.origin);
     
     // Validate admin access first
     if (!validateAdminAccess()) {
@@ -157,7 +221,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       console.log('[PasswordChangeDialog] Step 1: Testing edge function connectivity...');
       const isConnected = await testEdgeFunctionConnectivity();
       if (!isConnected) {
-        throw new Error('Edge function is not accessible. Please check if the function is deployed.');
+        throw new Error('Edge function is not accessible. Please check if the function is deployed and accessible from your current domain.');
       }
       console.log('[PasswordChangeDialog] Edge function connectivity test passed');
 
@@ -171,68 +235,9 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
 
       // Step 3: Make the password reset request
       console.log('[PasswordChangeDialog] Step 3: Making password reset request...');
-      console.log('[PasswordChangeDialog] Request payload:', {
-        userId: currentUser.id,
-        passwordLength: newPassword.length
-      });
+      const result = await makePasswordResetRequest(accessToken);
       
-      const requestHeaders = {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        'Origin': window.location.origin
-      };
-      
-      console.log('[PasswordChangeDialog] Request headers:', requestHeaders);
-      
-      // Use supabase.functions.invoke for the actual request
-      const { data, error } = await supabase.functions.invoke('admin-reset-password', {
-        body: { 
-          userId: currentUser.id, 
-          newPassword: newPassword
-        }
-      });
-      
-      console.log('[PasswordChangeDialog] Supabase function response:', { data, error });
-      
-      if (error) {
-        console.error('[PasswordChangeDialog] Password reset failed:', error);
-        
-        // Enhanced error handling with more specific messages
-        let errorMessage = t('admin.passwords.resetError');
-        
-        if (error.message?.includes('Failed to send a request')) {
-          errorMessage = 'Network connection failed. Please check your internet connection and try again.';
-        } else if (error.message?.includes('Origin not allowed')) {
-          errorMessage = 'Access denied: Origin not allowed. Please check your connection.';
-        } else if (error.message?.includes('Rate limit exceeded')) {
-          errorMessage = 'Too many requests. Please wait before trying again.';
-        } else if (error.message?.includes('Missing or invalid authorization')) {
-          errorMessage = 'Your session has expired. Please refresh the page and try again.';
-        } else if (error.message?.includes('Invalid authentication token')) {
-          errorMessage = 'Authentication failed. Please log out and log back in.';
-        } else if (error.message?.includes('Insufficient privileges')) {
-          errorMessage = 'You do not have permission to reset passwords.';
-        } else if (error.message?.includes('Invalid user ID format')) {
-          errorMessage = 'Invalid user selected. Please try selecting the user again.';
-        } else if (error.message?.includes('Password must')) {
-          errorMessage = error.message; // Use the specific password validation error
-        } else if (error.message?.includes('Password reset failed:')) {
-          errorMessage = error.message; // Use the specific Supabase error
-        } else if (error.message?.includes('Network') || error.message?.includes('fetch')) {
-          errorMessage = 'Network error. Please check your internet connection and try again.';
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-        
-        toast({
-          title: t('common.error'),
-          description: errorMessage,
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      console.log('[PasswordChangeDialog] Password reset successful');
+      console.log('[PasswordChangeDialog] Password reset successful:', result);
       
       toast({
         title: t('admin.passwords.resetSuccess'),
@@ -243,15 +248,29 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       setConfirmPassword('');
       onClose();
     } catch (error) {
-      console.error('[PasswordChangeDialog] Unexpected error:', error);
+      console.error('[PasswordChangeDialog] Password reset failed:', error);
       
-      // More specific error handling for different error types
+      // Enhanced error handling with more specific messages
       let errorMessage = 'An unexpected error occurred. Please try again.';
       
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        errorMessage = 'Network connection failed. Please check your internet connection.';
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
+      if (error instanceof Error) {
+        const errorText = error.message;
+        
+        if (errorText.includes('Failed to fetch') || errorText.includes('NetworkError')) {
+          errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+        } else if (errorText.includes('403') || errorText.includes('Forbidden')) {
+          errorMessage = 'Access denied. Please check your permissions or try refreshing the page.';
+        } else if (errorText.includes('401') || errorText.includes('Unauthorized')) {
+          errorMessage = 'Your session has expired. Please refresh the page and try again.';
+        } else if (errorText.includes('404') || errorText.includes('Not Found')) {
+          errorMessage = 'The password reset service is not available. Please contact support.';
+        } else if (errorText.includes('500') || errorText.includes('Internal Server Error')) {
+          errorMessage = 'Server error occurred. Please try again in a few moments.';
+        } else if (errorText.includes('Invalid response format')) {
+          errorMessage = 'Received invalid response from server. Please try again.';
+        } else {
+          errorMessage = errorText;
+        }
       }
       
       toast({
