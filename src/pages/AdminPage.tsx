@@ -1,17 +1,17 @@
-
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Users, Settings, BarChart3, Activity, Zap, Trash2, Bug } from 'lucide-react';
+import { Shield, Users, Settings, BarChart3, Activity, Zap, Trash2, Bug, Lock } from 'lucide-react';
 import UserManagement from '@/components/Admin/UserManagement';
 import { SystemHealthDashboard } from '@/components/Admin/SystemHealthDashboard';
 import { SecurityLogViewer } from '@/components/Admin/SecurityLogViewer';
 import { ComprehensiveDiagnosticsPanel } from '@/components/Admin/ComprehensiveDiagnosticsPanel';
 import { PerformanceMonitoringPanel } from '@/components/Admin/PerformanceMonitoringPanel';
 import { SystemCleanupPanel } from '@/components/Admin/SystemCleanupPanel';
+import { SecurityAuditPanel } from '@/components/Admin/SecurityAuditPanel';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
 import PasswordResetDebugger from '@/components/Admin/PasswordResetDebugger';
 
@@ -51,10 +51,14 @@ const AdminPage: React.FC = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <BarChart3 className="h-4 w-4" />
               <span>{t('admin.tabs.overview')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="security-audit" className="flex items-center space-x-2">
+              <Lock className="h-4 w-4" />
+              <span>Security</span>
             </TabsTrigger>
             <TabsTrigger value="debug" className="flex items-center space-x-2">
               <Bug className="h-4 w-4" />
@@ -98,6 +102,10 @@ const AdminPage: React.FC = () => {
                 <SystemHealthDashboard />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="security-audit" className="space-y-6">
+            <SecurityAuditPanel />
           </TabsContent>
 
           <TabsContent value="debug" className="space-y-6">

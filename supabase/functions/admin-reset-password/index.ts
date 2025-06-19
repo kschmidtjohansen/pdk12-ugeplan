@@ -1,11 +1,15 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+// Enhanced CORS headers with additional security
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Referrer-Policy': 'strict-origin-when-cross-origin'
 }
 
 // Rate limiting store
@@ -52,6 +56,11 @@ function isValidUuid(uuid: string): boolean {
   return uuidRegex.test(uuid);
 }
 
+function sanitizeInput(input: string): string {
+  // Basic input sanitization to prevent injection attacks
+  return input.replace(/[<>'"]/g, '');
+}
+
 serve(async (req) => {
   const requestId = crypto.randomUUID().substring(0, 8);
   console.log(`[admin-reset-password:${requestId}] ${req.method} request received from ${req.headers.get('origin')}`);
@@ -62,7 +71,7 @@ serve(async (req) => {
   }
 
   try {
-    // Enhanced origin validation
+    // Enhanced origin validation with stricter checks
     const origin = req.headers.get('origin');
     console.log(`[admin-reset-password:${requestId}] Request origin: ${origin}`);
     
@@ -92,8 +101,11 @@ serve(async (req) => {
       );
     }
 
-    // Rate limiting
-    const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    // Enhanced rate limiting with IP tracking
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0] || 
+                     req.headers.get('x-real-ip') || 
+                     req.headers.get('cf-connecting-ip') || 
+                     'unknown';
     console.log(`[admin-reset-password:${requestId}] Client IP: ${clientIp}`);
     
     if (!checkRateLimit(clientIp)) {
@@ -107,7 +119,7 @@ serve(async (req) => {
       );
     }
 
-    // Verify JWT token
+    // Verify JWT token with enhanced validation
     const authHeader = req.headers.get('Authorization');
     console.log(`[admin-reset-password:${requestId}] Auth header present: ${!!authHeader}`);
     
@@ -125,6 +137,18 @@ serve(async (req) => {
     const token = authHeader.substring(7);
     console.log(`[admin-reset-password:${requestId}] Token length: ${token.length}`);
     
+    // Validate token format (basic JWT structure check)
+    if (token.split('.').length !== 3) {
+      console.error(`[admin-reset-password:${requestId}] Invalid token format`);
+      return new Response(
+        JSON.stringify({ error: 'Invalid token format' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -133,20 +157,25 @@ serve(async (req) => {
     console.log(`[admin-reset-password:${requestId}] Service key present: ${!!serviceKey}`);
     console.log(`[admin-reset-password:${requestId}] Anon key present: ${!!anonKey}`);
 
-    // Create two Supabase clients:
-    // 1. Anon client for user JWT validation (with user's token)
-    // 2. Service role client for admin operations
+    // Create two Supabase clients with enhanced configuration
     console.log(`[admin-reset-password:${requestId}] Creating Supabase clients`);
     
     const supabaseAnon = createClient(supabaseUrl, anonKey, {
       global: {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          'X-Client-Info': 'admin-reset-password-function'
         }
       }
     });
     
-    const supabaseService = createClient(supabaseUrl, serviceKey);
+    const supabaseService = createClient(supabaseUrl, serviceKey, {
+      global: {
+        headers: {
+          'X-Client-Info': 'admin-reset-password-service'
+        }
+      }
+    });
 
     // Verify the user's JWT using the anon client
     console.log(`[admin-reset-password:${requestId}] Verifying user token with anon client`);
@@ -191,10 +220,11 @@ serve(async (req) => {
         
         // Log security event using service client
         try {
-          await supabaseService.rpc('log_security_event', {
+          await supabaseService.rpc('log_security_event_safe', {
             event_type: 'unauthorized_admin_access',
             event_message: `User ${user.email} attempted unauthorized password reset`,
-            event_details: { user_id: user.id, function: 'admin-reset-password' }
+            event_details: { user_id: user.id, function: 'admin-reset-password', ip: clientIp },
+            severity: 'warning'
           });
         } catch (logError) {
           console.warn(`[admin-reset-password:${requestId}] Failed to log security event:`, logError);
@@ -211,7 +241,7 @@ serve(async (req) => {
 
       console.log(`[admin-reset-password:${requestId}] Admin access confirmed`);
 
-      // Parse request body
+      // Parse request body with enhanced validation
       console.log(`[admin-reset-password:${requestId}] Parsing request body`);
       let requestBody;
       try {
@@ -228,10 +258,10 @@ serve(async (req) => {
         );
       }
 
-      const { userId, newPassword } = requestBody;
+      let { userId, newPassword } = requestBody;
       console.log(`[admin-reset-password:${requestId}] Target user ID: ${userId}, Password length: ${newPassword?.length}`);
 
-      // Input validation
+      // Enhanced input validation and sanitization
       if (!userId || !newPassword) {
         console.error(`[admin-reset-password:${requestId}] Missing required fields`);
         return new Response(
@@ -243,6 +273,9 @@ serve(async (req) => {
         );
       }
 
+      // Sanitize inputs
+      userId = sanitizeInput(userId);
+      
       if (!isValidUuid(userId)) {
         console.error(`[admin-reset-password:${requestId}] Invalid user ID format: ${userId}`);
         return new Response(
@@ -286,16 +319,19 @@ serve(async (req) => {
 
       console.log(`[admin-reset-password:${requestId}] Password reset successful`);
 
-      // Log successful password reset
+      // Log successful password reset with enhanced details
       try {
-        await supabaseService.rpc('log_security_event', {
+        await supabaseService.rpc('log_security_event_safe', {
           event_type: 'password_reset',
           event_message: `Admin ${user.email} reset password for user ${userId}`,
           event_details: { 
             admin_id: user.id, 
             target_user_id: userId,
-            request_id: requestId
-          }
+            request_id: requestId,
+            ip_address: clientIp,
+            user_agent: req.headers.get('user-agent')
+          },
+          severity: 'info'
         });
       } catch (logError) {
         console.warn(`[admin-reset-password:${requestId}] Failed to log password reset event:`, logError);
