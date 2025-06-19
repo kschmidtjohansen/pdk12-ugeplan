@@ -77,9 +77,9 @@ export const useEmployeeDataOptimized = () => {
       
       console.log('[useEmployeeDataOptimized] Session validated, fetching profiles...');
       
-      // Step 2: Fetch profiles with retry logic - fix the await issue
-      const profilesResult = await withRetry(async () => {
-        return await supabaseOptimized
+      // Step 2: Fetch profiles with retry logic
+      const profilesResult = await withRetry(
+        () => supabaseOptimized
           .from('profiles')
           .select(`
             id,
@@ -93,8 +93,9 @@ export const useEmployeeDataOptimized = () => {
             created_at,
             updated_at
           `)
-          .order('name', { ascending: true });
-      }, 'Profiles fetch');
+          .order('name', { ascending: true }),
+        'Profiles fetch'
+      );
       
       const { data: profilesData, error: profilesError } = profilesResult;
       
@@ -112,17 +113,18 @@ export const useEmployeeDataOptimized = () => {
       
       console.log(`[useEmployeeDataOptimized] Successfully fetched ${profilesData.length} profiles`);
       
-      // Step 3: Fetch user roles with retry logic - fix the await issue
+      // Step 3: Fetch user roles with retry logic
       const userIds = profilesData.map(profile => profile.id);
       
       console.log('[useEmployeeDataOptimized] Fetching user roles...');
       
-      const rolesResult = await withRetry(async () => {
-        return await supabaseOptimized
+      const rolesResult = await withRetry(
+        () => supabaseOptimized
           .from('user_roles')
           .select('user_id, role')
-          .in('user_id', userIds);
-      }, 'User roles fetch');
+          .in('user_id', userIds),
+        'User roles fetch'
+      );
       
       const { data: rolesData, error: rolesError } = rolesResult;
       
