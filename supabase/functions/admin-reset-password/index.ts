@@ -55,7 +55,6 @@ function isValidUuid(uuid: string): boolean {
 serve(async (req) => {
   const requestId = crypto.randomUUID().substring(0, 8);
   console.log(`[admin-reset-password:${requestId}] ${req.method} request received from ${req.headers.get('origin')}`);
-  console.log(`[admin-reset-password:${requestId}] Full request headers:`, Object.fromEntries(req.headers.entries()));
   
   if (req.method === 'OPTIONS') {
     console.log(`[admin-reset-password:${requestId}] Responding to OPTIONS request`);
@@ -63,7 +62,7 @@ serve(async (req) => {
   }
 
   try {
-    // Enhanced origin validation - Allow all development domains for debugging
+    // Enhanced origin validation
     const origin = req.headers.get('origin');
     console.log(`[admin-reset-password:${requestId}] Request origin: ${origin}`);
     
@@ -111,7 +110,6 @@ serve(async (req) => {
     // Verify JWT token
     const authHeader = req.headers.get('Authorization');
     console.log(`[admin-reset-password:${requestId}] Auth header present: ${!!authHeader}`);
-    console.log(`[admin-reset-password:${requestId}] Auth header format: ${authHeader ? authHeader.substring(0, 20) + '...' : 'none'}`);
     
     if (!authHeader?.startsWith('Bearer ')) {
       console.error(`[admin-reset-password:${requestId}] Missing or invalid authorization header`);
@@ -129,18 +127,32 @@ serve(async (req) => {
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
     console.log(`[admin-reset-password:${requestId}] Supabase URL: ${supabaseUrl}`);
     console.log(`[admin-reset-password:${requestId}] Service key present: ${!!serviceKey}`);
-    console.log(`[admin-reset-password:${requestId}] Initializing Supabase client`);
-    
-    const supabase = createClient(supabaseUrl, serviceKey);
+    console.log(`[admin-reset-password:${requestId}] Anon key present: ${!!anonKey}`);
 
-    // Verify the user's JWT and check if they're an admin
-    console.log(`[admin-reset-password:${requestId}] Verifying user token`);
+    // Create two Supabase clients:
+    // 1. Anon client for user JWT validation (with user's token)
+    // 2. Service role client for admin operations
+    console.log(`[admin-reset-password:${requestId}] Creating Supabase clients`);
+    
+    const supabaseAnon = createClient(supabaseUrl, anonKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    });
+    
+    const supabaseService = createClient(supabaseUrl, serviceKey);
+
+    // Verify the user's JWT using the anon client
+    console.log(`[admin-reset-password:${requestId}] Verifying user token with anon client`);
     
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+      const { data: { user }, error: userError } = await supabaseAnon.auth.getUser();
       console.log(`[admin-reset-password:${requestId}] User verification result - error: ${!!userError}, user: ${!!user}`);
       
       if (userError) {
@@ -164,9 +176,9 @@ serve(async (req) => {
 
       console.log(`[admin-reset-password:${requestId}] User verified: ${user.email}`);
 
-      // Check if user is admin
-      console.log(`[admin-reset-password:${requestId}] Checking user role`);
-      const { data: roleData, error: roleError } = await supabase
+      // Check if user is admin using the anon client (RLS will handle access control)
+      console.log(`[admin-reset-password:${requestId}] Checking user role with anon client`);
+      const { data: roleData, error: roleError } = await supabaseAnon
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
@@ -177,9 +189,9 @@ serve(async (req) => {
       if (roleError || !roleData || roleData.role !== 'administrator') {
         console.error(`[admin-reset-password:${requestId}] Access denied for user ${user.email}, role: ${roleData?.role}`);
         
-        // Log security event
+        // Log security event using service client
         try {
-          await supabase.rpc('log_security_event', {
+          await supabaseService.rpc('log_security_event', {
             event_type: 'unauthorized_admin_access',
             event_message: `User ${user.email} attempted unauthorized password reset`,
             event_details: { user_id: user.id, function: 'admin-reset-password' }
@@ -254,10 +266,10 @@ serve(async (req) => {
         );
       }
 
-      console.log(`[admin-reset-password:${requestId}] Resetting password for user: ${userId}`);
+      console.log(`[admin-reset-password:${requestId}] Resetting password for user: ${userId} using service role client`);
 
-      // Reset password
-      const { error: resetError } = await supabase.auth.admin.updateUserById(userId, {
+      // Reset password using service role client
+      const { error: resetError } = await supabaseService.auth.admin.updateUserById(userId, {
         password: newPassword
       });
 
@@ -276,7 +288,7 @@ serve(async (req) => {
 
       // Log successful password reset
       try {
-        await supabase.rpc('log_security_event', {
+        await supabaseService.rpc('log_security_event', {
           event_type: 'password_reset',
           event_message: `Admin ${user.email} reset password for user ${userId}`,
           event_details: { 
