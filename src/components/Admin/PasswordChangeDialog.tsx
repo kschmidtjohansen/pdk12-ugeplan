@@ -73,7 +73,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       console.log('[PasswordChangeDialog] Testing edge function connectivity...');
       
       // Test with a simple OPTIONS request first
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/admin-reset-password`, {
+      const response = await fetch(`https://cyuyrpwtkljfiqwgasmn.supabase.co/functions/v1/admin-reset-password`, {
         method: 'OPTIONS',
         headers: {
           'Origin': window.location.origin,

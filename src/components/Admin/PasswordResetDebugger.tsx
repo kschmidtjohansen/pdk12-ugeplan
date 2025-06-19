@@ -54,7 +54,7 @@ const PasswordResetDebugger: React.FC = () => {
       // Test 3: Test edge function connectivity
       addResult('📋 Test 3: Testing edge function connectivity');
       try {
-        const response = await fetch(`${supabase.supabaseUrl}/functions/v1/admin-reset-password`, {
+        const response = await fetch(`https://cyuyrpwtkljfiqwgasmn.supabase.co/functions/v1/admin-reset-password`, {
           method: 'OPTIONS',
           headers: {
             'Origin': window.location.origin,
@@ -75,7 +75,7 @@ const PasswordResetDebugger: React.FC = () => {
       
       // Test 4: Test Supabase client configuration
       addResult('📋 Test 4: Testing Supabase client configuration');
-      addResult(`📋 Supabase URL: ${supabase.supabaseUrl}`);
+      addResult(`📋 Supabase URL: https://cyuyrpwtkljfiqwgasmn.supabase.co`);
       addResult(`📋 Current origin: ${window.location.origin}`);
       
       // Test 5: Test a simple database query
@@ -100,7 +100,7 @@ const PasswordResetDebugger: React.FC = () => {
       if (session?.access_token) {
         try {
           // Make a test request to see if authentication works
-          const testResponse = await fetch(`${supabase.supabaseUrl}/functions/v1/admin-reset-password`, {
+          const testResponse = await fetch(`https://cyuyrpwtkljfiqwgasmn.supabase.co/functions/v1/admin-reset-password`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${session.access_token}`,
