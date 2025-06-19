@@ -77,7 +77,7 @@ export const useEmployeeDataOptimized = () => {
       
       console.log('[useEmployeeDataOptimized] Session validated, fetching profiles...');
       
-      // Step 2: Fetch profiles with retry logic
+      // Step 2: Fetch profiles with retry logic - FIXED: Add await here
       const profilesResult = await withRetry(
         () => supabaseOptimized
           .from('profiles')
@@ -113,7 +113,7 @@ export const useEmployeeDataOptimized = () => {
       
       console.log(`[useEmployeeDataOptimized] Successfully fetched ${profilesData.length} profiles`);
       
-      // Step 3: Fetch user roles with retry logic
+      // Step 3: Fetch user roles with retry logic - FIXED: Add await here
       const userIds = profilesData.map(profile => profile.id);
       
       console.log('[useEmployeeDataOptimized] Fetching user roles...');

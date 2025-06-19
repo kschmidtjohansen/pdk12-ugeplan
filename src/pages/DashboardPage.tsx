@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -23,7 +24,7 @@ const DashboardPage: React.FC = () => {
   // Enhanced authentication monitoring
   const { authStatus } = useAuthenticationMonitor();
   
-  // Optimize data fetching - use single source for all assignments
+  // FIXED: Use 'all' to get all assignments, then filter properly for user display
   const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError } = useAssignmentsConsolidated({ 
     filter: 'all', 
     includeUnpublished: true 
@@ -44,24 +45,40 @@ const DashboardPage: React.FC = () => {
   // Show connection status if there are issues
   const showConnectionIssue = !authStatus.sessionValid || authStatus.connectionStatus === 'disconnected';
 
-  // Memoize filtered assignments to prevent recalculation on every render
+  // FIXED: Improved assignment filtering for dashboard
   const { publishedAssignments, userAssignments } = useMemo(() => {
     // Filter published assignments for metrics (admins/skadeleder)
     const published = allAssignments.filter(assignment => assignment.published);
     
-    // Filter user-specific assignments for dashboard view
+    // FIXED: Filter user-specific assignments correctly for servicemedarbejder
     const userFiltered = allAssignments.filter(assignment => {
       if (!user) return false;
       
+      console.log(`[DashboardPage] Checking assignment ${assignment.id} for user ${user.name} (${user.role})`);
+      console.log(`[DashboardPage] Assignment employees:`, assignment.employees);
+      console.log(`[DashboardPage] Assignment responsible user:`, assignment.responsibleUser);
+      
       // Filter based on user role and assignment relationship
       if (user.role === 'administrator' || user.role === 'skadeleder') {
-        return (assignment.responsibleUser && assignment.responsibleUser.id === user.id) ||
-               (assignment.employees && assignment.employees.includes(user.name || ''));
+        const isResponsible = assignment.responsibleUser && assignment.responsibleUser.id === user.id;
+        const isAssigned = assignment.employees && Array.isArray(assignment.employees) && assignment.employees.includes(user.name || '');
+        
+        console.log(`[DashboardPage] Admin/Skadeleder - isResponsible: ${isResponsible}, isAssigned: ${isAssigned}`);
+        return isResponsible || isAssigned;
       } else if (user.role === 'servicemedarbejder') {
-        return assignment.employees && assignment.employees.includes(user.name || '');
+        // FIXED: For servicemedarbejder, filter by name in employees array
+        const isAssigned = assignment.employees && Array.isArray(assignment.employees) && assignment.employees.includes(user.name || '');
+        
+        console.log(`[DashboardPage] Servicemedarbejder ${user.name} - isAssigned: ${isAssigned}`);
+        return isAssigned;
       }
       
       return false;
+    });
+    
+    console.log(`[DashboardPage] User ${user?.name} (${user?.role}) has ${userFiltered.length} assignments:`);
+    userFiltered.forEach(a => {
+      console.log(`  - ${a.id}: ${a.title} - Employees: [${a.employees?.join(', ')}]`);
     });
     
     return { publishedAssignments: published, userAssignments: userFiltered };

@@ -24,7 +24,7 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Use the optimized assignments hook
+  // FIXED: Use 'all' filter to show ALL assignments to all users, including servicemedarbejder
   const { 
     assignments, 
     loading,
@@ -35,7 +35,7 @@ export const usePlannerPage = () => {
     deleteAssignment,
     publishAssignment,
     publishAssignmentsByDate
-  } = useOptimizedAssignments({ filter: 'planner' });
+  } = useOptimizedAssignments({ filter: 'all' });
 
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();

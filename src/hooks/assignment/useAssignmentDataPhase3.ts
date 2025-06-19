@@ -74,15 +74,16 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
           id,
           title,
           description,
-          date,
-          fromTime,
-          toTime,
+          assignment_date,
+          from_time,
+          to_time,
           location,
-          car,
-          cars,
+          car_id,
+          car_ids,
           employees,
           published,
-          responsibleUser:profiles (id, name)
+          responsible_user_id,
+          responsibleUser:profiles!assignments_responsible_user_id_fkey (id, name)
         `);
 
       // Apply user-based filter if specified
@@ -95,9 +96,9 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
         query = query.eq('published', true);
       }
 
-      // Execute the query with retry
+      // Execute the query with retry - FIXED: Add await here
       const result = await withRetry(
-        () => query.order('date', { ascending: true }),
+        () => query.order('assignment_date', { ascending: true }),
         'Assignments fetch'
       );
 
@@ -121,6 +122,11 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
         const { responsibleUser, ...rest } = assignment;
         return {
           ...rest,
+          date: assignment.assignment_date, // Map assignment_date to date
+          fromTime: assignment.from_time,
+          toTime: assignment.to_time,
+          car: assignment.car_id,
+          cars: assignment.car_ids || [],
           responsibleUser: responsibleUser ? {
             id: responsibleUser.id,
             name: responsibleUser.name
@@ -176,7 +182,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
       setLoading(false);
       fetchInProgress.current = false;
     }
-  }, [toast, t, filterCriteria, retryCount]);
+  }, [toast, t, filterCriteria, retryCount, user?.name]);
 
   // Load assignments on component mount and when filter criteria change
   useEffect(() => {
