@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -52,18 +51,20 @@ class ImprovedRealtimeManager {
         );
       });
 
-      // Enhanced error handling
-      channel.on('error', (error) => {
-        console.error('[ImprovedRealtimeManager] Channel error for:', subscriptionId, error);
-        
-        const subscription = this.subscriptions.get(subscriptionId);
-        if (subscription && subscription.retryCount < maxRetries) {
-          console.log('[ImprovedRealtimeManager] Retrying subscription:', subscriptionId);
-          subscription.retryCount++;
+      // Enhanced error handling - FIXED: Proper error event subscription
+      channel.on('system', {}, (payload) => {
+        if (payload.status === 'error') {
+          console.error('[ImprovedRealtimeManager] Channel error for:', subscriptionId, payload);
           
-          setTimeout(() => {
-            this.subscribe(subscriptionId, subscription.tables, subscription.callback, subscription.options);
-          }, 1000 * subscription.retryCount);
+          const subscription = this.subscriptions.get(subscriptionId);
+          if (subscription && subscription.retryCount < maxRetries) {
+            console.log('[ImprovedRealtimeManager] Retrying subscription:', subscriptionId);
+            subscription.retryCount++;
+            
+            setTimeout(() => {
+              this.subscribe(subscriptionId, subscription.tables, subscription.callback, subscription.options);
+            }, 1000 * subscription.retryCount);
+          }
         }
       });
 
