@@ -67,65 +67,158 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
 
       console.log('[useAssignmentData] Session validated, fetching assignments...');
 
-      // Step 2: Fetch assignments with retry logic
-      let query = supabaseOptimized
+      // Step 2: Fetch assignments with proper joins and aggregation
+      let baseQuery = supabaseOptimized
         .from('assignments')
         .select(`
           id,
           title,
           description,
-          date,
-          fromTime,
-          toTime,
+          assignment_date,
+          from_time,
+          to_time,
           location,
-          car,
-          cars,
-          employees,
+          car_id,
+          car_ids,
           published,
-          responsibleUser:profiles (id, name)
+          responsible_user_id,
+          created_at,
+          updated_at
         `);
 
       // Apply user-based filter if specified
       if (filterCriteria.filter === 'user' && filterCriteria.userId) {
-        query = query.or(`employees.cs.{${user?.name}},responsible_user_id.eq.${filterCriteria.userId}`);
+        baseQuery = baseQuery.or(`responsible_user_id.eq.${filterCriteria.userId}`);
       }
 
       // Conditionally include unpublished assignments
       if (!filterCriteria.includeUnpublished) {
-        query = query.eq('published', true);
+        baseQuery = baseQuery.eq('published', true);
       }
 
-      // Execute the query with retry - fix the await issue
-      const result = await withRetry(async () => {
-        return await query.order('date', { ascending: true });
+      // Execute the base assignments query with retry
+      const assignmentsResult = await withRetry(async () => {
+        return await baseQuery.order('assignment_date', { ascending: true });
       }, 'Assignments fetch');
 
-      const { data, error } = result;
+      const { data: assignmentsData, error: assignmentsError } = assignmentsResult;
 
-      if (error) {
-        console.error('[useAssignmentData] Assignments query error:', error);
-        throw new Error(`Failed to fetch assignments: ${error.message}`);
+      if (assignmentsError) {
+        console.error('[useAssignmentData] Assignments query error:', assignmentsError);
+        throw new Error(`Failed to fetch assignments: ${assignmentsError.message}`);
       }
 
-      if (!data || data.length === 0) {
+      if (!assignmentsData || assignmentsData.length === 0) {
         console.log('[useAssignmentData] No assignments found');
         setAssignments([]);
         return;
       }
 
-      console.log(`[useAssignmentData] Successfully fetched ${data.length} assignments`);
+      console.log(`[useAssignmentData] Successfully fetched ${assignmentsData.length} assignments`);
 
-      // Step 3: Transform data if necessary (e.g., handle responsibleUser)
-      const transformedAssignments: Assignment[] = data.map(assignment => {
-        const { responsibleUser, ...rest } = assignment;
+      // Step 3: Fetch employee assignments mapping
+      const assignmentIds = assignmentsData.map(a => a.id);
+      const employeeAssignmentsResult = await withRetry(async () => {
+        return await supabaseOptimized
+          .from('assignments_employees')
+          .select(`
+            assignment_id,
+            profiles!assignments_employees_user_id_fkey (
+              id,
+              name
+            )
+          `)
+          .in('assignment_id', assignmentIds);
+      }, 'Employee assignments fetch');
+
+      const { data: employeeAssignmentsData, error: employeeAssignmentsError } = employeeAssignmentsResult;
+
+      if (employeeAssignmentsError) {
+        console.error('[useAssignmentData] Employee assignments query error:', employeeAssignmentsError);
+        // Continue without employee data rather than failing completely
+      }
+
+      // Step 4: Fetch responsible users
+      const responsibleUserIds = assignmentsData
+        .map(a => a.responsible_user_id)
+        .filter(id => id !== null);
+
+      let responsibleUsersData = [];
+      if (responsibleUserIds.length > 0) {
+        const responsibleUsersResult = await withRetry(async () => {
+          return await supabaseOptimized
+            .from('profiles')
+            .select('id, name')
+            .in('id', responsibleUserIds);
+        }, 'Responsible users fetch');
+
+        const { data, error: responsibleUsersError } = responsibleUsersResult;
+        if (responsibleUsersError) {
+          console.error('[useAssignmentData] Responsible users query error:', responsibleUsersError);
+          // Continue without responsible user data
+        } else {
+          responsibleUsersData = data || [];
+        }
+      }
+
+      // Step 5: Fetch car data
+      const carIds = assignmentsData
+        .map(a => a.car_id)
+        .filter(id => id !== null);
+
+      let carsData = [];
+      if (carIds.length > 0) {
+        const carsResult = await withRetry(async () => {
+          return await supabaseOptimized
+            .from('cars')
+            .select('id, name')
+            .in('id', carIds);
+        }, 'Cars fetch');
+
+        const { data, error: carsError } = carsResult;
+        if (carsError) {
+          console.error('[useAssignmentData] Cars query error:', carsError);
+          // Continue without car data
+        } else {
+          carsData = data || [];
+        }
+      }
+
+      // Step 6: Transform and aggregate data
+      const transformedAssignments: Assignment[] = assignmentsData.map(assignment => {
+        // Get employees for this assignment
+        const assignmentEmployees = employeeAssignmentsData
+          ?.filter(ae => ae.assignment_id === assignment.id)
+          ?.map(ae => ae.profiles?.name)
+          ?.filter(name => name) || [];
+
+        // Get responsible user
+        const responsibleUser = responsibleUsersData.find(ru => ru.id === assignment.responsible_user_id);
+
+        // Get car
+        const car = carsData.find(c => c.id === assignment.car_id);
+
         return {
-          ...rest,
+          id: assignment.id,
+          title: assignment.title || '',
+          description: assignment.description || '',
+          date: assignment.assignment_date,
+          fromTime: assignment.from_time,
+          toTime: assignment.to_time,
+          location: assignment.location || '',
+          car: car ? { id: car.id, name: car.name } : null,
+          cars: assignment.car_ids || [],
+          employees: assignmentEmployees,
+          published: assignment.published || false,
           responsibleUser: responsibleUser ? {
             id: responsibleUser.id,
             name: responsibleUser.name
           } : null
         };
       });
+
+      console.log(`[useAssignmentData] Successfully transformed ${transformedAssignments.length} assignments`);
+      console.log('[useAssignmentData] Sample assignment with employees:', transformedAssignments[0]);
 
       setAssignments(transformedAssignments);
       setRetryCount(0); // Reset retry count on success
@@ -175,7 +268,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
       setLoading(false);
       fetchInProgress.current = false;
     }
-  }, [toast, t, filterCriteria, retryCount, user?.name]);
+  }, [toast, t, filterCriteria, retryCount]);
 
   // Load assignments on component mount and when filter criteria change
   useEffect(() => {
