@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
@@ -23,6 +23,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
 }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // Only show action buttons for administrators and skadeledere
   const canPerformActions = user?.role === 'administrator' || user?.role === 'skadeleder';
@@ -41,13 +42,33 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
     onEdit(assignment);
   };
 
-  const handlePublishClick = () => {
-    console.log('[AssignmentActionButtons] ===== PUBLISH ASSIGNMENT =====');
-    console.log('[AssignmentActionButtons] Publish button clicked for assignment:', assignment.id);
-    console.log('[AssignmentActionButtons] Assignment published status:', assignment.published);
-    console.log('[AssignmentActionButtons] Calling onPublish function...');
-    onPublish(assignment.id);
-    console.log('[AssignmentActionButtons] ===== PUBLISH ASSIGNMENT END =====');
+  const handlePublishClick = async () => {
+    console.log('[AssignmentActionButtons] ===== PUBLISH ASSIGNMENT BUTTON CLICKED =====');
+    console.log('[AssignmentActionButtons] Assignment ID:', assignment.id);
+    console.log('[AssignmentActionButtons] Assignment title:', assignment.title);
+    console.log('[AssignmentActionButtons] Current published status:', assignment.published);
+    console.log('[AssignmentActionButtons] User role:', user?.role);
+    console.log('[AssignmentActionButtons] Can perform actions:', canPerformActions);
+    
+    if (assignment.published) {
+      console.log('[AssignmentActionButtons] Assignment is already published, skipping');
+      return;
+    }
+    
+    setIsPublishing(true);
+    console.log('[AssignmentActionButtons] Setting isPublishing to true, calling onPublish...');
+    
+    try {
+      await onPublish(assignment.id);
+      console.log('[AssignmentActionButtons] onPublish completed');
+    } catch (error) {
+      console.error('[AssignmentActionButtons] Error in onPublish:', error);
+    } finally {
+      setIsPublishing(false);
+      console.log('[AssignmentActionButtons] Setting isPublishing to false');
+    }
+    
+    console.log('[AssignmentActionButtons] ===== PUBLISH ASSIGNMENT BUTTON END =====');
   };
 
   const handleShowOnScreen = () => {
@@ -96,9 +117,10 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={handlePublishClick} 
-          className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50" 
-          title={t('planner.publish')}
+          onClick={handlePublishClick}
+          disabled={isPublishing}
+          className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 disabled:opacity-50" 
+          title={isPublishing ? 'Publishing...' : t('planner.publish')}
         >
           <Eye className="h-3 w-3" />
         </Button>

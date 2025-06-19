@@ -32,6 +32,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   console.log(`  - Title (case number): ${assignment.title}`);
   console.log(`  - Location: ${assignment.location}`);
   console.log(`  - Published status: ${assignment.published}`);
+  console.log(`  - onPublish function provided: ${typeof onPublish}`);
 
   const handleEditClick = (assignment: Assignment) => {
     console.log('[AssignmentCard] Edit clicked for assignment:', assignment.id);
@@ -42,15 +43,29 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const handleCopyClick = () => {
     if (onCopy) {
       console.log('[AssignmentCard] Copy clicked for assignment:', assignment.id);
-      onCopy(); // Fixed: Remove assignment parameter since onCopy expects no arguments
+      onCopy();
     }
   };
 
-  const handlePublishClick = () => {
+  const handlePublishClick = async () => {
+    console.log('[AssignmentCard] ===== PUBLISH CLICKED IN ASSIGNMENT CARD =====');
+    console.log('[AssignmentCard] Assignment ID:', assignment.id);
+    console.log('[AssignmentCard] Published status:', assignment.published);
+    console.log('[AssignmentCard] onPublish function type:', typeof onPublish);
+    console.log('[AssignmentCard] onPublish function exists:', !!onPublish);
+    
     if (onPublish) {
-      console.log('[AssignmentCard] Publish clicked for assignment:', assignment.id);
-      onPublish();
+      console.log('[AssignmentCard] Calling onPublish function...');
+      try {
+        await onPublish();
+        console.log('[AssignmentCard] onPublish function completed');
+      } catch (error) {
+        console.error('[AssignmentCard] Error in onPublish:', error);
+      }
+    } else {
+      console.error('[AssignmentCard] onPublish function not provided!');
     }
+    console.log('[AssignmentCard] ===== PUBLISH CLICK END =====');
   };
 
   const isPublished = assignment.published === true;
@@ -72,7 +87,11 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           assignment={assignment}
           onEdit={handleEditClick}
           onDelete={onDelete}
-          onPublish={handlePublishClick}
+          onPublish={async (assignmentId: string) => {
+            console.log('[AssignmentCard] AssignmentActionButtons onPublish called with ID:', assignmentId);
+            console.log('[AssignmentCard] Forwarding to handlePublishClick...');
+            await handlePublishClick();
+          }}
           onCopy={handleCopyClick}
         />
       </div>

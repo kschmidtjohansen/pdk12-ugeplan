@@ -509,63 +509,188 @@ export const useAssignmentsConsolidated = ({
     }
   };
 
-  // FIXED: Publish single assignment
+  // FIXED: Publish single assignment with comprehensive logging and error handling
   const publishAssignment = async (id: string) => {
     try {
-      console.log('[Publishing] Publishing single assignment:', id);
+      console.log('[Publishing] ===== PUBLISH ASSIGNMENT START =====');
+      console.log('[Publishing] Assignment ID to publish:', id);
+      console.log('[Publishing] Current user permissions:', { canPublishTasks });
       
-      const { error } = await supabase
+      // Check permissions first
+      if (!canPublishTasks) {
+        console.error('[Publishing] User does not have permission to publish assignments');
+        toast({
+          title: t('common.error'),
+          description: 'You do not have permission to publish assignments.',
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      // Find the current assignment to check its status
+      const currentAssignment = assignments.find(a => a.id === id);
+      console.log('[Publishing] Current assignment found:', currentAssignment);
+      console.log('[Publishing] Current published status:', currentAssignment?.published);
+      
+      if (!currentAssignment) {
+        console.error('[Publishing] Assignment not found in local state');
+        toast({
+          title: t('common.error'),
+          description: 'Assignment not found.',
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      if (currentAssignment.published) {
+        console.log('[Publishing] Assignment is already published, skipping');
+        toast({
+          title: t('common.info'),
+          description: 'Assignment is already published.',
+        });
+        return false;
+      }
+      
+      console.log('[Publishing] Attempting database update...');
+      console.log('[Publishing] Update query: assignments table, set published = true, where id =', id);
+      
+      const { data, error } = await supabase
         .from('assignments')
         .update({ published: true })
-        .eq('id', id);
+        .eq('id', id)
+        .select('id, published'); // Select to verify the update
+        
+      console.log('[Publishing] Database response data:', data);
+      console.log('[Publishing] Database response error:', error);
 
-      if (error) throw error;
+      if (error) {
+        console.error('[Publishing] Database error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+      
+      if (!data || data.length === 0) {
+        console.error('[Publishing] No data returned from update - assignment may not exist');
+        throw new Error('Assignment not found or could not be updated');
+      }
+      
+      console.log('[Publishing] Database update successful, updated assignment:', data[0]);
       
       toast({
         title: t('planner.assignmentPublished'),
         description: t('planner.assignmentPublishedMsg'),
       });
       
-      fetchAssignments();
+      console.log('[Publishing] Refreshing assignments list...');
+      await fetchAssignments();
+      console.log('[Publishing] ===== PUBLISH ASSIGNMENT SUCCESS =====');
       return true;
     } catch (error: any) {
-      console.error('Error publishing assignment:', error);
+      console.error('[Publishing] ===== PUBLISH ASSIGNMENT ERROR =====');
+      console.error('[Publishing] Error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
+        cause: error?.cause
+      });
+      
+      let errorMessage = t('planner.errorPublishingAssignment');
+      
+      // Provide specific error messages based on error type
+      if (error?.message?.includes('permission denied')) {
+        errorMessage = 'You do not have permission to publish this assignment.';
+      } else if (error?.message?.includes('not found')) {
+        errorMessage = 'Assignment not found. It may have been deleted.';
+      } else if (error?.message?.includes('network')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error?.message?.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again.';
+      }
+      
       toast({
         title: t('common.error'),
-        description: t('planner.errorPublishingAssignment'),
+        description: errorMessage,
         variant: "destructive",
       });
+      console.log('[Publishing] ===== PUBLISH ASSIGNMENT ERROR END =====');
       return false;
     }
   };
 
-  // FIXED: Publish assignments by date
+  // FIXED: Publish assignments by date with enhanced logging
   const publishAssignmentsByDate = async (date: string) => {
     try {
+      console.log('[Publishing] ===== PUBLISH DAY START =====');
       console.log('[Publishing] Publishing assignments for date:', date);
+      console.log('[Publishing] Current user permissions:', { canPublishTasks });
       
-      const { error } = await supabase
+      // Check permissions
+      if (!canPublishTasks) {
+        console.error('[Publishing] User does not have permission to publish assignments');
+        toast({
+          title: t('common.error'),
+          description: 'You do not have permission to publish assignments.',
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      // Find unpublished assignments for this date
+      const unpublishedAssignments = assignments.filter(a => a.date === date && !a.published);
+      console.log('[Publishing] Unpublished assignments for date:', unpublishedAssignments.length);
+      console.log('[Publishing] Assignment IDs to publish:', unpublishedAssignments.map(a => a.id));
+      
+      if (unpublishedAssignments.length === 0) {
+        console.log('[Publishing] No unpublished assignments found for this date');
+        toast({
+          title: t('common.info'),
+          description: 'No unpublished assignments found for this date.',
+        });
+        return false;
+      }
+      
+      console.log('[Publishing] Attempting to publish', unpublishedAssignments.length, 'assignments');
+      
+      const { data, error } = await supabase
         .from('assignments')
         .update({ published: true })
         .eq('assignment_date', date)
-        .eq('published', false);
+        .eq('published', false)
+        .select('id, published'); // Select to verify the updates
 
-      if (error) throw error;
+      console.log('[Publishing] Batch update response data:', data);
+      console.log('[Publishing] Batch update response error:', error);
+
+      if (error) {
+        console.error('[Publishing] Batch update error:', error);
+        throw error;
+      }
+      
+      console.log('[Publishing] Successfully published', data?.length || 0, 'assignments');
       
       toast({
         title: t('planner.dayPublished'),
         description: t('planner.dayPublishedMsg'),
       });
       
-      fetchAssignments();
+      console.log('[Publishing] Refreshing assignments after day publish...');
+      await fetchAssignments();
+      console.log('[Publishing] ===== PUBLISH DAY SUCCESS =====');
       return true;
     } catch (error: any) {
-      console.error('Error publishing assignments by date:', error);
+      console.error('[Publishing] ===== PUBLISH DAY ERROR =====');
+      console.error('[Publishing] Day publish error:', error);
+      
       toast({
         title: t('common.error'),
         description: t('planner.errorPublishingDay'),
         variant: "destructive",
       });
+      console.log('[Publishing] ===== PUBLISH DAY ERROR END =====');
       return false;
     }
   };
