@@ -116,14 +116,15 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
 
       console.log(`[useAssignmentData] Successfully fetched ${assignmentsData.length} assignments`);
 
-      // Step 3: Fetch employee assignments mapping
+      // Step 3: Fetch employee assignments mapping with corrected join syntax
       const assignmentIds = assignmentsData.map(a => a.id);
       const employeeAssignmentsResult = await withRetry(async () => {
         return await supabaseOptimized
           .from('assignments_employees')
           .select(`
             assignment_id,
-            profiles!assignments_employees_user_id_fkey (
+            user_id,
+            profiles!user_id (
               id,
               name
             )
