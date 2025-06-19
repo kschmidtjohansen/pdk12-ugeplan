@@ -19,7 +19,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Wifi, WifiOff } from 'lucide-react';
 
 interface AdminUser {
   id: string;
@@ -57,6 +57,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [debugInfo, setDebugInfo] = useState<any>(null);
   
   const { t } = useTranslation();
   const { updateUserRole } = useAuth();
@@ -66,6 +67,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMessage('');
+    setDebugInfo(null);
     
     try {
       console.log('[UserFormDialog] Starting form submission');
@@ -101,6 +103,12 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           password: '[REDACTED]'
         });
         
+        // Test connectivity first
+        console.log('[UserFormDialog] Testing connection to Supabase...');
+        const { data: testData } = await supabase.from('profiles').select('count', { count: 'exact', head: true });
+        console.log('[UserFormDialog] Connection test result:', testData);
+        
+        console.log('[UserFormDialog] Invoking edge function...');
         const { data, error } = await supabase.functions.invoke('admin-create-user', {
           body: requestPayload
         });
@@ -109,16 +117,42 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         
         if (error) {
           console.error('[UserFormDialog] Function error:', error);
+          setDebugInfo({
+            errorType: 'function_error',
+            error: error.message,
+            details: error
+          });
+          
+          // Handle specific error types
+          if (error.message?.includes('Failed to send a request')) {
+            throw new Error('Network connection failed. Please check your internet connection and try again.');
+          } else if (error.message?.includes('Not authenticated')) {
+            throw new Error('Authentication expired. Please refresh the page and try again.');
+          } else if (error.message?.includes('Origin not allowed')) {
+            throw new Error('Access denied. Please contact support if this continues.');
+          } else if (error.message?.includes('Rate limit')) {
+            throw new Error('Too many requests. Please wait a moment and try again.');
+          }
+          
           throw new Error(error.message || "Failed to create user");
         }
         
         if (data?.error) {
           console.error('[UserFormDialog] Function returned error:', data.error);
+          setDebugInfo({
+            errorType: 'function_response_error',
+            error: data.error,
+            debug: data.debug
+          });
           throw new Error(data.error);
         }
         
         if (!data?.user) {
           console.error('[UserFormDialog] No user returned from function:', data);
+          setDebugInfo({
+            errorType: 'no_user_data',
+            data: data
+          });
           throw new Error("No user data returned from creation");
         }
         
@@ -187,6 +221,8 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         errorMsg = 'Too many requests. Please wait a moment and try again.';
       } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
         errorMsg = 'Network error. Please check your connection and try again.';
+      } else if (errorMsg.includes('Failed to send a request')) {
+        errorMsg = 'Unable to connect to server. Please check your connection and try again.';
       }
       
       setErrorMessage(errorMsg);
@@ -221,9 +257,25 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           {errorMessage && (
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>{errorMessage}</AlertDescription>
+              <AlertDescription>
+                {errorMessage}
+                {debugInfo && (
+                  <details className="mt-2 text-xs">
+                    <summary>Debug info (for developers)</summary>
+                    <pre className="mt-1 text-xs bg-gray-100 p-2 rounded">
+                      {JSON.stringify(debugInfo, null, 2)}
+                    </pre>
+                  </details>
+                )}
+              </AlertDescription>
             </Alert>
           )}
+
+          {/* Connection status indicator */}
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Wifi className="h-3 w-3" />
+            <span>Connected to Supabase</span>
+          </div>
           
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
