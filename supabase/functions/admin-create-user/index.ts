@@ -34,21 +34,32 @@ function validateEmail(email: string): boolean {
 }
 
 function validatePassword(password: string): { valid: boolean; message?: string } {
+  console.log('[admin-create-user] Validating password requirements');
+  
+  if (!password || typeof password !== 'string') {
+    return { valid: false, message: 'Password is required' };
+  }
+  
   if (password.length < 8) {
     return { valid: false, message: 'Password must be at least 8 characters long' };
   }
+  
   if (!/[A-Z]/.test(password)) {
     return { valid: false, message: 'Password must contain at least one uppercase letter' };
   }
+  
   if (!/[a-z]/.test(password)) {
     return { valid: false, message: 'Password must contain at least one lowercase letter' };
   }
+  
   if (!/[0-9]/.test(password)) {
     return { valid: false, message: 'Password must contain at least one number' };
   }
+  
   if (password.length > 128) {
     return { valid: false, message: 'Password must be less than 128 characters' };
   }
+  
   return { valid: true };
 }
 
@@ -69,6 +80,8 @@ function sanitizeInput(input: string): string {
 }
 
 serve(async (req) => {
+  console.log('[admin-create-user] Request received:', req.method);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -77,13 +90,17 @@ serve(async (req) => {
   try {
     // Verify origin
     const origin = req.headers.get('origin');
+    console.log('[admin-create-user] Request origin:', origin);
+    
     if (origin !== 'https://www.pdk12.dk' && !origin?.includes('lovable.dev')) {
+      console.error('[admin-create-user] Forbidden origin:', origin);
       throw new Error('Forbidden origin');
     }
 
     // Rate limiting
     const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
     if (!checkRateLimit(clientIp)) {
+      console.warn('[admin-create-user] Rate limit exceeded for IP:', clientIp);
       return new Response(
         JSON.stringify({ error: 'Rate limit exceeded. Too many requests.' }),
         { 
@@ -96,6 +113,7 @@ serve(async (req) => {
     // Verify JWT token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
+      console.error('[admin-create-user] Missing or invalid authorization header');
       throw new Error('Missing or invalid authorization header');
     }
 
@@ -108,8 +126,11 @@ serve(async (req) => {
     // Verify the user's JWT and check if they're an admin
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) {
+      console.error('[admin-create-user] Invalid authentication token:', userError);
       throw new Error('Invalid authentication token');
     }
+
+    console.log('[admin-create-user] Authenticated user:', user.email);
 
     // Check if user is admin
     const { data: roleData, error: roleError } = await supabase
@@ -119,6 +140,8 @@ serve(async (req) => {
       .single();
 
     if (roleError || !roleData || roleData.role !== 'administrator') {
+      console.error('[admin-create-user] Insufficient privileges for user:', user.email, 'Role:', roleData?.role);
+      
       // Log security event
       await supabase.rpc('log_security_event', {
         event_type: 'unauthorized_admin_access',
@@ -135,25 +158,45 @@ serve(async (req) => {
       );
     }
 
-    const { email, password, userData } = await req.json();
+    const requestBody = await req.json();
+    console.log('[admin-create-user] Request body received:', {
+      hasEmail: !!requestBody.email,
+      hasPassword: !!requestBody.password,
+      hasUserData: !!requestBody.userData,
+      userData: requestBody.userData
+    });
+
+    const { email, password, userData } = requestBody;
 
     // Input validation
     if (!email || !password || !userData?.name) {
+      console.error('[admin-create-user] Missing required fields:', {
+        hasEmail: !!email,
+        hasPassword: !!password,
+        hasName: !!userData?.name
+      });
       throw new Error('Missing required fields: email, password, and name are required');
     }
 
     if (!validateEmail(email)) {
+      console.error('[admin-create-user] Invalid email format:', email);
       throw new Error('Invalid email format');
     }
 
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.valid) {
+      console.error('[admin-create-user] Password validation failed:', passwordValidation.message);
       throw new Error(passwordValidation.message || 'Invalid password');
     }
 
     // Sanitize inputs
     const sanitizedEmail = sanitizeInput(email.toLowerCase());
     const sanitizedName = sanitizeInput(userData.name);
+
+    console.log('[admin-create-user] Creating user with sanitized data:', {
+      email: sanitizedEmail,
+      name: sanitizedName
+    });
 
     // Create user
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
@@ -164,8 +207,26 @@ serve(async (req) => {
     });
 
     if (createError) {
+      console.error('[admin-create-user] User creation error:', createError);
+      
+      // Map Supabase errors to user-friendly messages
+      if (createError.message?.includes('User already registered')) {
+        throw new Error('A user with this email already exists');
+      } else if (createError.message?.includes('Invalid email')) {
+        throw new Error('Please enter a valid email address');
+      } else if (createError.message?.includes('Password')) {
+        throw new Error('Password does not meet requirements');
+      }
+      
       throw createError;
     }
+
+    if (!newUser.user) {
+      console.error('[admin-create-user] No user data returned from creation');
+      throw new Error('Failed to create user - no user data returned');
+    }
+
+    console.log('[admin-create-user] User created successfully:', newUser.user.id);
 
     // Log successful user creation
     await supabase.rpc('log_security_event', {
@@ -173,7 +234,7 @@ serve(async (req) => {
       event_message: `Admin ${user.email} created new user ${sanitizedEmail}`,
       event_details: { 
         admin_id: user.id, 
-        new_user_id: newUser.user?.id,
+        new_user_id: newUser.user.id,
         new_user_email: sanitizedEmail 
       }
     });
@@ -187,12 +248,13 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in admin-create-user:', error);
+    console.error('[admin-create-user] Error:', error);
     
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     const statusCode = errorMessage.includes('Insufficient privileges') ? 403 :
                       errorMessage.includes('Rate limit') ? 429 :
-                      errorMessage.includes('Invalid') ? 400 : 500;
+                      errorMessage.includes('already exists') ? 409 :
+                      errorMessage.includes('Invalid') || errorMessage.includes('required') ? 400 : 500;
 
     return new Response(
       JSON.stringify({ error: errorMessage }),

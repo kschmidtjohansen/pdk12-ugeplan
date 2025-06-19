@@ -17,6 +17,9 @@ import { Employee } from '@/types/employee';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
+import { PasswordInput } from '@/components/ui/password-input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 
 interface AdminUser {
   id: string;
@@ -52,6 +55,8 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
 }) => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
   const { t } = useTranslation();
   const { updateUserRole } = useAuth();
@@ -60,34 +65,64 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage('');
     
     try {
+      console.log('[UserFormDialog] Starting form submission');
+      console.log('[UserFormDialog] Form data:', {
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        hasPassword: !!password,
+        passwordLength: password.length,
+        isEditing: !!currentUser
+      });
+
       if (!currentUser) {
-        // Creating a new user
-        if (password.length < 6) {
-          toast({
-            title: t('common.error'),
-            description: t('admin.passwords.passwordTooShort'),
-            variant: "destructive",
-          });
+        // Creating a new user - validate password
+        if (!isPasswordValid) {
+          setErrorMessage('Password must meet all requirements: at least 8 characters with uppercase, lowercase, and number');
           setIsSubmitting(false);
           return;
         }
         
-        // Use the admin-create-user edge function instead of register to avoid session conflicts
-        const { data, error } = await supabase.functions.invoke('admin-create-user', {
-          body: { 
-            email: formData.email, 
-            password: password,
-            userData: {
-              name: formData.name
-            }
+        console.log('[UserFormDialog] Calling admin-create-user function');
+        
+        const requestPayload = { 
+          email: formData.email, 
+          password: password,
+          userData: {
+            name: formData.name
           }
+        };
+        
+        console.log('[UserFormDialog] Request payload:', {
+          ...requestPayload,
+          password: '[REDACTED]'
         });
         
-        if (error || !data?.user) {
-          throw new Error(error || "Failed to create user");
+        const { data, error } = await supabase.functions.invoke('admin-create-user', {
+          body: requestPayload
+        });
+        
+        console.log('[UserFormDialog] Function response:', { data, error });
+        
+        if (error) {
+          console.error('[UserFormDialog] Function error:', error);
+          throw new Error(error.message || "Failed to create user");
         }
+        
+        if (data?.error) {
+          console.error('[UserFormDialog] Function returned error:', data.error);
+          throw new Error(data.error);
+        }
+        
+        if (!data?.user) {
+          console.error('[UserFormDialog] No user returned from function:', data);
+          throw new Error("No user data returned from creation");
+        }
+        
+        console.log('[UserFormDialog] User created successfully:', data.user.id);
         
         // Wait a brief moment for the user to be created and the trigger to run
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -97,8 +132,12 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         
         // Update the user's role if it's not the default
         if (formData.role !== 'servicemedarbejder') {
+          console.log('[UserFormDialog] Updating user role to:', formData.role);
           const { error: roleError } = await updateUserRole(userId, formData.role);
-          if (roleError) throw new Error(roleError);
+          if (roleError) {
+            console.error('[UserFormDialog] Role update error:', roleError);
+            throw new Error(roleError);
+          }
         }
       } else {
         // Updating an existing user
@@ -130,7 +169,28 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           : t('admin.userManagement.createSuccess'),
       });
     } catch (error) {
-      console.error('Error saving user:', error);
+      console.error('[UserFormDialog] Error saving user:', error);
+      
+      let errorMsg = 'An unexpected error occurred';
+      if (error instanceof Error) {
+        errorMsg = error.message;
+      }
+      
+      // Map common errors to user-friendly messages
+      if (errorMsg.includes('User already registered')) {
+        errorMsg = 'A user with this email already exists';
+      } else if (errorMsg.includes('Invalid email')) {
+        errorMsg = 'Please enter a valid email address';
+      } else if (errorMsg.includes('Password')) {
+        errorMsg = 'Password does not meet requirements';
+      } else if (errorMsg.includes('rate limit')) {
+        errorMsg = 'Too many requests. Please wait a moment and try again.';
+      } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+        errorMsg = 'Network error. Please check your connection and try again.';
+      }
+      
+      setErrorMessage(errorMsg);
+      
       toast({
         title: t('common.error'),
         description: currentUser 
@@ -155,8 +215,16 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
             : t('admin.userManagement.createAccount')}
         </DialogDescription>
       </DialogHeader>
+      
       <form onSubmit={handleFormSubmit}>
         <div className="grid gap-4 py-4">
+          {errorMessage && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
+          
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
               {t('admin.userManagement.fullName')}
@@ -170,6 +238,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
               required
             />
           </div>
+          
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="email" className="text-right">
               {t('admin.userManagement.email')}
@@ -238,27 +307,33 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           </div>
           
           {!currentUser && (
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="password" className="text-right">
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="password" className="text-right pt-2">
                 {t('common.password')}
               </Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="col-span-3"
-                required={!currentUser}
-                autoComplete="new-password"
-              />
+              <div className="col-span-3">
+                <PasswordInput
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required={!currentUser}
+                  autoComplete="new-password"
+                  showStrengthIndicator={true}
+                  onValidationChange={setIsPasswordValid}
+                />
+              </div>
             </div>
           )}
         </div>
+        
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>
             {t('common.cancel')}
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting || (!currentUser && !isPasswordValid)}
+          >
             {isSubmitting 
               ? t('common.loading') 
               : currentUser
