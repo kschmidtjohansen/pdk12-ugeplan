@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Assignment } from '@/types/assignment';
 
@@ -26,9 +25,9 @@ class OptimizedAssignmentService {
       return cached.data;
     }
 
-    console.log('[OptimizedAssignmentService] Fetching assignments with optimized query...');
+    console.log('[OptimizedAssignmentService] Fetching assignments with fixed query...');
     
-    // Fetch assignments with joins in a single query
+    // FIXED: Remove the broken join syntax that was causing silent failures
     let assignmentQuery = supabase
       .from('assignments')
       .select(`
@@ -44,11 +43,7 @@ class OptimizedAssignmentService {
         published,
         responsible_user_id,
         created_at,
-        updated_at,
-        responsible_user:responsible_user_id (
-          id,
-          name
-        )
+        updated_at
       `)
       .order('assignment_date', { ascending: true });
 
@@ -57,17 +52,24 @@ class OptimizedAssignmentService {
     }
 
     const { data: assignments, error: assignmentError } = await assignmentQuery;
-    if (assignmentError) throw assignmentError;
+    if (assignmentError) {
+      console.error('[OptimizedAssignmentService] Assignment query error:', assignmentError);
+      throw assignmentError;
+    }
 
     if (!assignments || assignments.length === 0) {
+      console.log('[OptimizedAssignmentService] No assignments found');
       const emptyData = { assignments: [], employeeLookup: new Map(), carLookup: new Map() };
       this.cache.set(cacheKey, { data: emptyData, timestamp: Date.now() });
       return emptyData;
     }
 
+    console.log(`[OptimizedAssignmentService] Successfully fetched ${assignments.length} assignments`);
+
     // Batch fetch all related data in parallel
     const assignmentIds = assignments.map(a => a.id);
     const allCarIds = new Set<string>();
+    const responsibleUserIds = new Set<string>();
     
     assignments.forEach(assignment => {
       if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
@@ -76,10 +78,13 @@ class OptimizedAssignmentService {
       if (assignment.car_id) {
         allCarIds.add(assignment.car_id);
       }
+      if (assignment.responsible_user_id) {
+        responsibleUserIds.add(assignment.responsible_user_id);
+      }
     });
 
     // Parallel queries for optimal performance
-    const [employeeResult, carResult] = await Promise.all([
+    const [employeeResult, carResult, responsibleUsersResult] = await Promise.all([
       // Fetch assignment-employee relationships
       supabase
         .from('assignments_employees')
@@ -90,11 +95,27 @@ class OptimizedAssignmentService {
       allCarIds.size > 0 ? supabase
         .from('cars')
         .select('id, name, car_number')
-        .in('id', Array.from(allCarIds)) : { data: [], error: null }
+        .in('id', Array.from(allCarIds)) : { data: [], error: null },
+
+      // FIXED: Fetch responsible users separately (not as a join)
+      responsibleUserIds.size > 0 ? supabase
+        .from('profiles')
+        .select('id, name')
+        .in('id', Array.from(responsibleUserIds)) : { data: [], error: null }
     ]);
 
-    if (employeeResult.error) throw employeeResult.error;
-    if (carResult.error) throw carResult.error;
+    if (employeeResult.error) {
+      console.error('[OptimizedAssignmentService] Employee result error:', employeeResult.error);
+      throw employeeResult.error;
+    }
+    if (carResult.error) {
+      console.error('[OptimizedAssignmentService] Car result error:', carResult.error);
+      throw carResult.error;
+    }
+    if (responsibleUsersResult.error) {
+      console.error('[OptimizedAssignmentService] Responsible users error:', responsibleUsersResult.error);
+      throw responsibleUsersResult.error;
+    }
 
     // Get all unique user IDs from assignments_employees
     const userIds = employeeResult.data ? [...new Set(employeeResult.data.map(ae => ae.user_id))] : [];
@@ -107,7 +128,10 @@ class OptimizedAssignmentService {
           .in('id', userIds)
       : { data: [], error: null };
 
-    if (profilesError) throw profilesError;
+    if (profilesError) {
+      console.error('[OptimizedAssignmentService] Profiles error:', profilesError);
+      throw profilesError;
+    }
 
     // Build lookup maps for O(1) access
     const employeeLookup = new Map<string, string[]>();
@@ -119,6 +143,16 @@ class OptimizedAssignmentService {
       profiles.forEach(profile => {
         if (profile && typeof profile === 'object' && 'id' in profile && 'name' in profile) {
           profilesMap.set(profile.id, profile as Profile);
+        }
+      });
+    }
+
+    // Create responsible users map
+    const responsibleUsersMap = new Map<string, Profile>();
+    if (responsibleUsersResult.data) {
+      responsibleUsersResult.data.forEach(user => {
+        if (user && typeof user === 'object' && 'id' in user && 'name' in user) {
+          responsibleUsersMap.set(user.id, user as Profile);
         }
       });
     }
@@ -164,6 +198,13 @@ class OptimizedAssignmentService {
         }
       }
 
+      // FIXED: Properly lookup responsible user from the separate fetch
+      const responsibleUser = assignment.responsible_user_id 
+        ? responsibleUsersMap.get(assignment.responsible_user_id)
+        : null;
+
+      console.log(`[OptimizedAssignmentService] Assignment "${assignment.title}": employees=[${assignmentEmployees.join(', ')}], responsibleUser=${responsibleUser?.name || 'none'}`);
+
       return {
         id: assignment.id,
         title: assignment.title,
@@ -176,12 +217,14 @@ class OptimizedAssignmentService {
         cars: carsArray,
         employees: assignmentEmployees,
         published: assignment.published || false,
-        responsibleUser: assignment.responsible_user ? {
-          id: assignment.responsible_user.id,
-          name: assignment.responsible_user.name
+        responsibleUser: responsibleUser ? {
+          id: responsibleUser.id,
+          name: responsibleUser.name
         } : null
       };
     });
+
+    console.log(`[OptimizedAssignmentService] Successfully transformed ${processedAssignments.length} assignments with complete data`);
 
     const optimizedData = {
       assignments: processedAssignments,
