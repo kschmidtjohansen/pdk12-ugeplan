@@ -20,3 +20,20 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     }
   }
 })
+
+// Helper function to ensure valid session
+export const ensureValidSession = async (): Promise<boolean> => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error('Session validation error:', error);
+      return false;
+    }
+    
+    return !!session?.user;
+  } catch (error) {
+    console.error('Error checking session:', error);
+    return false;
+  }
+};
