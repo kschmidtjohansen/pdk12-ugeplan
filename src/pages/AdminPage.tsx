@@ -14,34 +14,30 @@ import { SystemCleanupPanel } from '@/components/Admin/SystemCleanupPanel';
 import { SecurityAuditPanel } from '@/components/Admin/SecurityAuditPanel';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
 import PasswordResetDebugger from '@/components/Admin/PasswordResetDebugger';
-
 const AdminPage: React.FC = () => {
-  const { user, loading } = useAuth();
-  const { t } = useTranslation();
-
+  const {
+    user,
+    loading
+  } = useAuth();
+  const {
+    t
+  } = useTranslation();
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
+    return <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+      </div>;
   }
-
   if (!user || user.role !== 'administrator') {
-    return (
-      <div className="container mx-auto px-4 py-8">
+    return <div className="container mx-auto px-4 py-8">
         <Alert variant="destructive">
           <Shield className="h-4 w-4" />
           <AlertDescription>
             {t('accessDenied.message')}
           </AlertDescription>
         </Alert>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="container mx-auto px-4 py-8">
+  return <div className="container mx-auto px-4 py-8">
       <VacationCleanupHandler />
       
       <div className="space-y-6">
@@ -60,10 +56,7 @@ const AdminPage: React.FC = () => {
               <Lock className="h-4 w-4" />
               <span>Security</span>
             </TabsTrigger>
-            <TabsTrigger value="debug" className="flex items-center space-x-2">
-              <Bug className="h-4 w-4" />
-              <span>Debug</span>
-            </TabsTrigger>
+            
             <TabsTrigger value="cleanup" className="flex items-center space-x-2">
               <Trash2 className="h-4 w-4" />
               <span>{t('admin.tabs.cleanup')}</span>
@@ -72,10 +65,7 @@ const AdminPage: React.FC = () => {
               <Activity className="h-4 w-4" />
               <span>{t('admin.tabs.diagnostics')}</span>
             </TabsTrigger>
-            <TabsTrigger value="performance" className="flex items-center space-x-2">
-              <Zap className="h-4 w-4" />
-              <span>{t('admin.tabs.performance')}</span>
-            </TabsTrigger>
+            
             <TabsTrigger value="users" className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
               <span>{t('admin.tabs.users')}</span>
@@ -84,10 +74,7 @@ const AdminPage: React.FC = () => {
               <Shield className="h-4 w-4" />
               <span>{t('admin.tabs.security')}</span>
             </TabsTrigger>
-            <TabsTrigger value="system" className="flex items-center space-x-2">
-              <Settings className="h-4 w-4" />
-              <span>{t('admin.tabs.system')}</span>
-            </TabsTrigger>
+            
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -187,8 +174,6 @@ const AdminPage: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default AdminPage;
