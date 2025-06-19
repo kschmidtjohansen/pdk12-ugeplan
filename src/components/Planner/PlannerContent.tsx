@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
@@ -17,6 +18,7 @@ import { Monitor } from 'lucide-react';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
+  operationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment: (assignmentId: string) => void;
@@ -31,6 +33,7 @@ interface PlannerContentProps {
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
   weekAssignments = [],
+  operationStates = {},
   onEditAssignment,
   onDeleteAssignment,
   onPublishAssignment,
@@ -42,49 +45,18 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   weekDates,
   handleShowOnScreen
 }) => {
-  const {
-    t
-  } = useTranslation();
-  const {
-    canEdit,
-    canPublishTasks
-  } = usePermissions();
-  const {
-    employees
-  } = useEmployees();
-  const {
-    cars
-  } = useCars();
-  const {
-    vacations
-  } = useVacations();
+  const { t } = useTranslation();
+  const { canEdit, canPublishTasks } = usePermissions();
+  const { employees } = useEmployees();
+  const { cars } = useCars();
+  const { vacations } = useVacations();
 
-  // DEBUGGING: Log assignments received by PlannerContent
-  console.log(`[PlannerContent] Received ${weekAssignments.length} week assignments:`);
-  weekAssignments.forEach((assignment: Assignment, index: number) => {
-    console.log(`  Assignment ${index + 1}: ${assignment.location}`);
-    console.log(`    - ID: ${assignment.id}`);
-    console.log(`    - Employees:`, assignment.employees);
-    console.log(`    - Employee count:`, assignment.employees?.length || 0);
-    console.log(`    - Published:`, assignment.published);
-    console.log(`    - Assignment object:`, assignment);
-  });
-  const isMobile = window.innerWidth < 768;
+  console.log(`[PlannerContent] Received ${weekAssignments.length} week assignments with operation states:`, operationStates);
 
   // Group assignments by day
   const groupedAssignments = useMemo(() => {
     const grouped = groupAssignmentsByDay(weekAssignments || []);
-
-    // DEBUGGING: Log grouped assignments
     console.log(`[PlannerContent] Grouped assignments:`, grouped);
-    Object.entries(grouped).forEach(([date, assignments]: [string, Assignment[]]) => {
-      console.log(`  Date ${date}: ${assignments.length} assignments`);
-      assignments.forEach((assignment: Assignment, index: number) => {
-        console.log(`    Assignment ${index + 1}: ${assignment.location}`);
-        console.log(`      - Employees:`, assignment.employees);
-        console.log(`      - Employee count:`, assignment.employees?.length || 0);
-      });
-    });
     return grouped;
   }, [weekAssignments]);
 
@@ -117,15 +89,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   const todayStr = format(today, 'yyyy-MM-dd');
 
   // Split dates into past and current/future
-  const {
-    pastDates,
-    currentAndFutureDates
-  } = useMemo(() => {
+  const { pastDates, currentAndFutureDates } = useMemo(() => {
     if (!Array.isArray(weekDateStrings)) {
-      return {
-        pastDates: [],
-        currentAndFutureDates: []
-      };
+      return { pastDates: [], currentAndFutureDates: [] };
     }
     return weekDateStrings.reduce<{
       pastDates: string[];
@@ -146,10 +112,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         console.error(`Error parsing date: ${dateStr}`, error);
       }
       return result;
-    }, {
-      pastDates: [],
-      currentAndFutureDates: []
-    });
+    }, { pastDates: [], currentAndFutureDates: [] });
   }, [weekDateStrings, today]);
 
   if (Array.isArray(weekAssignments) && weekAssignments.length === 0 && !canEdit) {
@@ -158,7 +121,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
 
   return (
     <div className="space-y-6 pb-6">
-      {/* Unassigned Resources Section for admin/skadeleder only */}
+      {/* Unassigned Resources Section */}
       {(canEdit || canPublishTasks) && (
         <UnassignedResourcesSection 
           assignments={weekAssignments}
@@ -185,6 +148,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       <CurrentAndFutureDays 
         dates={currentAndFutureDates || []}
         groupedAssignments={groupedAssignments || {}}
+        operationStates={operationStates}
         expandedDays={expandedDays}
         onToggleExpansion={handleToggleExpansion}
         onPublishDay={onPublishDay}
@@ -200,6 +164,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       <PastAssignments 
         pastDates={pastDates || []}
         groupedAssignments={groupedAssignments || {}}
+        operationStates={operationStates}
         expandedDays={expandedDays}
         onToggleExpansion={handleToggleExpansion}
         onPublishDay={onPublishDay}

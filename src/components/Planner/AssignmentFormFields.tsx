@@ -95,13 +95,21 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     }
   };
 
-  // Handle date selection with proper timezone handling
+  // FIXED: Handle date selection with proper timezone handling
   const handleDateSelect = (date: Date | undefined) => {
-    console.log('[AssignmentFormFields] Date selected:', date);
+    console.log('[AssignmentFormFields] Date selected from calendar:', date);
     if (date) {
-      // Ensure we're working with the correct date by creating a new date in local timezone
-      const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      console.log('[AssignmentFormFields] Local date created:', localDate);
+      // Create a new date in local timezone to avoid timezone shift issues
+      // Use the date's year, month, and day components directly
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const day = date.getDate();
+      
+      // Create new date using local timezone components
+      const localDate = new Date(year, month, day);
+      console.log('[AssignmentFormFields] Created local date:', localDate);
+      console.log('[AssignmentFormFields] Local date ISO string:', localDate.toISOString().split('T')[0]);
+      
       setSelectedDate(localDate);
     } else {
       setSelectedDate(undefined);
@@ -174,7 +182,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       </div>
 
-      {/* Date Field with Enhanced Calendar */}
+      {/* FIXED: Date Field with Enhanced Calendar and timezone fix */}
       <div className="space-y-2">
         <Label>{t('planner.assignmentDate')}</Label>
         <Popover>

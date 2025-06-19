@@ -2,7 +2,7 @@
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
-import { useAssignmentsConsolidated } from './useAssignmentsConsolidated';
+import { useOptimizedAssignments } from './useOptimizedAssignments';
 import { 
   getWeekDates, 
   getCurrentWeekInfo, 
@@ -22,25 +22,27 @@ export const usePlannerPage = () => {
   // State to track the selected week number and year
   const [selectedWeek, setSelectedWeek] = useState(currentWeekInfo.week);
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
+  // Use the optimized assignments hook
   const { 
     assignments, 
+    loading,
+    error,
+    operationStates,
     createAssignment, 
     updateAssignment,
     deleteAssignment,
     publishAssignment,
-    publishAssignmentsByDate,
-    isDialogOpen,
-    setIsDialogOpen
-  } = useAssignmentsConsolidated({ filter: 'planner' });
+    publishAssignmentsByDate
+  } = useOptimizedAssignments({ filter: 'planner' });
 
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
 
-  // FIXED: Always get a fresh today's date - recalculate each time to ensure it updates daily
+  // FIXED: Always get a fresh today's date
   const getFreshToday = useCallback(() => {
     const now = new Date();
-    // Force fresh calculation and proper timezone handling
     return format(now, 'yyyy-MM-dd');
   }, []);
   
@@ -84,19 +86,16 @@ export const usePlannerPage = () => {
     setSelectedYear(year);
   }, [selectedWeek, selectedYear]);
 
-  // Handle assignment creation/editing - always use the current date if no date provided
+  // Handle assignment creation
   const handleOpenCreateDialog = useCallback((date: string) => {
-    console.log('[usePlannerPage] ===== OPENING CREATE DIALOG =====');
     console.log('[usePlannerPage] Opening CREATE dialog for date:', date);
     
     setCurrentAssignment(null);
     
-    // FIXED: Ensure we have a valid date - use provided date or fresh today's date
     const freshTodayDate = getFreshToday();
     const taskDate = date && date.trim() !== '' ? date : freshTodayDate;
     setSelectedDay(taskDate);
     
-    // Set form data in one update to avoid race conditions
     const newFormData = {
       title: '',
       description: '',
@@ -110,26 +109,16 @@ export const usePlannerPage = () => {
     
     console.log('[usePlannerPage] Setting form data for CREATE:', newFormData);
     setFormData(newFormData);
-    
-    console.log('[usePlannerPage] Setting dialog open to true for CREATE');
     setIsDialogOpen(true);
-  }, [setIsDialogOpen, getFreshToday]);
+  }, [getFreshToday]);
 
-  // FIXED: Properly handle edit dialog opening with enhanced debugging
+  // Handle assignment editing
   const handleOpenEditDialog = useCallback((assignment: Assignment) => {
-    console.log('[usePlannerPage] ===== EDIT DIALOG OPENING =====');
-    console.log('[usePlannerPage] Assignment received:', assignment);
-    console.log('[usePlannerPage] Assignment ID:', assignment.id);
-    console.log('[usePlannerPage] Assignment title:', assignment.title);
-    console.log('[usePlannerPage] Assignment published status:', assignment.published);
-    console.log('[usePlannerPage] Assignment employees:', assignment.employees);
-    console.log('[usePlannerPage] Assignment car:', assignment.car);
+    console.log('[usePlannerPage] Opening EDIT dialog for assignment:', assignment.id);
     
     setCurrentAssignment(assignment);
     setSelectedDay(assignment.date);
     
-    // Set form data at once to avoid multiple renders
-    // Make sure to preserve the employees and car data properly
     const editFormData = {
       ...assignment,
       employees: Array.isArray(assignment.employees) ? [...assignment.employees] : [],
@@ -138,30 +127,21 @@ export const usePlannerPage = () => {
     
     console.log('[usePlannerPage] Setting form data for edit:', editFormData);
     setFormData(editFormData);
-    
-    console.log('[usePlannerPage] Setting dialog open to true for EDIT');
     setIsDialogOpen(true);
-    
-    console.log('[usePlannerPage] Current dialog state should be true:', true);
-  }, [setIsDialogOpen]);
+  }, []);
 
-  // New function to handle copying an assignment
+  // Handle copying an assignment
   const handleCopyAssignment = useCallback((assignment: Assignment) => {
-    console.log('[usePlannerPage] ===== OPENING COPY DIALOG =====');
     console.log('[usePlannerPage] Opening COPY dialog for assignment:', assignment.id);
     
-    // Set the assignment to be copied
     setCurrentAssignment(null);
     
-    // Set selected day to the current day (but this will be changed by the user)
     const freshTodayDate = getFreshToday();
     setSelectedDay(freshTodayDate);
     
-    // Pre-fill the form with the assignment data but change the date to today
-    // and mark as unpublished
     const copyFormData = {
       ...assignment,
-      id: undefined,  // Remove the ID to force creation of a new assignment
+      id: undefined,
       date: freshTodayDate,
       published: false,
       employees: Array.isArray(assignment.employees) ? [...assignment.employees] : [],
@@ -171,51 +151,27 @@ export const usePlannerPage = () => {
     console.log('[usePlannerPage] Setting form data for COPY:', copyFormData);
     setFormData(copyFormData);
     
-    // Show a success toast with proper translation
     toast({
       title: t('planner.copyAssignment'),
       description: t('planner.selectDateForCopy')
     });
     
-    // Open the dialog to let the user select a new date
     setIsDialogOpen(true);
-  }, [setIsDialogOpen, toast, t, getFreshToday]);
+  }, [toast, t, getFreshToday]);
 
-  // FIXED: Handle form submission with proper unpublishing for edits and enhanced debugging
-  const handleSubmit = useCallback((data: Partial<Assignment>) => {
+  // Handle form submission with proper optimistic updates
+  const handleSubmit = useCallback(async (data: Partial<Assignment>) => {
     try {
-      console.log('[usePlannerPage] ===== FORM SUBMISSION =====');
       console.log('[usePlannerPage] Submitting form with data:', data);
-      console.log('[usePlannerPage] Current assignment:', currentAssignment);
-      console.log('[usePlannerPage] Form data received:', {
-        title: data.title,
-        location: data.location,
-        date: data.date,
-        employees: data.employees,
-        car: data.car
-      });
       
       if (currentAssignment) {
-        // Editing existing assignment - automatically unpublish
-        const unpublishedData = {
-          ...data,
-          published: false // Always unpublish when editing
-        };
-        console.log('[usePlannerPage] EDITING - Data with unpublished status:', unpublishedData);
-        console.log('[usePlannerPage] Original assignment published status:', currentAssignment.published);
-        console.log('[usePlannerPage] New assignment will be published:', false);
-        
-        updateAssignment(currentAssignment.id, unpublishedData);
+        // Editing existing assignment
+        console.log('[usePlannerPage] EDITING assignment:', currentAssignment.id);
+        await updateAssignment(currentAssignment.id, data);
       } else {
-        // This handles both new assignments and copied assignments
-        const newAssignment = {
-          ...data,
-          id: Date.now().toString(),
-          published: false
-        } as Assignment;
-        
-        console.log('[usePlannerPage] CREATING new assignment:', newAssignment);
-        createAssignment(newAssignment);
+        // Creating new assignment
+        console.log('[usePlannerPage] CREATING new assignment');
+        await createAssignment(data);
       }
       
       console.log('[usePlannerPage] Closing dialog after submission');
@@ -223,17 +179,16 @@ export const usePlannerPage = () => {
     } catch (error) {
       console.error('[usePlannerPage] Error in handleSubmit:', error);
     }
-  }, [currentAssignment, createAssignment, updateAssignment, setIsDialogOpen]);
+  }, [currentAssignment, createAssignment, updateAssignment]);
 
-  // FIXED: Publish day function that accepts date parameter
+  // Publish day function
   const handlePublishDay = useCallback((date: string) => {
     console.log('[usePlannerPage] Publishing day:', date);
     publishAssignmentsByDate(date);
   }, [publishAssignmentsByDate]);
 
-  // New function to publish all unpublished assignments
+  // Publish all unpublished assignments
   const handlePublishAllUnpublished = useCallback(() => {
-    // This functionality would need to be implemented in the consolidated hook
     toast({
       title: t('common.info'),
       description: 'Publish all unpublished functionality not yet implemented'
@@ -245,6 +200,10 @@ export const usePlannerPage = () => {
     selectedYear,
     weekDates,
     weekAssignments,
+    assignments,
+    loading,
+    error,
+    operationStates,
     isDialogOpen,
     setIsDialogOpen,
     currentAssignment,

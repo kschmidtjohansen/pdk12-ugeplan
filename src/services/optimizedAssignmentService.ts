@@ -80,7 +80,7 @@ class OptimizedAssignmentService {
 
     // Parallel queries for optimal performance
     const [employeeResult, carResult] = await Promise.all([
-      // Fetch assignment-employee relationships with profile data using separate queries
+      // Fetch assignment-employee relationships
       supabase
         .from('assignments_employees')
         .select('assignment_id, user_id')
@@ -208,7 +208,186 @@ class OptimizedAssignmentService {
     }
   }
 
-  // Optimistic update methods
+  // Optimistic create method
+  async createAssignmentOptimistic(assignmentData: Partial<Assignment>): Promise<boolean> {
+    console.log('[OptimizedAssignmentService] Creating assignment optimistically:', assignmentData);
+    
+    try {
+      // Format responsible user ID
+      let responsibleUserId = null;
+      if (assignmentData.responsibleUser) {
+        if (typeof assignmentData.responsibleUser === 'string') {
+          responsibleUserId = assignmentData.responsibleUser;
+        } else if (typeof assignmentData.responsibleUser === 'object') {
+          responsibleUserId = assignmentData.responsibleUser.id;
+        }
+      }
+
+      // Transform car data for database
+      let carId = null;
+      let carIds = null;
+
+      if (assignmentData.car) {
+        if (typeof assignmentData.car === 'string') {
+          carId = assignmentData.car;
+          carIds = [assignmentData.car];
+        } else if (assignmentData.car && typeof assignmentData.car === 'object' && 'id' in assignmentData.car) {
+          carId = assignmentData.car.id;
+          carIds = [assignmentData.car.id];
+        }
+      }
+      
+      // Insert the new assignment
+      const { data: newAssignment, error } = await supabase
+        .from('assignments')
+        .insert({
+          title: assignmentData.title,
+          description: assignmentData.description,
+          location: assignmentData.location,
+          assignment_date: assignmentData.date,
+          from_time: assignmentData.fromTime,
+          to_time: assignmentData.toTime,
+          car_id: carId,
+          car_ids: carIds,
+          responsible_user_id: responsibleUserId,
+          published: assignmentData.published || false,
+          created_at: new Date().toISOString()
+        })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+      
+      // Handle employee assignments
+      if (assignmentData.employees && assignmentData.employees.length > 0 && newAssignment?.id) {
+        const employeeInserts = [];
+        
+        for (const employeeName of assignmentData.employees) {
+          if (typeof employeeName !== 'string' || employeeName.trim() === '') continue;
+          
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('name', employeeName.trim())
+            .single();
+            
+          if (profileError || !profile?.id) continue;
+          
+          employeeInserts.push({
+            assignment_id: newAssignment.id,
+            user_id: profile.id
+          });
+        }
+        
+        if (employeeInserts.length > 0) {
+          await supabase
+            .from('assignments_employees')
+            .insert(employeeInserts);
+        }
+      }
+      
+      // Invalidate cache
+      this.invalidateCache('assignments');
+      return true;
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error creating assignment:', error);
+      return false;
+    }
+  }
+
+  // Optimistic update method
+  async updateAssignmentOptimistic(assignmentId: string, assignmentData: Partial<Assignment>): Promise<boolean> {
+    console.log('[OptimizedAssignmentService] Updating assignment optimistically:', assignmentId);
+    
+    try {
+      // Format responsible user ID
+      let responsibleUserId = null;
+      if (assignmentData.responsibleUser) {
+        if (typeof assignmentData.responsibleUser === 'string') {
+          responsibleUserId = assignmentData.responsibleUser;
+        } else if (typeof assignmentData.responsibleUser === 'object') {
+          responsibleUserId = assignmentData.responsibleUser.id;
+        }
+      }
+
+      // Transform car data for database
+      let carId = null;
+      let carIds = null;
+
+      if (assignmentData.car) {
+        if (typeof assignmentData.car === 'string') {
+          carId = assignmentData.car;
+          carIds = [assignmentData.car];
+        } else if (assignmentData.car && typeof assignmentData.car === 'object' && 'id' in assignmentData.car) {
+          carId = assignmentData.car.id;
+          carIds = [assignmentData.car.id];
+        }
+      }
+      
+      // Update the assignment - ALWAYS unpublish when editing
+      const { error } = await supabase
+        .from('assignments')
+        .update({
+          title: assignmentData.title,
+          description: assignmentData.description,
+          location: assignmentData.location,
+          assignment_date: assignmentData.date,
+          from_time: assignmentData.fromTime,
+          to_time: assignmentData.toTime,
+          car_id: carId,
+          car_ids: carIds,
+          responsible_user_id: responsibleUserId,
+          published: false, // Always unpublish when editing
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', assignmentId);
+
+      if (error) throw error;
+      
+      // Remove existing employee assignments
+      await supabase
+        .from('assignments_employees')
+        .delete()
+        .eq('assignment_id', assignmentId);
+      
+      // Handle employee assignments
+      if (assignmentData.employees && assignmentData.employees.length > 0) {
+        const employeeInserts = [];
+        
+        for (const employeeName of assignmentData.employees) {
+          if (typeof employeeName !== 'string') continue;
+          
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('name', employeeName)
+            .single();
+            
+          if (profileError || !profile?.id) continue;
+          
+          employeeInserts.push({
+            assignment_id: assignmentId,
+            user_id: profile.id
+          });
+        }
+        
+        if (employeeInserts.length > 0) {
+          await supabase
+            .from('assignments_employees')
+            .insert(employeeInserts);
+        }
+      }
+      
+      // Invalidate cache
+      this.invalidateCache('assignments');
+      return true;
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error updating assignment:', error);
+      return false;
+    }
+  }
+
+  // Optimistic publish methods
   async publishAssignmentOptimistic(assignmentId: string): Promise<boolean> {
     console.log('[OptimizedAssignmentService] Publishing assignment optimistically:', assignmentId);
     
@@ -225,6 +404,27 @@ class OptimizedAssignmentService {
       return true;
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error publishing assignment:', error);
+      return false;
+    }
+  }
+
+  async publishAssignmentsByDateOptimistic(date: string): Promise<boolean> {
+    console.log('[OptimizedAssignmentService] Publishing day optimistically:', date);
+    
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .update({ published: true, updated_at: new Date().toISOString() })
+        .eq('assignment_date', date)
+        .eq('published', false);
+
+      if (error) throw error;
+      
+      // Selectively invalidate cache
+      this.invalidateCache('assignments');
+      return true;
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error publishing assignments by date:', error);
       return false;
     }
   }

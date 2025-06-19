@@ -72,7 +72,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           </div>
           <AssignmentStatusBadge isPublished={isPublished} />
           {operationState && (
-            <span className="text-xs text-blue-600 font-medium">
+            <span className="text-xs text-blue-600 font-medium animate-pulse">
               {operationState === 'publishing' && 'Publishing...'}
               {operationState === 'deleting' && 'Deleting...'}
               {operationState === 'updating' && 'Updating...'}

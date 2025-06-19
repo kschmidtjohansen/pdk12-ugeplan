@@ -10,6 +10,7 @@ import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer
 import { Clock, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
+import { Spinner } from '@/components/ui/spinner';
 
 const PlannerPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
@@ -17,11 +18,15 @@ const PlannerPage: React.FC = () => {
   const { employees } = useEmployees();
   const { cars } = useCars();
   const { vacations } = useVacations();
+  
   const {
     selectedWeek,
     selectedYear,
     weekDates,
     weekAssignments,
+    loading,
+    error,
+    operationStates,
     isDialogOpen,
     setIsDialogOpen,
     currentAssignment,
@@ -56,6 +61,28 @@ const PlannerPage: React.FC = () => {
     const screenUrl = `/screen-display?date=${today}`;
     window.open(screenUrl, '_blank', 'fullscreen=yes');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="lg" />
+          <p className="text-lg font-medium text-gray-600">{t('common.loading')}...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600 mb-2">{t('common.error')}</h2>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
@@ -116,16 +143,15 @@ const PlannerPage: React.FC = () => {
                   </Button>
                 </div>
 
-                {/* Create Button - Full width on mobile, auto on larger screens */}
+                {/* Create Assignment Button */}
                 {canCreate && (
                   <Button 
-                    onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} 
+                    onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])}
                     size="sm" 
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-lg min-h-[40px]" 
-                    variant="outline"
+                    className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
                   >
                     <Plus className="h-4 w-4" />
-                    <span className="text-sm font-medium">{t('planner.createNew')}</span>
+                    {t('planner.newAssignment')}
                   </Button>
                 )}
               </div>
@@ -133,40 +159,35 @@ const PlannerPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Planner Content */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          <div className="p-6">
-            <PlannerContent 
-              weekAssignments={weekAssignments} 
-              onEditAssignment={handleOpenEditDialog} 
-              onDeleteAssignment={deleteAssignment} 
-              onPublishAssignment={publishAssignment} 
-              onPublishDay={handlePublishDay} 
-              onCreateAssignment={handleOpenCreateDialog} 
-              onCopyAssignment={handleCopyAssignment} 
-              selectedWeek={selectedWeek} 
-              selectedYear={selectedYear} 
-              weekDates={weekDates}
-              handleShowOnScreen={handleShowOnScreen}
-            />
-          </div>
-        </div>
+        {/* Main Content */}
+        <PlannerContent 
+          weekAssignments={sortedWeekAssignments}
+          operationStates={operationStates}
+          onEditAssignment={handleOpenEditDialog}
+          onDeleteAssignment={deleteAssignment}
+          onPublishAssignment={publishAssignment}
+          onPublishDay={handlePublishDay}
+          onCreateAssignment={handleOpenCreateDialog}
+          onCopyAssignment={handleCopyAssignment}
+          selectedWeek={selectedWeek}
+          selectedYear={selectedYear}
+          weekDates={weekDates}
+          handleShowOnScreen={handleShowOnScreen}
+        />
 
-        <PlannerDialogContainer 
-          isDialogOpen={isDialogOpen} 
-          setIsDialogOpen={setIsDialogOpen} 
-          currentAssignment={currentAssignment} 
-          formData={formData} 
-          setFormData={setFormData} 
-          onSubmit={handleSubmit} 
-          onDelete={deleteAssignment} 
-          onPublish={publishAssignment} 
-          assignments={weekAssignments} 
-          cars={cars}
+        {/* Assignment Dialog */}
+        <PlannerDialogContainer
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          onSubmit={handleSubmit}
+          currentAssignment={currentAssignment}
+          selectedDay={selectedDay}
+          formData={formData}
+          setFormData={setFormData}
           employees={employees}
+          cars={cars}
           vacations={vacations}
-          selectedDay={selectedDay} 
-          onPublishDay={handlePublishDay} 
+          assignments={sortedWeekAssignments}
         />
       </div>
     </div>
