@@ -21,11 +21,9 @@ export const useAssignmentFilters = () => {
   const filterUserAssignments = (assignments: Assignment[], userId: string): Assignment[] => {
     return assignments.filter(assignment => 
       assignment.employees && assignment.employees.some(emp => {
-        if (typeof emp === 'string') {
-          return emp === userId;
-        }
-        // Handle employee object with id property
-        return emp && typeof emp === 'object' && 'id' in emp && emp.id === userId;
+        // Since assignment.employees is string[] (employee names), we compare directly
+        // The userId parameter should actually be the employee name, not the ID
+        return emp === userId;
       })
     );
   };
