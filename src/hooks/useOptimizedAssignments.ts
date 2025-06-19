@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -6,7 +5,6 @@ import { usePermissions } from '@/context/AuthContext';
 import { Assignment } from '@/types/assignment';
 import { optimizedAssignmentService } from '@/services/optimizedAssignmentService';
 import { improvedRealtimeManager } from '@/services/improvedRealtimeManager';
-import { Button } from '@/components/ui/button';
 
 interface UseOptimizedAssignmentsProps {
   filter?: 'all' | 'dashboard' | 'planner';
@@ -47,16 +45,7 @@ export const useOptimizedAssignments = ({
         toast({
           title: t('common.error'),
           description: t('planner.fetchError'),
-          variant: 'destructive',
-          action: (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => fetchAssignments()}
-            >
-              Retry
-            </Button>
-          )
+          variant: 'destructive'
         });
       }
     } finally {
