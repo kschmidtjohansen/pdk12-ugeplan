@@ -76,6 +76,7 @@ serve(async (req) => {
     const isDev = origin?.includes('localhost') || 
                   origin?.includes('lovable.dev') || 
                   origin?.includes('lovableproject.com') ||
+                  origin?.includes('lovable.app') ||
                   origin?.includes('127.0.0.1');
     const isAllowedOrigin = allowedOrigins.includes(origin || '') || isDev;
     
