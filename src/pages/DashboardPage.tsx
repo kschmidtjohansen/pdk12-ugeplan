@@ -23,7 +23,9 @@ const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
   const { user } = useAuth();
-  const userId = user?.id;
+  
+  // FIXED: Use user.name instead of user.id for filtering assignments
+  const userName = user?.name;
   const { employees } = useEmployees();
   const { cars } = useCars();
   const { vacations } = useVacations();
@@ -32,7 +34,7 @@ const DashboardPage: React.FC = () => {
   const currentWeekInfo = getCurrentWeekInfo();
   const [selectedWeek, setSelectedWeek] = React.useState(currentWeekInfo.week);
   
-  // FIXED: Use 'all' filter to get complete assignment data with all employees
+  // Get ALL assignments with complete employee data
   const { 
     assignments, 
     loading: assignmentsLoading, 
@@ -48,26 +50,30 @@ const DashboardPage: React.FC = () => {
     return filtered;
   }, [assignments, selectedWeek, currentWeekInfo.year, filterByWeek]);
 
-  // FIXED: Filter user's assignments but preserve complete employee data
+  // FIXED: Filter user's assignments using user.name instead of user.id
+  // This fixes the issue for ALL servicemedarbejder users
   const userAssignments = useMemo(() => {
-    if (!userId) return [];
+    if (!userName) {
+      console.log('[DashboardPage] No user name available for filtering');
+      return [];
+    }
     
-    // Get user's assignments while preserving ALL employee data for each assignment
-    const userFiltered = filterUserAssignments(weekAssignments, userId);
+    // Filter assignments where the user's name appears in the employees array
+    const userFiltered = filterUserAssignments(weekAssignments, userName);
     
-    console.log(`[DashboardPage] FIXED: User ${userId} assignments with complete employee data:`, 
+    console.log(`[DashboardPage] FIXED: User ${userName} assignments with complete employee data:`, 
       userFiltered.map(a => ({
         title: a.title,
         id: a.id,
-        employees: a.employees, // This should show ALL colleagues including the user
+        employees: a.employees, // This preserves ALL colleagues including the user
         responsibleUser: a.responsibleUser?.name
       }))
     );
     
     return userFiltered;
-  }, [weekAssignments, userId, filterUserAssignments]);
+  }, [weekAssignments, userName, filterUserAssignments]);
 
-  // Calculate metrics for system overview - note: employees don't have is_available, cars do
+  // Calculate metrics for system overview
   const totalEmployees = employees.length;
   const availableVehicles = cars.filter(car => car.is_available).length;
   const totalVehicles = cars.length;
