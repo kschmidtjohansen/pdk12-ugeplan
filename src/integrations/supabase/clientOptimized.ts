@@ -1,190 +1,110 @@
 
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from './types';
+import { createClient } from '@supabase/supabase-js'
+import type { Database } from './types'
 
-const SUPABASE_URL = "https://cyuyrpwtkljfiqwgasmn.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5dXlycHd0a2xqZmlxd2dhc21uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3Njg5ODEsImV4cCI6MjA2MjM0NDk4MX0.j6NYT5jwYaYhZYVsRqW20T6_I9WkcqSmZ-rHyA78k5U";
+// Use environment variables with fallback to hardcoded values for development
+const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || 'https://cyuyrpwtkljfiqwgasmn.supabase.co'
+const supabaseAnonKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5dXlycHd0a2xqZmlxd2dhc21uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3Njg5ODEsImV4cCI6MjA2MjM0NDk4MX0.j6NYT5jwYaYhZYVsRqW20T6_I9WkcqSmZ-rHyA78k5U'
 
-// Optimized Supabase client with performance enhancements
-export const supabaseOptimized = createClient<Database>(
-  SUPABASE_URL, 
-  SUPABASE_PUBLISHABLE_KEY,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      storageKey: 'supabase.auth.token',
-      flowType: 'pkce',
-      debug: import.meta.env.DEV,
-      storage: {
-        getItem: (key) => {
-          try {
-            const value = localStorage.getItem(key);
-            return value;
-          } catch (error) {
-            console.error('[supabaseOptimized] Error accessing localStorage:', error);
-            return null;
-          }
-        },
-        setItem: (key, value) => {
-          try {
-            localStorage.setItem(key, value);
-          } catch (error) {
-            console.error('[supabaseOptimized] Error writing to localStorage:', error);
-          }
-        },
-        removeItem: (key) => {
-          try {
-            localStorage.removeItem(key);
-          } catch (error) {
-            console.error('[supabaseOptimized] Error removing from localStorage:', error);
-          }
-        },
-      },
-    },
-    realtime: {
-      params: {
-        eventsPerSecond: 5, // Reduced from 10 for better performance
-      }
-    },
-    global: {
-      headers: {
-        'X-Client-Info': 'supabase-js-optimized/2.43.1'
-      },
-    },
-  }
-);
-
-// Enhanced error handler with better categorization
-export const handleSupabaseErrorOptimized = (error: any, context?: string) => {
-  if (!error) return null;
-  
-  const errorContext = context ? `[${context}] ` : '';
-  console.error(`${errorContext}Supabase operation failed:`, error);
-  
-  // Categorize errors for better handling
-  const errorCategory = {
-    message: error.message || 'An unexpected error occurred',
-    code: error.code || 'unknown_error',
-    status: error.status || 500,
-    category: 'unknown'
-  };
-
-  // Authentication errors
-  if (['refresh_token_not_found', 'invalid_token', 'expired_token'].includes(error.code)) {
-    errorCategory.category = 'auth';
-  }
-  // Permission errors
-  else if (error.code === 'PGRST301' || error.message?.includes('row-level security')) {
-    errorCategory.category = 'permission';
-  }
-  // Database constraint errors
-  else if (error.code === 'P0001' || error.code === '23503') {
-    errorCategory.category = 'constraint';
-  }
-  // Network errors
-  else if (error.code === 'network_error' || error.message?.includes('fetch')) {
-    errorCategory.category = 'network';
-  }
-
-  return errorCategory;
-};
-
-// Optimized query wrapper with retry logic
-export const enhancedSupabaseOptimized = {
-  ...supabaseOptimized,
-  safeQuery: async (queryFn: () => Promise<any>, context?: string, retries = 2) => {
-    let lastError;
-    
-    for (let attempt = 0; attempt <= retries; attempt++) {
-      try {
-        const result = await queryFn();
-        if (result.error) {
-          const errorInfo = handleSupabaseErrorOptimized(result.error, context);
-          
-          // Don't retry auth or permission errors
-          if (errorInfo?.category === 'auth' || errorInfo?.category === 'permission') {
-            return result;
-          }
-          
-          // Retry network and unknown errors
-          if (attempt < retries && (errorInfo?.category === 'network' || errorInfo?.category === 'unknown')) {
-            console.log(`[enhancedSupabaseOptimized] Retrying query, attempt ${attempt + 2}/${retries + 1}`);
-            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000)); // Exponential backoff
-            continue;
-          }
-        }
-        return result;
-      } catch (err) {
-        lastError = err;
-        if (attempt < retries) {
-          console.log(`[enhancedSupabaseOptimized] Retrying after error, attempt ${attempt + 2}/${retries + 1}`);
-          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
-          continue;
-        }
-      }
+export const supabaseOptimized = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce'
+  },
+  global: {
+    headers: {
+      'X-Application-Name': 'PDK12-Assignment-System-Optimized'
     }
-    
-    handleSupabaseErrorOptimized(lastError, context);
-    return { data: null, error: lastError };
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10 // Limit realtime events to prevent overwhelming
+    }
   }
-};
+})
 
-// Optimized session validation with caching
+// Session cache to reduce validation calls
 let sessionCache: { session: any; timestamp: number } | null = null;
-const SESSION_CACHE_DURATION = 30000; // 30 seconds
+const SESSION_CACHE_TTL = 60000; // 1 minute cache
 
-export const ensureValidSessionOptimized = async () => {
+// Enhanced session validation with caching and retry logic
+export const ensureValidSessionOptimized = async (retries: number = 2): Promise<boolean> => {
   try {
     // Check cache first
-    if (sessionCache && (Date.now() - sessionCache.timestamp) < SESSION_CACHE_DURATION) {
-      return !!sessionCache.session;
+    if (sessionCache && (Date.now() - sessionCache.timestamp) < SESSION_CACHE_TTL) {
+      return !!sessionCache.session?.user;
     }
-    
-    const { data, error } = await supabaseOptimized.auth.getSession();
+
+    const { data: { session }, error } = await supabaseOptimized.auth.getSession();
     
     if (error) {
       console.error('[ensureValidSessionOptimized] Session validation error:', error);
+      
+      // Try to refresh session on error
+      if (retries > 0) {
+        console.log('[ensureValidSessionOptimized] Attempting session refresh...');
+        const { error: refreshError } = await supabaseOptimized.auth.refreshSession();
+        
+        if (!refreshError) {
+          return ensureValidSessionOptimized(retries - 1);
+        }
+      }
+      
+      // Clear cache on error
       sessionCache = null;
       return false;
     }
     
     // Update cache
     sessionCache = {
-      session: data.session,
+      session,
       timestamp: Date.now()
     };
     
-    if (!data.session) {
-      console.log('[ensureValidSessionOptimized] No active session');
-      return false;
-    }
-    
-    // Check token expiry and refresh if needed
-    const expiresAt = data.session.expires_at;
-    if (expiresAt) {
-      const expiryTime = expiresAt * 1000;
-      const timeToExpiry = expiryTime - Date.now();
-      
-      // Refresh if expires in less than 5 minutes
-      if (timeToExpiry < 300000 && timeToExpiry > 0) {
-        console.log('[ensureValidSessionOptimized] Refreshing session token');
-        const { error: refreshError } = await supabaseOptimized.auth.refreshSession();
-        if (refreshError) {
-          console.error('[ensureValidSessionOptimized] Token refresh failed:', refreshError);
-          sessionCache = null;
-          return false;
-        }
-        // Clear cache to force refresh on next call
-        sessionCache = null;
-      }
-    }
-    
-    return true;
+    return !!session?.user;
   } catch (error) {
-    console.error('[ensureValidSessionOptimized] Session check error:', error);
+    console.error('[ensureValidSessionOptimized] Error checking session:', error);
+    
+    // Retry with exponential backoff
+    if (retries > 0) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * (3 - retries)));
+      return ensureValidSessionOptimized(retries - 1);
+    }
+    
     sessionCache = null;
     return false;
   }
+};
+
+// Clear session cache when needed
+export const clearSessionCache = () => {
+  sessionCache = null;
+};
+
+// Enhanced error recovery for database operations
+export const withRetry = async <T>(
+  operation: () => Promise<T>, 
+  operationName: string = 'Database operation',
+  maxRetries: number = 2
+): Promise<T> => {
+  let lastError: any;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      console.warn(`[withRetry] ${operationName} failed on attempt ${attempt + 1}:`, error);
+      
+      if (attempt < maxRetries) {
+        // Exponential backoff
+        const delay = Math.min(1000 * Math.pow(2, attempt), 5000);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError;
 };

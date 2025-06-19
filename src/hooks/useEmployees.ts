@@ -1,11 +1,11 @@
 
-import { useEmployeeData } from './employee/useEmployeeData';
+import { useEmployeeDataOptimized } from './employee/useEmployeeDataOptimized';
 import { useEmployeeFormState } from './employee/useEmployeeFormState';
-import { useEmployeeActions } from './employee/useEmployeeActions';
+import { useEmployeeActionsOptimized } from './employee/useEmployeeActionsOptimized';
 
-// Main hook combining all employee-related functionality
+// Main hook combining all employee-related functionality - now using optimized versions
 export const useEmployees = () => {
-  const { employees, loading, error, fetchEmployees } = useEmployeeData();
+  const { employees, loading, error, fetchEmployees } = useEmployeeDataOptimized();
   
   const {
     currentEmployee,
@@ -23,7 +23,7 @@ export const useEmployees = () => {
     deleteEmployee: deleteEmployeeAction,
     toggleEmployeeLeave: toggleEmployeeLeaveAction,
     updateEmployeeLeaveStatusFromVacations
-  } = useEmployeeActions(fetchEmployees);
+  } = useEmployeeActionsOptimized(fetchEmployees);
 
   // Wrapper functions that use the current state from useEmployeeFormState
   const createEmployee = async () => {

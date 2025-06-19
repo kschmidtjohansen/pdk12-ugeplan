@@ -34,7 +34,8 @@ const EmployeesPage: React.FC = () => {
     createEmployee,
     updateEmployee,
     deleteEmployee,
-    toggleEmployeeLeave
+    toggleEmployeeLeave,
+    fetchEmployees
   } = useEmployees();
 
   const handleCreateNew = () => {
@@ -102,8 +103,6 @@ const EmployeesPage: React.FC = () => {
     }
   };
 
-  // Get retry function from useEmployees hook
-  const { fetchEmployees } = useEmployees();
   const handleRetry = () => {
     fetchEmployees();
   };
