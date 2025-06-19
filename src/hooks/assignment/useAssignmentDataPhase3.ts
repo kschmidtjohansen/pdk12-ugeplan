@@ -95,11 +95,10 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
         query = query.eq('published', true);
       }
 
-      // Execute the query with retry
-      const result = await withRetry(
-        () => query.order('date', { ascending: true }),
-        'Assignments fetch'
-      );
+      // Execute the query with retry - fix the await issue
+      const result = await withRetry(async () => {
+        return await query.order('date', { ascending: true });
+      }, 'Assignments fetch');
 
       const { data, error } = result;
 
@@ -176,7 +175,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
       setLoading(false);
       fetchInProgress.current = false;
     }
-  }, [toast, t, filterCriteria, retryCount]);
+  }, [toast, t, filterCriteria, retryCount, user?.name]);
 
   // Load assignments on component mount and when filter criteria change
   useEffect(() => {

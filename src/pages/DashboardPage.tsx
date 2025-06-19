@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -46,7 +47,7 @@ const DashboardPage: React.FC = () => {
 
   // Memoize filtered assignments to prevent recalculation on every render
   const { publishedAssignments, userAssignments } = useMemo(() => {
-    // Filter published assignments for metrics (admins/skadeleder)
+    // Filter published assignments for metrics (all users now)
     const published = allAssignments.filter(assignment => assignment.published);
     
     // Filter user-specific assignments for dashboard view
@@ -134,7 +135,9 @@ const DashboardPage: React.FC = () => {
     );
   }, [userAssignments, startDateISO, endDateISO]);
 
-  const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
+  // FIXED: Allow ALL authenticated users to see metrics, not just admin/skadeleder
+  // This was the second part of the issue preventing Mark from seeing metrics
+  const shouldShowMetrics = !!user; // Any authenticated user can see metrics
   const selectedDateForMetrics = getSelectedDateForMetrics();
 
   // Enhanced loading state with connection status
@@ -224,7 +227,7 @@ const DashboardPage: React.FC = () => {
         {/* Quick Access Grid */}
         <QuickAccessGrid userRole={user?.role} />
 
-        {/* Dashboard Metrics - Pass optimized assignments data */}
+        {/* Dashboard Metrics - Now available to ALL users including servicemedarbejder */}
         {shouldShowMetrics && (
           <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <DashboardMetrics selectedDate={selectedDateForMetrics} assignments={publishedAssignments} />

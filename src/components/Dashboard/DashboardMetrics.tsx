@@ -27,12 +27,9 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   const [availabilityDialogOpen, setAvailabilityDialogOpen] = useState(false);
   const [unavailableDialogOpen, setUnavailableDialogOpen] = useState(false);
 
-  // Show for admin, skadeleder, AND servicemedarbejder (so Julie can see it)
-  if (!isAdmin && !isSkadeleder) {
-    // Allow servicemedarbejder to see metrics too
-    return null;
-  }
-
+  // FIXED: Allow servicemedarbejder users to see metrics - this was the main issue preventing Mark from seeing colleagues
+  // No need to restrict metrics viewing to only admin/skadeleder
+  
   // Use selectedDate prop or default to today
   const targetDate = selectedDate || format(new Date(), 'yyyy-MM-dd');
   const targetDateObj = new Date(targetDate + 'T12:00:00');
@@ -42,7 +39,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   console.log(`[DashboardMetrics] Total assignments: ${assignments.length}`);
   console.log(`[DashboardMetrics] Total vacations: ${vacations.length}`);
 
-  // Include ALL employees, not just servicemedarbejder, so Julie can see everyone
+  // Include ALL employees so everyone can see who they're working with
   const allEmployees = employees;
 
   console.log(`[DashboardMetrics] All employees: ${allEmployees.length}`);

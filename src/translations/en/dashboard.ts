@@ -22,6 +22,16 @@ const dashboard = {
   availableEmployeesDesc: 'Employees available and not assigned to tasks',
   unavailableEmployeesDesc: 'Employees currently on leave or vacation',
   
+  // Metrics
+  metrics: {
+    availableEmployees: 'Available Employees',
+    unavailableEmployees: 'Unavailable Employees',
+    unavailableSubtitle: 'On leave or vacation',
+    availableCars: 'Available Cars',
+    carsInUse: 'Cars in Use',
+    carsInUseSubtitle: 'Assigned for today'
+  },
+  
   // Quick access items
   quickAccess: {
     planner: {
