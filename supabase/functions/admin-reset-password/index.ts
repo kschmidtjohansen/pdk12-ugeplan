@@ -3,9 +3,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://www.pdk12.dk',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 // Rate limiting store
@@ -53,20 +53,33 @@ function isValidUuid(uuid: string): boolean {
 }
 
 serve(async (req) => {
+  console.log(`[admin-reset-password] ${req.method} request received from ${req.headers.get('origin')}`);
+  
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Verify origin
+    // Enhanced origin validation
     const origin = req.headers.get('origin');
-    if (origin !== 'https://www.pdk12.dk' && !origin?.includes('lovable.dev')) {
+    const allowedOrigins = [
+      'https://www.pdk12.dk',
+      'https://pdk12.dk'
+    ];
+    
+    // Allow localhost and lovable.dev domains in development
+    const isDev = origin?.includes('localhost') || origin?.includes('lovable.dev');
+    const isAllowedOrigin = allowedOrigins.includes(origin || '') || isDev;
+    
+    if (!isAllowedOrigin) {
+      console.error(`[admin-reset-password] Forbidden origin: ${origin}`);
       throw new Error('Forbidden origin');
     }
 
     // Rate limiting
-    const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
+    const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
     if (!checkRateLimit(clientIp)) {
+      console.warn(`[admin-reset-password] Rate limit exceeded for IP: ${clientIp}`);
       return new Response(
         JSON.stringify({ error: 'Rate limit exceeded. Too many requests.' }),
         { 
@@ -79,6 +92,7 @@ serve(async (req) => {
     // Verify JWT token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
+      console.error('[admin-reset-password] Missing or invalid authorization header');
       throw new Error('Missing or invalid authorization header');
     }
 
@@ -86,15 +100,21 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
+    console.log('[admin-reset-password] Initializing Supabase client');
     const supabase = createClient(supabaseUrl, serviceKey);
 
     // Verify the user's JWT and check if they're an admin
+    console.log('[admin-reset-password] Verifying user token');
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) {
+      console.error('[admin-reset-password] Invalid authentication token:', userError);
       throw new Error('Invalid authentication token');
     }
 
+    console.log(`[admin-reset-password] User verified: ${user.email}`);
+
     // Check if user is admin
+    console.log('[admin-reset-password] Checking user role');
     const { data: roleData, error: roleError } = await supabase
       .from('user_roles')
       .select('role')
@@ -102,6 +122,8 @@ serve(async (req) => {
       .single();
 
     if (roleError || !roleData || roleData.role !== 'administrator') {
+      console.error(`[admin-reset-password] Access denied for user ${user.email}, role: ${roleData?.role}`);
+      
       // Log security event
       await supabase.rpc('log_security_event', {
         event_type: 'unauthorized_admin_access',
@@ -118,21 +140,28 @@ serve(async (req) => {
       );
     }
 
+    console.log('[admin-reset-password] Admin access confirmed');
+
     const { userId, newPassword } = await req.json();
 
     // Input validation
     if (!userId || !newPassword) {
+      console.error('[admin-reset-password] Missing required fields');
       throw new Error('Missing required fields: userId and newPassword are required');
     }
 
     if (!isValidUuid(userId)) {
+      console.error(`[admin-reset-password] Invalid user ID format: ${userId}`);
       throw new Error('Invalid user ID format');
     }
 
     const passwordValidation = validatePassword(newPassword);
     if (!passwordValidation.valid) {
+      console.error(`[admin-reset-password] Password validation failed: ${passwordValidation.message}`);
       throw new Error(passwordValidation.message || 'Invalid password');
     }
+
+    console.log(`[admin-reset-password] Resetting password for user: ${userId}`);
 
     // Reset password
     const { error: resetError } = await supabase.auth.admin.updateUserById(userId, {
@@ -140,8 +169,11 @@ serve(async (req) => {
     });
 
     if (resetError) {
+      console.error('[admin-reset-password] Password reset failed:', resetError);
       throw resetError;
     }
+
+    console.log('[admin-reset-password] Password reset successful');
 
     // Log successful password reset
     await supabase.rpc('log_security_event', {
@@ -162,12 +194,12 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in admin-reset-password:', error);
+    console.error('[admin-reset-password] Error:', error);
     
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     const statusCode = errorMessage.includes('Insufficient privileges') ? 403 :
                       errorMessage.includes('Rate limit') ? 429 :
-                      errorMessage.includes('Invalid') ? 400 : 500;
+                      errorMessage.includes('Invalid') || errorMessage.includes('Missing') || errorMessage.includes('Password must') ? 400 : 500;
 
     return new Response(
       JSON.stringify({ error: errorMessage }),

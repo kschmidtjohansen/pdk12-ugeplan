@@ -7,14 +7,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
-import { User } from '@/context/AuthContext';
-import { Employee } from '@/types/employee';
+import { PasswordInput } from '@/components/ui/password-input';
 
 interface AdminUser {
   id: string;
@@ -37,15 +35,16 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { adminResetPassword } = useAuth();
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
+  const { adminResetPassword, validateAdminAccess } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
 
   const validateForm = () => {
-    if (newPassword.length < 6) {
+    if (!isPasswordValid) {
       toast({
         title: t('common.error'),
-        description: t('admin.passwords.passwordTooShort'),
+        description: 'Password must be at least 8 characters long and contain uppercase, lowercase, and number',
         variant: "destructive",
       });
       return false;
@@ -67,14 +66,43 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
     e.preventDefault();
     if (!currentUser || !validateForm()) return;
     
+    // Validate admin access first
+    if (!validateAdminAccess()) {
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
+      console.log('[PasswordChangeDialog] Attempting password reset for user:', currentUser.id);
+      
       const { error } = await adminResetPassword(currentUser.id, newPassword);
       
       if (error) {
-        throw new Error(error);
+        console.error('[PasswordChangeDialog] Password reset failed:', error);
+        
+        // Enhanced error handling based on error type
+        let errorMessage = t('admin.passwords.resetError');
+        
+        if (error.includes('Network connection')) {
+          errorMessage = 'Network connection failed. Please check your internet connection.';
+        } else if (error.includes('Authentication expired')) {
+          errorMessage = 'Your session has expired. Please refresh the page and try again.';
+        } else if (error.includes('permission') || error.includes('privileges')) {
+          errorMessage = 'You do not have permission to reset passwords.';
+        } else if (error.includes('Password must')) {
+          errorMessage = error; // Use the specific validation error
+        }
+        
+        toast({
+          title: t('common.error'),
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
       }
+      
+      console.log('[PasswordChangeDialog] Password reset successful');
       
       toast({
         title: t('admin.passwords.resetSuccess'),
@@ -85,10 +113,10 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       setConfirmPassword('');
       onClose();
     } catch (error) {
-      console.error('Error resetting password:', error);
+      console.error('[PasswordChangeDialog] Unexpected error:', error);
       toast({
         title: t('common.error'),
-        description: t('admin.passwords.resetError'),
+        description: 'An unexpected error occurred. Please try again.',
         variant: "destructive",
       });
     } finally {
@@ -108,30 +136,25 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       </DialogHeader>
       <form onSubmit={handleSubmit}>
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="new-password" className="text-right">
-              {t('admin.passwords.newPassword')}
-            </Label>
-            <Input
-              id="new-password"
-              type="password"
+          <div className="space-y-2">
+            <PasswordInput
+              label={t('admin.passwords.newPassword')}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="col-span-3"
+              showStrengthIndicator={true}
+              onValidationChange={setIsPasswordValid}
               required
               autoComplete="new-password"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="confirm-password" className="text-right">
+          <div className="space-y-2">
+            <Label htmlFor="confirm-password">
               {t('admin.passwords.confirmPassword')}
             </Label>
-            <Input
+            <PasswordInput
               id="confirm-password"
-              type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="col-span-3"
               required
               autoComplete="new-password"
             />
@@ -141,7 +164,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
           <Button type="button" variant="outline" onClick={onClose}>
             {t('common.cancel')}
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting || !isPasswordValid}>
             {isSubmitting ? t('admin.passwords.resetting') : t('admin.passwords.resetPassword')}
           </Button>
         </DialogFooter>

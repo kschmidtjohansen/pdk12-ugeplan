@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -67,16 +66,8 @@ class ImprovedRealtimeManager {
         }
       });
 
-      // FIXED: Subscribe with proper callback typing
-      channel.subscribe((status: string, error?: any) => {
-        console.log('[ImprovedRealtimeManager] Subscription status for:', subscriptionId, status);
-        
-        if (status === 'SUBSCRIBED') {
-          console.log('[ImprovedRealtimeManager] Successfully subscribed:', subscriptionId);
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.error('[ImprovedRealtimeManager] Subscription failed:', subscriptionId, status, error);
-        }
-      });
+      // FIXED: Subscribe with proper number of arguments
+      channel.subscribe();
 
       this.subscriptions.set(subscriptionId, {
         channel,

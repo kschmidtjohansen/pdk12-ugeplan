@@ -537,7 +537,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // ... keep existing code (signUp and resetPasswordForEmail functions)
+  const signUp = async (email, password, name) => {
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name // Store name in user metadata
+          }
+        }
+      });
+      
+      return { error: error ? error.message : null };
+    } catch (error) {
+      console.error('Signup error:', error);
+      return { error: 'An unexpected error occurred during signup.' };
+    }
+  };
+
+  const resetPassword = async (email) => {
+    try {
+      console.log('Requesting password reset for:', email);
+      // Add full URL with origin to ensure proper redirect
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/password-reset`,
+      });
+      console.log('Password reset request result:', error ? `Error: ${error.message}` : 'Success');
+      return { error: error ? error.message : null };
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      return { error: 'An unexpected error occurred during password reset.' };
+    }
+  };
 
   // Modified register function to avoid affecting the current admin's session
   const register = async (email: string, password: string, name: string) => {
@@ -588,137 +620,149 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else if (fnError.message?.includes('Insufficient privileges')) {
           throw new Error('You do not have permission to update user roles.');
         } else if (fnError.message?.includes('Origin not allowed')) {
-          throw new Error('Access denied. Please contact support if this continues.');
-        } else if (fnError.message?.includes('Rate limit')) {
-          throw new Error('Too many requests. Please wait a moment and try again.');
-        } else if (fnError.message?.includes('Missing required fields')) {
-          throw new Error('Invalid request data. Please try again.');
-        } else if (fnError.message?.includes('Invalid role')) {
-          throw new Error('Invalid role specified. Please select a valid role.');
-        } else if (fnError.message?.includes('User not found')) {
-          throw new Error('User not found. They may have been deleted.');
-        } else if (fnError.message?.includes('Database permission denied')) {
-          throw new Error('Database access denied. Please contact support.');
+          throw new Error('Request not allowed from this domain.');
+        } else {
+          throw new Error(fnError.message || 'Failed to update user role');
         }
-        
-        throw new Error(fnError.message || 'Failed to update user role');
       }
       
-      if (data?.error) {
-        console.error('[AuthContext] Function returned error:', data.error);
-        throw new Error(data.error);
-      }
-      
-      if (!data?.success) {
-        console.error('[AuthContext] Function did not return success:', data);
-        throw new Error('Role update failed - no success confirmation received');
-      }
-      
-      console.log('[AuthContext] Role update successful');
       return { error: null };
-      
     } catch (error) {
-      console.error('[AuthContext] Update user role error:', error);
-      
-      let errorMessage = 'An unexpected error occurred while updating the user role.';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      
-      return { error: errorMessage };
+      console.error('[AuthContext] Role update error:', error);
+      return { 
+        error: error instanceof Error ? error.message : 'An unexpected error occurred during role update.'
+      };
     }
   };
 
-  return (
-    <AuthContext.Provider value={{
-      user,
-      isAuthenticated,
-      isAdmin,
-      isSkadeleder,
-      isServicemedarbejder,
-      login,
-      logout,
-      signUp: async (email, password, name) => {
-        try {
-          const { error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                name // Store name in user metadata
-              }
+  // Enhanced adminResetPassword function
+  const adminResetPassword = async (userId: string, newPassword: string) => {
+    try {
+      console.log('[AuthContext] Starting admin password reset for user:', userId);
+      
+      if (!validateAdminAccess()) {
+        return { error: 'Unauthorized - requires administrator role' };
+      }
+      
+      // Validate password on frontend first
+      if (newPassword.length < 8) {
+        return { error: 'Password must be at least 8 characters long' };
+      }
+      if (!/[A-Z]/.test(newPassword)) {
+        return { error: 'Password must contain at least one uppercase letter' };
+      }
+      if (!/[a-z]/.test(newPassword)) {
+        return { error: 'Password must contain at least one lowercase letter' };
+      }
+      if (!/[0-9]/.test(newPassword)) {
+        return { error: 'Password must contain at least one number' };
+      }
+      
+      console.log('[AuthContext] Calling admin-reset-password edge function...');
+      const { data, error: fnError } = await supabase.functions.invoke('admin-reset-password', {
+        body: { userId, newPassword },
+      });
+      
+      console.log('[AuthContext] Edge function response:', { data, error: fnError });
+      
+      if (fnError) {
+        console.error('[AuthContext] Edge function error:', fnError);
+        
+        // Handle specific error types from the edge function
+        if (fnError.message?.includes('Failed to send a request') || fnError.message?.includes('FunctionsNetworkError')) {
+          throw new Error('Network connection failed. Please check your internet connection and try again.');
+        } else if (fnError.message?.includes('Not authenticated') || fnError.message?.includes('Invalid authentication')) {
+          throw new Error('Authentication expired. Please refresh the page and try again.');
+        } else if (fnError.message?.includes('Insufficient privileges')) {
+          throw new Error('You do not have permission to reset passwords.');
+        } else if (fnError.message?.includes('Origin not allowed') || fnError.message?.includes('Forbidden origin')) {
+          throw new Error('Request not allowed from this domain.');
+        } else if (fnError.message?.includes('Password must')) {
+          throw new Error(fnError.message); // Pass through password validation errors
+        } else {
+          throw new Error(fnError.message || 'Failed to reset password');
+        }
+      }
+      
+      return { error: null };
+    } catch (error) {
+      console.error('[AuthContext] Password reset error:', error);
+      return { 
+        error: error instanceof Error ? error.message : 'An unexpected error occurred during password reset.'
+      };
+    }
+  };
+
+  const value: AuthContextType = {
+    user,
+    isAuthenticated,
+    isAdmin,
+    isSkadeleder,
+    isServicemedarbejder,
+    login,
+    logout,
+    signUp: async (email, password, name) => {
+      try {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name // Store name in user metadata
             }
-          });
-          
-          return { error: error ? error.message : null };
-        } catch (error) {
-          console.error('Signup error:', error);
-          return { error: 'An unexpected error occurred during signup.' };
-        }
-      },
-      requestPasswordReset: async (email) => {
-        try {
-          console.log('Requesting password reset for:', email);
-          // Add full URL with origin to ensure proper redirect
-          const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/password-reset`,
-          });
-          console.log('Password reset request result:', error ? `Error: ${error.message}` : 'Success');
-          return { error: error ? error.message : null };
-        } catch (error: any) {
-          console.error('Password reset error:', error);
-          return { error: 'An unexpected error occurred during password reset.' };
-        }
-      },
-      resetPassword: async (email) => {
-        try {
-          console.log('Requesting password reset for:', email);
-          // Add full URL with origin to ensure proper redirect
-          const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/password-reset`,
-          });
-          console.log('Password reset request result:', error ? `Error: ${error.message}` : 'Success');
-          return { error: error ? error.message : null };
-        } catch (error: any) {
-          console.error('Password reset error:', error);
-          return { error: 'An unexpected error occurred during password reset.' };
-        }
-      },
-      adminResetPassword: async (userId, newPassword) => {
-        try {
-          if (!validateAdminAccess()) {
-            return { error: 'Unauthorized - requires administrator role' };
           }
-          
-          // Call edge function to reset user password
-          const { error: fnError } = await supabase.functions.invoke('admin-reset-password', {
-            body: { userId, newPassword },
-          });
-          
-          if (fnError) throw fnError;
-          
-          return { error: null };
-        } catch (error) {
-          console.error('Admin password reset error:', error);
-          return { error: 'An unexpected error occurred during password reset.' };
-        }
-      },
-      register,
-      updateUserRole,
-      loading,
-      canViewFuelCardCode,
-      canPublishTasks,
-      canApproveVacation,
-      canEdit,
-      canCreate,
-      canSeeUnpublishedTasks,
-      validateAdminAccess,
-      validateSkadelederAccess,
-      hasRequiredRole
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
+        });
+        
+        return { error: error ? error.message : null };
+      } catch (error) {
+        console.error('Signup error:', error);
+        return { error: 'An unexpected error occurred during signup.' };
+      }
+    },
+    requestPasswordReset: async (email) => {
+      try {
+        console.log('Requesting password reset for:', email);
+        // Add full URL with origin to ensure proper redirect
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/password-reset`,
+        });
+        console.log('Password reset request result:', error ? `Error: ${error.message}` : 'Success');
+        return { error: error ? error.message : null };
+      } catch (error: any) {
+        console.error('Password reset error:', error);
+        return { error: 'An unexpected error occurred during password reset.' };
+      }
+    },
+    resetPassword: async (email) => {
+      try {
+        console.log('Requesting password reset for:', email);
+        // Add full URL with origin to ensure proper redirect
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/password-reset`,
+        });
+        console.log('Password reset request result:', error ? `Error: ${error.message}` : 'Success');
+        return { error: error ? error.message : null };
+      } catch (error: any) {
+        console.error('Password reset error:', error);
+        return { error: 'An unexpected error occurred during password reset.' };
+      }
+    },
+    adminResetPassword,
+    register,
+    updateUserRole,
+    loading,
+    canViewFuelCardCode,
+    canPublishTasks,
+    canApproveVacation,
+    canEdit,
+    canCreate,
+    canSeeUnpublishedTasks,
+    validateAdminAccess,
+    validateSkadelederAccess,
+    hasRequiredRole,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);
