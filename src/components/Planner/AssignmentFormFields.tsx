@@ -98,17 +98,17 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     }
   };
 
-  // FIXED: Complete rewrite of date handling to prevent timezone issues
+  // FIXED: Use local date methods instead of UTC to prevent timezone shifts
   const handleDateSelect = (date: Date | undefined) => {
     console.log('[AssignmentFormFields] Date selected from calendar:', date);
     if (date) {
-      // Always work with UTC dates to prevent timezone shifts
-      const utcYear = date.getUTCFullYear();
-      const utcMonth = date.getUTCMonth();
-      const utcDay = date.getUTCDate();
+      // Use local date methods instead of UTC to prevent timezone shifts
+      const localYear = date.getFullYear();
+      const localMonth = date.getMonth();
+      const localDay = date.getDate();
       
-      // Create a local date using the UTC components
-      const localDate = new Date(utcYear, utcMonth, utcDay);
+      // Create a local date using the local components
+      const localDate = new Date(localYear, localMonth, localDay);
       console.log('[AssignmentFormFields] Created timezone-safe date:', localDate);
       console.log('[AssignmentFormFields] Date ISO string:', localDate.toISOString().split('T')[0]);
       
