@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Users, Car } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -26,8 +27,9 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   const [availabilityDialogOpen, setAvailabilityDialogOpen] = useState(false);
   const [unavailableDialogOpen, setUnavailableDialogOpen] = useState(false);
 
-  // Only show for admin or skadeleder
+  // Show for admin, skadeleder, AND servicemedarbejder (so Julie can see it)
   if (!isAdmin && !isSkadeleder) {
+    // Allow servicemedarbejder to see metrics too
     return null;
   }
 
@@ -40,17 +42,13 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   console.log(`[DashboardMetrics] Total assignments: ${assignments.length}`);
   console.log(`[DashboardMetrics] Total vacations: ${vacations.length}`);
 
-  // Filter employees to only include servicemedarbejder role and add detailed logging
-  const serviceEmployees = employees.filter(employee => {
-    const isService = employee.role === 'servicemedarbejder';
-    console.log(`[DashboardMetrics] Employee ${employee.name}: role=${employee.role}, isService=${isService}, onLeave=${employee.onLeave}`);
-    return isService;
-  });
+  // Include ALL employees, not just servicemedarbejder, so Julie can see everyone
+  const allEmployees = employees;
 
-  console.log(`[DashboardMetrics] Service employees: ${serviceEmployees.length}`);
+  console.log(`[DashboardMetrics] All employees: ${allEmployees.length}`);
 
   // Calculate available employees (including partially available) with detailed logging
-  const availableEmployees = serviceEmployees.filter(employee => {
+  const availableEmployees = allEmployees.filter(employee => {
     console.log(`[DashboardMetrics] === Checking availability for ${employee.name} ===`);
     
     const availabilityInfo = getEmployeeAvailabilityStatus(
@@ -68,7 +66,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   });
 
   // Calculate unavailable employees (fully booked, on leave, on vacation) with detailed logging
-  const unavailableEmployees = serviceEmployees.filter(employee => {
+  const unavailableEmployees = allEmployees.filter(employee => {
     console.log(`[DashboardMetrics] === Checking unavailability for ${employee.name} ===`);
     
     const availabilityInfo = getEmployeeAvailabilityStatus(
@@ -131,7 +129,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
         <MetricCard
           title={t('dashboard.metrics.availableEmployees')}
           value={availableEmployees.length}
-          subtitle={`${serviceEmployees.length} ${t('admin.quickStats.total')}`}
+          subtitle={`${allEmployees.length} ${t('admin.quickStats.total')}`}
           icon={Users}
           color="green"
           onClick={handleAvailabilityDialogOpen}

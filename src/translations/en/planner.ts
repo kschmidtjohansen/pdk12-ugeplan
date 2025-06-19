@@ -1,4 +1,3 @@
-
 const planner = {
   title: 'Planner',
   description: 'Plan and manage work assignments',
@@ -86,7 +85,16 @@ const planner = {
   copyAssignment: 'Copy Assignment',
   createNew: 'Create New',
   weekView: 'Week {week}, {year} ({start} - {end})',
-  selectDateForCopy: 'Select a new date for the copied assignment'
+  selectDateForCopy: 'Select a new date for the copied assignment',
+  
+  // Car selector translations
+  selectCars: 'Select Cars',
+  carsSelected: '{count} cars selected',
+  cars: 'Cars',
+  available: 'Available',
+  unavailable: 'Unavailable',
+  bookedUntil: 'Booked until {time}',
+  carNotAvailable: 'Car not available'
 };
 
 export default planner;
