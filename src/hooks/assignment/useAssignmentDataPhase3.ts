@@ -67,7 +67,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
 
       console.log('[useAssignmentData] Session validated, fetching assignments...');
 
-      // Step 2: Fetch assignments with retry logic
+      // Step 2: Fetch assignments with retry logic - FIXED: Remove non-existent 'employees' column
       let query = supabaseOptimized
         .from('assignments')
         .select(`
@@ -80,7 +80,6 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
           location,
           car_id,
           car_ids,
-          employees,
           published,
           responsible_user_id,
           responsibleUser:profiles!assignments_responsible_user_id_fkey (id, name)
@@ -96,7 +95,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
         query = query.eq('published', true);
       }
 
-      // Execute the query with retry - FIXED: Add await here
+      // Execute the query with retry
       const result = await withRetry(
         async () => {
           const queryResult = await query.order('assignment_date', { ascending: true });
@@ -120,19 +119,72 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
 
       console.log(`[useAssignmentData] Successfully fetched ${data.length} assignments`);
 
-      // Step 3: Transform data if necessary (e.g., handle responsibleUser)
+      // Step 3: Fetch employees for assignments separately
+      const assignmentIds = data.map(a => a.id);
+      
+      const employeesResult = await withRetry(
+        async () => {
+          const queryResult = await supabaseOptimized
+            .from('assignments_employees')
+            .select('assignment_id, user_id')
+            .in('assignment_id', assignmentIds);
+          return queryResult;
+        },
+        'Assignment employees fetch'
+      );
+
+      const { data: employeesData, error: employeesError } = employeesResult;
+
+      if (employeesError) {
+        console.warn('[useAssignmentData] Error fetching employees:', employeesError);
+        // Continue without employees data
+      }
+
+      // Fetch profiles for employee names
+      let profilesData: any[] = [];
+      if (employeesData && employeesData.length > 0) {
+        const userIds = [...new Set(employeesData.map(ae => ae.user_id))];
+        
+        const profilesResult = await withRetry(
+          async () => {
+            const queryResult = await supabaseOptimized
+              .from('profiles')
+              .select('id, name')
+              .in('id', userIds);
+            return queryResult;
+          },
+          'Profiles fetch'
+        );
+
+        if (profilesResult.data) {
+          profilesData = profilesResult.data;
+        }
+      }
+
+      // Step 4: Transform data with employee information
       const transformedAssignments: Assignment[] = data.map(assignment => {
-        const { responsibleUser, ...rest } = assignment;
+        // Get employees for this assignment
+        const assignmentEmployees = employeesData?.filter(ae => ae.assignment_id === assignment.id) || [];
+        const employeeNames = assignmentEmployees.map(ae => {
+          const profile = profilesData.find(p => p.id === ae.user_id);
+          return profile?.name || 'Unknown';
+        });
+
         return {
-          ...rest,
-          date: assignment.assignment_date, // Map assignment_date to date
+          id: assignment.id,
+          title: assignment.title,
+          description: assignment.description || '',
+          date: assignment.assignment_date,
           fromTime: assignment.from_time,
           toTime: assignment.to_time,
+          location: assignment.location,
           car: assignment.car_id,
           cars: assignment.car_ids || [],
-          responsibleUser: responsibleUser ? {
-            id: responsibleUser.id,
-            name: responsibleUser.name
+          employees: employeeNames,
+          published: assignment.published || false,
+          responsibleUser: assignment.responsibleUser ? {
+            id: assignment.responsibleUser.id,
+            name: assignment.responsibleUser.name
           } : null
         };
       });
