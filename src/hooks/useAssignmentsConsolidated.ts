@@ -36,17 +36,29 @@ export const useAssignmentsConsolidated = ({
   const { executeWithRecovery } = useErrorRecovery();
   const { transformCarForDatabase } = useCarDataHandler();
 
+  // Map filter types to match useOptimizedAssignments expected types
+  const getOptimizedFilter = (filter: 'all' | 'dashboard' | 'planner'): 'all' | 'user' | 'published' => {
+    switch (filter) {
+      case 'dashboard':
+        return 'user';
+      case 'planner':
+        return 'all';
+      default:
+        return 'all';
+    }
+  };
+
   // Use optimized assignment service
   const { 
     assignments: optimizedAssignments, 
     loading: optimizedLoading,
     error: optimizedError,
     operationStates: optimizedOperationStates,
-    fetchAssignments: optimizedFetchAssignments,
+    refetch: optimizedRefetch,
     publishAssignment: optimizedPublishAssignment,
     deleteAssignment: optimizedDeleteAssignment,
     publishAssignmentsByDate: optimizedPublishAssignmentsByDate
-  } = useOptimizedAssignments({ filter, includeUnpublished });
+  } = useOptimizedAssignments({ filter: getOptimizedFilter(filter), includeUnpublished });
 
   // Sync optimized data with local state
   useEffect(() => {
