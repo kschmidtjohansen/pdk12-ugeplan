@@ -8,36 +8,6 @@ import { Assignment } from '@/types/assignment';
 
 export type AssignmentFilter = 'all' | 'user' | 'published' | 'unpublished';
 
-interface OptimizedAssignment {
-  id: string;
-  title: string;
-  description: string;
-  assignment_date: string;
-  from_time: string;
-  to_time: string;
-  location: string;
-  type: string;
-  published: boolean;
-  created_at: string;
-  updated_at: string;
-  responsible_user_id: string | null;
-  employees: Array<{
-    id: string;
-    name: string;
-    email: string;
-  }>;
-  cars: Array<{
-    id: string;
-    name: string;
-    car_number: string;
-  }>;
-  responsible_user?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-}
-
 export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,30 +17,6 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
-
-  // Transform OptimizedAssignment to Assignment
-  const transformAssignment = (optimizedAssignment: OptimizedAssignment): Assignment => {
-    return {
-      id: optimizedAssignment.id,
-      title: optimizedAssignment.title,
-      description: optimizedAssignment.description,
-      date: optimizedAssignment.assignment_date,
-      fromTime: optimizedAssignment.from_time,
-      toTime: optimizedAssignment.to_time,
-      location: optimizedAssignment.location,
-      car: optimizedAssignment.cars?.[0] ? {
-        id: optimizedAssignment.cars[0].id,
-        name: optimizedAssignment.cars[0].name
-      } : null,
-      cars: optimizedAssignment.cars?.map(car => car.id) || [],
-      employees: optimizedAssignment.employees?.map(emp => emp.name) || [],
-      published: optimizedAssignment.published,
-      responsibleUser: optimizedAssignment.responsible_user ? {
-        id: optimizedAssignment.responsible_user.id,
-        name: optimizedAssignment.responsible_user.name
-      } : null
-    };
-  };
 
   const fetchAssignments = useCallback(async () => {
     if (!user) {
@@ -82,40 +28,32 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setLoading(true);
       setError(null);
       
-      console.log('[useOptimizedAssignments] Fetching assignments with filter:', filter, 'User role:', user.role);
+      console.log('[useOptimizedAssignments] Starting simple assignment fetch with filter:', filter, 'User role:', user.role);
 
-      // FIXED: Use proper LEFT JOIN syntax and correct foreign key relationships
-      let query = supabase
+      // Step 1: Get base assignments with simple query
+      let baseQuery = supabase
         .from('assignments')
         .select(`
-          *,
-          assignments_employees(
-            user_id,
-            profiles(
-              id,
-              name,
-              email
-            )
-          ),
-          cars(
-            id,
-            name,
-            car_number
-          ),
-          responsible_user:profiles!assignments_responsible_user_id_fkey(
-            id,
-            name,
-            email
-          )
+          id,
+          title,
+          description,
+          assignment_date,
+          from_time,
+          to_time,
+          location,
+          type,
+          published,
+          created_at,
+          updated_at,
+          responsible_user_id
         `);
 
       // Apply filtering based on context and user role
       switch (filter) {
         case 'user':
-          // Dashboard context: Show only assignments where user is assigned or responsible
+          // Dashboard context: Get user's assignments via assignments_employees
           console.log('[useOptimizedAssignments] Applying user filter for dashboard context');
           
-          // Get user's assignment IDs first
           const { data: userAssignmentIds } = await supabase
             .from('assignments_employees')
             .select('assignment_id')
@@ -124,20 +62,18 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           const assignmentIds = userAssignmentIds?.map(ua => ua.assignment_id) || [];
           
           if (assignmentIds.length > 0) {
-            query = query.or(`id.in.(${assignmentIds.join(',')}),responsible_user_id.eq.${user.id}`);
+            baseQuery = baseQuery.or(`id.in.(${assignmentIds.join(',')}),responsible_user_id.eq.${user.id}`);
           } else {
-            query = query.eq('responsible_user_id', user.id);
+            baseQuery = baseQuery.eq('responsible_user_id', user.id);
           }
           break;
           
         case 'all':
           // Planner context: Show based on user role
           if (user.role === 'servicemedarbejder') {
-            // FIXED: For servicemedarbejder: Show ALL published assignments (not just their own)
             console.log('[useOptimizedAssignments] Showing ALL published assignments for servicemedarbejder in planner');
-            query = query.eq('published', true);
+            baseQuery = baseQuery.eq('published', true);
           } else {
-            // For admin/skadeleder: Show all assignments (published and unpublished)
             console.log('[useOptimizedAssignments] Showing all assignments for admin/skadeleder');
             // No additional filter - show everything
           }
@@ -145,87 +81,102 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           
         case 'published':
           console.log('[useOptimizedAssignments] Applying published filter');
-          query = query.eq('published', true);
+          baseQuery = baseQuery.eq('published', true);
           break;
           
         case 'unpublished':
           console.log('[useOptimizedAssignments] Applying unpublished filter');
-          query = query.eq('published', false);
+          baseQuery = baseQuery.eq('published', false);
           break;
       }
 
-      const { data, error: fetchError } = await query.order('assignment_date', { ascending: true });
+      const { data: assignmentsData, error: fetchError } = await baseQuery.order('assignment_date', { ascending: true });
 
       if (fetchError) {
-        console.error('[useOptimizedAssignments] Fetch error:', fetchError);
+        console.error('[useOptimizedAssignments] Assignment fetch error:', fetchError);
         throw fetchError;
       }
 
-      console.log('[useOptimizedAssignments] Raw data received:', data?.length || 0, 'assignments');
+      console.log('[useOptimizedAssignments] Base assignments fetched:', assignmentsData?.length || 0);
 
-      if (!data) {
+      if (!assignmentsData) {
         setAssignments([]);
         return;
       }
 
-      // FIXED: Transform the data to handle optional employee relationships properly
-      const transformedAssignments: OptimizedAssignment[] = [];
-      const assignmentMap = new Map<string, OptimizedAssignment>();
-
-      data.forEach((row: any) => {
-        const assignmentId = row.id;
+      // Step 2: Get all assignment-employee relationships
+      const assignmentIds = assignmentsData.map(a => a.id);
+      let employeesData: any[] = [];
+      
+      if (assignmentIds.length > 0) {
+        const { data: assignmentEmployees } = await supabase
+          .from('assignments_employees')
+          .select('assignment_id, user_id')
+          .in('assignment_id', assignmentIds);
         
-        if (!assignmentMap.has(assignmentId)) {
-          // Create new assignment entry
-          const assignment: OptimizedAssignment = {
-            id: row.id,
-            title: row.title,
-            description: row.description,
-            assignment_date: row.assignment_date,
-            from_time: row.from_time,
-            to_time: row.to_time,
-            location: row.location,
-            type: row.type,
-            published: row.published,
-            created_at: row.created_at,
-            updated_at: row.updated_at,
-            responsible_user_id: row.responsible_user_id,
-            employees: [],
-            cars: row.cars ? (Array.isArray(row.cars) ? row.cars : [row.cars]).filter(Boolean) : [],
-            responsible_user: row.responsible_user || undefined
-          };
-          assignmentMap.set(assignmentId, assignment);
-          transformedAssignments.push(assignment);
+        if (assignmentEmployees && assignmentEmployees.length > 0) {
+          const userIds = [...new Set(assignmentEmployees.map(ae => ae.user_id))];
+          
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, name, email')
+            .in('id', userIds);
+          
+          employeesData = assignmentEmployees.map(ae => ({
+            assignment_id: ae.assignment_id,
+            user_id: ae.user_id,
+            profile: profiles?.find(p => p.id === ae.user_id)
+          })).filter(item => item.profile);
         }
+      }
 
-        const assignment = assignmentMap.get(assignmentId)!;
+      // Step 3: Get responsible users
+      const responsibleUserIds = [...new Set(assignmentsData
+        .map(a => a.responsible_user_id)
+        .filter(Boolean))];
+      
+      let responsibleUsersData: any[] = [];
+      if (responsibleUserIds.length > 0) {
+        const { data: responsibleUsers } = await supabase
+          .from('profiles')
+          .select('id, name, email')
+          .in('id', responsibleUserIds);
         
-        // FIXED: Handle employee relationships properly - they might be null/empty
-        if (row.assignments_employees && Array.isArray(row.assignments_employees)) {
-          row.assignments_employees.forEach((ae: any) => {
-            if (ae?.profiles) {
-              const employee = {
-                id: ae.profiles.id,
-                name: ae.profiles.name,
-                email: ae.profiles.email
-              };
-              
-              const exists = assignment.employees.some(emp => emp.id === employee.id);
-              if (!exists) {
-                assignment.employees.push(employee);
-              }
-            }
-          });
-        }
+        responsibleUsersData = responsibleUsers || [];
+      }
+
+      // Step 4: Transform to Assignment format
+      const finalAssignments: Assignment[] = assignmentsData.map(assignment => {
+        // Get employees for this assignment
+        const assignmentEmployees = employeesData
+          .filter(emp => emp.assignment_id === assignment.id)
+          .map(emp => emp.profile.name);
+
+        // Get responsible user
+        const responsibleUser = responsibleUsersData.find(ru => ru.id === assignment.responsible_user_id);
+
+        return {
+          id: assignment.id,
+          title: assignment.title,
+          description: assignment.description || '',
+          date: assignment.assignment_date,
+          fromTime: assignment.from_time,
+          toTime: assignment.to_time,
+          location: assignment.location,
+          car: null, // Will be populated separately if needed
+          cars: [],
+          employees: assignmentEmployees,
+          published: assignment.published || false,
+          responsibleUser: responsibleUser ? {
+            id: responsibleUser.id,
+            name: responsibleUser.name
+          } : null
+        };
       });
-
-      console.log('[useOptimizedAssignments] Transformed assignments:', transformedAssignments.length);
+      
+      console.log('[useOptimizedAssignments] Final assignments processed:', finalAssignments.length);
       console.log('[useOptimizedAssignments] Filter applied:', filter, 'User role:', user.role);
       
-      // Convert to Assignment type for component compatibility
-      const finalAssignments = transformedAssignments.map(transformAssignment);
-      
-      console.log('[useOptimizedAssignments] Final assignments for user:', finalAssignments.length);
       finalAssignments.forEach(assignment => {
         console.log(`[useOptimizedAssignments] Assignment: ${assignment.title} - Published: ${assignment.published} - Employees: [${assignment.employees.join(', ')}]`);
       });
@@ -233,25 +184,17 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setAssignments(finalAssignments);
       
     } catch (err) {
-      console.error('[useOptimizedAssignments] Error fetching assignments:', err);
+      console.error('[useOptimizedAssignments] Critical error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
-      // FIXED: Improved error handling
-      if (errorMessage.includes('relation') || errorMessage.includes('foreign key')) {
-        console.error('[useOptimizedAssignments] Database relationship error detected');
-        toast({
-          title: t('common.error'),
-          description: 'Database relationship error. Please check your connection.',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: t('common.error'),
-          description: t('assignments.fetchError'),
-          variant: 'destructive',
-        });
-      }
+      toast({
+        title: t('common.error'),
+        description: t('assignments.fetchError'),
+        variant: 'destructive',
+      });
+      
+      setAssignments([]);
     } finally {
       setLoading(false);
     }
@@ -466,7 +409,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     fetchAssignments();
 
     const channel = supabase
-      .channel('assignments_optimized_changes')
+      .channel('assignments_simplified_changes')
       .on(
         'postgres_changes',
         {
