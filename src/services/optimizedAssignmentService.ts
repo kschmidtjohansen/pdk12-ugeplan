@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Assignment } from '@/types/assignment';
 
@@ -77,20 +78,18 @@ class OptimizedAssignmentService {
       }
     });
 
-    // Parallel queries for optimal performance
-    const [employeeResult, carResult] = await Promise.all([
-      // Fetch assignment-employee relationships with employee names
+    // Fixed: Separate queries for assignment-employee relationships and profiles
+    const [employeeAssignmentsResult, profilesResult, carResult] = await Promise.all([
+      // First, get assignment-employee relationships
       supabase
         .from('assignments_employees')
-        .select(`
-          assignment_id, 
-          user_id,
-          profiles!inner (
-            id,
-            name
-          )
-        `)
+        .select('assignment_id, user_id')
         .in('assignment_id', assignmentIds),
+      
+      // Then, get all profiles separately
+      supabase
+        .from('profiles')
+        .select('id, name'),
       
       // Fetch car data
       allCarIds.size > 0 ? supabase
@@ -99,22 +98,32 @@ class OptimizedAssignmentService {
         .in('id', Array.from(allCarIds)) : { data: [], error: null }
     ]);
 
-    if (employeeResult.error) throw employeeResult.error;
+    if (employeeAssignmentsResult.error) throw employeeAssignmentsResult.error;
+    if (profilesResult.error) throw profilesResult.error;
     if (carResult.error) throw carResult.error;
 
     // Build lookup maps for O(1) access
     const employeeLookup = new Map<string, string[]>();
     const carLookup = new Map<string, any>();
+    const profilesMap = new Map<string, string>();
 
-    // Process employee data with direct name access
-    if (employeeResult.data) {
-      employeeResult.data.forEach(item => {
+    // Create profiles lookup
+    if (profilesResult.data) {
+      profilesResult.data.forEach(profile => {
+        profilesMap.set(profile.id, profile.name);
+      });
+    }
+
+    // Process employee assignment relationships with profile names
+    if (employeeAssignmentsResult.data) {
+      employeeAssignmentsResult.data.forEach(item => {
         if (!employeeLookup.has(item.assignment_id)) {
           employeeLookup.set(item.assignment_id, []);
         }
-        // Access employee name directly from the joined profiles
-        if (item.profiles && item.profiles.name) {
-          employeeLookup.get(item.assignment_id)?.push(item.profiles.name);
+        // Get employee name from profiles map
+        const employeeName = profilesMap.get(item.user_id);
+        if (employeeName) {
+          employeeLookup.get(item.assignment_id)?.push(employeeName);
         }
       });
     }
