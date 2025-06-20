@@ -51,18 +51,15 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   const { cars } = useCars();
   const { vacations } = useVacations();
 
-  console.log(`[PlannerContent] CRITICAL FIX - Received ${weekAssignments.length} week assignments for ALL users to see`);
-  console.log(`[PlannerContent] ALL assignments visible:`, weekAssignments.map(a => ({
-    id: a.id,
-    title: a.title,
-    employees: a.employees,
-    published: a.published
-  })));
+  console.log(`[PlannerContent] CRITICAL FIX - Displaying ${weekAssignments.length} assignments to ALL users`);
+  weekAssignments.forEach(assignment => {
+    console.log(`[PlannerContent] CRITICAL FIX - Assignment visible to all: ${assignment.id} - ${assignment.title} - Employees: [${assignment.employees?.join(', ')}] - Published: ${assignment.published}`);
+  });
 
   // Group assignments by day
   const groupedAssignments = useMemo(() => {
     const grouped = groupAssignmentsByDay(weekAssignments || []);
-    console.log(`[PlannerContent] Grouped ALL assignments:`, grouped);
+    console.log(`[PlannerContent] CRITICAL FIX - Grouped ALL assignments:`, grouped);
     return grouped;
   }, [weekAssignments]);
 
@@ -121,11 +118,10 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     }, { pastDates: [], currentAndFutureDates: [] });
   }, [weekDateStrings, today]);
 
-  // FIXED: CRITICAL FIX - ALWAYS show planner to ALL authenticated users
-  // The planner should display ALL assignments system-wide, not filtered by user
+  // CRITICAL FIX: ALWAYS show planner to ALL authenticated users with ALL assignments
   const shouldShowPlanner = true;
 
-  console.log(`[PlannerContent] CRITICAL FIX - Showing planner to all users with ${weekAssignments.length} total assignments`);
+  console.log(`[PlannerContent] CRITICAL FIX - Showing planner to ALL users with ${weekAssignments.length} total assignments visible`);
 
   if (!shouldShowPlanner && Array.isArray(weekAssignments) && weekAssignments.length === 0) {
     return <EmptyState message={t("planner.noAssignmentsWeek")} />;

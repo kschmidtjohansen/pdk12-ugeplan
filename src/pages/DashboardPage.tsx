@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import { format, getISOWeek, getISOWeekYear } from 'date-fns';
-import { useAssignmentsConsolidated } from '@/hooks/useAssignmentsConsolidated';
+import { useOptimizedAssignments } from '@/hooks/useOptimizedAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
@@ -23,10 +24,15 @@ const DashboardPage: React.FC = () => {
   // Enhanced authentication monitoring
   const { authStatus } = useAuthenticationMonitor();
   
-  // Get ALL assignments for proper data display
-  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError } = useAssignmentsConsolidated({ 
+  // CRITICAL FIX: Use separate queries for dashboard context - all assignments for metrics, user assignments for personal view
+  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError } = useOptimizedAssignments({ 
     filter: 'all', 
     includeUnpublished: true 
+  });
+  
+  const { assignments: userAssignments, loading: userAssignmentsLoading } = useOptimizedAssignments({ 
+    filter: 'user', 
+    includeUnpublished: false 
   });
   
   const { employees, updateEmployeeLeaveStatusFromVacations } = useEmployees();
@@ -44,48 +50,36 @@ const DashboardPage: React.FC = () => {
   // Show connection status if there are issues
   const showConnectionIssue = !authStatus.sessionValid || authStatus.connectionStatus === 'disconnected';
 
-  // Filter assignments for dashboard - preserve ALL employee information
-  const { publishedAssignments, userAssignments } = useMemo(() => {
-    console.log('[DashboardPage] Processing assignments for user:', user?.name, user?.role);
-    console.log('[DashboardPage] Total assignments received:', allAssignments.length);
-    
-    // Log each assignment's employee data
-    allAssignments.forEach(assignment => {
-      console.log(`[DashboardPage] Assignment ${assignment.id} (${assignment.title}):`, {
-        employees: assignment.employees,
-        responsibleUser: assignment.responsibleUser,
-        published: assignment.published
-      });
+  console.log(`[DashboardPage] CRITICAL FIX - Processing assignments for user: ${user?.name} (${user?.role})`);
+  console.log(`[DashboardPage] CRITICAL FIX - Total all assignments received: ${allAssignments.length}`);
+  console.log(`[DashboardPage] CRITICAL FIX - User assignments received: ${userAssignments.length}`);
+  
+  // Log assignment details for debugging
+  allAssignments.forEach(assignment => {
+    console.log(`[DashboardPage] All assignment ${assignment.id} (${assignment.title}):`, {
+      employees: assignment.employees,
+      responsibleUser: assignment.responsibleUser,
+      published: assignment.published
     });
+  });
 
-    // Filter published assignments for metrics (all users can see these)
+  userAssignments.forEach(assignment => {
+    console.log(`[DashboardPage] CRITICAL FIX - User assignment ${assignment.id} (${assignment.title}) with ALL colleagues preserved:`, {
+      employees: assignment.employees,
+      responsibleUser: assignment.responsibleUser,
+      published: assignment.published
+    });
+  });
+
+  // CRITICAL FIX: Use appropriate assignment sets for different purposes
+  const { publishedAssignments } = useMemo(() => {
+    // For metrics - use all published assignments
     const published = allAssignments.filter(assignment => assignment.published);
     
-    // Filter user-specific assignments but PRESERVE ALL employee information
-    const userFiltered = allAssignments.filter(assignment => {
-      if (!user) return false;
-      
-      // For ALL users, show assignments where they are either assigned OR responsible
-      const isResponsible = assignment.responsibleUser && assignment.responsibleUser.id === user.id;
-      const isAssigned = assignment.employees && Array.isArray(assignment.employees) && assignment.employees.includes(user.name || '');
-      
-      const shouldShow = isResponsible || isAssigned;
-      
-      if (shouldShow) {
-        console.log(`[DashboardPage] User ${user.name} assigned to ${assignment.title}:`, {
-          employees: assignment.employees,
-          isResponsible,
-          isAssigned
-        });
-      }
-      
-      return shouldShow;
-    });
+    console.log(`[DashboardPage] CRITICAL FIX - Metrics will show ${published.length} published assignments`);
     
-    console.log(`[DashboardPage] User ${user?.name} (${user?.role}) has ${userFiltered.length} assignments with COMPLETE employee data preserved`);
-    
-    return { publishedAssignments: published, userAssignments: userFiltered };
-  }, [allAssignments, user]);
+    return { publishedAssignments: published };
+  }, [allAssignments]);
 
   // Update employee leave status based on vacations when dashboard loads
   useEffect(() => {
@@ -144,21 +138,28 @@ const DashboardPage: React.FC = () => {
     setSelectedYear(year);
   };
 
-  // Memoize filtered assignments for the week to prevent recalculation
+  // CRITICAL FIX: Use user assignments for weekly view (these already have ALL colleague names preserved)
   const myWeekAssignments = useMemo(() => {
-    return AssignmentFilterService.filterByDateRange(
-      userAssignments, // This contains assignments with ALL employee names preserved
+    const filtered = AssignmentFilterService.filterByDateRange(
+      userAssignments, // This contains user's assignments with ALL employee names preserved
       startDateISO,
       endDateISO
     );
-  }, [userAssignments, startDateISO, endDateISO]);
+    
+    console.log(`[DashboardPage] CRITICAL FIX - Weekly assignments for ${user?.name}: ${filtered.length} assignments`);
+    filtered.forEach(assignment => {
+      console.log(`[DashboardPage] CRITICAL FIX - Weekly assignment ${assignment.title} shows ALL colleagues: [${assignment.employees?.join(', ')}]`);
+    });
+    
+    return filtered;
+  }, [userAssignments, startDateISO, endDateISO, user?.name]);
 
   // Show metrics to ALL users
   const shouldShowMetrics = true;
   const selectedDateForMetrics = getSelectedDateForMetrics();
 
   // Enhanced loading state with connection status
-  if (assignmentsLoading) {
+  if (assignmentsLoading || userAssignmentsLoading) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
@@ -251,7 +252,7 @@ const DashboardPage: React.FC = () => {
           </div>
         )}
 
-        {/* Weekly Assignments - Pass user assignments with ALL employee info preserved */}
+        {/* CRITICAL FIX: Weekly Assignments - Pass user assignments with ALL colleague info preserved */}
         <div style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
           <WeeklyAssignments
             assignments={myWeekAssignments}
