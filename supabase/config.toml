@@ -39,3 +39,9 @@ verify_jwt = true
 
 [functions.admin-user-delete]
 verify_jwt = true
+
+[functions.admin-user-status]
+verify_jwt = true
+
+[functions.admin-list-users]
+verify_jwt = true

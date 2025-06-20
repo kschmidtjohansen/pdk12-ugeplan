@@ -15,7 +15,6 @@ import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowDownAZ, ArrowUpAZ } from 'lucide-react';
-import type { User } from '@supabase/supabase-js';
 
 // Import refactored components
 import UserTable from './UserTable';
@@ -24,11 +23,6 @@ import UserDeleteDialog from './UserDeleteDialog';
 import PasswordChangeDialog from './PasswordChangeDialog';
 import UserStatusDialog from './UserStatusDialog';
 import { AdminUser } from './UserTableRow';
-
-// Extended interface for Supabase auth user with banned_until property
-interface ExtendedUser extends User {
-  banned_until?: string | null;
-}
 
 const UserManagement: React.FC = () => {
   const { toast } = useToast();
@@ -51,78 +45,36 @@ const UserManagement: React.FC = () => {
     role: 'servicemedarbejder' as UserRole,
   });
 
-  // Fetch users from Supabase
+  // Fetch users using the new edge function
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      console.log('[UserManagement] Fetching users via edge function');
       
-      // Get all users with their roles including avatar_url
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          name,
-          email,
-          phone,
-          job_title,
-          avatar_url
-        `);
+      const { data, error } = await supabase.functions.invoke('admin-list-users');
       
-      if (profilesError) throw profilesError;
-      
-      // Get user roles
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-        
-      if (rolesError) throw rolesError;
-      
-      // Get auth user data to check banned_until status
-      const { data: authResponse, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) {
-        console.warn('Could not fetch auth data:', authError);
+      if (error) {
+        console.error('[UserManagement] Edge function error:', error);
+        throw error;
       }
       
-      // Combine the data
-      const combinedUsers: AdminUser[] = profilesData.map(profile => {
-        const userRole = rolesData.find(r => r.user_id === profile.id);
-        // Find the auth user and safely access banned_until property
-        const authUser = authResponse?.users?.find((user: ExtendedUser) => user.id === profile.id);
-        
-        // Helper function to extract banned_until from various sources
-        const getBannedUntil = (user: ExtendedUser | undefined): string | null => {
-          if (!user) return null;
-          
-          // Check direct property first
-          if (user.banned_until) return user.banned_until;
-          
-          // Check user_metadata
-          if (user.user_metadata?.banned_until) return user.user_metadata.banned_until;
-          
-          // Check app_metadata
-          if (user.app_metadata?.banned_until) return user.app_metadata.banned_until;
-          
-          return null;
-        };
-
-        return {
-          id: profile.id,
-          name: profile.name,
-          email: profile.email,
-          phone: profile.phone || '',
-          jobTitle: profile.job_title || '',
-          role: (userRole?.role || 'servicemedarbejder') as UserRole,
-          banned_until: getBannedUntil(authUser),
-          avatar_url: profile.avatar_url
-        };
-      });
-
+      if (data?.error) {
+        console.error('[UserManagement] Function returned error:', data.error);
+        throw new Error(data.error);
+      }
+      
+      if (!data?.users) {
+        console.error('[UserManagement] No users data returned:', data);
+        throw new Error('No users data returned');
+      }
+      
+      console.log('[UserManagement] Successfully fetched users:', data.users.length);
+      
       // Sort users by name alphabetically
-      const sortedUsers = sortUsersByName(combinedUsers, sortDirection);
+      const sortedUsers = sortUsersByName(data.users, sortDirection);
       setUsers(sortedUsers);
     } catch (err) {
-      console.error('Error fetching users:', err);
+      console.error('[UserManagement] Error fetching users:', err);
       toast({
         title: t('common.error'),
         description: t('admin.userManagement.fetchError'),
@@ -244,14 +196,28 @@ const UserManagement: React.FC = () => {
     try {
       const isCurrentlyActive = !currentUser.banned_until || new Date(currentUser.banned_until) <= new Date();
       
-      const { error } = await supabase.functions.invoke('admin-user-status', {
+      console.log('[UserManagement] Toggling user status:', {
+        userId: currentUser.id,
+        currentlyActive: isCurrentlyActive,
+        newActive: !isCurrentlyActive
+      });
+      
+      const { data, error } = await supabase.functions.invoke('admin-user-status', {
         body: { 
           userId: currentUser.id, 
           active: !isCurrentlyActive 
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('[UserManagement] Status toggle error:', error);
+        throw error;
+      }
+      
+      if (data?.error) {
+        console.error('[UserManagement] Function returned error:', data.error);
+        throw new Error(data.error);
+      }
       
       toast({
         title: isCurrentlyActive 
@@ -266,12 +232,12 @@ const UserManagement: React.FC = () => {
       await fetchUsers();
       setStatusDialogOpen(false);
     } catch (err) {
-      console.error('Error toggling user status:', err);
+      console.error('[UserManagement] Error toggling user status:', err);
+      
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       toast({
         title: t('common.error'),
-        description: isActivating 
-          ? t('admin.userManagement.activateError')
-          : t('admin.userManagement.deactivateError'),
+        description: errorMessage,
         variant: 'destructive',
       });
     }
@@ -282,15 +248,14 @@ const UserManagement: React.FC = () => {
 
     try {
       setIsDeleting(true);
-      console.log('Starting user deletion for:', currentUser.id, 'Name:', currentUser.name);
+      console.log('[UserManagement] Starting user deletion for:', currentUser.id, 'Name:', currentUser.name);
       
-      // Use Supabase edge function to delete user with improved error handling
       const { data, error } = await supabase.functions.invoke('admin-user-delete', {
         body: { userId: currentUser.id }
       });
       
       if (error) {
-        console.error('Edge function error:', error);
+        console.error('[UserManagement] Edge function error:', error);
         
         // Provide more specific error messages based on error type
         let errorMessage = 'An unexpected error occurred';
@@ -311,7 +276,7 @@ const UserManagement: React.FC = () => {
       }
       
       if (data?.error) {
-        console.error('Deletion function returned error:', data.error);
+        console.error('[UserManagement] Deletion function returned error:', data.error);
         
         // Handle specific business logic errors from the edge function
         if (data.error.includes('Cannot delete user: User is still assigned')) {
@@ -323,10 +288,7 @@ const UserManagement: React.FC = () => {
         throw new Error(data.error);
       }
       
-      console.log('User deletion successful:', data);
-      
-      // Remove user from local state
-      setUsers(users.filter(user => user.id !== currentUser.id));
+      console.log('[UserManagement] User deletion successful:', data);
       
       toast({
         title: t('admin.userManagement.userDeleted'),
@@ -336,11 +298,11 @@ const UserManagement: React.FC = () => {
       setDeleteDialogOpen(false);
       setCurrentUser(null);
       
-      // Refresh the user list to ensure consistency
+      // Refresh the user list
       await fetchUsers();
       
     } catch (err) {
-      console.error('Error deleting user:', err);
+      console.error('[UserManagement] Error deleting user:', err);
       
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       
@@ -374,73 +336,20 @@ const UserManagement: React.FC = () => {
     
     try {
       if (currentUser) {
-        // Update existing user
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            name: formData.name,
-            phone: formData.phone,
-            job_title: formData.jobTitle
-          })
-          .eq('id', currentUser.id);
-          
-        if (profileError) throw profileError;
-        
-        // Update role if changed
-        if (currentUser.role !== formData.role) {
-          const { error: roleError } = await supabase.functions.invoke('admin-user-role', {
-            body: { userId: currentUser.id, role: formData.role }
-          });
-          
-          if (roleError) throw roleError;
-        }
-        
-        // Update local state
-        setUsers(
-          sortUsersByName(
-            users.map((u) =>
-              u.id === currentUser.id ? { ...u, ...formData } : u
-            ),
-            sortDirection
-          )
-        );
-        
-        toast({
-          title: t('admin.userManagement.userUpdated'),
-          description: t('admin.userManagement.userUpdateMsg', { name: formData.name }),
-        });
+        // Update existing user - this will be handled by UserFormDialog
+        console.log('[UserManagement] Updating existing user via UserFormDialog');
       } else {
-        // Create new user via UserFormDialog which handles the creation
-        // We need to update local state after successful creation
-        const newUser: AdminUser = {
-          id: Date.now().toString(), // Temporary ID, will be replaced with actual one
-          ...formData
-        };
-        
-        // Add user to the sorted list
-        const updatedUsers = sortUsersByName([...users, newUser], sortDirection);
-        setUsers(updatedUsers);
-        
-        toast({
-          title: t('admin.userManagement.userAdded'),
-          description: t('admin.userManagement.userAddedMsg', {
-            name: formData.name, 
-            role: getRoleLabel(formData.role)
-          }),
-        });
-        
-        // Refresh users list to get the actual data from the database
-        fetchUsers();
+        // Create new user - this will be handled by UserFormDialog
+        console.log('[UserManagement] Creating new user via UserFormDialog');
       }
       
+      // The UserFormDialog handles the actual creation/update
+      // We just need to refresh the list after successful operation
+      await fetchUsers();
       setUserDialogOpen(false);
     } catch (err) {
-      console.error('Error saving user:', err);
-      toast({
-        title: t('common.error'),
-        description: currentUser ? t('admin.userManagement.updateError') : t('admin.userManagement.createError'),
-        variant: 'destructive',
-      });
+      console.error('[UserManagement] Error in handleSubmitUser:', err);
+      // Error handling is done in UserFormDialog
     }
   };
 

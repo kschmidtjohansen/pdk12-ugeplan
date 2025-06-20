@@ -13,13 +13,12 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from '@/context/TranslationContext';
 import { User, UserRole } from '@/context/AuthContext';
-import { Employee } from '@/types/employee';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Wifi, WifiOff } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 interface AdminUser {
   id: string;
@@ -57,7 +56,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [debugInfo, setDebugInfo] = useState<any>(null);
   
   const { t } = useTranslation();
   const { updateUserRole } = useAuth();
@@ -67,7 +65,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMessage('');
-    setDebugInfo(null);
     
     try {
       console.log('[UserFormDialog] Starting form submission');
@@ -103,12 +100,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           password: '[REDACTED]'
         });
         
-        // Test connectivity first
-        console.log('[UserFormDialog] Testing connection to Supabase...');
-        const { data: testData } = await supabase.from('profiles').select('count', { count: 'exact', head: true });
-        console.log('[UserFormDialog] Connection test result:', testData);
-        
-        console.log('[UserFormDialog] Invoking edge function...');
         const { data, error } = await supabase.functions.invoke('admin-create-user', {
           body: requestPayload
         });
@@ -117,11 +108,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         
         if (error) {
           console.error('[UserFormDialog] Function error:', error);
-          setDebugInfo({
-            errorType: 'function_error',
-            error: error.message,
-            details: error
-          });
           
           // Handle specific error types
           if (error.message?.includes('Failed to send a request')) {
@@ -139,20 +125,11 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         
         if (data?.error) {
           console.error('[UserFormDialog] Function returned error:', data.error);
-          setDebugInfo({
-            errorType: 'function_response_error',
-            error: data.error,
-            debug: data.debug
-          });
           throw new Error(data.error);
         }
         
         if (!data?.user) {
           console.error('[UserFormDialog] No user returned from function:', data);
-          setDebugInfo({
-            errorType: 'no_user_data',
-            data: data
-          });
           throw new Error("No user data returned from creation");
         }
         
@@ -173,8 +150,26 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
             throw new Error(roleError);
           }
         }
+
+        // Update profile with additional fields
+        console.log('[UserFormDialog] Updating profile with additional data');
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            phone: formData.phone || null,
+            job_title: formData.jobTitle || null,
+          })
+          .eq('id', userId);
+
+        if (profileError) {
+          console.warn('[UserFormDialog] Profile update warning:', profileError);
+          // Don't fail the entire operation for profile updates
+        }
+        
       } else {
         // Updating an existing user
+        console.log('[UserFormDialog] Updating existing user');
+        
         // Update profile data
         const { error: profileError } = await supabase
           .from('profiles')
@@ -185,10 +180,14 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           })
           .eq('id', currentUser.id);
           
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('[UserFormDialog] Profile update error:', profileError);
+          throw profileError;
+        }
         
         // Update role if changed
         if (currentUser.role !== formData.role) {
+          console.log('[UserFormDialog] Updating user role');
           const { error: roleError } = await updateUserRole(currentUser.id, formData.role);
           if (roleError) throw new Error(roleError);
         }
@@ -196,12 +195,14 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       
       // Call original submit handler for UI updates
       handleSubmit(e);
+      
       toast({
         title: t('common.success'),
         description: currentUser 
           ? t('admin.userManagement.updateSuccess') 
           : t('admin.userManagement.createSuccess'),
       });
+      
     } catch (error) {
       console.error('[UserFormDialog] Error saving user:', error);
       
@@ -259,23 +260,9 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
                 {errorMessage}
-                {debugInfo && (
-                  <details className="mt-2 text-xs">
-                    <summary>Debug info (for developers)</summary>
-                    <pre className="mt-1 text-xs bg-gray-100 p-2 rounded">
-                      {JSON.stringify(debugInfo, null, 2)}
-                    </pre>
-                  </details>
-                )}
               </AlertDescription>
             </Alert>
           )}
-
-          {/* Connection status indicator */}
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <Wifi className="h-3 w-3" />
-            <span>Connected to Supabase</span>
-          </div>
           
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
@@ -307,35 +294,31 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
             />
           </div>
           
-          {/* Phone and Job Title fields - only show for editing existing users */}
-          {currentUser && (
-            <>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="phone" className="text-right">
-                  {t('admin.userManagement.phone')}
-                </Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="jobTitle" className="text-right">
-                  {t('admin.userManagement.position')}
-                </Label>
-                <Input
-                  id="jobTitle"
-                  name="jobTitle"
-                  value={formData.jobTitle}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                />
-              </div>
-            </>
-          )}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="phone" className="text-right">
+              {t('admin.userManagement.phone')}
+            </Label>
+            <Input
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              className="col-span-3"
+            />
+          </div>
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="jobTitle" className="text-right">
+              {t('admin.userManagement.position')}
+            </Label>
+            <Input
+              id="jobTitle"
+              name="jobTitle"
+              value={formData.jobTitle}
+              onChange={handleInputChange}
+              className="col-span-3"
+            />
+          </div>
           
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="role" className="text-right">
