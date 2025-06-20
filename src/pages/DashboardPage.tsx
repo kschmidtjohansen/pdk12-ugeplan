@@ -25,15 +25,9 @@ const DashboardPage: React.FC = () => {
   const { authStatus } = useAuthenticationMonitor();
   
   // CRITICAL FIX: Use separate queries for dashboard context - all assignments for metrics, user assignments for personal view
-  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError } = useOptimizedAssignments({ 
-    filter: 'all', 
-    includeUnpublished: true 
-  });
+  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError } = useOptimizedAssignments('all');
   
-  const { assignments: userAssignments, loading: userAssignmentsLoading } = useOptimizedAssignments({ 
-    filter: 'user', 
-    includeUnpublished: false 
-  });
+  const { assignments: userAssignments, loading: userAssignmentsLoading } = useOptimizedAssignments('user');
   
   const { employees, updateEmployeeLeaveStatusFromVacations } = useEmployees();
   const { cars } = useCars();

@@ -4,11 +4,23 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
-import { Assignment } from '@/integrations/supabase/types';
+import { Assignment } from '@/types/assignment';
 
 export type AssignmentFilter = 'all' | 'user' | 'published' | 'unpublished';
 
-interface OptimizedAssignment extends Assignment {
+interface OptimizedAssignment {
+  id: string;
+  title: string;
+  description: string;
+  assignment_date: string;
+  from_time: string;
+  to_time: string;
+  location: string;
+  type: string;
+  published: boolean;
+  created_at: string;
+  updated_at: string;
+  responsible_user_id: string | null;
   employees: Array<{
     id: string;
     name: string;
@@ -27,13 +39,38 @@ interface OptimizedAssignment extends Assignment {
 }
 
 export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
-  const [assignments, setAssignments] = useState<OptimizedAssignment[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [operationStates, setOperationStates] = useState<Record<string, 'publishing' | 'deleting' | 'updating' | null>>({});
   
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
+
+  // Transform OptimizedAssignment to Assignment
+  const transformAssignment = (optimizedAssignment: OptimizedAssignment): Assignment => {
+    return {
+      id: optimizedAssignment.id,
+      title: optimizedAssignment.title,
+      description: optimizedAssignment.description,
+      date: optimizedAssignment.assignment_date,
+      fromTime: optimizedAssignment.from_time,
+      toTime: optimizedAssignment.to_time,
+      location: optimizedAssignment.location,
+      car: optimizedAssignment.cars?.[0] ? {
+        id: optimizedAssignment.cars[0].id,
+        name: optimizedAssignment.cars[0].name
+      } : null,
+      cars: optimizedAssignment.cars?.map(car => car.id) || [],
+      employees: optimizedAssignment.employees?.map(emp => emp.name) || [],
+      published: optimizedAssignment.published,
+      responsibleUser: optimizedAssignment.responsible_user ? {
+        id: optimizedAssignment.responsible_user.id,
+        name: optimizedAssignment.responsible_user.name
+      } : null
+    };
+  };
 
   const fetchAssignments = useCallback(async () => {
     if (!user) {
@@ -128,7 +165,18 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         if (!assignmentMap.has(assignmentId)) {
           // Create new assignment entry
           const assignment: OptimizedAssignment = {
-            ...row,
+            id: row.id,
+            title: row.title,
+            description: row.description,
+            assignment_date: row.assignment_date,
+            from_time: row.from_time,
+            to_time: row.to_time,
+            location: row.location,
+            type: row.type,
+            published: row.published,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            responsible_user_id: row.responsible_user_id,
             employees: [],
             cars: row.cars ? (Array.isArray(row.cars) ? row.cars : [row.cars]) : [],
             responsible_user: row.responsible_user || undefined
@@ -155,9 +203,10 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       });
 
       console.log('[useOptimizedAssignments] Transformed assignments:', transformedAssignments.length);
-      console.log('[useOptimizedAssignments] Sample assignment employees:', transformedAssignments[0]?.employees?.length || 0);
 
-      setAssignments(transformedAssignments);
+      // Convert to Assignment type for component compatibility
+      const finalAssignments = transformedAssignments.map(transformAssignment);
+      setAssignments(finalAssignments);
       
     } catch (err) {
       console.error('[useOptimizedAssignments] Error fetching assignments:', err);
@@ -173,6 +222,208 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setLoading(false);
     }
   }, [filter, user, toast, t]);
+
+  // Create assignment
+  const createAssignment = useCallback(async (assignmentData: Partial<Assignment>) => {
+    try {
+      console.log('[useOptimizedAssignments] Creating assignment:', assignmentData);
+      
+      const { data: newAssignment, error } = await supabase
+        .from('assignments')
+        .insert({
+          title: assignmentData.title,
+          description: assignmentData.description,
+          location: assignmentData.location,
+          assignment_date: assignmentData.date,
+          from_time: assignmentData.fromTime,
+          to_time: assignmentData.toTime,
+          published: assignmentData.published || false,
+        })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
+      // Handle employees
+      if (assignmentData.employees && assignmentData.employees.length > 0 && newAssignment?.id) {
+        for (const employeeName of assignmentData.employees) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('name', employeeName.trim())
+            .single();
+            
+          if (profile?.id) {
+            await supabase
+              .from('assignments_employees')
+              .insert({
+                assignment_id: newAssignment.id,
+                user_id: profile.id
+              });
+          }
+        }
+      }
+      
+      toast({
+        title: t('planner.assignmentCreated'),
+        description: t('planner.assignmentCreatedMsg', { title: assignmentData.title }),
+      });
+      
+      fetchAssignments();
+    } catch (error: any) {
+      console.error('Error creating assignment:', error);
+      toast({
+        title: t('common.error'),
+        description: t('planner.errorCreatingAssignment'),
+        variant: "destructive",
+      });
+    }
+  }, [fetchAssignments, toast, t]);
+
+  // Update assignment
+  const updateAssignment = useCallback(async (id: string, assignmentData: Partial<Assignment>) => {
+    try {
+      setOperationStates(prev => ({ ...prev, [id]: 'updating' }));
+      
+      const { error } = await supabase
+        .from('assignments')
+        .update({
+          title: assignmentData.title,
+          description: assignmentData.description,
+          location: assignmentData.location,
+          assignment_date: assignmentData.date,
+          from_time: assignmentData.fromTime,
+          to_time: assignmentData.toTime,
+          published: false, // Always unpublish when editing
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Update employees
+      await supabase.from('assignments_employees').delete().eq('assignment_id', id);
+      
+      if (assignmentData.employees && assignmentData.employees.length > 0) {
+        for (const employeeName of assignmentData.employees) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('name', employeeName)
+            .single();
+            
+          if (profile?.id) {
+            await supabase
+              .from('assignments_employees')
+              .insert({
+                assignment_id: id,
+                user_id: profile.id
+              });
+          }
+        }
+      }
+      
+      toast({
+        title: t('planner.assignmentUpdated'),
+        description: t('planner.assignmentUpdatedMsg', { title: assignmentData.title }),
+      });
+      
+      fetchAssignments();
+    } catch (error: any) {
+      console.error('Error updating assignment:', error);
+      toast({
+        title: t('common.error'),
+        description: t('planner.errorUpdatingAssignment'),
+        variant: "destructive",
+      });
+    } finally {
+      setOperationStates(prev => ({ ...prev, [id]: null }));
+    }
+  }, [fetchAssignments, toast, t]);
+
+  // Delete assignment
+  const deleteAssignment = useCallback(async (id: string) => {
+    try {
+      setOperationStates(prev => ({ ...prev, [id]: 'deleting' }));
+      
+      await supabase.from('assignments_employees').delete().eq('assignment_id', id);
+      const { error } = await supabase.from('assignments').delete().eq('id', id);
+
+      if (error) throw error;
+      
+      toast({
+        title: t('planner.assignmentDeleted'),
+        description: t('planner.assignmentDeletedMsg'),
+      });
+      
+      fetchAssignments();
+    } catch (error: any) {
+      console.error('Error deleting assignment:', error);
+      toast({
+        title: t('common.error'),
+        description: t('planner.errorDeletingAssignment'),
+        variant: "destructive",
+      });
+    } finally {
+      setOperationStates(prev => ({ ...prev, [id]: null }));
+    }
+  }, [fetchAssignments, toast, t]);
+
+  // Publish assignment
+  const publishAssignment = useCallback(async (id: string) => {
+    try {
+      setOperationStates(prev => ({ ...prev, [id]: 'publishing' }));
+      
+      const { error } = await supabase
+        .from('assignments')
+        .update({ published: true })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast({
+        title: t('planner.assignmentPublished'),
+        description: t('planner.assignmentPublishedMsg'),
+      });
+      
+      fetchAssignments();
+    } catch (error: any) {
+      console.error('Error publishing assignment:', error);
+      toast({
+        title: t('common.error'),
+        description: t('planner.errorPublishingAssignment'),
+        variant: "destructive",
+      });
+    } finally {
+      setOperationStates(prev => ({ ...prev, [id]: null }));
+    }
+  }, [fetchAssignments, toast, t]);
+
+  // Publish assignments by date
+  const publishAssignmentsByDate = useCallback(async (date: string) => {
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .update({ published: true })
+        .eq('assignment_date', date)
+        .eq('published', false);
+
+      if (error) throw error;
+      
+      toast({
+        title: t('planner.dayPublished'),
+        description: t('planner.dayPublishedMsg'),
+      });
+      
+      fetchAssignments();
+    } catch (error: any) {
+      console.error('Error publishing day:', error);
+      toast({
+        title: t('common.error'),
+        description: t('planner.errorPublishingDay'),
+        variant: "destructive",
+      });
+    }
+  }, [fetchAssignments, toast, t]);
 
   // Set up real-time subscription
   useEffect(() => {
@@ -222,6 +473,12 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     assignments: filteredAssignments,
     loading,
     error,
+    operationStates,
     refetch: fetchAssignments,
+    createAssignment,
+    updateAssignment,
+    deleteAssignment,
+    publishAssignment,
+    publishAssignmentsByDate,
   };
 };

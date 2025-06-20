@@ -24,7 +24,7 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // CRITICAL FIX: Use 'all' filter with includeUnpublished to show complete system view in planner
+  // CRITICAL FIX: Use 'all' filter to show complete system view in planner
   const { 
     assignments, 
     loading,
@@ -35,7 +35,7 @@ export const usePlannerPage = () => {
     deleteAssignment,
     publishAssignment,
     publishAssignmentsByDate
-  } = useOptimizedAssignments({ filter: 'all', includeUnpublished: true });
+  } = useOptimizedAssignments('all');
 
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
