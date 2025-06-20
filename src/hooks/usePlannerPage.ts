@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -23,7 +24,8 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // CRITICAL FIX: Use 'all' filter to show complete system view in planner
+  // FIXED: Use 'all' filter for planner - this will show all published assignments for servicemedarbejder
+  // and all assignments (published + unpublished) for admin/skadeleder
   const { 
     assignments, 
     loading,
@@ -39,7 +41,7 @@ export const usePlannerPage = () => {
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
 
-  console.log(`[usePlannerPage] CRITICAL FIX - Planner received ${assignments.length} assignments for complete system view`);
+  console.log(`[usePlannerPage] FIXED - Planner received ${assignments.length} assignments with proper filtering applied`);
   assignments.forEach(assignment => {
     console.log(`[usePlannerPage] Planner assignment: ${assignment.id} - ${assignment.title} - Employees: [${assignment.employees?.join(', ')}] - Published: ${assignment.published}`);
   });
@@ -73,12 +75,12 @@ export const usePlannerPage = () => {
   // Get the date range for the selected week with ISO week calculation
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // CRITICAL FIX: Show ALL assignments in planner - no user filtering for global view
+  // FIXED: Filter assignments by week - now properly filtered by useOptimizedAssignments
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
 
-  console.log(`[usePlannerPage] CRITICAL FIX - Week ${selectedWeek} showing ALL ${weekAssignments.length} assignments in planner - complete system view`);
+  console.log(`[usePlannerPage] FIXED - Week ${selectedWeek} showing ${weekAssignments.length} assignments after filtering`);
   weekAssignments.forEach(assignment => {
-    console.log(`[usePlannerPage] Week assignment visible to all: ${assignment.id} - ${assignment.title} - Employees: [${assignment.employees?.join(', ')}] - Published: ${assignment.published}`);
+    console.log(`[usePlannerPage] Week assignment: ${assignment.id} - ${assignment.title} - Employees: [${assignment.employees?.join(', ')}] - Published: ${assignment.published}`);
   });
 
   // Navigate to previous week

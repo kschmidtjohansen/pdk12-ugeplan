@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -23,9 +24,11 @@ const DashboardPage: React.FC = () => {
   // Enhanced authentication monitoring
   const { authStatus } = useAuthenticationMonitor();
   
-  // CRITICAL FIX: Use separate queries for dashboard context - all assignments for metrics, user assignments for personal view
-  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError } = useOptimizedAssignments('all');
+  // FIXED: Use separate, properly configured queries
+  // For metrics: show all published assignments 
+  const { assignments: allPublishedAssignments, loading: allAssignmentsLoading, error: allAssignmentsError } = useOptimizedAssignments('published');
   
+  // For user's weekly view: show only user's assignments (published and unpublished)
   const { assignments: userAssignments, loading: userAssignmentsLoading } = useOptimizedAssignments('user');
   
   const { employees, updateEmployeeLeaveStatusFromVacations } = useEmployees();
@@ -43,13 +46,13 @@ const DashboardPage: React.FC = () => {
   // Show connection status if there are issues
   const showConnectionIssue = !authStatus.sessionValid || authStatus.connectionStatus === 'disconnected';
 
-  console.log(`[DashboardPage] CRITICAL FIX - Processing assignments for user: ${user?.name} (${user?.role})`);
-  console.log(`[DashboardPage] CRITICAL FIX - Total all assignments received: ${allAssignments.length}`);
-  console.log(`[DashboardPage] CRITICAL FIX - User assignments received: ${userAssignments.length}`);
+  console.log(`[DashboardPage] FIXED - Processing assignments for user: ${user?.name} (${user?.role})`);
+  console.log(`[DashboardPage] FIXED - All published assignments for metrics: ${allPublishedAssignments.length}`);
+  console.log(`[DashboardPage] FIXED - User assignments for weekly view: ${userAssignments.length}`);
   
   // Log assignment details for debugging
-  allAssignments.forEach(assignment => {
-    console.log(`[DashboardPage] All assignment ${assignment.id} (${assignment.title}):`, {
+  allPublishedAssignments.forEach(assignment => {
+    console.log(`[DashboardPage] Published assignment ${assignment.id} (${assignment.title}):`, {
       employees: assignment.employees,
       responsibleUser: assignment.responsibleUser,
       published: assignment.published
@@ -57,22 +60,12 @@ const DashboardPage: React.FC = () => {
   });
 
   userAssignments.forEach(assignment => {
-    console.log(`[DashboardPage] CRITICAL FIX - User assignment ${assignment.id} (${assignment.title}) with ALL colleagues preserved:`, {
+    console.log(`[DashboardPage] FIXED - User assignment ${assignment.id} (${assignment.title}) with colleagues preserved:`, {
       employees: assignment.employees,
       responsibleUser: assignment.responsibleUser,
       published: assignment.published
     });
   });
-
-  // CRITICAL FIX: Use appropriate assignment sets for different purposes
-  const { publishedAssignments } = useMemo(() => {
-    // For metrics - use all published assignments
-    const published = allAssignments.filter(assignment => assignment.published);
-    
-    console.log(`[DashboardPage] CRITICAL FIX - Metrics will show ${published.length} published assignments`);
-    
-    return { publishedAssignments: published };
-  }, [allAssignments]);
 
   // Update employee leave status based on vacations when dashboard loads
   useEffect(() => {
@@ -98,20 +91,6 @@ const DashboardPage: React.FC = () => {
     }
   }, [user?.id, updateEmployeeLeaveStatusFromVacations]);
 
-  // Calculate the selected date for metrics based on current week selection
-  const getSelectedDateForMetrics = () => {
-    const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-    const weekStartStr = format(weekDates.start, 'yyyy-MM-dd');
-    const weekEndStr = format(weekDates.end, 'yyyy-MM-dd');
-    
-    if (todayStr >= weekStartStr && todayStr <= weekEndStr) {
-      return todayStr;
-    }
-    
-    return weekStartStr;
-  };
-
   // Get the dates for the selected week
   const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
   const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
@@ -131,28 +110,24 @@ const DashboardPage: React.FC = () => {
     setSelectedYear(year);
   };
 
-  // CRITICAL FIX: Use user assignments for weekly view (these already have ALL colleague names preserved)
+  // FIXED: Use user assignments for weekly view (filtered by date range)
   const myWeekAssignments = useMemo(() => {
     const filtered = AssignmentFilterService.filterByDateRange(
-      userAssignments, // This contains user's assignments with ALL employee names preserved
+      userAssignments, // User's assignments with all colleague info preserved
       startDateISO,
       endDateISO
     );
     
-    console.log(`[DashboardPage] CRITICAL FIX - Weekly assignments for ${user?.name}: ${filtered.length} assignments`);
+    console.log(`[DashboardPage] FIXED - Weekly assignments for ${user?.name}: ${filtered.length} assignments`);
     filtered.forEach(assignment => {
-      console.log(`[DashboardPage] CRITICAL FIX - Weekly assignment ${assignment.title} shows ALL colleagues: [${assignment.employees?.join(', ')}]`);
+      console.log(`[DashboardPage] FIXED - Weekly assignment ${assignment.title} shows colleagues: [${assignment.employees?.join(', ')}]`);
     });
     
     return filtered;
   }, [userAssignments, startDateISO, endDateISO, user?.name]);
 
-  // Show metrics to ALL users
-  const shouldShowMetrics = true;
-  const selectedDateForMetrics = getSelectedDateForMetrics();
-
   // Enhanced loading state with connection status
-  if (assignmentsLoading || userAssignmentsLoading) {
+  if (allAssignmentsLoading || userAssignmentsLoading) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
@@ -191,7 +166,7 @@ const DashboardPage: React.FC = () => {
   }
 
   // Show error state if there are critical errors
-  if (assignmentsError && assignmentsError.includes('auth')) {
+  if (allAssignmentsError && allAssignmentsError.includes('auth')) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
         <div className="text-center p-8">
@@ -238,12 +213,12 @@ const DashboardPage: React.FC = () => {
         {/* Quick Access Grid */}
         <QuickAccessGrid userRole={user?.role} />
 
-        {/* Dashboard Metrics - Show to all users, pass all published assignments */}
+        {/* Dashboard Metrics - Show all published assignments for system-wide metrics */}
         <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <DashboardMetrics selectedDate={format(new Date(), 'yyyy-MM-dd')} assignments={publishedAssignments} />
+          <DashboardMetrics selectedDate={format(new Date(), 'yyyy-MM-dd')} assignments={allPublishedAssignments} />
         </div>
 
-        {/* CRITICAL FIX: Weekly Assignments - Pass user assignments with ALL colleague info preserved */}
+        {/* FIXED: Weekly Assignments - Pass user assignments with colleague info preserved */}
         <div style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
           <WeeklyAssignments
             assignments={userAssignments}

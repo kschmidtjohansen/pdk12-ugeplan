@@ -6,7 +6,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 
 export const useAutoPublishAssignments = () => {
-  const { assignments, loading, publishAssignmentsByDate } = useOptimizedAssignments('all');
+  // FIXED: Use the correct filter for auto-publish functionality
+  const { assignments, loading, publishAssignmentsByDate } = useOptimizedAssignments('unpublished');
   const { toast } = useToast();
   const { t } = useTranslation();
   const [lastPublishedDate, setLastPublishedDate] = useState<string | null>(null);

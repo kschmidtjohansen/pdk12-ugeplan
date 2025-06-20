@@ -84,14 +84,14 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       
       console.log('[useOptimizedAssignments] Fetching assignments with filter:', filter, 'User role:', user.role);
 
-      // Build base query with all necessary joins
+      // FIXED: Use proper LEFT JOIN syntax and correct foreign key relationships
       let query = supabase
         .from('assignments')
         .select(`
           *,
-          assignments_employees!inner(
+          assignments_employees(
             user_id,
-            profiles!inner(
+            profiles(
               id,
               name,
               email
@@ -114,14 +114,27 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         case 'user':
           // Dashboard context: Show only assignments where user is assigned or responsible
           console.log('[useOptimizedAssignments] Applying user filter for dashboard context');
-          query = query.or(`assignments_employees.user_id.eq.${user.id},responsible_user_id.eq.${user.id}`);
+          
+          // Get user's assignment IDs first
+          const { data: userAssignmentIds } = await supabase
+            .from('assignments_employees')
+            .select('assignment_id')
+            .eq('user_id', user.id);
+          
+          const assignmentIds = userAssignmentIds?.map(ua => ua.assignment_id) || [];
+          
+          if (assignmentIds.length > 0) {
+            query = query.or(`id.in.(${assignmentIds.join(',')}),responsible_user_id.eq.${user.id}`);
+          } else {
+            query = query.eq('responsible_user_id', user.id);
+          }
           break;
           
         case 'all':
           // Planner context: Show based on user role
           if (user.role === 'servicemedarbejder') {
-            // For servicemedarbejder: Show ALL published assignments (not just their own)
-            console.log('[useOptimizedAssignments] Applying published filter for servicemedarbejder in planner');
+            // FIXED: For servicemedarbejder: Show ALL published assignments (not just their own)
+            console.log('[useOptimizedAssignments] Showing ALL published assignments for servicemedarbejder in planner');
             query = query.eq('published', true);
           } else {
             // For admin/skadeleder: Show all assignments (published and unpublished)
@@ -155,7 +168,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         return;
       }
 
-      // Transform the data to group employees and cars properly
+      // FIXED: Transform the data to handle optional employee relationships properly
       const transformedAssignments: OptimizedAssignment[] = [];
       const assignmentMap = new Map<string, OptimizedAssignment>();
 
@@ -178,7 +191,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
             updated_at: row.updated_at,
             responsible_user_id: row.responsible_user_id,
             employees: [],
-            cars: row.cars ? (Array.isArray(row.cars) ? row.cars : [row.cars]) : [],
+            cars: row.cars ? (Array.isArray(row.cars) ? row.cars : [row.cars]).filter(Boolean) : [],
             responsible_user: row.responsible_user || undefined
           };
           assignmentMap.set(assignmentId, assignment);
@@ -187,25 +200,36 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
 
         const assignment = assignmentMap.get(assignmentId)!;
         
-        // Add employee if not already added
-        if (row.assignments_employees?.profiles) {
-          const employee = {
-            id: row.assignments_employees.profiles.id,
-            name: row.assignments_employees.profiles.name,
-            email: row.assignments_employees.profiles.email
-          };
-          
-          const exists = assignment.employees.some(emp => emp.id === employee.id);
-          if (!exists) {
-            assignment.employees.push(employee);
-          }
+        // FIXED: Handle employee relationships properly - they might be null/empty
+        if (row.assignments_employees && Array.isArray(row.assignments_employees)) {
+          row.assignments_employees.forEach((ae: any) => {
+            if (ae?.profiles) {
+              const employee = {
+                id: ae.profiles.id,
+                name: ae.profiles.name,
+                email: ae.profiles.email
+              };
+              
+              const exists = assignment.employees.some(emp => emp.id === employee.id);
+              if (!exists) {
+                assignment.employees.push(employee);
+              }
+            }
+          });
         }
       });
 
       console.log('[useOptimizedAssignments] Transformed assignments:', transformedAssignments.length);
-
+      console.log('[useOptimizedAssignments] Filter applied:', filter, 'User role:', user.role);
+      
       // Convert to Assignment type for component compatibility
       const finalAssignments = transformedAssignments.map(transformAssignment);
+      
+      console.log('[useOptimizedAssignments] Final assignments for user:', finalAssignments.length);
+      finalAssignments.forEach(assignment => {
+        console.log(`[useOptimizedAssignments] Assignment: ${assignment.title} - Published: ${assignment.published} - Employees: [${assignment.employees.join(', ')}]`);
+      });
+      
       setAssignments(finalAssignments);
       
     } catch (err) {
@@ -213,11 +237,21 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
-      toast({
-        title: t('common.error'),
-        description: t('assignments.fetchError'),
-        variant: 'destructive',
-      });
+      // FIXED: Improved error handling
+      if (errorMessage.includes('relation') || errorMessage.includes('foreign key')) {
+        console.error('[useOptimizedAssignments] Database relationship error detected');
+        toast({
+          title: t('common.error'),
+          description: 'Database relationship error. Please check your connection.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: t('common.error'),
+          description: t('assignments.fetchError'),
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }
