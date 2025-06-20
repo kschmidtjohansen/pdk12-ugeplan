@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -24,7 +23,7 @@ const DashboardPage: React.FC = () => {
   // Enhanced authentication monitoring
   const { authStatus } = useAuthenticationMonitor();
   
-  // FIXED: Use 'all' to get all assignments for proper filtering
+  // Get ALL assignments for proper data display
   const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError } = useAssignmentsConsolidated({ 
     filter: 'all', 
     includeUnpublished: true 
@@ -45,48 +44,48 @@ const DashboardPage: React.FC = () => {
   // Show connection status if there are issues
   const showConnectionIssue = !authStatus.sessionValid || authStatus.connectionStatus === 'disconnected';
 
-  // FIXED: Improved assignment filtering for dashboard - preserve ALL employee names
+  // Filter assignments for dashboard - preserve ALL employee information
   const { publishedAssignments, userAssignments } = useMemo(() => {
+    console.log('[DashboardPage] Processing assignments for user:', user?.name, user?.role);
+    console.log('[DashboardPage] Total assignments received:', allAssignments.length);
+    
+    // Log each assignment's employee data
+    allAssignments.forEach(assignment => {
+      console.log(`[DashboardPage] Assignment ${assignment.id} (${assignment.title}):`, {
+        employees: assignment.employees,
+        responsibleUser: assignment.responsibleUser,
+        published: assignment.published
+      });
+    });
+
     // Filter published assignments for metrics (all users can see these)
     const published = allAssignments.filter(assignment => assignment.published);
     
-    // FIXED: Filter user-specific assignments but PRESERVE ALL employee information
+    // Filter user-specific assignments but PRESERVE ALL employee information
     const userFiltered = allAssignments.filter(assignment => {
       if (!user) return false;
-      
-      console.log(`[DashboardPage] Checking assignment ${assignment.id} for user ${user.name} (${user.role})`);
-      console.log(`[DashboardPage] Assignment employees:`, assignment.employees);
-      console.log(`[DashboardPage] Assignment responsible user:`, assignment.responsibleUser);
       
       // For ALL users, show assignments where they are either assigned OR responsible
       const isResponsible = assignment.responsibleUser && assignment.responsibleUser.id === user.id;
       const isAssigned = assignment.employees && Array.isArray(assignment.employees) && assignment.employees.includes(user.name || '');
       
-      console.log(`[DashboardPage] User ${user.name} - isResponsible: ${isResponsible}, isAssigned: ${isAssigned}`);
-      return isResponsible || isAssigned;
+      const shouldShow = isResponsible || isAssigned;
+      
+      if (shouldShow) {
+        console.log(`[DashboardPage] User ${user.name} assigned to ${assignment.title}:`, {
+          employees: assignment.employees,
+          isResponsible,
+          isAssigned
+        });
+      }
+      
+      return shouldShow;
     });
     
-    console.log(`[DashboardPage] User ${user?.name} (${user?.role}) has ${userFiltered.length} assignments:`);
-    userFiltered.forEach(a => {
-      console.log(`  - ${a.id}: ${a.title} - Employees: [${a.employees?.join(', ')}] - ALL EMPLOYEE NAMES PRESERVED`);
-    });
+    console.log(`[DashboardPage] User ${user?.name} (${user?.role}) has ${userFiltered.length} assignments with COMPLETE employee data preserved`);
     
     return { publishedAssignments: published, userAssignments: userFiltered };
   }, [allAssignments, user]);
-
-  // Calculate the selected date for metrics based on current week selection
-  const getSelectedDateForMetrics = () => {
-    const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-    const weekStartStr = format(weekDates.start, 'yyyy-MM-dd');
-    const weekEndStr = format(weekDates.end, 'yyyy-MM-dd');
-    
-    if (todayStr >= weekStartStr && todayStr <= weekEndStr) {
-      return todayStr;
-    }
-    
-    return weekStartStr;
-  };
 
   // Update employee leave status based on vacations when dashboard loads
   useEffect(() => {
@@ -102,16 +101,29 @@ const DashboardPage: React.FC = () => {
 
     if (user?.id && isValidUUID(user.id)) {
       updateEmployeeStatuses();
-      // Reduce frequency of status updates to improve performance
       const intervalId = setInterval(() => {
         updateEmployeeStatuses();
-      }, 5 * 60 * 1000); // Every 5 minutes instead of 30
+      }, 5 * 60 * 1000);
 
       return () => {
         clearInterval(intervalId);
       };
     }
   }, [user?.id, updateEmployeeLeaveStatusFromVacations]);
+
+  // Calculate the selected date for metrics based on current week selection
+  const getSelectedDateForMetrics = () => {
+    const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    const weekStartStr = format(weekDates.start, 'yyyy-MM-dd');
+    const weekEndStr = format(weekDates.end, 'yyyy-MM-dd');
+    
+    if (todayStr >= weekStartStr && todayStr <= weekEndStr) {
+      return todayStr;
+    }
+    
+    return weekStartStr;
+  };
 
   // Get the dates for the selected week
   const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
@@ -135,13 +147,13 @@ const DashboardPage: React.FC = () => {
   // Memoize filtered assignments for the week to prevent recalculation
   const myWeekAssignments = useMemo(() => {
     return AssignmentFilterService.filterByDateRange(
-      userAssignments, // This already contains assignments with ALL employee names preserved
+      userAssignments, // This contains assignments with ALL employee names preserved
       startDateISO,
       endDateISO
     );
   }, [userAssignments, startDateISO, endDateISO]);
 
-  // FIXED: Show metrics to ALL users
+  // Show metrics to ALL users
   const shouldShowMetrics = true;
   const selectedDateForMetrics = getSelectedDateForMetrics();
 

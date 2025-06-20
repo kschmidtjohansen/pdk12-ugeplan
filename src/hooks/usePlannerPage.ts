@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -24,7 +23,7 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // FIXED: CRITICAL FIX - Use 'all' filter with includeUnpublished to show ALL assignments to ALL users in planner
+  // Get ALL assignments with includeUnpublished to show complete system view in planner
   const { 
     assignments, 
     loading,
@@ -40,7 +39,7 @@ export const usePlannerPage = () => {
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
 
-  // FIXED: Always get a fresh today's date
+  // Always get a fresh today's date
   const getFreshToday = useCallback(() => {
     const now = new Date();
     return format(now, 'yyyy-MM-dd');
@@ -69,10 +68,10 @@ export const usePlannerPage = () => {
   // Get the date range for the selected week with ISO week calculation
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // FIXED: CRITICAL FIX - Show ALL assignments in planner, not just user-specific ones
+  // Show ALL assignments in planner - no user filtering for global view
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
 
-  console.log(`[usePlannerPage] CRITICAL FIX - Week ${selectedWeek} showing ALL assignments:`, weekAssignments.length);
+  console.log(`[usePlannerPage] Week ${selectedWeek} showing ALL ${weekAssignments.length} assignments in planner - complete system view`);
   console.log(`[usePlannerPage] ALL assignments visible in planner:`, weekAssignments.map(a => ({
     id: a.id,
     title: a.title,

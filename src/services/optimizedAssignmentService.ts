@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Assignment } from '@/types/assignment';
 
@@ -80,10 +79,17 @@ class OptimizedAssignmentService {
 
     // Parallel queries for optimal performance
     const [employeeResult, carResult] = await Promise.all([
-      // Fetch assignment-employee relationships
+      // Fetch assignment-employee relationships with employee names
       supabase
         .from('assignments_employees')
-        .select('assignment_id, user_id')
+        .select(`
+          assignment_id, 
+          user_id,
+          profiles!inner (
+            id,
+            name
+          )
+        `)
         .in('assignment_id', assignmentIds),
       
       // Fetch car data
@@ -96,42 +102,19 @@ class OptimizedAssignmentService {
     if (employeeResult.error) throw employeeResult.error;
     if (carResult.error) throw carResult.error;
 
-    // Get all unique user IDs from assignments_employees
-    const userIds = employeeResult.data ? [...new Set(employeeResult.data.map(ae => ae.user_id))] : [];
-    
-    // Fetch profiles for all users in a separate query
-    const { data: profiles, error: profilesError } = userIds.length > 0 
-      ? await supabase
-          .from('profiles')
-          .select('id, name')
-          .in('id', userIds)
-      : { data: [], error: null };
-
-    if (profilesError) throw profilesError;
-
     // Build lookup maps for O(1) access
     const employeeLookup = new Map<string, string[]>();
     const carLookup = new Map<string, any>();
-    
-    // Create profiles map with proper typing
-    const profilesMap = new Map<string, Profile>();
-    if (profiles) {
-      profiles.forEach(profile => {
-        if (profile && typeof profile === 'object' && 'id' in profile && 'name' in profile) {
-          profilesMap.set(profile.id, profile as Profile);
-        }
-      });
-    }
 
-    // Process employee data with profile lookup
+    // Process employee data with direct name access
     if (employeeResult.data) {
-      employeeResult.data.forEach(ae => {
-        if (!employeeLookup.has(ae.assignment_id)) {
-          employeeLookup.set(ae.assignment_id, []);
+      employeeResult.data.forEach(item => {
+        if (!employeeLookup.has(item.assignment_id)) {
+          employeeLookup.set(item.assignment_id, []);
         }
-        const profile = profilesMap.get(ae.user_id);
-        if (profile && profile.name) {
-          employeeLookup.get(ae.assignment_id)?.push(profile.name);
+        // Access employee name directly from the joined profiles
+        if (item.profiles && item.profiles.name) {
+          employeeLookup.get(item.assignment_id)?.push(item.profiles.name);
         }
       });
     }
@@ -433,13 +416,6 @@ class OptimizedAssignmentService {
     console.log('[OptimizedAssignmentService] Deleting assignment optimistically:', assignmentId);
     
     try {
-      // Delete employee associations first
-      await supabase
-        .from('assignments_employees')
-        .delete()
-        .eq('assignment_id', assignmentId);
-
-      // Delete assignment
       const { error } = await supabase
         .from('assignments')
         .delete()
@@ -447,7 +423,7 @@ class OptimizedAssignmentService {
 
       if (error) throw error;
       
-      // Selectively invalidate cache
+      // Invalidate cache
       this.invalidateCache('assignments');
       return true;
     } catch (error) {
