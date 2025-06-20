@@ -98,7 +98,10 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
 
       // Execute the query with retry - FIXED: Add await here
       const result = await withRetry(
-        () => query.order('assignment_date', { ascending: true }),
+        async () => {
+          const queryResult = await query.order('assignment_date', { ascending: true });
+          return queryResult;
+        },
         'Assignments fetch'
       );
 

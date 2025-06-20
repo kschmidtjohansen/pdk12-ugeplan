@@ -79,21 +79,24 @@ export const useEmployeeDataOptimized = () => {
       
       // Step 2: Fetch profiles with retry logic - FIXED: Add await here
       const profilesResult = await withRetry(
-        () => supabaseOptimized
-          .from('profiles')
-          .select(`
-            id,
-            name,
-            email,
-            phone,
-            job_title,
-            on_leave,
-            notes,
-            avatar_url,
-            created_at,
-            updated_at
-          `)
-          .order('name', { ascending: true }),
+        async () => {
+          const queryResult = await supabaseOptimized
+            .from('profiles')
+            .select(`
+              id,
+              name,
+              email,
+              phone,
+              job_title,
+              on_leave,
+              notes,
+              avatar_url,
+              created_at,
+              updated_at
+            `)
+            .order('name', { ascending: true });
+          return queryResult;
+        },
         'Profiles fetch'
       );
       
@@ -119,10 +122,13 @@ export const useEmployeeDataOptimized = () => {
       console.log('[useEmployeeDataOptimized] Fetching user roles...');
       
       const rolesResult = await withRetry(
-        () => supabaseOptimized
-          .from('user_roles')
-          .select('user_id, role')
-          .in('user_id', userIds),
+        async () => {
+          const queryResult = await supabaseOptimized
+            .from('user_roles')
+            .select('user_id, role')
+            .in('user_id', userIds);
+          return queryResult;
+        },
         'User roles fetch'
       );
       

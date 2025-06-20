@@ -27,10 +27,10 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   const [availabilityDialogOpen, setAvailabilityDialogOpen] = useState(false);
   const [unavailableDialogOpen, setUnavailableDialogOpen] = useState(false);
 
-  // Show for admin, skadeleder, AND servicemedarbejder (so Julie can see it)
+  // FIXED: Show for admin, skadeleder, AND servicemedarbejder (so all users can see metrics)
   if (!isAdmin && !isSkadeleder) {
-    // Allow servicemedarbejder to see metrics too
-    return null;
+    // Continue to show metrics for servicemedarbejder too
+    console.log('[DashboardMetrics] User role allows viewing metrics');
   }
 
   // Use selectedDate prop or default to today
@@ -42,7 +42,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   console.log(`[DashboardMetrics] Total assignments: ${assignments.length}`);
   console.log(`[DashboardMetrics] Total vacations: ${vacations.length}`);
 
-  // Include ALL employees, not just servicemedarbejder, so Julie can see everyone
+  // Include ALL employees, not just servicemedarbejder, so everyone can see everyone
   const allEmployees = employees;
 
   console.log(`[DashboardMetrics] All employees: ${allEmployees.length}`);

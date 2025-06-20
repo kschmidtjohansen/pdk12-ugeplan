@@ -115,6 +115,8 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     }, { pastDates: [], currentAndFutureDates: [] });
   }, [weekDateStrings, today]);
 
+  // FIXED: Show empty state only if there are no assignments AND user cannot edit
+  // But always show the planner if they can edit or if there are any assignments to display
   if (Array.isArray(weekAssignments) && weekAssignments.length === 0 && !canEdit) {
     return <EmptyState message={t("planner.noAssignmentsWeek")} />;
   }

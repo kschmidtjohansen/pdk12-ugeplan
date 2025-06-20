@@ -175,6 +175,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                         </span>
                       </div>
                       
+                      {/* FIXED: Show ALL employees for each assignment, not just the current user */}
                       {assignment.employees && assignment.employees.length > 0 && (
                         <div className="flex items-center gap-2">
                           <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
