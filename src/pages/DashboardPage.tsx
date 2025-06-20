@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -240,19 +239,25 @@ const DashboardPage: React.FC = () => {
         <QuickAccessGrid userRole={user?.role} />
 
         {/* Dashboard Metrics - Show to all users, pass all published assignments */}
-        {shouldShowMetrics && (
-          <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <DashboardMetrics selectedDate={selectedDateForMetrics} assignments={publishedAssignments} />
-          </div>
-        )}
+        <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <DashboardMetrics selectedDate={format(new Date(), 'yyyy-MM-dd')} assignments={publishedAssignments} />
+        </div>
 
         {/* CRITICAL FIX: Weekly Assignments - Pass user assignments with ALL colleague info preserved */}
         <div style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
           <WeeklyAssignments
-            assignments={myWeekAssignments}
+            assignments={userAssignments}
             selectedWeek={selectedWeek}
-            onPreviousWeek={handlePreviousWeek}
-            onNextWeek={handleNextWeek}
+            onPreviousWeek={() => {
+              const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
+              setSelectedWeek(week);
+              setSelectedYear(year);
+            }}
+            onNextWeek={() => {
+              const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
+              setSelectedWeek(week);
+              setSelectedYear(year);
+            }}
           />
         </div>
       </div>

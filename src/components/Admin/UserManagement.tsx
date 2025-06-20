@@ -45,7 +45,7 @@ const UserManagement: React.FC = () => {
     role: 'servicemedarbejder' as UserRole,
   });
 
-  // Fetch users using the new edge function
+  // Fetch users using the edge function with improved error handling
   const fetchUsers = async () => {
     try {
       setLoading(true);
@@ -55,7 +55,18 @@ const UserManagement: React.FC = () => {
       
       if (error) {
         console.error('[UserManagement] Edge function error:', error);
-        throw error;
+        
+        // Provide specific error messages
+        let errorMessage = 'Failed to fetch users';
+        if (error.message?.includes('Failed to send a request')) {
+          errorMessage = 'Network connection failed. Please check your internet connection.';
+        } else if (error.message?.includes('Not authenticated')) {
+          errorMessage = 'Authentication expired. Please refresh the page and try again.';
+        } else if (error.message?.includes('Unauthorized')) {
+          errorMessage = 'You do not have permission to manage users.';
+        }
+        
+        throw new Error(errorMessage);
       }
       
       if (data?.error) {
@@ -65,7 +76,7 @@ const UserManagement: React.FC = () => {
       
       if (!data?.users) {
         console.error('[UserManagement] No users data returned:', data);
-        throw new Error('No users data returned');
+        throw new Error('No users data returned from server');
       }
       
       console.log('[UserManagement] Successfully fetched users:', data.users.length);
@@ -75,11 +86,16 @@ const UserManagement: React.FC = () => {
       setUsers(sortedUsers);
     } catch (err) {
       console.error('[UserManagement] Error fetching users:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      
       toast({
         title: t('common.error'),
-        description: t('admin.userManagement.fetchError'),
+        description: errorMessage,
         variant: 'destructive',
       });
+      
+      // Set empty array on error so UI doesn't break
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -111,7 +127,7 @@ const UserManagement: React.FC = () => {
     fetchUsers();
   }, []);
 
-  // Set up realtime subscription for profile changes to update avatars
+  // Set up realtime subscription for profile changes
   useEffect(() => {
     const channel = supabase
       .channel('profiles_admin_changes')
@@ -257,8 +273,8 @@ const UserManagement: React.FC = () => {
       if (error) {
         console.error('[UserManagement] Edge function error:', error);
         
-        // Provide more specific error messages based on error type
-        let errorMessage = 'An unexpected error occurred';
+        // Provide more specific error messages
+        let errorMessage = 'Failed to delete user';
         
         if (error.message?.includes('Failed to send a request')) {
           errorMessage = 'Network connection failed. Please check your internet connection and try again.';
@@ -278,7 +294,7 @@ const UserManagement: React.FC = () => {
       if (data?.error) {
         console.error('[UserManagement] Deletion function returned error:', data.error);
         
-        // Handle specific business logic errors from the edge function
+        // Handle specific business logic errors
         if (data.error.includes('Cannot delete user: User is still assigned')) {
           throw new Error('Cannot delete user: This user is assigned as responsible for some assignments. Please reassign those assignments to another user first, or delete the assignments.');
         } else if (data.error.includes('Cannot delete user')) {
@@ -376,7 +392,17 @@ const UserManagement: React.FC = () => {
                 )}
               </Button>
               <Button 
-                onClick={handleCreateUser}
+                onClick={() => {
+                  setCurrentUser(null);
+                  setFormData({
+                    name: '',
+                    email: '',
+                    phone: '',
+                    jobTitle: '',
+                    role: 'servicemedarbejder',
+                  });
+                  setUserDialogOpen(true);
+                }}
                 className="bg-polygon-blue hover:bg-polygon-darkblue"
               >
                 {t('admin.userManagement.addUser')}
@@ -389,15 +415,47 @@ const UserManagement: React.FC = () => {
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-polygon-blue"></div>
             </div>
+          ) : users.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No users found or failed to load users.</p>
+              <Button 
+                onClick={fetchUsers}
+                variant="outline"
+                className="mt-2"
+              >
+                Retry
+              </Button>
+            </div>
           ) : (
             <UserTable 
               users={users}
-              onEditUser={handleEditUser}
-              onDeleteUser={handleDeleteUser}
-              onResetPassword={handleResetPassword}
-              onToggleUserStatus={handleToggleUserStatus}
-              getRoleLabel={getRoleLabel}
-              getInitials={getInitials}
+              onEditUser={(user) => {
+                setCurrentUser(user);
+                setFormData({
+                  name: user.name,
+                  email: user.email,
+                  phone: user.phone || '',
+                  jobTitle: user.jobTitle || '',
+                  role: user.role,
+                });
+                setUserDialogOpen(true);
+              }}
+              onDeleteUser={(user) => {
+                setCurrentUser(user);
+                setDeleteDialogOpen(true);
+              }}
+              onResetPassword={(user) => {
+                setCurrentUser(user);
+                setPasswordDialogOpen(true);
+              }}
+              onToggleUserStatus={(user) => {
+                setCurrentUser(user);
+                const isCurrentlyActive = !user.banned_until || new Date(user.banned_until) <= new Date();
+                setIsActivating(!isCurrentlyActive);
+                setStatusDialogOpen(true);
+              }}
+              getRoleLabel={(role) => t(`admin.roles.${role}`)}
+              getInitials={(name) => name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2)}
             />
           )}
         </CardContent>
@@ -408,9 +466,19 @@ const UserManagement: React.FC = () => {
         <UserFormDialog 
           currentUser={currentUser}
           formData={formData}
-          handleInputChange={handleInputChange}
-          handleRoleChange={handleRoleChange}
-          handleSubmit={handleSubmitUser}
+          handleInputChange={(e) => {
+            const { name, value } = e.target;
+            setFormData(prev => ({ ...prev, [name]: value }));
+          }}
+          handleRoleChange={(value) => {
+            setFormData(prev => ({ ...prev, role: value as UserRole }));
+          }}
+          handleSubmit={async (e) => {
+            e.preventDefault();
+            // The UserFormDialog handles the actual creation/update
+            await fetchUsers();
+            setUserDialogOpen(false);
+          }}
           onClose={() => setUserDialogOpen(false)}
         />
       </Dialog>
@@ -437,7 +505,58 @@ const UserManagement: React.FC = () => {
         open={statusDialogOpen}
         onOpenChange={setStatusDialogOpen}
         user={currentUser}
-        onConfirm={confirmToggleUserStatus}
+        onConfirm={async () => {
+          if (!currentUser) return;
+
+          try {
+            const isCurrentlyActive = !currentUser.banned_until || new Date(currentUser.banned_until) <= new Date();
+            
+            console.log('[UserManagement] Toggling user status:', {
+              userId: currentUser.id,
+              currentlyActive: isCurrentlyActive,
+              newActive: !isCurrentlyActive
+            });
+            
+            const { data, error } = await supabase.functions.invoke('admin-user-status', {
+              body: { 
+                userId: currentUser.id, 
+                active: !isCurrentlyActive 
+              }
+            });
+            
+            if (error) {
+              console.error('[UserManagement] Status toggle error:', error);
+              throw error;
+            }
+            
+            if (data?.error) {
+              console.error('[UserManagement] Function returned error:', data.error);
+              throw new Error(data.error);
+            }
+            
+            toast({
+              title: isCurrentlyActive 
+                ? t('admin.userManagement.userDeactivated')
+                : t('admin.userManagement.userActivated'),
+              description: isCurrentlyActive 
+                ? t('admin.userManagement.userDeactivatedMsg', { name: currentUser.name })
+                : t('admin.userManagement.userActivatedMsg', { name: currentUser.name }),
+            });
+            
+            // Refresh users list
+            await fetchUsers();
+            setStatusDialogOpen(false);
+          } catch (err) {
+            console.error('[UserManagement] Error toggling user status:', err);
+            
+            const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+            toast({
+              title: t('common.error'),
+              description: errorMessage,
+              variant: 'destructive',
+            });
+          }
+        }}
         isActivating={isActivating}
       />
     </>

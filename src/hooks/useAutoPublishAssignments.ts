@@ -1,30 +1,17 @@
 
 import { useEffect, useState, useRef } from 'react';
-import { useAssignmentsConsolidated } from './useAssignmentsConsolidated';
-import { useAssignmentPublishing } from './useAssignmentPublishing';
+import { useOptimizedAssignments } from './useOptimizedAssignments';
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
-import { Assignment } from '@/types/assignment';
 
 export const useAutoPublishAssignments = () => {
-  const { assignments, loading, updateAssignment } = useAssignmentsConsolidated({ filter: 'all' });
+  const { assignments, loading, publishAssignmentsByDate } = useOptimizedAssignments('all');
   const { toast } = useToast();
   const { t } = useTranslation();
   const [lastPublishedDate, setLastPublishedDate] = useState<string | null>(null);
   const publishTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const publishingRef = useRef(false);
-  
-  // Create an adapter function that converts the original updateAssignment to the format expected by useAssignmentPublishing
-  const updateAssignmentAdapter = (assignment: Assignment): Promise<boolean> => {
-    return updateAssignment(assignment.id, assignment);
-  };
-  
-  // Create publishAssignments function from the publishing hook using our adapter
-  const { publishAssignmentsByDate } = useAssignmentPublishing(
-    assignments || [], 
-    updateAssignmentAdapter
-  );
 
   // Function to check if it's time to publish
   const checkAndPublish = async () => {
