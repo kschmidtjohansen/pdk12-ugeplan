@@ -24,7 +24,7 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // FIXED: Use 'all' filter to show ALL assignments to all users, including servicemedarbejder
+  // FIXED: Use 'all' filter to show ALL assignments to ALL users - Critical fix for servicemedarbejder visibility
   const { 
     assignments, 
     loading,
@@ -69,8 +69,16 @@ export const usePlannerPage = () => {
   // Get the date range for the selected week with ISO week calculation
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // Filter assignments for the current week
+  // FIXED: Filter assignments for the current week - ALL assignments, not user-specific
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
+
+  console.log(`[usePlannerPage] Week ${selectedWeek} assignments:`, weekAssignments.length);
+  console.log(`[usePlannerPage] All assignments for planner visibility:`, weekAssignments.map(a => ({
+    id: a.id,
+    title: a.title,
+    employees: a.employees,
+    date: a.date
+  })));
 
   // Navigate to previous week
   const handlePreviousWeek = useCallback(() => {

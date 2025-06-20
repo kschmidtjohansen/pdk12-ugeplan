@@ -115,9 +115,11 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     }, { pastDates: [], currentAndFutureDates: [] });
   }, [weekDateStrings, today]);
 
-  // FIXED: Show empty state only if there are no assignments AND user cannot edit
-  // But always show the planner if they can edit or if there are any assignments to display
-  if (Array.isArray(weekAssignments) && weekAssignments.length === 0 && !canEdit) {
+  // FIXED: Remove role-based filtering - Show planner to ALL users regardless of assignments
+  // Everyone should be able to see all assignments in the planner
+  const shouldShowPlanner = true; // Always show planner to all authenticated users
+
+  if (!shouldShowPlanner && Array.isArray(weekAssignments) && weekAssignments.length === 0) {
     return <EmptyState message={t("planner.noAssignmentsWeek")} />;
   }
 

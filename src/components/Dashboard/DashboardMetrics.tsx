@@ -27,11 +27,8 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   const [availabilityDialogOpen, setAvailabilityDialogOpen] = useState(false);
   const [unavailableDialogOpen, setUnavailableDialogOpen] = useState(false);
 
-  // FIXED: Show for admin, skadeleder, AND servicemedarbejder (so all users can see metrics)
-  if (!isAdmin && !isSkadeleder) {
-    // Continue to show metrics for servicemedarbejder too
-    console.log('[DashboardMetrics] User role allows viewing metrics');
-  }
+  // FIXED: Show metrics to ALL users - servicemedarbejder can now see team availability
+  console.log('[DashboardMetrics] User role allows viewing metrics for all users');
 
   // Use selectedDate prop or default to today
   const targetDate = selectedDate || format(new Date(), 'yyyy-MM-dd');
@@ -42,10 +39,10 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   console.log(`[DashboardMetrics] Total assignments: ${assignments.length}`);
   console.log(`[DashboardMetrics] Total vacations: ${vacations.length}`);
 
-  // Include ALL employees, not just servicemedarbejder, so everyone can see everyone
+  // FIXED: Include ALL employees for ALL users to see team availability
   const allEmployees = employees;
 
-  console.log(`[DashboardMetrics] All employees: ${allEmployees.length}`);
+  console.log(`[DashboardMetrics] All employees visible to user: ${allEmployees.length}`);
 
   // Calculate available employees (including partially available) with detailed logging
   const availableEmployees = allEmployees.filter(employee => {

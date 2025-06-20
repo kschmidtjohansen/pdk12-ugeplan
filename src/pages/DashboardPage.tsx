@@ -50,7 +50,7 @@ const DashboardPage: React.FC = () => {
     // Filter published assignments for metrics (admins/skadeleder)
     const published = allAssignments.filter(assignment => assignment.published);
     
-    // FIXED: Filter user-specific assignments correctly for servicemedarbejder
+    // FIXED: Filter user-specific assignments but PRESERVE all employee information
     const userFiltered = allAssignments.filter(assignment => {
       if (!user) return false;
       
@@ -78,7 +78,7 @@ const DashboardPage: React.FC = () => {
     
     console.log(`[DashboardPage] User ${user?.name} (${user?.role}) has ${userFiltered.length} assignments:`);
     userFiltered.forEach(a => {
-      console.log(`  - ${a.id}: ${a.title} - Employees: [${a.employees?.join(', ')}]`);
+      console.log(`  - ${a.id}: ${a.title} - Employees: [${a.employees?.join(', ')}] - ALL PRESERVED`);
     });
     
     return { publishedAssignments: published, userAssignments: userFiltered };
@@ -151,7 +151,8 @@ const DashboardPage: React.FC = () => {
     );
   }, [userAssignments, startDateISO, endDateISO]);
 
-  const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
+  // FIXED: Show metrics to ALL users, not just admin/skadeleder
+  const shouldShowMetrics = true; // Everyone can see metrics now
   const selectedDateForMetrics = getSelectedDateForMetrics();
 
   // Enhanced loading state with connection status
@@ -241,14 +242,14 @@ const DashboardPage: React.FC = () => {
         {/* Quick Access Grid */}
         <QuickAccessGrid userRole={user?.role} />
 
-        {/* Dashboard Metrics - Pass optimized assignments data */}
+        {/* Dashboard Metrics - FIXED: Show to all users, pass all published assignments */}
         {shouldShowMetrics && (
           <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <DashboardMetrics selectedDate={selectedDateForMetrics} assignments={publishedAssignments} />
           </div>
         )}
 
-        {/* Weekly Assignments */}
+        {/* Weekly Assignments - FIXED: Pass user assignments with ALL employee info preserved */}
         <div style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
           <WeeklyAssignments
             assignments={myWeekAssignments}
