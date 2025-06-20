@@ -1,269 +1,227 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { Assignment } from '@/types/assignment';
-import { optimizedAssignmentService } from '@/services/optimizedAssignmentService';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
+import { Assignment } from '@/integrations/supabase/types';
 
-export interface UseOptimizedAssignmentsOptions {
-  filter?: 'all' | 'user' | 'published';
-  includeUnpublished?: boolean;
+export type AssignmentFilter = 'all' | 'user' | 'published' | 'unpublished';
+
+interface OptimizedAssignment extends Assignment {
+  employees: Array<{
+    id: string;
+    name: string;
+    email: string;
+  }>;
+  cars: Array<{
+    id: string;
+    name: string;
+    car_number: string;
+  }>;
+  responsible_user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
-export interface OperationStates {
-  [assignmentId: string]: 'publishing' | 'deleting' | 'updating' | null;
-}
-
-export const useOptimizedAssignments = (options: UseOptimizedAssignmentsOptions = {}) => {
+export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
+  const [assignments, setAssignments] = useState<OptimizedAssignment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
-  
-  const { filter = 'all', includeUnpublished = false } = options;
 
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [operationStates, setOperationStates] = useState<OperationStates>({});
-
-  console.log(`[useOptimizedAssignments] CRITICAL FIX - Hook called with filter: ${filter}, includeUnpublished: ${includeUnpublished}, user: ${user?.name} (${user?.role})`);
-
-  // Fetch assignments with proper filtering
   const fetchAssignments = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
       
-      console.log(`[useOptimizedAssignments] CRITICAL FIX - Fetching assignments for ${user?.role} with includeUnpublished: ${includeUnpublished}`);
-      
-      const { assignments: fetchedAssignments } = await optimizedAssignmentService.fetchAssignmentsOptimized(includeUnpublished);
-      
-      console.log(`[useOptimizedAssignments] CRITICAL FIX - Fetched ${fetchedAssignments.length} raw assignments`);
-      fetchedAssignments.forEach(assignment => {
-        console.log(`[useOptimizedAssignments] Raw assignment: ${assignment.id} - ${assignment.title} - Employees: [${assignment.employees?.join(', ')}] - Published: ${assignment.published}`);
-      });
+      console.log('[useOptimizedAssignments] Fetching assignments with filter:', filter, 'User role:', user.role);
 
-      // Apply filtering based on context
-      let filteredAssignments = fetchedAssignments;
+      // Build base query with all necessary joins
+      let query = supabase
+        .from('assignments')
+        .select(`
+          *,
+          assignments_employees!inner(
+            user_id,
+            profiles!inner(
+              id,
+              name,
+              email
+            )
+          ),
+          cars(
+            id,
+            name,
+            car_number
+          ),
+          responsible_user:profiles!assignments_responsible_user_id_fkey(
+            id,
+            name,
+            email
+          )
+        `);
 
+      // Apply filtering based on context and user role
       switch (filter) {
-        case 'published':
-          filteredAssignments = fetchedAssignments.filter(a => a.published);
-          console.log(`[useOptimizedAssignments] CRITICAL FIX - Published filter: ${filteredAssignments.length} assignments`);
-          break;
-          
         case 'user':
-          // CRITICAL FIX: For dashboard context - filter to user's assignments but preserve ALL employee data
-          if (user?.name) {
-            filteredAssignments = fetchedAssignments.filter(assignment => {
-              const isResponsible = assignment.responsibleUser && assignment.responsibleUser.id === user.id;
-              const isAssigned = assignment.employees && Array.isArray(assignment.employees) && assignment.employees.includes(user.name);
-              const shouldShow = (isResponsible || isAssigned) && assignment.published;
-              
-              if (shouldShow) {
-                console.log(`[useOptimizedAssignments] CRITICAL FIX - Dashboard: User ${user.name} gets assignment ${assignment.title} with ALL employees: [${assignment.employees?.join(', ')}]`);
-              }
-              
-              return shouldShow;
-            });
-          }
-          console.log(`[useOptimizedAssignments] CRITICAL FIX - User filter (dashboard): ${filteredAssignments.length} assignments for ${user?.name}`);
+          // Dashboard context: Show only assignments where user is assigned or responsible
+          console.log('[useOptimizedAssignments] Applying user filter for dashboard context');
+          query = query.or(`assignments_employees.user_id.eq.${user.id},responsible_user_id.eq.${user.id}`);
           break;
           
         case 'all':
-        default:
-          // CRITICAL FIX: For planner context - show ALL assignments based on user role
-          if (user?.role === 'servicemedarbejder') {
-            // CRITICAL FIX: Servicemedarbejder sees ALL published assignments in planner
-            filteredAssignments = fetchedAssignments.filter(a => a.published);
-            console.log(`[useOptimizedAssignments] CRITICAL FIX - Planner: Servicemedarbejder ${user.name} sees ALL ${filteredAssignments.length} published assignments`);
+          // Planner context: Show based on user role
+          if (user.role === 'servicemedarbejder') {
+            // For servicemedarbejder: Show ALL published assignments (not just their own)
+            console.log('[useOptimizedAssignments] Applying published filter for servicemedarbejder in planner');
+            query = query.eq('published', true);
           } else {
-            // Admin/Skadeleder see all assignments (published + unpublished if allowed)
-            filteredAssignments = fetchedAssignments.filter(a => includeUnpublished || a.published);
-            console.log(`[useOptimizedAssignments] CRITICAL FIX - Planner: Admin/Skadeleder sees ${filteredAssignments.length} assignments`);
+            // For admin/skadeleder: Show all assignments (published and unpublished)
+            console.log('[useOptimizedAssignments] Showing all assignments for admin/skadeleder');
+            // No additional filter - show everything
           }
+          break;
+          
+        case 'published':
+          console.log('[useOptimizedAssignments] Applying published filter');
+          query = query.eq('published', true);
+          break;
+          
+        case 'unpublished':
+          console.log('[useOptimizedAssignments] Applying unpublished filter');
+          query = query.eq('published', false);
           break;
       }
 
-      console.log(`[useOptimizedAssignments] CRITICAL FIX - Final filtered assignments: ${filteredAssignments.length}`);
-      filteredAssignments.forEach(assignment => {
-        console.log(`[useOptimizedAssignments] Final assignment: ${assignment.id} - ${assignment.title} - Employees: [${assignment.employees?.join(', ')}] - Published: ${assignment.published}`);
+      const { data, error: fetchError } = await query.order('assignment_date', { ascending: true });
+
+      if (fetchError) {
+        console.error('[useOptimizedAssignments] Fetch error:', fetchError);
+        throw fetchError;
+      }
+
+      console.log('[useOptimizedAssignments] Raw data received:', data?.length || 0, 'assignments');
+
+      if (!data) {
+        setAssignments([]);
+        return;
+      }
+
+      // Transform the data to group employees and cars properly
+      const transformedAssignments: OptimizedAssignment[] = [];
+      const assignmentMap = new Map<string, OptimizedAssignment>();
+
+      data.forEach((row: any) => {
+        const assignmentId = row.id;
+        
+        if (!assignmentMap.has(assignmentId)) {
+          // Create new assignment entry
+          const assignment: OptimizedAssignment = {
+            ...row,
+            employees: [],
+            cars: row.cars ? (Array.isArray(row.cars) ? row.cars : [row.cars]) : [],
+            responsible_user: row.responsible_user || undefined
+          };
+          assignmentMap.set(assignmentId, assignment);
+          transformedAssignments.push(assignment);
+        }
+
+        const assignment = assignmentMap.get(assignmentId)!;
+        
+        // Add employee if not already added
+        if (row.assignments_employees?.profiles) {
+          const employee = {
+            id: row.assignments_employees.profiles.id,
+            name: row.assignments_employees.profiles.name,
+            email: row.assignments_employees.profiles.email
+          };
+          
+          const exists = assignment.employees.some(emp => emp.id === employee.id);
+          if (!exists) {
+            assignment.employees.push(employee);
+          }
+        }
       });
 
-      setAssignments(filteredAssignments);
+      console.log('[useOptimizedAssignments] Transformed assignments:', transformedAssignments.length);
+      console.log('[useOptimizedAssignments] Sample assignment employees:', transformedAssignments[0]?.employees?.length || 0);
+
+      setAssignments(transformedAssignments);
+      
     } catch (err) {
       console.error('[useOptimizedAssignments] Error fetching assignments:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch assignments');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMessage);
+      
       toast({
-        variant: "destructive",
         title: t('common.error'),
-        description: t('common.fetchError')
+        description: t('assignments.fetchError'),
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  }, [filter, includeUnpublished, user, toast, t]);
+  }, [filter, user, toast, t]);
 
-  // Load assignments on mount and when dependencies change
+  // Set up real-time subscription
   useEffect(() => {
-    if (user) {
-      fetchAssignments();
-    }
-  }, [fetchAssignments, user]);
+    if (!user) return;
 
-  // Set operation state for UI feedback
-  const setOperationState = useCallback((assignmentId: string, state: 'publishing' | 'deleting' | 'updating' | null) => {
-    setOperationStates(prev => ({ ...prev, [assignmentId]: state }));
-  }, []);
+    fetchAssignments();
 
-  // Create assignment with optimistic updates
-  const createAssignment = useCallback(async (assignmentData: Partial<Assignment>) => {
-    console.log('[useOptimizedAssignments] Creating assignment:', assignmentData);
-    
-    try {
-      const success = await optimizedAssignmentService.createAssignmentOptimistic(assignmentData);
-      if (success) {
-        await fetchAssignments(); // Refresh data
-        toast({
-          title: t('planner.assignmentCreated'),
-          description: t('planner.assignmentCreatedDescription')
-        });
-      }
-      return success;
-    } catch (error) {
-      console.error('[useOptimizedAssignments] Error creating assignment:', error);
-      toast({
-        variant: "destructive", 
-        title: t('common.error'),
-        description: t('planner.createError')
-      });
-      return false;
-    }
-  }, [fetchAssignments, toast, t]);
+    const channel = supabase
+      .channel('assignments_optimized_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'assignments'
+        },
+        () => {
+          console.log('[useOptimizedAssignments] Assignment change detected, refetching...');
+          fetchAssignments();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'assignments_employees'
+        },
+        () => {
+          console.log('[useOptimizedAssignments] Assignment-employee relationship change detected, refetching...');
+          fetchAssignments();
+        }
+      )
+      .subscribe();
 
-  // Update assignment with optimistic updates
-  const updateAssignment = useCallback(async (assignmentId: string, assignmentData: Partial<Assignment>) => {
-    console.log('[useOptimizedAssignments] Updating assignment:', assignmentId);
-    
-    setOperationState(assignmentId, 'updating');
-    
-    try {
-      const success = await optimizedAssignmentService.updateAssignmentOptimistic(assignmentId, assignmentData);
-      if (success) {
-        await fetchAssignments(); // Refresh data
-        toast({
-          title: t('planner.assignmentUpdated'),
-          description: t('planner.assignmentUpdatedDescription')
-        });
-      }
-      return success;
-    } catch (error) {
-      console.error('[useOptimizedAssignments] Error updating assignment:', error);
-      toast({
-        variant: "destructive",
-        title: t('common.error'), 
-        description: t('planner.updateError')
-      });
-      return false;
-    } finally {
-      setOperationState(assignmentId, null);
-    }
-  }, [fetchAssignments, setOperationState, toast, t]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchAssignments]);
 
-  // Delete assignment with optimistic updates
-  const deleteAssignment = useCallback(async (assignmentId: string) => {
-    console.log('[useOptimizedAssignments] Deleting assignment:', assignmentId);
-    
-    setOperationState(assignmentId, 'deleting');
-    
-    try {
-      const success = await optimizedAssignmentService.deleteAssignmentOptimistic(assignmentId);
-      if (success) {
-        await fetchAssignments(); // Refresh data
-        toast({
-          title: t('planner.assignmentDeleted'),
-          description: t('planner.assignmentDeletedDescription')
-        });
-      }
-      return success;
-    } catch (error) {
-      console.error('[useOptimizedAssignments] Error deleting assignment:', error);
-      toast({
-        variant: "destructive",
-        title: t('common.error'),
-        description: t('planner.deleteError')
-      });
-      return false;
-    } finally {
-      setOperationState(assignmentId, null);
-    }
-  }, [fetchAssignments, setOperationState, toast, t]);
-
-  // Publish assignment with optimistic updates
-  const publishAssignment = useCallback(async (assignmentId: string) => {
-    console.log('[useOptimizedAssignments] Publishing assignment:', assignmentId);
-    
-    setOperationState(assignmentId, 'publishing');
-    
-    try {
-      const success = await optimizedAssignmentService.publishAssignmentOptimistic(assignmentId);
-      if (success) {
-        await fetchAssignments(); // Refresh data
-        toast({
-          title: t('planner.assignmentPublished'),
-          description: t('planner.assignmentPublishedDescription')
-        });
-      }
-      return success;
-    } catch (error) {
-      console.error('[useOptimizedAssignments] Error publishing assignment:', error);
-      toast({
-        variant: "destructive",
-        title: t('common.error'),
-        description: t('planner.publishError')
-      });
-      return false;
-    } finally {
-      setOperationState(assignmentId, null);
-    }
-  }, [fetchAssignments, setOperationState, toast, t]);
-
-  // Publish assignments by date with optimistic updates
-  const publishAssignmentsByDate = useCallback(async (date: string) => {
-    console.log('[useOptimizedAssignments] Publishing assignments by date:', date);
-    
-    try {
-      const success = await optimizedAssignmentService.publishAssignmentsByDateOptimistic(date);
-      if (success) {
-        await fetchAssignments(); // Refresh data
-        toast({
-          title: t('planner.dayPublished'),
-          description: t('planner.dayPublishedDescription')
-        });
-      }
-      return success;
-    } catch (error) {
-      console.error('[useOptimizedAssignments] Error publishing assignments by date:', error);
-      toast({
-        variant: "destructive",
-        title: t('common.error'),
-        description: t('planner.publishDayError')
-      });
-      return false;
-    }
-  }, [fetchAssignments, toast, t]);
+  // Memoized filtered assignments
+  const filteredAssignments = useMemo(() => {
+    return assignments;
+  }, [assignments]);
 
   return {
-    assignments,
+    assignments: filteredAssignments,
     loading,
     error,
-    operationStates,
-    createAssignment,
-    updateAssignment,
-    deleteAssignment,
-    publishAssignment,
-    publishAssignmentsByDate,
-    refetch: fetchAssignments
+    refetch: fetchAssignments,
   };
 };
