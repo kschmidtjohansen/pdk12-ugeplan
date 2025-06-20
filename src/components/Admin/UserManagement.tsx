@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,7 +13,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowDownAZ, ArrowUpAZ } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, RefreshCw } from 'lucide-react';
 
 // Import refactored components
 import UserTable from './UserTable';
@@ -29,6 +28,7 @@ const UserManagement: React.FC = () => {
   const { t } = useTranslation();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
@@ -45,48 +45,77 @@ const UserManagement: React.FC = () => {
     role: 'servicemedarbejder' as UserRole,
   });
 
-  // Fetch users using the edge function with improved error handling
+  // FIXED: Enhanced user fetching with better error handling and debugging
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      console.log('[UserManagement] Fetching users via edge function');
+      console.log('[UserManagement] FIXED - Fetching users via enhanced edge function, attempt:', retryCount + 1);
       
-      const { data, error } = await supabase.functions.invoke('admin-list-users');
+      // FIXED: Get current session to ensure we have valid auth
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        console.error('[UserManagement] FIXED - No valid session found');
+        throw new Error('Authentication session expired. Please refresh the page and login again.');
+      }
+
+      console.log('[UserManagement] FIXED - Valid session found, calling edge function...');
+      
+      const { data, error } = await supabase.functions.invoke('admin-list-users', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        }
+      });
       
       if (error) {
-        console.error('[UserManagement] Edge function error:', error);
+        console.error('[UserManagement] FIXED - Edge function error:', error);
         
-        // Provide specific error messages
+        // FIXED: Provide specific error messages based on error type
         let errorMessage = 'Failed to fetch users';
+        
         if (error.message?.includes('Failed to send a request')) {
-          errorMessage = 'Network connection failed. Please check your internet connection.';
-        } else if (error.message?.includes('Not authenticated')) {
-          errorMessage = 'Authentication expired. Please refresh the page and try again.';
-        } else if (error.message?.includes('Unauthorized')) {
-          errorMessage = 'You do not have permission to manage users.';
+          errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+        } else if (error.message?.includes('Not authenticated') || error.message?.includes('Invalid token')) {
+          errorMessage = 'Authentication expired. Please refresh the page and login again.';
+        } else if (error.message?.includes('Unauthorized') || error.message?.includes('Administrator access required')) {
+          errorMessage = 'You do not have permission to manage users. Administrator access is required.';
+        } else if (error.message?.includes('Server configuration error')) {
+          errorMessage = 'Server configuration issue. Please contact support.';
+        } else {
+          errorMessage = `Server error: ${error.message}`;
         }
         
         throw new Error(errorMessage);
       }
       
       if (data?.error) {
-        console.error('[UserManagement] Function returned error:', data.error);
+        console.error('[UserManagement] FIXED - Function returned error:', data.error);
         throw new Error(data.error);
       }
       
       if (!data?.users) {
-        console.error('[UserManagement] No users data returned:', data);
-        throw new Error('No users data returned from server');
+        console.error('[UserManagement] FIXED - No users data returned:', data);
+        throw new Error('No users data returned from server. Please try again.');
       }
       
-      console.log('[UserManagement] Successfully fetched users:', data.users.length);
+      console.log('[UserManagement] FIXED - Successfully fetched users:', data.users.length);
+      console.log('[UserManagement] FIXED - Sample user data:', data.users[0]);
       
-      // Sort users by name alphabetically
+      // FIXED: Sort users by name alphabetically
       const sortedUsers = sortUsersByName(data.users, sortDirection);
       setUsers(sortedUsers);
+      setRetryCount(0); // Reset retry count on success
+      
+      // Show success message if this was a retry
+      if (retryCount > 0) {
+        toast({
+          title: 'Success',
+          description: `Successfully loaded ${data.users.length} users`,
+        });
+      }
+      
     } catch (err) {
-      console.error('[UserManagement] Error fetching users:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      console.error('[UserManagement] FIXED - Error fetching users:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred while fetching users';
       
       toast({
         title: t('common.error'),
@@ -120,6 +149,12 @@ const UserManagement: React.FC = () => {
     const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
     setSortDirection(newDirection);
     setUsers(sortUsersByName(users, newDirection));
+  };
+
+  // FIXED: Manual retry function
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    fetchUsers();
   };
   
   // Load users on component mount
@@ -379,6 +414,16 @@ const UserManagement: React.FC = () => {
               <CardDescription>{t('admin.userManagement.description')}</CardDescription>
             </div>
             <div className="flex items-center space-x-2">
+              {/* FIXED: Add manual refresh button */}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleRetry}
+                title="Refresh users list"
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
               <Button
                 variant="outline"
                 size="icon"
@@ -412,51 +457,81 @@ const UserManagement: React.FC = () => {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center py-8">
+            <div className="flex flex-col justify-center items-center py-8 space-y-4">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-polygon-blue"></div>
+              <p className="text-sm text-gray-500">
+                {retryCount > 0 ? `Retrying... (attempt ${retryCount + 1})` : 'Loading users...'}
+              </p>
             </div>
           ) : users.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No users found or failed to load users.</p>
-              <Button 
-                onClick={fetchUsers}
-                variant="outline"
-                className="mt-2"
-              >
-                Retry
-              </Button>
+            <div className="text-center py-8 space-y-4">
+              <p className="text-gray-500">
+                {retryCount > 0 
+                  ? 'Still no users found. There may be a connection issue.' 
+                  : 'No users found or failed to load users.'
+                }
+              </p>
+              <div className="space-x-2">
+                <Button 
+                  onClick={handleRetry}
+                  variant="outline"
+                >
+                  Try Again
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setCurrentUser(null);
+                    setFormData({
+                      name: '',
+                      email: '',
+                      phone: '',
+                      jobTitle: '',
+                      role: 'servicemedarbejder',
+                    });
+                    setUserDialogOpen(true);
+                  }}
+                  className="bg-polygon-blue hover:bg-polygon-darkblue"
+                >
+                  Add First User
+                </Button>
+              </div>
             </div>
           ) : (
-            <UserTable 
-              users={users}
-              onEditUser={(user) => {
-                setCurrentUser(user);
-                setFormData({
-                  name: user.name,
-                  email: user.email,
-                  phone: user.phone || '',
-                  jobTitle: user.jobTitle || '',
-                  role: user.role,
-                });
-                setUserDialogOpen(true);
-              }}
-              onDeleteUser={(user) => {
-                setCurrentUser(user);
-                setDeleteDialogOpen(true);
-              }}
-              onResetPassword={(user) => {
-                setCurrentUser(user);
-                setPasswordDialogOpen(true);
-              }}
-              onToggleUserStatus={(user) => {
-                setCurrentUser(user);
-                const isCurrentlyActive = !user.banned_until || new Date(user.banned_until) <= new Date();
-                setIsActivating(!isCurrentlyActive);
-                setStatusDialogOpen(true);
-              }}
-              getRoleLabel={(role) => t(`admin.roles.${role}`)}
-              getInitials={(name) => name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2)}
-            />
+            <div>
+              <div className="mb-4 text-sm text-gray-600">
+                Showing {users.length} users
+              </div>
+              <UserTable 
+                users={users}
+                onEditUser={(user) => {
+                  setCurrentUser(user);
+                  setFormData({
+                    name: user.name,
+                    email: user.email,
+                    phone: user.phone || '',
+                    jobTitle: user.jobTitle || '',
+                    role: user.role,
+                  });
+                  setUserDialogOpen(true);
+                }}
+                onDeleteUser={(user) => {
+                  setCurrentUser(user);
+                  setDeleteDialogOpen(true);
+                }}
+                onResetPassword={(user) => {
+                  setCurrentUser(user);
+                  setPasswordDialogOpen(true);
+                }}
+                onToggleUserStatus={(user) => {
+                  setCurrentUser(user);
+                  const isCurrentlyActive = !user.banned_until || new Date(user.banned_until) <= new Date();
+                  setIsActivating(!isCurrentlyActive);
+                  setStatusDialogOpen(true);
+                }}
+                getRoleLabel={(role) => t(`admin.roles.${role}`)}
+                getInitials={(name) => name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2)}
+              />
+            </div>
           )}
         </CardContent>
       </Card>
