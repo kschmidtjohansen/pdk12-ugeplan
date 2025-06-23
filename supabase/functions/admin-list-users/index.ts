@@ -11,7 +11,11 @@ const corsHeaders = {
 
 serve(async (req) => {
   const requestId = crypto.randomUUID().substring(0, 8);
+  const url = new URL(req.url);
+  
   console.log(`[${requestId}] REQUEST START - Method: ${req.method}, URL: ${req.url}`);
+  console.log(`[${requestId}] Request headers:`, Object.fromEntries(req.headers.entries()));
+  console.log(`[${requestId}] URL pathname: ${url.pathname}, search: ${url.search}`);
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -19,13 +23,35 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  // Accept both GET and POST methods
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    console.log(`[${requestId}] Method not allowed: ${req.method}`);
+    return new Response(
+      JSON.stringify({ error: `Method ${req.method} not allowed` }),
+      { 
+        status: 405, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
+  }
+
   try {
     console.log(`[${requestId}] Processing ${req.method} request...`);
+    
+    // Log request body for POST requests
+    if (req.method === 'POST') {
+      try {
+        const body = await req.text();
+        console.log(`[${requestId}] Request body:`, body);
+      } catch (e) {
+        console.log(`[${requestId}] Could not read request body:`, e.message);
+      }
+    }
     
     // Get authorization header
     const authHeader = req.headers.get('Authorization');
     console.log(`[${requestId}] Auth header present: ${!!authHeader}`);
-    console.log(`[${requestId}] All headers:`, Object.fromEntries(req.headers.entries()));
+    console.log(`[${requestId}] Auth header value: ${authHeader ? authHeader.substring(0, 20) + '...' : 'none'}`);
     
     if (!authHeader) {
       console.error(`[${requestId}] Missing authorization header`);
@@ -45,7 +71,7 @@ serve(async (req) => {
     console.log(`[${requestId}] Environment check:`, {
       hasUrl: !!supabaseUrl,
       hasServiceKey: !!supabaseServiceKey,
-      urlValue: supabaseUrl?.substring(0, 20) + '...',
+      urlValue: supabaseUrl?.substring(0, 30) + '...',
       keyLength: supabaseServiceKey?.length || 0
     });
     
@@ -96,7 +122,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] User authenticated: ${user.id}`);
+    console.log(`[${requestId}] User authenticated: ${user.id} (${user.email})`);
 
     // Check if user has admin role
     const { data: roleData, error: roleError } = await supabaseAdmin
@@ -117,7 +143,7 @@ serve(async (req) => {
     }
 
     if (roleData?.role !== 'administrator') {
-      console.error(`[${requestId}] User not admin:`, roleData?.role);
+      console.error(`[${requestId}] User not admin. Role: ${roleData?.role}, User: ${user.email}`);
       return new Response(
         JSON.stringify({ error: 'Administrator access required. Current role: ' + (roleData?.role || 'unknown') }),
         { 
@@ -127,7 +153,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] Admin access confirmed, fetching users...`);
+    console.log(`[${requestId}] Admin access confirmed for ${user.email}, fetching users...`);
 
     // Get profiles with role information
     const { data: profilesWithRoles, error: fetchError } = await supabaseAdmin
@@ -176,20 +202,15 @@ serve(async (req) => {
     
     if (authError2) {
       console.error(`[${requestId}] Failed to fetch auth users:`, authError2);
-      return new Response(
-        JSON.stringify({ error: 'Failed to fetch auth users: ' + authError2.message }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      // Continue without auth data instead of failing completely
+      console.log(`[${requestId}] Continuing without auth user data`);
     }
 
-    console.log(`[${requestId}] Auth users fetched: ${authUsers.users?.length || 0}`);
+    console.log(`[${requestId}] Auth users fetched: ${authUsers?.users?.length || 0}`);
 
     // Combine profile and auth data
     const combinedUsers = profilesWithRoles.map(profile => {
-      const authUser = authUsers.users?.find(au => au.id === profile.id);
+      const authUser = authUsers?.users?.find(au => au.id === profile.id);
       const userRole = Array.isArray(profile.user_roles) 
         ? profile.user_roles[0]?.role 
         : profile.user_roles?.role;
@@ -215,7 +236,14 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         users: combinedUsers,
-        total: combinedUsers.length 
+        total: combinedUsers.length,
+        debug: {
+          requestId,
+          method: req.method,
+          profileCount: profilesWithRoles.length,
+          authUserCount: authUsers?.users?.length || 0,
+          requestTime: new Date().toISOString()
+        }
       }),
       { 
         status: 200, 
@@ -228,7 +256,8 @@ serve(async (req) => {
     console.error(`[${requestId}] Error stack:`, error.stack);
     return new Response(
       JSON.stringify({ 
-        error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error')
+        error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error'),
+        requestId
       }),
       { 
         status: 500, 
