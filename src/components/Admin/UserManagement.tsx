@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -55,86 +56,6 @@ const UserManagement: React.FC = () => {
     const timestamp = new Date().toISOString().substring(11, 23);
     setDebugInfo(prev => [`[${timestamp}] ${info}`, ...prev.slice(0, 19)]);
     console.log(`[UserManagement Debug] ${info}`);
-  };
-
-  // Enhanced edge function testing with different methods
-  const testEdgeFunction = async (): Promise<any> => {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError || !session?.access_token) {
-      throw new Error('No valid session');
-    }
-
-    addDebugInfo(`Testing edge function with token length: ${session.access_token.length}`);
-
-    // Try method 1: Standard invoke with GET
-    try {
-      addDebugInfo('Method 1: Using supabase.functions.invoke with GET');
-      const { data, error } = await supabase.functions.invoke('admin-list-users', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      
-      addDebugInfo(`Method 1 SUCCESS: Got ${data?.users?.length || 0} users`);
-      return data;
-    } catch (err) {
-      addDebugInfo(`Method 1 FAILED: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    }
-
-    // Try method 2: Direct fetch call
-    try {
-      addDebugInfo('Method 2: Using direct fetch call');
-      const response = await fetch(`https://cyuyrpwtkljfiqwgasmn.supabase.co/functions/v1/admin-list-users`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5dXlycHd0a2xqZmlxd2dhc21uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3Njg5ODEsImV4cCI6MjA2MjM0NDk4MX0.j6NYT5jwYaYhZYVsRqW20T6_I9WkcqSmZ-rHyA78k5U',
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data?.error) throw new Error(data.error);
-      
-      addDebugInfo(`Method 2 SUCCESS: Got ${data?.users?.length || 0} users`);
-      return data;
-    } catch (err) {
-      addDebugInfo(`Method 2 FAILED: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    }
-
-    // Try method 3: POST with body
-    try {
-      addDebugInfo('Method 3: Using POST with empty body');
-      const { data, error } = await supabase.functions.invoke('admin-list-users', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: {}
-      });
-      
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      
-      addDebugInfo(`Method 3 SUCCESS: Got ${data?.users?.length || 0} users`);
-      return data;
-    } catch (err) {
-      addDebugInfo(`Method 3 FAILED: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    }
-
-    throw new Error('All edge function methods failed');
   };
 
   // Enhanced fallback using direct database queries
@@ -199,6 +120,65 @@ const UserManagement: React.FC = () => {
       addDebugInfo(`FALLBACK FAILED: ${err instanceof Error ? err.message : 'Unknown error'}`);
       throw err;
     }
+  };
+
+  // Enhanced edge function testing with different methods
+  const testEdgeFunction = async (): Promise<any> => {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !session?.access_token) {
+      throw new Error('No valid session');
+    }
+
+    addDebugInfo(`Testing edge function with token length: ${session.access_token.length}`);
+
+    // Try method 1: Standard invoke with GET
+    try {
+      addDebugInfo('Method 1: Using supabase.functions.invoke with GET');
+      const { data, error } = await supabase.functions.invoke('admin-list-users', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      
+      addDebugInfo(`Method 1 SUCCESS: Got ${data?.users?.length || 0} users`);
+      return data;
+    } catch (err) {
+      addDebugInfo(`Method 1 FAILED: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+
+    // Try method 2: Direct fetch call
+    try {
+      addDebugInfo('Method 2: Using direct fetch call');
+      const response = await fetch(`https://cyuyrpwtkljfiqwgasmn.supabase.co/functions/v1/admin-list-users`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5dXlycHd0a2xqZmlxd2dhc21uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3Njg5ODEsImV4cCI6MjA2MjM0NDk4MX0.j6NYT5jwYaYhZYVsRqW20T6_I9WkcqSmZ-rHyA78k5U',
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data?.error) throw new Error(data.error);
+      
+      addDebugInfo(`Method 2 SUCCESS: Got ${data?.users?.length || 0} users`);
+      return data;
+    } catch (err) {
+      addDebugInfo(`Method 2 FAILED: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+
+    throw new Error('All edge function methods failed');
   };
 
   // Main user fetching with comprehensive error handling
@@ -268,6 +248,125 @@ const UserManagement: React.FC = () => {
       setUsers([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Create user with fallback
+  const createUserWithFallback = async (userData: any) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('No session');
+
+    addDebugInfo('Attempting to create user...');
+
+    // Try edge function first
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: userData
+      });
+      
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      
+      addDebugInfo('User created via edge function');
+      return data;
+    } catch (err) {
+      addDebugInfo(`Edge function create failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      
+      // Fallback: Manual user creation (this requires admin privileges)
+      throw new Error('User creation via edge function failed. Please try again or contact support.');
+    }
+  };
+
+  // Update user with fallback
+  const updateUserWithFallback = async (userId: string, updates: any) => {
+    addDebugInfo(`Updating user ${userId}...`);
+
+    try {
+      // Update profile data
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          name: updates.name,
+          phone: updates.phone,
+          job_title: updates.jobTitle
+        })
+        .eq('id', userId);
+        
+      if (profileError) throw profileError;
+
+      // Update role if provided
+      if (updates.role) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .update({ role: updates.role })
+          .eq('user_id', userId);
+          
+        if (roleError) throw roleError;
+      }
+
+      addDebugInfo('User updated successfully');
+      return { success: true };
+    } catch (err) {
+      addDebugInfo(`User update failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      throw err;
+    }
+  };
+
+  // Delete user with fallback
+  const deleteUserWithFallback = async (userId: string) => {
+    addDebugInfo(`Deleting user ${userId}...`);
+
+    // Try edge function first
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-user-delete', {
+        body: { userId }
+      });
+      
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      
+      addDebugInfo('User deleted via edge function');
+      return data;
+    } catch (err) {
+      addDebugInfo(`Edge function delete failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      
+      // Fallback: Manual deletion
+      try {
+        // Delete from profiles first (this will cascade due to foreign keys)
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', userId);
+          
+        if (profileError) throw profileError;
+
+        addDebugInfo('User deleted via fallback method');
+        return { success: true };
+      } catch (fallbackErr) {
+        addDebugInfo(`Fallback delete failed: ${fallbackErr instanceof Error ? fallbackErr.message : 'Unknown error'}`);
+        throw new Error('User deletion failed. The user may have associated data that prevents deletion.');
+      }
+    }
+  };
+
+  // Toggle user status with fallback
+  const toggleUserStatusWithFallback = async (userId: string, active: boolean) => {
+    addDebugInfo(`Toggling user ${userId} status to ${active ? 'active' : 'inactive'}...`);
+
+    // Try edge function first
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-user-status', {
+        body: { userId, active }
+      });
+      
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      
+      addDebugInfo('User status toggled via edge function');
+      return data;
+    } catch (err) {
+      addDebugInfo(`Edge function status toggle failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      throw new Error('User status toggle failed. This requires admin authentication access.');
     }
   };
   
@@ -395,28 +494,7 @@ const UserManagement: React.FC = () => {
     try {
       const isCurrentlyActive = !currentUser.banned_until || new Date(currentUser.banned_until) <= new Date();
       
-      console.log('[UserManagement] Toggling user status:', {
-        userId: currentUser.id,
-        currentlyActive: isCurrentlyActive,
-        newActive: !isCurrentlyActive
-      });
-      
-      const { data, error } = await supabase.functions.invoke('admin-user-status', {
-        body: { 
-          userId: currentUser.id, 
-          active: !isCurrentlyActive 
-        }
-      });
-      
-      if (error) {
-        console.error('[UserManagement] Status toggle error:', error);
-        throw error;
-      }
-      
-      if (data?.error) {
-        console.error('[UserManagement] Function returned error:', data.error);
-        throw new Error(data.error);
-      }
+      await toggleUserStatusWithFallback(currentUser.id, !isCurrentlyActive);
       
       toast({
         title: isCurrentlyActive 
@@ -447,45 +525,8 @@ const UserManagement: React.FC = () => {
 
     try {
       setIsDeleting(true);
-      console.log('[UserManagement] Starting user deletion for:', currentUser.id, 'Name:', currentUser.name);
       
-      const { data, error } = await supabase.functions.invoke('admin-user-delete', {
-        body: { userId: currentUser.id }
-      });
-      
-      if (error) {
-        console.error('[UserManagement] Edge function error:', error);
-        
-        let errorMessage = 'Failed to delete user';
-        
-        if (error.message?.includes('Failed to send a request')) {
-          errorMessage = 'Network connection failed. Please check your internet connection and try again.';
-        } else if (error.message?.includes('Not authenticated')) {
-          errorMessage = 'Authentication expired. Please refresh the page and try again.';
-        } else if (error.message?.includes('Unauthorized')) {
-          errorMessage = 'You do not have permission to delete users.';
-        } else if (error.message?.includes('non-2xx status code')) {
-          errorMessage = 'Deletion failed. The user may have associated assignments or data that prevents deletion.';
-        } else {
-          errorMessage = error.message || 'Failed to delete user';
-        }
-        
-        throw new Error(errorMessage);
-      }
-      
-      if (data?.error) {
-        console.error('[UserManagement] Deletion function returned error:', data.error);
-        
-        if (data.error.includes('Cannot delete user: User is still assigned')) {
-          throw new Error('Cannot delete user: This user is assigned as responsible for some assignments. Please reassign those assignments to another user first, or delete the assignments.');
-        } else if (data.error.includes('Cannot delete user')) {
-          throw new Error(data.error);
-        }
-        
-        throw new Error(data.error);
-      }
-      
-      console.log('[UserManagement] User deletion successful:', data);
+      await deleteUserWithFallback(currentUser.id);
       
       toast({
         title: t('admin.userManagement.userDeleted'),
@@ -530,8 +571,46 @@ const UserManagement: React.FC = () => {
 
   const handleSubmitUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetchUsers();
-    setUserDialogOpen(false);
+    
+    try {
+      if (!currentUser) {
+        // Creating new user
+        await createUserWithFallback({
+          email: formData.email,
+          password: '', // This will be handled by the form dialog
+          userData: {
+            name: formData.name,
+            phone: formData.phone,
+            job_title: formData.jobTitle,
+            role: formData.role
+          }
+        });
+      } else {
+        // Updating existing user
+        await updateUserWithFallback(currentUser.id, formData);
+      }
+      
+      await fetchUsers();
+      setUserDialogOpen(false);
+      
+      toast({
+        title: t('common.success'),
+        description: currentUser 
+          ? t('admin.userManagement.updateSuccess') 
+          : t('admin.userManagement.createSuccess'),
+      });
+      
+    } catch (err) {
+      console.error('[UserManagement] Error saving user:', err);
+      
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      
+      toast({
+        title: t('common.error'),
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    }
   };
 
   // Connection status indicator
@@ -776,44 +855,7 @@ const UserManagement: React.FC = () => {
         open={statusDialogOpen}
         onOpenChange={setStatusDialogOpen}
         user={currentUser}
-        onConfirm={async () => {
-          if (!currentUser) return;
-
-          try {
-            const isCurrentlyActive = !currentUser.banned_until || new Date(currentUser.banned_until) <= new Date();
-            
-            const { data, error } = await supabase.functions.invoke('admin-user-status', {
-              body: { 
-                userId: currentUser.id, 
-                active: !isCurrentlyActive 
-              }
-            });
-            
-            if (error) throw error;
-            if (data?.error) throw new Error(data.error);
-            
-            toast({
-              title: isCurrentlyActive 
-                ? t('admin.userManagement.userDeactivated')
-                : t('admin.userManagement.userActivated'),
-              description: isCurrentlyActive 
-                ? t('admin.userManagement.userDeactivatedMsg', { name: currentUser.name })
-                : t('admin.userManagement.userActivatedMsg', { name: currentUser.name }),
-            });
-            
-            await fetchUsers();
-            setStatusDialogOpen(false);
-          } catch (err) {
-            console.error('[UserManagement] Error toggling user status:', err);
-            
-            const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-            toast({
-              title: t('common.error'),
-              description: errorMessage,
-              variant: 'destructive',
-            });
-          }
-        }}
+        onConfirm={confirmToggleUserStatus}
         isActivating={isActivating}
       />
     </>

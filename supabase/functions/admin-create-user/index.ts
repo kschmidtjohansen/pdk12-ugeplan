@@ -2,164 +2,43 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// Enhanced CORS configuration for development and production
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // Allow all origins for development
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-// Rate limiting store (in production, use Redis or similar)
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
-
-function checkRateLimit(clientId: string, maxRequests = 5, windowMs = 60000): boolean {
-  const now = Date.now();
-  const userLimit = rateLimitStore.get(clientId);
-  
-  if (!userLimit || now > userLimit.resetTime) {
-    rateLimitStore.set(clientId, { count: 1, resetTime: now + windowMs });
-    return true;
-  }
-  
-  if (userLimit.count >= maxRequests) {
-    return false;
-  }
-  
-  userLimit.count++;
-  return true;
-}
-
-function validateEmail(email: string): boolean {
-  const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-  return emailRegex.test(email) && email.length <= 255;
-}
-
-function validatePassword(password: string): { valid: boolean; message?: string } {
-  console.log('[admin-create-user] Validating password requirements');
-  
-  if (!password || typeof password !== 'string') {
-    return { valid: false, message: 'Password is required' };
-  }
-  
-  if (password.length < 8) {
-    return { valid: false, message: 'Password must be at least 8 characters long' };
-  }
-  
-  if (!/[A-Z]/.test(password)) {
-    return { valid: false, message: 'Password must contain at least one uppercase letter' };
-  }
-  
-  if (!/[a-z]/.test(password)) {
-    return { valid: false, message: 'Password must contain at least one lowercase letter' };
-  }
-  
-  if (!/[0-9]/.test(password)) {
-    return { valid: false, message: 'Password must contain at least one number' };
-  }
-  
-  if (password.length > 128) {
-    return { valid: false, message: 'Password must be less than 128 characters' };
-  }
-  
-  return { valid: true };
-}
-
-function sanitizeInput(input: string): string {
-  return input
-    .replace(/[<>'"&]/g, (char) => {
-      const entities: { [key: string]: string } = {
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#x27;',
-        '&': '&amp;'
-      };
-      return entities[char];
-    })
-    .trim()
-    .substring(0, 1000); // Limit input length
-}
-
-function isAllowedOrigin(origin: string | null): boolean {
-  if (!origin) return false;
-  
-  const allowedOrigins = [
-    'https://www.pdk12.dk',
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://localhost:8080',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:8080'
-  ];
-  
-  // Allow Lovable development domains
-  if (origin.includes('lovable.dev') || origin.includes('lovableproject.com')) {
-    return true;
-  }
-  
-  return allowedOrigins.includes(origin);
+  'Access-Control-Max-Age': '86400',
 }
 
 serve(async (req) => {
-  console.log('[admin-create-user] Request received:', req.method);
-  console.log('[admin-create-user] Request origin:', req.headers.get('origin'));
-  console.log('[admin-create-user] User-Agent:', req.headers.get('user-agent'));
+  const requestId = crypto.randomUUID().substring(0, 8);
+  
+  console.log(`[${requestId}] REQUEST START - Method: ${req.method}, URL: ${req.url}`);
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('[admin-create-user] Handling CORS preflight request');
-    return new Response('ok', { headers: corsHeaders })
+    console.log(`[${requestId}] Handling CORS preflight`);
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  if (req.method !== 'POST') {
+    console.log(`[${requestId}] Method not allowed: ${req.method}`);
+    return new Response(
+      JSON.stringify({ error: `Method ${req.method} not allowed` }),
+      { 
+        status: 405, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
   }
 
   try {
-    // Enhanced origin verification
-    const origin = req.headers.get('origin');
-    console.log('[admin-create-user] Checking origin:', origin);
-    
-    if (!isAllowedOrigin(origin)) {
-      console.warn('[admin-create-user] Origin not allowed:', origin);
-      // For development, we'll be more permissive
-      if (!origin?.includes('localhost') && !origin?.includes('127.0.0.1') && !origin?.includes('lovable')) {
-        return new Response(
-          JSON.stringify({ 
-            error: 'Origin not allowed', 
-            debug: { origin, allowed: false }
-          }),
-          { 
-            status: 403, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
-    }
-
-    // Rate limiting
-    const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-    console.log('[admin-create-user] Client IP:', clientIp);
-    
-    if (!checkRateLimit(clientIp)) {
-      console.warn('[admin-create-user] Rate limit exceeded for IP:', clientIp);
-      return new Response(
-        JSON.stringify({ error: 'Rate limit exceeded. Too many requests.' }),
-        { 
-          status: 429, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // Verify JWT token
     const authHeader = req.headers.get('Authorization');
-    console.log('[admin-create-user] Auth header present:', !!authHeader);
+    console.log(`[${requestId}] Auth header present: ${!!authHeader}`);
     
-    if (!authHeader?.startsWith('Bearer ')) {
-      console.error('[admin-create-user] Missing or invalid authorization header');
+    if (!authHeader) {
+      console.error(`[${requestId}] Missing authorization header`);
       return new Response(
-        JSON.stringify({ 
-          error: 'Missing or invalid authorization header',
-          debug: { hasAuth: !!authHeader, format: authHeader?.substring(0, 10) }
-        }),
+        JSON.stringify({ error: 'Missing authorization header' }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -167,26 +46,44 @@ serve(async (req) => {
       );
     }
 
-    const token = authHeader.substring(7);
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    // Get environment variables
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
-    console.log('[admin-create-user] Supabase URL configured:', !!supabaseUrl);
-    console.log('[admin-create-user] Service key configured:', !!serviceKey);
+    console.log(`[${requestId}] Environment check:`, {
+      hasUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+    });
     
-    const supabase = createClient(supabaseUrl, serviceKey);
-
-    // Verify the user's JWT and check if they're an admin
-    console.log('[admin-create-user] Verifying user token...');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    
-    if (userError || !user) {
-      console.error('[admin-create-user] Invalid authentication token:', userError?.message);
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error(`[${requestId}] Missing environment variables`);
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid authentication token',
-          debug: { userError: userError?.message }
-        }),
+        JSON.stringify({ error: 'Server configuration error' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Create admin Supabase client
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+
+    // Verify the current user is authenticated and is admin
+    const token = authHeader.replace('Bearer ', '');
+    console.log(`[${requestId}] Verifying token (length: ${token.length})`);
+    
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error(`[${requestId}] Auth verification error:`, authError);
+      return new Response(
+        JSON.stringify({ error: 'Authentication failed' }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -194,27 +91,19 @@ serve(async (req) => {
       );
     }
 
-    console.log('[admin-create-user] Authenticated user:', user.email);
+    console.log(`[${requestId}] User authenticated: ${user.id} (${user.email})`);
 
-    // Check if user is admin
-    const { data: roleData, error: roleError } = await supabase
+    // Check if user has admin role
+    const { data: roleData, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .single();
 
-    if (roleError || !roleData || roleData.role !== 'administrator') {
-      console.error('[admin-create-user] Insufficient privileges for user:', user.email, 'Role:', roleData?.role);
-      
-      // Log security event
-      await supabase.rpc('log_security_event', {
-        event_type: 'unauthorized_admin_access',
-        event_message: `User ${user.email} attempted unauthorized admin function access`,
-        event_details: { user_id: user.id, function: 'admin-create-user' }
-      });
-      
+    if (roleError || roleData?.role !== 'administrator') {
+      console.error(`[${requestId}] User not admin. Role: ${roleData?.role}, User: ${user.email}`);
       return new Response(
-        JSON.stringify({ error: 'Insufficient privileges' }),
+        JSON.stringify({ error: 'Administrator access required' }),
         { 
           status: 403, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -222,28 +111,12 @@ serve(async (req) => {
       );
     }
 
-    const requestBody = await req.json();
-    console.log('[admin-create-user] Request body received:', {
-      hasEmail: !!requestBody.email,
-      hasPassword: !!requestBody.password,
-      hasUserData: !!requestBody.userData,
-      userData: requestBody.userData
-    });
+    // Parse request body
+    const { email, password, userData } = await req.json();
 
-    const { email, password, userData } = requestBody;
-
-    // Input validation
-    if (!email || !password || !userData?.name) {
-      console.error('[admin-create-user] Missing required fields:', {
-        hasEmail: !!email,
-        hasPassword: !!password,
-        hasName: !!userData?.name
-      });
+    if (!email || !password) {
       return new Response(
-        JSON.stringify({ 
-          error: 'Missing required fields: email, password, and name are required',
-          debug: { hasEmail: !!email, hasPassword: !!password, hasName: !!userData?.name }
-        }),
+        JSON.stringify({ error: 'Email and password are required' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -251,114 +124,34 @@ serve(async (req) => {
       );
     }
 
-    if (!validateEmail(email)) {
-      console.error('[admin-create-user] Invalid email format:', email);
-      return new Response(
-        JSON.stringify({ error: 'Invalid email format' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
+    console.log(`[${requestId}] Creating user with email: ${email}`);
 
-    const passwordValidation = validatePassword(password);
-    if (!passwordValidation.valid) {
-      console.error('[admin-create-user] Password validation failed:', passwordValidation.message);
-      return new Response(
-        JSON.stringify({ error: passwordValidation.message || 'Invalid password' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // Sanitize inputs
-    const sanitizedEmail = sanitizeInput(email.toLowerCase());
-    const sanitizedName = sanitizeInput(userData.name);
-
-    console.log('[admin-create-user] Creating user with sanitized data:', {
-      email: sanitizedEmail,
-      name: sanitizedName
-    });
-
-    // Create user
-    const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-      email: sanitizedEmail,
-      password: password,
-      user_metadata: { name: sanitizedName },
-      email_confirm: true
+    // Create the user in auth
+    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: userData || {}
     });
 
     if (createError) {
-      console.error('[admin-create-user] User creation error:', createError);
-      
-      // Map Supabase errors to user-friendly messages
-      if (createError.message?.includes('User already registered')) {
-        return new Response(
-          JSON.stringify({ error: 'A user with this email already exists' }),
-          { 
-            status: 409, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      } else if (createError.message?.includes('Invalid email')) {
-        return new Response(
-          JSON.stringify({ error: 'Please enter a valid email address' }),
-          { 
-            status: 400, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      } else if (createError.message?.includes('Password')) {
-        return new Response(
-          JSON.stringify({ error: 'Password does not meet requirements' }),
-          { 
-            status: 400, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
-      
+      console.error(`[${requestId}] Failed to create user:`, createError);
       return new Response(
-        JSON.stringify({ 
-          error: 'Failed to create user', 
-          debug: { supabaseError: createError.message }
-        }),
+        JSON.stringify({ error: createError.message }),
         { 
-          status: 500, 
+          status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
 
-    if (!newUser.user) {
-      console.error('[admin-create-user] No user data returned from creation');
-      return new Response(
-        JSON.stringify({ error: 'Failed to create user - no user data returned' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    console.log('[admin-create-user] User created successfully:', newUser.user.id);
-
-    // Log successful user creation
-    await supabase.rpc('log_security_event', {
-      event_type: 'user_created',
-      event_message: `Admin ${user.email} created new user ${sanitizedEmail}`,
-      event_details: { 
-        admin_id: user.id, 
-        new_user_id: newUser.user.id,
-        new_user_email: sanitizedEmail 
-      }
-    });
+    console.log(`[${requestId}] User created successfully: ${newUser.user?.id}`);
 
     return new Response(
-      JSON.stringify({ user: newUser.user }),
+      JSON.stringify({ 
+        user: newUser.user,
+        message: 'User created successfully'
+      }),
       { 
         status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -366,17 +159,11 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('[admin-create-user] Unexpected error:', error);
-    
-    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-    
+    console.error(`[${requestId}] Unexpected error:`, error);
     return new Response(
       JSON.stringify({ 
-        error: errorMessage,
-        debug: { 
-          stack: error instanceof Error ? error.stack : undefined,
-          type: typeof error
-        }
+        error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error'),
+        requestId
       }),
       { 
         status: 500, 
@@ -384,4 +171,4 @@ serve(async (req) => {
       }
     );
   }
-})
+});

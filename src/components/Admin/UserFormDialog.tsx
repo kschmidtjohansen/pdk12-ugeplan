@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from '@/context/TranslationContext';
 import { UserRole } from '@/context/AuthContext';
-import { useAuth } from '@/context/AuthContext';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { PasswordInput } from '@/components/ui/password-input';
@@ -58,7 +57,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
   
   const { t } = useTranslation();
-  const { updateUserRole } = useAuth();
   const { toast } = useToast();
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -68,15 +66,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
     
     try {
       console.log('[UserFormDialog] Starting form submission');
-      console.log('[UserFormDialog] Form data:', {
-        name: formData.name,
-        email: formData.email,
-        role: formData.role,
-        hasPassword: !!password,
-        passwordLength: password.length,
-        isEditing: !!currentUser
-      });
-
+      
       if (!currentUser) {
         // Creating a new user - validate password
         if (!isPasswordValid) {
@@ -87,39 +77,20 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         
         console.log('[UserFormDialog] Calling admin-create-user function');
         
-        const requestPayload = { 
-          email: formData.email, 
-          password: password,
-          userData: {
-            name: formData.name
-          }
-        };
-        
-        console.log('[UserFormDialog] Request payload:', {
-          ...requestPayload,
-          password: '[REDACTED]'
-        });
-        
         const { data, error } = await supabase.functions.invoke('admin-create-user', {
-          body: requestPayload
+          body: { 
+            email: formData.email, 
+            password: password,
+            userData: {
+              name: formData.name,
+              phone: formData.phone,
+              job_title: formData.jobTitle
+            }
+          }
         });
-        
-        console.log('[UserFormDialog] Function response:', { data, error });
         
         if (error) {
           console.error('[UserFormDialog] Function error:', error);
-          
-          // Handle specific error types
-          if (error.message?.includes('Failed to send a request')) {
-            throw new Error('Network connection failed. Please check your internet connection and try again.');
-          } else if (error.message?.includes('Not authenticated')) {
-            throw new Error('Authentication expired. Please refresh the page and try again.');
-          } else if (error.message?.includes('Origin not allowed')) {
-            throw new Error('Access denied. Please contact support if this continues.');
-          } else if (error.message?.includes('Rate limit')) {
-            throw new Error('Too many requests. Please wait a moment and try again.');
-          }
-          
           throw new Error(error.message || "Failed to create user");
         }
         
@@ -138,16 +109,17 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         // Wait a brief moment for the user to be created and the trigger to run
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Get the user ID from the returned data
-        const userId = data.user.id;
-        
         // Update the user's role if it's not the default
         if (formData.role !== 'servicemedarbejder') {
           console.log('[UserFormDialog] Updating user role to:', formData.role);
-          const { error: roleError } = await updateUserRole(userId, formData.role);
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .update({ role: formData.role })
+            .eq('user_id', data.user.id);
+            
           if (roleError) {
             console.error('[UserFormDialog] Role update error:', roleError);
-            throw new Error(roleError);
+            throw new Error('User created but role update failed');
           }
         }
 
@@ -159,7 +131,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
             phone: formData.phone || null,
             job_title: formData.jobTitle || null,
           })
-          .eq('id', userId);
+          .eq('id', data.user.id);
 
         if (profileError) {
           console.warn('[UserFormDialog] Profile update warning:', profileError);
@@ -167,41 +139,13 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         }
         
       } else {
-        // Updating an existing user
-        console.log('[UserFormDialog] Updating existing user');
-        
-        // Update profile data
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            name: formData.name,
-            phone: formData.phone,
-            job_title: formData.jobTitle
-          })
-          .eq('id', currentUser.id);
-          
-        if (profileError) {
-          console.error('[UserFormDialog] Profile update error:', profileError);
-          throw profileError;
-        }
-        
-        // Update role if changed
-        if (currentUser.role !== formData.role) {
-          console.log('[UserFormDialog] Updating user role');
-          const { error: roleError } = await updateUserRole(currentUser.id, formData.role);
-          if (roleError) throw new Error(roleError);
-        }
+        // This will be handled by the parent component's handleSubmit
+        // which calls updateUserWithFallback
+        console.log('[UserFormDialog] Updating existing user via parent handler');
       }
       
-      // Call original submit handler for UI updates
-      handleSubmit(e);
-      
-      toast({
-        title: t('common.success'),
-        description: currentUser 
-          ? t('admin.userManagement.updateSuccess') 
-          : t('admin.userManagement.createSuccess'),
-      });
+      // Call parent submit handler
+      await handleSubmit(e);
       
     } catch (error) {
       console.error('[UserFormDialog] Error saving user:', error);
@@ -230,9 +174,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       
       toast({
         title: t('common.error'),
-        description: currentUser 
-          ? t('admin.userManagement.updateError') 
-          : t('admin.userManagement.createError'),
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
