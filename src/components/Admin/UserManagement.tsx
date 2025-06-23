@@ -90,11 +90,11 @@ const UserManagement: React.FC = () => {
     // Try method 2: Direct fetch call
     try {
       addDebugInfo('Method 2: Using direct fetch call');
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/admin-list-users`, {
+      const response = await fetch(`https://cyuyrpwtkljfiqwgasmn.supabase.co/functions/v1/admin-list-users`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
-          'apikey': supabase.supabaseKey,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5dXlycHd0a2xqZmlxd2dhc21uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3Njg5ODEsImV4cCI6MjA2MjM0NDk4MX0.j6NYT5jwYaYhZYVsRqW20T6_I9WkcqSmZ-rHyA78k5U',
           'Content-Type': 'application/json',
         }
       });
