@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -29,7 +30,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       
       console.log('[useOptimizedAssignments] OPTIMIZED - Starting fetch with filter:', filter, 'User role:', user.role);
 
-      // OPTIMIZED: Single query with proper foreign key joins
+      // OPTIMIZED: Single query with proper foreign key joins using correct constraint names
       let baseQuery = supabase
         .from('assignments')
         .select(`
@@ -55,12 +56,12 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
               email
             )
           ),
-          responsible_user:profiles!assignments_responsible_user_id_fkey(
+          responsible_user:profiles!fk_assignments_responsible_user_id(
             id,
             name,
             email
           ),
-          car:cars!assignments_car_id_fkey(
+          car:cars!fk_assignments_car_id(
             id,
             name,
             car_number
