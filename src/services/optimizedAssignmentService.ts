@@ -39,7 +39,7 @@ export interface OptimizedAssignmentData {
 
 export class OptimizedAssignmentService {
   static async fetchAssignmentsWithFilter(filter: string, userId?: string, userRole?: string): Promise<OptimizedAssignmentData[]> {
-    console.log('[OptimizedAssignmentService] Fetching assignments with filter:', filter, 'userId:', userId, 'userRole:', userRole);
+    console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Fetching assignments with filter:', filter, 'userId:', userId, 'userRole:', userRole);
 
     // Build the base query with all necessary relationships
     let query = supabase
@@ -77,10 +77,10 @@ export class OptimizedAssignmentService {
         )
       `);
 
-    // Apply appropriate filters based on context and user role
+    // COMPREHENSIVE FIX: Apply appropriate filters based on context and user role
     if (filter === 'user' && userId) {
-      // Dashboard context: Show only user's assignments
-      console.log('[OptimizedAssignmentService] Applying user filter for dashboard');
+      // Dashboard context: Show only user's assignments but preserve ALL colleague names
+      console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Dashboard context: user filter for', userId);
       const { data: userAssignments } = await supabase
         .from('assignments_employees')
         .select('assignment_id')
@@ -94,14 +94,15 @@ export class OptimizedAssignmentService {
         query = query.eq('responsible_user_id', userId);
       }
     } else if (filter === 'all') {
-      // Planner context: Filter based on user role
+      // COMPREHENSIVE FIX: Planner context - show based on user role
       if (userRole === 'servicemedarbejder') {
-        // Show ALL published assignments (not just user's own)
-        console.log('[OptimizedAssignmentService] Showing all published assignments for servicemedarbejder');
+        // CRITICAL FIX: Servicemedarbejder should see ALL published assignments in planner
+        console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Planner: Showing ALL published assignments for servicemedarbejder');
         query = query.eq('published', true);
       } else {
-        // Admin/skadeleder can see everything
-        console.log('[OptimizedAssignmentService] Showing all assignments for admin/skadeleder');
+        // Admin/skadeleder can see everything in planner
+        console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Planner: Showing all assignments for admin/skadeleder');
+        // No filter - they see everything
       }
     } else if (filter === 'published') {
       query = query.eq('published', true);
@@ -120,9 +121,9 @@ export class OptimizedAssignmentService {
       return [];
     }
 
-    console.log('[OptimizedAssignmentService] Raw query result:', data.length, 'rows');
+    console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Raw query result:', data.length, 'rows');
 
-    // Transform and deduplicate the results
+    // Transform and deduplicate the results - PRESERVE ALL EMPLOYEE NAMES
     const assignmentMap = new Map<string, OptimizedAssignmentData>();
 
     data.forEach((row: any) => {
@@ -149,7 +150,7 @@ export class OptimizedAssignmentService {
 
       const assignment = assignmentMap.get(row.id)!;
 
-      // Add employees from assignments_employees relationship
+      // COMPREHENSIVE FIX: Add ALL employees from assignments_employees relationship
       if (row.assignments_employees && Array.isArray(row.assignments_employees)) {
         row.assignments_employees.forEach((ae: any) => {
           if (ae.profiles) {
@@ -163,6 +164,7 @@ export class OptimizedAssignmentService {
             const exists = assignment.employees.some(emp => emp.id === employee.id);
             if (!exists) {
               assignment.employees.push(employee);
+              console.log(`[OptimizedAssignmentService] COMPREHENSIVE FIX - Added employee ${employee.name} to assignment ${assignment.title}`);
             }
           }
         });
@@ -171,8 +173,13 @@ export class OptimizedAssignmentService {
 
     const result = Array.from(assignmentMap.values());
     
-    console.log('[OptimizedAssignmentService] Final processed assignments:', result.length);
-    console.log('[OptimizedAssignmentService] Sample assignment employees:', result[0]?.employees?.length || 0);
+    console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Final processed assignments:', result.length);
+    console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Filter applied:', filter, 'User role:', userRole);
+    
+    // Log detailed assignment info for debugging
+    result.forEach(assignment => {
+      console.log(`[OptimizedAssignmentService] COMPREHENSIVE FIX - Assignment ${assignment.title}: employees [${assignment.employees.map(e => e.name).join(', ')}], published: ${assignment.published}`);
+    });
 
     return result;
   }

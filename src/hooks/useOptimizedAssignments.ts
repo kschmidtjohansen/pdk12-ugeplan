@@ -1,10 +1,10 @@
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
+import { OptimizedAssignmentService } from '@/services/optimizedAssignmentService';
 
 export type AssignmentFilter = 'all' | 'user' | 'published' | 'unpublished';
 
@@ -28,184 +28,33 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setLoading(true);
       setError(null);
       
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Starting fetch with filter:', filter, 'User role:', user.role);
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Starting fetch with filter:', filter, 'User:', user.name, 'Role:', user.role);
 
-      // COMPREHENSIVE FIX: Simplified query without foreign key constraints to avoid naming conflicts
-      const { data: assignmentsData, error: fetchError } = await supabase
-        .from('assignments')
-        .select(`
-          id,
-          title,
-          description,
-          assignment_date,
-          from_time,
-          to_time,
-          location,
-          type,
-          published,
-          created_at,
-          updated_at,
-          responsible_user_id,
-          car_id,
-          car_ids
-        `)
-        .order('assignment_date', { ascending: true });
+      // COMPREHENSIVE FIX: Use the updated OptimizedAssignmentService with proper role handling
+      const optimizedData = await OptimizedAssignmentService.fetchAssignmentsWithFilter(
+        filter, 
+        user.id, 
+        user.role
+      );
 
-      if (fetchError) {
-        console.error('[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment fetch error:', fetchError);
-        throw fetchError;
-      }
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Received optimized data:', optimizedData.length, 'assignments');
 
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Raw assignments fetched:', assignmentsData?.length || 0);
-
-      if (!assignmentsData || assignmentsData.length === 0) {
-        setAssignments([]);
-        return;
-      }
-
-      // Apply filtering based on context and user role
-      let filteredData = assignmentsData;
-      
-      switch (filter) {
-        case 'user':
-          // Dashboard context - Get user's assignments via assignments_employees OR responsible_user_id
-          console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - User filter: Getting user assignments for dashboard');
-          
-          const { data: userAssignmentIds } = await supabase
-            .from('assignments_employees')
-            .select('assignment_id')
-            .eq('user_id', user.id);
-          
-          const assignmentIds = userAssignmentIds?.map(ua => ua.assignment_id) || [];
-          
-          filteredData = assignmentsData.filter(assignment => 
-            assignmentIds.includes(assignment.id) || assignment.responsible_user_id === user.id
-          );
-          break;
-          
-        case 'all':
-          // Planner context - Show based on user role
-          if (user.role === 'servicemedarbejder') {
-            console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Planner: Showing ALL published assignments for servicemedarbejder');
-            filteredData = assignmentsData.filter(assignment => assignment.published === true);
-          } else {
-            console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Planner: Showing ALL assignments for admin/skadeleder');
-            // No additional filter - admin/skadeleder see everything
-          }
-          break;
-          
-        case 'published':
-          console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Published filter applied');
-          filteredData = assignmentsData.filter(assignment => assignment.published === true);
-          break;
-          
-        case 'unpublished':
-          console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Unpublished filter applied');
-          filteredData = assignmentsData.filter(assignment => assignment.published === false);
-          break;
-      }
-
-      // COMPREHENSIVE FIX: Fetch related data separately to avoid foreign key constraint issues
-      const assignmentIds = filteredData.map(a => a.id);
-      const responsibleUserIds = [...new Set(filteredData.map(a => a.responsible_user_id).filter(Boolean))];
-      const carIds = new Set<string>();
-      
-      filteredData.forEach(assignment => {
-        if (assignment.car_id) carIds.add(assignment.car_id);
-        if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
-          assignment.car_ids.forEach((carId: string) => carIds.add(carId));
-        }
-      });
-
-      // Fetch assignment employees
-      let assignmentEmployees: any[] = [];
-      if (assignmentIds.length > 0) {
-        const { data: empData, error: empError } = await supabase
-          .from('assignments_employees')
-          .select('assignment_id, user_id')
-          .in('assignment_id', assignmentIds);
+      // Transform OptimizedAssignmentData to Assignment format
+      const finalAssignments: Assignment[] = optimizedData.map(assignment => {
+        // Extract employee names while preserving ALL names
+        const employeeNames = assignment.employees.map(emp => emp.name);
         
-        if (empError) {
-          console.warn('[useOptimizedAssignments] COMPREHENSIVE FIX - Employee fetch warning:', empError);
-        } else {
-          assignmentEmployees = empData || [];
-        }
-      }
-
-      // Fetch profiles for employees and responsible users
-      const allUserIds = new Set([
-        ...assignmentEmployees.map(emp => emp.user_id),
-        ...responsibleUserIds
-      ]);
-      
-      let profilesData: any[] = [];
-      if (allUserIds.size > 0) {
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, name, email')
-          .in('id', Array.from(allUserIds));
-        
-        if (profilesError) {
-          console.warn('[useOptimizedAssignments] COMPREHENSIVE FIX - Profiles fetch warning:', profilesError);
-        } else {
-          profilesData = profiles || [];
-        }
-      }
-
-      // Fetch car data
-      let carsData: any[] = [];
-      if (carIds.size > 0) {
-        const { data: cars, error: carsError } = await supabase
-          .from('cars')
-          .select('id, name, car_number')
-          .in('id', Array.from(carIds));
-        
-        if (carsError) {
-          console.warn('[useOptimizedAssignments] COMPREHENSIVE FIX - Cars fetch warning:', carsError);
-        } else {
-          carsData = cars || [];
-        }
-      }
-
-      // COMPREHENSIVE FIX: Transform to Assignment format with all related data
-      const finalAssignments: Assignment[] = filteredData.map(assignment => {
-        // Get employee names for this assignment
-        const employeeIds = assignmentEmployees
-          .filter(emp => emp.assignment_id === assignment.id)
-          .map(emp => emp.user_id);
-        
-        const employeeNames = employeeIds
-          .map(userId => {
-            const profile = profilesData.find(p => p.id === userId);
-            return profile?.name;
-          })
-          .filter(name => name && typeof name === 'string')
-          .map(name => name.trim());
-        
-        console.log(`[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment ${assignment.id} employees:`, employeeNames);
+        console.log(`[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment ${assignment.title} has employees:`, employeeNames);
 
         // Handle car data
         let carData = null;
         let carsArray: string[] = [];
         
-        if (assignment.car_ids && Array.isArray(assignment.car_ids) && assignment.car_ids.length > 0) {
-          carsArray = assignment.car_ids;
-          const firstCar = carsData.find(c => c.id === assignment.car_ids[0]);
-          if (firstCar) {
-            carData = { id: firstCar.id, name: firstCar.name };
-          }
-        } else if (assignment.car_id) {
-          carsArray = [assignment.car_id];
-          const car = carsData.find(c => c.id === assignment.car_id);
-          if (car) {
-            carData = { id: car.id, name: car.name };
-          }
+        if (assignment.cars && assignment.cars.length > 0) {
+          const firstCar = assignment.cars[0];
+          carData = { id: firstCar.id, name: firstCar.name };
+          carsArray = assignment.cars.map(car => car.id);
         }
-
-        // Get responsible user
-        const responsibleUser = assignment.responsible_user_id 
-          ? profilesData.find(p => p.id === assignment.responsible_user_id)
-          : null;
 
         return {
           id: assignment.id,
@@ -217,17 +66,17 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           location: assignment.location,
           car: carData,
           cars: carsArray,
-          employees: employeeNames,
+          employees: employeeNames, // COMPREHENSIVE FIX: All employee names preserved
           published: assignment.published || false,
-          responsibleUser: responsibleUser ? {
-            id: responsibleUser.id,
-            name: responsibleUser.name
+          responsibleUser: assignment.responsible_user ? {
+            id: assignment.responsible_user.id,
+            name: assignment.responsible_user.name
           } : null
         };
       });
       
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Final assignments processed:', finalAssignments.length);
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Filter applied:', filter, 'User role:', user.role);
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Final assignments for', user.role, ':', finalAssignments.length);
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Sample assignment employees:', finalAssignments[0]?.employees || 'No assignments');
       
       setAssignments(finalAssignments);
       
@@ -459,7 +308,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     fetchAssignments();
 
     const channel = supabase
-      .channel('assignments_comprehensive_fix')
+      .channel('assignments_comprehensive_fix_v2')
       .on(
         'postgres_changes',
         {

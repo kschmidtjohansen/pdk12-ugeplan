@@ -23,11 +23,11 @@ const DashboardPage: React.FC = () => {
   // Enhanced authentication monitoring
   const { authStatus } = useAuthenticationMonitor();
   
-  // COMPREHENSIVE FIX: Use separate, properly configured queries
+  // COMPREHENSIVE FIX: Separate queries for different contexts
   // For metrics: show all published assignments 
   const { assignments: allPublishedAssignments, loading: allAssignmentsLoading, error: allAssignmentsError } = useOptimizedAssignments('published');
   
-  // For user's weekly view: show only user's assignments (published and unpublished)
+  // For user's weekly view: show user's assignments with ALL colleague names preserved
   const { assignments: userAssignments, loading: userAssignmentsLoading } = useOptimizedAssignments('user');
   
   const { employees, updateEmployeeLeaveStatusFromVacations } = useEmployees();
@@ -49,17 +49,9 @@ const DashboardPage: React.FC = () => {
   console.log(`[DashboardPage] COMPREHENSIVE FIX - All published assignments for metrics: ${allPublishedAssignments.length}`);
   console.log(`[DashboardPage] COMPREHENSIVE FIX - User assignments for weekly view: ${userAssignments.length}`);
   
-  // Log assignment details for debugging
-  allPublishedAssignments.forEach(assignment => {
-    console.log(`[DashboardPage] Published assignment ${assignment.id} (${assignment.title}):`, {
-      employees: assignment.employees,
-      responsibleUser: assignment.responsibleUser,
-      published: assignment.published
-    });
-  });
-
+  // COMPREHENSIVE FIX: Log assignment details with ALL employee names
   userAssignments.forEach(assignment => {
-    console.log(`[DashboardPage] COMPREHENSIVE FIX - User assignment ${assignment.id} (${assignment.title}) with colleagues preserved:`, {
+    console.log(`[DashboardPage] COMPREHENSIVE FIX - User assignment ${assignment.id} (${assignment.title}) shows ALL colleagues:`, {
       employees: assignment.employees,
       responsibleUser: assignment.responsibleUser,
       published: assignment.published
@@ -109,17 +101,17 @@ const DashboardPage: React.FC = () => {
     setSelectedYear(year);
   };
 
-  // COMPREHENSIVE FIX: Use user assignments for weekly view (filtered by date range)
+  // COMPREHENSIVE FIX: Use user assignments for weekly view with ALL colleague info preserved
   const myWeekAssignments = useMemo(() => {
     const filtered = AssignmentFilterService.filterByDateRange(
-      userAssignments, // User's assignments with all colleague info preserved
+      userAssignments, // User's assignments with ALL colleague info preserved
       startDateISO,
       endDateISO
     );
     
     console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignments for ${user?.name}: ${filtered.length} assignments`);
     filtered.forEach(assignment => {
-      console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignment ${assignment.title} shows colleagues: [${assignment.employees?.join(', ')}]`);
+      console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignment ${assignment.title} shows ALL colleagues: [${assignment.employees?.join(', ')}]`);
     });
     
     return filtered;
@@ -217,7 +209,7 @@ const DashboardPage: React.FC = () => {
           <DashboardMetrics selectedDate={format(new Date(), 'yyyy-MM-dd')} assignments={allPublishedAssignments} />
         </div>
 
-        {/* COMPREHENSIVE FIX: Weekly Assignments - Pass user assignments with colleague info preserved */}
+        {/* COMPREHENSIVE FIX: Weekly Assignments - Pass user assignments with ALL colleague info preserved */}
         <div style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
           <WeeklyAssignments
             assignments={userAssignments}
