@@ -38,6 +38,8 @@ const employees = {
   employeeCreated: 'Employee created',
   employeeUpdated: 'Employee updated',
   employeeDeleted: 'Employee deleted',
+  employeeAdded: 'Employee added',
+  employeeAddedMsg: '{name} has been added as {role}',
   
   // Confirmation dialogs
   deleteConfirm: 'Delete Employee',
@@ -59,7 +61,42 @@ const employees = {
   markOnLeave: 'Mark on leave',
   markAvailable: 'Mark available',
   removeNote: 'Remove note and mark available',
-  keepNote: 'Keep note and mark available'
+  keepNote: 'Keep note and mark available',
+  
+  // User creation process
+  creatingUser: 'Creating user account',
+  creatingUserDescription: 'Trying multiple methods to ensure success',
+  userCreatedSuccessfully: 'User created successfully using server function',
+  userCreatedFallback: 'Server function unavailable. User created using direct database access',
+  userCreationFailed: 'User creation failed. Please check the error message below',
+  
+  // Connection and network status
+  connectionStatus: 'Connection Status',
+  tryingMultipleMethods: 'Trying multiple methods to ensure success',
+  serverFunctionUnavailable: 'Server function unavailable',
+  usingDirectDatabase: 'Using direct database access',
+  
+  // Validation errors
+  emailRequired: 'Email is required',
+  passwordRequired: 'Password is required',
+  nameRequired: 'Name is required',
+  validEmailRequired: 'Please provide a valid email address',
+  userAlreadyExists: 'A user with this email already exists',
+  invalidEmail: 'Please enter a valid email address',
+  passwordRequirements: 'Password does not meet requirements (8+ chars, uppercase, lowercase, number)',
+  networkError: 'Network error: Unable to connect to server',
+  rateLimitError: 'Too many requests. Please wait a moment and try again',
+  
+  // Method-specific messages
+  edgeFunctionFailed: 'Edge function failed',
+  directCreationFailed: 'Direct creation also failed',
+  allMethodsFailed: 'All creation methods failed',
+  methodUsed: 'Method used',
+  
+  // Generic error handling
+  unexpectedError: 'An unexpected error occurred',
+  tryAgainLater: 'Please try again later',
+  contactSupport: 'Contact support if the problem persists'
 };
 
 export default employees;

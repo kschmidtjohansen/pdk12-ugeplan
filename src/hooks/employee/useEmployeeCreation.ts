@@ -27,11 +27,11 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
 
       if (authError) {
         console.error('[useEmployeeCreation] Auth user creation failed:', authError);
-        throw new Error(`Authentication error: ${authError.message}`);
+        throw new Error(`${t('employees.edgeFunctionFailed')}: ${authError.message}`);
       }
 
       if (!authUser.user?.id) {
-        throw new Error('No user ID returned from authentication service');
+        throw new Error(t('employees.unexpectedError'));
       }
 
       console.log('[useEmployeeCreation] Auth user created:', authUser.user.id);
@@ -81,12 +81,12 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
     try {
       // Enhanced validation
       if (!formData.email || !formData.password || !formData.name) {
-        throw new Error('Email, password, and name are required');
+        throw new Error(t('employees.emailRequired') + ', ' + t('employees.passwordRequired') + ', ' + t('employees.nameRequired'));
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
-        throw new Error('Please provide a valid email address');
+        throw new Error(t('employees.validEmailRequired'));
       }
 
       console.log('[useEmployeeCreation] Starting user creation process');
@@ -112,7 +112,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         
         if (error) {
           console.error('[useEmployeeCreation] Edge function error:', error);
-          throw new Error(`Edge function failed: ${error.message}`);
+          throw new Error(`${t('employees.edgeFunctionFailed')}: ${error.message}`);
         }
         
         if (data?.error) {
@@ -125,7 +125,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           result = data;
           method = 'edge-function';
         } else {
-          throw new Error('Edge function returned no user data');
+          throw new Error(t('employees.edgeFunctionFailed'));
         }
       } catch (edgeError) {
         console.log('[useEmployeeCreation] Edge function failed, trying direct method:', edgeError);
@@ -139,7 +139,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           
           // Method 3: Last resort - create profile only (manual auth setup required)
           console.log('[useEmployeeCreation] Attempting profile-only creation');
-          throw new Error(`All creation methods failed. Edge function: ${edgeError.message}. Direct: ${directError.message}`);
+          throw new Error(`${t('employees.allMethodsFailed')}. ${t('employees.edgeFunctionFailed')}: ${edgeError.message}. ${t('employees.directCreationFailed')}: ${directError.message}`);
         }
       }
 
@@ -184,33 +184,33 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           description: `${t('employees.employeeAddedMsg', { 
             name: formData.name, 
             role: formData.role || 'servicemedarbejder'
-          })} (Method: ${method})`
+          })} (${t('employees.methodUsed')}: ${method})`
         });
         
         await refreshEmployees();
         return true;
       }
       
-      throw new Error('User creation failed - no valid result returned');
+      throw new Error(t('employees.userCreationFailed'));
       
     } catch (err) {
       console.error('[useEmployeeCreation] Creation error:', err);
       
-      let errorMessage = 'Failed to create employee';
+      let errorMessage = t('employees.createError');
       if (err instanceof Error) {
         errorMessage = err.message;
         
         // Categorize errors for better user feedback
         if (errorMessage.includes('User already registered') || errorMessage.includes('email_address_already_registered')) {
-          errorMessage = 'A user with this email already exists';
+          errorMessage = t('employees.userAlreadyExists');
         } else if (errorMessage.includes('Invalid email')) {
-          errorMessage = 'Please enter a valid email address';
+          errorMessage = t('employees.invalidEmail');
         } else if (errorMessage.includes('Password')) {
-          errorMessage = 'Password does not meet requirements (8+ chars, uppercase, lowercase, number)';
+          errorMessage = t('employees.passwordRequirements');
         } else if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('Failed to send a request')) {
-          errorMessage = 'Network error: Unable to connect to server. Using fallback method failed.';
+          errorMessage = t('employees.networkError');
         } else if (errorMessage.includes('rate limit')) {
-          errorMessage = 'Too many requests. Please wait a moment and try again.';
+          errorMessage = t('employees.rateLimitError');
         }
       }
       

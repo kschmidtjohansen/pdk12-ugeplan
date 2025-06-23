@@ -70,7 +70,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
       // For new employees, validate password
       if (!currentEmployee) {
         if (!isPasswordValid) {
-          setErrorMessage('Password must meet all requirements: at least 8 characters with uppercase, lowercase, and number');
+          setErrorMessage(t('employees.passwordRequirements'));
           setIsSubmitting(false);
           return;
         }
@@ -94,7 +94,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
     } catch (error) {
       console.error('[EmployeeFormDialog] Form submission error:', error);
       
-      let errorMsg = 'An unexpected error occurred';
+      let errorMsg = t('employees.unexpectedError');
       if (error instanceof Error) {
         errorMsg = error.message;
       }
@@ -115,7 +115,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           <Alert className="mb-4">
             <Wifi className="h-4 w-4" />
             <AlertDescription>
-              Creating user account... Trying multiple methods to ensure success.
+              {t('employees.creatingUserDescription')}
             </AlertDescription>
           </Alert>
         );
@@ -124,7 +124,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           <Alert className="mb-4">
             <Wifi className="h-4 w-4" />
             <AlertDescription>
-              User created successfully using server function.
+              {t('employees.userCreatedSuccessfully')}
             </AlertDescription>
           </Alert>
         );
@@ -133,7 +133,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           <Alert className="mb-4">
             <WifiOff className="h-4 w-4" />
             <AlertDescription>
-              Server function unavailable. User created using direct database access.
+              {t('employees.userCreatedFallback')}
             </AlertDescription>
           </Alert>
         );
@@ -142,7 +142,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           <Alert variant="destructive" className="mb-4">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              User creation failed. Please check the error message below.
+              {t('employees.userCreationFailed')}
             </AlertDescription>
           </Alert>
         );
