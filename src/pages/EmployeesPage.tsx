@@ -60,14 +60,25 @@ const EmployeesPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (currentEmployee) {
-      updateEmployee();
-    } else {
-      createEmployee();
+    
+    try {
+      let success = false;
+      
+      if (currentEmployee) {
+        success = await updateEmployee();
+      } else {
+        success = await createEmployee();
+      }
+      
+      if (success) {
+        setDialogOpen(false);
+      }
+    } catch (error) {
+      console.error('[EmployeesPage] Submit error:', error);
+      // Error handling is done in the hooks
     }
-    setDialogOpen(false);
   };
 
   const handleToggleLeave = (employee: Employee) => {
