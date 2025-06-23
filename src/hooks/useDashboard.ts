@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useOptimizedAssignments } from './useOptimizedAssignments';
-import { getWeekNumber, getYear, getCurrentWeekInfo, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/dates';
+import { getWeekNumber, getYearForDate, getCurrentWeekInfo, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/dates';
 import { Assignment } from '@/types/assignment';
 
 export const useDashboard = () => {
@@ -28,7 +28,7 @@ export const useDashboard = () => {
     const filtered = assignments.filter(assignment => {
       const assignmentDate = new Date(assignment.date);
       const assignmentWeek = getWeekNumber(assignmentDate);
-      const assignmentYear = getYear(assignmentDate);
+      const assignmentYear = getYearForDate(assignmentDate);
       
       const isInSelectedWeek = assignmentWeek === selectedWeek && assignmentYear === selectedYear;
       
