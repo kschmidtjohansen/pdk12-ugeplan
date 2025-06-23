@@ -13,7 +13,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowDownAZ, ArrowUpAZ, RefreshCw, AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, RefreshCw, AlertCircle, Wifi, WifiOff, Bug } from 'lucide-react';
 
 // Import refactored components
 import UserTable from './UserTable';
@@ -31,6 +31,9 @@ const UserManagement: React.FC = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'error'>('connected');
   const [lastError, setLastError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
+  
+  // Dialog state
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
@@ -47,7 +50,13 @@ const UserManagement: React.FC = () => {
     role: 'servicemedarbejder' as UserRole,
   });
 
-  // Enhanced user fetching with comprehensive error handling and retry logic
+  const addDebugInfo = (info: string) => {
+    const timestamp = new Date().toISOString().substring(11, 23);
+    setDebugInfo(prev => [`[${timestamp}] ${info}`, ...prev.slice(0, 9)]);
+    console.log(`[UserManagement Debug] ${info}`);
+  };
+
+  // Enhanced user fetching with comprehensive debugging
   const fetchUsers = async (isRetry = false) => {
     try {
       setLoading(true);
@@ -55,66 +64,83 @@ const UserManagement: React.FC = () => {
       
       if (isRetry) {
         setRetryCount(prev => prev + 1);
-        console.log('[UserManagement] Retry attempt:', retryCount + 1);
+        addDebugInfo(`Retry attempt: ${retryCount + 1}`);
+      } else {
+        addDebugInfo('Starting fresh user fetch');
       }
       
-      console.log('[UserManagement] Starting user fetch...');
-      
-      // Get current session
+      // Get current session with detailed logging
+      addDebugInfo('Checking authentication session...');
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (sessionError || !session?.access_token) {
-        console.error('[UserManagement] Session error:', sessionError);
-        throw new Error('Authentication session expired. Please refresh the page and login again.');
+      if (sessionError) {
+        addDebugInfo(`Session error: ${sessionError.message}`);
+        throw new Error('Authentication session error: ' + sessionError.message);
+      }
+      
+      if (!session?.access_token) {
+        addDebugInfo('No valid session found');
+        throw new Error('No valid authentication session. Please refresh and login again.');
       }
 
-      console.log('[UserManagement] Valid session found, calling edge function...');
+      addDebugInfo(`Session valid, token length: ${session.access_token.length}`);
       setConnectionStatus('connected');
       
-      // Call the edge function with detailed error handling
+      // Call the edge function with detailed logging
+      addDebugInfo('Calling admin-list-users edge function...');
+      
       const { data, error } = await supabase.functions.invoke('admin-list-users', {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: {} // Send empty body for POST request
+          'Content-Type': 'application/json',
+        }
       });
       
       if (error) {
-        console.error('[UserManagement] Edge function error:', error);
+        addDebugInfo(`Edge function error: ${error.message}`);
         setConnectionStatus('error');
         
         // Provide specific error messages based on error type
         let errorMessage = 'Failed to fetch users';
         
-        if (error.message?.includes('Failed to send a request') || error.message?.includes('fetch')) {
+        if (error.message?.includes('Failed to send a request') || 
+            error.message?.includes('fetch') || 
+            error.message?.includes('NetworkError')) {
           errorMessage = 'Network connection failed. Please check your internet connection and try again.';
           setConnectionStatus('disconnected');
-        } else if (error.message?.includes('Not authenticated') || error.message?.includes('Invalid token')) {
+          addDebugInfo('Network error detected');
+        } else if (error.message?.includes('Not authenticated') || 
+                   error.message?.includes('Invalid token') || 
+                   error.message?.includes('Authentication failed')) {
           errorMessage = 'Authentication expired. Please refresh the page and login again.';
-        } else if (error.message?.includes('Unauthorized') || error.message?.includes('Administrator access required')) {
+          addDebugInfo('Authentication error detected');
+        } else if (error.message?.includes('Unauthorized') || 
+                   error.message?.includes('Administrator access required')) {
           errorMessage = 'You do not have permission to manage users. Administrator access is required.';
+          addDebugInfo('Authorization error detected');
         } else if (error.message?.includes('Server configuration error')) {
           errorMessage = 'Server configuration issue. Please contact support.';
+          addDebugInfo('Server configuration error detected');
         } else {
           errorMessage = `Server error: ${error.message}`;
+          addDebugInfo(`Unknown server error: ${error.message}`);
         }
         
         throw new Error(errorMessage);
       }
       
       if (data?.error) {
-        console.error('[UserManagement] Function returned error:', data.error);
+        addDebugInfo(`Function returned error: ${data.error}`);
         setConnectionStatus('error');
         throw new Error(data.error);
       }
       
       if (!data?.users) {
-        console.error('[UserManagement] No users data returned:', data);
+        addDebugInfo('No users data returned from function');
         throw new Error('No users data returned from server. Please try again.');
       }
       
-      console.log('[UserManagement] Successfully fetched users:', data.users.length);
-      console.log('[UserManagement] Sample user data:', data.users[0]);
+      addDebugInfo(`Successfully fetched ${data.users.length} users`);
       
       // Sort users by name
       const sortedUsers = sortUsersByName(data.users, sortDirection);
@@ -131,8 +157,8 @@ const UserManagement: React.FC = () => {
       }
       
     } catch (err) {
-      console.error('[UserManagement] Error fetching users:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred while fetching users';
+      addDebugInfo(`Fetch failed: ${errorMessage}`);
       
       setLastError(errorMessage);
       setConnectionStatus('error');
@@ -154,7 +180,7 @@ const UserManagement: React.FC = () => {
   const fetchUsersDirectly = async () => {
     try {
       setLoading(true);
-      console.log('[UserManagement] Attempting direct database fetch as fallback...');
+      addDebugInfo('Attempting direct database fetch as fallback...');
       
       // Get profiles directly
       const { data: profiles, error: profilesError } = await supabase
@@ -213,7 +239,7 @@ const UserManagement: React.FC = () => {
       });
 
     } catch (err) {
-      console.error('[UserManagement] Direct fetch also failed:', err);
+      addDebugInfo(`Direct fetch also failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
       throw err;
     } finally {
       setLoading(false);
@@ -258,7 +284,7 @@ const UserManagement: React.FC = () => {
 
   // Smart retry that attempts different approaches
   const handleSmartRetry = async () => {
-    console.log('[UserManagement] Starting smart retry...');
+    addDebugInfo('Starting smart retry...');
     
     if (retryCount < 2) {
       // First two attempts: try edge function
@@ -543,6 +569,35 @@ const UserManagement: React.FC = () => {
     );
   };
 
+  // Debug info panel
+  const DebugPanel = () => {
+    if (debugInfo.length === 0) return null;
+    
+    return (
+      <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
+        <div className="flex items-center space-x-2 mb-2">
+          <Bug className="h-4 w-4 text-gray-500" />
+          <span className="text-sm font-medium text-gray-700">Debug Info</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setDebugInfo([])}
+            className="ml-auto h-6 px-2 text-xs"
+          >
+            Clear
+          </Button>
+        </div>
+        <div className="space-y-1 max-h-32 overflow-y-auto">
+          {debugInfo.map((info, index) => (
+            <div key={index} className="text-xs text-gray-600 font-mono">
+              {info}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <Card className="mb-6">
@@ -562,6 +617,7 @@ const UserManagement: React.FC = () => {
                   </div>
                 </div>
               )}
+              <DebugPanel />
             </div>
             <div className="flex items-center space-x-2">
               <Button
@@ -586,7 +642,17 @@ const UserManagement: React.FC = () => {
                 )}
               </Button>
               <Button 
-                onClick={handleCreateUser}
+                onClick={() => {
+                  setCurrentUser(null);
+                  setFormData({
+                    name: '',
+                    email: '',
+                    phone: '',
+                    jobTitle: '',
+                    role: 'servicemedarbejder',
+                  });
+                  setUserDialogOpen(true);
+                }}
                 className="bg-polygon-blue hover:bg-polygon-darkblue"
               >
                 {t('admin.userManagement.addUser')}
@@ -624,7 +690,17 @@ const UserManagement: React.FC = () => {
                   Try Again
                 </Button>
                 <Button 
-                  onClick={handleCreateUser}
+                  onClick={() => {
+                    setCurrentUser(null);
+                    setFormData({
+                      name: '',
+                      email: '',
+                      phone: '',
+                      jobTitle: '',
+                      role: 'servicemedarbejder',
+                    });
+                    setUserDialogOpen(true);
+                  }}
                   className="bg-polygon-blue hover:bg-polygon-darkblue"
                 >
                   Add First User
@@ -645,10 +721,31 @@ const UserManagement: React.FC = () => {
               </div>
               <UserTable 
                 users={users}
-                onEditUser={handleEditUser}
-                onDeleteUser={handleDeleteUser}
-                onResetPassword={handleResetPassword}
-                onToggleUserStatus={handleToggleUserStatus}
+                onEditUser={(user) => {
+                  setCurrentUser(user);
+                  setFormData({
+                    name: user.name,
+                    email: user.email,
+                    phone: user.phone || '',
+                    jobTitle: user.jobTitle || '',
+                    role: user.role,
+                  });
+                  setUserDialogOpen(true);
+                }}
+                onDeleteUser={(user) => {
+                  setCurrentUser(user);
+                  setDeleteDialogOpen(true);
+                }}
+                onResetPassword={(user) => {
+                  setCurrentUser(user);
+                  setPasswordDialogOpen(true);
+                }}
+                onToggleUserStatus={(user) => {
+                  setCurrentUser(user);
+                  const isCurrentlyActive = !user.banned_until || new Date(user.banned_until) <= new Date();
+                  setIsActivating(!isCurrentlyActive);
+                  setStatusDialogOpen(true);
+                }}
                 getRoleLabel={(role) => t(`admin.roles.${role}`)}
                 getInitials={(name) => name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2)}
               />

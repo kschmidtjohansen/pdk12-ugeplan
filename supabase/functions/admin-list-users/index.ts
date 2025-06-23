@@ -10,24 +10,25 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  console.log('[admin-list-users] REQUEST START - Method:', req.method, 'URL:', req.url);
+  const requestId = crypto.randomUUID().substring(0, 8);
+  console.log(`[${requestId}] REQUEST START - Method: ${req.method}, URL: ${req.url}`);
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('[admin-list-users] Handling CORS preflight');
+    console.log(`[${requestId}] Handling CORS preflight`);
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    // Log request details
-    console.log('[admin-list-users] Processing request...');
+    console.log(`[${requestId}] Processing ${req.method} request...`);
     
     // Get authorization header
     const authHeader = req.headers.get('Authorization');
-    console.log('[admin-list-users] Auth header present:', !!authHeader);
+    console.log(`[${requestId}] Auth header present: ${!!authHeader}`);
+    console.log(`[${requestId}] All headers:`, Object.fromEntries(req.headers.entries()));
     
     if (!authHeader) {
-      console.error('[admin-list-users] Missing authorization header');
+      console.error(`[${requestId}] Missing authorization header`);
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
         { 
@@ -41,15 +42,15 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
-    console.log('[admin-list-users] Environment check:', {
+    console.log(`[${requestId}] Environment check:`, {
       hasUrl: !!supabaseUrl,
       hasServiceKey: !!supabaseServiceKey,
-      urlLength: supabaseUrl?.length || 0,
+      urlValue: supabaseUrl?.substring(0, 20) + '...',
       keyLength: supabaseServiceKey?.length || 0
     });
     
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('[admin-list-users] Missing environment variables');
+      console.error(`[${requestId}] Missing environment variables`);
       return new Response(
         JSON.stringify({ error: 'Server configuration error' }),
         { 
@@ -69,12 +70,12 @@ serve(async (req) => {
 
     // Verify the current user is authenticated
     const token = authHeader.replace('Bearer ', '');
-    console.log('[admin-list-users] Verifying token...');
+    console.log(`[${requestId}] Verifying token (length: ${token.length})`);
     
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     
     if (authError) {
-      console.error('[admin-list-users] Auth verification error:', authError);
+      console.error(`[${requestId}] Auth verification error:`, authError);
       return new Response(
         JSON.stringify({ error: 'Authentication failed: ' + authError.message }),
         { 
@@ -85,7 +86,7 @@ serve(async (req) => {
     }
     
     if (!user) {
-      console.error('[admin-list-users] No user found from token');
+      console.error(`[${requestId}] No user found from token`);
       return new Response(
         JSON.stringify({ error: 'Invalid authentication token' }),
         { 
@@ -95,7 +96,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('[admin-list-users] User authenticated:', user.id);
+    console.log(`[${requestId}] User authenticated: ${user.id}`);
 
     // Check if user has admin role
     const { data: roleData, error: roleError } = await supabaseAdmin
@@ -105,7 +106,7 @@ serve(async (req) => {
       .single();
 
     if (roleError) {
-      console.error('[admin-list-users] Role check error:', roleError);
+      console.error(`[${requestId}] Role check error:`, roleError);
       return new Response(
         JSON.stringify({ error: 'Failed to verify user permissions: ' + roleError.message }),
         { 
@@ -116,7 +117,7 @@ serve(async (req) => {
     }
 
     if (roleData?.role !== 'administrator') {
-      console.error('[admin-list-users] User not admin:', roleData?.role);
+      console.error(`[${requestId}] User not admin:`, roleData?.role);
       return new Response(
         JSON.stringify({ error: 'Administrator access required. Current role: ' + (roleData?.role || 'unknown') }),
         { 
@@ -126,9 +127,9 @@ serve(async (req) => {
       );
     }
 
-    console.log('[admin-list-users] Admin access confirmed, fetching users...');
+    console.log(`[${requestId}] Admin access confirmed, fetching users...`);
 
-    // Use a simplified approach - get profiles directly with role information
+    // Get profiles with role information
     const { data: profilesWithRoles, error: fetchError } = await supabaseAdmin
       .from('profiles')
       .select(`
@@ -147,7 +148,7 @@ serve(async (req) => {
       `);
     
     if (fetchError) {
-      console.error('[admin-list-users] Failed to fetch profiles:', fetchError);
+      console.error(`[${requestId}] Failed to fetch profiles:`, fetchError);
       return new Response(
         JSON.stringify({ error: 'Failed to fetch users: ' + fetchError.message }),
         { 
@@ -157,10 +158,10 @@ serve(async (req) => {
       );
     }
 
-    console.log('[admin-list-users] Profiles fetched:', profilesWithRoles?.length || 0);
+    console.log(`[${requestId}] Profiles fetched: ${profilesWithRoles?.length || 0}`);
 
     if (!profilesWithRoles || profilesWithRoles.length === 0) {
-      console.log('[admin-list-users] No profiles found');
+      console.log(`[${requestId}] No profiles found`);
       return new Response(
         JSON.stringify({ users: [], total: 0 }),
         { 
@@ -170,11 +171,11 @@ serve(async (req) => {
       );
     }
 
-    // Now get auth users data
+    // Get auth users data
     const { data: authUsers, error: authError2 } = await supabaseAdmin.auth.admin.listUsers();
     
     if (authError2) {
-      console.error('[admin-list-users] Failed to fetch auth users:', authError2);
+      console.error(`[${requestId}] Failed to fetch auth users:`, authError2);
       return new Response(
         JSON.stringify({ error: 'Failed to fetch auth users: ' + authError2.message }),
         { 
@@ -184,7 +185,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('[admin-list-users] Auth users fetched:', authUsers.users?.length || 0);
+    console.log(`[${requestId}] Auth users fetched: ${authUsers.users?.length || 0}`);
 
     // Combine profile and auth data
     const combinedUsers = profilesWithRoles.map(profile => {
@@ -209,8 +210,7 @@ serve(async (req) => {
       };
     });
 
-    console.log('[admin-list-users] Successfully combined', combinedUsers.length, 'users');
-    console.log('[admin-list-users] Sample user data:', combinedUsers[0]);
+    console.log(`[${requestId}] SUCCESS - Combined ${combinedUsers.length} users`);
 
     return new Response(
       JSON.stringify({ 
@@ -224,8 +224,8 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('[admin-list-users] Unexpected error:', error);
-    console.error('[admin-list-users] Error stack:', error.stack);
+    console.error(`[${requestId}] Unexpected error:`, error);
+    console.error(`[${requestId}] Error stack:`, error.stack);
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error')
