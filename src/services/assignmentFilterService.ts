@@ -1,3 +1,4 @@
+
 import { Assignment } from '@/types/assignment';
 
 export interface FilterOptions {
@@ -64,7 +65,7 @@ export class AssignmentFilterService {
     }
   }
 
-  // Dashboard-specific filtering - preserves all employee names but filters to user's assignments
+  // COMPREHENSIVE FIX: Dashboard-specific filtering - NO LONGER FILTERS OUT COLLEAGUE NAMES
   static filterForDashboard(assignments: Assignment[], options: FilterOptions = {}): Assignment[] {
     const { userRole, userName } = options;
 
@@ -72,22 +73,9 @@ export class AssignmentFilterService {
 
     console.log(`[AssignmentFilterService] COMPREHENSIVE FIX - Dashboard filtering for ${userRole} user: ${userName}`);
 
-    if (userRole === 'servicemedarbejder') {
-      // Filter to user's assignments but preserve ALL employee names
-      const filtered = assignments.filter(a => 
-        a.published && 
-        userName &&
-        a.employees && 
-        a.employees.includes(userName)
-      );
-      console.log(`[AssignmentFilterService] COMPREHENSIVE FIX - Dashboard: Servicemedarbejder gets ${filtered.length} assignments with ALL colleague names preserved`);
-      return filtered;
-    }
-
-    // Admin/Skadeleder see all their assigned or responsible assignments
-    const filtered = assignments.filter(a => a.published);
-    console.log(`[AssignmentFilterService] COMPREHENSIVE FIX - Dashboard: Admin/Skadeleder gets ${filtered.length} assignments`);
-    return filtered;
+    // Dashboard filtering is now handled at the service level (OptimizedAssignmentService)
+    // This method just applies basic role filters without removing colleague information
+    return this.applyRoleBasedFilter(assignments, { ...options, includeUnpublished: false });
   }
 
   // COMPREHENSIVE FIX: Planner-specific filtering shows ALL assignments based on role
@@ -98,17 +86,8 @@ export class AssignmentFilterService {
 
     console.log(`[AssignmentFilterService] COMPREHENSIVE FIX - Planner filtering for ${userRole} with includeUnpublished: ${includeUnpublished}`);
 
-    if (userRole === 'servicemedarbejder') {
-      // COMPREHENSIVE FIX: Servicemedarbejder should see ALL published assignments in planner
-      const filtered = assignments.filter(a => a.published);
-      console.log(`[AssignmentFilterService] COMPREHENSIVE FIX - Planner: Servicemedarbejder sees ${filtered.length} published assignments (ALL)`);
-      return filtered;
-    }
-
-    // Admin/Skadeleder see all assignments (published + unpublished if allowed)
-    const filtered = assignments.filter(a => includeUnpublished || a.published);
-    console.log(`[AssignmentFilterService] COMPREHENSIVE FIX - Planner: Admin/Skadeleder sees ${filtered.length} assignments`);
-    return filtered;
+    // Planner filtering is also handled at the service level for proper role-based visibility
+    return this.applyRoleBasedFilter(assignments, { ...options, includeUnpublished });
   }
 
   // Date range filtering

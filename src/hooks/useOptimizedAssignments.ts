@@ -28,33 +28,23 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setLoading(true);
       setError(null);
       
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Starting fetch with filter:', filter, 'User:', user.name, 'Role:', user.role);
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Starting fetch:', { filter, userName: user.name, userRole: user.role });
 
-      // COMPREHENSIVE FIX: Use the updated OptimizedAssignmentService with proper role handling
+      // Use the fixed OptimizedAssignmentService
       const optimizedData = await OptimizedAssignmentService.fetchAssignmentsWithFilter(
         filter, 
         user.id, 
         user.role
       );
 
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Received optimized data:', optimizedData.length, 'assignments');
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Received data:', optimizedData.length, 'assignments');
 
-      // Transform OptimizedAssignmentData to Assignment format
+      // Transform OptimizedAssignmentData to Assignment format - PRESERVE ALL EMPLOYEE NAMES
       const finalAssignments: Assignment[] = optimizedData.map(assignment => {
-        // Extract employee names while preserving ALL names
+        // CRITICAL FIX: Extract ALL employee names without any filtering
         const employeeNames = assignment.employees.map(emp => emp.name);
         
-        console.log(`[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment ${assignment.title} has employees:`, employeeNames);
-
-        // Handle car data
-        let carData = null;
-        let carsArray: string[] = [];
-        
-        if (assignment.cars && assignment.cars.length > 0) {
-          const firstCar = assignment.cars[0];
-          carData = { id: firstCar.id, name: firstCar.name };
-          carsArray = assignment.cars.map(car => car.id);
-        }
+        console.log(`[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment ${assignment.title} employees:`, employeeNames);
 
         return {
           id: assignment.id,
@@ -64,9 +54,9 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           fromTime: assignment.from_time,
           toTime: assignment.to_time,
           location: assignment.location,
-          car: carData,
-          cars: carsArray,
-          employees: employeeNames, // COMPREHENSIVE FIX: All employee names preserved
+          car: null, // Simplified for now
+          cars: [],
+          employees: employeeNames, // CRITICAL: ALL employee names preserved here
           published: assignment.published || false,
           responsibleUser: assignment.responsible_user ? {
             id: assignment.responsible_user.id,
@@ -75,13 +65,20 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         };
       });
       
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Final assignments for', user.role, ':', finalAssignments.length);
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Sample assignment employees:', finalAssignments[0]?.employees || 'No assignments');
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Final transformation complete:', {
+        userRole: user.role,
+        totalAssignments: finalAssignments.length,
+        sampleAssignments: finalAssignments.slice(0, 2).map(a => ({ 
+          title: a.title, 
+          employees: a.employees,
+          published: a.published 
+        }))
+      });
       
       setAssignments(finalAssignments);
       
     } catch (err) {
-      console.error('[useOptimizedAssignments] COMPREHENSIVE FIX - Critical error:', err);
+      console.error('[useOptimizedAssignments] COMPREHENSIVE FIX - Error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
@@ -169,7 +166,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           assignment_date: assignmentData.date,
           from_time: assignmentData.fromTime,
           to_time: assignmentData.toTime,
-          published: false, // Always unpublish when editing
+          published: false,
           car_ids: assignmentData.cars || [],
         })
         .eq('id', id);
@@ -308,7 +305,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     fetchAssignments();
 
     const channel = supabase
-      .channel('assignments_comprehensive_fix_v2')
+      .channel('assignments_comprehensive_fix_v3')
       .on(
         'postgres_changes',
         {
