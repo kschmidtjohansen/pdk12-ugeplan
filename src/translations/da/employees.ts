@@ -25,6 +25,11 @@ const employees = {
   deleteError: 'Fejl ved sletning af medarbejder',
   createError: 'Fejl ved oprettelse af medarbejder',
   
+  // Employee selection
+  selectEmployees: 'Vælg medarbejdere',
+  selected: 'valgte',
+  autoRemovedUnavailable: 'Auto-fjernet ikke-tilgængelige medarbejdere',
+  
   // RLS and database access errors
   rlsError: 'Der opstod en adgangsfejl ved indlæsning af medarbejdere. Dette er blevet rapporteret og vil blive rettet hurtigst muligt.',
   rlsErrorTitle: 'Adgangsfejl',

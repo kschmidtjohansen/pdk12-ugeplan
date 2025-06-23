@@ -25,6 +25,11 @@ const employees = {
   deleteError: 'Error deleting employee',
   createError: 'Error creating employee',
   
+  // Employee selection
+  selectEmployees: 'Select employees',
+  selected: 'selected',
+  autoRemovedUnavailable: 'Auto-removed unavailable employees',
+  
   // RLS and database access errors
   rlsError: 'An access error occurred while loading employees. This has been reported and will be fixed as soon as possible.',
   rlsErrorTitle: 'Access Error',
