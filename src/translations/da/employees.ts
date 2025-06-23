@@ -15,7 +15,7 @@ const employees = {
   jobTitle: 'Jobtitel',
   role: 'Rolle',
   status: 'Status',
-  onLeave: 'På orlov',
+  onLeave: 'Ikke tilgængelig',
   available: 'Tilgængelig',
   notes: 'Noter',
   actions: 'Handlinger',
