@@ -20,7 +20,7 @@ export const useAssignmentData = () => {
       
       console.log('[useAssignmentData] Starting to fetch assignments...');
       
-      // Fetch assignments with optimized query including responsible user
+      // Fetch assignments with explicit foreign key hints to resolve ambiguity
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('assignments')
         .select(`
@@ -37,8 +37,8 @@ export const useAssignmentData = () => {
           responsible_user_id,
           created_at,
           updated_at,
-          cars:car_id (id, name, car_number),
-          responsible_user:responsible_user_id (id, name)
+          car:cars!fk_assignments_car_id (id, name, car_number),
+          responsible_user:profiles!fk_assignments_responsible_user_id (id, name)
         `)
         .order('assignment_date', { ascending: true });
       
@@ -107,14 +107,14 @@ export const useAssignmentData = () => {
             // New format: multiple cars
             carsArray = assignment.car_ids;
             // For backward compatibility, set car to the first car in the array
-            if (assignment.cars) {
-              carData = { id: assignment.cars.id, name: assignment.cars.name };
+            if (assignment.car && typeof assignment.car === 'object') {
+              carData = { id: assignment.car.id, name: assignment.car.name };
             }
           } else if (assignment.car_id) {
             // Old format: single car, convert to array
             carsArray = [assignment.car_id];
-            if (assignment.cars) {
-              carData = { id: assignment.cars.id, name: assignment.cars.name };
+            if (assignment.car && typeof assignment.car === 'object') {
+              carData = { id: assignment.car.id, name: assignment.car.name };
             }
           }
           
@@ -130,7 +130,7 @@ export const useAssignmentData = () => {
             cars: carsArray, // New field for multiple cars
             employees: assignmentEmployeeNames,
             published: assignment.published || false,
-            responsibleUser: assignment.responsible_user ? {
+            responsibleUser: assignment.responsible_user && typeof assignment.responsible_user === 'object' ? {
               id: assignment.responsible_user.id,
               name: assignment.responsible_user.name
             } : null

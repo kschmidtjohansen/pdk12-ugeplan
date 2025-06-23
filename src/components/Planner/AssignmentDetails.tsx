@@ -14,7 +14,7 @@ interface AssignmentDetailsProps {
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars }) => {
   const { t } = useTranslation();
 
-  // OPTIMIZED: Simplified car name extraction with proper foreign key support
+  // OPTIMIZED: Simplified car name extraction with proper type guards
   const getCarNames = (assignment: Assignment): string[] => {
     const carNames: string[] = [];
     
@@ -28,14 +28,14 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
         const car = cars.find(c => c.id === carId);
         if (car) {
           carNames.push(car.name);
-        } else if (assignment.car && assignment.car.id === carId) {
+        } else if (assignment.car && typeof assignment.car === 'object' && assignment.car.id === carId) {
           carNames.push(assignment.car.name);
         } else {
           carNames.push(carId); // Fallback to ID
         }
       });
     } else if (assignment.car) {
-      // Old format: single car
+      // Old format: single car with type guard
       if (typeof assignment.car === 'string') {
         const car = cars.find(c => c.id === assignment.car);
         carNames.push(car ? car.name : assignment.car);

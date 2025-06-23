@@ -20,7 +20,7 @@ export const useAssignmentDataOptimized = () => {
       
       console.log('[useAssignmentDataOptimized] Starting optimized assignment fetch...');
       
-      // Single optimized query with all necessary joins
+      // Single optimized query with explicit foreign key hints to resolve ambiguity
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('assignments')
         .select(`
@@ -37,12 +37,12 @@ export const useAssignmentDataOptimized = () => {
           responsible_user_id,
           created_at,
           updated_at,
-          cars:car_id (
+          car:cars!fk_assignments_car_id (
             id,
             name,
             car_number
           ),
-          responsible_user:responsible_user_id (
+          responsible_user:profiles!fk_assignments_responsible_user_id (
             id,
             name
           )
@@ -165,7 +165,7 @@ export const useAssignmentDataOptimized = () => {
           cars: carsArray,
           employees: employeeNames,
           published: assignment.published || false,
-          responsibleUser: assignment.responsible_user ? {
+          responsibleUser: assignment.responsible_user && typeof assignment.responsible_user === 'object' ? {
             id: assignment.responsible_user.id,
             name: assignment.responsible_user.name
           } : null
