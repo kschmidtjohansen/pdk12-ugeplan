@@ -33,6 +33,15 @@ const dashboard = {
   myAssignments: "Mine Opgaver",
   noAssignments: "Ingen opgaver denne uge",
   noAssignmentsScheduled: "Ingen opgaver planlagt for denne uge",
+  
+  // COMPREHENSIVE FIX: Added missing translation keys
+  connectionStatus: "Forbindelsesstatus: {status}",
+  sessionValidationFailed: "Session validering mislykkedes",
+  tokenExpiringSoon: "Token udløber snart",
+  connectionIssueDetected: "Forbindelsesproblem opdaget",
+  connectionIssueDescription: "Nogle data er muligvis ikke opdateret. Tjek din internetforbindelse eller prøv at opdatere siden.",
+  loginToAccess: "Log ind for at få adgang til dashboardet",
+  
   quickAccess: {
     title: "Hurtig adgang",
     planner: {

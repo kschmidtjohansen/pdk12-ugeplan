@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -24,7 +23,7 @@ const DashboardPage: React.FC = () => {
   // Enhanced authentication monitoring
   const { authStatus } = useAuthenticationMonitor();
   
-  // FIXED: Use separate, properly configured queries
+  // COMPREHENSIVE FIX: Use separate, properly configured queries
   // For metrics: show all published assignments 
   const { assignments: allPublishedAssignments, loading: allAssignmentsLoading, error: allAssignmentsError } = useOptimizedAssignments('published');
   
@@ -46,9 +45,9 @@ const DashboardPage: React.FC = () => {
   // Show connection status if there are issues
   const showConnectionIssue = !authStatus.sessionValid || authStatus.connectionStatus === 'disconnected';
 
-  console.log(`[DashboardPage] FIXED - Processing assignments for user: ${user?.name} (${user?.role})`);
-  console.log(`[DashboardPage] FIXED - All published assignments for metrics: ${allPublishedAssignments.length}`);
-  console.log(`[DashboardPage] FIXED - User assignments for weekly view: ${userAssignments.length}`);
+  console.log(`[DashboardPage] COMPREHENSIVE FIX - Processing assignments for user: ${user?.name} (${user?.role})`);
+  console.log(`[DashboardPage] COMPREHENSIVE FIX - All published assignments for metrics: ${allPublishedAssignments.length}`);
+  console.log(`[DashboardPage] COMPREHENSIVE FIX - User assignments for weekly view: ${userAssignments.length}`);
   
   // Log assignment details for debugging
   allPublishedAssignments.forEach(assignment => {
@@ -60,7 +59,7 @@ const DashboardPage: React.FC = () => {
   });
 
   userAssignments.forEach(assignment => {
-    console.log(`[DashboardPage] FIXED - User assignment ${assignment.id} (${assignment.title}) with colleagues preserved:`, {
+    console.log(`[DashboardPage] COMPREHENSIVE FIX - User assignment ${assignment.id} (${assignment.title}) with colleagues preserved:`, {
       employees: assignment.employees,
       responsibleUser: assignment.responsibleUser,
       published: assignment.published
@@ -110,7 +109,7 @@ const DashboardPage: React.FC = () => {
     setSelectedYear(year);
   };
 
-  // FIXED: Use user assignments for weekly view (filtered by date range)
+  // COMPREHENSIVE FIX: Use user assignments for weekly view (filtered by date range)
   const myWeekAssignments = useMemo(() => {
     const filtered = AssignmentFilterService.filterByDateRange(
       userAssignments, // User's assignments with all colleague info preserved
@@ -118,9 +117,9 @@ const DashboardPage: React.FC = () => {
       endDateISO
     );
     
-    console.log(`[DashboardPage] FIXED - Weekly assignments for ${user?.name}: ${filtered.length} assignments`);
+    console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignments for ${user?.name}: ${filtered.length} assignments`);
     filtered.forEach(assignment => {
-      console.log(`[DashboardPage] FIXED - Weekly assignment ${assignment.title} shows colleagues: [${assignment.employees?.join(', ')}]`);
+      console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignment ${assignment.title} shows colleagues: [${assignment.employees?.join(', ')}]`);
     });
     
     return filtered;
@@ -141,11 +140,11 @@ const DashboardPage: React.FC = () => {
                 </div>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-yellow-800">
-                    Connection Status: {authStatus.connectionStatus}
+                    {t('dashboard.connectionStatus', { status: authStatus.connectionStatus })}
                   </h3>
                   <div className="mt-1 text-sm text-yellow-700">
-                    {!authStatus.sessionValid && <p>Session validation failed</p>}
-                    {authStatus.tokenExpiring && <p>Token expiring soon</p>}
+                    {!authStatus.sessionValid && <p>{t('dashboard.sessionValidationFailed')}</p>}
+                    {authStatus.tokenExpiring && <p>{t('dashboard.tokenExpiringSoon')}</p>}
                   </div>
                 </div>
               </div>
@@ -170,13 +169,13 @@ const DashboardPage: React.FC = () => {
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
         <div className="text-center p-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Authentication Required</h2>
-          <p className="text-gray-600 mb-4">Please log in to access the dashboard.</p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('common.authRequired')}</h2>
+          <p className="text-gray-600 mb-4">{t('dashboard.loginToAccess')}</p>
           <button 
             onClick={() => window.location.href = '/login'} 
             className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
           >
-            Go to Login
+            {t('common.login')}
           </button>
         </div>
       </div>
@@ -197,10 +196,10 @@ const DashboardPage: React.FC = () => {
               </div>
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-yellow-800">
-                  Connection Issue Detected
+                  {t('dashboard.connectionIssueDetected')}
                 </h3>
                 <div className="mt-1 text-sm text-yellow-700">
-                  Some data may not be up to date. Check your internet connection or try refreshing the page.
+                  {t('dashboard.connectionIssueDescription')}
                 </div>
               </div>
             </div>
@@ -218,7 +217,7 @@ const DashboardPage: React.FC = () => {
           <DashboardMetrics selectedDate={format(new Date(), 'yyyy-MM-dd')} assignments={allPublishedAssignments} />
         </div>
 
-        {/* FIXED: Weekly Assignments - Pass user assignments with colleague info preserved */}
+        {/* COMPREHENSIVE FIX: Weekly Assignments - Pass user assignments with colleague info preserved */}
         <div style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
           <WeeklyAssignments
             assignments={userAssignments}

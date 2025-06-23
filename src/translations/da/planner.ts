@@ -92,7 +92,7 @@ const planner = {
   noPermissionEdit: 'Du har ikke tilladelse til at redigere opgaver.',
   noPermissionDelete: 'Du har ikke tilladelse til at slette opgaver.',
   
-  // Error messages
+  // Error messages - COMPREHENSIVE FIX: Proper error message translations
   fetchError: 'Fejl ved indlæsning af opgaver',
   createError: 'Fejl ved oprettelse af opgave',
   updateError: 'Fejl ved opdatering af opgave',
@@ -105,7 +105,7 @@ const planner = {
   operationFailed: 'Handlingen mislykkedes',
   publishOperationFailed: 'Nogle opgaver kunne ikke publiceres',
   
-  // Success messages
+  // Success messages - COMPREHENSIVE FIX: Proper success message translations
   assignmentCreated: 'Opgave oprettet',
   assignmentUpdated: 'Opgave opdateret',
   assignmentDeleted: 'Opgave slettet',
