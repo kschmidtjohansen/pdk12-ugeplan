@@ -13,7 +13,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowDownAZ, ArrowUpAZ, RefreshCw, AlertCircle, Wifi, WifiOff, Bug } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, RefreshCw, AlertCircle, Wifi, WifiOff, Bug, Database } from 'lucide-react';
 
 // Import refactored components
 import UserTable from './UserTable';
@@ -29,9 +29,10 @@ const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
-  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'error'>('connected');
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'error' | 'fallback'>('connected');
   const [lastError, setLastError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
+  const [usingFallback, setUsingFallback] = useState(false);
   
   // Dialog state
   const [userDialogOpen, setUserDialogOpen] = useState(false);
@@ -52,136 +53,95 @@ const UserManagement: React.FC = () => {
 
   const addDebugInfo = (info: string) => {
     const timestamp = new Date().toISOString().substring(11, 23);
-    setDebugInfo(prev => [`[${timestamp}] ${info}`, ...prev.slice(0, 14)]);
+    setDebugInfo(prev => [`[${timestamp}] ${info}`, ...prev.slice(0, 19)]);
     console.log(`[UserManagement Debug] ${info}`);
   };
 
-  // Test edge function with detailed debugging
-  const testEdgeFunction = async () => {
-    try {
-      addDebugInfo('Testing edge function connectivity...');
-      
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        addDebugInfo(`Session error: ${sessionError.message}`);
-        throw new Error('Session error: ' + sessionError.message);
-      }
-      
-      if (!session?.access_token) {
-        addDebugInfo('No valid session - redirecting to login');
-        throw new Error('No valid session');
-      }
+  // Enhanced edge function testing with different methods
+  const testEdgeFunction = async (): Promise<any> => {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !session?.access_token) {
+      throw new Error('No valid session');
+    }
 
-      addDebugInfo(`Session valid, making request with token length: ${session.access_token.length}`);
-      
-      // Make the request with explicit debugging
-      const requestStart = Date.now();
-      addDebugInfo('Calling supabase.functions.invoke...');
-      
+    addDebugInfo(`Testing edge function with token length: ${session.access_token.length}`);
+
+    // Try method 1: Standard invoke with GET
+    try {
+      addDebugInfo('Method 1: Using supabase.functions.invoke with GET');
       const { data, error } = await supabase.functions.invoke('admin-list-users', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      
+      addDebugInfo(`Method 1 SUCCESS: Got ${data?.users?.length || 0} users`);
+      return data;
+    } catch (err) {
+      addDebugInfo(`Method 1 FAILED: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+
+    // Try method 2: Direct fetch call
+    try {
+      addDebugInfo('Method 2: Using direct fetch call');
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/admin-list-users`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': supabase.supabaseKey,
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data?.error) throw new Error(data.error);
+      
+      addDebugInfo(`Method 2 SUCCESS: Got ${data?.users?.length || 0} users`);
+      return data;
+    } catch (err) {
+      addDebugInfo(`Method 2 FAILED: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+
+    // Try method 3: POST with body
+    try {
+      addDebugInfo('Method 3: Using POST with empty body');
+      const { data, error } = await supabase.functions.invoke('admin-list-users', {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
-        method: 'POST'
+        body: {}
       });
       
-      const requestEnd = Date.now();
-      addDebugInfo(`Request completed in ${requestEnd - requestStart}ms`);
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       
-      if (error) {
-        addDebugInfo(`Supabase functions error: ${JSON.stringify(error)}`);
-        throw error;
-      }
-      
-      if (data?.error) {
-        addDebugInfo(`Function returned error: ${data.error}`);
-        throw new Error(data.error);
-      }
-      
-      addDebugInfo(`Success! Received ${data?.users?.length || 0} users`);
+      addDebugInfo(`Method 3 SUCCESS: Got ${data?.users?.length || 0} users`);
       return data;
-      
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-      addDebugInfo(`Edge function test failed: ${errorMsg}`);
-      throw err;
+      addDebugInfo(`Method 3 FAILED: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
+
+    throw new Error('All edge function methods failed');
   };
 
-  // Enhanced user fetching with comprehensive debugging
-  const fetchUsers = async (isRetry = false) => {
-    try {
-      setLoading(true);
-      setLastError(null);
-      
-      if (isRetry) {
-        setRetryCount(prev => prev + 1);
-        addDebugInfo(`Retry attempt: ${retryCount + 1}`);
-      } else {
-        addDebugInfo('Starting fresh user fetch');
-        setRetryCount(0);
-      }
-      
-      // Test the edge function first
-      const data = await testEdgeFunction();
-      
-      if (!data?.users) {
-        addDebugInfo('No users data returned from function');
-        throw new Error('No users data returned from server');
-      }
-      
-      // Sort users by name
-      const sortedUsers = sortUsersByName(data.users, sortDirection);
-      setUsers(sortedUsers);
-      setConnectionStatus('connected');
-      
-      addDebugInfo(`Successfully loaded ${data.users.length} users`);
-      
-      // Show success message if this was a retry
-      if (isRetry && retryCount > 0) {
-        toast({
-          title: 'Success',
-          description: `Successfully loaded ${data.users.length} users`,
-        });
-      }
-      
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred while fetching users';
-      addDebugInfo(`Fetch failed: ${errorMessage}`);
-      
-      setLastError(errorMessage);
-      setConnectionStatus('error');
-      
-      // Try direct database fallback for certain errors
-      if (retryCount >= 2) {
-        addDebugInfo('Attempting direct database fallback...');
-        try {
-          await fetchUsersDirectly();
-          return;
-        } catch (fallbackError) {
-          addDebugInfo(`Fallback also failed: ${fallbackError instanceof Error ? fallbackError.message : 'Unknown error'}`);
-        }
-      }
-      
-      toast({
-        title: t('common.error'),
-        description: errorMessage,
-        variant: 'destructive',
-      });
-      
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fallback user fetching using direct database queries
+  // Enhanced fallback using direct database queries
   const fetchUsersDirectly = async () => {
     try {
-      setLoading(true);
-      addDebugInfo('Attempting direct database fetch as fallback...');
+      setUsingFallback(true);
+      addDebugInfo('FALLBACK: Using direct database queries');
       
       // Get profiles directly
       const { data: profiles, error: profilesError } = await supabase
@@ -199,11 +159,9 @@ const UserManagement: React.FC = () => {
         `);
 
       if (profilesError) {
-        addDebugInfo(`Direct profiles fetch failed: ${profilesError.message}`);
+        addDebugInfo(`FALLBACK profiles error: ${profilesError.message}`);
         throw profilesError;
       }
-
-      addDebugInfo(`Fetched ${profiles?.length || 0} profiles directly`);
 
       // Get user roles
       const { data: userRoles, error: rolesError } = await supabase
@@ -211,10 +169,8 @@ const UserManagement: React.FC = () => {
         .select('user_id, role');
 
       if (rolesError) {
-        addDebugInfo(`Roles fetch warning: ${rolesError.message}`);
+        addDebugInfo(`FALLBACK roles warning: ${rolesError.message}`);
       }
-
-      addDebugInfo(`Fetched ${userRoles?.length || 0} user roles`);
 
       // Combine data
       const combinedUsers = profiles?.map(profile => {
@@ -236,19 +192,80 @@ const UserManagement: React.FC = () => {
         };
       }) || [];
 
-      setUsers(sortUsersByName(combinedUsers, sortDirection));
-      setConnectionStatus('connected');
-      
-      addDebugInfo(`Direct fetch successful: ${combinedUsers.length} users`);
-      
-      toast({
-        title: 'Fallback Mode',
-        description: `Loaded ${combinedUsers.length} users (limited data available)`,
-      });
+      addDebugInfo(`FALLBACK SUCCESS: Loaded ${combinedUsers.length} users`);
+      return { users: combinedUsers, total: combinedUsers.length };
 
     } catch (err) {
-      addDebugInfo(`Direct fetch also failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      addDebugInfo(`FALLBACK FAILED: ${err instanceof Error ? err.message : 'Unknown error'}`);
       throw err;
+    }
+  };
+
+  // Main user fetching with comprehensive error handling
+  const fetchUsers = async (isRetry = false) => {
+    try {
+      setLoading(true);
+      setLastError(null);
+      
+      if (isRetry) {
+        setRetryCount(prev => prev + 1);
+        addDebugInfo(`Retry attempt: ${retryCount + 1}`);
+      } else {
+        addDebugInfo('Starting fresh user fetch');
+        setRetryCount(0);
+        setUsingFallback(false);
+      }
+      
+      let data;
+      
+      // Try edge function first (unless we're already using fallback)
+      if (!usingFallback) {
+        try {
+          data = await testEdgeFunction();
+          setConnectionStatus('connected');
+        } catch (err) {
+          addDebugInfo(`Edge function failed, switching to fallback: ${err instanceof Error ? err.message : 'Unknown error'}`);
+          data = await fetchUsersDirectly();
+          setConnectionStatus('fallback');
+        }
+      } else {
+        // Use fallback directly
+        data = await fetchUsersDirectly();
+        setConnectionStatus('fallback');
+      }
+      
+      if (!data?.users) {
+        throw new Error('No users data returned');
+      }
+      
+      // Sort users by name
+      const sortedUsers = sortUsersByName(data.users, sortDirection);
+      setUsers(sortedUsers);
+      
+      addDebugInfo(`Successfully loaded ${data.users.length} users`);
+      
+      // Show success message if this was a retry
+      if (isRetry && retryCount > 0) {
+        toast({
+          title: 'Success',
+          description: `Successfully loaded ${data.users.length} users${usingFallback ? ' (using database fallback)' : ''}`,
+        });
+      }
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred while fetching users';
+      addDebugInfo(`Fetch failed: ${errorMessage}`);
+      
+      setLastError(errorMessage);
+      setConnectionStatus('error');
+      
+      toast({
+        title: t('common.error'),
+        description: errorMessage,
+        variant: 'destructive',
+      });
+      
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -275,9 +292,16 @@ const UserManagement: React.FC = () => {
     setUsers(sortUsersByName(users, newDirection));
   };
 
-  // Smart retry that attempts different approaches
+  // Smart retry that can switch methods
   const handleSmartRetry = async () => {
     addDebugInfo('Starting smart retry...');
+    await fetchUsers(true);
+  };
+
+  // Force fallback mode
+  const handleForceFallback = async () => {
+    addDebugInfo('Forcing fallback mode...');
+    setUsingFallback(true);
     await fetchUsers(true);
   };
   
@@ -515,6 +539,7 @@ const UserManagement: React.FC = () => {
     const getStatusColor = () => {
       switch (connectionStatus) {
         case 'connected': return 'text-green-600';
+        case 'fallback': return 'text-blue-600';
         case 'disconnected': return 'text-orange-600';
         case 'error': return 'text-red-600';
         default: return 'text-gray-600';
@@ -524,6 +549,7 @@ const UserManagement: React.FC = () => {
     const getStatusIcon = () => {
       switch (connectionStatus) {
         case 'connected': return <Wifi className="h-4 w-4" />;
+        case 'fallback': return <Database className="h-4 w-4" />;
         case 'disconnected': return <WifiOff className="h-4 w-4" />;
         case 'error': return <AlertCircle className="h-4 w-4" />;
         default: return <Wifi className="h-4 w-4" />;
@@ -532,7 +558,8 @@ const UserManagement: React.FC = () => {
 
     const getStatusText = () => {
       switch (connectionStatus) {
-        case 'connected': return 'Connected';
+        case 'connected': return 'Edge Function Active';
+        case 'fallback': return 'Database Fallback';
         case 'disconnected': return 'Connection Issues';
         case 'error': return 'Error';
         default: return 'Unknown';
@@ -572,7 +599,15 @@ const UserManagement: React.FC = () => {
             onClick={handleSmartRetry}
             className="h-6 px-2 text-xs"
           >
-            Test Connection
+            Retry
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleForceFallback}
+            className="h-6 px-2 text-xs"
+          >
+            Force Fallback
           </Button>
         </div>
         <div className="space-y-1 max-h-40 overflow-y-auto">
@@ -668,6 +703,12 @@ const UserManagement: React.FC = () => {
                   Try Again
                 </Button>
                 <Button 
+                  onClick={handleForceFallback}
+                  variant="outline"
+                >
+                  Use Fallback
+                </Button>
+                <Button 
                   onClick={handleCreateUser}
                   className="bg-polygon-blue hover:bg-polygon-darkblue"
                 >
@@ -679,7 +720,7 @@ const UserManagement: React.FC = () => {
             <div>
               <div className="mb-4 flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  Showing {users.length} users
+                  Showing {users.length} users {usingFallback && '(via fallback)'}
                 </div>
                 {retryCount > 0 && (
                   <div className="text-xs text-orange-600">

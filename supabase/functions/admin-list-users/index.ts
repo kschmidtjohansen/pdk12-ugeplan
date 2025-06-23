@@ -42,7 +42,7 @@ serve(async (req) => {
     if (req.method === 'POST') {
       try {
         const body = await req.text();
-        console.log(`[${requestId}] Request body:`, body);
+        console.log(`[${requestId}] Request body:`, body || '(empty)');
       } catch (e) {
         console.log(`[${requestId}] Could not read request body:`, e.message);
       }
