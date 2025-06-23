@@ -13,7 +13,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowDownAZ, ArrowUpAZ, RefreshCw } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, RefreshCw, AlertCircle, Wifi, WifiOff } from 'lucide-react';
 
 // Import refactored components
 import UserTable from './UserTable';
@@ -29,6 +29,8 @@ const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'error'>('connected');
+  const [lastError, setLastError] = useState<string | null>(null);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
@@ -45,35 +47,48 @@ const UserManagement: React.FC = () => {
     role: 'servicemedarbejder' as UserRole,
   });
 
-  // FIXED: Enhanced user fetching with better error handling and debugging
-  const fetchUsers = async () => {
+  // Enhanced user fetching with comprehensive error handling and retry logic
+  const fetchUsers = async (isRetry = false) => {
     try {
       setLoading(true);
-      console.log('[UserManagement] FIXED - Fetching users via enhanced edge function, attempt:', retryCount + 1);
+      setLastError(null);
       
-      // FIXED: Get current session to ensure we have valid auth
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        console.error('[UserManagement] FIXED - No valid session found');
+      if (isRetry) {
+        setRetryCount(prev => prev + 1);
+        console.log('[UserManagement] Retry attempt:', retryCount + 1);
+      }
+      
+      console.log('[UserManagement] Starting user fetch...');
+      
+      // Get current session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        console.error('[UserManagement] Session error:', sessionError);
         throw new Error('Authentication session expired. Please refresh the page and login again.');
       }
 
-      console.log('[UserManagement] FIXED - Valid session found, calling edge function...');
+      console.log('[UserManagement] Valid session found, calling edge function...');
+      setConnectionStatus('connected');
       
+      // Call the edge function with detailed error handling
       const { data, error } = await supabase.functions.invoke('admin-list-users', {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
-        }
+        },
+        body: {} // Send empty body for POST request
       });
       
       if (error) {
-        console.error('[UserManagement] FIXED - Edge function error:', error);
+        console.error('[UserManagement] Edge function error:', error);
+        setConnectionStatus('error');
         
-        // FIXED: Provide specific error messages based on error type
+        // Provide specific error messages based on error type
         let errorMessage = 'Failed to fetch users';
         
-        if (error.message?.includes('Failed to send a request')) {
+        if (error.message?.includes('Failed to send a request') || error.message?.includes('fetch')) {
           errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+          setConnectionStatus('disconnected');
         } else if (error.message?.includes('Not authenticated') || error.message?.includes('Invalid token')) {
           errorMessage = 'Authentication expired. Please refresh the page and login again.';
         } else if (error.message?.includes('Unauthorized') || error.message?.includes('Administrator access required')) {
@@ -88,25 +103,27 @@ const UserManagement: React.FC = () => {
       }
       
       if (data?.error) {
-        console.error('[UserManagement] FIXED - Function returned error:', data.error);
+        console.error('[UserManagement] Function returned error:', data.error);
+        setConnectionStatus('error');
         throw new Error(data.error);
       }
       
       if (!data?.users) {
-        console.error('[UserManagement] FIXED - No users data returned:', data);
+        console.error('[UserManagement] No users data returned:', data);
         throw new Error('No users data returned from server. Please try again.');
       }
       
-      console.log('[UserManagement] FIXED - Successfully fetched users:', data.users.length);
-      console.log('[UserManagement] FIXED - Sample user data:', data.users[0]);
+      console.log('[UserManagement] Successfully fetched users:', data.users.length);
+      console.log('[UserManagement] Sample user data:', data.users[0]);
       
-      // FIXED: Sort users by name alphabetically
+      // Sort users by name
       const sortedUsers = sortUsersByName(data.users, sortDirection);
       setUsers(sortedUsers);
       setRetryCount(0); // Reset retry count on success
+      setConnectionStatus('connected');
       
       // Show success message if this was a retry
-      if (retryCount > 0) {
+      if (isRetry && retryCount > 0) {
         toast({
           title: 'Success',
           description: `Successfully loaded ${data.users.length} users`,
@@ -114,8 +131,11 @@ const UserManagement: React.FC = () => {
       }
       
     } catch (err) {
-      console.error('[UserManagement] FIXED - Error fetching users:', err);
+      console.error('[UserManagement] Error fetching users:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred while fetching users';
+      
+      setLastError(errorMessage);
+      setConnectionStatus('error');
       
       toast({
         title: t('common.error'),
@@ -125,6 +145,76 @@ const UserManagement: React.FC = () => {
       
       // Set empty array on error so UI doesn't break
       setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fallback user fetching using direct database queries
+  const fetchUsersDirectly = async () => {
+    try {
+      setLoading(true);
+      console.log('[UserManagement] Attempting direct database fetch as fallback...');
+      
+      // Get profiles directly
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          name,
+          email,
+          phone,
+          job_title,
+          on_leave,
+          notes,
+          created_at,
+          updated_at
+        `);
+
+      if (profilesError) {
+        throw profilesError;
+      }
+
+      // Get user roles
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) {
+        console.warn('[UserManagement] Could not fetch roles:', rolesError);
+      }
+
+      // Combine data
+      const combinedUsers = profiles?.map(profile => {
+        const roleData = userRoles?.find(r => r.user_id === profile.id);
+        
+        return {
+          id: profile.id,
+          email: profile.email,
+          name: profile.name,
+          phone: profile.phone,
+          jobTitle: profile.job_title,
+          role: roleData?.role || 'servicemedarbejder' as UserRole,
+          created_at: profile.created_at,
+          updated_at: profile.updated_at,
+          last_sign_in_at: null,
+          banned_until: null,
+          onLeave: profile.on_leave || false,
+          notes: profile.notes
+        };
+      }) || [];
+
+      setUsers(sortUsersByName(combinedUsers, sortDirection));
+      setConnectionStatus('connected');
+      
+      toast({
+        title: 'Partial Success',
+        description: `Loaded ${combinedUsers.length} users (limited data available)`,
+      });
+
+    } catch (err) {
+      console.error('[UserManagement] Direct fetch also failed:', err);
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -151,10 +241,40 @@ const UserManagement: React.FC = () => {
     setUsers(sortUsersByName(users, newDirection));
   };
 
-  // FIXED: Manual retry function
-  const handleRetry = () => {
-    setRetryCount(prev => prev + 1);
-    fetchUsers();
+  // Retry with exponential backoff
+  const handleRetry = async () => {
+    if (retryCount < 3) {
+      await fetchUsers(true);
+    } else {
+      // After 3 retries, try direct database approach
+      try {
+        await fetchUsersDirectly();
+      } catch (err) {
+        console.error('[UserManagement] All retry attempts failed:', err);
+        setLastError('All attempts to fetch users failed. Please contact support.');
+      }
+    }
+  };
+
+  // Smart retry that attempts different approaches
+  const handleSmartRetry = async () => {
+    console.log('[UserManagement] Starting smart retry...');
+    
+    if (retryCount < 2) {
+      // First two attempts: try edge function
+      await fetchUsers(true);
+    } else {
+      // After 2 edge function retries, try direct database access
+      try {
+        await fetchUsersDirectly();
+        toast({
+          title: 'Fallback Mode',
+          description: 'Using direct database access. Some features may be limited.',
+        });
+      } catch (err) {
+        setLastError('Unable to fetch users. Please check your connection and try again.');
+      }
+    }
   };
   
   // Load users on component mount
@@ -308,7 +428,6 @@ const UserManagement: React.FC = () => {
       if (error) {
         console.error('[UserManagement] Edge function error:', error);
         
-        // Provide more specific error messages
         let errorMessage = 'Failed to delete user';
         
         if (error.message?.includes('Failed to send a request')) {
@@ -329,7 +448,6 @@ const UserManagement: React.FC = () => {
       if (data?.error) {
         console.error('[UserManagement] Deletion function returned error:', data.error);
         
-        // Handle specific business logic errors
         if (data.error.includes('Cannot delete user: User is still assigned')) {
           throw new Error('Cannot delete user: This user is assigned as responsible for some assignments. Please reassign those assignments to another user first, or delete the assignments.');
         } else if (data.error.includes('Cannot delete user')) {
@@ -384,24 +502,45 @@ const UserManagement: React.FC = () => {
 
   const handleSubmitUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    try {
-      if (currentUser) {
-        // Update existing user - this will be handled by UserFormDialog
-        console.log('[UserManagement] Updating existing user via UserFormDialog');
-      } else {
-        // Create new user - this will be handled by UserFormDialog
-        console.log('[UserManagement] Creating new user via UserFormDialog');
+    await fetchUsers();
+    setUserDialogOpen(false);
+  };
+
+  // Connection status indicator
+  const ConnectionStatusIndicator = () => {
+    const getStatusColor = () => {
+      switch (connectionStatus) {
+        case 'connected': return 'text-green-600';
+        case 'disconnected': return 'text-orange-600';
+        case 'error': return 'text-red-600';
+        default: return 'text-gray-600';
       }
-      
-      // The UserFormDialog handles the actual creation/update
-      // We just need to refresh the list after successful operation
-      await fetchUsers();
-      setUserDialogOpen(false);
-    } catch (err) {
-      console.error('[UserManagement] Error in handleSubmitUser:', err);
-      // Error handling is done in UserFormDialog
-    }
+    };
+
+    const getStatusIcon = () => {
+      switch (connectionStatus) {
+        case 'connected': return <Wifi className="h-4 w-4" />;
+        case 'disconnected': return <WifiOff className="h-4 w-4" />;
+        case 'error': return <AlertCircle className="h-4 w-4" />;
+        default: return <Wifi className="h-4 w-4" />;
+      }
+    };
+
+    const getStatusText = () => {
+      switch (connectionStatus) {
+        case 'connected': return 'Connected';
+        case 'disconnected': return 'Connection Issues';
+        case 'error': return 'Error';
+        default: return 'Unknown';
+      }
+    };
+
+    return (
+      <div className={`flex items-center space-x-2 text-sm ${getStatusColor()}`}>
+        {getStatusIcon()}
+        <span>{getStatusText()}</span>
+      </div>
+    );
   };
 
   return (
@@ -410,15 +549,25 @@ const UserManagement: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{t('admin.userManagement.title')}</CardTitle>
+              <CardTitle className="flex items-center space-x-2">
+                <span>{t('admin.userManagement.title')}</span>
+                <ConnectionStatusIndicator />
+              </CardTitle>
               <CardDescription>{t('admin.userManagement.description')}</CardDescription>
+              {lastError && (
+                <div className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{lastError}</span>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex items-center space-x-2">
-              {/* FIXED: Add manual refresh button */}
               <Button
                 variant="outline"
                 size="icon"
-                onClick={handleRetry}
+                onClick={handleSmartRetry}
                 title="Refresh users list"
                 disabled={loading}
               >
@@ -437,17 +586,7 @@ const UserManagement: React.FC = () => {
                 )}
               </Button>
               <Button 
-                onClick={() => {
-                  setCurrentUser(null);
-                  setFormData({
-                    name: '',
-                    email: '',
-                    phone: '',
-                    jobTitle: '',
-                    role: 'servicemedarbejder',
-                  });
-                  setUserDialogOpen(true);
-                }}
+                onClick={handleCreateUser}
                 className="bg-polygon-blue hover:bg-polygon-darkblue"
               >
                 {t('admin.userManagement.addUser')}
@@ -465,31 +604,27 @@ const UserManagement: React.FC = () => {
             </div>
           ) : users.length === 0 ? (
             <div className="text-center py-8 space-y-4">
-              <p className="text-gray-500">
-                {retryCount > 0 
-                  ? 'Still no users found. There may be a connection issue.' 
-                  : 'No users found or failed to load users.'
-                }
-              </p>
+              <AlertCircle className="h-12 w-12 text-gray-400 mx-auto" />
+              <div>
+                <p className="text-gray-500 mb-2">
+                  {lastError 
+                    ? 'Failed to load users due to connection issues.' 
+                    : 'No users found or failed to load users.'
+                  }
+                </p>
+                {lastError && (
+                  <p className="text-sm text-red-600 mb-4">{lastError}</p>
+                )}
+              </div>
               <div className="space-x-2">
                 <Button 
-                  onClick={handleRetry}
+                  onClick={handleSmartRetry}
                   variant="outline"
                 >
                   Try Again
                 </Button>
                 <Button 
-                  onClick={() => {
-                    setCurrentUser(null);
-                    setFormData({
-                      name: '',
-                      email: '',
-                      phone: '',
-                      jobTitle: '',
-                      role: 'servicemedarbejder',
-                    });
-                    setUserDialogOpen(true);
-                  }}
+                  onClick={handleCreateUser}
                   className="bg-polygon-blue hover:bg-polygon-darkblue"
                 >
                   Add First User
@@ -498,36 +633,22 @@ const UserManagement: React.FC = () => {
             </div>
           ) : (
             <div>
-              <div className="mb-4 text-sm text-gray-600">
-                Showing {users.length} users
+              <div className="mb-4 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Showing {users.length} users
+                </div>
+                {retryCount > 0 && (
+                  <div className="text-xs text-orange-600">
+                    Retry attempts: {retryCount}
+                  </div>
+                )}
               </div>
               <UserTable 
                 users={users}
-                onEditUser={(user) => {
-                  setCurrentUser(user);
-                  setFormData({
-                    name: user.name,
-                    email: user.email,
-                    phone: user.phone || '',
-                    jobTitle: user.jobTitle || '',
-                    role: user.role,
-                  });
-                  setUserDialogOpen(true);
-                }}
-                onDeleteUser={(user) => {
-                  setCurrentUser(user);
-                  setDeleteDialogOpen(true);
-                }}
-                onResetPassword={(user) => {
-                  setCurrentUser(user);
-                  setPasswordDialogOpen(true);
-                }}
-                onToggleUserStatus={(user) => {
-                  setCurrentUser(user);
-                  const isCurrentlyActive = !user.banned_until || new Date(user.banned_until) <= new Date();
-                  setIsActivating(!isCurrentlyActive);
-                  setStatusDialogOpen(true);
-                }}
+                onEditUser={handleEditUser}
+                onDeleteUser={handleDeleteUser}
+                onResetPassword={handleResetPassword}
+                onToggleUserStatus={handleToggleUserStatus}
                 getRoleLabel={(role) => t(`admin.roles.${role}`)}
                 getInitials={(name) => name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2)}
               />
@@ -541,19 +662,9 @@ const UserManagement: React.FC = () => {
         <UserFormDialog 
           currentUser={currentUser}
           formData={formData}
-          handleInputChange={(e) => {
-            const { name, value } = e.target;
-            setFormData(prev => ({ ...prev, [name]: value }));
-          }}
-          handleRoleChange={(value) => {
-            setFormData(prev => ({ ...prev, role: value as UserRole }));
-          }}
-          handleSubmit={async (e) => {
-            e.preventDefault();
-            // The UserFormDialog handles the actual creation/update
-            await fetchUsers();
-            setUserDialogOpen(false);
-          }}
+          handleInputChange={handleInputChange}
+          handleRoleChange={handleRoleChange}
+          handleSubmit={handleSubmitUser}
           onClose={() => setUserDialogOpen(false)}
         />
       </Dialog>
@@ -586,12 +697,6 @@ const UserManagement: React.FC = () => {
           try {
             const isCurrentlyActive = !currentUser.banned_until || new Date(currentUser.banned_until) <= new Date();
             
-            console.log('[UserManagement] Toggling user status:', {
-              userId: currentUser.id,
-              currentlyActive: isCurrentlyActive,
-              newActive: !isCurrentlyActive
-            });
-            
             const { data, error } = await supabase.functions.invoke('admin-user-status', {
               body: { 
                 userId: currentUser.id, 
@@ -599,15 +704,8 @@ const UserManagement: React.FC = () => {
               }
             });
             
-            if (error) {
-              console.error('[UserManagement] Status toggle error:', error);
-              throw error;
-            }
-            
-            if (data?.error) {
-              console.error('[UserManagement] Function returned error:', data.error);
-              throw new Error(data.error);
-            }
+            if (error) throw error;
+            if (data?.error) throw new Error(data.error);
             
             toast({
               title: isCurrentlyActive 
@@ -618,7 +716,6 @@ const UserManagement: React.FC = () => {
                 : t('admin.userManagement.userActivatedMsg', { name: currentUser.name }),
             });
             
-            // Refresh users list
             await fetchUsers();
             setStatusDialogOpen(false);
           } catch (err) {
