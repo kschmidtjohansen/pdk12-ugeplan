@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -44,7 +45,9 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           published,
           created_at,
           updated_at,
-          responsible_user_id
+          responsible_user_id,
+          car_id,
+          car_ids
         `);
 
       // FIXED: Apply filtering based on context and user role
@@ -132,6 +135,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         } else {
           employeesData = assignmentEmployees || [];
           console.log('[useOptimizedAssignments] FIXED - Employee relationships fetched:', employeesData.length);
+          console.log('[useOptimizedAssignments] FIXED - Sample employee data:', employeesData.slice(0, 3));
         }
       }
 
@@ -157,22 +161,81 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         }
       }
 
-      // FIXED: Step 4 - Transform to Assignment format with proper employee name extraction
+      // FIXED: Step 4 - Get car data efficiently
+      const allCarIds = new Set<string>();
+      assignmentsData.forEach(assignment => {
+        if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
+          assignment.car_ids.forEach((carId: string) => allCarIds.add(carId));
+        }
+        if (assignment.car_id) {
+          allCarIds.add(assignment.car_id);
+        }
+      });
+
+      let carsData: any[] = [];
+      if (allCarIds.size > 0) {
+        console.log('[useOptimizedAssignments] FIXED - Fetching car data for:', Array.from(allCarIds));
+        
+        const { data: cars, error: carsError } = await supabase
+          .from('cars')
+          .select('id, name, car_number')
+          .in('id', Array.from(allCarIds));
+        
+        if (carsError) {
+          console.error('[useOptimizedAssignments] FIXED - Cars fetch error:', carsError);
+        } else {
+          carsData = cars || [];
+          console.log('[useOptimizedAssignments] FIXED - Cars fetched:', carsData.length);
+        }
+      }
+
+      // FIXED: Step 5 - Transform to Assignment format with proper employee and car mapping
       const finalAssignments: Assignment[] = assignmentsData.map(assignment => {
-        // FIXED: Get ALL employees for this assignment (not just current user)
+        // FIXED: Get ALL employees for this assignment with detailed logging
         const assignmentEmployees = employeesData
-          .filter(emp => emp.assignment_id === assignment.id)
+          .filter(emp => emp.assignment_id === assignment.id);
+        
+        console.log(`[useOptimizedAssignments] FIXED - Assignment ${assignment.id} raw employee data:`, assignmentEmployees);
+        
+        const employeeNames = assignmentEmployees
           .map(emp => {
-            // FIXED: Handle nested profile data correctly
+            // FIXED: Handle nested profile data correctly with detailed logging
+            console.log(`[useOptimizedAssignments] FIXED - Processing employee:`, emp);
             if (emp.profiles && emp.profiles.name) {
+              console.log(`[useOptimizedAssignments] FIXED - Found employee name:`, emp.profiles.name);
               return emp.profiles.name;
             }
-            return 'Unknown Employee';
+            console.log(`[useOptimizedAssignments] FIXED - No profile name found for employee:`, emp);
+            return null;
           })
-          .filter(name => name !== 'Unknown Employee'); // Filter out unknowns
+          .filter(name => name !== null) as string[];
+
+        console.log(`[useOptimizedAssignments] FIXED - Assignment ${assignment.id} final employee names:`, employeeNames);
 
         // FIXED: Get responsible user properly
         const responsibleUser = responsibleUsersData.find(ru => ru.id === assignment.responsible_user_id);
+
+        // FIXED: Handle car data properly - both legacy and new formats
+        let carData = null;
+        let carsArray: string[] = [];
+        
+        if (assignment.car_ids && Array.isArray(assignment.car_ids) && assignment.car_ids.length > 0) {
+          // New format: multiple cars
+          carsArray = assignment.car_ids;
+          const firstCar = carsData.find(c => c.id === assignment.car_ids[0]);
+          if (firstCar) {
+            carData = { id: firstCar.id, name: firstCar.name };
+          }
+          console.log(`[useOptimizedAssignments] FIXED - Assignment ${assignment.id} multiple cars:`, carsArray);
+        } else if (assignment.car_id) {
+          // Legacy format: single car
+          carsArray = [assignment.car_id];
+          const car = carsData.find(c => c.id === assignment.car_id);
+          if (car) {
+            carData = { id: car.id, name: car.name };
+          }
+          console.log(`[useOptimizedAssignments] FIXED - Assignment ${assignment.id} single car:`, assignment.car_id);
+        }
 
         const transformedAssignment = {
           id: assignment.id,
@@ -182,9 +245,9 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           fromTime: assignment.from_time,
           toTime: assignment.to_time,
           location: assignment.location,
-          car: null, // Will be populated separately if needed
-          cars: [],
-          employees: assignmentEmployees, // FIXED: All employee names, not just current user
+          car: carData,
+          cars: carsArray,
+          employees: employeeNames, // FIXED: Now properly mapped employee names
           published: assignment.published || false,
           responsibleUser: responsibleUser ? {
             id: responsibleUser.id,
@@ -200,7 +263,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       
       // FIXED: Log assignment details for debugging
       finalAssignments.forEach(assignment => {
-        console.log(`[useOptimizedAssignments] FIXED - Assignment: ${assignment.title} - Published: ${assignment.published} - Employees: [${assignment.employees.join(', ')}]`);
+        console.log(`[useOptimizedAssignments] FIXED - Assignment: ${assignment.title} - Published: ${assignment.published} - Employees: [${assignment.employees.join(', ')}] - Cars: [${assignment.cars.join(', ')}]`);
       });
       
       setAssignments(finalAssignments);
@@ -237,6 +300,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           from_time: assignmentData.fromTime,
           to_time: assignmentData.toTime,
           published: assignmentData.published || false,
+          car_ids: assignmentData.cars || [],
         })
         .select('id')
         .single();
@@ -294,6 +358,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           from_time: assignmentData.fromTime,
           to_time: assignmentData.toTime,
           published: false, // Always unpublish when editing
+          car_ids: assignmentData.cars || [],
         })
         .eq('id', id);
 
