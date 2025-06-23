@@ -14,47 +14,37 @@ interface AssignmentDetailsProps {
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars }) => {
   const { t } = useTranslation();
 
-  // FIXED: Get car names for display - now properly using the fetched car data
+  // OPTIMIZED: Simplified car name extraction with proper foreign key support
   const getCarNames = (assignment: Assignment): string[] => {
     const carNames: string[] = [];
     
-    console.log('[AssignmentDetails] FIXED - Getting car names for assignment:', assignment.id);
-    console.log('[AssignmentDetails] FIXED - Assignment cars array:', assignment.cars);
-    console.log('[AssignmentDetails] FIXED - Assignment car (legacy):', assignment.car);
-    console.log('[AssignmentDetails] FIXED - Available cars prop:', cars);
+    console.log('[AssignmentDetails] OPTIMIZED - Getting car names for assignment:', assignment.id);
+    console.log('[AssignmentDetails] OPTIMIZED - Assignment cars array:', assignment.cars);
+    console.log('[AssignmentDetails] OPTIMIZED - Assignment car (legacy):', assignment.car);
     
     if (assignment.cars && Array.isArray(assignment.cars) && assignment.cars.length > 0) {
       // New format: multiple cars array
       assignment.cars.forEach(carId => {
-        console.log('[AssignmentDetails] FIXED - Looking for car with ID:', carId);
         const car = cars.find(c => c.id === carId);
         if (car) {
-          console.log('[AssignmentDetails] FIXED - Found car:', car.name);
           carNames.push(car.name);
+        } else if (assignment.car && assignment.car.id === carId) {
+          carNames.push(assignment.car.name);
         } else {
-          console.log('[AssignmentDetails] FIXED - Car not found in props, checking assignment car object');
-          // If the assignment has car data directly (from the optimized fetch)
-          if (assignment.car && typeof assignment.car === 'object' && assignment.car.id === carId) {
-            carNames.push(assignment.car.name);
-          } else {
-            console.log('[AssignmentDetails] FIXED - Car not found, using ID as fallback:', carId);
-            carNames.push(carId); // Fallback to ID if car not found
-          }
+          carNames.push(carId); // Fallback to ID
         }
       });
     } else if (assignment.car) {
       // Old format: single car
       if (typeof assignment.car === 'string') {
-        console.log('[AssignmentDetails] FIXED - Legacy car ID:', assignment.car);
         const car = cars.find(c => c.id === assignment.car);
         carNames.push(car ? car.name : assignment.car);
       } else if (typeof assignment.car === 'object' && assignment.car.name) {
-        console.log('[AssignmentDetails] FIXED - Legacy car object:', assignment.car.name);
         carNames.push(assignment.car.name);
       }
     }
     
-    console.log('[AssignmentDetails] FIXED - Final car names:', carNames);
+    console.log('[AssignmentDetails] OPTIMIZED - Final car names:', carNames);
     return carNames;
   };
 
@@ -105,7 +95,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
           </div>
         )}
 
-        {/* Employees - styled to match dashboard with improved display */}
+        {/* OPTIMIZED: Employees - now properly displayed with foreign key joins */}
         {assignment.employees && assignment.employees.length > 0 && (
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
