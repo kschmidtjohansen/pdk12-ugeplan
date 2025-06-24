@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -12,20 +11,25 @@ import {
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 
 export const usePlannerPage = () => {
   // Get current week info (week number and year)
   const currentWeekInfo = getCurrentWeekInfo();
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   // State to track the selected week number and year
   const [selectedWeek, setSelectedWeek] = useState(currentWeekInfo.week);
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // FIXED: Use 'all' filter for planner - this will show all published assignments for servicemedarbejder
-  // and all assignments (published + unpublished) for admin/skadeleder
+  // FINAL FIX: Use proper filter for planner context based on user role
+  // For servicemedarbejder: show ALL published assignments
+  // For admin/skadeleder: show all assignments (published + unpublished)
+  const plannerFilter = user?.role === 'servicemedarbejder' ? 'published' : 'all';
+  
   const { 
     assignments, 
     loading,
@@ -36,15 +40,21 @@ export const usePlannerPage = () => {
     deleteAssignment,
     publishAssignment,
     publishAssignmentsByDate
-  } = useOptimizedAssignments('all');
+  } = useOptimizedAssignments(plannerFilter);
 
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
 
-  console.log(`[usePlannerPage] FIXED - Planner received ${assignments.length} assignments with proper filtering applied`);
-  assignments.forEach(assignment => {
-    console.log(`[usePlannerPage] Planner assignment: ${assignment.id} - ${assignment.title} - Employees: [${assignment.employees?.join(', ')}] - Published: ${assignment.published}`);
-  });
+  console.log(`[usePlannerPage] FINAL FIX - Planner for ${user?.role} using filter '${plannerFilter}'`);
+  console.log(`[usePlannerPage] FINAL FIX - Received ${assignments.length} assignments for planner`);
+  
+  // FINAL FIX: Log assignment details to verify servicemedarbejder sees ALL published assignments
+  if (user?.role === 'servicemedarbejder') {
+    console.log(`[usePlannerPage] FINAL FIX - Servicemedarbejder sees ${assignments.length} published assignments in planner:`);
+    assignments.slice(0, 5).forEach(assignment => {
+      console.log(`  - ${assignment.title} (${assignment.id}) - Employees: [${assignment.employees?.join(', ')}] - Published: ${assignment.published}`);
+    });
+  }
 
   // Always get a fresh today's date
   const getFreshToday = useCallback(() => {
@@ -75,13 +85,10 @@ export const usePlannerPage = () => {
   // Get the date range for the selected week with ISO week calculation
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // FIXED: Filter assignments by week - now properly filtered by useOptimizedAssignments
+  // FINAL FIX: Filter assignments by week - now shows ALL published for servicemedarbejder
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
 
-  console.log(`[usePlannerPage] FIXED - Week ${selectedWeek} showing ${weekAssignments.length} assignments after filtering`);
-  weekAssignments.forEach(assignment => {
-    console.log(`[usePlannerPage] Week assignment: ${assignment.id} - ${assignment.title} - Employees: [${assignment.employees?.join(', ')}] - Published: ${assignment.published}`);
-  });
+  console.log(`[usePlannerPage] FINAL FIX - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
 
   // Navigate to previous week
   const handlePreviousWeek = useCallback(() => {

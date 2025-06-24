@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
@@ -23,8 +24,8 @@ const DashboardPage: React.FC = () => {
   // Enhanced authentication monitoring
   const { authStatus } = useAuthenticationMonitor();
   
-  // COMPREHENSIVE FIX: Separate queries for different contexts
-  // For metrics: show all published assignments 
+  // CRITICAL FIX: Use separate queries for different dashboard contexts
+  // For metrics: show all published assignments for system-wide overview
   const { assignments: allPublishedAssignments, loading: allAssignmentsLoading, error: allAssignmentsError } = useOptimizedAssignments('published');
   
   // For user's weekly view: show user's assignments with ALL colleague names preserved
@@ -45,15 +46,16 @@ const DashboardPage: React.FC = () => {
   // Show connection status if there are issues
   const showConnectionIssue = !authStatus.sessionValid || authStatus.connectionStatus === 'disconnected';
 
-  console.log(`[DashboardPage] COMPREHENSIVE FIX - Processing assignments for user: ${user?.name} (${user?.role})`);
-  console.log(`[DashboardPage] COMPREHENSIVE FIX - All published assignments for metrics: ${allPublishedAssignments.length}`);
-  console.log(`[DashboardPage] COMPREHENSIVE FIX - User assignments for weekly view: ${userAssignments.length}`);
+  console.log(`[DashboardPage] FINAL FIX - Dashboard for user: ${user?.name} (${user?.role})`);
+  console.log(`[DashboardPage] FINAL FIX - All published assignments for metrics: ${allPublishedAssignments.length}`);
+  console.log(`[DashboardPage] FINAL FIX - User assignments for weekly view: ${userAssignments.length}`);
   
-  // COMPREHENSIVE FIX: Log assignment details with ALL employee names
+  // FINAL FIX: Log detailed assignment info to verify ALL employee names are preserved
   userAssignments.forEach(assignment => {
-    console.log(`[DashboardPage] COMPREHENSIVE FIX - User assignment ${assignment.id} (${assignment.title}) shows ALL colleagues:`, {
+    console.log(`[DashboardPage] FINAL FIX - Assignment "${assignment.title}" (${assignment.id}) shows ALL employees:`, {
       employees: assignment.employees,
-      responsibleUser: assignment.responsibleUser,
+      employeeCount: assignment.employees.length,
+      date: assignment.date,
       published: assignment.published
     });
   });
@@ -101,7 +103,7 @@ const DashboardPage: React.FC = () => {
     setSelectedYear(year);
   };
 
-  // COMPREHENSIVE FIX: Use user assignments for weekly view with ALL colleague info preserved
+  // FINAL FIX: Filter user assignments for weekly view, preserving ALL employee information
   const myWeekAssignments = useMemo(() => {
     const filtered = AssignmentFilterService.filterByDateRange(
       userAssignments, // User's assignments with ALL colleague info preserved
@@ -109,9 +111,9 @@ const DashboardPage: React.FC = () => {
       endDateISO
     );
     
-    console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignments for ${user?.name}: ${filtered.length} assignments`);
+    console.log(`[DashboardPage] FINAL FIX - Weekly assignments for ${user?.name}: ${filtered.length} assignments`);
     filtered.forEach(assignment => {
-      console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignment ${assignment.title} shows ALL colleagues: [${assignment.employees?.join(', ')}]`);
+      console.log(`[DashboardPage] FINAL FIX - Weekly assignment "${assignment.title}" preserves ALL colleagues: [${assignment.employees?.join(', ')}]`);
     });
     
     return filtered;
@@ -204,12 +206,12 @@ const DashboardPage: React.FC = () => {
         {/* Quick Access Grid */}
         <QuickAccessGrid userRole={user?.role} />
 
-        {/* Dashboard Metrics - Show all published assignments for system-wide metrics */}
+        {/* FINAL FIX: Dashboard Metrics - Use all published assignments for system-wide metrics */}
         <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <DashboardMetrics selectedDate={format(new Date(), 'yyyy-MM-dd')} assignments={allPublishedAssignments} />
         </div>
 
-        {/* COMPREHENSIVE FIX: Weekly Assignments - Pass user assignments with ALL colleague info preserved */}
+        {/* FINAL FIX: Weekly Assignments - Pass user assignments with ALL colleague info preserved */}
         <div style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
           <WeeklyAssignments
             assignments={userAssignments}
