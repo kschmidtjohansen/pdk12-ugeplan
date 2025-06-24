@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -28,7 +29,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setLoading(true);
       setError(null);
       
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Starting fetch:', { filter, userName: user.name, userRole: user.role });
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX v2 - Starting fetch:', { filter, userName: user.name, userRole: user.role });
 
       // Use the fixed OptimizedAssignmentService
       const optimizedData = await OptimizedAssignmentService.fetchAssignmentsWithFilter(
@@ -37,14 +38,14 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         user.role
       );
 
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Received data:', optimizedData.length, 'assignments');
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX v2 - Received data:', optimizedData.length, 'assignments');
 
       // Transform OptimizedAssignmentData to Assignment format - PRESERVE ALL EMPLOYEE NAMES
       const finalAssignments: Assignment[] = optimizedData.map(assignment => {
-        // CRITICAL FIX: Extract ALL employee names without any filtering
+        // CRITICAL FIX v2: Extract ALL employee names without any filtering
         const employeeNames = assignment.employees.map(emp => emp.name);
         
-        console.log(`[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment ${assignment.title} employees:`, employeeNames);
+        console.log(`[useOptimizedAssignments] COMPREHENSIVE FIX v2 - Assignment "${assignment.title}" employees:`, employeeNames);
 
         return {
           id: assignment.id,
@@ -65,12 +66,13 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         };
       });
       
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Final transformation complete:', {
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX v2 - Final transformation complete:', {
         userRole: user.role,
         totalAssignments: finalAssignments.length,
-        sampleAssignments: finalAssignments.slice(0, 2).map(a => ({ 
+        sampleAssignments: finalAssignments.slice(0, 3).map(a => ({ 
           title: a.title, 
           employees: a.employees,
+          employeeCount: a.employees.length,
           published: a.published 
         }))
       });
@@ -78,7 +80,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setAssignments(finalAssignments);
       
     } catch (err) {
-      console.error('[useOptimizedAssignments] COMPREHENSIVE FIX - Error:', err);
+      console.error('[useOptimizedAssignments] COMPREHENSIVE FIX v2 - Error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
@@ -305,7 +307,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     fetchAssignments();
 
     const channel = supabase
-      .channel('assignments_comprehensive_fix_v3')
+      .channel('assignments_comprehensive_fix_v2')
       .on(
         'postgres_changes',
         {
@@ -314,7 +316,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           table: 'assignments'
         },
         () => {
-          console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment change detected, refetching...');
+          console.log('[useOptimizedAssignments] COMPREHENSIVE FIX v2 - Assignment change detected, refetching...');
           fetchAssignments();
         }
       )
@@ -326,7 +328,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           table: 'assignments_employees'
         },
         () => {
-          console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment-employee relationship change detected, refetching...');
+          console.log('[useOptimizedAssignments] COMPREHENSIVE FIX v2 - Assignment-employee relationship change detected, refetching...');
           fetchAssignments();
         }
       )
@@ -348,10 +350,199 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     error,
     operationStates,
     refetch: fetchAssignments,
-    createAssignment,
-    updateAssignment,
-    deleteAssignment,
-    publishAssignment,
-    publishAssignmentsByDate,
+    createAssignment: useCallback(async (assignmentData: Partial<Assignment>) => {
+      try {
+        console.log('[useOptimizedAssignments] Creating assignment:', assignmentData);
+        
+        const { data: newAssignment, error } = await supabase
+          .from('assignments')
+          .insert({
+            title: assignmentData.title,
+            description: assignmentData.description,
+            location: assignmentData.location,
+            assignment_date: assignmentData.date,
+            from_time: assignmentData.fromTime,
+            to_time: assignmentData.toTime,
+            published: assignmentData.published || false,
+            car_ids: assignmentData.cars || [],
+          })
+          .select('id')
+          .single();
+
+        if (error) throw error;
+
+        // Handle employees
+        if (assignmentData.employees && assignmentData.employees.length > 0 && newAssignment?.id) {
+          for (const employeeName of assignmentData.employees) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('name', employeeName.trim())
+              .single();
+              
+            if (profile?.id) {
+              await supabase
+                .from('assignments_employees')
+                .insert({
+                  assignment_id: newAssignment.id,
+                  user_id: profile.id
+                });
+            }
+          }
+        }
+        
+        toast({
+          title: t('planner.assignmentCreated'),
+          description: t('planner.assignmentCreatedMsg', { title: assignmentData.title }),
+        });
+        
+        fetchAssignments();
+      } catch (error: any) {
+        console.error('Error creating assignment:', error);
+        toast({
+          title: t('common.error'),
+          description: t('planner.errorCreatingAssignment'),
+          variant: "destructive",
+        });
+      }
+    }, [fetchAssignments, toast, t]),
+    updateAssignment: useCallback(async (id: string, assignmentData: Partial<Assignment>) => {
+      try {
+        setOperationStates(prev => ({ ...prev, [id]: 'updating' }));
+        
+        const { error } = await supabase
+          .from('assignments')
+          .update({
+            title: assignmentData.title,
+            description: assignmentData.description,
+            location: assignmentData.location,
+            assignment_date: assignmentData.date,
+            from_time: assignmentData.fromTime,
+            to_time: assignmentData.toTime,
+            published: false,
+            car_ids: assignmentData.cars || [],
+          })
+          .eq('id', id);
+
+        if (error) throw error;
+
+        // Update employees
+        await supabase.from('assignments_employees').delete().eq('assignment_id', id);
+        
+        if (assignmentData.employees && assignmentData.employees.length > 0) {
+          for (const employeeName of assignmentData.employees) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('name', employeeName)
+              .single();
+              
+            if (profile?.id) {
+              await supabase
+                .from('assignments_employees')
+                .insert({
+                  assignment_id: id,
+                  user_id: profile.id
+                });
+            }
+          }
+        }
+        
+        toast({
+          title: t('planner.assignmentUpdated'),
+          description: t('planner.assignmentUpdatedMsg', { title: assignmentData.title }),
+        });
+        
+        fetchAssignments();
+      } catch (error: any) {
+        console.error('Error updating assignment:', error);
+        toast({
+          title: t('common.error'),
+          description: t('planner.errorUpdatingAssignment'),
+          variant: "destructive",
+        });
+      } finally {
+        setOperationStates(prev => ({ ...prev, [id]: null }));
+      }
+    }, [fetchAssignments, toast, t]),
+    deleteAssignment: useCallback(async (id: string) => {
+      try {
+        setOperationStates(prev => ({ ...prev, [id]: 'deleting' }));
+        
+        await supabase.from('assignments_employees').delete().eq('assignment_id', id);
+        const { error } = await supabase.from('assignments').delete().eq('id', id);
+
+        if (error) throw error;
+        
+        toast({
+          title: t('planner.assignmentDeleted'),
+          description: t('planner.assignmentDeletedMsg'),
+        });
+        
+        fetchAssignments();
+      } catch (error: any) {
+        console.error('Error deleting assignment:', error);
+        toast({
+          title: t('common.error'),
+          description: t('planner.errorDeletingAssignment'),
+          variant: "destructive",
+        });
+      } finally {
+        setOperationStates(prev => ({ ...prev, [id]: null }));
+      }
+    }, [fetchAssignments, toast, t]),
+    publishAssignment: useCallback(async (id: string) => {
+      try {
+        setOperationStates(prev => ({ ...prev, [id]: 'publishing' }));
+        
+        const { error } = await supabase
+          .from('assignments')
+          .update({ published: true })
+          .eq('id', id);
+
+        if (error) throw error;
+        
+        toast({
+          title: t('planner.assignmentPublished'),
+          description: t('planner.assignmentPublishedMsg'),
+        });
+        
+        fetchAssignments();
+      } catch (error: any) {
+        console.error('Error publishing assignment:', error);
+        toast({
+          title: t('common.error'),
+          description: t('planner.errorPublishingAssignment'),
+          variant: "destructive",
+        });
+      } finally {
+        setOperationStates(prev => ({ ...prev, [id]: null }));
+      }
+    }, [fetchAssignments, toast, t]),
+    publishAssignmentsByDate: useCallback(async (date: string) => {
+      try {
+        const { error } = await supabase
+          .from('assignments')
+          .update({ published: true })
+          .eq('assignment_date', date)
+          .eq('published', false);
+
+        if (error) throw error;
+        
+        toast({
+          title: t('planner.dayPublished'),
+          description: t('planner.dayPublishedMsg'),
+        });
+        
+        fetchAssignments();
+      } catch (error: any) {
+        console.error('Error publishing day:', error);
+        toast({
+          title: t('common.error'),
+          description: t('planner.errorPublishingDay'),
+          variant: "destructive",
+        });
+      }
+    }, [fetchAssignments, toast, t]),
   };
 };
