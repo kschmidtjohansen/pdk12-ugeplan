@@ -25,7 +25,7 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // RESET APPROACH: Proper filter selection based on user role for planner context
+  // COMPREHENSIVE FIX: Proper filter selection for planner context
   const plannerFilter = user?.role === 'servicemedarbejder' ? 'published' : 'all';
   
   const { 
@@ -43,24 +43,24 @@ export const usePlannerPage = () => {
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
 
-  console.log(`[usePlannerPage] RESET APPROACH - Planner for ${user?.role} using filter '${plannerFilter}'`);
-  console.log(`[usePlannerPage] RESET APPROACH - Received ${assignments.length} assignments for planner`);
+  console.log(`[usePlannerPage] COMPREHENSIVE FIX - Planner for ${user?.role} using filter '${plannerFilter}'`);
+  console.log(`[usePlannerPage] COMPREHENSIVE FIX - Received ${assignments.length} assignments for planner`);
   
-  // RESET APPROACH: Comprehensive logging for servicemedarbejder
+  // COMPREHENSIVE FIX: Detailed logging for servicemedarbejder
   if (user?.role === 'servicemedarbejder') {
-    console.log(`[usePlannerPage] RESET APPROACH - Servicemedarbejder sees ${assignments.length} assignments in planner`);
-    console.log(`[usePlannerPage] RESET APPROACH - Looking for assignment 07-012585:`);
+    console.log(`[usePlannerPage] COMPREHENSIVE FIX - Servicemedarbejder sees ${assignments.length} assignments in planner`);
+    console.log(`[usePlannerPage] COMPREHENSIVE FIX - Looking for assignment 07-012585:`);
     const targetAssignment = assignments.find(a => a.id === '07-012585');
     if (targetAssignment) {
-      console.log(`[usePlannerPage] RESET APPROACH - FOUND 07-012585:`, {
+      console.log(`[usePlannerPage] COMPREHENSIVE FIX - FOUND 07-012585:`, {
         id: targetAssignment.id,
         title: targetAssignment.title,
         employees: targetAssignment.employees,
         published: targetAssignment.published
       });
     } else {
-      console.log(`[usePlannerPage] RESET APPROACH - 07-012585 NOT FOUND in ${assignments.length} assignments`);
-      console.log(`[usePlannerPage] RESET APPROACH - Available assignment IDs:`, assignments.map(a => a.id).slice(0, 10));
+      console.log(`[usePlannerPage] COMPREHENSIVE FIX - 07-012585 NOT FOUND in ${assignments.length} assignments`);
+      console.log(`[usePlannerPage] COMPREHENSIVE FIX - Available assignment IDs:`, assignments.map(a => a.id).slice(0, 10));
     }
   }
 
@@ -93,10 +93,10 @@ export const usePlannerPage = () => {
   // Get the date range for the selected week with ISO week calculation
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // RESET APPROACH: Filter assignments by week
+  // COMPREHENSIVE FIX: Filter assignments by week
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
 
-  console.log(`[usePlannerPage] RESET APPROACH - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
+  console.log(`[usePlannerPage] COMPREHENSIVE FIX - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
 
   // Navigate to previous week
   const handlePreviousWeek = useCallback(() => {
