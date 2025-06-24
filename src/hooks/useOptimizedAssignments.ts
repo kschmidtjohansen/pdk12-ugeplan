@@ -28,7 +28,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setLoading(true);
       setError(null);
       
-      console.log('[useOptimizedAssignments] FINAL FIX - Starting fetch:', { filter, userName: user.name, userRole: user.role });
+      console.log('[useOptimizedAssignments] FRESH APPROACH - Starting fetch:', { filter, userName: user.name, userRole: user.role });
 
       // Use the fixed OptimizedAssignmentService
       const optimizedData = await OptimizedAssignmentService.fetchAssignmentsWithFilter(
@@ -37,19 +37,30 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         user.role
       );
 
-      console.log('[useOptimizedAssignments] FINAL FIX - Received data:', optimizedData.length, 'assignments');
+      console.log('[useOptimizedAssignments] FRESH APPROACH - Received data:', optimizedData.length, 'assignments');
 
-      // FINAL FIX: Transform OptimizedAssignmentData to Assignment format - PRESERVE ALL EMPLOYEE NAMES
+      // FRESH APPROACH: Transform OptimizedAssignmentData to Assignment format - PRESERVE ALL EMPLOYEE NAMES
       const finalAssignments: Assignment[] = optimizedData.map(assignment => {
-        // FINAL FIX: Extract ALL employee names without any filtering
+        // FRESH APPROACH: Extract ALL employee names with detailed logging
         const employeeNames = assignment.employees.map(emp => emp.name);
         
-        console.log(`[useOptimizedAssignments] FINAL FIX - Assignment "${assignment.title}":`, {
+        console.log(`[useOptimizedAssignments] FRESH APPROACH - Assignment "${assignment.title}":`, {
           id: assignment.id,
           employees: employeeNames,
           employeeCount: employeeNames.length,
-          published: assignment.published
+          published: assignment.published,
+          rawEmployeeData: assignment.employees
         });
+
+        // Special check for Asbestkursus
+        if (assignment.title.toLowerCase().includes('asbestkursus')) {
+          console.log(`[useOptimizedAssignments] FRESH APPROACH - ASBESTKURSUS FOUND:`, {
+            title: assignment.title,
+            employees: employeeNames,
+            shouldIncludeMarkAndJulie: true,
+            rawData: assignment.employees
+          });
+        }
 
         return {
           id: assignment.id,
@@ -61,7 +72,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           location: assignment.location,
           car: null,
           cars: [],
-          employees: employeeNames, // FINAL FIX: ALL employee names preserved here
+          employees: employeeNames, // FRESH APPROACH: ALL employee names preserved here
           published: assignment.published || false,
           responsibleUser: assignment.responsible_user ? {
             id: assignment.responsible_user.id,
@@ -70,7 +81,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         };
       });
       
-      console.log('[useOptimizedAssignments] FINAL FIX - Final transformation complete:', {
+      console.log('[useOptimizedAssignments] FRESH APPROACH - Final transformation complete:', {
         userRole: user.role,
         totalAssignments: finalAssignments.length,
         filter: filter,
@@ -84,7 +95,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setAssignments(finalAssignments);
       
     } catch (err) {
-      console.error('[useOptimizedAssignments] FINAL FIX - Error:', err);
+      console.error('[useOptimizedAssignments] FRESH APPROACH - Error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
@@ -311,7 +322,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     fetchAssignments();
 
     const channel = supabase
-      .channel('assignments_final_fix')
+      .channel('assignments_fresh_approach')
       .on(
         'postgres_changes',
         {
@@ -320,7 +331,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           table: 'assignments'
         },
         () => {
-          console.log('[useOptimizedAssignments] FINAL FIX - Assignment change detected, refetching...');
+          console.log('[useOptimizedAssignments] FRESH APPROACH - Assignment change detected, refetching...');
           fetchAssignments();
         }
       )
@@ -332,7 +343,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           table: 'assignments_employees'
         },
         () => {
-          console.log('[useOptimizedAssignments] FINAL FIX - Assignment-employee relationship change detected, refetching...');
+          console.log('[useOptimizedAssignments] FRESH APPROACH - Assignment-employee relationship change detected, refetching...');
           fetchAssignments();
         }
       )

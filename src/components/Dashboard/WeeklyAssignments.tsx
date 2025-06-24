@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,15 +58,24 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
     });
   }, [assignments]);
 
-  console.log('[WeeklyAssignments] FINAL FIX - Rendering assignments with ALL employee names:');
+  console.log('[WeeklyAssignments] FRESH APPROACH - Rendering assignments with ALL employee names:');
   sortedAssignments.forEach(assignment => {
     const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
-    console.log(`[WeeklyAssignments] FINAL FIX - Assignment "${assignment.title}":`, {
+    console.log(`[WeeklyAssignments] FRESH APPROACH - Assignment "${assignment.title}":`, {
       id: assignment.id,
       employees: employeeList,
       employeeCount: employeeList.length,
       shouldShowAllNames: true
     });
+    
+    // Special check for Asbestkursus on dashboard
+    if (assignment.title.toLowerCase().includes('asbestkursus')) {
+      console.log(`[WeeklyAssignments] FRESH APPROACH - ASBESTKURSUS ON DASHBOARD:`, {
+        title: assignment.title,
+        employees: employeeList,
+        shouldShowMarkAndJulie: true
+      });
+    }
   });
 
   return (
@@ -124,10 +132,10 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
           ) : (
             <div className="grid gap-3">
               {sortedAssignments.map((assignment, index) => {
-                // FINAL FIX: Ensure employees array is properly handled and ALL names are displayed
+                // FRESH APPROACH: Ensure employees array is properly handled and ALL names are displayed
                 const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
                 
-                console.log(`[WeeklyAssignments] FINAL FIX - Rendering assignment "${assignment.title}" with employees:`, employeeList);
+                console.log(`[WeeklyAssignments] FRESH APPROACH - Rendering assignment "${assignment.title}" with employees:`, employeeList);
                 
                 return (
                   <div 
@@ -183,7 +191,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                           </span>
                         </div>
                         
-                        {/* FINAL FIX: Show ALL employees for each assignment - no filtering */}
+                        {/* FRESH APPROACH: Show ALL employees for each assignment - no filtering */}
                         {employeeList.length > 0 && (
                           <div className="flex items-center gap-2">
                             <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
