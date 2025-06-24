@@ -28,7 +28,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setLoading(true);
       setError(null);
       
-      console.log('[useOptimizedAssignments] SIMPLIFIED - Starting fetch:', { filter, userName: user.name, userRole: user.role });
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Starting fetch:', { filter, userName: user.name, userRole: user.role });
 
       const optimizedData = await OptimizedAssignmentService.fetchAssignmentsWithFilter(
         filter, 
@@ -36,13 +36,13 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         user.role
       );
 
-      console.log('[useOptimizedAssignments] SIMPLIFIED - Received data:', optimizedData.length, 'assignments');
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Received data:', optimizedData.length, 'assignments');
 
-      // SIMPLIFIED: Direct transformation preserving ALL employee names
+      // COMPREHENSIVE FIX: Transform assignments while preserving ALL employee names
       const finalAssignments: Assignment[] = optimizedData.map(assignment => {
         const employeeNames = assignment.employees.map(emp => emp.name);
         
-        console.log(`[useOptimizedAssignments] SIMPLIFIED - Assignment "${assignment.title}": ${employeeNames.join(', ')}`);
+        console.log(`[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment "${assignment.title}": employees=[${employeeNames.join(', ')}]`);
 
         return {
           id: assignment.id,
@@ -54,7 +54,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           location: assignment.location,
           car: null,
           cars: [],
-          employees: employeeNames, // SIMPLIFIED: Direct assignment
+          employees: employeeNames, // COMPREHENSIVE FIX: ALL employee names preserved
           published: assignment.published || false,
           responsibleUser: assignment.responsible_user ? {
             id: assignment.responsible_user.id,
@@ -63,16 +63,20 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         };
       });
       
-      console.log('[useOptimizedAssignments] SIMPLIFIED - Final assignments:', {
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Final assignments:', {
         userRole: user.role,
+        filter: filter,
         totalAssignments: finalAssignments.length,
-        filter: filter
+        sampleEmployeeData: finalAssignments.slice(0, 3).map(a => ({ 
+          title: a.title, 
+          employees: a.employees 
+        }))
       });
       
       setAssignments(finalAssignments);
       
     } catch (err) {
-      console.error('[useOptimizedAssignments] SIMPLIFIED - Error:', err);
+      console.error('[useOptimizedAssignments] COMPREHENSIVE FIX - Error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
@@ -308,7 +312,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           table: 'assignments'
         },
         () => {
-          console.log('[useOptimizedAssignments] SIMPLIFIED - Assignment change detected, refetching...');
+          console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment change detected, refetching...');
           fetchAssignments();
         }
       )
@@ -320,7 +324,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           table: 'assignments_employees'
         },
         () => {
-          console.log('[useOptimizedAssignments] SIMPLIFIED - Assignment-employee relationship change detected, refetching...');
+          console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment-employee relationship change detected, refetching...');
           fetchAssignments();
         }
       )
@@ -331,7 +335,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     };
   }, [fetchAssignments]);
 
-  // SIMPLIFIED: Direct return without additional filtering
+  // COMPREHENSIVE FIX: Direct return without additional filtering
   return {
     assignments,
     loading,

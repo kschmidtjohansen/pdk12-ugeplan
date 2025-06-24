@@ -23,10 +23,10 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // SIMPLIFIED: Correct filter based on user role
+  // COMPREHENSIVE FIX: Correct filter based on user role for planner display
   const plannerFilter = user?.role === 'servicemedarbejder' ? 'published' : 'all';
   
-  console.log(`[usePlannerPage] SIMPLIFIED - User: ${user?.name} (${user?.role}), Filter: ${plannerFilter}`);
+  console.log(`[usePlannerPage] COMPREHENSIVE FIX - User: ${user?.name} (${user?.role}), Filter: ${plannerFilter}`);
   
   const { 
     assignments, 
@@ -43,7 +43,7 @@ export const usePlannerPage = () => {
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
 
-  console.log(`[usePlannerPage] SIMPLIFIED - Received ${assignments.length} assignments for planner display`);
+  console.log(`[usePlannerPage] COMPREHENSIVE FIX - Received ${assignments.length} assignments for planner display`);
   
   // Always get a fresh today's date
   const getFreshToday = useCallback(() => {
@@ -72,10 +72,10 @@ export const usePlannerPage = () => {
 
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // SIMPLIFIED: Filter assignments by week
+  // COMPREHENSIVE FIX: Filter assignments by week - servicemedarbejder now sees ALL published assignments
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
 
-  console.log(`[usePlannerPage] SIMPLIFIED - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
+  console.log(`[usePlannerPage] COMPREHENSIVE FIX - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display (user role: ${user?.role})`);
 
   // Navigate to previous week
   const handlePreviousWeek = useCallback(() => {
