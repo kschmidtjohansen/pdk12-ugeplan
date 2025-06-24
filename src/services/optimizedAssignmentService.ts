@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface AssignmentEmployee {
@@ -39,7 +38,7 @@ export interface OptimizedAssignmentData {
 
 export class OptimizedAssignmentService {
   static async fetchAssignmentsWithFilter(filter: string, userId?: string, userRole?: string): Promise<OptimizedAssignmentData[]> {
-    console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Starting fetch with:', { filter, userId, userRole });
+    console.log('[OptimizedAssignmentService] FINAL FIX - Starting fetch with:', { filter, userId, userRole });
 
     try {
       let assignmentsQuery = supabase
@@ -60,10 +59,10 @@ export class OptimizedAssignmentService {
         `)
         .order('assignment_date', { ascending: true });
 
-      // COMPREHENSIVE FIX: Clear, context-specific filtering
+      // FINAL FIX: Clear, definitive filtering logic
       if (filter === 'user' && userId) {
-        // DASHBOARD CONTEXT: User's assignments with ALL colleague names preserved
-        console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Dashboard: fetching user assignments with all colleague info');
+        // DASHBOARD CONTEXT: User's assignments only
+        console.log('[OptimizedAssignmentService] FINAL FIX - Dashboard: fetching user assignments for', userId);
         
         const { data: userAssignmentIds } = await supabase
           .from('assignments_employees')
@@ -82,14 +81,14 @@ export class OptimizedAssignmentService {
         assignmentsQuery = assignmentsQuery.eq('published', true);
         
       } else if (filter === 'published') {
-        // PLANNER CONTEXT for servicemedarbejder: ALL published assignments without restrictions
-        console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Planner: fetching ALL published assignments for servicemedarbejder');
+        // PLANNER CONTEXT: ALL published assignments - NO USER RESTRICTIONS
+        console.log('[OptimizedAssignmentService] FINAL FIX - Planner: fetching ALL published assignments');
         assignmentsQuery = assignmentsQuery.eq('published', true);
         
       } else if (filter === 'all') {
-        // PLANNER CONTEXT for admin/skadeleder: ALL assignments
-        console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Planner: fetching ALL assignments for admin/skadeleder');
-        // No additional filter - show everything
+        // PLANNER CONTEXT: ALL assignments for admin/skadeleder
+        console.log('[OptimizedAssignmentService] FINAL FIX - Planner: fetching ALL assignments');
+        // No additional filter
         
       } else if (filter === 'unpublished') {
         assignmentsQuery = assignmentsQuery.eq('published', false);
@@ -99,18 +98,18 @@ export class OptimizedAssignmentService {
       const { data: assignments, error: assignmentsError } = await assignmentsQuery;
 
       if (assignmentsError) {
-        console.error('[OptimizedAssignmentService] COMPREHENSIVE FIX - Assignments query failed:', assignmentsError);
+        console.error('[OptimizedAssignmentService] FINAL FIX - Assignments query failed:', assignmentsError);
         throw assignmentsError;
       }
 
       if (!assignments || assignments.length === 0) {
-        console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - No assignments found');
+        console.log('[OptimizedAssignmentService] FINAL FIX - No assignments found');
         return [];
       }
 
-      console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Found assignments:', assignments.length);
+      console.log('[OptimizedAssignmentService] FINAL FIX - Found assignments:', assignments.length);
 
-      // COMPREHENSIVE FIX: Fetch ALL assignment-employee relationships
+      // FINAL FIX: Fetch ALL assignment-employee relationships for found assignments
       const assignmentIds = assignments.map(a => a.id);
       
       const { data: assignmentEmployees, error: employeesError } = await supabase
@@ -119,12 +118,12 @@ export class OptimizedAssignmentService {
         .in('assignment_id', assignmentIds);
 
       if (employeesError) {
-        console.warn('[OptimizedAssignmentService] COMPREHENSIVE FIX - Employee relationships fetch failed:', employeesError);
+        console.warn('[OptimizedAssignmentService] FINAL FIX - Employee relationships fetch failed:', employeesError);
       }
 
-      console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Assignment-employee relationships:', assignmentEmployees?.length || 0);
+      console.log('[OptimizedAssignmentService] FINAL FIX - Assignment-employee relationships:', assignmentEmployees?.length || 0);
 
-      // COMPREHENSIVE FIX: Fetch ALL employee profiles without filtering
+      // FINAL FIX: Fetch ALL employee profiles
       const employeeUserIds = assignmentEmployees?.map(ae => ae.user_id) || [];
       const uniqueEmployeeIds = [...new Set(employeeUserIds)];
       
@@ -136,10 +135,10 @@ export class OptimizedAssignmentService {
           .in('id', uniqueEmployeeIds);
 
         if (profilesError) {
-          console.warn('[OptimizedAssignmentService] COMPREHENSIVE FIX - Employee profiles fetch failed:', profilesError);
+          console.warn('[OptimizedAssignmentService] FINAL FIX - Employee profiles fetch failed:', profilesError);
         } else {
           employeeProfiles = profiles || [];
-          console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Employee profiles loaded:', employeeProfiles.length);
+          console.log('[OptimizedAssignmentService] FINAL FIX - Employee profiles loaded:', employeeProfiles.length);
         }
       }
 
@@ -156,13 +155,13 @@ export class OptimizedAssignmentService {
           .in('id', responsibleUserIds);
 
         if (respError) {
-          console.warn('[OptimizedAssignmentService] COMPREHENSIVE FIX - Responsible users fetch failed:', respError);
+          console.warn('[OptimizedAssignmentService] FINAL FIX - Responsible users fetch failed:', respError);
         } else {
           responsibleUsers = respUsers || [];
         }
       }
 
-      // COMPREHENSIVE FIX: Process data ensuring ALL employee names are preserved
+      // FINAL FIX: Process assignments and preserve ALL employee names
       const result = assignments.map(assignment => {
         // Get ALL employees for this assignment
         const assignmentEmployeeRelations = assignmentEmployees?.filter(
@@ -210,24 +209,14 @@ export class OptimizedAssignmentService {
           } : undefined
         };
 
-        // Special logging for debugging
+        // Debug logging
         const employeeNames = employees.map(e => e.name);
-        console.log(`[OptimizedAssignmentService] COMPREHENSIVE FIX - Assignment "${assignment.title}" employees:`, employeeNames);
-        
-        if (assignment.title.includes('Asbestkursus') || assignment.title.includes('asbestkursus')) {
-          console.log(`[OptimizedAssignmentService] COMPREHENSIVE FIX - ASBESTKURSUS FOUND:`, {
-            id: assignment.id,
-            title: assignment.title,
-            employees: employeeNames,
-            employeeCount: employees.length,
-            published: assignment.published
-          });
-        }
+        console.log(`[OptimizedAssignmentService] FINAL FIX - Assignment "${assignment.title}" employees:`, employeeNames);
 
         return processedAssignment;
       });
 
-      console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Processing complete:', {
+      console.log('[OptimizedAssignmentService] FINAL FIX - Processing complete:', {
         totalAssignments: result.length,
         filter,
         userRole,
@@ -237,7 +226,7 @@ export class OptimizedAssignmentService {
       return result;
 
     } catch (err) {
-      console.error('[OptimizedAssignmentService] COMPREHENSIVE FIX - Critical error:', err);
+      console.error('[OptimizedAssignmentService] FINAL FIX - Critical error:', err);
       throw err;
     }
   }

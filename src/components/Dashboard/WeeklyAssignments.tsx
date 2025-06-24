@@ -59,16 +59,14 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
     });
   }, [assignments]);
 
-  console.log('[WeeklyAssignments] COMPREHENSIVE FIX - Rendering assignments with ALL employee names:');
+  console.log('[WeeklyAssignments] FINAL FIX - Rendering assignments with ALL employee names:');
   sortedAssignments.forEach(assignment => {
     const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
-    console.log(`[WeeklyAssignments] COMPREHENSIVE FIX - Assignment "${assignment.title}":`, {
+    console.log(`[WeeklyAssignments] FINAL FIX - Assignment "${assignment.title}":`, {
       id: assignment.id,
       employees: employeeList,
       employeeCount: employeeList.length,
-      location: assignment.location,
-      car: assignment.car,
-      responsibleUser: assignment.responsibleUser
+      shouldShowAllNames: true
     });
   });
 
@@ -126,8 +124,10 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
           ) : (
             <div className="grid gap-3">
               {sortedAssignments.map((assignment, index) => {
-                // COMPREHENSIVE FIX: Ensure employees array is properly handled
+                // FINAL FIX: Ensure employees array is properly handled and ALL names are displayed
                 const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
+                
+                console.log(`[WeeklyAssignments] FINAL FIX - Rendering assignment "${assignment.title}" with employees:`, employeeList);
                 
                 return (
                   <div 
@@ -183,7 +183,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                           </span>
                         </div>
                         
-                        {/* COMPREHENSIVE FIX: Show ALL employees for each assignment */}
+                        {/* FINAL FIX: Show ALL employees for each assignment - no filtering */}
                         {employeeList.length > 0 && (
                           <div className="flex items-center gap-2">
                             <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
