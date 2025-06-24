@@ -1,7 +1,7 @@
 
 const planner = {
   title: 'Planlægger',
-  description: 'Beskrivelse',
+  description: 'Planlæg og administrer arbejdsopgaver',
   
   // Basic actions
   cancel: 'Annuller',
@@ -25,58 +25,12 @@ const planner = {
   time: 'Tid',
   fromTime: 'Fra tid',
   toTime: 'Til tid',
-  location: 'Adresse',
+  location: 'Lokation',
   employees: 'Medarbejdere',
   cars: 'Biler',
   selectEmployee: 'Vælg medarbejder',
   selectCar: 'Vælg bil',
-  
-  // Additional form fields
-  enterTitle: 'Sagsnummer',
-  enterLocation: 'Indtast adresse',
-  assignmentDate: 'Opgavedato',
-  startTime: 'Starttid',
-  endTime: 'Sluttid',
-  notesPlaceholder: 'Tilføj noter eller beskrivelse...',
-  
-  // Form actions
-  updateDetails: 'Opdater opgavedetaljer og tildeling.',
-  addAssignment: 'Tilføj en ny opgave til ugeplanen.',
-  saveChanges: 'Gem ændringer',
-  createAssignment: 'Opret opgave',
-  publishAssignment: 'Publicer opgave',
-  
-  // Assignment types
-  type: 'Type',
-  selectType: 'Vælg type',
-  assignmentTypes: {
-    ordinary_damage: 'Almindelig skade',
-    flood_damage: 'Vandskade',
-    roof_damage: 'Tagskade',
-    storm_damage: 'Stormskade',
-    fire_damage: 'Brandskade',
-    other: 'Andet'
-  },
-  
-  // Car selector translations
-  selectCars: 'Vælg biler',
-  carsSelected: '{count} biler valgt',
-  available: 'Tilgængelig',
-  unavailable: 'Ikke tilgængelig',
-  bookedUntil: 'Optaget til {time}',
-  carNotAvailable: 'Bil ikke tilgængelig',
-  
-  // Employee selection
-  selectEmployees: 'Vælg medarbejdere',
   onVacation: 'På ferie',
-  
-  // Responsible user selection
-  responsibleUser: 'Sagsansvarlig',
-  selectResponsibleUser: 'Vælg sagsansvarlig',
-  noResponsibleUser: 'Ingen ansvarlig',
-  
-  // Screen display
-  showOnScreen: 'Vis på skærm',
   
   // Status and actions
   published: 'Publiceret',
@@ -86,13 +40,7 @@ const planner = {
   unpublish: 'Afpublicer',
   duplicate: 'Duplikér',
   
-  // Permission error messages
-  noPermissionPublish: 'Du har ikke tilladelse til at publicere opgaver.',
-  noPermissionCreate: 'Du har ikke tilladelse til at oprette opgaver.',
-  noPermissionEdit: 'Du har ikke tilladelse til at redigere opgaver.',
-  noPermissionDelete: 'Du har ikke tilladelse til at slette opgaver.',
-  
-  // Error messages - COMPREHENSIVE FIX: Proper error message translations
+  // Error messages
   fetchError: 'Fejl ved indlæsning af opgaver',
   createError: 'Fejl ved oprettelse af opgave',
   updateError: 'Fejl ved opdatering af opgave',
@@ -102,23 +50,18 @@ const planner = {
   errorDeletingAssignment: 'Fejl ved sletning af opgave',
   errorPublishingAssignment: 'Fejl ved publicering af opgave',
   errorPublishingDay: 'Fejl ved publicering af dagens opgaver',
-  operationFailed: 'Handlingen mislykkedes',
-  publishOperationFailed: 'Nogle opgaver kunne ikke publiceres',
   
-  // Success messages - COMPREHENSIVE FIX: Proper success message translations
+  // Success messages
   assignmentCreated: 'Opgave oprettet',
   assignmentUpdated: 'Opgave opdateret',
   assignmentDeleted: 'Opgave slettet',
   assignmentPublished: 'Opgave publiceret',
-  assignmentCreatedMsg: 'Opgave blev oprettet med succes',
-  assignmentUpdatedMsg: 'Opgave blev opdateret med succes',
-  assignmentDeletedMsg: 'Opgaven blev slettet med succes',
-  assignmentPublishedMsg: 'Opgaven blev publiceret med succes',
+  assignmentCreatedMsg: 'Opgave "{title}" oprettet succesfuldt',
+  assignmentUpdatedMsg: 'Opgave "{title}" opdateret succesfuldt',
+  assignmentDeletedMsg: 'Opgave slettet succesfuldt',
+  assignmentPublishedMsg: 'Opgave publiceret succesfuldt',
   dayPublished: 'Dagens opgaver publiceret',
-  dayPublishedMsg: 'Alle opgaver for dagen blev publiceret med succes',
-  
-  // Info messages
-  noUnpublishedAssignments: 'Ingen ikke-publicerede opgaver fundet for denne dato.',
+  dayPublishedMsg: 'Alle dagens opgaver blev publiceret succesfuldt',
   
   // Confirmation dialogs
   deleteConfirm: 'Slet opgave',
@@ -133,25 +76,26 @@ const planner = {
   week: 'Uge',
   
   // Empty states
-  noAssignmentsToday: 'Ingen opgaver for i dag',
+  noAssignmentsToday: 'Ingen opgaver i dag',
   noAssignmentsWeek: 'Ingen opgaver denne uge',
   createFirst: 'Opret din første opgave',
   
   // Additional planner-specific translations
   previousDays: 'Tidligere dage',
-  nothingPlannedToday: 'Intet planlagt for i dag',
+  nothingPlannedToday: 'Intet planlagt i dag',
   publishDayTasks: 'Publicer dagens opgaver',
   copyAssignment: 'Kopier opgave',
   createNew: 'Opret ny',
   weekView: 'Uge {week}, {year} ({start} - {end})',
   selectDateForCopy: 'Vælg en ny dato for den kopierede opgave',
   
-  // Unassigned resources section
-  unassignedResources: 'Ubrugte ressourcer',
-  unassignedCars: 'Ikke brugte biler',
-  allCarsAssigned: 'Alle biler er tildelt',
-  showMore: 'Vis mere',
-  showLess: 'Vis mindre'
+  // Car selector translations
+  selectCars: 'Vælg biler',
+  carsSelected: '{count} biler valgt',
+  available: 'Tilgængelig',
+  unavailable: 'Ikke tilgængelig',
+  bookedUntil: 'Booket indtil {time}',
+  carNotAvailable: 'Bil ikke tilgængelig'
 };
 
 export default planner;

@@ -26,6 +26,7 @@ export const common = {
   add: 'Add',
   remove: 'Remove',
   deleting: 'Deleting...',
+  selected: 'selected',
   
   // Status messages
   success: 'Success',

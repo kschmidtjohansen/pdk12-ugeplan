@@ -30,6 +30,7 @@ const planner = {
   cars: 'Cars',
   selectEmployee: 'Select Employee',
   selectCar: 'Select Car',
+  onVacation: 'On Vacation',
   
   // Status and actions
   published: 'Published',

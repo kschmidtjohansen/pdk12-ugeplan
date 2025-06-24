@@ -1,4 +1,3 @@
-
 import { useVacationData } from './vacation/useVacationData';
 import { useVacationFormState } from './vacation/useVacationFormState';
 import { useVacationActions } from './vacation/useVacationActions';
@@ -69,7 +68,8 @@ export const useVacations = () => {
     const requestStartDate = startDate || date.from;
     const requestEndDate = endDate || date.to;
     
-    if (!requestStartDate || requestEndDate) {
+    // FIXED: Changed from || to && to properly validate both dates are present
+    if (!requestStartDate || !requestEndDate) {
       return false;
     }
     
