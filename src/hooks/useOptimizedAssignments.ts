@@ -28,7 +28,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setLoading(true);
       setError(null);
       
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Starting fetch:', { filter, userName: user.name, userRole: user.role });
+      console.log('[useOptimizedAssignments] FIXED ROOT CAUSE - Starting fetch:', { filter, userName: user.name, userRole: user.role });
 
       const optimizedData = await OptimizedAssignmentService.fetchAssignmentsWithFilter(
         filter, 
@@ -36,13 +36,13 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         user.role
       );
 
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Received data:', optimizedData.length, 'assignments');
+      console.log('[useOptimizedAssignments] FIXED ROOT CAUSE - Received data:', optimizedData.length, 'assignments');
 
-      // COMPREHENSIVE FIX: Transform assignments while preserving ALL employee names
+      // FIXED ROOT CAUSE: Transform assignments while preserving ALL employee names
       const finalAssignments: Assignment[] = optimizedData.map(assignment => {
         const employeeNames = assignment.employees.map(emp => emp.name);
         
-        console.log(`[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment "${assignment.title}": employees=[${employeeNames.join(', ')}]`);
+        console.log(`[useOptimizedAssignments] FIXED ROOT CAUSE - Assignment "${assignment.title}": employees=[${employeeNames.join(', ')}]`);
 
         return {
           id: assignment.id,
@@ -54,7 +54,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           location: assignment.location,
           car: null,
           cars: [],
-          employees: employeeNames, // COMPREHENSIVE FIX: ALL employee names preserved
+          employees: employeeNames, // FIXED ROOT CAUSE: ALL employee names preserved
           published: assignment.published || false,
           responsibleUser: assignment.responsible_user ? {
             id: assignment.responsible_user.id,
@@ -63,7 +63,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         };
       });
       
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Final assignments:', {
+      console.log('[useOptimizedAssignments] FIXED ROOT CAUSE - Final assignments:', {
         userRole: user.role,
         filter: filter,
         totalAssignments: finalAssignments.length,
@@ -76,7 +76,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setAssignments(finalAssignments);
       
     } catch (err) {
-      console.error('[useOptimizedAssignments] COMPREHENSIVE FIX - Error:', err);
+      console.error('[useOptimizedAssignments] FIXED ROOT CAUSE - Error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
@@ -303,7 +303,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     fetchAssignments();
 
     const channel = supabase
-      .channel('assignments_simplified')
+      .channel('assignments_fixed_root_cause')
       .on(
         'postgres_changes',
         {
@@ -312,7 +312,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           table: 'assignments'
         },
         () => {
-          console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment change detected, refetching...');
+          console.log('[useOptimizedAssignments] FIXED ROOT CAUSE - Assignment change detected, refetching...');
           fetchAssignments();
         }
       )
@@ -324,7 +324,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           table: 'assignments_employees'
         },
         () => {
-          console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment-employee relationship change detected, refetching...');
+          console.log('[useOptimizedAssignments] FIXED ROOT CAUSE - Assignment-employee relationship change detected, refetching...');
           fetchAssignments();
         }
       )
@@ -335,7 +335,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     };
   }, [fetchAssignments]);
 
-  // COMPREHENSIVE FIX: Direct return without additional filtering
+  // FIXED ROOT CAUSE: Direct return without additional filtering
   return {
     assignments,
     loading,
