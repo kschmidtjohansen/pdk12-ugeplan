@@ -28,39 +28,21 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setLoading(true);
       setError(null);
       
-      console.log('[useOptimizedAssignments] FRESH APPROACH - Starting fetch:', { filter, userName: user.name, userRole: user.role });
+      console.log('[useOptimizedAssignments] SIMPLIFIED - Starting fetch:', { filter, userName: user.name, userRole: user.role });
 
-      // Use the fixed OptimizedAssignmentService
       const optimizedData = await OptimizedAssignmentService.fetchAssignmentsWithFilter(
         filter, 
         user.id, 
         user.role
       );
 
-      console.log('[useOptimizedAssignments] FRESH APPROACH - Received data:', optimizedData.length, 'assignments');
+      console.log('[useOptimizedAssignments] SIMPLIFIED - Received data:', optimizedData.length, 'assignments');
 
-      // FRESH APPROACH: Transform OptimizedAssignmentData to Assignment format - PRESERVE ALL EMPLOYEE NAMES
+      // SIMPLIFIED: Direct transformation preserving ALL employee names
       const finalAssignments: Assignment[] = optimizedData.map(assignment => {
-        // FRESH APPROACH: Extract ALL employee names with detailed logging
         const employeeNames = assignment.employees.map(emp => emp.name);
         
-        console.log(`[useOptimizedAssignments] FRESH APPROACH - Assignment "${assignment.title}":`, {
-          id: assignment.id,
-          employees: employeeNames,
-          employeeCount: employeeNames.length,
-          published: assignment.published,
-          rawEmployeeData: assignment.employees
-        });
-
-        // Special check for Asbestkursus
-        if (assignment.title.toLowerCase().includes('asbestkursus')) {
-          console.log(`[useOptimizedAssignments] FRESH APPROACH - ASBESTKURSUS FOUND:`, {
-            title: assignment.title,
-            employees: employeeNames,
-            shouldIncludeMarkAndJulie: true,
-            rawData: assignment.employees
-          });
-        }
+        console.log(`[useOptimizedAssignments] SIMPLIFIED - Assignment "${assignment.title}": ${employeeNames.join(', ')}`);
 
         return {
           id: assignment.id,
@@ -72,7 +54,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           location: assignment.location,
           car: null,
           cars: [],
-          employees: employeeNames, // FRESH APPROACH: ALL employee names preserved here
+          employees: employeeNames, // SIMPLIFIED: Direct assignment
           published: assignment.published || false,
           responsibleUser: assignment.responsible_user ? {
             id: assignment.responsible_user.id,
@@ -81,21 +63,16 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         };
       });
       
-      console.log('[useOptimizedAssignments] FRESH APPROACH - Final transformation complete:', {
+      console.log('[useOptimizedAssignments] SIMPLIFIED - Final assignments:', {
         userRole: user.role,
         totalAssignments: finalAssignments.length,
-        filter: filter,
-        sampleEmployeeCounts: finalAssignments.slice(0, 5).map(a => ({ 
-          title: a.title, 
-          employeeCount: a.employees.length,
-          employees: a.employees
-        }))
+        filter: filter
       });
       
       setAssignments(finalAssignments);
       
     } catch (err) {
-      console.error('[useOptimizedAssignments] FRESH APPROACH - Error:', err);
+      console.error('[useOptimizedAssignments] SIMPLIFIED - Error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
@@ -322,7 +299,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     fetchAssignments();
 
     const channel = supabase
-      .channel('assignments_fresh_approach')
+      .channel('assignments_simplified')
       .on(
         'postgres_changes',
         {
@@ -331,7 +308,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           table: 'assignments'
         },
         () => {
-          console.log('[useOptimizedAssignments] FRESH APPROACH - Assignment change detected, refetching...');
+          console.log('[useOptimizedAssignments] SIMPLIFIED - Assignment change detected, refetching...');
           fetchAssignments();
         }
       )
@@ -343,7 +320,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           table: 'assignments_employees'
         },
         () => {
-          console.log('[useOptimizedAssignments] FRESH APPROACH - Assignment-employee relationship change detected, refetching...');
+          console.log('[useOptimizedAssignments] SIMPLIFIED - Assignment-employee relationship change detected, refetching...');
           fetchAssignments();
         }
       )
@@ -354,13 +331,9 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     };
   }, [fetchAssignments]);
 
-  // Memoized filtered assignments
-  const filteredAssignments = useMemo(() => {
-    return assignments;
-  }, [assignments]);
-
+  // SIMPLIFIED: Direct return without additional filtering
   return {
-    assignments: filteredAssignments,
+    assignments,
     loading,
     error,
     operationStates,

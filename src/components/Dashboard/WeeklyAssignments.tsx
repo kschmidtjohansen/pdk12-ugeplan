@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,7 +31,6 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
     setIsAssignmentDialogOpen(true);
   };
 
-  // Memoize the sorted assignments to prevent unnecessary recalculations
   const sortedAssignments = useMemo(() => {
     return assignments.sort((a, b) => {
       const today = new Date().toISOString().split('T')[0];
@@ -58,24 +58,10 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
     });
   }, [assignments]);
 
-  console.log('[WeeklyAssignments] FRESH APPROACH - Rendering assignments with ALL employee names:');
+  console.log('[WeeklyAssignments] SIMPLIFIED - Rendering assignments with ALL employee names:');
   sortedAssignments.forEach(assignment => {
     const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
-    console.log(`[WeeklyAssignments] FRESH APPROACH - Assignment "${assignment.title}":`, {
-      id: assignment.id,
-      employees: employeeList,
-      employeeCount: employeeList.length,
-      shouldShowAllNames: true
-    });
-    
-    // Special check for Asbestkursus on dashboard
-    if (assignment.title.toLowerCase().includes('asbestkursus')) {
-      console.log(`[WeeklyAssignments] FRESH APPROACH - ASBESTKURSUS ON DASHBOARD:`, {
-        title: assignment.title,
-        employees: employeeList,
-        shouldShowMarkAndJulie: true
-      });
-    }
+    console.log(`[WeeklyAssignments] SIMPLIFIED - Assignment "${assignment.title}": ${employeeList.join(', ')}`);
   });
 
   return (
@@ -83,9 +69,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
       <Card className="border-2 border-border/50 bg-gradient-to-br from-card to-card">
         <CardHeader className="pb-4">
           <CardTitle>
-            {/* Responsive Header Layout */}
             <div className="flex flex-col gap-4">
-              {/* Title and Navigation Row */}
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-2xl bg-primary/10 border border-primary/20">
                   <Clock className="h-5 w-5 text-primary" />
@@ -104,7 +88,6 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                 </div>
               </div>
 
-              {/* View All Button Row - Full width on mobile */}
               <div className="flex justify-end">
                 <Button variant="gradient" size="sm" asChild className="shadow-lg w-full sm:w-auto">
                   <Link to="/planner" className="flex items-center justify-center gap-2">
@@ -132,10 +115,8 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
           ) : (
             <div className="grid gap-3">
               {sortedAssignments.map((assignment, index) => {
-                // FRESH APPROACH: Ensure employees array is properly handled and ALL names are displayed
+                // SIMPLIFIED: Direct employee name handling
                 const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
-                
-                console.log(`[WeeklyAssignments] FRESH APPROACH - Rendering assignment "${assignment.title}" with employees:`, employeeList);
                 
                 return (
                   <div 
@@ -170,7 +151,6 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                       )}
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {/* Car information */}
                         {assignment.car && (
                           <div className="flex items-center gap-2">
                             <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-200">
@@ -191,7 +171,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                           </span>
                         </div>
                         
-                        {/* FRESH APPROACH: Show ALL employees for each assignment - no filtering */}
+                        {/* SIMPLIFIED: Show ALL colleague names directly */}
                         {employeeList.length > 0 && (
                           <div className="flex items-center gap-2">
                             <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
@@ -203,7 +183,6 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                           </div>
                         )}
 
-                        {/* Responsible user information */}
                         {assignment.responsibleUser && (
                           <div className="flex items-center gap-2">
                             <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">

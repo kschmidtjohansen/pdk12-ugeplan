@@ -14,21 +14,19 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 
 export const usePlannerPage = () => {
-  // Get current week info (week number and year)
   const currentWeekInfo = getCurrentWeekInfo();
   const { t } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
   
-  // State to track the selected week number and year
   const [selectedWeek, setSelectedWeek] = useState(currentWeekInfo.week);
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // FRESH APPROACH: Determine the correct filter based on user role
+  // SIMPLIFIED: Correct filter based on user role
   const plannerFilter = user?.role === 'servicemedarbejder' ? 'published' : 'all';
   
-  console.log(`[usePlannerPage] FRESH APPROACH - User: ${user?.name} (${user?.role}), Filter: ${plannerFilter}`);
+  console.log(`[usePlannerPage] SIMPLIFIED - User: ${user?.name} (${user?.role}), Filter: ${plannerFilter}`);
   
   const { 
     assignments, 
@@ -45,35 +43,14 @@ export const usePlannerPage = () => {
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
 
-  console.log(`[usePlannerPage] FRESH APPROACH - Received ${assignments.length} assignments for planner display`);
+  console.log(`[usePlannerPage] SIMPLIFIED - Received ${assignments.length} assignments for planner display`);
   
-  // FRESH APPROACH: Debug logging for servicemedarbejder visibility
-  if (user?.role === 'servicemedarbejder') {
-    console.log(`[usePlannerPage] FRESH APPROACH - Servicemedarbejder ${user.name} sees ${assignments.length} assignments`);
-    
-    // Check for specific assignment 07-012585
-    const targetAssignment = assignments.find(a => a.id === '07-012585');
-    if (targetAssignment) {
-      console.log(`[usePlannerPage] FRESH APPROACH - FOUND target assignment 07-012585:`, {
-        id: targetAssignment.id,
-        title: targetAssignment.title,
-        employees: targetAssignment.employees,
-        published: targetAssignment.published,
-        date: targetAssignment.date
-      });
-    } else {
-      console.log(`[usePlannerPage] FRESH APPROACH - Target assignment 07-012585 NOT FOUND`);
-      console.log(`[usePlannerPage] FRESH APPROACH - Available assignment IDs:`, assignments.map(a => a.id).slice(0, 20));
-    }
-  }
-
   // Always get a fresh today's date
   const getFreshToday = useCallback(() => {
     const now = new Date();
     return format(now, 'yyyy-MM-dd');
   }, []);
   
-  // Using state for managing form data and selected day
   const [selectedDay, setSelectedDay] = useState<string>(getFreshToday());
   const [formData, setFormData] = useState<Partial<Assignment>>({
     title: '',
@@ -86,20 +63,19 @@ export const usePlannerPage = () => {
     employees: []
   });
 
-  // Update formData.date daily to ensure it always reflects the current date
+  // Update formData.date daily
   React.useEffect(() => {
     const today = getFreshToday();
     setFormData(prev => ({ ...prev, date: today }));
     setSelectedDay(today);
   }, [getFreshToday]);
 
-  // Get the date range for the selected week with ISO week calculation
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // FRESH APPROACH: Filter assignments by week
+  // SIMPLIFIED: Filter assignments by week
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
 
-  console.log(`[usePlannerPage] FRESH APPROACH - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
+  console.log(`[usePlannerPage] SIMPLIFIED - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
 
   // Navigate to previous week
   const handlePreviousWeek = useCallback(() => {

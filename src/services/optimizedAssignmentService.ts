@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface AssignmentEmployee {
@@ -38,7 +39,7 @@ export interface OptimizedAssignmentData {
 
 export class OptimizedAssignmentService {
   static async fetchAssignmentsWithFilter(filter: string, userId?: string, userRole?: string): Promise<OptimizedAssignmentData[]> {
-    console.log('[OptimizedAssignmentService] FRESH APPROACH - Starting fetch with:', { filter, userId, userRole });
+    console.log('[OptimizedAssignmentService] SIMPLIFIED - Starting fetch with:', { filter, userId, userRole });
 
     try {
       let assignmentsQuery = supabase
@@ -59,12 +60,9 @@ export class OptimizedAssignmentService {
         `)
         .order('assignment_date', { ascending: true });
 
-      // FRESH APPROACH: Clear, simple filtering logic
+      // SIMPLIFIED: Clear filtering logic
       if (filter === 'user' && userId) {
-        // DASHBOARD: Get user's assignments (both assigned and responsible)
-        console.log('[OptimizedAssignmentService] FRESH APPROACH - Dashboard: fetching user assignments for', userId);
-        
-        // Get assignment IDs where user is assigned
+        // DASHBOARD: Get assignments where user is assigned OR responsible - only published
         const { data: userAssignmentIds } = await supabase
           .from('assignments_employees')
           .select('assignment_id')
@@ -78,39 +76,37 @@ export class OptimizedAssignmentService {
           assignmentsQuery = assignmentsQuery.eq('responsible_user_id', userId);
         }
         
-        // Only published assignments for dashboard
         assignmentsQuery = assignmentsQuery.eq('published', true);
         
       } else if (filter === 'published') {
-        // PLANNER: ALL published assignments (no user filtering)
-        console.log('[OptimizedAssignmentService] FRESH APPROACH - Planner: fetching ALL published assignments');
+        // PLANNER: ALL published assignments for servicemedarbejder - NO user filtering
+        console.log('[OptimizedAssignmentService] SIMPLIFIED - Fetching ALL published assignments');
         assignmentsQuery = assignmentsQuery.eq('published', true);
         
       } else if (filter === 'all') {
         // PLANNER: ALL assignments for admin/skadeleder
-        console.log('[OptimizedAssignmentService] FRESH APPROACH - Planner: fetching ALL assignments');
+        console.log('[OptimizedAssignmentService] SIMPLIFIED - Fetching ALL assignments');
         // No additional filter
         
       } else if (filter === 'unpublished') {
         assignmentsQuery = assignmentsQuery.eq('published', false);
       }
 
-      // Execute assignments query
       const { data: assignments, error: assignmentsError } = await assignmentsQuery;
 
       if (assignmentsError) {
-        console.error('[OptimizedAssignmentService] FRESH APPROACH - Assignments query failed:', assignmentsError);
+        console.error('[OptimizedAssignmentService] SIMPLIFIED - Query failed:', assignmentsError);
         throw assignmentsError;
       }
 
       if (!assignments || assignments.length === 0) {
-        console.log('[OptimizedAssignmentService] FRESH APPROACH - No assignments found');
+        console.log('[OptimizedAssignmentService] SIMPLIFIED - No assignments found');
         return [];
       }
 
-      console.log('[OptimizedAssignmentService] FRESH APPROACH - Found assignments:', assignments.length);
+      console.log('[OptimizedAssignmentService] SIMPLIFIED - Found assignments:', assignments.length);
 
-      // FRESH APPROACH: Get ALL assignment-employee relationships in one query
+      // Get ALL assignment-employee relationships
       const assignmentIds = assignments.map(a => a.id);
       
       const { data: assignmentEmployees, error: employeesError } = await supabase
@@ -119,12 +115,10 @@ export class OptimizedAssignmentService {
         .in('assignment_id', assignmentIds);
 
       if (employeesError) {
-        console.warn('[OptimizedAssignmentService] FRESH APPROACH - Employee relationships fetch failed:', employeesError);
+        console.warn('[OptimizedAssignmentService] SIMPLIFIED - Employee relationships failed:', employeesError);
       }
 
-      console.log('[OptimizedAssignmentService] FRESH APPROACH - Assignment-employee relationships:', assignmentEmployees?.length || 0);
-
-      // FRESH APPROACH: Get ALL employee profiles in one query
+      // Get ALL employee profiles
       const employeeUserIds = assignmentEmployees?.map(ae => ae.user_id) || [];
       const uniqueEmployeeIds = [...new Set(employeeUserIds)];
       
@@ -136,10 +130,9 @@ export class OptimizedAssignmentService {
           .in('id', uniqueEmployeeIds);
 
         if (profilesError) {
-          console.warn('[OptimizedAssignmentService] FRESH APPROACH - Employee profiles fetch failed:', profilesError);
+          console.warn('[OptimizedAssignmentService] SIMPLIFIED - Employee profiles failed:', profilesError);
         } else {
           employeeProfiles = profiles || [];
-          console.log('[OptimizedAssignmentService] FRESH APPROACH - Employee profiles loaded:', employeeProfiles.length);
         }
       }
 
@@ -156,36 +149,30 @@ export class OptimizedAssignmentService {
           .in('id', responsibleUserIds);
 
         if (respError) {
-          console.warn('[OptimizedAssignmentService] FRESH APPROACH - Responsible users fetch failed:', respError);
+          console.warn('[OptimizedAssignmentService] SIMPLIFIED - Responsible users failed:', respError);
         } else {
           responsibleUsers = respUsers || [];
         }
       }
 
-      // FRESH APPROACH: Process assignments and ensure ALL employee names are preserved
+      // SIMPLIFIED: Process assignments with ALL employee names preserved
       const result = assignments.map(assignment => {
-        // Get employee relationships for this specific assignment
         const assignmentEmployeeRelations = assignmentEmployees?.filter(
           ae => ae.assignment_id === assignment.id
         ) || [];
 
-        console.log(`[OptimizedAssignmentService] FRESH APPROACH - Assignment "${assignment.title}" has ${assignmentEmployeeRelations.length} employee relations`);
-
-        // Map employee relations to full employee data
+        // Get ALL employees for this assignment
         const employees: AssignmentEmployee[] = assignmentEmployeeRelations
           .map(relation => {
             const profile = employeeProfiles.find(p => p.id === relation.user_id);
             if (profile) {
-              console.log(`[OptimizedAssignmentService] FRESH APPROACH - Found employee profile: ${profile.name} for assignment ${assignment.title}`);
               return {
                 id: profile.id,
                 name: profile.name,
                 email: profile.email
               };
-            } else {
-              console.warn(`[OptimizedAssignmentService] FRESH APPROACH - No profile found for user_id: ${relation.user_id}`);
-              return null;
             }
+            return null;
           })
           .filter(emp => emp !== null) as AssignmentEmployee[];
 
@@ -216,24 +203,19 @@ export class OptimizedAssignmentService {
           } : undefined
         };
 
-        // Debug logging for employee preservation
-        const employeeNames = employees.map(e => e.name);
-        console.log(`[OptimizedAssignmentService] FRESH APPROACH - Assignment "${assignment.title}" final employees:`, employeeNames);
-
         return processedAssignment;
       });
 
-      console.log('[OptimizedAssignmentService] FRESH APPROACH - Processing complete:', {
+      console.log('[OptimizedAssignmentService] SIMPLIFIED - Processing complete:', {
         totalAssignments: result.length,
         filter,
-        userRole,
-        context: filter === 'user' ? 'DASHBOARD' : filter === 'published' ? 'PLANNER_SERVICEMEDARBEJDER' : 'PLANNER_ADMIN'
+        userRole
       });
 
       return result;
 
     } catch (err) {
-      console.error('[OptimizedAssignmentService] FRESH APPROACH - Critical error:', err);
+      console.error('[OptimizedAssignmentService] SIMPLIFIED - Critical error:', err);
       throw err;
     }
   }
