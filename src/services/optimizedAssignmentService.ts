@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface AssignmentEmployee {
@@ -39,7 +38,7 @@ export interface OptimizedAssignmentData {
 
 export class OptimizedAssignmentService {
   static async fetchAssignmentsWithFilter(filter: string, userId?: string, userRole?: string): Promise<OptimizedAssignmentData[]> {
-    console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Starting fetch with:', { filter, userId, userRole });
+    console.log('[OptimizedAssignmentService] RESET APPROACH - Starting fetch with:', { filter, userId, userRole });
 
     try {
       let assignmentsQuery = supabase
@@ -60,10 +59,10 @@ export class OptimizedAssignmentService {
         `)
         .order('assignment_date', { ascending: true });
 
-      // COMPREHENSIVE FIX: Apply context-specific filtering
+      // RESET APPROACH: Apply proper context-specific filtering
       if (filter === 'user' && userId) {
         // DASHBOARD CONTEXT: Get assignments where user is assigned OR responsible
-        console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Dashboard: fetching user assignments with ALL colleague names');
+        console.log('[OptimizedAssignmentService] RESET APPROACH - Dashboard: fetching user assignments but preserving ALL colleague names');
         
         const { data: userAssignmentIds } = await supabase
           .from('assignments_employees')
@@ -83,12 +82,12 @@ export class OptimizedAssignmentService {
         
       } else if (filter === 'published') {
         // PLANNER CONTEXT for servicemedarbejder: Show ALL published assignments
-        console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Planner: showing ALL published assignments for servicemedarbejder');
+        console.log('[OptimizedAssignmentService] RESET APPROACH - Planner: fetching ALL published assignments for servicemedarbejder');
         assignmentsQuery = assignmentsQuery.eq('published', true);
         
       } else if (filter === 'all') {
         // PLANNER CONTEXT for admin/skadeleder: Show all assignments
-        console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Planner: showing ALL assignments for admin/skadeleder');
+        console.log('[OptimizedAssignmentService] RESET APPROACH - Planner: fetching ALL assignments for admin/skadeleder');
         // No additional filter - show everything
         
       } else if (filter === 'unpublished') {
@@ -99,18 +98,18 @@ export class OptimizedAssignmentService {
       const { data: assignments, error: assignmentsError } = await assignmentsQuery;
 
       if (assignmentsError) {
-        console.error('[OptimizedAssignmentService] COMPREHENSIVE FIX - Assignments query failed:', assignmentsError);
+        console.error('[OptimizedAssignmentService] RESET APPROACH - Assignments query failed:', assignmentsError);
         throw assignmentsError;
       }
 
       if (!assignments || assignments.length === 0) {
-        console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - No assignments found');
+        console.log('[OptimizedAssignmentService] RESET APPROACH - No assignments found');
         return [];
       }
 
-      console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Found assignments:', assignments.length);
+      console.log('[OptimizedAssignmentService] RESET APPROACH - Found assignments:', assignments.length);
 
-      // COMPREHENSIVE FIX: Fetch ALL assignment-employee relationships for these assignments
+      // CRITICAL FIX: Fetch ALL assignment-employee relationships for these assignments
       const assignmentIds = assignments.map(a => a.id);
       
       const { data: assignmentEmployees, error: employeesError } = await supabase
@@ -119,12 +118,12 @@ export class OptimizedAssignmentService {
         .in('assignment_id', assignmentIds);
 
       if (employeesError) {
-        console.warn('[OptimizedAssignmentService] COMPREHENSIVE FIX - Employee relationships fetch failed:', employeesError);
+        console.warn('[OptimizedAssignmentService] RESET APPROACH - Employee relationships fetch failed:', employeesError);
       }
 
-      console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Assignment-employee relationships:', assignmentEmployees?.length || 0);
+      console.log('[OptimizedAssignmentService] RESET APPROACH - Assignment-employee relationships:', assignmentEmployees?.length || 0);
 
-      // COMPREHENSIVE FIX: Fetch ALL employee profiles to preserve ALL names
+      // CRITICAL FIX: Fetch ALL employee profiles - NO FILTERING
       const employeeUserIds = assignmentEmployees?.map(ae => ae.user_id) || [];
       const uniqueEmployeeIds = [...new Set(employeeUserIds)];
       
@@ -136,10 +135,10 @@ export class OptimizedAssignmentService {
           .in('id', uniqueEmployeeIds);
 
         if (profilesError) {
-          console.warn('[OptimizedAssignmentService] COMPREHENSIVE FIX - Employee profiles fetch failed:', profilesError);
+          console.warn('[OptimizedAssignmentService] RESET APPROACH - Employee profiles fetch failed:', profilesError);
         } else {
           employeeProfiles = profiles || [];
-          console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Employee profiles loaded:', employeeProfiles.length);
+          console.log('[OptimizedAssignmentService] RESET APPROACH - Employee profiles loaded:', employeeProfiles.length);
         }
       }
 
@@ -156,15 +155,15 @@ export class OptimizedAssignmentService {
           .in('id', responsibleUserIds);
 
         if (respError) {
-          console.warn('[OptimizedAssignmentService] COMPREHENSIVE FIX - Responsible users fetch failed:', respError);
+          console.warn('[OptimizedAssignmentService] RESET APPROACH - Responsible users fetch failed:', respError);
         } else {
           responsibleUsers = respUsers || [];
         }
       }
 
-      // COMPREHENSIVE FIX: Process and combine data - PRESERVE ALL EMPLOYEE NAMES
+      // CRITICAL FIX: Process and combine data - ALWAYS preserve ALL employee names
       const result = assignments.map(assignment => {
-        // Get ALL employees for this assignment (CRITICAL: no filtering based on current user)
+        // Get ALL employees for this assignment - NO FILTERING WHATSOEVER
         const assignmentEmployeeRelations = assignmentEmployees?.filter(
           ae => ae.assignment_id === assignment.id
         ) || [];
@@ -210,19 +209,25 @@ export class OptimizedAssignmentService {
           } : undefined
         };
 
-        // COMPREHENSIVE FIX: Log to verify ALL employee names are preserved
+        // Log to verify ALL employee names are preserved
         const employeeNames = employees.map(e => e.name);
-        console.log(`[OptimizedAssignmentService] COMPREHENSIVE FIX - Assignment "${assignment.title}" preserves ALL employees:`, {
-          id: assignment.id,
-          employees: employeeNames,
-          employeeCount: employees.length,
-          published: assignment.published
-        });
+        console.log(`[OptimizedAssignmentService] RESET APPROACH - Assignment "${assignment.title}" employees:`, employeeNames);
+        
+        // Special logging for Asbestkursus to debug Mark's issue
+        if (assignment.title.includes('Asbestkursus') || assignment.title.includes('asbestkursus')) {
+          console.log(`[OptimizedAssignmentService] RESET APPROACH - ASBESTKURSUS FOUND:`, {
+            id: assignment.id,
+            title: assignment.title,
+            employees: employeeNames,
+            employeeCount: employees.length,
+            published: assignment.published
+          });
+        }
 
         return processedAssignment;
       });
 
-      console.log('[OptimizedAssignmentService] COMPREHENSIVE FIX - Processing complete:', {
+      console.log('[OptimizedAssignmentService] RESET APPROACH - Processing complete:', {
         totalAssignments: result.length,
         filter,
         userRole,
@@ -232,7 +237,7 @@ export class OptimizedAssignmentService {
       return result;
 
     } catch (err) {
-      console.error('[OptimizedAssignmentService] COMPREHENSIVE FIX - Critical error:', err);
+      console.error('[OptimizedAssignmentService] RESET APPROACH - Critical error:', err);
       throw err;
     }
   }

@@ -23,7 +23,7 @@ const DashboardPage: React.FC = () => {
   // Enhanced authentication monitoring
   const { authStatus } = useAuthenticationMonitor();
   
-  // COMPREHENSIVE FIX: Use separate optimized queries for different contexts
+  // RESET APPROACH: Use separate optimized queries for different contexts
   // For dashboard metrics: show all published assignments for system-wide overview
   const { assignments: allPublishedAssignments, loading: allAssignmentsLoading, error: allAssignmentsError } = useOptimizedAssignments('published');
   
@@ -45,21 +45,30 @@ const DashboardPage: React.FC = () => {
   // Show connection status if there are issues
   const showConnectionIssue = !authStatus.sessionValid || authStatus.connectionStatus === 'disconnected';
 
-  console.log(`[DashboardPage] COMPREHENSIVE FIX - Dashboard for user: ${user?.name} (${user?.role})`);
-  console.log(`[DashboardPage] COMPREHENSIVE FIX - All published assignments for metrics: ${allPublishedAssignments.length}`);
-  console.log(`[DashboardPage] COMPREHENSIVE FIX - User assignments for weekly view: ${userAssignments.length}`);
+  console.log(`[DashboardPage] RESET APPROACH - Dashboard for user: ${user?.name} (${user?.role})`);
+  console.log(`[DashboardPage] RESET APPROACH - All published assignments for metrics: ${allPublishedAssignments.length}`);
+  console.log(`[DashboardPage] RESET APPROACH - User assignments for weekly view: ${userAssignments.length}`);
   
-  // COMPREHENSIVE FIX: Log detailed assignment info to verify ALL employee names are preserved
-  console.log(`[DashboardPage] COMPREHENSIVE FIX - Detailed user assignment analysis:`);
+  // RESET APPROACH: Log detailed assignment info to verify ALL employee names are preserved
+  console.log(`[DashboardPage] RESET APPROACH - Detailed user assignment analysis:`);
   userAssignments.forEach(assignment => {
     const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
-    console.log(`[DashboardPage] COMPREHENSIVE FIX - Assignment "${assignment.title}" (${assignment.id}):`, {
+    console.log(`[DashboardPage] RESET APPROACH - Assignment "${assignment.title}" (${assignment.id}):`, {
       employees: employeeList,
       employeeCount: employeeList.length,
       date: assignment.date,
-      published: assignment.published,
-      shouldShowAllColleagues: true // CRITICAL: Mark should see ALL colleague names
+      published: assignment.published
     });
+    
+    // Special logging for Asbestkursus
+    if (assignment.title.includes('Asbestkursus') || assignment.title.includes('asbestkursus')) {
+      console.log(`[DashboardPage] RESET APPROACH - ASBESTKURSUS DASHBOARD VIEW:`, {
+        title: assignment.title,
+        employees: employeeList,
+        employeeCount: employeeList.length,
+        shouldShowMarkAndJulie: true
+      });
+    }
   });
 
   // Update employee leave status based on vacations when dashboard loads
@@ -105,7 +114,7 @@ const DashboardPage: React.FC = () => {
     setSelectedYear(year);
   };
 
-  // COMPREHENSIVE FIX: Filter user assignments for weekly view, preserving ALL employee information
+  // RESET APPROACH: Filter user assignments for weekly view, preserving ALL employee information
   const myWeekAssignments = useMemo(() => {
     const filtered = AssignmentFilterService.filterByDateRange(
       userAssignments, // User's assignments with ALL colleague info preserved
@@ -113,11 +122,11 @@ const DashboardPage: React.FC = () => {
       endDateISO
     );
     
-    console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignments for ${user?.name}: ${filtered.length} assignments`);
-    console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignment details:`);
+    console.log(`[DashboardPage] RESET APPROACH - Weekly assignments for ${user?.name}: ${filtered.length} assignments`);
+    console.log(`[DashboardPage] RESET APPROACH - Weekly assignment details:`);
     filtered.forEach(assignment => {
       const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
-      console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignment "${assignment.title}" preserves ALL colleagues: [${employeeList.join(', ')}]`);
+      console.log(`[DashboardPage] RESET APPROACH - Weekly assignment "${assignment.title}" employees: [${employeeList.join(', ')}]`);
     });
     
     return filtered;
@@ -210,15 +219,15 @@ const DashboardPage: React.FC = () => {
         {/* Quick Access Grid */}
         <QuickAccessGrid userRole={user?.role} />
 
-        {/* COMPREHENSIVE FIX: Dashboard Metrics - Use all published assignments for system-wide metrics */}
+        {/* RESET APPROACH: Dashboard Metrics - Use all published assignments for system-wide metrics */}
         <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <DashboardMetrics selectedDate={format(new Date(), 'yyyy-MM-dd')} assignments={allPublishedAssignments} />
         </div>
 
-        {/* COMPREHENSIVE FIX: Weekly Assignments - Pass user assignments with ALL colleague info preserved */}
+        {/* RESET APPROACH: Weekly Assignments - Pass user assignments with ALL colleague info preserved */}
         <div style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
           <WeeklyAssignments
-            assignments={userAssignments}
+            assignments={myWeekAssignments}
             selectedWeek={selectedWeek}
             onPreviousWeek={() => {
               const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);

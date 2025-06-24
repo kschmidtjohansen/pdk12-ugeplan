@@ -25,9 +25,7 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // COMPREHENSIVE FIX: Use proper filter for planner context based on user role
-  // For servicemedarbejder: show ALL published assignments (not just their own)
-  // For admin/skadeleder: show all assignments (published + unpublished)
+  // RESET APPROACH: Proper filter selection based on user role for planner context
   const plannerFilter = user?.role === 'servicemedarbejder' ? 'published' : 'all';
   
   const { 
@@ -45,27 +43,24 @@ export const usePlannerPage = () => {
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
 
-  console.log(`[usePlannerPage] COMPREHENSIVE FIX - Planner for ${user?.role} using filter '${plannerFilter}'`);
-  console.log(`[usePlannerPage] COMPREHENSIVE FIX - Received ${assignments.length} assignments for planner`);
+  console.log(`[usePlannerPage] RESET APPROACH - Planner for ${user?.role} using filter '${plannerFilter}'`);
+  console.log(`[usePlannerPage] RESET APPROACH - Received ${assignments.length} assignments for planner`);
   
-  // COMPREHENSIVE FIX: Log assignment details to verify servicemedarbejder sees ALL published assignments
+  // RESET APPROACH: Comprehensive logging for servicemedarbejder
   if (user?.role === 'servicemedarbejder') {
-    console.log(`[usePlannerPage] COMPREHENSIVE FIX - Servicemedarbejder sees ${assignments.length} published assignments in planner:`);
-    console.log(`[usePlannerPage] COMPREHENSIVE FIX - Sample assignments for servicemedarbejder:`);
-    assignments.slice(0, 10).forEach(assignment => {
-      const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
-      console.log(`  - "${assignment.title}" (${assignment.id}) - Employees: [${employeeList.join(', ')}] - Published: ${assignment.published}`);
-    });
-    
-    // Look for specific assignment Mark mentioned
-    const targetAssignment = assignments.find(a => a.id === '07-012585' || a.title?.includes('Asbestkursus'));
+    console.log(`[usePlannerPage] RESET APPROACH - Servicemedarbejder sees ${assignments.length} assignments in planner`);
+    console.log(`[usePlannerPage] RESET APPROACH - Looking for assignment 07-012585:`);
+    const targetAssignment = assignments.find(a => a.id === '07-012585');
     if (targetAssignment) {
-      console.log(`[usePlannerPage] COMPREHENSIVE FIX - Found target assignment:`, {
+      console.log(`[usePlannerPage] RESET APPROACH - FOUND 07-012585:`, {
         id: targetAssignment.id,
         title: targetAssignment.title,
         employees: targetAssignment.employees,
         published: targetAssignment.published
       });
+    } else {
+      console.log(`[usePlannerPage] RESET APPROACH - 07-012585 NOT FOUND in ${assignments.length} assignments`);
+      console.log(`[usePlannerPage] RESET APPROACH - Available assignment IDs:`, assignments.map(a => a.id).slice(0, 10));
     }
   }
 
@@ -98,10 +93,10 @@ export const usePlannerPage = () => {
   // Get the date range for the selected week with ISO week calculation
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // COMPREHENSIVE FIX: Filter assignments by week - now shows ALL published for servicemedarbejder
+  // RESET APPROACH: Filter assignments by week
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
 
-  console.log(`[usePlannerPage] COMPREHENSIVE FIX - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
+  console.log(`[usePlannerPage] RESET APPROACH - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
 
   // Navigate to previous week
   const handlePreviousWeek = useCallback(() => {

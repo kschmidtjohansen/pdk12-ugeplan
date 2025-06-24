@@ -29,7 +29,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setLoading(true);
       setError(null);
       
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX v2 - Starting fetch:', { filter, userName: user.name, userRole: user.role });
+      console.log('[useOptimizedAssignments] RESET APPROACH - Starting fetch:', { filter, userName: user.name, userRole: user.role });
 
       // Use the fixed OptimizedAssignmentService
       const optimizedData = await OptimizedAssignmentService.fetchAssignmentsWithFilter(
@@ -38,14 +38,24 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         user.role
       );
 
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX v2 - Received data:', optimizedData.length, 'assignments');
+      console.log('[useOptimizedAssignments] RESET APPROACH - Received data:', optimizedData.length, 'assignments');
 
       // Transform OptimizedAssignmentData to Assignment format - PRESERVE ALL EMPLOYEE NAMES
       const finalAssignments: Assignment[] = optimizedData.map(assignment => {
-        // CRITICAL FIX v2: Extract ALL employee names without any filtering
+        // CRITICAL FIX: Extract ALL employee names without any filtering
         const employeeNames = assignment.employees.map(emp => emp.name);
         
-        console.log(`[useOptimizedAssignments] COMPREHENSIVE FIX v2 - Assignment "${assignment.title}" employees:`, employeeNames);
+        console.log(`[useOptimizedAssignments] RESET APPROACH - Assignment "${assignment.title}" employees:`, employeeNames);
+        
+        // Special logging for Asbestkursus
+        if (assignment.title.includes('Asbestkursus') || assignment.title.includes('asbestkursus')) {
+          console.log(`[useOptimizedAssignments] RESET APPROACH - ASBESTKURSUS TRANSFORMATION:`, {
+            title: assignment.title,
+            employees: employeeNames,
+            employeeCount: employeeNames.length,
+            originalEmployees: assignment.employees
+          });
+        }
 
         return {
           id: assignment.id,
@@ -66,9 +76,10 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         };
       });
       
-      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX v2 - Final transformation complete:', {
+      console.log('[useOptimizedAssignments] RESET APPROACH - Final transformation complete:', {
         userRole: user.role,
         totalAssignments: finalAssignments.length,
+        filter: filter,
         sampleAssignments: finalAssignments.slice(0, 3).map(a => ({ 
           title: a.title, 
           employees: a.employees,
@@ -80,7 +91,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       setAssignments(finalAssignments);
       
     } catch (err) {
-      console.error('[useOptimizedAssignments] COMPREHENSIVE FIX v2 - Error:', err);
+      console.error('[useOptimizedAssignments] RESET APPROACH - Error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       
@@ -307,7 +318,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     fetchAssignments();
 
     const channel = supabase
-      .channel('assignments_comprehensive_fix_v2')
+      .channel('assignments_reset_approach')
       .on(
         'postgres_changes',
         {
@@ -316,7 +327,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           table: 'assignments'
         },
         () => {
-          console.log('[useOptimizedAssignments] COMPREHENSIVE FIX v2 - Assignment change detected, refetching...');
+          console.log('[useOptimizedAssignments] RESET APPROACH - Assignment change detected, refetching...');
           fetchAssignments();
         }
       )
@@ -328,7 +339,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           table: 'assignments_employees'
         },
         () => {
-          console.log('[useOptimizedAssignments] COMPREHENSIVE FIX v2 - Assignment-employee relationship change detected, refetching...');
+          console.log('[useOptimizedAssignments] RESET APPROACH - Assignment-employee relationship change detected, refetching...');
           fetchAssignments();
         }
       )
