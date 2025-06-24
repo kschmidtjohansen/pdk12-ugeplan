@@ -38,6 +38,8 @@ const App = () => {
                     <Sonner />
                     <Routes>
                       <Route path="/" element={<Index />} />
+                      
+                      {/* Login and password reset routes - now properly wrapped in providers */}
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/password-reset" element={<PasswordResetPage />} />
                       
