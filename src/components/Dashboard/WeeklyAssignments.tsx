@@ -59,14 +59,18 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
     });
   }, [assignments]);
 
-  console.log('[WeeklyAssignments] Rendering assignments:', sortedAssignments.map(a => ({
-    id: a.id,
-    title: a.title,
-    location: a.location,
-    car: a.car,
-    responsibleUser: a.responsibleUser,
-    employees: a.employees
-  })));
+  console.log('[WeeklyAssignments] COMPREHENSIVE FIX - Rendering assignments with ALL employee names:');
+  sortedAssignments.forEach(assignment => {
+    const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
+    console.log(`[WeeklyAssignments] COMPREHENSIVE FIX - Assignment "${assignment.title}":`, {
+      id: assignment.id,
+      employees: employeeList,
+      employeeCount: employeeList.length,
+      location: assignment.location,
+      car: assignment.car,
+      responsibleUser: assignment.responsibleUser
+    });
+  });
 
   return (
     <>
@@ -121,87 +125,92 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
             </div>
           ) : (
             <div className="grid gap-3">
-              {sortedAssignments.map((assignment, index) => (
-                <div 
-                  key={assignment.id} 
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                  onClick={() => handleAssignmentClick(assignment)} 
-                  className="border-2 border-border/50 rounded-2xl p-4 bg-gradient-to-br from-card to-card/50 cursor-pointer animate-scale-in relative overflow-hidden py-[12px]"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
-                  
-                  <div className="relative z-10">
-                    <div className="flex flex-wrap justify-between items-start gap-3 mb-3">
-                      <div className="flex flex-col">
-                        <h3 className="font-bold text-lg text-left">
-                          {assignment.title || 'Untitled'}
-                        </h3>
-                        {assignment.location && (
-                          <p className="text-sm text-gray-600 text-left">
-                            {assignment.location}
-                          </p>
+              {sortedAssignments.map((assignment, index) => {
+                // COMPREHENSIVE FIX: Ensure employees array is properly handled
+                const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
+                
+                return (
+                  <div 
+                    key={assignment.id} 
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                    onClick={() => handleAssignmentClick(assignment)} 
+                    className="border-2 border-border/50 rounded-2xl p-4 bg-gradient-to-br from-card to-card/50 cursor-pointer animate-scale-in relative overflow-hidden py-[12px]"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
+                    
+                    <div className="relative z-10">
+                      <div className="flex flex-wrap justify-between items-start gap-3 mb-3">
+                        <div className="flex flex-col">
+                          <h3 className="font-bold text-lg text-left">
+                            {assignment.title || 'Untitled'}
+                          </h3>
+                          {assignment.location && (
+                            <p className="text-sm text-gray-600 text-left">
+                              {assignment.location}
+                            </p>
+                          )}
+                        </div>
+                        <div className="px-3 py-1 bg-primary/10 text-primary rounded-full font-semibold text-sm border border-primary/20">
+                          {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
+                        </div>
+                      </div>
+                      
+                      {assignment.description && (
+                        <p className="mb-2 text-left leading-relaxed text-sm text-polygon-neutral">
+                          {assignment.description}
+                        </p>
+                      )}
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Car information */}
+                        {assignment.car && (
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-200">
+                              <Car className="h-3.5 w-3.5 text-blue-600" />
+                            </div>
+                            <span className="text-foreground font-medium text-sm">
+                              {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
+                            </span>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 rounded-lg bg-green-50 border border-green-200">
+                            <Clock className="h-3.5 w-3.5 text-green-600" />
+                          </div>
+                          <span className="text-foreground font-medium text-sm">
+                            {assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}
+                          </span>
+                        </div>
+                        
+                        {/* COMPREHENSIVE FIX: Show ALL employees for each assignment */}
+                        {employeeList.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
+                              <Users className="h-3.5 w-3.5 text-purple-600" />
+                            </div>
+                            <span className="text-foreground font-medium text-sm">
+                              {employeeList.join(', ')}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Responsible user information */}
+                        {assignment.responsibleUser && (
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
+                              <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
+                            </div>
+                            <span className="text-foreground font-medium text-sm">
+                              {typeof assignment.responsibleUser === 'string' ? assignment.responsibleUser : assignment.responsibleUser.name}
+                            </span>
+                          </div>
                         )}
                       </div>
-                      <div className="px-3 py-1 bg-primary/10 text-primary rounded-full font-semibold text-sm border border-primary/20">
-                        {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
-                      </div>
-                    </div>
-                    
-                    {assignment.description && (
-                      <p className="mb-2 text-left leading-relaxed text-sm text-polygon-neutral">
-                        {assignment.description}
-                      </p>
-                    )}
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {/* FIXED: Display car information properly */}
-                      {assignment.car && (
-                        <div className="flex items-center gap-2">
-                          <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-200">
-                            <Car className="h-3.5 w-3.5 text-blue-600" />
-                          </div>
-                          <span className="text-foreground font-medium text-sm">
-                            {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
-                          </span>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-lg bg-green-50 border border-green-200">
-                          <Clock className="h-3.5 w-3.5 text-green-600" />
-                        </div>
-                        <span className="text-foreground font-medium text-sm">
-                          {assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}
-                        </span>
-                      </div>
-                      
-                      {/* FIXED: Show ALL employees for each assignment, not just the current user */}
-                      {assignment.employees && assignment.employees.length > 0 && (
-                        <div className="flex items-center gap-2">
-                          <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
-                            <Users className="h-3.5 w-3.5 text-purple-600" />
-                          </div>
-                          <span className="text-foreground font-medium text-sm">
-                            {assignment.employees.join(', ')}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* FIXED: Display responsible user information properly */}
-                      {assignment.responsibleUser && (
-                        <div className="flex items-center gap-2">
-                          <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
-                            <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
-                          </div>
-                          <span className="text-foreground font-medium text-sm">
-                            {typeof assignment.responsibleUser === 'string' ? assignment.responsibleUser : assignment.responsibleUser.name}
-                          </span>
-                        </div>
-                      )}
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
