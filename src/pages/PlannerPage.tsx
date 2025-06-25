@@ -78,11 +78,19 @@ const PlannerPage: React.FC = () => {
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-red-600 mb-2">{t('common.error')}</h2>
-          <p className="text-gray-600">{error}</p>
+          <p className="text-gray-600">{error instanceof Error ? error.message : String(error)}</p>
         </div>
       </div>
     );
   }
+
+  // Convert operation states to match expected format
+  const convertedOperationStates: Record<string, 'publishing' | 'deleting' | 'updating'> = {};
+  Object.entries(operationStates).forEach(([key, value]) => {
+    if (value === 'loading') {
+      convertedOperationStates[key] = 'publishing'; // Default to publishing for loading state
+    }
+  });
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
@@ -162,7 +170,7 @@ const PlannerPage: React.FC = () => {
         {/* Main Content */}
         <PlannerContent 
           weekAssignments={sortedWeekAssignments}
-          operationStates={operationStates}
+          operationStates={convertedOperationStates}
           onEditAssignment={handleOpenEditDialog}
           onDeleteAssignment={deleteAssignment}
           onPublishAssignment={publishAssignment}

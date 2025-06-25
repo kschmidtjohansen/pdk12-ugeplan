@@ -45,7 +45,7 @@ const Dashboard: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         <PageHeader title={t('dashboard.title')} />
         <div className="text-center text-red-600 p-4">
-          <p>Error loading dashboard: {error}</p>
+          <p>Error loading dashboard: {error instanceof Error ? error.message : String(error)}</p>
         </div>
       </div>
     );

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
 import { AssignmentFilterService } from '@/services/assignmentFilterService';
@@ -7,7 +8,9 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { publishAssignmentHandler } from '@/utils/assignmentPublishing';
 
-export const useOptimizedAssignments = (filter: string = 'all') => {
+export type AssignmentFilter = 'all' | 'user' | 'published' | 'unpublished';
+
+export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
   const [assignments, setAssignments] = useState<OptimizedAssignmentData[]>([]);
   const [transformedAssignments, setTransformedAssignments] = useState<Assignment[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -233,7 +236,7 @@ export const useOptimizedAssignments = (filter: string = 'all') => {
       return null;
     }
 
-    const transformed = assignments.map(a => ({
+    const transformed: Assignment[] = assignments.map(a => ({
       id: a.id,
       title: a.title,
       description: a.description,
@@ -244,8 +247,9 @@ export const useOptimizedAssignments = (filter: string = 'all') => {
       type: a.type,
       published: a.published,
       responsibleUserId: a.responsible_user_id || '',
-      employees: a.employees || [],
-      car: a.cars && a.cars.length > 0 ? a.cars[0] : null,
+      employees: a.employees.map(emp => emp.name), // Convert to string array
+      car: a.cars && a.cars.length > 0 ? a.cars[0].id : null,
+      cars: a.cars?.map(car => car.id) || [], // Add cars array
       createdAt: a.created_at,
       updatedAt: a.updated_at,
       responsibleUser: a.responsible_user
