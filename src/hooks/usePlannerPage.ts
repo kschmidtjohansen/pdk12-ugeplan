@@ -23,10 +23,10 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // FINAL FIX: servicemedarbejder users should see ALL published assignments, skadeleder/admin see all assignments
-  const plannerFilter = user?.role === 'servicemedarbejder' ? 'published' : 'all';
+  // CAR FIX: Use 'all' filter for both servicemedarbejder and admin users to ensure complete data visibility
+  const plannerFilter = 'all';
   
-  console.log(`[usePlannerPage] FINAL FIX - User: ${user?.name} (${user?.role}), Using filter: ${plannerFilter}`);
+  console.log(`[usePlannerPage] CAR FIX - User: ${user?.name} (${user?.role}), Using filter: ${plannerFilter}`);
   
   const { 
     assignments, 
@@ -39,7 +39,7 @@ export const usePlannerPage = () => {
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
 
-  console.log(`[usePlannerPage] FINAL FIX - Received ${assignments.length} assignments for planner display`);
+  console.log(`[usePlannerPage] CAR FIX - Received ${assignments.length} assignments for planner display`);
   
   // Always get a fresh today's date
   const getFreshToday = useCallback(() => {
@@ -71,10 +71,11 @@ export const usePlannerPage = () => {
   // FINAL FIX: Filter assignments by week with proper role-based filtering
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
 
-  console.log(`[usePlannerPage] FINAL FIX - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
-  console.log(`[usePlannerPage] FINAL FIX - Sample assignments:`, weekAssignments.slice(0, 3).map(a => ({
+  console.log(`[usePlannerPage] CAR FIX - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
+  console.log(`[usePlannerPage] CAR FIX - Sample assignments:`, weekAssignments.slice(0, 3).map(a => ({
     title: a.title,
     employees: a.employees,
+    cars: a.cars,
     date: a.date,
     published: a.published
   })));

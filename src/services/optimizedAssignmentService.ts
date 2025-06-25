@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface AssignmentEmployee {
@@ -38,7 +39,7 @@ export interface OptimizedAssignmentData {
 
 export class OptimizedAssignmentService {
   static async fetchAssignmentsWithFilter(filter: string, userId?: string, userRole?: string): Promise<OptimizedAssignmentData[]> {
-    console.log('[OptimizedAssignmentService] PUBLISHED FIX - Starting fetch with:', { filter, userId, userRole });
+    console.log('[OptimizedAssignmentService] CAR FIX - Starting fetch with:', { filter, userId, userRole });
 
     try {
       let assignmentsQuery = supabase
@@ -55,14 +56,16 @@ export class OptimizedAssignmentService {
           published,
           created_at,
           updated_at,
-          responsible_user_id
+          responsible_user_id,
+          car_id,
+          car_ids
         `)
         .order('assignment_date', { ascending: true });
 
-      // PUBLISHED FIX: Completely rewritten filter logic to ensure servicemedarbejder see ALL published assignments
+      // CAR FIX: Simplified filter logic to ensure all users see appropriate data
       if (filter === 'user' && userId) {
         // DASHBOARD: Get assignments where user is assigned OR responsible
-        console.log('[OptimizedAssignmentService] PUBLISHED FIX - Dashboard: Getting user assignments');
+        console.log('[OptimizedAssignmentService] CAR FIX - Dashboard: Getting user assignments');
         
         const { data: userAssignmentIds } = await supabase
           .from('assignments_employees')
@@ -81,14 +84,13 @@ export class OptimizedAssignmentService {
         assignmentsQuery = assignmentsQuery.eq('published', true);
         
       } else if (filter === 'published') {
-        // PUBLISHED FIX: Show ALL published assignments - NO user filtering whatsoever
-        // This ensures servicemedarbejder users see all 119 published assignments
-        console.log('[OptimizedAssignmentService] PUBLISHED FIX - Getting ALL published assignments without user restrictions');
+        // CAR FIX: Show ALL published assignments - NO user filtering
+        console.log('[OptimizedAssignmentService] CAR FIX - Getting ALL published assignments');
         assignmentsQuery = assignmentsQuery.eq('published', true);
         
       } else if (filter === 'all') {
         // ADMIN/SKADELEDER: Show ALL assignments
-        console.log('[OptimizedAssignmentService] PUBLISHED FIX - Admin: Getting ALL assignments');
+        console.log('[OptimizedAssignmentService] CAR FIX - Admin: Getting ALL assignments');
         
       } else if (filter === 'unpublished') {
         assignmentsQuery = assignmentsQuery.eq('published', false);
@@ -97,18 +99,18 @@ export class OptimizedAssignmentService {
       const { data: assignments, error: assignmentsError } = await assignmentsQuery;
 
       if (assignmentsError) {
-        console.error('[OptimizedAssignmentService] PUBLISHED FIX - Query error:', assignmentsError);
+        console.error('[OptimizedAssignmentService] CAR FIX - Query error:', assignmentsError);
         throw assignmentsError;
       }
 
       if (!assignments || assignments.length === 0) {
-        console.log('[OptimizedAssignmentService] PUBLISHED FIX - No assignments found for filter:', filter);
+        console.log('[OptimizedAssignmentService] CAR FIX - No assignments found for filter:', filter);
         return [];
       }
 
-      console.log('[OptimizedAssignmentService] PUBLISHED FIX - Retrieved assignments:', assignments.length);
+      console.log('[OptimizedAssignmentService] CAR FIX - Retrieved assignments:', assignments.length);
 
-      // PUBLISHED FIX: Get ALL employee relationships for ALL retrieved assignments
+      // CAR FIX: Get ALL employee relationships for ALL retrieved assignments
       const assignmentIds = assignments.map(a => a.id);
       
       const { data: assignmentEmployees, error: employeesError } = await supabase
@@ -117,10 +119,10 @@ export class OptimizedAssignmentService {
         .in('assignment_id', assignmentIds);
 
       if (employeesError) {
-        console.warn('[OptimizedAssignmentService] PUBLISHED FIX - Employee relationships error:', employeesError);
+        console.warn('[OptimizedAssignmentService] CAR FIX - Employee relationships error:', employeesError);
       }
 
-      // PUBLISHED FIX: Get ALL employee profiles to display complete names
+      // CAR FIX: Get ALL employee profiles to display complete names
       const allEmployeeUserIds = assignmentEmployees?.map(ae => ae.user_id) || [];
       const uniqueEmployeeIds = [...new Set(allEmployeeUserIds)];
       
@@ -132,11 +134,40 @@ export class OptimizedAssignmentService {
           .in('id', uniqueEmployeeIds);
 
         if (profilesError) {
-          console.warn('[OptimizedAssignmentService] PUBLISHED FIX - Employee profiles error:', profilesError);
+          console.warn('[OptimizedAssignmentService] CAR FIX - Employee profiles error:', profilesError);
         } else {
           employeeProfiles = profiles || [];
         }
       }
+
+      // CAR FIX: Get car data for assignments
+      const allCarIds = new Set<string>();
+      assignments.forEach(assignment => {
+        // Handle legacy car_id field
+        if (assignment.car_id) {
+          allCarIds.add(assignment.car_id);
+        }
+        // Handle new car_ids array field
+        if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
+          assignment.car_ids.forEach((carId: string) => allCarIds.add(carId));
+        }
+      });
+
+      let carData: any[] = [];
+      if (allCarIds.size > 0) {
+        const { data: cars, error: carsError } = await supabase
+          .from('cars')
+          .select('id, name, car_number')
+          .in('id', Array.from(allCarIds));
+
+        if (carsError) {
+          console.warn('[OptimizedAssignmentService] CAR FIX - Cars data error:', carsError);
+        } else {
+          carData = cars || [];
+        }
+      }
+
+      console.log('[OptimizedAssignmentService] CAR FIX - Car data fetched:', carData.length);
 
       // Get responsible user profiles
       const responsibleUserIds = assignments
@@ -151,13 +182,13 @@ export class OptimizedAssignmentService {
           .in('id', responsibleUserIds);
 
         if (respError) {
-          console.warn('[OptimizedAssignmentService] PUBLISHED FIX - Responsible users error:', respError);
+          console.warn('[OptimizedAssignmentService] CAR FIX - Responsible users error:', respError);
         } else {
           responsibleUsers = respUsers || [];
         }
       }
 
-      // PUBLISHED FIX: Build complete assignment data with ALL employee information
+      // CAR FIX: Build complete assignment data with ALL information
       const result = assignments.map(assignment => {
         // Get ALL employees for this assignment
         const assignmentEmployeeRelations = assignmentEmployees?.filter(
@@ -179,15 +210,36 @@ export class OptimizedAssignmentService {
           })
           .filter(emp => emp !== null) as AssignmentEmployee[];
 
-        // Special logging for problematic assignments
-        if (assignment.title.toLowerCase().includes('asbestkursus')) {
-          console.log(`[OptimizedAssignmentService] PUBLISHED FIX - 🎯 ASBESTKURSUS COMPLETE DATA:`, {
+        // CAR FIX: Build complete car list
+        const assignmentCarIds = new Set<string>();
+        if (assignment.car_id) {
+          assignmentCarIds.add(assignment.car_id);
+        }
+        if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
+          assignment.car_ids.forEach((carId: string) => assignmentCarIds.add(carId));
+        }
+
+        const cars: AssignmentCar[] = Array.from(assignmentCarIds)
+          .map(carId => {
+            const car = carData.find(c => c.id === carId);
+            if (car) {
+              return {
+                id: car.id,
+                name: car.name,
+                car_number: car.car_number
+              };
+            }
+            return null;
+          })
+          .filter(car => car !== null) as AssignmentCar[];
+
+        // Special logging for car assignments
+        if (cars.length > 0) {
+          console.log(`[OptimizedAssignmentService] CAR FIX - 🚗 Assignment with cars:`, {
             title: assignment.title,
             date: assignment.assignment_date,
-            totalEmployees: employees.length,
-            employeeNames: employees.map(e => e.name),
-            filter: filter,
-            assignmentId: assignment.id
+            carCount: cars.length,
+            carNames: cars.map(c => c.name)
           });
         }
 
@@ -209,7 +261,7 @@ export class OptimizedAssignmentService {
           updated_at: assignment.updated_at,
           responsible_user_id: assignment.responsible_user_id,
           employees: employees,
-          cars: [],
+          cars: cars,
           responsible_user: responsibleUser ? {
             id: responsibleUser.id,
             name: responsibleUser.name,
@@ -218,19 +270,16 @@ export class OptimizedAssignmentService {
         };
       });
 
-      console.log('[OptimizedAssignmentService] PUBLISHED FIX - Complete result:', {
+      console.log('[OptimizedAssignmentService] CAR FIX - Complete result:', {
         filter,
         totalAssignments: result.length,
-        asbestAssignments: result.filter(a => a.title.toLowerCase().includes('asbestkursus')).length,
-        sampleAsbestEmployees: result
-          .filter(a => a.title.toLowerCase().includes('asbestkursus'))
-          .map(a => ({ title: a.title, employees: a.employees.map(e => e.name) }))
+        assignmentsWithCars: result.filter(a => a.cars.length > 0).length
       });
 
       return result;
 
     } catch (err) {
-      console.error('[OptimizedAssignmentService] PUBLISHED FIX - Critical error:', err);
+      console.error('[OptimizedAssignmentService] CAR FIX - Critical error:', err);
       throw err;
     }
   }

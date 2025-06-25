@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Clock, UserCheck, Users, Car } from 'lucide-react';
@@ -14,28 +13,27 @@ interface AssignmentDetailsProps {
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars }) => {
   const { t } = useTranslation();
 
-  // OPTIMIZED: Simplified car name extraction with proper type guards
+  // CAR FIX: Improved car name extraction with better handling of the cars array
   const getCarNames = (assignment: Assignment): string[] => {
     const carNames: string[] = [];
     
-    console.log('[AssignmentDetails] OPTIMIZED - Getting car names for assignment:', assignment.id);
-    console.log('[AssignmentDetails] OPTIMIZED - Assignment cars array:', assignment.cars);
-    console.log('[AssignmentDetails] OPTIMIZED - Assignment car (legacy):', assignment.car);
+    console.log('[AssignmentDetails] CAR FIX - Getting car names for assignment:', assignment.id);
+    console.log('[AssignmentDetails] CAR FIX - Assignment cars array:', assignment.cars);
+    console.log('[AssignmentDetails] CAR FIX - Assignment car (legacy):', assignment.car);
     
     if (assignment.cars && Array.isArray(assignment.cars) && assignment.cars.length > 0) {
-      // New format: multiple cars array
+      // New format: multiple cars array with IDs
       assignment.cars.forEach(carId => {
         const car = cars.find(c => c.id === carId);
         if (car) {
           carNames.push(car.name);
-        } else if (assignment.car && typeof assignment.car === 'object' && assignment.car.id === carId) {
-          carNames.push(assignment.car.name);
         } else {
-          carNames.push(carId); // Fallback to ID
+          // Fallback: use the ID if we can't find the car object
+          carNames.push(carId);
         }
       });
     } else if (assignment.car) {
-      // Old format: single car with type guard
+      // Old format: single car
       if (typeof assignment.car === 'string') {
         const car = cars.find(c => c.id === assignment.car);
         carNames.push(car ? car.name : assignment.car);
@@ -44,7 +42,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
       }
     }
     
-    console.log('[AssignmentDetails] OPTIMIZED - Final car names:', carNames);
+    console.log('[AssignmentDetails] CAR FIX - Final car names:', carNames);
     return carNames;
   };
 
@@ -64,7 +62,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
           </span>
         </div>
 
-        {/* Cars - styled to match dashboard with improved display */}
+        {/* CAR FIX: Cars - improved display with better styling */}
         {carNames.length > 0 && (
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-200">
@@ -95,7 +93,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
           </div>
         )}
 
-        {/* OPTIMIZED: Employees - now properly displayed with foreign key joins */}
+        {/* CAR FIX: Employees - properly displayed with complete names */}
         {assignment.employees && assignment.employees.length > 0 && (
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">

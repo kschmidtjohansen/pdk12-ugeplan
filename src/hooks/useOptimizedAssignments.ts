@@ -27,7 +27,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     try {
       let fetchedAssignments: OptimizedAssignmentData[];
       
-      console.log('[useOptimizedAssignments] FINAL FIX - Fetching with filter:', filter, 'for user:', user?.name, 'role:', userRole);
+      console.log('[useOptimizedAssignments] CAR FIX - Fetching with filter:', filter, 'for user:', user?.name, 'role:', userRole);
       
       if (filter === 'user' && userId) {
         fetchedAssignments = await OptimizedAssignmentService.fetchUserAssignments(userId);
@@ -41,12 +41,12 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         fetchedAssignments = await OptimizedAssignmentService.fetchAllAssignments(userRole);
       }
       
-      console.log('[useOptimizedAssignments] FINAL FIX - Fetched assignments:', fetchedAssignments.length);
+      console.log('[useOptimizedAssignments] CAR FIX - Fetched assignments:', fetchedAssignments.length);
       
       setAssignments(fetchedAssignments);
       setError(null);
     } catch (err: any) {
-      console.error('[useOptimizedAssignments] FINAL FIX - Fetch error:', err);
+      console.error('[useOptimizedAssignments] CAR FIX - Fetch error:', err);
       setError(err);
       toast({
         title: t('common.error'),
@@ -221,20 +221,24 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       return null;
     }
 
-    console.log('[useOptimizedAssignments] FINAL FIX - Transforming assignments:', assignments.length);
+    console.log('[useOptimizedAssignments] CAR FIX - Transforming assignments:', assignments.length);
 
     const transformed: Assignment[] = assignments.map(a => {
       const employeeNames = Array.isArray(a.employees) 
         ? a.employees.map(emp => emp.name).filter(name => name && name.trim() !== '')
         : [];
       
-      if (a.title.toLowerCase().includes('asbestkursus')) {
-        console.log(`[useOptimizedAssignments] FINAL FIX - 🎯 ASBESTKURSUS TRANSFORM:`, {
+      // CAR FIX: Properly handle car data from the service
+      const carIds = a.cars?.map(car => car.id) || [];
+      const primaryCar = a.cars && a.cars.length > 0 ? a.cars[0].id : null;
+
+      if (a.cars && a.cars.length > 0) {
+        console.log(`[useOptimizedAssignments] CAR FIX - 🚗 Assignment with cars:`, {
           title: a.title,
           date: a.assignment_date,
-          rawEmployees: a.employees,
-          transformedEmployees: employeeNames,
-          employeeCount: employeeNames.length
+          carCount: a.cars.length,
+          carNames: a.cars.map(c => c.name),
+          carIds: carIds
         });
       }
 
@@ -250,20 +254,17 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         published: a.published,
         responsibleUserId: a.responsible_user_id || '',
         employees: employeeNames,
-        car: a.cars && a.cars.length > 0 ? a.cars[0].id : null,
-        cars: a.cars?.map(car => car.id) || [],
+        car: primaryCar,
+        cars: carIds,
         createdAt: a.created_at,
         updatedAt: a.updated_at,
         responsibleUser: a.responsible_user
       };
     });
 
-    console.log('[useOptimizedAssignments] FINAL FIX - Transform complete:', {
+    console.log('[useOptimizedAssignments] CAR FIX - Transform complete:', {
       totalTransformed: transformed.length,
-      asbestAssignments: transformed.filter(a => a.title.toLowerCase().includes('asbestkursus')).length,
-      sampleAsbestEmployees: transformed
-        .filter(a => a.title.toLowerCase().includes('asbestkursus'))
-        .map(a => ({ title: a.title, employees: a.employees }))
+      assignmentsWithCars: transformed.filter(a => a.cars && a.cars.length > 0).length
     });
 
     setTransformedAssignments(transformed);
