@@ -27,7 +27,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     try {
       let fetchedAssignments: OptimizedAssignmentData[];
       
-      console.log('[useOptimizedAssignments] DEFINITIVE FIX - Fetching with filter:', filter, 'for user:', user?.name, 'role:', userRole);
+      console.log('[useOptimizedAssignments] FINAL FIX - Fetching with filter:', filter, 'for user:', user?.name, 'role:', userRole);
       
       if (filter === 'user' && userId) {
         fetchedAssignments = await OptimizedAssignmentService.fetchUserAssignments(userId);
@@ -41,12 +41,12 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         fetchedAssignments = await OptimizedAssignmentService.fetchAllAssignments(userRole);
       }
       
-      console.log('[useOptimizedAssignments] DEFINITIVE FIX - Fetched assignments:', fetchedAssignments.length);
+      console.log('[useOptimizedAssignments] FINAL FIX - Fetched assignments:', fetchedAssignments.length);
       
       setAssignments(fetchedAssignments);
       setError(null);
     } catch (err: any) {
-      console.error('[useOptimizedAssignments] DEFINITIVE FIX - Fetch error:', err);
+      console.error('[useOptimizedAssignments] FINAL FIX - Fetch error:', err);
       setError(err);
       toast({
         title: t('common.error'),
@@ -221,17 +221,17 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       return null;
     }
 
-    console.log('[useOptimizedAssignments] DEFINITIVE FIX - Transforming assignments:', assignments.length);
+    console.log('[useOptimizedAssignments] FINAL FIX - Transforming assignments:', assignments.length);
 
     const transformed: Assignment[] = assignments.map(a => {
-      // DEFINITIVE FIX: Preserve ALL employee names from the service
+      // FINAL FIX: Preserve ALL employee names from the service
       const employeeNames = Array.isArray(a.employees) 
         ? a.employees.map(emp => emp.name).filter(name => name && name.trim() !== '')
         : [];
       
       // Debug logging for Asbestkursus
       if (a.title.toLowerCase().includes('asbestkursus')) {
-        console.log(`[useOptimizedAssignments] DEFINITIVE FIX - 🎯 ASBESTKURSUS TRANSFORM:`, {
+        console.log(`[useOptimizedAssignments] FINAL FIX - 🎯 ASBESTKURSUS TRANSFORM:`, {
           title: a.title,
           date: a.assignment_date,
           rawEmployees: a.employees,
@@ -260,7 +260,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       };
     });
 
-    console.log('[useOptimizedAssignments] DEFINITIVE FIX - Transform complete:', {
+    console.log('[useOptimizedAssignments] FINAL FIX - Transform complete:', {
       totalTransformed: transformed.length,
       asbestAssignments: transformed.filter(a => a.title.toLowerCase().includes('asbestkursus')).length,
       sampleAsbestEmployees: transformed
