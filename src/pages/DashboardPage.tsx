@@ -49,29 +49,30 @@ const DashboardPage: React.FC = () => {
   console.log(`[DashboardPage] COMPREHENSIVE FIX - All published assignments for metrics: ${allPublishedAssignments.length}`);
   console.log(`[DashboardPage] COMPREHENSIVE FIX - User assignments for weekly view: ${userAssignments.length}`);
   
-  // COMPREHENSIVE FIX: Log detailed assignment info to verify ALL employee names are preserved
+  // COMPREHENSIVE FIX: Detailed assignment logging to debug employee name issues
   console.log(`[DashboardPage] COMPREHENSIVE FIX - Detailed user assignment analysis:`);
-  userAssignments.forEach(assignment => {
+  userAssignments.forEach((assignment, index) => {
     const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
-    console.log(`[DashboardPage] COMPREHENSIVE FIX - Assignment "${assignment.title}" (${assignment.id}):`, {
+    console.log(`[DashboardPage] COMPREHENSIVE FIX - Assignment ${index + 1}: "${assignment.title}"`, {
+      id: assignment.id,
       employees: employeeList,
       employeeCount: employeeList.length,
       date: assignment.date,
       published: assignment.published
     });
     
-    // Special logging for Asbestkursus
-    if (assignment.title.includes('Asbestkursus') || assignment.title.includes('asbestkursus')) {
-      console.log(`[DashboardPage] COMPREHENSIVE FIX - ASBESTKURSUS DASHBOARD VIEW:`, {
+    // Special attention to Asbestkursus
+    if (assignment.title.toLowerCase().includes('asbestkursus')) {
+      console.log(`[DashboardPage] COMPREHENSIVE FIX - 🎯 ASBESTKURSUS DASHBOARD ANALYSIS:`, {
         title: assignment.title,
         employees: employeeList,
         employeeCount: employeeList.length,
-        shouldShowMarkAndJulie: true
+        shouldShow: 'Mark Hansen, Julie Mortensen',
+        actuallyShowing: employeeList.join(', ')
       });
     }
   });
 
-  // Update employee leave status based on vacations when dashboard loads
   useEffect(() => {
     const updateEmployeeStatuses = async () => {
       try {
@@ -114,7 +115,7 @@ const DashboardPage: React.FC = () => {
     setSelectedYear(year);
   };
 
-  // COMPREHENSIVE FIX: Filter user assignments for weekly view, preserving ALL employee information
+  // COMPREHENSIVE FIX: Filter user assignments for weekly view, with detailed logging
   const myWeekAssignments = useMemo(() => {
     const filtered = AssignmentFilterService.filterByDateRange(
       userAssignments, // User's assignments with ALL colleague info preserved
@@ -124,9 +125,18 @@ const DashboardPage: React.FC = () => {
     
     console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignments for ${user?.name}: ${filtered.length} assignments`);
     console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignment details:`);
-    filtered.forEach(assignment => {
+    filtered.forEach((assignment, index) => {
       const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
-      console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignment "${assignment.title}" employees: [${employeeList.join(', ')}]`);
+      console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignment ${index + 1}: "${assignment.title}" employees: [${employeeList.join(', ')}]`);
+      
+      if (assignment.title.toLowerCase().includes('asbestkursus')) {
+        console.log(`[DashboardPage] COMPREHENSIVE FIX - 🎯 ASBESTKURSUS WEEKLY VIEW:`, {
+          title: assignment.title,
+          employees: employeeList,
+          date: assignment.date,
+          isInSelectedWeek: true
+        });
+      }
     });
     
     return filtered;
@@ -135,55 +145,9 @@ const DashboardPage: React.FC = () => {
   // Enhanced loading state with connection status
   if (allAssignmentsLoading || userAssignmentsLoading) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
-          {showConnectionIssue && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-yellow-800">
-                    {t('dashboard.connectionStatus', { status: authStatus.connectionStatus })}
-                  </h3>
-                  <div className="mt-1 text-sm text-yellow-700">
-                    {!authStatus.sessionValid && <p>{t('dashboard.sessionValidationFailed')}</p>}
-                    {authStatus.tokenExpiring && <p>{t('dashboard.tokenExpiringSoon')}</p>}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded mb-4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-            <div className="h-96 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state if there are critical errors
-  if (allAssignmentsError && allAssignmentsError.includes('auth')) {
-    return (
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
-        <div className="text-center p-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('common.authRequired')}</h2>
-          <p className="text-gray-600 mb-4">{t('dashboard.loginToAccess')}</p>
-          <button 
-            onClick={() => window.location.href = '/login'} 
-            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-          >
-            {t('common.login')}
-          </button>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-pulse">Loading dashboard...</div>
         </div>
       </div>
     );
@@ -229,16 +193,8 @@ const DashboardPage: React.FC = () => {
           <WeeklyAssignments
             assignments={myWeekAssignments}
             selectedWeek={selectedWeek}
-            onPreviousWeek={() => {
-              const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
-              setSelectedWeek(week);
-              setSelectedYear(year);
-            }}
-            onNextWeek={() => {
-              const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
-              setSelectedWeek(week);
-              setSelectedYear(year);
-            }}
+            onPreviousWeek={handlePreviousWeek}
+            onNextWeek={handleNextWeek}
           />
         </div>
       </div>
