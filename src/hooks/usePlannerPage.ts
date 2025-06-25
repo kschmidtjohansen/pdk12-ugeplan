@@ -23,10 +23,10 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // COMPREHENSIVE FIX: Clear filter logic based on user role
-  const plannerFilter = user?.role === 'servicemedarbejder' ? 'published' : 'all';
+  // FILTER ALIGNMENT FIX: Give servicemedarbejder users the same comprehensive view as skadeleder users
+  const plannerFilter = 'all'; // All users now see all assignments for comprehensive planning view
   
-  console.log(`[usePlannerPage] COMPREHENSIVE FIX - User: ${user?.name} (${user?.role}), Using filter: ${plannerFilter}`);
+  console.log(`[usePlannerPage] FILTER ALIGNMENT - User: ${user?.name} (${user?.role}), Using unified filter: ${plannerFilter}`);
   
   const { 
     assignments, 
@@ -39,7 +39,7 @@ export const usePlannerPage = () => {
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
 
-  console.log(`[usePlannerPage] COMPREHENSIVE FIX - Received ${assignments.length} assignments for planner display`);
+  console.log(`[usePlannerPage] FILTER ALIGNMENT - Received ${assignments.length} assignments for comprehensive planner display`);
   
   // Always get a fresh today's date
   const getFreshToday = useCallback(() => {
@@ -68,14 +68,15 @@ export const usePlannerPage = () => {
 
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // COMPREHENSIVE FIX: Filter assignments by week with clear logging
+  // FILTER ALIGNMENT: Filter assignments by week with unified comprehensive view
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
 
-  console.log(`[usePlannerPage] COMPREHENSIVE FIX - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
-  console.log(`[usePlannerPage] COMPREHENSIVE FIX - Sample assignments:`, weekAssignments.slice(0, 3).map(a => ({
+  console.log(`[usePlannerPage] FILTER ALIGNMENT - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for comprehensive display`);
+  console.log(`[usePlannerPage] FILTER ALIGNMENT - Sample assignments:`, weekAssignments.slice(0, 3).map(a => ({
     title: a.title,
     employees: a.employees,
-    date: a.date
+    date: a.date,
+    published: a.published
   })));
 
   return {
