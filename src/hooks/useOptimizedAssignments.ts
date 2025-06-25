@@ -60,16 +60,11 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
   const deleteAssignment = useCallback(async (id: string) => {
     setOperationStates(prevState => ({ ...prevState, [id]: 'loading' }));
     try {
-      // Optimistically update the UI
       setTransformedAssignments(prevAssignments => {
         if (!prevAssignments) return prevAssignments;
         return prevAssignments.filter(assignment => assignment.id !== id);
       });
       
-      // Delete the assignment from the database
-      // const { error } = await supabase.from('assignments').delete().eq('id', id);
-      
-      // Simulate successful deletion
       await new Promise(resolve => setTimeout(resolve, 1000));
       const error = null;
 
@@ -90,7 +85,6 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         variant: 'destructive'
       });
       setOperationStates(prevState => ({ ...prevState, [id]: 'error' }));
-      // Revert the UI on error
       refetch();
     }
   }, [refetch, t, toast]);
@@ -103,7 +97,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       const success = await publishAssignmentHandler(
         transformedAssignments,
         setTransformedAssignments,
-        [id] // Pass the assignment ID to be published
+        [id]
       );
       
       if (success) {
@@ -113,7 +107,6 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         });
         setOperationStates(prevState => ({ ...prevState, [id]: 'success' }));
         
-        // Trigger a refetch to get updated data
         await refetch();
       } else {
         throw new Error('Failed to publish assignment');
@@ -136,12 +129,11 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       const success = await publishAssignmentHandler(
         transformedAssignments,
         setTransformedAssignments,
-        null, // assignmentIds - null to use date filter
-        date // Pass the date parameter
+        null,
+        date
       );
       
       if (success) {
-        // Trigger a refetch to get updated data
         await refetch();
       }
       
@@ -156,7 +148,6 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     async (id: string, updates: Partial<Assignment>) => {
       setOperationStates(prevState => ({ ...prevState, [id]: 'loading' }));
       try {
-        // Optimistically update the UI
         setTransformedAssignments(prevAssignments => {
           if (!prevAssignments) return prevAssignments;
           return prevAssignments.map(assignment =>
@@ -164,13 +155,6 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           );
         });
   
-        // Update the assignment in the database
-        // const { error } = await supabase
-        //   .from('assignments')
-        //   .update(updates)
-        //   .eq('id', id);
-  
-        // Simulate successful update
         await new Promise(resolve => setTimeout(resolve, 1000));
         const error = null;
   
@@ -191,7 +175,6 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           variant: 'destructive'
         });
         setOperationStates(prevState => ({ ...prevState, [id]: 'error' }));
-        // Revert the UI on error
         refetch();
       }
     },
@@ -202,7 +185,6 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     async (newAssignment: Omit<Assignment, 'id'>) => {
       setOperationStates(prevState => ({ ...prevState, 'create': 'loading' }));
       try {
-        // Simulate creating assignment in the database
         await new Promise(resolve => setTimeout(resolve, 1000));
         const error = null;
   
@@ -215,7 +197,6 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           description: t('planner.createSuccess'),
         });
         setOperationStates(prevState => ({ ...prevState, 'create': 'success' }));
-        // Refresh assignments
         refetch();
       } catch (err: any) {
         console.error('Create assignment error:', err);
@@ -235,20 +216,26 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       return null;
     }
 
-    console.log('[useOptimizedAssignments] DEFINITIVE FIX - Transforming assignments:', assignments.length);
+    console.log('[useOptimizedAssignments] FINAL FIX - Transforming assignments:', assignments.length);
 
     const transformed: Assignment[] = assignments.map(a => {
-      // DEFINITIVE FIX: Properly transform employee objects to string array
-      const employeeNames = a.employees?.map(emp => emp.name) || [];
+      // FINAL FIX: Robust employee name transformation
+      const employeeNames = Array.isArray(a.employees) 
+        ? a.employees.map(emp => {
+            if (typeof emp === 'string') return emp;
+            if (typeof emp === 'object' && emp?.name) return emp.name;
+            return '';
+          }).filter(name => name !== '')
+        : [];
       
-      // Special logging for Asbestkursus
+      // Debug logging for Asbestkursus
       if (a.title.toLowerCase().includes('asbestkursus')) {
-        console.log(`[useOptimizedAssignments] DEFINITIVE FIX - 🎯 ASBESTKURSUS TRANSFORM:`, {
+        console.log(`[useOptimizedAssignments] FINAL FIX - 🎯 ASBESTKURSUS TRANSFORM:`, {
           title: a.title,
           date: a.assignment_date,
           rawEmployees: a.employees,
           transformedEmployees: employeeNames,
-          shouldShow: 'Mark Hansen, Julie Mortensen'
+          expectedNames: ['Mark Hansen', 'Julie Mortensen']
         });
       }
 
@@ -263,22 +250,18 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         type: a.type,
         published: a.published,
         responsibleUserId: a.responsible_user_id || '',
-        employees: employeeNames, // DEFINITIVE FIX: Convert employee objects to string array
+        employees: employeeNames,
         car: a.cars && a.cars.length > 0 ? a.cars[0].id : null,
-        cars: a.cars?.map(car => car.id) || [], // Add cars array
+        cars: a.cars?.map(car => car.id) || [],
         createdAt: a.created_at,
         updatedAt: a.updated_at,
         responsibleUser: a.responsible_user
       };
     });
 
-    console.log('[useOptimizedAssignments] DEFINITIVE FIX - Transform complete:', {
+    console.log('[useOptimizedAssignments] FINAL FIX - Transform complete:', {
       totalTransformed: transformed.length,
-      asbestAssignments: transformed.filter(a => a.title.toLowerCase().includes('asbestkursus')).length,
-      sampleEmployeeData: transformed.slice(0, 2).map(a => ({ 
-        title: a.title, 
-        employees: a.employees 
-      }))
+      asbestAssignments: transformed.filter(a => a.title.toLowerCase().includes('asbestkursus')).length
     });
 
     setTransformedAssignments(transformed);

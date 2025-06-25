@@ -1,6 +1,7 @@
 
 const dashboard = {
   welcome: 'Welcome, {name}',
+  title: 'Dashboard',
   today: 'Today is {date}, Week {week}',
   availableEmployees: 'Available Employees',
   onLeaveEmployees: 'Employees on Leave',
@@ -12,7 +13,20 @@ const dashboard = {
   todaysDate: '{date}',
   viewAll: 'View All',
   myAssignments: 'My Assignments for Week {week}',
-  noAssignments: 'No assignments scheduled for this week',
+  noAssignments: 'No assignments scheduled',
+  noAssignmentsScheduled: 'No assignments scheduled for this week',
+  connectionIssueDetected: 'Connection Issue Detected',
+  connectionIssueDescription: 'There may be connectivity issues. Data might not be current.',
+  
+  // Metrics
+  metrics: {
+    availableEmployees: 'Available Employees',
+    unavailableEmployees: 'Unavailable Employees', 
+    unavailableSubtitle: 'On leave or vacation',
+    availableCars: 'Available Cars',
+    carsInUse: 'Cars in Use',
+    carsInUseSubtitle: 'Currently assigned'
+  },
   
   // Upcoming Vacations widget
   upcomingVacations: 'Upcoming Vacations',

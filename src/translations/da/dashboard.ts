@@ -1,74 +1,59 @@
 
 const dashboard = {
-  title: "Dashboard",
-  welcome: "Velkommen",
-  today: "I dag er det {date}, Vi er i uge {week}",
-  week: "Uge", // Added missing translation
-  myTasks: "Mine Opgaver",
-  weekOverview: "Ugeoversigt",
-  upcomingVacations: "Kommende Ferie",
-  systemMetrics: "System Metrikker",
-  assignmentDistribution: "Opgave Fordeling",
-  vehicleStatus: "Køretøj Status",
-  unassignedResources: "Ikke brugte Ressourcer",
-  noTasksThisWeek: "Ingen opgaver denne uge",
-  noUpcomingVacations: "Ingen kommende ferier",
-  viewAll: "Se alle",
-  employeeAvailability: "Medarbejder Ledighed",
-  availableEmployees: "Ledige medarbejdere",
-  unavailableEmployees: "Ikke ledige medarbejdere",
-  onVacation: "På ferie",
-  onLeave: "Ikke på arbejde",
-  fullyBooked: "Ikke ledig",
-  partiallyAvailable: "Delvist ledig",
-  available: "Ledig",
-  availableAfter: "Ledig efter kl. {time}",
-  totalEmployees: "{count} medarbejdere i alt",
-  totalCars: "{count} biler i alt",
-  todaysDate: "{date}",
-  onLeaveEmployees: "Medarbejdere fraværende",
-  availableCars: "Tilgængelige biler",
-  todayAssignments: "Dagens opgaver",
-  scheduledToday: "Planlagt i dag",
-  myAssignments: "Mine Opgaver",
-  noAssignments: "Ingen opgaver denne uge",
-  noAssignmentsScheduled: "Ingen opgaver planlagt for denne uge",
+  welcome: 'Velkommen, {name}',
+  title: 'Dashboard',
+  today: 'I dag er {date}, Uge {week}',
+  availableEmployees: 'Tilgængelige medarbejdere',
+  onLeaveEmployees: 'Medarbejdere på orlov',
+  availableCars: 'Tilgængelige biler',
+  todayAssignments: 'Dagens opgaver',
+  scheduledToday: 'Planlagt for i dag',
+  totalEmployees: '{count} medarbejdere i alt',
+  totalCars: '{count} biler i alt',
+  todaysDate: '{date}',
+  viewAll: 'Se alle',
+  myAssignments: 'Mine opgaver for uge {week}',
+  noAssignments: 'Ingen opgaver planlagt',
+  noAssignmentsScheduled: 'Ingen opgaver planlagt for denne uge',
+  connectionIssueDetected: 'Forbindelsesproblem opdaget',
+  connectionIssueDescription: 'Der kan være forbindelsesproblemer. Data er muligvis ikke aktuel.',
   
-  // COMPREHENSIVE FIX: Added missing translation keys
-  connectionStatus: "Forbindelsesstatus: {status}",
-  sessionValidationFailed: "Session validering mislykkedes",
-  tokenExpiringSoon: "Token udløber snart",
-  connectionIssueDetected: "Forbindelsesproblem opdaget",
-  connectionIssueDescription: "Nogle data er muligvis ikke opdateret. Tjek din internetforbindelse eller prøv at opdatere siden.",
-  loginToAccess: "Log ind for at få adgang til dashboardet",
+  // Metrics
+  metrics: {
+    availableEmployees: 'Tilgængelige medarbejdere',
+    unavailableEmployees: 'Ikke-tilgængelige medarbejdere',
+    unavailableSubtitle: 'På orlov eller ferie',
+    availableCars: 'Tilgængelige biler',
+    carsInUse: 'Biler i brug',
+    carsInUseSubtitle: 'Aktuelt tildelt'
+  },
   
+  // Upcoming Vacations widget
+  upcomingVacations: 'Kommende ferier',
+  noUpcomingVacations: 'Ingen kommende ferier',
+  
+  // Employee availability dialogs
+  availableEmployeesDesc: 'Medarbejdere tilgængelige og ikke tildelt opgaver',
+  unavailableEmployeesDesc: 'Medarbejdere i øjeblikket på orlov eller ferie',
+  
+  // Quick access items
   quickAccess: {
-    title: "Hurtig adgang",
     planner: {
-      title: "Ugeplan",
-      description: "Se opgaver for ugen og tilføj nye opgaver."
+      title: 'Planlægger',
+      description: 'Se og administrer ugentlige skemaer'
     },
     vacation: {
-      title: "Ferie",
-      description: "Administrer og se ferier."
+      title: 'Ferie',
+      description: 'Anmod om og administrer fridage'
     },
     employees: {
-      title: "Medarbejdere",
-      description: "Administrer og se medarbejdere."
+      title: 'Medarbejdere', 
+      description: 'Administrer medarbejderinformation'
     },
     cars: {
-      title: "Biler",
-      description: "Se biler"
+      title: 'Biler',
+      description: 'Se og administrer bilpark'
     }
-  },
-  // Add comprehensive metrics translations
-  metrics: {
-    availableEmployees: "Ledige medarbejdere",
-    unavailableEmployees: "Ikke ledige medarbejdere",
-    unavailableSubtitle: "På ferie eller fraværende",
-    availableCars: "Tilgængelige biler",
-    carsInUse: "Biler i brug",
-    carsInUseSubtitle: "I dag"
   }
 };
 
