@@ -27,6 +27,8 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     try {
       let fetchedAssignments: OptimizedAssignmentData[];
       
+      console.log('[useOptimizedAssignments] DEFINITIVE FIX - Fetching with filter:', filter, 'for user:', user?.name, 'role:', userRole);
+      
       if (filter === 'user' && userId) {
         fetchedAssignments = await OptimizedAssignmentService.fetchUserAssignments(userId);
       } else if (filter === 'all') {
@@ -39,9 +41,12 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         fetchedAssignments = await OptimizedAssignmentService.fetchAllAssignments(userRole);
       }
       
+      console.log('[useOptimizedAssignments] DEFINITIVE FIX - Fetched assignments:', fetchedAssignments.length);
+      
       setAssignments(fetchedAssignments);
       setError(null);
     } catch (err: any) {
+      console.error('[useOptimizedAssignments] DEFINITIVE FIX - Fetch error:', err);
       setError(err);
       toast({
         title: t('common.error'),
@@ -51,7 +56,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     } finally {
       setLoading(false);
     }
-  }, [filter, userId, userRole, t, toast]);
+  }, [filter, userId, userRole, t, toast, user?.name]);
 
   useEffect(() => {
     refetch();
@@ -216,26 +221,22 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       return null;
     }
 
-    console.log('[useOptimizedAssignments] FINAL FIX - Transforming assignments:', assignments.length);
+    console.log('[useOptimizedAssignments] DEFINITIVE FIX - Transforming assignments:', assignments.length);
 
     const transformed: Assignment[] = assignments.map(a => {
-      // FINAL FIX: Robust employee name transformation
+      // DEFINITIVE FIX: Preserve ALL employee names from the service
       const employeeNames = Array.isArray(a.employees) 
-        ? a.employees.map(emp => {
-            if (typeof emp === 'string') return emp;
-            if (typeof emp === 'object' && emp?.name) return emp.name;
-            return '';
-          }).filter(name => name !== '')
+        ? a.employees.map(emp => emp.name).filter(name => name && name.trim() !== '')
         : [];
       
       // Debug logging for Asbestkursus
       if (a.title.toLowerCase().includes('asbestkursus')) {
-        console.log(`[useOptimizedAssignments] FINAL FIX - 🎯 ASBESTKURSUS TRANSFORM:`, {
+        console.log(`[useOptimizedAssignments] DEFINITIVE FIX - 🎯 ASBESTKURSUS TRANSFORM:`, {
           title: a.title,
           date: a.assignment_date,
           rawEmployees: a.employees,
           transformedEmployees: employeeNames,
-          expectedNames: ['Mark Hansen', 'Julie Mortensen']
+          employeeCount: employeeNames.length
         });
       }
 
@@ -259,9 +260,12 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       };
     });
 
-    console.log('[useOptimizedAssignments] FINAL FIX - Transform complete:', {
+    console.log('[useOptimizedAssignments] DEFINITIVE FIX - Transform complete:', {
       totalTransformed: transformed.length,
-      asbestAssignments: transformed.filter(a => a.title.toLowerCase().includes('asbestkursus')).length
+      asbestAssignments: transformed.filter(a => a.title.toLowerCase().includes('asbestkursus')).length,
+      sampleAsbestEmployees: transformed
+        .filter(a => a.title.toLowerCase().includes('asbestkursus'))
+        .map(a => ({ title: a.title, employees: a.employees }))
     });
 
     setTransformedAssignments(transformed);
