@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
 import { AssignmentFilterService } from '@/services/assignmentFilterService';
@@ -236,24 +235,51 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       return null;
     }
 
-    const transformed: Assignment[] = assignments.map(a => ({
-      id: a.id,
-      title: a.title,
-      description: a.description,
-      date: a.assignment_date,
-      fromTime: a.from_time,
-      toTime: a.to_time,
-      location: a.location,
-      type: a.type,
-      published: a.published,
-      responsibleUserId: a.responsible_user_id || '',
-      employees: a.employees.map(emp => emp.name), // Convert to string array
-      car: a.cars && a.cars.length > 0 ? a.cars[0].id : null,
-      cars: a.cars?.map(car => car.id) || [], // Add cars array
-      createdAt: a.created_at,
-      updatedAt: a.updated_at,
-      responsibleUser: a.responsible_user
-    }));
+    console.log('[useOptimizedAssignments] DEFINITIVE FIX - Transforming assignments:', assignments.length);
+
+    const transformed: Assignment[] = assignments.map(a => {
+      // DEFINITIVE FIX: Properly transform employee objects to string array
+      const employeeNames = a.employees?.map(emp => emp.name) || [];
+      
+      // Special logging for Asbestkursus
+      if (a.title.toLowerCase().includes('asbestkursus')) {
+        console.log(`[useOptimizedAssignments] DEFINITIVE FIX - 🎯 ASBESTKURSUS TRANSFORM:`, {
+          title: a.title,
+          date: a.assignment_date,
+          rawEmployees: a.employees,
+          transformedEmployees: employeeNames,
+          shouldShow: 'Mark Hansen, Julie Mortensen'
+        });
+      }
+
+      return {
+        id: a.id,
+        title: a.title,
+        description: a.description,
+        date: a.assignment_date,
+        fromTime: a.from_time,
+        toTime: a.to_time,
+        location: a.location,
+        type: a.type,
+        published: a.published,
+        responsibleUserId: a.responsible_user_id || '',
+        employees: employeeNames, // DEFINITIVE FIX: Convert employee objects to string array
+        car: a.cars && a.cars.length > 0 ? a.cars[0].id : null,
+        cars: a.cars?.map(car => car.id) || [], // Add cars array
+        createdAt: a.created_at,
+        updatedAt: a.updated_at,
+        responsibleUser: a.responsible_user
+      };
+    });
+
+    console.log('[useOptimizedAssignments] DEFINITIVE FIX - Transform complete:', {
+      totalTransformed: transformed.length,
+      asbestAssignments: transformed.filter(a => a.title.toLowerCase().includes('asbestkursus')).length,
+      sampleEmployeeData: transformed.slice(0, 2).map(a => ({ 
+        title: a.title, 
+        employees: a.employees 
+      }))
+    });
 
     setTransformedAssignments(transformed);
   }, [assignments]);
