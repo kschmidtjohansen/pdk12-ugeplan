@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTranslation } from '../context/TranslationContext';
 import { usePlannerPage } from '../hooks/usePlannerPage';
@@ -45,7 +44,6 @@ const PlannerPage: React.FC = () => {
     handleCopyAssignment
   } = usePlannerPage();
 
-  // Sort weekAssignments by date (ascending - earliest first), then by time
   const sortedWeekAssignments = React.useMemo(() => {
     if (!weekAssignments) return [];
     return [...weekAssignments].sort((a, b) => {
@@ -88,7 +86,10 @@ const PlannerPage: React.FC = () => {
   const convertedOperationStates: Record<string, 'publishing' | 'deleting' | 'updating'> = {};
   Object.entries(operationStates).forEach(([key, value]) => {
     if (value === 'loading') {
-      convertedOperationStates[key] = 'publishing'; // Default to publishing for loading state
+      convertedOperationStates[key] = 'publishing'; // Map loading to publishing as default
+    } else if (value === 'success' || value === 'error' || value === 'idle') {
+      // Skip these states as they don't map to the expected operation types
+      return;
     }
   });
 

@@ -8,7 +8,6 @@ import { useTranslation } from '@/context/TranslationContext';
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
   
-  // FIXED: Use dedicated dashboard hook with proper week filtering
   const {
     assignments,
     allAssignments,
@@ -55,7 +54,6 @@ const Dashboard: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <PageHeader title={t('dashboard.title')} />
       <div className="space-y-6">
-        {/* FIXED: Pass proper week-filtered assignments */}
         <WeeklyAssignments 
           assignments={assignments}
           selectedWeek={selectedWeek}

@@ -224,12 +224,10 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     console.log('[useOptimizedAssignments] FINAL FIX - Transforming assignments:', assignments.length);
 
     const transformed: Assignment[] = assignments.map(a => {
-      // FINAL FIX: Preserve ALL employee names from the service
       const employeeNames = Array.isArray(a.employees) 
         ? a.employees.map(emp => emp.name).filter(name => name && name.trim() !== '')
         : [];
       
-      // Debug logging for Asbestkursus
       if (a.title.toLowerCase().includes('asbestkursus')) {
         console.log(`[useOptimizedAssignments] FINAL FIX - 🎯 ASBESTKURSUS TRANSFORM:`, {
           title: a.title,
