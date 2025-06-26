@@ -1,5 +1,3 @@
-
-
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -26,10 +24,11 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // CAR FIX: Use 'all' filter for both servicemedarbejder and admin users to ensure complete data visibility
-  const plannerFilter = 'all';
+  // SERVICEMEDARBEJDER FIX: Use 'published' filter for servicemedarbejder to see all tasks, 'all' for admin/skadeleder
+  const isAdminOrSkadeleder = user?.role === 'administrator' || user?.role === 'skadeleder';
+  const plannerFilter = isAdminOrSkadeleder ? 'all' : 'published';
   
-  console.log(`[usePlannerPage] CAR FIX - User: ${user?.name} (${user?.role}), Using filter: ${plannerFilter}`);
+  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - User: ${user?.name} (${user?.role}), Using filter: ${plannerFilter}`);
   
   const { 
     assignments, 
@@ -41,7 +40,6 @@ export const usePlannerPage = () => {
     publishAssignment: publishAssignmentFromHook
   } = useOptimizedAssignments(plannerFilter);
 
-  // EDIT FIX: Integrate useAssignmentActions for actual database operations
   const {
     createAssignment,
     updateAssignment,
@@ -51,9 +49,8 @@ export const usePlannerPage = () => {
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
 
-  console.log(`[usePlannerPage] CAR FIX - Received ${assignments.length} assignments for planner display`);
+  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Received ${assignments.length} assignments for planner display`);
   
-  // Always get a fresh today's date
   const getFreshToday = useCallback(() => {
     const now = new Date();
     return format(now, 'yyyy-MM-dd');
@@ -71,7 +68,6 @@ export const usePlannerPage = () => {
     employees: []
   });
 
-  // Update formData.date daily
   React.useEffect(() => {
     const today = getFreshToday();
     setFormData(prev => ({ ...prev, date: today }));
@@ -80,11 +76,11 @@ export const usePlannerPage = () => {
 
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // FINAL FIX: Filter assignments by week with proper role-based filtering
+  // SERVICEMEDARBEJDER FIX: Filter assignments by week with role-based filtering
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
 
-  console.log(`[usePlannerPage] CAR FIX - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
-  console.log(`[usePlannerPage] CAR FIX - Sample assignments:`, weekAssignments.slice(0, 3).map(a => ({
+  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
+  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Sample assignments:`, weekAssignments.slice(0, 3).map(a => ({
     title: a.title,
     employees: a.employees,
     cars: a.cars,
@@ -130,7 +126,7 @@ export const usePlannerPage = () => {
         location: '',
         car: '',
         employees: [],
-        published: false // New assignments start as unpublished
+        published: false
       });
       setIsDialogOpen(true);
     },
@@ -147,21 +143,19 @@ export const usePlannerPage = () => {
         ...assignment,
         employees: Array.isArray(assignment.employees) ? [...assignment.employees] : [],
         car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : '',
-        published: assignment.published // PUBLISHED FIX: Explicitly preserve published status
+        published: assignment.published
       });
       setIsDialogOpen(true);
     },
-    // EDIT FIX: Replace logging with actual database operations
     handleSubmit: async (data: Partial<Assignment>) => {
       console.log('[usePlannerPage] EDIT FIX - Form submission data:', data);
       console.log('[usePlannerPage] EDIT FIX - Current assignment:', currentAssignment?.id);
       
       try {
         if (currentAssignment?.id) {
-          // PUBLISHED FIX: When updating, preserve the original published status
           const updateData = {
             ...data,
-            published: currentAssignment.published // Explicitly preserve published status
+            published: currentAssignment.published
           };
           
           console.log('[usePlannerPage] PUBLISHED FIX - Updating assignment with preserved published status:', {
@@ -172,16 +166,13 @@ export const usePlannerPage = () => {
           
           await updateAssignment(currentAssignment.id, updateData);
         } else {
-          // Create new assignment (published status comes from form data)
           console.log('[usePlannerPage] EDIT FIX - Creating new assignment');
           await createAssignment(data);
         }
         
-        // Dialog will be closed by the useAssignmentActions hook
         console.log('[usePlannerPage] EDIT FIX - Operation completed successfully');
       } catch (error) {
         console.error('[usePlannerPage] EDIT FIX - Operation failed:', error);
-        // Error handling is done in useAssignmentActions
       }
     },
     handlePublishDay: (date: string) => {
@@ -193,12 +184,10 @@ export const usePlannerPage = () => {
         description: 'Publish all unpublished functionality not yet implemented'
       });
     },
-    // EDIT FIX: Connect actual delete functionality
     deleteAssignment: async (id: string) => {
       console.log('[usePlannerPage] EDIT FIX - Deleting assignment:', id);
       await deleteAssignmentAction(id);
     },
-    // EDIT FIX: Connect actual publish functionality
     publishAssignment: async (id: string) => {
       console.log('[usePlannerPage] EDIT FIX - Publishing assignment:', id);
       await publishAssignmentFromHook(id);
@@ -219,4 +208,3 @@ export const usePlannerPage = () => {
     }
   };
 };
-

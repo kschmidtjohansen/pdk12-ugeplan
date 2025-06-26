@@ -27,26 +27,23 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   const [availabilityDialogOpen, setAvailabilityDialogOpen] = useState(false);
   const [unavailableDialogOpen, setUnavailableDialogOpen] = useState(false);
 
-  // FIXED: CRITICAL FIX - Show metrics to ALL users
-  console.log('[DashboardMetrics] CRITICAL FIX - Showing metrics to ALL users, not just admin/skadeleder');
+  console.log('[DashboardMetrics] METRICS FIX - Showing metrics to ALL users');
 
-  // Use selectedDate prop or default to today
   const targetDate = selectedDate || format(new Date(), 'yyyy-MM-dd');
   const targetDateObj = new Date(targetDate + 'T12:00:00');
 
-  console.log(`[DashboardMetrics] === CALCULATING AVAILABILITY FOR DATE: ${targetDate} ===`);
+  console.log(`[DashboardMetrics] METRICS FIX - Calculating metrics for date: ${targetDate}`);
   console.log(`[DashboardMetrics] Total employees: ${employees.length}`);
   console.log(`[DashboardMetrics] Total assignments: ${assignments.length}`);
   console.log(`[DashboardMetrics] Total vacations: ${vacations.length}`);
 
-  // FIXED: CRITICAL FIX - Include ALL employees for ALL users to see team availability
   const allEmployees = employees;
 
-  console.log(`[DashboardMetrics] CRITICAL FIX - All employees visible to all users: ${allEmployees.length}`);
+  console.log(`[DashboardMetrics] METRICS FIX - All employees visible: ${allEmployees.length}`);
 
-  // Calculate available employees (including partially available) with detailed logging
+  // METRICS FIX: Available employees (available OR partially booked)
   const availableEmployees = allEmployees.filter(employee => {
-    console.log(`[DashboardMetrics] === Checking availability for ${employee.name} ===`);
+    console.log(`[DashboardMetrics] METRICS FIX - Checking availability for ${employee.name}`);
     
     const availabilityInfo = getEmployeeAvailabilityStatus(
       employee,
@@ -57,14 +54,14 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
     );
     
     const isAvailable = availabilityInfo.status === 'available' || availabilityInfo.status === 'partiallyBooked';
-    console.log(`[DashboardMetrics] Employee ${employee.name}: status=${availabilityInfo.status}, available=${isAvailable}, statusText="${availabilityInfo.statusText}"`);
+    console.log(`[DashboardMetrics] METRICS FIX - Employee ${employee.name}: status=${availabilityInfo.status}, available=${isAvailable}`);
     
     return isAvailable;
   });
 
-  // Calculate unavailable employees (fully booked, on leave, on vacation) with detailed logging
+  // METRICS FIX: Unavailable employees (fully booked, on leave, on vacation, OR partial vacation)
   const unavailableEmployees = allEmployees.filter(employee => {
-    console.log(`[DashboardMetrics] === Checking unavailability for ${employee.name} ===`);
+    console.log(`[DashboardMetrics] METRICS FIX - Checking unavailability for ${employee.name}`);
     
     const availabilityInfo = getEmployeeAvailabilityStatus(
       employee,
@@ -76,47 +73,65 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
     
     const isUnavailable = availabilityInfo.status === 'fullyBooked' || 
                          availabilityInfo.status === 'onLeave' || 
-                         availabilityInfo.status === 'onVacation';
+                         availabilityInfo.status === 'onVacation' ||
+                         availabilityInfo.status === 'partialVacation';
     
-    console.log(`[DashboardMetrics] Employee ${employee.name}: status=${availabilityInfo.status}, unavailable=${isUnavailable}, statusText="${availabilityInfo.statusText}"`);
+    console.log(`[DashboardMetrics] METRICS FIX - Employee ${employee.name}: status=${availabilityInfo.status}, unavailable=${isUnavailable}`);
     
     return isUnavailable;
   });
 
-  console.log(`[DashboardMetrics] === FINAL RESULTS ===`);
-  console.log(`[DashboardMetrics] Available employees: ${availableEmployees.length}`);
-  availableEmployees.forEach(emp => console.log(`  - ${emp.name}`));
-  console.log(`[DashboardMetrics] Unavailable employees: ${unavailableEmployees.length}`);
-  unavailableEmployees.forEach(emp => console.log(`  - ${emp.name}`));
+  console.log(`[DashboardMetrics] METRICS FIX - Available employees: ${availableEmployees.length}`);
+  availableEmployees.forEach(emp => console.log(`  - ${emp.name} (available/partial)`));
+  console.log(`[DashboardMetrics] METRICS FIX - Unavailable employees: ${unavailableEmployees.length}`);
+  unavailableEmployees.forEach(emp => console.log(`  - ${emp.name} (booked/leave/vacation)`));
 
-  // Calculate cars in use on target date
-  const carsInUseOnDate = assignments
-    .filter(a => a.date === targetDate && a.car)
-    .reduce((uniqueCars, assignment) => {
-      const carId = typeof assignment.car === 'string' ? assignment.car : assignment.car?.id;
-      if (carId && !uniqueCars.includes(carId)) {
-        uniqueCars.push(carId);
+  // METRICS FIX: Car calculations based on actual assignment usage
+  const carsInUseOnDate = new Set<string>();
+  assignments
+    .filter(a => a.date === targetDate)
+    .forEach(assignment => {
+      // Handle both single car and multiple cars
+      if (assignment.car) {
+        const carId = typeof assignment.car === 'string' ? assignment.car : assignment.car.id;
+        if (carId) {
+          carsInUseOnDate.add(carId);
+        }
       }
-      return uniqueCars;
-    }, [] as string[]).length;
+      if (assignment.cars && Array.isArray(assignment.cars)) {
+        assignment.cars.forEach(carId => {
+          if (carId) {
+            carsInUseOnDate.add(carId);
+          }
+        });
+      }
+    });
 
-  const availableCars = cars.filter(car => car.is_available).length;
+  // METRICS FIX: Available cars = NOT in use today AND marked as available
+  const availableCars = cars.filter(car => 
+    car.is_available && !carsInUseOnDate.has(car.id)
+  ).length;
 
-  // Add logging before dialog opens
+  // METRICS FIX: Cars in use = assigned to tasks today OR marked as unavailable
+  const carsInUse = cars.filter(car => 
+    carsInUseOnDate.has(car.id) || !car.is_available
+  ).length;
+
+  console.log(`[DashboardMetrics] METRICS FIX - Car calculations:`, {
+    totalCars: cars.length,
+    carsInUseFromAssignments: carsInUseOnDate.size,
+    availableCars: availableCars,
+    carsInUse: carsInUse,
+    carsInUseToday: Array.from(carsInUseOnDate)
+  });
+
   const handleAvailabilityDialogOpen = () => {
-    console.log(`[DashboardMetrics] === OPENING AVAILABILITY DIALOG ===`);
-    console.log(`[DashboardMetrics] Passing ${availableEmployees.length} available employees to dialog:`);
-    availableEmployees.forEach(emp => console.log(`  - ${emp.name} (${emp.id})`));
-    console.log(`[DashboardMetrics] Target date: ${targetDate}`);
-    console.log(`[DashboardMetrics] Assignments being passed: ${assignments.length}`);
-    console.log(`[DashboardMetrics] Vacations being passed: ${vacations.length}`);
+    console.log(`[DashboardMetrics] METRICS FIX - Opening availability dialog with ${availableEmployees.length} employees`);
     setAvailabilityDialogOpen(true);
   };
 
   const handleUnavailableDialogOpen = () => {
-    console.log(`[DashboardMetrics] === OPENING UNAVAILABLE DIALOG ===`);
-    console.log(`[DashboardMetrics] Passing ${unavailableEmployees.length} unavailable employees to dialog:`);
-    unavailableEmployees.forEach(emp => console.log(`  - ${emp.name} (${emp.id})`));
+    console.log(`[DashboardMetrics] METRICS FIX - Opening unavailable dialog with ${unavailableEmployees.length} employees`);
     setUnavailableDialogOpen(true);
   };
 
@@ -151,7 +166,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
         
         <MetricCard
           title={t('dashboard.metrics.carsInUse')}
-          value={carsInUseOnDate}
+          value={carsInUse}
           subtitle={t('dashboard.metrics.carsInUseSubtitle')}
           icon={Car}
           color="orange"
