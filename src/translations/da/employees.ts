@@ -22,6 +22,7 @@ const employees = {
   onLeave: 'På orlov',
   onVacation: 'På ferie',
   availableAfter: 'Ledig efter {time}',
+  fullyBooked: 'Fuldt booket',
   
   // Actions
   add: 'Tilføj medarbejder',
@@ -36,6 +37,8 @@ const employees = {
   emailAddress: 'Email adresse',
   phoneNumber: 'Telefonnummer',
   selectRole: 'Vælg rolle',
+  selectEmployees: 'Vælg medarbejdere',
+  selected: 'valgte medarbejdere',
   
   // Contact information
   contact: 'Kontaktinformationer',
@@ -45,6 +48,7 @@ const employees = {
   employeeUpdated: 'Medarbejder opdateret',
   employeeDeleted: 'Medarbejder slettet',
   statusUpdated: 'Status opdateret',
+  autoRemovedUnavailable: 'Automatisk fjernet utilgængelige medarbejdere',
   
   // Error messages
   addError: 'Fejl ved tilføjelse af medarbejder',

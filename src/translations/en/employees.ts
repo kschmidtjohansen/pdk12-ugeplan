@@ -22,6 +22,7 @@ const employees = {
   onLeave: 'On Leave',
   onVacation: 'On Vacation',
   availableAfter: 'Available after {time}',
+  fullyBooked: 'Fully Booked',
   
   // Actions
   add: 'Add Employee',
@@ -36,6 +37,8 @@ const employees = {
   emailAddress: 'Email Address',
   phoneNumber: 'Phone Number',
   selectRole: 'Select Role',
+  selectEmployees: 'Select Employees',
+  selected: 'selected employees',
   
   // Contact information
   contact: 'Contact Information',
@@ -45,6 +48,7 @@ const employees = {
   employeeUpdated: 'Employee updated',
   employeeDeleted: 'Employee deleted',
   statusUpdated: 'Status updated',
+  autoRemovedUnavailable: 'Automatically removed unavailable employees',
   
   // Error messages
   addError: 'Error adding employee',

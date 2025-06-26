@@ -1,4 +1,3 @@
-
 const planner = {
   title: 'Planner',
   description: 'Plan and manage work assignments',
@@ -20,17 +19,24 @@ const planner = {
   
   // Form fields
   assignmentTitle: 'Case Number',
+  enterTitle: 'Case Number',
   assignmentDescription: 'Description',
   date: 'Date',
+  assignmentDate: 'Date',
   time: 'Time',
   fromTime: 'From Time',
+  startTime: 'Start Time',
   toTime: 'To Time',
+  endTime: 'End Time',
   location: 'Location',
+  enterLocation: 'Location',
   employees: 'Employees',
   cars: 'Cars',
   selectEmployee: 'Select Employee',
   selectCar: 'Select Car',
   onVacation: 'On Vacation',
+  responsibleUser: 'Responsible User',
+  notesPlaceholder: 'Add notes or description...',
   
   // Status and actions
   published: 'Published',

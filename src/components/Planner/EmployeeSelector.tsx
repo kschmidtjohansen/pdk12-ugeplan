@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
@@ -91,6 +90,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     if (selectedEmployees.length === 1) {
       return selectedEmployees[0];
     }
+    // Updated to use the new translation key
     return `${selectedEmployees.length} ${t('employees.selected')}`;
   };
 

@@ -1,4 +1,3 @@
-
 const planner = {
   title: 'Planlægger',
   description: 'Planlæg og administrer arbejdsopgaver',
@@ -20,17 +19,24 @@ const planner = {
   
   // Form fields
   assignmentTitle: 'Sagsnummer',
+  enterTitle: 'Sagsnummer',
   assignmentDescription: 'Beskrivelse',
   date: 'Dato',
+  assignmentDate: 'Dato',
   time: 'Tid',
   fromTime: 'Fra tid',
+  startTime: 'Tid fra',
   toTime: 'Til tid',
+  endTime: 'Tid til',
   location: 'Lokation',
+  enterLocation: 'Lokation',
   employees: 'Medarbejdere',
   cars: 'Biler',
   selectEmployee: 'Vælg medarbejder',
   selectCar: 'Vælg bil',
   onVacation: 'På ferie',
+  responsibleUser: 'Sagsansvarlig',
+  notesPlaceholder: 'Tilføj noter eller beskrivelse...',
   
   // Status and actions
   published: 'Publiceret',

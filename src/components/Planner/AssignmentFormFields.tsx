@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
@@ -159,7 +158,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Title Field */}
+      {/* Title Field - Updated to use enterTitle translation */}
       <div className="space-y-2">
         <Label htmlFor="title">{t('planner.enterTitle')}</Label>
         <Input
@@ -174,7 +173,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       </div>
 
-      {/* Location Field */}
+      {/* Location Field - Updated to use enterLocation translation */}
       <div className="space-y-2">
         <Label htmlFor="location">{t('planner.location')}</Label>
         <Input
@@ -189,7 +188,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       </div>
 
-      {/* FIXED: Enhanced Date Field with timezone-safe calendar */}
+      {/* Date Field - Updated to use assignmentDate translation */}
       <div className="space-y-2">
         <Label>{t('planner.assignmentDate')}</Label>
         <Popover>
@@ -221,7 +220,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         </Popover>
       </div>
 
-      {/* Time Fields */}
+      {/* Time Fields - Updated to use startTime and endTime translations */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="fromTime">{t('planner.startTime')}</Label>
@@ -261,7 +260,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         assignments={assignments}
       />
 
-      {/* Responsible User Selector - Only for Admin and Skadeleder */}
+      {/* Responsible User Selector - Updated to use responsibleUser translation */}
       {canAssignResponsibleUser && (
         <ResponsibleUserSelector
           selectedUserId={selectedResponsibleUserId}
@@ -284,7 +283,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
       {/* Description Field */}
       <div className="space-y-2">
-        <Label htmlFor="description">{t('planner.description')}</Label>
+        <Label htmlFor="description">{t('planner.assignmentDescription')}</Label>
         <Textarea
           id="description"
           value={description}

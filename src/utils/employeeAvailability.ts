@@ -97,6 +97,21 @@ const normalizeTime = (time: string): string => {
   return time.trim();
 };
 
+// Helper function to determine workday end time based on day of week
+const getWorkdayEndTime = (selectedDate: Date): string => {
+  const dayOfWeek = selectedDate.getDay(); // 0=Sunday, 1=Monday, ..., 5=Friday
+  
+  // Friday (5) ends at 15:30, Monday-Thursday (1-4) end at 16:00
+  if (dayOfWeek === 5) {
+    return "15:30";
+  } else if (dayOfWeek >= 1 && dayOfWeek <= 4) {
+    return "16:00";
+  }
+  
+  // Default to 16:00 for other days (though work days are typically Mon-Fri)
+  return "16:00";
+};
+
 export const getEmployeeAvailabilityStatus = (
   employee: Employee,
   selectedDate: Date,
@@ -184,9 +199,9 @@ export const getEmployeeAvailabilityStatus = (
     };
   }
 
-  // Check if employee ends at exactly workday end time (16:00 or 15:30 on Friday)
-  const dayOfWeek = selectedDate.getDay(); // 0=Sunday, 5=Friday
-  const workdayEndTime = dayOfWeek === 5 ? "15:30" : "16:00";
+  // UPDATED: Get the correct workday end time based on the day of the week
+  const workdayEndTime = getWorkdayEndTime(selectedDate);
+  console.log(`[getEmployeeAvailabilityStatus] Workday end time for ${dateStr}: ${workdayEndTime}`);
   
   const hasEndTimeAtWorkdayEnd = employeeAssignments.some(assignment => {
     const normalizedEndTime = normalizeTime(assignment.toTime);
