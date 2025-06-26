@@ -5,7 +5,7 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
 import { useTranslation } from '@/context/TranslationContext';
-import { usePermissions } from '@/context/AuthContext';
+import { usePermissions, useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import MetricCard from './MetricCard';
@@ -19,6 +19,7 @@ interface DashboardMetricsProps {
 
 const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assignments }) => {
   const { isAdmin, isSkadeleder } = usePermissions();
+  const { user } = useAuth();
   const { t } = useTranslation();
   const { employees } = useEmployees();
   const { cars } = useCars();
@@ -27,24 +28,31 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   const [availabilityDialogOpen, setAvailabilityDialogOpen] = useState(false);
   const [unavailableDialogOpen, setUnavailableDialogOpen] = useState(false);
 
-  console.log('[DashboardMetrics] METRICS FIX - Showing metrics to ALL users');
+  console.log('[DashboardMetrics] SERVICEMEDARBEJDER FIX - User role check:', {
+    userRole: user?.role,
+    isAdmin,
+    isSkadeleder,
+    shouldShowMetrics: isAdmin || isSkadeleder
+  });
+
+  // SERVICEMEDARBEJDER FIX: Only show metrics for admin and skadeleder
+  if (!isAdmin && !isSkadeleder) {
+    console.log('[DashboardMetrics] SERVICEMEDARBEJDER FIX - Hiding metrics for servicemedarbejder user');
+    return null;
+  }
 
   const targetDate = selectedDate || format(new Date(), 'yyyy-MM-dd');
   const targetDateObj = new Date(targetDate + 'T12:00:00');
 
-  console.log(`[DashboardMetrics] METRICS FIX - Calculating metrics for date: ${targetDate}`);
+  console.log(`[DashboardMetrics] ADMIN/SKADELEDER - Calculating metrics for date: ${targetDate}`);
   console.log(`[DashboardMetrics] Total employees: ${employees.length}`);
   console.log(`[DashboardMetrics] Total assignments: ${assignments.length}`);
   console.log(`[DashboardMetrics] Total vacations: ${vacations.length}`);
 
   const allEmployees = employees;
 
-  console.log(`[DashboardMetrics] METRICS FIX - All employees visible: ${allEmployees.length}`);
-
-  // METRICS FIX: Available employees (available OR partially booked)
+  // Available employees (available OR partially booked)
   const availableEmployees = allEmployees.filter(employee => {
-    console.log(`[DashboardMetrics] METRICS FIX - Checking availability for ${employee.name}`);
-    
     const availabilityInfo = getEmployeeAvailabilityStatus(
       employee,
       targetDateObj,
@@ -54,15 +62,11 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
     );
     
     const isAvailable = availabilityInfo.status === 'available' || availabilityInfo.status === 'partiallyBooked';
-    console.log(`[DashboardMetrics] METRICS FIX - Employee ${employee.name}: status=${availabilityInfo.status}, available=${isAvailable}`);
-    
     return isAvailable;
   });
 
   // METRICS FIX: Unavailable employees (fully booked, on leave, on vacation, OR partial vacation)
   const unavailableEmployees = allEmployees.filter(employee => {
-    console.log(`[DashboardMetrics] METRICS FIX - Checking unavailability for ${employee.name}`);
-    
     const availabilityInfo = getEmployeeAvailabilityStatus(
       employee,
       targetDateObj,
@@ -76,15 +80,11 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
                          availabilityInfo.status === 'onVacation' ||
                          availabilityInfo.status === 'partialVacation';
     
-    console.log(`[DashboardMetrics] METRICS FIX - Employee ${employee.name}: status=${availabilityInfo.status}, unavailable=${isUnavailable}`);
-    
     return isUnavailable;
   });
 
-  console.log(`[DashboardMetrics] METRICS FIX - Available employees: ${availableEmployees.length}`);
-  availableEmployees.forEach(emp => console.log(`  - ${emp.name} (available/partial)`));
-  console.log(`[DashboardMetrics] METRICS FIX - Unavailable employees: ${unavailableEmployees.length}`);
-  unavailableEmployees.forEach(emp => console.log(`  - ${emp.name} (booked/leave/vacation)`));
+  console.log(`[DashboardMetrics] ADMIN/SKADELEDER - Available employees: ${availableEmployees.length}`);
+  console.log(`[DashboardMetrics] ADMIN/SKADELEDER - Unavailable employees: ${unavailableEmployees.length}`);
 
   // METRICS FIX: Car calculations based on actual assignment usage
   const carsInUseOnDate = new Set<string>();
@@ -117,7 +117,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
     carsInUseOnDate.has(car.id) || !car.is_available
   ).length;
 
-  console.log(`[DashboardMetrics] METRICS FIX - Car calculations:`, {
+  console.log(`[DashboardMetrics] ADMIN/SKADELEDER - Car calculations:`, {
     totalCars: cars.length,
     carsInUseFromAssignments: carsInUseOnDate.size,
     availableCars: availableCars,
@@ -126,12 +126,10 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   });
 
   const handleAvailabilityDialogOpen = () => {
-    console.log(`[DashboardMetrics] METRICS FIX - Opening availability dialog with ${availableEmployees.length} employees`);
     setAvailabilityDialogOpen(true);
   };
 
   const handleUnavailableDialogOpen = () => {
-    console.log(`[DashboardMetrics] METRICS FIX - Opening unavailable dialog with ${unavailableEmployees.length} employees`);
     setUnavailableDialogOpen(true);
   };
 

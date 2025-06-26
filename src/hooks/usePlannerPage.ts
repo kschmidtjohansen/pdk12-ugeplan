@@ -24,11 +24,15 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // SERVICEMEDARBEJDER FIX: Use 'published' filter for servicemedarbejder to see all tasks, 'all' for admin/skadeleder
+  // SERVICEMEDARBEJDER FIX: Improved role-based filtering
   const isAdminOrSkadeleder = user?.role === 'administrator' || user?.role === 'skadeleder';
+  const isServicemedarbejder = user?.role === 'servicemedarbejder';
+  
+  // SERVICEMEDARBEJDER FIX: Use 'published' for servicemedarbejder to see ALL published tasks
   const plannerFilter = isAdminOrSkadeleder ? 'all' : 'published';
   
-  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - User: ${user?.name} (${user?.role}), Using filter: ${plannerFilter}`);
+  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - User: ${user?.name} (${user?.role})`);
+  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Using filter: ${plannerFilter} (admin/skadeleder: ${isAdminOrSkadeleder}, servicemedarbejder: ${isServicemedarbejder})`);
   
   const { 
     assignments, 
@@ -50,6 +54,18 @@ export const usePlannerPage = () => {
   const { filterByWeek } = useAssignmentFilters();
 
   console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Received ${assignments.length} assignments for planner display`);
+  
+  // SERVICEMEDARBEJDER FIX: Log sample assignments to verify access
+  if (assignments.length > 0) {
+    console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Sample assignments:`, assignments.slice(0, 3).map(a => ({
+      title: a.title,
+      employees: a.employees,
+      cars: a.cars,
+      date: a.date,
+      published: a.published,
+      userCanSee: isAdminOrSkadeleder || a.published
+    })));
+  }
   
   const getFreshToday = useCallback(() => {
     const now = new Date();
@@ -76,17 +92,10 @@ export const usePlannerPage = () => {
 
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // SERVICEMEDARBEJDER FIX: Filter assignments by week with role-based filtering
+  // SERVICEMEDARBEJDER FIX: Filter assignments by week
   const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
 
   console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
-  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Sample assignments:`, weekAssignments.slice(0, 3).map(a => ({
-    title: a.title,
-    employees: a.employees,
-    cars: a.cars,
-    date: a.date,
-    published: a.published
-  })));
 
   return {
     selectedWeek,
