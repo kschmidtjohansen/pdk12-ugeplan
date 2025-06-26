@@ -1,7 +1,9 @@
+
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
 import { useOptimizedAssignments } from './useOptimizedAssignments';
+import { useAssignmentActions } from './assignment/useAssignmentActions';
 import { 
   getWeekDates, 
   getCurrentWeekInfo, 
@@ -33,8 +35,17 @@ export const usePlannerPage = () => {
     loading,
     error,
     operationStates,
-    refetch
+    refetch,
+    deleteAssignment: deleteAssignmentFromHook,
+    publishAssignment: publishAssignmentFromHook
   } = useOptimizedAssignments(plannerFilter);
+
+  // EDIT FIX: Integrate useAssignmentActions for actual database operations
+  const {
+    createAssignment,
+    updateAssignment,
+    deleteAssignment: deleteAssignmentAction
+  } = useAssignmentActions(refetch, setIsDialogOpen);
 
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
@@ -131,9 +142,28 @@ export const usePlannerPage = () => {
       });
       setIsDialogOpen(true);
     },
+    // EDIT FIX: Replace logging with actual database operations
     handleSubmit: async (data: Partial<Assignment>) => {
-      console.log('[usePlannerPage] Form submission - data:', data);
-      setIsDialogOpen(false);
+      console.log('[usePlannerPage] EDIT FIX - Form submission data:', data);
+      console.log('[usePlannerPage] EDIT FIX - Current assignment:', currentAssignment?.id);
+      
+      try {
+        if (currentAssignment?.id) {
+          // Update existing assignment
+          console.log('[usePlannerPage] EDIT FIX - Updating assignment:', currentAssignment.id);
+          await updateAssignment(currentAssignment.id, data);
+        } else {
+          // Create new assignment
+          console.log('[usePlannerPage] EDIT FIX - Creating new assignment');
+          await createAssignment(data);
+        }
+        
+        // Dialog will be closed by the useAssignmentActions hook
+        console.log('[usePlannerPage] EDIT FIX - Operation completed successfully');
+      } catch (error) {
+        console.error('[usePlannerPage] EDIT FIX - Operation failed:', error);
+        // Error handling is done in useAssignmentActions
+      }
     },
     handlePublishDay: (date: string) => {
       console.log('[usePlannerPage] Publishing day:', date);
@@ -144,8 +174,16 @@ export const usePlannerPage = () => {
         description: 'Publish all unpublished functionality not yet implemented'
       });
     },
-    deleteAssignment: () => {},
-    publishAssignment: () => {},
+    // EDIT FIX: Connect actual delete functionality
+    deleteAssignment: async (id: string) => {
+      console.log('[usePlannerPage] EDIT FIX - Deleting assignment:', id);
+      await deleteAssignmentAction(id);
+    },
+    // EDIT FIX: Connect actual publish functionality
+    publishAssignment: async (id: string) => {
+      console.log('[usePlannerPage] EDIT FIX - Publishing assignment:', id);
+      await publishAssignmentFromHook(id);
+    },
     handleCopyAssignment: (assignment: Assignment) => {
       setCurrentAssignment(null);
       const freshTodayDate = getFreshToday();
