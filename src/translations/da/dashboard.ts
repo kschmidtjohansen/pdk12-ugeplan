@@ -12,7 +12,8 @@ const dashboard = {
   totalCars: '{count} biler i alt',
   todaysDate: '{date}',
   viewAll: 'Se alle',
-  myAssignments: 'Mine opgaver for uge {week}',
+  myAssignments: 'Mine opgaver',
+  week: 'Uge',
   noAssignments: 'Ingen opgaver planlagt',
   noAssignmentsScheduled: 'Ingen opgaver planlagt for denne uge',
   connectionIssueDetected: 'Forbindelsesproblem opdaget',
@@ -21,7 +22,7 @@ const dashboard = {
   // Metrics
   metrics: {
     availableEmployees: 'Tilgængelige medarbejdere',
-    unavailableEmployees: 'Ikke-tilgængelige medarbejdere',
+    unavailableEmployees: 'Fuldt booket, på ferie eller fraværende',
     unavailableSubtitle: 'På orlov eller ferie',
     availableCars: 'Tilgængelige biler',
     carsInUse: 'Biler i brug',

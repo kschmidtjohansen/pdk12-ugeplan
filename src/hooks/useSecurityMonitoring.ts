@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { logSecurityEvent, logUnauthorizedAccess } from '@/utils/securityLogger';
 
@@ -12,12 +13,13 @@ interface SecurityConfig {
 const defaultConfig: SecurityConfig = {
   enableThreatDetection: true,
   sessionTimeoutMinutes: 30,
-  maxIdleTimeMinutes: 15,
+  maxIdleTimeMinutes: 5, // Changed from 15 to 5 minutes
   enableActivityLogging: true
 };
 
 export const useSecurityMonitoring = (config: Partial<SecurityConfig> = {}) => {
   const { user, isAuthenticated, logout } = useAuth();
+  const location = useLocation();
   const finalConfig = { ...defaultConfig, ...config };
   
   const lastActivityRef = useRef<number>(Date.now());
@@ -36,10 +38,22 @@ export const useSecurityMonitoring = (config: Partial<SecurityConfig> = {}) => {
     lastMouseMoveTime: 0
   });
 
+  // Determine if current route should have extended session timeout
+  const isScreenDisplayRoute = location.pathname === '/screen-display';
+  const shouldExtendSession = isScreenDisplayRoute;
+  
+  // Use different idle time based on route
+  const effectiveIdleTime = shouldExtendSession ? 60 : finalConfig.maxIdleTimeMinutes; // 60 minutes for screen display, 5 minutes for others
+
   // Track user activity for session management
   const updateActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
-  }, []);
+    
+    // Log activity update for debugging
+    if (shouldExtendSession) {
+      console.log('[Security] Activity updated on screen display route - extended session active');
+    }
+  }, [shouldExtendSession]);
 
   // Improved suspicious activity detection with better thresholds
   const detectSuspiciousActivity = useCallback((activityType: string, details: any = {}) => {
@@ -161,20 +175,32 @@ export const useSecurityMonitoring = (config: Partial<SecurityConfig> = {}) => {
     return true;
   }, [user, isAuthenticated]);
 
-  // Session timeout monitoring
+  // Route-aware session timeout monitoring
   useEffect(() => {
     if (!isAuthenticated || !finalConfig.enableActivityLogging) return;
 
     const checkSessionTimeout = () => {
       const now = Date.now();
       const idleTime = now - lastActivityRef.current;
-      const maxIdleTime = finalConfig.maxIdleTimeMinutes * 60 * 1000;
+      const maxIdleTime = effectiveIdleTime * 60 * 1000;
+
+      console.log(`[Security] Route: ${location.pathname}, Idle time: ${Math.round(idleTime / 60000)}min, Max: ${effectiveIdleTime}min, Extended: ${shouldExtendSession}`);
+
+      // Skip logout on screen display route to keep it active
+      if (shouldExtendSession) {
+        console.log('[Security] Screen display route - skipping auto-logout');
+        return;
+      }
 
       if (idleTime > maxIdleTime) {
         logSecurityEvent(
           'auth_attempt',
           'Session expired due to inactivity',
-          { idleTimeMinutes: Math.round(idleTime / 60000) },
+          { 
+            idleTimeMinutes: Math.round(idleTime / 60000),
+            route: location.pathname,
+            wasExtendedSession: shouldExtendSession
+          },
           'info'
         );
         logout();
@@ -190,7 +216,7 @@ export const useSecurityMonitoring = (config: Partial<SecurityConfig> = {}) => {
         clearInterval(securityTimerRef.current);
       }
     };
-  }, [isAuthenticated, finalConfig, logout]);
+  }, [isAuthenticated, finalConfig, logout, effectiveIdleTime, shouldExtendSession, location.pathname]);
 
   // Improved activity listeners with better filtering
   useEffect(() => {
@@ -246,6 +272,8 @@ export const useSecurityMonitoring = (config: Partial<SecurityConfig> = {}) => {
     checkUnauthorizedAccess,
     detectSuspiciousActivity,
     updateActivity,
-    lastActivity: lastActivityRef.current
+    lastActivity: lastActivityRef.current,
+    isExtendedSession: shouldExtendSession,
+    effectiveIdleTimeMinutes: effectiveIdleTime
   };
 };

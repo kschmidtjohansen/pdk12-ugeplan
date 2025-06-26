@@ -40,6 +40,12 @@ const planner = {
   unpublish: 'Afpublicer',
   duplicate: 'Duplikér',
   
+  // New keys for unassigned resources
+  unassignedResources: 'Ubrugte ressourcer',
+  showOnScreen: 'Vis på skærm',
+  unassignedCars: 'Ikke brugte biler',
+  showMore: 'Vis mere',
+  
   // Error messages
   fetchError: 'Fejl ved indlæsning af opgaver',
   createError: 'Fejl ved oprettelse af opgave',

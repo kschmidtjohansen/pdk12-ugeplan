@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Users, Car, Clock, ArrowRight, UserCheck } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
+import { useCars } from '@/hooks/car';
 import { Assignment } from '@/types/assignment';
 import WeekNavigation from './WeekNavigation';
 import AssignmentDetailsDialog from './AssignmentDetailsDialog';
@@ -23,12 +24,40 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
   onNextWeek
 }) => {
   const { t, currentLanguage } = useTranslation();
+  const { cars } = useCars();
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
 
   const handleAssignmentClick = (assignment: Assignment) => {
     setSelectedAssignment(assignment);
     setIsAssignmentDialogOpen(true);
+  };
+
+  // Function to get car names from assignment
+  const getCarNames = (assignment: Assignment): string[] => {
+    const carNames: string[] = [];
+    
+    if (assignment.cars && Array.isArray(assignment.cars) && assignment.cars.length > 0) {
+      // New format: multiple cars array with IDs
+      assignment.cars.forEach(carId => {
+        const car = cars.find(c => c.id === carId);
+        if (car) {
+          carNames.push(car.name);
+        }
+      });
+    } else if (assignment.car) {
+      // Old format: single car
+      if (typeof assignment.car === 'string') {
+        const car = cars.find(c => c.id === assignment.car);
+        if (car) {
+          carNames.push(car.name);
+        }
+      } else if (typeof assignment.car === 'object' && assignment.car.name) {
+        carNames.push(assignment.car.name);
+      }
+    }
+    
+    return carNames;
   };
 
   const sortedAssignments = useMemo(() => {
@@ -58,10 +87,11 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
     });
   }, [assignments]);
 
-  console.log('[WeeklyAssignments] SIMPLIFIED - Rendering assignments with ALL employee names:');
+  console.log('[WeeklyAssignments] FIXED - Rendering assignments with proper car names:');
   sortedAssignments.forEach(assignment => {
     const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
-    console.log(`[WeeklyAssignments] SIMPLIFIED - Assignment "${assignment.title}": ${employeeList.join(', ')}`);
+    const carNames = getCarNames(assignment);
+    console.log(`[WeeklyAssignments] FIXED - Assignment "${assignment.title}": employees=[${employeeList.join(', ')}], cars=[${carNames.join(', ')}]`);
   });
 
   return (
@@ -76,7 +106,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                 </div>
                 <div className="flex-1 min-w-0">
                   <h2 className="text-lg sm:text-xl font-bold truncate">
-                    {t('dashboard.myAssignments', { week: selectedWeek })}
+                    {t('dashboard.myAssignments')} {t('dashboard.week')} {selectedWeek}
                   </h2>
                 </div>
                 <div className="flex-shrink-0">
@@ -115,8 +145,9 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
           ) : (
             <div className="grid gap-3">
               {sortedAssignments.map((assignment, index) => {
-                // SIMPLIFIED: Direct employee name handling
+                // Direct employee name handling
                 const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
+                const carNames = getCarNames(assignment);
                 
                 return (
                   <div 
@@ -151,13 +182,14 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                       )}
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {assignment.car && (
+                        {/* FIXED: Display car names properly with support for multiple cars */}
+                        {carNames.length > 0 && (
                           <div className="flex items-center gap-2">
                             <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-200">
                               <Car className="h-3.5 w-3.5 text-blue-600" />
                             </div>
                             <span className="text-foreground font-medium text-sm">
-                              {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
+                              {carNames.join(', ')}
                             </span>
                           </div>
                         )}
@@ -171,7 +203,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                           </span>
                         </div>
                         
-                        {/* SIMPLIFIED: Show ALL colleague names directly */}
+                        {/* Show ALL colleague names directly */}
                         {employeeList.length > 0 && (
                           <div className="flex items-center gap-2">
                             <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">

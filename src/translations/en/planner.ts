@@ -40,6 +40,12 @@ const planner = {
   unpublish: 'Unpublish',
   duplicate: 'Duplicate',
   
+  // New keys for unassigned resources
+  unassignedResources: 'Unassigned Resources',
+  showOnScreen: 'Show on Screen',
+  unassignedCars: 'Unassigned Cars',
+  showMore: 'Show More',
+  
   // Error messages
   fetchError: 'Error loading assignments',
   createError: 'Error creating assignment',
