@@ -27,26 +27,29 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     try {
       let fetchedAssignments: OptimizedAssignmentData[];
       
-      console.log('[useOptimizedAssignments] CAR FIX - Fetching with filter:', filter, 'for user:', user?.name, 'role:', userRole);
+      console.log('[useOptimizedAssignments] SERVICEMEDARBEJDER FIX - Fetching with filter:', filter, 'for user:', user?.name, 'role:', userRole);
       
       if (filter === 'user' && userId) {
-        fetchedAssignments = await OptimizedAssignmentService.fetchUserAssignments(userId);
+        // SERVICEMEDARBEJDER FIX: Pass userRole to fetchUserAssignments
+        fetchedAssignments = await OptimizedAssignmentService.fetchUserAssignments(userId, userRole);
       } else if (filter === 'all') {
         fetchedAssignments = await OptimizedAssignmentService.fetchAllAssignments(userRole);
       } else if (filter === 'published') {
-        fetchedAssignments = await OptimizedAssignmentService.fetchPublishedAssignments();
+        // SERVICEMEDARBEJDER FIX: Pass userId and userRole to fetchPublishedAssignments
+        fetchedAssignments = await OptimizedAssignmentService.fetchPublishedAssignments(userId, userRole);
       } else if (filter === 'unpublished') {
-        fetchedAssignments = await OptimizedAssignmentService.fetchUnpublishedAssignments();
+        // SERVICEMEDARBEJDER FIX: Pass userId and userRole to fetchUnpublishedAssignments
+        fetchedAssignments = await OptimizedAssignmentService.fetchUnpublishedAssignments(userId, userRole);
       } else {
         fetchedAssignments = await OptimizedAssignmentService.fetchAllAssignments(userRole);
       }
       
-      console.log('[useOptimizedAssignments] CAR FIX - Fetched assignments:', fetchedAssignments.length);
+      console.log('[useOptimizedAssignments] SERVICEMEDARBEJDER FIX - Fetched assignments:', fetchedAssignments.length);
       
       setAssignments(fetchedAssignments);
       setError(null);
     } catch (err: any) {
-      console.error('[useOptimizedAssignments] CAR FIX - Fetch error:', err);
+      console.error('[useOptimizedAssignments] SERVICEMEDARBEJDER FIX - Fetch error:', err);
       setError(err);
       toast({
         title: t('common.error'),
@@ -221,7 +224,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       return null;
     }
 
-    console.log('[useOptimizedAssignments] CAR FIX - Transforming assignments:', assignments.length);
+    console.log('[useOptimizedAssignments] SERVICEMEDARBEJDER FIX - Transforming assignments:', assignments.length);
 
     const transformed: Assignment[] = assignments.map(a => {
       const employeeNames = Array.isArray(a.employees) 
@@ -233,7 +236,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       const primaryCar = a.cars && a.cars.length > 0 ? a.cars[0].id : null;
 
       if (a.cars && a.cars.length > 0) {
-        console.log(`[useOptimizedAssignments] CAR FIX - 🚗 Assignment with cars:`, {
+        console.log(`[useOptimizedAssignments] SERVICEMEDARBEJDER FIX - 🚗 Assignment with cars:`, {
           title: a.title,
           date: a.assignment_date,
           carCount: a.cars.length,
@@ -241,6 +244,8 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
           carIds: carIds
         });
       }
+
+      console.log(`[useOptimizedAssignments] SERVICEMEDARBEJDER FIX - Transformed assignment "${a.title}" with employees:`, employeeNames);
 
       return {
         id: a.id,
@@ -262,9 +267,10 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       };
     });
 
-    console.log('[useOptimizedAssignments] CAR FIX - Transform complete:', {
+    console.log('[useOptimizedAssignments] SERVICEMEDARBEJDER FIX - Transform complete:', {
       totalTransformed: transformed.length,
-      assignmentsWithCars: transformed.filter(a => a.cars && a.cars.length > 0).length
+      assignmentsWithCars: transformed.filter(a => a.cars && a.cars.length > 0).length,
+      totalEmployeeNamesVisible: transformed.reduce((sum, a) => sum + (a.employees?.length || 0), 0)
     });
 
     setTransformedAssignments(transformed);

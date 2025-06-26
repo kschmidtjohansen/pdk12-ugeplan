@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface AssignmentEmployee {
@@ -79,8 +80,10 @@ export class OptimizedAssignmentService {
           assignmentsQuery = assignmentsQuery.eq('responsible_user_id', userId);
         }
         
-        // Only show published assignments to regular users
-        assignmentsQuery = assignmentsQuery.eq('published', true);
+        // SERVICEMEDARBEJDER FIX: Only filter by published for servicemedarbejder role
+        if (userRole === 'servicemedarbejder') {
+          assignmentsQuery = assignmentsQuery.eq('published', true);
+        }
         
       } else if (filter === 'published') {
         // SERVICEMEDARBEJDER FIX: Show ALL published assignments for planner (servicemedarbejder should see all published tasks)
@@ -301,19 +304,19 @@ export class OptimizedAssignmentService {
     }
   }
 
-  static async fetchUserAssignments(userId: string): Promise<OptimizedAssignmentData[]> {
-    return this.fetchAssignmentsWithFilter('user', userId);
+  static async fetchUserAssignments(userId: string, userRole?: string): Promise<OptimizedAssignmentData[]> {
+    return this.fetchAssignmentsWithFilter('user', userId, userRole);
   }
 
   static async fetchAllAssignments(userRole?: string): Promise<OptimizedAssignmentData[]> {
     return this.fetchAssignmentsWithFilter('all', undefined, userRole);
   }
 
-  static async fetchPublishedAssignments(): Promise<OptimizedAssignmentData[]> {
-    return this.fetchAssignmentsWithFilter('published');
+  static async fetchPublishedAssignments(userId?: string, userRole?: string): Promise<OptimizedAssignmentData[]> {
+    return this.fetchAssignmentsWithFilter('published', userId, userRole);
   }
 
-  static async fetchUnpublishedAssignments(): Promise<OptimizedAssignmentData[]> {
-    return this.fetchAssignmentsWithFilter('unpublished');
+  static async fetchUnpublishedAssignments(userId?: string, userRole?: string): Promise<OptimizedAssignmentData[]> {
+    return this.fetchAssignmentsWithFilter('unpublished', userId, userRole);
   }
 }
