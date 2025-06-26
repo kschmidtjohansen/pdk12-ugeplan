@@ -1,9 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAssignmentsConsolidated } from '@/hooks/useAssignmentsConsolidated';
 import { useViewSpecificFilters } from '@/hooks/useViewSpecificFilters';
+import { useCars } from '@/hooks/car';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Home, Calendar, Clock, MapPin, Users, Car } from 'lucide-react';
 import { format, addDays, subDays, parseISO } from 'date-fns';
 import { da } from 'date-fns/locale';
@@ -15,6 +18,7 @@ const ScreenDisplayPage: React.FC = () => {
   // Use 'all' filter and only get published assignments
   const { assignments, loading } = useAssignmentsConsolidated({ filter: 'all', includeUnpublished: false });
   const { filterForScreenDisplay } = useViewSpecificFilters();
+  const { cars } = useCars();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Parse date from URL parameters or default to today
@@ -71,6 +75,33 @@ const ScreenDisplayPage: React.FC = () => {
   const formatTime = (time: string): string => {
     if (!time) return '';
     return time.substring(0, 5);
+  };
+
+  // CAR FIX: Function to get car names from assignment
+  const getCarNames = (assignment: Assignment): string[] => {
+    const carNames: string[] = [];
+    
+    if (assignment.cars && Array.isArray(assignment.cars) && assignment.cars.length > 0) {
+      // New format: multiple cars array with IDs
+      assignment.cars.forEach(carId => {
+        const car = cars.find(c => c.id === carId);
+        if (car) {
+          carNames.push(car.name);
+        }
+      });
+    } else if (assignment.car) {
+      // Old format: single car
+      if (typeof assignment.car === 'string') {
+        const car = cars.find(c => c.id === assignment.car);
+        if (car) {
+          carNames.push(car.name);
+        }
+      } else if (typeof assignment.car === 'object' && assignment.car.name) {
+        carNames.push(assignment.car.name);
+      }
+    }
+    
+    return carNames;
   };
 
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
@@ -132,13 +163,13 @@ const ScreenDisplayPage: React.FC = () => {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'active':
-        return currentLanguage === 'da' ? 'Igangværende' : 'In Progress';
+        return t('screenDisplay.statusActive');
       case 'upcoming':
-        return currentLanguage === 'da' ? 'Kommende' : 'Upcoming';
+        return t('screenDisplay.statusUpcoming');
       case 'completed':
-        return currentLanguage === 'da' ? 'Færdig' : 'Completed';
+        return t('screenDisplay.statusCompleted');
       default:
-        return currentLanguage === 'da' ? 'Planlagt' : 'Scheduled';
+        return t('screenDisplay.statusScheduled');
     }
   };
 
@@ -148,7 +179,7 @@ const ScreenDisplayPage: React.FC = () => {
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-lg text-muted-foreground">Indlæser opgaver...</p>
+          <p className="text-lg text-muted-foreground">{t('common.loading')}...</p>
         </div>
       </div>
     );
@@ -172,7 +203,7 @@ const ScreenDisplayPage: React.FC = () => {
               </Link>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">
-                  Storskærmvisning
+                  {t('screenDisplay.title')}
                 </h1>
                 <p className="text-blue-100 text-lg font-medium">
                   {formatDate(selectedDate)}
@@ -217,10 +248,10 @@ const ScreenDisplayPage: React.FC = () => {
                 <Calendar className="h-10 w-10 text-gray-400" />
               </div>
               <h2 className="text-xl font-semibold text-gray-600 mb-2">
-                {t('planner.nothingPlannedToday')}
+                {t('screenDisplay.noTasksPlanned')}
               </h2>
               <p className="text-muted-foreground">
-                Ingen opgaver planlagt for denne dag
+                {t('screenDisplay.noTasksDescription')}
               </p>
             </CardContent>
           </Card>
@@ -228,6 +259,7 @@ const ScreenDisplayPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
             {todayAssignments.map((assignment, index) => {
               const status = getTimeStatus(assignment);
+              const carNames = getCarNames(assignment);
               
               return (
                 <Card 
@@ -274,23 +306,36 @@ const ScreenDisplayPage: React.FC = () => {
                             <div className="bg-purple-100 p-1 rounded border border-purple-200">
                               <Users className="h-3 w-3 text-purple-600" />
                             </div>
-                            <p className="text-sm font-semibold text-gray-900 truncate">
+                            <div className="flex flex-wrap gap-1">
                               {Array.isArray(assignment.employees) 
-                                ? assignment.employees.join(', ')
-                                : assignment.employees
+                                ? assignment.employees.map((employee, idx) => (
+                                    <Badge key={idx} variant="secondary" className="text-xs">
+                                      {employee}
+                                    </Badge>
+                                  ))
+                                : (
+                                    <Badge variant="secondary" className="text-xs">
+                                      {assignment.employees}
+                                    </Badge>
+                                  )
                               }
-                            </p>
+                            </div>
                           </div>
                         )}
 
-                        {assignment.car && (
+                        {/* CAR FIX: Display car names properly with support for multiple cars */}
+                        {carNames.length > 0 && (
                           <div className="flex items-center gap-2">
                             <div className="bg-orange-100 p-1 rounded border border-orange-200">
                               <Car className="h-3 w-3 text-orange-600" />
                             </div>
-                            <p className="text-sm font-semibold text-gray-900 truncate">
-                              {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
-                            </p>
+                            <div className="flex flex-wrap gap-1">
+                              {carNames.map((carName, idx) => (
+                                <Badge key={idx} variant="outline" className="text-xs">
+                                  {carName}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>

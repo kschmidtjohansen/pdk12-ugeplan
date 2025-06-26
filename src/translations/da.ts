@@ -14,6 +14,7 @@ import cars from './da/cars';
 import deleteConfirm from './da/deleteConfirm';
 import { profile } from './da/profile';
 import { auth } from './da/auth';
+import screenDisplay from './da/screenDisplay';
 
 const daTranslations = {
   // Common components
@@ -57,6 +58,8 @@ const daTranslations = {
   profile: profile,
   // Auth
   auth: auth,
+  // Screen Display
+  screenDisplay: screenDisplay,
 };
 
 export type DaTranslations = typeof daTranslations;

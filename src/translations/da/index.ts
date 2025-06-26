@@ -13,6 +13,7 @@ import { profile } from './profile';
 import accessDenied from './accessDenied';
 import deleteConfirm from './deleteConfirm';
 import { auth } from './auth';
+import screenDisplay from './screenDisplay';
 
 export const da = {
   common,
@@ -28,5 +29,6 @@ export const da = {
   login,
   auth,
   accessDenied,
-  deleteConfirm
+  deleteConfirm,
+  screenDisplay
 };

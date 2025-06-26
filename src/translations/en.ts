@@ -12,6 +12,7 @@ import planner from './en/planner';
 import cars from './en/cars';
 import { admin } from './en/admin';
 import { auth } from './en/auth';
+import screenDisplay from './en/screenDisplay';
 
 const enTranslations = {
   // Common components
@@ -51,6 +52,8 @@ const enTranslations = {
   admin: admin,
   // Auth
   auth: auth,
+  // Screen Display
+  screenDisplay: screenDisplay,
   // Access denied - adding for consistency
   accessDenied: {
     title: 'Access Denied',

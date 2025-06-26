@@ -13,6 +13,7 @@ import login from './login';
 import { auth } from './auth';
 import accessDenied from './accessDenied';
 import deleteConfirm from './deleteConfirm';
+import screenDisplay from './screenDisplay';
 
 export const en = {
   common,
@@ -28,5 +29,6 @@ export const en = {
   login,
   auth,
   accessDenied,
-  deleteConfirm
+  deleteConfirm,
+  screenDisplay
 };
