@@ -23,7 +23,7 @@ const dashboard = {
   metrics: {
     availableEmployees: 'Tilgængelige medarbejdere',
     unavailableEmployees: 'Fuldt booket, på ferie eller fraværende',
-    unavailableSubtitle: 'På orlov eller ferie',
+    unavailableSubtitle: 'Fuldt booket, på ferie eller fraværende',
     availableCars: 'Tilgængelige biler',
     carsInUse: 'Biler i brug',
     carsInUseSubtitle: 'Aktuelt tildelt'
@@ -35,7 +35,7 @@ const dashboard = {
   
   // Employee availability dialogs
   availableEmployeesDesc: 'Medarbejdere tilgængelige og ikke tildelt opgaver',
-  unavailableEmployeesDesc: 'Medarbejdere i øjeblikket på orlov eller ferie',
+  unavailableEmployeesDesc: 'Medarbejdere i øjeblikket fuldt booket, på ferie eller fraværende',
   
   // Quick access items
   quickAccess: {
@@ -53,7 +53,7 @@ const dashboard = {
     },
     cars: {
       title: 'Biler',
-      description: 'Se og administrer bilpark'
+      description: 'Se biler'
     }
   }
 };

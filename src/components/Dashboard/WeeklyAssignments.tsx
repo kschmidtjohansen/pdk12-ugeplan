@@ -106,7 +106,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                 </div>
                 <div className="flex-1 min-w-0">
                   <h2 className="text-lg sm:text-xl font-bold truncate">
-                    {t('dashboard.myAssignments')} {t('dashboard.week')} {selectedWeek}
+                    {t('dashboard.myAssignments')}
                   </h2>
                 </div>
                 <div className="flex-shrink-0">

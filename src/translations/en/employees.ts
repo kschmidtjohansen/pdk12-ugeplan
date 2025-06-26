@@ -10,6 +10,7 @@ const employees = {
   role: 'Role',
   status: 'Status',
   actions: 'Actions',
+  jobTitle: 'Job Title',
   
   // Employee roles
   administrator: 'Administrator',
