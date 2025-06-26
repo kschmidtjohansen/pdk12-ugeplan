@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -128,17 +129,25 @@ export const usePlannerPage = () => {
         toTime: '16:00',
         location: '',
         car: '',
-        employees: []
+        employees: [],
+        published: false // New assignments start as unpublished
       });
       setIsDialogOpen(true);
     },
     handleOpenEditDialog: (assignment: Assignment) => {
+      console.log(`[usePlannerPage] PUBLISHED FIX - Opening edit dialog for assignment:`, {
+        id: assignment.id,
+        title: assignment.title,
+        published: assignment.published
+      });
+      
       setCurrentAssignment(assignment);
       setSelectedDay(assignment.date);
       setFormData({
         ...assignment,
         employees: Array.isArray(assignment.employees) ? [...assignment.employees] : [],
-        car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : ''
+        car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : '',
+        published: assignment.published // PUBLISHED FIX: Explicitly preserve published status
       });
       setIsDialogOpen(true);
     },
@@ -149,11 +158,21 @@ export const usePlannerPage = () => {
       
       try {
         if (currentAssignment?.id) {
-          // Update existing assignment
-          console.log('[usePlannerPage] EDIT FIX - Updating assignment:', currentAssignment.id);
-          await updateAssignment(currentAssignment.id, data);
+          // PUBLISHED FIX: When updating, preserve the original published status
+          const updateData = {
+            ...data,
+            published: currentAssignment.published // Explicitly preserve published status
+          };
+          
+          console.log('[usePlannerPage] PUBLISHED FIX - Updating assignment with preserved published status:', {
+            id: currentAssignment.id,
+            originalPublished: currentAssignment.published,
+            updatePublished: updateData.published
+          });
+          
+          await updateAssignment(currentAssignment.id, updateData);
         } else {
-          // Create new assignment
+          // Create new assignment (published status comes from form data)
           console.log('[usePlannerPage] EDIT FIX - Creating new assignment');
           await createAssignment(data);
         }
@@ -200,3 +219,4 @@ export const usePlannerPage = () => {
     }
   };
 };
+
