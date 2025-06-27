@@ -373,6 +373,10 @@ export type Database = {
         Args: { assignment_id: string; user_id: string }
         Returns: boolean
       }
+      check_data_access_health: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       check_system_health: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -441,6 +445,10 @@ export type Database = {
       sanitize_text_input: {
         Args: { input_text: string; max_length?: number }
         Returns: string
+      }
+      user_has_role: {
+        Args: { check_role: Database["public"]["Enums"]["user_role"] }
+        Returns: boolean
       }
       validate_email_format_enhanced: {
         Args: { email: string }

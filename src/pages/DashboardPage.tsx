@@ -3,9 +3,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import { format, getISOWeek, getISOWeekYear } from 'date-fns';
-import { useSimpleAssignments } from '@/hooks/useSimpleAssignments';
-import { useEmployees } from '@/hooks/useEmployees';
-import { useCars } from '@/hooks/car';
+import { useUnifiedData } from '@/hooks/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
 import { AssignmentFilterService } from '@/services/assignmentFilterService';
 import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
@@ -15,15 +13,21 @@ import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import WelcomeHeader from '@/components/Dashboard/WelcomeHeader';
 import QuickAccessGrid from '@/components/Dashboard/QuickAccessGrid';
 import WeeklyAssignments from '@/components/Dashboard/WeeklyAssignments';
+import DataHealthMonitor from '@/components/DataHealthMonitor';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   
-  // Simplified data fetching - no more complex optimization layers
-  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError } = useSimpleAssignments();
-  const { employees, updateEmployeeLeaveStatusFromVacations } = useEmployees();
-  const { cars } = useCars();
+  // Use the new unified data service
+  const { 
+    assignments: allAssignments, 
+    employees,
+    cars,
+    isLoading: dataLoading, 
+    hasErrors: dataErrors 
+  } = useUnifiedData();
+  
   const { vacations } = useVacations();
 
   const today = new Date();
@@ -34,31 +38,8 @@ const DashboardPage: React.FC = () => {
 
   const dailyQuote = getDailyQuote();
 
-  console.log(`[DashboardPage] SIMPLIFIED - Dashboard for user: ${user?.name} (${user?.role})`);
-  console.log(`[DashboardPage] SIMPLIFIED - All assignments: ${allAssignments.length}`);
-
-  useEffect(() => {
-    const updateEmployeeStatuses = async () => {
-      try {
-        if (user?.id && isValidUUID(user.id)) {
-          await updateEmployeeLeaveStatusFromVacations();
-        }
-      } catch (error) {
-        console.error('Failed to update employee statuses:', error);
-      }
-    };
-
-    if (user?.id && isValidUUID(user.id)) {
-      updateEmployeeStatuses();
-      const intervalId = setInterval(() => {
-        updateEmployeeStatuses();
-      }, 5 * 60 * 1000);
-
-      return () => {
-        clearInterval(intervalId);
-      };
-    }
-  }, [user?.id, updateEmployeeLeaveStatusFromVacations]);
+  console.log(`[DashboardPage] UNIFIED DATA - Dashboard for user: ${user?.name} (${user?.role})`);
+  console.log(`[DashboardPage] UNIFIED DATA - All assignments: ${allAssignments.length}, employees: ${employees.length}, cars: ${cars.length}`);
 
   // Get the dates for the selected week
   const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
@@ -87,38 +68,20 @@ const DashboardPage: React.FC = () => {
       endDateISO
     );
     
-    console.log(`[DashboardPage] SIMPLIFIED - Weekly assignments: ${filtered.length} assignments`);
+    console.log(`[DashboardPage] UNIFIED DATA - Weekly assignments: ${filtered.length} assignments`);
     return filtered;
   }, [allAssignments, startDateISO, endDateISO]);
 
   // Enhanced loading state with proper error handling
-  if (assignmentsLoading) {
+  if (dataLoading) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary"></div>
           <div className="text-center">
             <p className="text-lg font-medium text-gray-600">{t('common.loading')}...</p>
-            <p className="text-sm text-gray-500">Loading dashboard data</p>
+            <p className="text-sm text-gray-500">Loading dashboard data with improved system</p>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state
-  if (assignmentsError) {
-    return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="text-red-500 text-xl font-semibold">Error Loading Dashboard</div>
-          <p className="text-gray-600">{assignmentsError.message}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
-          >
-            Retry
-          </button>
         </div>
       </div>
     );
@@ -129,6 +92,13 @@ const DashboardPage: React.FC = () => {
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
         {/* Welcome Header */}
         <WelcomeHeader userName={user?.name} dailyQuote={dailyQuote} />
+
+        {/* Data Health Monitor - Show if there are errors */}
+        {dataErrors && (
+          <div className="animate-fade-in-up">
+            <DataHealthMonitor showInDashboard={true} />
+          </div>
+        )}
 
         {/* Quick Access Grid */}
         <QuickAccessGrid userRole={user?.role} />

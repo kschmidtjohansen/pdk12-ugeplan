@@ -11,8 +11,7 @@ import CurrentAndFutureDays from './CurrentAndFutureDays';
 import PastAssignments from './PastAssignments';
 import EmptyState from './EmptyState';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
-import { useEmployees } from '@/hooks/useEmployees';
-import { useCars } from '@/hooks/car';
+import { useUnifiedData } from '@/hooks/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
 import { Monitor } from 'lucide-react';
 
@@ -47,19 +46,20 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
 }) => {
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
-  const { employees } = useEmployees();
-  const { cars } = useCars();
+  
+  // Use unified data service for employees and cars
+  const { employees, cars } = useUnifiedData();
   const { vacations } = useVacations();
 
-  console.log(`[PlannerContent] CRITICAL FIX - Displaying ${weekAssignments.length} assignments to ALL users`);
+  console.log(`[PlannerContent] UNIFIED DATA - Displaying ${weekAssignments.length} assignments with ${employees.length} employees and ${cars.length} cars`);
   weekAssignments.forEach(assignment => {
-    console.log(`[PlannerContent] CRITICAL FIX - Assignment visible to all: ${assignment.id} - ${assignment.title} - Employees: [${assignment.employees?.join(', ')}] - Published: ${assignment.published}`);
+    console.log(`[PlannerContent] UNIFIED DATA - Assignment: ${assignment.id} - ${assignment.title} - Employees: [${assignment.employees?.join(', ')}] - Published: ${assignment.published}`);
   });
 
   // Group assignments by day
   const groupedAssignments = useMemo(() => {
     const grouped = groupAssignmentsByDay(weekAssignments || []);
-    console.log(`[PlannerContent] CRITICAL FIX - Grouped ALL assignments:`, grouped);
+    console.log(`[PlannerContent] UNIFIED DATA - Grouped assignments:`, grouped);
     return grouped;
   }, [weekAssignments]);
 
@@ -121,7 +121,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   // CRITICAL FIX: ALWAYS show planner to ALL authenticated users with ALL assignments
   const shouldShowPlanner = true;
 
-  console.log(`[PlannerContent] CRITICAL FIX - Showing planner to ALL users with ${weekAssignments.length} total assignments visible`);
+  console.log(`[PlannerContent] UNIFIED DATA - Showing planner with unified data service`);
 
   if (!shouldShowPlanner && Array.isArray(weekAssignments) && weekAssignments.length === 0) {
     return <EmptyState message={t("planner.noAssignmentsWeek")} />;
