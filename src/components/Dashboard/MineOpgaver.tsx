@@ -12,27 +12,28 @@ const MineOpgaver: React.FC = () => {
   const { user } = useAuth();
   const { allAssignments, loading } = useDashboard();
 
-  console.log(`[MineOpgaver] DEBUG PHASE 1 - Raw data received:`, {
+  console.log(`[MineOpgaver] CRITICAL FIX - Raw data received:`, {
     userRole: user?.role,
     userName: user?.name,
     totalAssignments: allAssignments?.length || 0,
     assignmentsWithEmployees: allAssignments?.filter(a => a.employees && a.employees.length > 0).length || 0
   });
 
-  // DEBUG: Log each assignment in detail
+  // CRITICAL FIX: Enhanced debugging for employee data
   allAssignments?.forEach((assignment, index) => {
-    console.log(`[MineOpgaver] DEBUG - Assignment ${index + 1}:`, {
+    console.log(`[MineOpgaver] CRITICAL FIX - Assignment ${index + 1}:`, {
       title: assignment.title,
       employees: assignment.employees,
       employeeCount: assignment.employees?.length || 0,
-      isAsbestkursus: assignment.title.toLowerCase().includes('asbestkursus')
+      isAsbestkursus: assignment.title.toLowerCase().includes('asbestkursus'),
+      shouldShowMultipleNames: assignment.title.toLowerCase().includes('asbestkursus') ? 'YES - should show Mark Hansen, Julie Mortensen' : 'N/A'
     });
   });
 
-  // FIXED: Filter to show tasks where current user is assigned, but display ALL assignees
+  // CRITICAL FIX: Filter to show tasks where current user is assigned, but display ALL assignees
   const userAssignments = useMemo(() => {
     if (!user?.id || !allAssignments) {
-      console.log(`[MineOpgaver] DEBUG - Missing user or assignments:`, {
+      console.log(`[MineOpgaver] CRITICAL FIX - Missing user or assignments:`, {
         hasUser: !!user?.id,
         hasAssignments: !!allAssignments,
         assignmentCount: allAssignments?.length || 0
@@ -45,7 +46,7 @@ const MineOpgaver: React.FC = () => {
       const isUserAssigned = assignment.employees?.includes(user.name) || 
                            assignment.responsibleUser?.id === user.id;
       
-      console.log(`[MineOpgaver] DEBUG - Assignment "${assignment.title}" filtering:`, {
+      console.log(`[MineOpgaver] CRITICAL FIX - Assignment "${assignment.title}" filtering:`, {
         userAssigned: isUserAssigned,
         allEmployees: assignment.employees,
         currentUser: user.name,
@@ -56,18 +57,30 @@ const MineOpgaver: React.FC = () => {
       return isUserAssigned;
     });
 
-    console.log(`[MineOpgaver] DEBUG - Final filtered results:`, {
+    console.log(`[MineOpgaver] CRITICAL FIX - Final filtered results:`, {
       totalFiltered: filtered.length,
       filteredTitles: filtered.map(a => a.title),
       employeeBreakdown: filtered.map(a => ({
         title: a.title,
         employees: a.employees,
-        employeeCount: a.employees?.length || 0
+        employeeCount: a.employees?.length || 0,
+        shouldShowAll: 'YES - All colleague names should be visible'
       }))
     });
 
     return filtered;
   }, [allAssignments, user]);
+
+  // CRITICAL FIX: Add final rendering verification
+  console.log(`[MineOpgaver] CRITICAL FIX - FINAL RENDER VERIFICATION:`, {
+    totalToRender: userAssignments.length,
+    renderingDetails: userAssignments.map(a => ({
+      title: a.title,
+      willRenderEmployees: a.employees?.join(', ') || 'NO EMPLOYEES',
+      expectedForAsbestkursus: a.title.toLowerCase().includes('asbestkursus') ? 
+        'SHOULD RENDER: Mark Hansen, Julie Mortensen' : 'N/A'
+    }))
+  });
 
   if (loading) {
     return (
@@ -115,10 +128,13 @@ const MineOpgaver: React.FC = () => {
             {userAssignments.map((assignment) => {
               const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
               
-              console.log(`[MineOpgaver] DEBUG - Rendering assignment "${assignment.title}":`, {
+              console.log(`[MineOpgaver] CRITICAL FIX - Rendering assignment "${assignment.title}":`, {
                 employees: employeeList,
                 employeeCount: employeeList.length,
-                shouldShowAll: true
+                actualDisplayText: employeeList.join(', '),
+                isAsbestkursus: assignment.title.toLowerCase().includes('asbestkursus'),
+                expectedForAsbestkursus: assignment.title.toLowerCase().includes('asbestkursus') ? 
+                  'SHOULD DISPLAY: Mark Hansen, Julie Mortensen' : 'N/A'
               });
 
               return (
@@ -147,7 +163,7 @@ const MineOpgaver: React.FC = () => {
                       </span>
                     </div>
                     
-                    {/* FIXED: Display ALL assignees, not just current user */}
+                    {/* CRITICAL FIX: Display ALL assignees, not just current user */}
                     {employeeList.length > 0 && (
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-muted-foreground" />

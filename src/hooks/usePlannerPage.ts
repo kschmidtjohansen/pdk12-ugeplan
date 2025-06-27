@@ -7,7 +7,9 @@ import {
   getWeekDates, 
   getCurrentWeekInfo, 
   getPreviousWeekInfo, 
-  getNextWeekInfo
+  getNextWeekInfo,
+  getWeekNumber,
+  getYearForDate
 } from '@/utils/dates';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import { useToast } from '@/components/ui/use-toast';
@@ -24,15 +26,15 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // SERVICEMEDARBEJDER FIX: Improved role-based filtering
+  // CRITICAL FIX: Improved role-based filtering
   const isAdminOrSkadeleder = user?.role === 'administrator' || user?.role === 'skadeleder';
   const isServicemedarbejder = user?.role === 'servicemedarbejder';
   
-  // SERVICEMEDARBEJDER FIX: Use 'published' for servicemedarbejder to see ALL published tasks
+  // CRITICAL FIX: Use 'published' for servicemedarbejder to see ALL published tasks
   const plannerFilter = isAdminOrSkadeleder ? 'all' : 'published';
   
-  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - User: ${user?.name} (${user?.role})`);
-  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Using filter: ${plannerFilter} (admin/skadeleder: ${isAdminOrSkadeleder}, servicemedarbejder: ${isServicemedarbejder})`);
+  console.log(`[usePlannerPage] CRITICAL FIX - User: ${user?.name} (${user?.role})`);
+  console.log(`[usePlannerPage] CRITICAL FIX - Using filter: ${plannerFilter} (admin/skadeleder: ${isAdminOrSkadeleder}, servicemedarbejder: ${isServicemedarbejder})`);
   
   const { 
     assignments, 
@@ -53,17 +55,19 @@ export const usePlannerPage = () => {
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const { filterByWeek } = useAssignmentFilters();
 
-  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Received ${assignments.length} assignments for planner display`);
+  console.log(`[usePlannerPage] CRITICAL FIX - Received ${assignments.length} assignments for planner display`);
   
-  // SERVICEMEDARBEJDER FIX: Log sample assignments to verify access
+  // CRITICAL FIX: Log sample assignments to verify access
   if (assignments.length > 0) {
-    console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Sample assignments:`, assignments.slice(0, 3).map(a => ({
+    console.log(`[usePlannerPage] CRITICAL FIX - Sample assignments:`, assignments.slice(0, 5).map(a => ({
       title: a.title,
       employees: a.employees,
       cars: a.cars,
       date: a.date,
       published: a.published,
-      userCanSee: isAdminOrSkadeleder || a.published
+      userCanSee: isAdminOrSkadeleder || a.published,
+      isUserAssigned: a.employees?.includes(user?.name || ''),
+      shouldShowForServicemedarbejder: a.published ? 'YES - should be visible' : 'NO - not published'
     })));
   }
   
@@ -92,10 +96,57 @@ export const usePlannerPage = () => {
 
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // SERVICEMEDARBEJDER FIX: Filter assignments by week
-  const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
+  // CRITICAL FIX: Improved week filtering for servicemedarbejder
+  const weekAssignments = React.useMemo(() => {
+    console.log(`[usePlannerPage] CRITICAL FIX - Starting week filter for week ${selectedWeek}/${selectedYear}`);
+    console.log(`[usePlannerPage] CRITICAL FIX - Input assignments:`, assignments.length, 'for user role:', user?.role);
+    
+    if (isServicemedarbejder) {
+      // CRITICAL FIX: For servicemedarbejder, show ALL published assignments in the week
+      const filtered = assignments.filter(assignment => {
+        const assignmentDate = new Date(assignment.date);
+        const assignmentWeek = getWeekNumber(assignmentDate);
+        const assignmentYear = getYearForDate(assignmentDate);
+        
+        const isInWeek = assignmentWeek === selectedWeek && assignmentYear === selectedYear;
+        const isPublished = assignment.published;
+        
+        console.log(`[usePlannerPage] CRITICAL FIX - Assignment "${assignment.title}":`, {
+          date: assignment.date,
+          week: assignmentWeek,
+          year: assignmentYear,
+          published: isPublished,
+          isInWeek,
+          shouldShow: isInWeek && isPublished,
+          employees: assignment.employees,
+          userAssigned: assignment.employees?.includes(user?.name || '')
+        });
+        
+        return isInWeek && isPublished;
+      });
+      
+      console.log(`[usePlannerPage] CRITICAL FIX - Servicemedarbejder filtered results:`, {
+        totalFiltered: filtered.length,
+        includesTasksNotAssignedToUser: filtered.filter(a => !a.employees?.includes(user?.name || '')).length,
+        allTaskTitles: filtered.map(a => a.title)
+      });
+      
+      return filtered;
+    } else {
+      // For admin/skadeleder, use existing filterByWeek logic
+      const filtered = filterByWeek(assignments, selectedWeek, selectedYear);
+      console.log(`[usePlannerPage] CRITICAL FIX - Admin/Skadeleder filtered results:`, filtered.length);
+      return filtered;
+    }
+  }, [assignments, selectedWeek, selectedYear, isServicemedarbejder, user?.name, filterByWeek]);
 
-  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Week ${selectedWeek} filtered to ${weekAssignments.length} assignments for display`);
+  console.log(`[usePlannerPage] CRITICAL FIX - Final week assignments for display:`, {
+    count: weekAssignments.length,
+    userRole: user?.role,
+    week: selectedWeek,
+    year: selectedYear,
+    shouldShowAllPublished: isServicemedarbejder
+  });
 
   return {
     selectedWeek,
@@ -140,7 +191,7 @@ export const usePlannerPage = () => {
       setIsDialogOpen(true);
     },
     handleOpenEditDialog: (assignment: Assignment) => {
-      console.log(`[usePlannerPage] PUBLISHED FIX - Opening edit dialog for assignment:`, {
+      console.log(`[usePlannerPage] CRITICAL FIX - Opening edit dialog for assignment:`, {
         id: assignment.id,
         title: assignment.title,
         published: assignment.published
@@ -157,8 +208,8 @@ export const usePlannerPage = () => {
       setIsDialogOpen(true);
     },
     handleSubmit: async (data: Partial<Assignment>) => {
-      console.log('[usePlannerPage] EDIT FIX - Form submission data:', data);
-      console.log('[usePlannerPage] EDIT FIX - Current assignment:', currentAssignment?.id);
+      console.log('[usePlannerPage] CRITICAL FIX - Form submission data:', data);
+      console.log('[usePlannerPage] CRITICAL FIX - Current assignment:', currentAssignment?.id);
       
       try {
         if (currentAssignment?.id) {
@@ -167,7 +218,7 @@ export const usePlannerPage = () => {
             published: currentAssignment.published
           };
           
-          console.log('[usePlannerPage] PUBLISHED FIX - Updating assignment with preserved published status:', {
+          console.log('[usePlannerPage] CRITICAL FIX - Updating assignment with preserved published status:', {
             id: currentAssignment.id,
             originalPublished: currentAssignment.published,
             updatePublished: updateData.published
@@ -175,13 +226,13 @@ export const usePlannerPage = () => {
           
           await updateAssignment(currentAssignment.id, updateData);
         } else {
-          console.log('[usePlannerPage] EDIT FIX - Creating new assignment');
+          console.log('[usePlannerPage] CRITICAL FIX - Creating new assignment');
           await createAssignment(data);
         }
         
-        console.log('[usePlannerPage] EDIT FIX - Operation completed successfully');
+        console.log('[usePlannerPage] CRITICAL FIX - Operation completed successfully');
       } catch (error) {
-        console.error('[usePlannerPage] EDIT FIX - Operation failed:', error);
+        console.error('[usePlannerPage] CRITICAL FIX - Operation failed:', error);
       }
     },
     handlePublishDay: (date: string) => {
@@ -194,11 +245,11 @@ export const usePlannerPage = () => {
       });
     },
     deleteAssignment: async (id: string) => {
-      console.log('[usePlannerPage] EDIT FIX - Deleting assignment:', id);
+      console.log('[usePlannerPage] CRITICAL FIX - Deleting assignment:', id);
       await deleteAssignmentAction(id);
     },
     publishAssignment: async (id: string) => {
-      console.log('[usePlannerPage] EDIT FIX - Publishing assignment:', id);
+      console.log('[usePlannerPage] CRITICAL FIX - Publishing assignment:', id);
       await publishAssignmentFromHook(id);
     },
     handleCopyAssignment: (assignment: Assignment) => {
