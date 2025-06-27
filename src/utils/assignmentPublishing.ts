@@ -2,65 +2,48 @@
 import { Assignment } from '@/types/assignment';
 import { supabase } from '@/integrations/supabase/client';
 
-// Helper function for publishing assignments
 export const publishAssignmentHandler = async (
-  assignments: Assignment[], 
-  updateAssignments: (assignments: Assignment[]) => void,
-  assignmentIds: string[] | null = null,
-  date: string | null = null
-) => {
-  let updatedAssignments: Assignment[];
-  
+  assignments: Assignment[],
+  setAssignments: (assignments: Assignment[]) => void,
+  assignmentIds?: string[] | null,
+  date?: string
+): Promise<boolean> => {
   try {
-    if (assignmentIds && assignmentIds.length > 0) {
-      // Update specific assignments by ID in the database
-      const { error } = await supabase
-        .from('assignments')
-        .update({ published: true })
-        .in('id', assignmentIds);
-        
-      if (error) throw error;
-      
-      // Update the local state
-      updatedAssignments = assignments.map((a) =>
-        assignmentIds.includes(a.id) ? { ...a, published: true } : a
-      );
-      
+    let idsToPublish: string[] = [];
+    
+    if (assignmentIds) {
+      idsToPublish = assignmentIds;
     } else if (date) {
-      // Find assignments for the specified date
-      const dateAssignmentIds = assignments
-        .filter(a => a.date === date && !a.published)
-        .map(a => a.id);
-      
-      if (dateAssignmentIds.length === 0) {
-        // No unpublished assignments for this date
-        return false;
-      }
-      
-      // Update all assignments for a specific date in the database
-      const { error } = await supabase
-        .from('assignments')
-        .update({ published: true })
-        .in('id', dateAssignmentIds);
-        
-      if (error) throw error;
-      
-      // Update the local state
-      updatedAssignments = assignments.map((a) =>
-        a.date === date ? { ...a, published: true } : a
-      );
-      
-    } else {
-      // No updates if no criteria provided
+      idsToPublish = assignments
+        .filter(assignment => assignment.date === date && !assignment.published)
+        .map(assignment => assignment.id);
+    }
+    
+    if (idsToPublish.length === 0) {
       return false;
     }
     
-    // Apply the updates to the local state
-    updateAssignments(updatedAssignments);
-    return true;
+    const { error } = await supabase
+      .from('assignments')
+      .update({ published: true })
+      .in('id', idsToPublish);
+      
+    if (error) {
+      console.error('Error publishing assignments:', error);
+      return false;
+    }
     
+    // Update local state
+    const updatedAssignments = assignments.map(assignment => 
+      idsToPublish.includes(assignment.id) 
+        ? { ...assignment, published: true }
+        : assignment
+    );
+    
+    setAssignments(updatedAssignments);
+    return true;
   } catch (error) {
-    console.error("Error in publishAssignmentHandler:", error);
+    console.error('Error in publishAssignmentHandler:', error);
     return false;
   }
 };

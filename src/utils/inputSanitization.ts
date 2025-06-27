@@ -1,180 +1,105 @@
 
-/**
- * Input sanitization utilities for XSS protection and data validation
- */
-
-// XSS protection - sanitize HTML content
-export function sanitizeHtml(input: string): string {
-  if (!input) return '';
+export const sanitizeText = (text: string, maxLength: number = 1000): string => {
+  if (!text || typeof text !== 'string') return '';
   
-  return input
-    .replace(/[<>'"&]/g, (char) => {
-      const entities: { [key: string]: string } = {
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#x27;',
-        '&': '&amp;'
-      };
-      return entities[char];
-    })
-    .trim();
-}
-
-// Sanitize text input (remove potential script injections)
-export function sanitizeText(input: string, maxLength: number = 1000): string {
-  if (!input) return '';
-  
-  return input
+  // Remove potential XSS patterns
+  const sanitized = text
     .replace(/[<>]/g, '') // Remove angle brackets
     .replace(/javascript:/gi, '') // Remove javascript: protocol
     .replace(/on\w+\s*=/gi, '') // Remove event handlers
-    .trim()
-    .substring(0, maxLength);
-}
+    .replace(/data:/gi, '') // Remove data: protocol
+    .trim();
+  
+  return sanitized.substring(0, maxLength);
+};
 
-// Validate and sanitize email
-export function validateAndSanitizeEmail(email: string): { valid: boolean; sanitized: string; error?: string } {
-  if (!email) {
+export const validateAndSanitizeEmail = (email: string): {
+  valid: boolean;
+  sanitized: string;
+  error?: string;
+} => {
+  if (!email || typeof email !== 'string') {
     return { valid: false, sanitized: '', error: 'Email is required' };
   }
-
+  
   const sanitized = email.toLowerCase().trim();
   const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
   
   if (!emailRegex.test(sanitized)) {
-    return { valid: false, sanitized: '', error: 'Invalid email format' };
+    return { valid: false, sanitized, error: 'Invalid email format' };
   }
-
+  
   if (sanitized.length > 255) {
-    return { valid: false, sanitized: '', error: 'Email too long' };
+    return { valid: false, sanitized, error: 'Email is too long' };
   }
-
+  
   return { valid: true, sanitized };
-}
+};
 
-// Validate password strength
-export function validatePassword(password: string): { valid: boolean; error?: string; score: number } {
+export const validatePassword = (password: string): {
+  valid: boolean;
+  score: number;
+  error?: string;
+} => {
   if (!password) {
-    return { valid: false, error: 'Password is required', score: 0 };
+    return { valid: false, score: 0, error: 'Password is required' };
   }
-
+  
   let score = 0;
-
-  // Length check
-  if (password.length < 8) {
-    return { valid: false, error: 'Password must be at least 8 characters long', score: 0 };
-  }
-  score += password.length >= 12 ? 2 : 1;
-
-  // Uppercase letter
-  if (!/[A-Z]/.test(password)) {
-    return { valid: false, error: 'Password must contain at least one uppercase letter', score };
-  }
-  score += 1;
-
-  // Lowercase letter
-  if (!/[a-z]/.test(password)) {
-    return { valid: false, error: 'Password must contain at least one lowercase letter', score };
-  }
-  score += 1;
-
-  // Number
-  if (!/[0-9]/.test(password)) {
-    return { valid: false, error: 'Password must contain at least one number', score };
-  }
-  score += 1;
-
-  // Special character
-  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    score += 1;
-  }
-
-  // No common patterns
-  const commonPatterns = ['123', 'abc', 'password', 'admin', 'user'];
-  const lowerPassword = password.toLowerCase();
-  for (const pattern of commonPatterns) {
-    if (lowerPassword.includes(pattern)) {
-      score -= 1;
-      break;
-    }
-  }
-
-  if (password.length > 128) {
-    return { valid: false, error: 'Password must be less than 128 characters', score: 0 };
-  }
-
-  return { valid: true, score: Math.max(0, score) };
-}
-
-// Sanitize form data
-export function sanitizeFormData<T extends Record<string, any>>(data: T): T {
-  const sanitized: any = {};
+  const errors: string[] = [];
   
-  for (const [key, value] of Object.entries(data)) {
-    if (typeof value === 'string') {
-      sanitized[key] = sanitizeText(value);
-    } else if (Array.isArray(value)) {
-      sanitized[key] = value.map(item => 
-        typeof item === 'string' ? sanitizeText(item) : item
-      );
-    } else {
-      sanitized[key] = value;
-    }
-  }
+  if (password.length >= 8) score++;
+  else errors.push('at least 8 characters');
   
-  return sanitized as T;
-}
+  if (/[A-Z]/.test(password)) score++;
+  else errors.push('one uppercase letter');
+  
+  if (/[a-z]/.test(password)) score++;
+  else errors.push('one lowercase letter');
+  
+  if (/[0-9]/.test(password)) score++;
+  else errors.push('one number');
+  
+  const valid = score >= 4;
+  const error = valid ? undefined : `Password must contain ${errors.join(', ')}`;
+  
+  return { valid, score, error };
+};
 
-// Validate UUID format
-export function isValidUuid(uuid: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(uuid);
-}
-
-// Rate limiting helper (for client-side usage)
-export class ClientRateLimit {
-  private attempts: Map<string, { count: number; resetTime: number }> = new Map();
-
-  check(key: string, maxAttempts: number = 5, windowMs: number = 60000): boolean {
-    const now = Date.now();
-    const userAttempts = this.attempts.get(key);
-
-    if (!userAttempts || now > userAttempts.resetTime) {
-      this.attempts.set(key, { count: 1, resetTime: now + windowMs });
-      return true;
-    }
-
-    if (userAttempts.count >= maxAttempts) {
-      return false;
-    }
-
-    userAttempts.count++;
-    return true;
-  }
-
-  reset(key: string): void {
-    this.attempts.delete(key);
-  }
-}
-
-// CSRF token generation and validation
-export function generateCSRFToken(): string {
+export const generateCSRFToken = (): string => {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-}
+};
 
-export function validateCSRFToken(token: string, storedToken: string): boolean {
-  if (!token || !storedToken || token.length !== storedToken.length) {
-    return false;
+export class ClientRateLimit {
+  private attempts: Map<string, { count: number; timestamp: number }> = new Map();
+  
+  check(key: string, maxAttempts: number = 5): boolean {
+    const now = Date.now();
+    const attempt = this.attempts.get(key);
+    
+    if (!attempt) {
+      this.attempts.set(key, { count: 1, timestamp: now });
+      return true;
+    }
+    
+    // Reset if more than 15 minutes have passed
+    if (now - attempt.timestamp > 15 * 60 * 1000) {
+      this.attempts.set(key, { count: 1, timestamp: now });
+      return true;
+    }
+    
+    if (attempt.count >= maxAttempts) {
+      return false;
+    }
+    
+    attempt.count++;
+    attempt.timestamp = now;
+    return true;
   }
   
-  // Constant-time comparison to prevent timing attacks
-  let result = 0;
-  for (let i = 0; i < token.length; i++) {
-    result |= token.charCodeAt(i) ^ storedToken.charCodeAt(i);
+  reset(key: string): void {
+    this.attempts.delete(key);
   }
-  
-  return result === 0;
 }
