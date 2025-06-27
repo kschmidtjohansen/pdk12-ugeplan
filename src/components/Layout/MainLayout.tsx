@@ -3,7 +3,6 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
-import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
 import { SecurityHeaders } from '@/components/Auth/SecurityHeaders';
 import { SecurityErrorBoundary } from '@/components/Layout/SecurityErrorBoundary';
 import TopNavbar from './TopNavbar';
@@ -13,32 +12,21 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
 
-  // Initialize security monitoring with optimized settings
-  const { checkUnauthorizedAccess } = useSecurityMonitoring({
-    enableThreatDetection: true,
-    sessionTimeoutMinutes: 30,
-    maxIdleTimeMinutes: 15,
-    enableActivityLogging: true
-  });
-
-  // Enhanced authentication check with security logging
+  // Simplified authentication check
   React.useEffect(() => {
     if (!isAuthenticated && !loading && 
         location.pathname !== "/login" && 
         location.pathname !== "/password-reset") {
       
-      // Log unauthorized access attempt with new standardized policies
-      checkUnauthorizedAccess(location.pathname, undefined);
-      
-      console.log(`[MainLayout] Redirecting unauthenticated user to login on domain: ${window.location.hostname}`);
+      console.log(`[MainLayout] Redirecting unauthenticated user to login`);
       navigate('/login', { replace: true });
     }
-  }, [isAuthenticated, loading, navigate, location.pathname, checkUnauthorizedAccess]);
+  }, [isAuthenticated, loading, navigate, location.pathname]);
 
   // Don't show layout for login page or password reset page
   if (location.pathname === "/login" || location.pathname === "/password-reset") {
@@ -50,7 +38,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
-  // Enhanced loading state with security context
+  // Simplified loading state
   if (loading) {
     return (
       <SecurityErrorBoundary>
@@ -59,9 +47,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <div className="text-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
             <p className="text-muted-foreground">{t('common.loading')}</p>
-            {window.location.hostname.includes('pdk12.dk') && (
-              <p className="text-sm text-gray-500">Connecting securely to pdk12.dk...</p>
-            )}
           </div>
         </div>
       </SecurityErrorBoundary>
@@ -76,7 +61,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Redirecting to secure login...</p>
+            <p className="text-muted-foreground">Redirecting to login...</p>
           </div>
         </div>
       </SecurityErrorBoundary>
@@ -89,7 +74,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <div className="flex flex-col min-h-screen w-full">
         <TopNavbar />
         
-        {/* Main Content with enhanced security context and error boundary */}
+        {/* Main Content with simplified error boundary */}
         <main className="flex-1 w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 pt-20">
           <div className="animate-fade-in-up w-full">
             <SecurityErrorBoundary>

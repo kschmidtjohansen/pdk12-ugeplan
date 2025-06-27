@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -32,15 +33,12 @@ interface AuthContextType {
   register: (email: string, password: string, name: string) => Promise<{ error: string | null, user: User | null }>;
   updateUserRole: (userId: string, role: UserRole) => Promise<{ error: string | null }>;
   loading: boolean;
-  // Add permissions getters
   canViewFuelCardCode: boolean;
   canPublishTasks: boolean;
   canApproveVacation: boolean;
-  // Existing checks for permissions
   canEdit: boolean;
   canCreate: boolean;
   canSeeUnpublishedTasks: boolean;
-  // New validation methods for security
   validateAdminAccess: () => boolean;
   validateSkadelederAccess: () => boolean;
   hasRequiredRole: (requiredRoles: UserRole[]) => boolean;
@@ -85,118 +83,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const { toast } = useToast();
   
-  // Session timeout states - Updated to 20 minutes
-  const [lastActivity, setLastActivity] = useState<number>(Date.now());
-  const sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const activityListenersAttached = useRef<boolean>(false);
-  
-  const SESSION_TIMEOUT = 20 * 60 * 1000; // 20 minutes in milliseconds
-  const WARNING_TIME = 30 * 1000; // 30 seconds before logout
-
   // Cache for user data to prevent repeated requests
   const userDataCache = useRef<Map<string, { data: AppUser; timestamp: number }>>(new Map());
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   
-  // Reset activity timer
-  const resetActivityTimer = useCallback(() => {
-    const now = Date.now();
-    setLastActivity(now);
-    
-    // Clear existing timers
-    if (sessionTimeoutRef.current) {
-      clearTimeout(sessionTimeoutRef.current);
-    }
-    if (warningTimeoutRef.current) {
-      clearTimeout(warningTimeoutRef.current);
-    }
-    
-    // Only set timers if user is authenticated
-    if (user) {
-      // Set warning timer (19.5 minutes)
-      warningTimeoutRef.current = setTimeout(() => {
-        toast({
-          title: "Session Warning",
-          description: "Your session will expire in 30 seconds due to inactivity.",
-          variant: "destructive",
-        });
-      }, SESSION_TIMEOUT - WARNING_TIME);
-      
-      // Set logout timer (20 minutes)
-      sessionTimeoutRef.current = setTimeout(() => {
-        console.log('[AuthProvider] Session expired due to inactivity after 20 minutes');
-        toast({
-          title: "Session Expired",
-          description: "You have been logged out due to inactivity after 20 minutes.",
-          variant: "destructive",
-        });
-        logout();
-      }, SESSION_TIMEOUT);
-    }
-  }, [user, toast]);
-  
-  // Activity event handler
-  const handleActivity = useCallback(() => {
-    resetActivityTimer();
-  }, [resetActivityTimer]);
-  
-  // Set up activity listeners
-  useEffect(() => {
-    if (user && !activityListenersAttached.current) {
-      const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-      
-      events.forEach(event => {
-        document.addEventListener(event, handleActivity, { passive: true });
-      });
-      
-      activityListenersAttached.current = true;
-      resetActivityTimer(); // Start the timer
-      
-      console.log('[AuthProvider] Activity listeners attached');
-    } else if (!user && activityListenersAttached.current) {
-      // Remove listeners when user logs out
-      const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-      
-      events.forEach(event => {
-        document.removeEventListener(event, handleActivity);
-      });
-      
-      activityListenersAttached.current = false;
-      
-      // Clear timers
-      if (sessionTimeoutRef.current) {
-        clearTimeout(sessionTimeoutRef.current);
-        sessionTimeoutRef.current = null;
-      }
-      if (warningTimeoutRef.current) {
-        clearTimeout(warningTimeoutRef.current);
-        warningTimeoutRef.current = null;
-      }
-      
-      console.log('[AuthProvider] Activity listeners removed');
-    }
-    
-    // Cleanup function
-    return () => {
-      if (activityListenersAttached.current) {
-        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-        events.forEach(event => {
-          document.removeEventListener(event, handleActivity);
-        });
-        activityListenersAttached.current = false;
-      }
-      
-      if (sessionTimeoutRef.current) {
-        clearTimeout(sessionTimeoutRef.current);
-      }
-      if (warningTimeoutRef.current) {
-        clearTimeout(warningTimeoutRef.current);
-      }
-    };
-  }, [user, handleActivity, resetActivityTimer]);
-
-  // Simplified initialization with caching and error recovery
-  const initializeUserData = async (currentSession: Session) => {
+  // Simplified initialization with better error handling
+  const initializeUserData = useCallback(async (currentSession: Session) => {
     const userId = currentSession.user.id;
     const cacheKey = userId;
     
@@ -210,9 +102,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      console.log('[AuthProvider] Initializing user data for:', currentSession.user.email);
+      console.log('[AuthProvider] Fetching user data for:', currentSession.user.email);
       
-      // Fetch user data with timeout and error handling
+      // Fetch user data with simpler error handling
       const [roleResult, profileResult] = await Promise.allSettled([
         supabase.from('user_roles').select('role').eq('user_id', userId).single(),
         supabase.from('profiles').select('name').eq('id', userId).single()
@@ -224,15 +116,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Handle role result
       if (roleResult.status === 'fulfilled' && roleResult.value.data) {
         role = roleResult.value.data.role as UserRole;
-      } else {
-        console.warn('[AuthProvider] Could not fetch role, using default:', roleResult);
       }
 
       // Handle profile result
       if (profileResult.status === 'fulfilled' && profileResult.value.data) {
         name = profileResult.value.data.name || name;
-      } else {
-        console.warn('[AuthProvider] Could not fetch profile, using email as name:', profileResult);
       }
 
       const appUser: AppUser = {
@@ -259,18 +147,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
       
       setUser(fallbackUser);
-      
-      toast({
-        title: "Loading Issue",
-        description: "Some user data couldn't be loaded. Please refresh if you experience issues.",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
   
-  // Set up authentication state with simplified error handling
+  // Simplified auth state setup
   useEffect(() => {
     console.log('[AuthProvider] Setting up auth state listener');
     
@@ -328,7 +210,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [toast]);
+  }, [initializeUserData]);
 
   // Add loading timeout as safety net
   useEffect(() => {
@@ -357,7 +239,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   const isAuthenticated = !!user;
 
-  // New security methods for role validation
+  // Security methods for role validation
   const validateAdminAccess = (): boolean => {
     if (!user || user.role !== 'administrator') {
       toast({
@@ -433,20 +315,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Enhanced logout function
+  // Simplified logout function
   const logout = async () => {
     try {
       console.log('[AuthProvider] Logging out');
-      
-      // Clear session timeout timers
-      if (sessionTimeoutRef.current) {
-        clearTimeout(sessionTimeoutRef.current);
-        sessionTimeoutRef.current = null;
-      }
-      if (warningTimeoutRef.current) {
-        clearTimeout(warningTimeoutRef.current);
-        warningTimeoutRef.current = null;
-      }
       
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       

@@ -35,7 +35,7 @@ const convertToAssignment = (data: OptimizedAssignmentData): Assignment => {
     type: data.type,
     published: data.published,
     responsibleUserId: data.responsible_user_id || undefined,
-    employees: normalizeEmployees(data.employees), // Convert to string[]
+    employees: normalizeEmployees(data.employees),
     car: data.cars.length > 0 ? data.cars[0].id : '',
     cars: data.cars.map(car => car.id),
     createdAt: data.created_at,
@@ -104,6 +104,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
   const refetch = useCallback(async () => {
     setLoading(true);
+    // Clear cache before refetching
+    OptimizedAssignmentService.clearCache();
     await fetchAssignments();
   }, [fetchAssignments]);
 
