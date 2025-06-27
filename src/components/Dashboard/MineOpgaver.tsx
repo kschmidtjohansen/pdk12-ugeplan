@@ -12,23 +12,61 @@ const MineOpgaver: React.FC = () => {
   const { user } = useAuth();
   const { allAssignments, loading } = useDashboard();
 
+  console.log(`[MineOpgaver] DEBUG PHASE 1 - Raw data received:`, {
+    userRole: user?.role,
+    userName: user?.name,
+    totalAssignments: allAssignments?.length || 0,
+    assignmentsWithEmployees: allAssignments?.filter(a => a.employees && a.employees.length > 0).length || 0
+  });
+
+  // DEBUG: Log each assignment in detail
+  allAssignments?.forEach((assignment, index) => {
+    console.log(`[MineOpgaver] DEBUG - Assignment ${index + 1}:`, {
+      title: assignment.title,
+      employees: assignment.employees,
+      employeeCount: assignment.employees?.length || 0,
+      isAsbestkursus: assignment.title.toLowerCase().includes('asbestkursus')
+    });
+  });
+
   // FIXED: Filter to show tasks where current user is assigned, but display ALL assignees
   const userAssignments = useMemo(() => {
-    if (!user?.id || !allAssignments) return [];
+    if (!user?.id || !allAssignments) {
+      console.log(`[MineOpgaver] DEBUG - Missing user or assignments:`, {
+        hasUser: !!user?.id,
+        hasAssignments: !!allAssignments,
+        assignmentCount: allAssignments?.length || 0
+      });
+      return [];
+    }
 
-    return allAssignments.filter((assignment: Assignment) => {
+    const filtered = allAssignments.filter((assignment: Assignment) => {
       // Check if current user is assigned to this task
       const isUserAssigned = assignment.employees?.includes(user.name) || 
                            assignment.responsibleUser?.id === user.id;
       
-      console.log(`[MineOpgaver] FIXED - Assignment "${assignment.title}":`, {
+      console.log(`[MineOpgaver] DEBUG - Assignment "${assignment.title}" filtering:`, {
         userAssigned: isUserAssigned,
         allEmployees: assignment.employees,
-        currentUser: user.name
+        currentUser: user.name,
+        responsibleUserId: assignment.responsibleUser?.id,
+        currentUserId: user.id
       });
       
       return isUserAssigned;
     });
+
+    console.log(`[MineOpgaver] DEBUG - Final filtered results:`, {
+      totalFiltered: filtered.length,
+      filteredTitles: filtered.map(a => a.title),
+      employeeBreakdown: filtered.map(a => ({
+        title: a.title,
+        employees: a.employees,
+        employeeCount: a.employees?.length || 0
+      }))
+    });
+
+    return filtered;
   }, [allAssignments, user]);
 
   if (loading) {
@@ -74,52 +112,62 @@ const MineOpgaver: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {userAssignments.map((assignment) => (
-              <div
-                key={assignment.id}
-                className="border rounded-lg p-4 bg-gradient-to-br from-card to-card/50"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-semibold text-foreground">{assignment.title}</h4>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(assignment.date).toLocaleDateString()}
-                  </span>
-                </div>
-                
-                {assignment.description && (
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {assignment.description}
-                  </p>
-                )}
+            {userAssignments.map((assignment) => {
+              const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
+              
+              console.log(`[MineOpgaver] DEBUG - Rendering assignment "${assignment.title}":`, {
+                employees: employeeList,
+                employeeCount: employeeList.length,
+                shouldShowAll: true
+              });
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      {assignment.fromTime} - {assignment.toTime}
+              return (
+                <div
+                  key={assignment.id}
+                  className="border rounded-lg p-4 bg-gradient-to-br from-card to-card/50"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-semibold text-foreground">{assignment.title}</h4>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(assignment.date).toLocaleDateString()}
                     </span>
                   </div>
                   
-                  {/* FIXED: Display ALL assignees, not just current user */}
-                  {assignment.employees && assignment.employees.length > 0 && (
+                  {assignment.description && (
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {assignment.description}
+                    </p>
+                  )}
+
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <Clock className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">
-                        {assignment.employees.join(', ')}
+                        {assignment.fromTime} - {assignment.toTime}
+                      </span>
+                    </div>
+                    
+                    {/* FIXED: Display ALL assignees, not just current user */}
+                    {employeeList.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          {employeeList.join(', ')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {assignment.location && (
+                    <div className="mt-2">
+                      <span className="text-xs text-muted-foreground">
+                        📍 {assignment.location}
                       </span>
                     </div>
                   )}
                 </div>
-
-                {assignment.location && (
-                  <div className="mt-2">
-                    <span className="text-xs text-muted-foreground">
-                      📍 {assignment.location}
-                    </span>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>

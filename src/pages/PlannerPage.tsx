@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { useTranslation } from '../context/TranslationContext';
 import { usePlannerPage } from '../hooks/usePlannerPage';
 import { useEmployees } from '../hooks/useEmployees';
 import { useCars } from '../hooks/car';
 import { useVacations } from '../hooks/useVacations';
+import { useAuth } from '../context/AuthContext';
 import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
 import { Clock, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -14,6 +16,7 @@ import { Spinner } from '@/components/ui/spinner';
 const PlannerPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
   const { canCreate, canPublishTasks } = usePermissions();
+  const { user } = useAuth();
   const { employees } = useEmployees();
   const { cars } = useCars();
   const { vacations } = useVacations();
@@ -43,6 +46,35 @@ const PlannerPage: React.FC = () => {
     publishAssignment,
     handleCopyAssignment
   } = usePlannerPage();
+
+  // PHASE 3 DEBUG: Add comprehensive planner debugging
+  console.log(`[PlannerPage] PHASE 3 DEBUG - Planner access for user:`, {
+    userName: user?.name,
+    userRole: user?.role,
+    isServicemedarbejder: user?.role === 'servicemedarbejder',
+    totalWeekAssignments: weekAssignments?.length || 0,
+    selectedWeek,
+    selectedYear
+  });
+
+  console.log(`[PlannerPage] PHASE 3 DEBUG - Weekly assignments breakdown:`, {
+    totalAssignments: weekAssignments?.length || 0,
+    publishedAssignments: weekAssignments?.filter(a => a.published).length || 0,
+    unpublishedAssignments: weekAssignments?.filter(a => !a.published).length || 0,
+    assignmentsWithCurrentUser: weekAssignments?.filter(a => a.employees?.includes(user?.name || '')).length || 0,
+    assignmentsWithoutCurrentUser: weekAssignments?.filter(a => !a.employees?.includes(user?.name || '')).length || 0
+  });
+
+  // PHASE 3 DEBUG: Log specific assignment details
+  weekAssignments?.forEach((assignment, index) => {
+    console.log(`[PlannerPage] PHASE 3 DEBUG - Assignment ${index + 1}:`, {
+      title: assignment.title,
+      published: assignment.published,
+      employees: assignment.employees,
+      currentUserAssigned: assignment.employees?.includes(user?.name || ''),
+      shouldBeVisibleToServicemedarbejder: assignment.published
+    });
+  });
 
   const sortedWeekAssignments = React.useMemo(() => {
     if (!weekAssignments) return [];
@@ -122,6 +154,13 @@ const PlannerPage: React.FC = () => {
                       end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
                     })}
                   </p>
+                  
+                  {/* PHASE 3 DEBUG: Add debug info in header for servicemedarbejder */}
+                  {user?.role === 'servicemedarbejder' && (
+                    <p className="text-blue-200 text-xs">
+                      DEBUG: Showing {sortedWeekAssignments.length} assignments ({sortedWeekAssignments.filter(a => a.published).length} published)
+                    </p>
+                  )}
                 </div>
               </div>
 

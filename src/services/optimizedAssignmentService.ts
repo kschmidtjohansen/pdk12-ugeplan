@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface AssignmentEmployee {
@@ -38,7 +39,7 @@ export interface OptimizedAssignmentData {
 
 export class OptimizedAssignmentService {
   static async fetchAssignmentsWithFilter(filter: string, userId?: string, userRole?: string): Promise<OptimizedAssignmentData[]> {
-    console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Starting fetch with:', { filter, userId, userRole });
+    console.log('[OptimizedAssignmentService] PHASE 2 DEBUG - Starting fetch with:', { filter, userId, userRole });
 
     try {
       let assignmentsQuery = supabase
@@ -61,10 +62,10 @@ export class OptimizedAssignmentService {
         `)
         .order('assignment_date', { ascending: true });
 
-      // SERVICEMEDARBEJDER FIX: Updated filtering logic
+      // PHASE 2 FIX: Improved filtering logic
       if (filter === 'user' && userId) {
-        // DASHBOARD: Get assignments where user is involved, but preserve ALL employee data
-        console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Dashboard: Getting user assignments WITH all colleague names');
+        // DASHBOARD: Get assignments where user is involved, preserve ALL employee data
+        console.log('[OptimizedAssignmentService] PHASE 2 DEBUG - Dashboard: Getting user assignments WITH all colleague names');
         
         const { data: userAssignmentIds } = await supabase
           .from('assignments_employees')
@@ -80,14 +81,14 @@ export class OptimizedAssignmentService {
         }
         
       } else if (filter === 'published') {
-        // SERVICEMEDARBEJDER FIX: Show ALL published assignments regardless of user involvement
-        console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Planner: Getting ALL published assignments');
+        // PLANNER FIX: Show ALL published assignments regardless of user involvement
+        console.log('[OptimizedAssignmentService] PHASE 2 DEBUG - Planner: Getting ALL published assignments');
         assignmentsQuery = assignmentsQuery.eq('published', true);
-        // REMOVED: .or() filter that limited to user involvement - servicemedarbejder should see ALL published tasks
+        // CRITICAL: NO user filtering for planner view
         
       } else if (filter === 'all') {
         // ADMIN/SKADELEDER: Show ALL assignments
-        console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Admin: Getting ALL assignments');
+        console.log('[OptimizedAssignmentService] PHASE 2 DEBUG - Admin: Getting ALL assignments');
         
       } else if (filter === 'unpublished') {
         assignmentsQuery = assignmentsQuery.eq('published', false);
@@ -96,21 +97,21 @@ export class OptimizedAssignmentService {
       const { data: assignments, error: assignmentsError } = await assignmentsQuery;
 
       if (assignmentsError) {
-        console.error('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Query error:', assignmentsError);
+        console.error('[OptimizedAssignmentService] PHASE 2 DEBUG - Query error:', assignmentsError);
         throw assignmentsError;
       }
 
       if (!assignments || assignments.length === 0) {
-        console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - No assignments found for filter:', filter);
+        console.log('[OptimizedAssignmentService] PHASE 2 DEBUG - No assignments found for filter:', filter);
         return [];
       }
 
-      console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Retrieved assignments:', assignments.length);
+      console.log('[OptimizedAssignmentService] PHASE 2 DEBUG - Retrieved assignments:', assignments.length);
 
-      // SERVICEMEDARBEJDER FIX: Get ALL employee relationships for ALL retrieved assignments
+      // PHASE 2 FIX: Get ALL employee relationships for ALL retrieved assignments
       const assignmentIds = assignments.map(a => a.id);
       
-      console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Fetching employee relationships for assignments:', assignmentIds.length);
+      console.log('[OptimizedAssignmentService] PHASE 2 DEBUG - Fetching employee relationships for assignments:', assignmentIds.length);
       
       const { data: assignmentEmployees, error: employeesError } = await supabase
         .from('assignments_employees')
@@ -118,16 +119,16 @@ export class OptimizedAssignmentService {
         .in('assignment_id', assignmentIds);
 
       if (employeesError) {
-        console.warn('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Employee relationships error:', employeesError);
+        console.warn('[OptimizedAssignmentService] PHASE 2 DEBUG - Employee relationships error:', employeesError);
       }
 
-      console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Retrieved employee relationships:', assignmentEmployees?.length || 0);
+      console.log('[OptimizedAssignmentService] PHASE 2 DEBUG - Retrieved employee relationships:', assignmentEmployees?.length || 0);
 
-      // SERVICEMEDARBEJDER FIX: Get ALL employee profiles (no filtering by userId)
+      // PHASE 2 FIX: Get ALL employee profiles (no filtering by userId)
       const allEmployeeUserIds = assignmentEmployees?.map(ae => ae.user_id) || [];
       const uniqueEmployeeIds = [...new Set(allEmployeeUserIds)];
       
-      console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Unique employee IDs to fetch:', uniqueEmployeeIds.length);
+      console.log('[OptimizedAssignmentService] PHASE 2 DEBUG - Unique employee IDs to fetch:', uniqueEmployeeIds.length);
       
       let employeeProfiles: any[] = [];
       if (uniqueEmployeeIds.length > 0) {
@@ -137,10 +138,10 @@ export class OptimizedAssignmentService {
           .in('id', uniqueEmployeeIds);
 
         if (profilesError) {
-          console.warn('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Employee profiles error:', profilesError);
+          console.warn('[OptimizedAssignmentService] PHASE 2 DEBUG - Employee profiles error:', profilesError);
         } else {
           employeeProfiles = profiles || [];
-          console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Retrieved employee profiles:', employeeProfiles.length);
+          console.log('[OptimizedAssignmentService] PHASE 2 DEBUG - Retrieved employee profiles:', employeeProfiles.length);
         }
       }
 
@@ -162,13 +163,13 @@ export class OptimizedAssignmentService {
           .in('id', Array.from(allCarIds));
 
         if (carsError) {
-          console.warn('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Cars data error:', carsError);
+          console.warn('[OptimizedAssignmentService] PHASE 2 DEBUG - Cars data error:', carsError);
         } else {
           carData = cars || [];
         }
       }
 
-      console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Car data fetched:', carData.length);
+      console.log('[OptimizedAssignmentService] PHASE 2 DEBUG - Car data fetched:', carData.length);
 
       // Get responsible user profiles
       const responsibleUserIds = assignments
@@ -183,40 +184,51 @@ export class OptimizedAssignmentService {
           .in('id', responsibleUserIds);
 
         if (respError) {
-          console.warn('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Responsible users error:', respError);
+          console.warn('[OptimizedAssignmentService] PHASE 2 DEBUG - Responsible users error:', respError);
         } else {
           responsibleUsers = respUsers || [];
         }
       }
 
-      // SERVICEMEDARBEJDER FIX: Build complete assignment data with ALL employee information visible
+      // PHASE 2 FIX: Build complete assignment data with ALL employee information visible
       const result = assignments.map(assignment => {
         // Get ALL employees for this assignment (CRITICAL: no user filtering here)
         const assignmentEmployeeRelations = assignmentEmployees?.filter(
           ae => ae.assignment_id === assignment.id
         ) || [];
 
-        console.log(`[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Assignment "${assignment.title}" has ${assignmentEmployeeRelations.length} employee relations`);
+        console.log(`[OptimizedAssignmentService] PHASE 2 DEBUG - Assignment "${assignment.title}" has ${assignmentEmployeeRelations.length} employee relations`);
 
         // Build complete employee list with ALL names visible
         const employees: AssignmentEmployee[] = assignmentEmployeeRelations
           .map(relation => {
             const profile = employeeProfiles.find(p => p.id === relation.user_id);
             if (profile) {
-              console.log(`[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Found employee: ${profile.name} for assignment: ${assignment.title}`);
+              console.log(`[OptimizedAssignmentService] PHASE 2 DEBUG - Found employee: ${profile.name} for assignment: ${assignment.title}`);
               return {
                 id: profile.id,
                 name: profile.name,
                 email: profile.email
               };
             } else {
-              console.warn(`[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - No profile found for user_id: ${relation.user_id} in assignment: ${assignment.title}`);
+              console.warn(`[OptimizedAssignmentService] PHASE 2 DEBUG - No profile found for user_id: ${relation.user_id} in assignment: ${assignment.title}`);
             }
             return null;
           })
           .filter(emp => emp !== null) as AssignmentEmployee[];
 
-        console.log(`[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Final employee list for "${assignment.title}":`, employees.map(e => e.name));
+        console.log(`[OptimizedAssignmentService] PHASE 2 DEBUG - Final employee list for "${assignment.title}":`, employees.map(e => e.name));
+
+        // Special logging for Asbestkursus
+        if (assignment.title.toLowerCase().includes('asbestkursus')) {
+          console.log(`[OptimizedAssignmentService] PHASE 2 DEBUG - 🎯 ASBESTKURSUS PROCESSING:`, {
+            title: assignment.title,
+            employeeRelationCount: assignmentEmployeeRelations.length,
+            employeeProfilesFound: employees.length,
+            employeeNames: employees.map(e => e.name),
+            expectedNames: ['Mark Hansen', 'Julie Mortensen']
+          });
+        }
 
         const assignmentCarIds = new Set<string>();
         if (assignment.car_id) {
@@ -239,15 +251,6 @@ export class OptimizedAssignmentService {
             return null;
           })
           .filter(car => car !== null) as AssignmentCar[];
-
-        if (cars.length > 0) {
-          console.log(`[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - 🚗 Assignment with cars:`, {
-            title: assignment.title,
-            date: assignment.assignment_date,
-            carCount: cars.length,
-            carNames: cars.map(c => c.name)
-          });
-        }
 
         const responsibleUser = assignment.responsible_user_id 
           ? responsibleUsers.find(user => user.id === assignment.responsible_user_id)
@@ -276,12 +279,12 @@ export class OptimizedAssignmentService {
         };
       });
 
-      console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Complete result:', {
+      console.log('[OptimizedAssignmentService] PHASE 2 DEBUG - Complete result:', {
         filter,
         totalAssignments: result.length,
-        assignmentsWithCars: result.filter(a => a.cars.length > 0).length,
+        assignmentsWithEmployees: result.filter(a => a.employees.length > 0).length,
         totalEmployeeNamesVisible: result.reduce((sum, a) => sum + a.employees.length, 0),
-        sampleAssignmentEmployees: result.slice(0, 3).map(a => ({
+        asbestkursusAssignments: result.filter(a => a.title.toLowerCase().includes('asbestkursus')).map(a => ({
           title: a.title,
           employeeCount: a.employees.length,
           employeeNames: a.employees.map(e => e.name)
@@ -291,7 +294,7 @@ export class OptimizedAssignmentService {
       return result;
 
     } catch (err) {
-      console.error('[OptimizedAssignmentService] SERVICEMEDARBEJDER FIX - Critical error:', err);
+      console.error('[OptimizedAssignmentService] PHASE 2 DEBUG - Critical error:', err);
       throw err;
     }
   }
