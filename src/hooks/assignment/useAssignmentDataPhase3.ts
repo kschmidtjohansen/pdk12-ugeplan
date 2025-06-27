@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useAuth } from '@/context/AuthContext';
@@ -162,32 +161,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
       }
 
       // Step 4: Transform data with employee information
-      const transformedAssignments: Assignment[] = data.map(assignment => {
-        // Get employees for this assignment
-        const assignmentEmployees = employeesData?.filter(ae => ae.assignment_id === assignment.id) || [];
-        const employeeNames = assignmentEmployees.map(ae => {
-          const profile = profilesData.find(p => p.id === ae.user_id);
-          return profile?.name || 'Unknown';
-        });
-
-        return {
-          id: assignment.id,
-          title: assignment.title,
-          description: assignment.description || '',
-          date: assignment.assignment_date,
-          fromTime: assignment.from_time,
-          toTime: assignment.to_time,
-          location: assignment.location,
-          car: assignment.car_id,
-          cars: assignment.car_ids || [],
-          employees: employeeNames,
-          published: assignment.published || false,
-          responsibleUser: assignment.responsibleUser ? {
-            id: assignment.responsibleUser.id,
-            name: assignment.responsibleUser.name
-          } : null
-        };
-      });
+      const transformedAssignments = transformAssignments(data);
 
       setAssignments(transformedAssignments);
       setRetryCount(0); // Reset retry count on success
@@ -238,6 +212,41 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
       fetchInProgress.current = false;
     }
   }, [toast, t, filterCriteria, retryCount, user?.name]);
+
+  const transformAssignments = useCallback((data: any[]) => {
+    if (!data || !Array.isArray(data)) return [];
+    
+    return data.map(assignment => {
+      // CRITICAL FIX: Handle employee arrays properly
+      const employees = assignment.assignments_employees?.map((ae: any) => ae.profiles?.name).filter(Boolean) || [];
+      const cars = assignment.cars?.map((car: any) => car.name).filter(Boolean) || [];
+      
+      console.log(`[useAssignmentDataPhase3] Transform assignment "${assignment.title}":`, {
+        rawEmployees: assignment.assignments_employees,
+        transformedEmployees: employees,
+        employeeCount: employees.length
+      });
+
+      return {
+        id: assignment.id,
+        title: assignment.title,
+        description: assignment.description,
+        date: assignment.assignment_date,
+        fromTime: assignment.from_time,
+        toTime: assignment.to_time,
+        location: assignment.location,
+        type: assignment.type,
+        published: assignment.published,
+        responsibleUserId: assignment.responsible_user_id || '',
+        employees: employees,
+        car: cars.length > 0 ? cars[0] : null,
+        cars: cars,
+        createdAt: assignment.created_at,
+        updatedAt: assignment.updated_at,
+        responsibleUser: assignment.responsible_user
+      };
+    });
+  }, []);
 
   // Load assignments on component mount and when filter criteria change
   useEffect(() => {

@@ -37,8 +37,8 @@ export class OptimizedAssignmentService {
           responsible_user_id,
           created_at,
           updated_at,
-          assignments_employees!inner(
-            profiles!inner(id, name)
+          assignments_employees(
+            profiles(id, name)
           ),
           cars(id, name, car_number),
           responsible_user:profiles!assignments_responsible_user_id_fkey(id, name)
@@ -47,7 +47,9 @@ export class OptimizedAssignmentService {
 
       if (error) throw error;
 
-      return this.transformAssignmentData(data || []);
+      const result = this.transformAssignmentData(data || []);
+      console.log('[OptimizedAssignmentService] fetchAllAssignments result:', JSON.stringify(result.slice(0, 3), null, 2));
+      return result;
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error fetching all assignments:', error);
       return [];
@@ -56,6 +58,23 @@ export class OptimizedAssignmentService {
 
   static async fetchUserAssignments(userId: string, userRole?: string): Promise<OptimizedAssignmentData[]> {
     try {
+      // CRITICAL FIX: Two-step approach to get user assignments with ALL employee info
+      // Step 1: Get assignment IDs where user is assigned
+      const { data: userAssignmentIds, error: idsError } = await supabase
+        .from('assignments_employees')
+        .select('assignment_id')
+        .eq('user_id', userId);
+
+      if (idsError) throw idsError;
+
+      const assignmentIds = userAssignmentIds?.map(ae => ae.assignment_id) || [];
+      
+      if (assignmentIds.length === 0) {
+        console.log('[OptimizedAssignmentService] fetchUserAssignments - No assignments found for user');
+        return [];
+      }
+
+      // Step 2: Get full assignment data with ALL employees for those assignments
       const { data, error } = await supabase
         .from('assignments')
         .select(`
@@ -71,19 +90,21 @@ export class OptimizedAssignmentService {
           responsible_user_id,
           created_at,
           updated_at,
-          assignments_employees!inner(
-            profiles!inner(id, name)
+          assignments_employees(
+            profiles(id, name)
           ),
           cars(id, name, car_number),
           responsible_user:profiles!assignments_responsible_user_id_fkey(id, name)
         `)
-        .eq('assignments_employees.user_id', userId)
+        .in('id', assignmentIds)
         .eq('published', true)
         .order('assignment_date', { ascending: true });
 
       if (error) throw error;
 
-      return this.transformAssignmentData(data || []);
+      const result = this.transformAssignmentData(data || []);
+      console.log('[OptimizedAssignmentService] API payload for MineOpgaver:', JSON.stringify(result.slice(0, 3), null, 2));
+      return result;
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error fetching user assignments:', error);
       return [];
@@ -118,7 +139,9 @@ export class OptimizedAssignmentService {
 
       if (error) throw error;
 
-      return this.transformAssignmentData(data || []);
+      const result = this.transformAssignmentData(data || []);
+      console.log('[OptimizedAssignmentService] fetchPublishedAssignments - ALL published assignments:', JSON.stringify(result.slice(0, 3), null, 2));
+      return result;
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error fetching published assignments:', error);
       return [];
@@ -161,25 +184,36 @@ export class OptimizedAssignmentService {
   }
 
   private static transformAssignmentData(data: any[]): OptimizedAssignmentData[] {
-    return data.map(assignment => ({
-      id: assignment.id,
-      title: assignment.title,
-      description: assignment.description,
-      assignment_date: assignment.assignment_date,
-      from_time: assignment.from_time,
-      to_time: assignment.to_time,
-      location: assignment.location,
-      type: assignment.type || 'other',
-      published: assignment.published,
-      responsible_user_id: assignment.responsible_user_id,
-      created_at: assignment.created_at,
-      updated_at: assignment.updated_at,
-      employees: assignment.assignments_employees?.map((ae: any) => ({
+    return data.map(assignment => {
+      // CRITICAL FIX: Preserve ALL employee information
+      const employees = assignment.assignments_employees?.map((ae: any) => ({
         id: ae.profiles?.id || '',
         name: ae.profiles?.name || 'Unknown'
-      })) || [],
-      cars: assignment.cars || [],
-      responsible_user: assignment.responsible_user
-    }));
+      })) || [];
+
+      console.log(`[OptimizedAssignmentService] Transform assignment "${assignment.title}":`, {
+        rawEmployees: assignment.assignments_employees,
+        transformedEmployees: employees,
+        employeeCount: employees.length
+      });
+
+      return {
+        id: assignment.id,
+        title: assignment.title,
+        description: assignment.description,
+        assignment_date: assignment.assignment_date,
+        from_time: assignment.from_time,
+        to_time: assignment.to_time,
+        location: assignment.location,
+        type: assignment.type || 'other',
+        published: assignment.published,
+        responsible_user_id: assignment.responsible_user_id,
+        created_at: assignment.created_at,
+        updated_at: assignment.updated_at,
+        employees: employees,
+        cars: assignment.cars || [],
+        responsible_user: assignment.responsible_user
+      };
+    });
   }
 }

@@ -13,4 +13,13 @@ export interface Vacation {
   is_same_day?: boolean;
   created_at?: string;
   updated_at?: string;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
+
+export type VacationRequestType = 'full_day' | 'partial_day';
+
+export type VacationStatus = 'pending' | 'approved' | 'rejected';

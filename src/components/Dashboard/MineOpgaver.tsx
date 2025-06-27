@@ -12,32 +12,12 @@ const MineOpgaver: React.FC = () => {
   const { user } = useAuth();
   const { allAssignments, loading } = useDashboard();
 
-  // DEBUG LOG: MineOpgaver props
-  console.log('MineOpgaver props:', JSON.stringify(allAssignments?.slice(0, 3), null, 2));
+  // DEBUG: Log component props to diagnose employee filtering
+  console.log('MineOpgaver.assignments prop:', JSON.stringify(allAssignments?.slice(0, 3), null, 2));
 
-  console.log(`[MineOpgaver] PHASE 4 FIX - Raw data received:`, {
-    userRole: user?.role,
-    userName: user?.name,
-    totalAssignments: allAssignments?.length || 0,
-    assignmentsWithEmployees: allAssignments?.filter(a => a.employees && a.employees.length > 0).length || 0
-  });
-
-  // PHASE 4 FIX: Enhanced debugging for employee data
-  allAssignments?.forEach((assignment, index) => {
-    console.log(`[MineOpgaver] PHASE 4 FIX - Assignment ${index + 1}:`, {
-      title: assignment.title,
-      employees: assignment.employees,
-      employeeCount: assignment.employees?.length || 0,
-      isAsbestkursus: assignment.title.toLowerCase().includes('asbestkursus'),
-      shouldShowMultipleNames: assignment.title.toLowerCase().includes('asbestkursus') ? 'YES - should show Mark Hansen, Julie Mortensen' : 'N/A'
-    });
-  });
-
-  // CRITICAL FIX: Remove the redundant user filter - allAssignments already contains only user's assignments
-  // The service layer already filters for user assignments, so no need to filter again here
   const userAssignments = useMemo(() => {
     if (!user?.id || !allAssignments) {
-      console.log(`[MineOpgaver] PHASE 4 FIX - Missing user or assignments:`, {
+      console.log(`[MineOpgaver] Missing user or assignments:`, {
         hasUser: !!user?.id,
         hasAssignments: !!allAssignments,
         assignmentCount: allAssignments?.length || 0
@@ -46,7 +26,7 @@ const MineOpgaver: React.FC = () => {
     }
 
     // CRITICAL FIX: Just return all assignments - they're already filtered by the service
-    console.log(`[MineOpgaver] PHASE 4 FIX - Using ALL assignments from service (already user-filtered):`, {
+    console.log(`[MineOpgaver] Using ALL assignments from service (already user-filtered):`, {
       totalAssignments: allAssignments.length,
       employeeBreakdown: allAssignments.map(a => ({
         title: a.title,
@@ -59,8 +39,7 @@ const MineOpgaver: React.FC = () => {
     return allAssignments;
   }, [allAssignments, user]);
 
-  // PHASE 4 FIX: Add final rendering verification
-  console.log(`[MineOpgaver] PHASE 4 FIX - FINAL RENDER VERIFICATION:`, {
+  console.log(`[MineOpgaver] FINAL RENDER VERIFICATION:`, {
     totalToRender: userAssignments.length,
     renderingDetails: userAssignments.map(a => ({
       title: a.title,
@@ -116,7 +95,7 @@ const MineOpgaver: React.FC = () => {
             {userAssignments.map((assignment) => {
               const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
               
-              console.log(`[MineOpgaver] PHASE 4 FIX - Rendering assignment "${assignment.title}":`, {
+              console.log(`[MineOpgaver] Rendering assignment "${assignment.title}":`, {
                 employees: employeeList,
                 employeeCount: employeeList.length,
                 actualDisplayText: employeeList.join(', '),
@@ -151,7 +130,7 @@ const MineOpgaver: React.FC = () => {
                       </span>
                     </div>
                     
-                    {/* PHASE 4 FIX: Display ALL assignees, not just current user */}
+                    {/* CRITICAL FIX: Display ALL assignees, not just current user */}
                     {employeeList.length > 0 && (
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-muted-foreground" />
