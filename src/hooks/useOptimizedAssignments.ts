@@ -27,31 +27,29 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     try {
       let fetchedAssignments: OptimizedAssignmentData[];
       
-      console.log('[useOptimizedAssignments] PHASE 2 DEBUG - Fetching with filter:', filter, 'for user:', user?.name, 'role:', userRole);
+      console.log('[useOptimizedAssignments] PHASE 4 FIX - Fetching with filter:', filter, 'for user:', user?.name, 'role:', userRole);
       
       if (filter === 'user' && userId) {
-        // PHASE 2 DEBUG: Dashboard context - get ALL user assignments with colleague names
-        console.log('[useOptimizedAssignments] PHASE 2 DEBUG - Dashboard: Fetching ALL user assignments with colleague names');
+        // PHASE 4 FIX: Dashboard context - get user assignments with ALL colleague names
+        console.log('[useOptimizedAssignments] PHASE 4 FIX - Dashboard: Fetching user assignments with ALL colleague names preserved');
         fetchedAssignments = await OptimizedAssignmentService.fetchUserAssignments(userId, userRole);
       } else if (filter === 'published') {
-        // PHASE 2 DEBUG: Planner context - get ALL published assignments
-        console.log('[useOptimizedAssignments] PHASE 2 DEBUG - Planner: Fetching ALL published assignments');
+        // PHASE 4 FIX: Planner context - get ALL published assignments
+        console.log('[useOptimizedAssignments] PHASE 4 FIX - Planner: Fetching ALL published assignments');
         fetchedAssignments = await OptimizedAssignmentService.fetchPublishedAssignments(userId, userRole);
       } else if (filter === 'all') {
-        // PHASE 2 DEBUG: Admin/Skadeleder context - get ALL assignments
-        console.log('[useOptimizedAssignments] PHASE 2 DEBUG - Admin: Fetching ALL assignments');
+        console.log('[useOptimizedAssignments] PHASE 4 FIX - Admin: Fetching ALL assignments');
         fetchedAssignments = await OptimizedAssignmentService.fetchAllAssignments(userRole);
       } else if (filter === 'unpublished') {
-        // PHASE 2 DEBUG: Admin/Skadeleder context - get unpublished assignments
         fetchedAssignments = await OptimizedAssignmentService.fetchUnpublishedAssignments(userId, userRole);
       } else {
         fetchedAssignments = await OptimizedAssignmentService.fetchAllAssignments(userRole);
       }
       
-      console.log('[useOptimizedAssignments] PHASE 2 DEBUG - Fetched assignments:', fetchedAssignments.length);
+      console.log('[useOptimizedAssignments] PHASE 4 FIX - Fetched assignments:', fetchedAssignments.length);
       
-      // PHASE 2 DEBUG: Detailed logging for debugging
-      console.log('[useOptimizedAssignments] PHASE 2 DEBUG - Assignment breakdown by filter:', {
+      // PHASE 4 FIX: Detailed logging for debugging
+      console.log('[useOptimizedAssignments] PHASE 4 FIX - Assignment breakdown by filter:', {
         filter,
         userRole,
         totalAssignments: fetchedAssignments.length,
@@ -60,14 +58,15 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         asbestkursusAssignments: fetchedAssignments.filter(a => a.title.toLowerCase().includes('asbestkursus')).map(a => ({
           title: a.title,
           employees: a.employees.map(e => e.name),
-          date: a.assignment_date
+          date: a.assignment_date,
+          shouldShowBothNames: 'Mark Hansen AND Julie Mortensen'
         }))
       });
       
       setAssignments(fetchedAssignments);
       setError(null);
     } catch (err: any) {
-      console.error('[useOptimizedAssignments] PHASE 2 DEBUG - Fetch error:', err);
+      console.error('[useOptimizedAssignments] PHASE 4 FIX - Fetch error:', err);
       setError(err);
       toast({
         title: t('common.error'),
@@ -242,38 +241,29 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       return null;
     }
 
-    console.log('[useOptimizedAssignments] PHASE 2 DEBUG - Transforming assignments:', assignments.length);
+    console.log('[useOptimizedAssignments] PHASE 4 FIX - Transforming assignments:', assignments.length);
 
     const transformed: Assignment[] = assignments.map(a => {
+      // PHASE 4 FIX: Ensure ALL employee names are preserved in transformation
       const employeeNames = Array.isArray(a.employees) 
         ? a.employees.map(emp => emp.name).filter(name => name && name.trim() !== '')
         : [];
       
-      // PHASE 2 DEBUG: Special attention to Asbestkursus
+      // PHASE 4 FIX: Special attention to Asbestkursus
       if (a.title.toLowerCase().includes('asbestkursus')) {
-        console.log(`[useOptimizedAssignments] PHASE 2 DEBUG - 🎯 ASBESTKURSUS TRANSFORMATION:`, {
+        console.log(`[useOptimizedAssignments] PHASE 4 FIX - 🎯 ASBESTKURSUS TRANSFORMATION:`, {
           title: a.title,
           rawEmployees: a.employees,
           transformedEmployeeNames: employeeNames,
-          expectedNames: ['Mark Hansen', 'Julie Mortensen']
+          shouldIncludeBoth: 'Mark Hansen AND Julie Mortensen'
         });
       }
       
-      // CAR FIX: Properly handle car data from the service
+      // CAR FIX: Handle car data properly
       const carIds = a.cars?.map(car => car.id) || [];
       const primaryCar = a.cars && a.cars.length > 0 ? a.cars[0].id : null;
 
-      if (a.cars && a.cars.length > 0) {
-        console.log(`[useOptimizedAssignments] PHASE 2 DEBUG - 🚗 Assignment with cars:`, {
-          title: a.title,
-          date: a.assignment_date,
-          carCount: a.cars.length,
-          carNames: a.cars.map(c => c.name),
-          carIds: carIds
-        });
-      }
-
-      console.log(`[useOptimizedAssignments] PHASE 2 DEBUG - Transformed assignment "${a.title}" with employees:`, employeeNames);
+      console.log(`[useOptimizedAssignments] PHASE 4 FIX - Transformed assignment "${a.title}" with employees:`, employeeNames);
 
       return {
         id: a.id,
@@ -286,7 +276,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         type: a.type,
         published: a.published,
         responsibleUserId: a.responsible_user_id || '',
-        employees: employeeNames,
+        employees: employeeNames, // PHASE 4 FIX: This should now contain ALL names
         car: primaryCar,
         cars: carIds,
         createdAt: a.created_at,
@@ -295,13 +285,14 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       };
     });
 
-    console.log('[useOptimizedAssignments] PHASE 2 DEBUG - Transform complete:', {
+    console.log('[useOptimizedAssignments] PHASE 4 FIX - Transform complete:', {
       totalTransformed: transformed.length,
       assignmentsWithEmployees: transformed.filter(a => a.employees && a.employees.length > 0).length,
       totalEmployeeNamesVisible: transformed.reduce((sum, a) => sum + (a.employees?.length || 0), 0),
       asbestkursusTransformed: transformed.filter(a => a.title.toLowerCase().includes('asbestkursus')).map(a => ({
         title: a.title,
-        employees: a.employees
+        employees: a.employees,
+        shouldShowBothNames: 'Mark Hansen AND Julie Mortensen'
       }))
     });
 

@@ -12,16 +12,16 @@ const MineOpgaver: React.FC = () => {
   const { user } = useAuth();
   const { allAssignments, loading } = useDashboard();
 
-  console.log(`[MineOpgaver] CRITICAL FIX - Raw data received:`, {
+  console.log(`[MineOpgaver] PHASE 4 FIX - Raw data received:`, {
     userRole: user?.role,
     userName: user?.name,
     totalAssignments: allAssignments?.length || 0,
     assignmentsWithEmployees: allAssignments?.filter(a => a.employees && a.employees.length > 0).length || 0
   });
 
-  // CRITICAL FIX: Enhanced debugging for employee data
+  // PHASE 4 FIX: Enhanced debugging for employee data
   allAssignments?.forEach((assignment, index) => {
-    console.log(`[MineOpgaver] CRITICAL FIX - Assignment ${index + 1}:`, {
+    console.log(`[MineOpgaver] PHASE 4 FIX - Assignment ${index + 1}:`, {
       title: assignment.title,
       employees: assignment.employees,
       employeeCount: assignment.employees?.length || 0,
@@ -30,10 +30,10 @@ const MineOpgaver: React.FC = () => {
     });
   });
 
-  // CRITICAL FIX: Filter to show tasks where current user is assigned, but display ALL assignees
+  // PHASE 4 FIX: Filter to show tasks where current user is assigned, but display ALL assignees
   const userAssignments = useMemo(() => {
     if (!user?.id || !allAssignments) {
-      console.log(`[MineOpgaver] CRITICAL FIX - Missing user or assignments:`, {
+      console.log(`[MineOpgaver] PHASE 4 FIX - Missing user or assignments:`, {
         hasUser: !!user?.id,
         hasAssignments: !!allAssignments,
         assignmentCount: allAssignments?.length || 0
@@ -46,7 +46,7 @@ const MineOpgaver: React.FC = () => {
       const isUserAssigned = assignment.employees?.includes(user.name) || 
                            assignment.responsibleUser?.id === user.id;
       
-      console.log(`[MineOpgaver] CRITICAL FIX - Assignment "${assignment.title}" filtering:`, {
+      console.log(`[MineOpgaver] PHASE 4 FIX - Assignment "${assignment.title}" filtering:`, {
         userAssigned: isUserAssigned,
         allEmployees: assignment.employees,
         currentUser: user.name,
@@ -57,7 +57,7 @@ const MineOpgaver: React.FC = () => {
       return isUserAssigned;
     });
 
-    console.log(`[MineOpgaver] CRITICAL FIX - Final filtered results:`, {
+    console.log(`[MineOpgaver] PHASE 4 FIX - Final filtered results:`, {
       totalFiltered: filtered.length,
       filteredTitles: filtered.map(a => a.title),
       employeeBreakdown: filtered.map(a => ({
@@ -71,8 +71,8 @@ const MineOpgaver: React.FC = () => {
     return filtered;
   }, [allAssignments, user]);
 
-  // CRITICAL FIX: Add final rendering verification
-  console.log(`[MineOpgaver] CRITICAL FIX - FINAL RENDER VERIFICATION:`, {
+  // PHASE 4 FIX: Add final rendering verification
+  console.log(`[MineOpgaver] PHASE 4 FIX - FINAL RENDER VERIFICATION:`, {
     totalToRender: userAssignments.length,
     renderingDetails: userAssignments.map(a => ({
       title: a.title,
@@ -128,7 +128,7 @@ const MineOpgaver: React.FC = () => {
             {userAssignments.map((assignment) => {
               const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
               
-              console.log(`[MineOpgaver] CRITICAL FIX - Rendering assignment "${assignment.title}":`, {
+              console.log(`[MineOpgaver] PHASE 4 FIX - Rendering assignment "${assignment.title}":`, {
                 employees: employeeList,
                 employeeCount: employeeList.length,
                 actualDisplayText: employeeList.join(', '),
@@ -163,7 +163,7 @@ const MineOpgaver: React.FC = () => {
                       </span>
                     </div>
                     
-                    {/* CRITICAL FIX: Display ALL assignees, not just current user */}
+                    {/* PHASE 4 FIX: Display ALL assignees, not just current user */}
                     {employeeList.length > 0 && (
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-muted-foreground" />
