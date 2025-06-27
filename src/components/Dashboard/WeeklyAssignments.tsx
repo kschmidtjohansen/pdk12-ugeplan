@@ -17,6 +17,20 @@ interface WeeklyAssignmentsProps {
   onNextWeek: () => void;
 }
 
+// Helper function to get employee names from assignment
+const getEmployeeNames = (assignment: Assignment): string[] => {
+  if (!assignment.employees) return [];
+  
+  if (Array.isArray(assignment.employees)) {
+    // Handle both string[] and {id, name}[] formats
+    return assignment.employees.map(emp => 
+      typeof emp === 'string' ? emp : emp.name
+    );
+  }
+  
+  return [];
+};
+
 const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
   assignments,
   selectedWeek,
@@ -87,13 +101,6 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
     });
   }, [assignments]);
 
-  console.log('[WeeklyAssignments] FIXED - Rendering assignments with proper car names:');
-  sortedAssignments.forEach(assignment => {
-    const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
-    const carNames = getCarNames(assignment);
-    console.log(`[WeeklyAssignments] FIXED - Assignment "${assignment.title}": employees=[${employeeList.join(', ')}], cars=[${carNames.join(', ')}]`);
-  });
-
   return (
     <>
       <Card className="border-2 border-border/50 bg-gradient-to-br from-card to-card">
@@ -145,8 +152,8 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
           ) : (
             <div className="grid gap-3">
               {sortedAssignments.map((assignment, index) => {
-                // Direct employee name handling
-                const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
+                // Use helper function to get employee names
+                const employeeNames = getEmployeeNames(assignment);
                 const carNames = getCarNames(assignment);
                 
                 return (
@@ -182,7 +189,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                       )}
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {/* FIXED: Display car names properly with support for multiple cars */}
+                        {/* Display car names properly with support for multiple cars */}
                         {carNames.length > 0 && (
                           <div className="flex items-center gap-2">
                             <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-200">
@@ -203,14 +210,14 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                           </span>
                         </div>
                         
-                        {/* Show ALL colleague names directly */}
-                        {employeeList.length > 0 && (
+                        {/* Show employee names using helper function */}
+                        {employeeNames.length > 0 && (
                           <div className="flex items-center gap-2">
                             <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
                               <Users className="h-3.5 w-3.5 text-purple-600" />
                             </div>
                             <span className="text-foreground font-medium text-sm">
-                              {employeeList.join(', ')}
+                              {employeeNames.join(', ')}
                             </span>
                           </div>
                         )}

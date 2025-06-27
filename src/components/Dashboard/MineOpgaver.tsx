@@ -7,6 +7,21 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useOptimizedAssignments } from '@/hooks/useOptimizedAssignments';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
+import { Assignment } from '@/types/assignment';
+
+// Helper function to get employee names from assignment
+const getEmployeeNames = (assignment: Assignment): string[] => {
+  if (!assignment.employees) return [];
+  
+  if (Array.isArray(assignment.employees)) {
+    // Handle both string[] and {id, name}[] formats
+    return assignment.employees.map(emp => 
+      typeof emp === 'string' ? emp : emp.name
+    );
+  }
+  
+  return [];
+};
 
 const MineOpgaver: React.FC = () => {
   const { t } = useTranslation();
@@ -110,11 +125,11 @@ const MineOpgaver: React.FC = () => {
           ) : (
             <div className="space-y-3">
               {userAssignments.map((assignment) => {
-                const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
+                const employeeNames = getEmployeeNames(assignment);
                 
                 console.log('[MineOpgaver] Rendering assignment:', {
                   title: assignment.title,
-                  employees: employeeList,
+                  employees: employeeNames,
                   date: assignment.date
                 });
 
@@ -144,11 +159,11 @@ const MineOpgaver: React.FC = () => {
                         </span>
                       </div>
                       
-                      {employeeList.length > 0 && (
+                      {employeeNames.length > 0 && (
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground">
-                            {employeeList.map(emp => emp.name).join(', ')}
+                            {employeeNames.join(', ')}
                           </span>
                         </div>
                       )}

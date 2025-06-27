@@ -10,7 +10,7 @@ export interface Assignment {
   type?: string;
   published: boolean;
   responsibleUserId?: string;
-  employees?: string[];
+  employees?: string[] | Array<{ id: string; name: string }>; // Support both formats
   car?: string | { id: string; name: string };
   cars?: string[];
   createdAt?: string;
