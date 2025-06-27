@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
 import { AssignmentFilterService } from '@/services/assignmentFilterService';
@@ -27,29 +28,48 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
     try {
       let fetchedAssignments: OptimizedAssignmentData[];
       
-      console.log('[useOptimizedAssignments] SERVICEMEDARBEJDER FIX - Fetching with filter:', filter, 'for user:', user?.name, 'role:', userRole);
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Fetching with filter:', filter, 'for user:', user?.name, 'role:', userRole);
       
       if (filter === 'user' && userId) {
-        // SERVICEMEDARBEJDER FIX: Pass userRole to fetchUserAssignments
+        // COMPREHENSIVE FIX: Dashboard context - get ALL user assignments with colleague names
+        console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Dashboard: Fetching ALL user assignments with colleague names');
         fetchedAssignments = await OptimizedAssignmentService.fetchUserAssignments(userId, userRole);
-      } else if (filter === 'all') {
-        fetchedAssignments = await OptimizedAssignmentService.fetchAllAssignments(userRole);
       } else if (filter === 'published') {
-        // SERVICEMEDARBEJDER FIX: Pass userId and userRole to fetchPublishedAssignments
+        // COMPREHENSIVE FIX: Planner context - get ALL published assignments
+        console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Planner: Fetching ALL published assignments');
         fetchedAssignments = await OptimizedAssignmentService.fetchPublishedAssignments(userId, userRole);
+      } else if (filter === 'all') {
+        // COMPREHENSIVE FIX: Admin/Skadeleder context - get ALL assignments
+        console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Admin: Fetching ALL assignments');
+        fetchedAssignments = await OptimizedAssignmentService.fetchAllAssignments(userRole);
       } else if (filter === 'unpublished') {
-        // SERVICEMEDARBEJDER FIX: Pass userId and userRole to fetchUnpublishedAssignments
+        // COMPREHENSIVE FIX: Admin/Skadeleder context - get unpublished assignments
         fetchedAssignments = await OptimizedAssignmentService.fetchUnpublishedAssignments(userId, userRole);
       } else {
         fetchedAssignments = await OptimizedAssignmentService.fetchAllAssignments(userRole);
       }
       
-      console.log('[useOptimizedAssignments] SERVICEMEDARBEJDER FIX - Fetched assignments:', fetchedAssignments.length);
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Fetched assignments:', fetchedAssignments.length);
+      
+      // COMPREHENSIVE FIX: Detailed logging for debugging
+      console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Assignment breakdown by filter:', {
+        filter,
+        userRole,
+        totalAssignments: fetchedAssignments.length,
+        assignmentsWithEmployees: fetchedAssignments.filter(a => a.employees.length > 0).length,
+        totalEmployeeNamesVisible: fetchedAssignments.reduce((sum, a) => sum + a.employees.length, 0),
+        sampleAssignments: fetchedAssignments.slice(0, 3).map(a => ({
+          title: a.title,
+          published: a.published,
+          employees: a.employees.map(e => e.name),
+          date: a.assignment_date
+        }))
+      });
       
       setAssignments(fetchedAssignments);
       setError(null);
     } catch (err: any) {
-      console.error('[useOptimizedAssignments] SERVICEMEDARBEJDER FIX - Fetch error:', err);
+      console.error('[useOptimizedAssignments] COMPREHENSIVE FIX - Fetch error:', err);
       setError(err);
       toast({
         title: t('common.error'),
@@ -224,7 +244,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       return null;
     }
 
-    console.log('[useOptimizedAssignments] SERVICEMEDARBEJDER FIX - Transforming assignments:', assignments.length);
+    console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Transforming assignments:', assignments.length);
 
     const transformed: Assignment[] = assignments.map(a => {
       const employeeNames = Array.isArray(a.employees) 
@@ -236,7 +256,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       const primaryCar = a.cars && a.cars.length > 0 ? a.cars[0].id : null;
 
       if (a.cars && a.cars.length > 0) {
-        console.log(`[useOptimizedAssignments] SERVICEMEDARBEJDER FIX - 🚗 Assignment with cars:`, {
+        console.log(`[useOptimizedAssignments] COMPREHENSIVE FIX - 🚗 Assignment with cars:`, {
           title: a.title,
           date: a.assignment_date,
           carCount: a.cars.length,
@@ -245,7 +265,7 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
         });
       }
 
-      console.log(`[useOptimizedAssignments] SERVICEMEDARBEJDER FIX - Transformed assignment "${a.title}" with employees:`, employeeNames);
+      console.log(`[useOptimizedAssignments] COMPREHENSIVE FIX - Transformed assignment "${a.title}" with employees:`, employeeNames);
 
       return {
         id: a.id,
@@ -267,10 +287,14 @@ export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
       };
     });
 
-    console.log('[useOptimizedAssignments] SERVICEMEDARBEJDER FIX - Transform complete:', {
+    console.log('[useOptimizedAssignments] COMPREHENSIVE FIX - Transform complete:', {
       totalTransformed: transformed.length,
       assignmentsWithCars: transformed.filter(a => a.cars && a.cars.length > 0).length,
-      totalEmployeeNamesVisible: transformed.reduce((sum, a) => sum + (a.employees?.length || 0), 0)
+      totalEmployeeNamesVisible: transformed.reduce((sum, a) => sum + (a.employees?.length || 0), 0),
+      employeeNameSamples: transformed.slice(0, 3).map(a => ({
+        title: a.title,
+        employees: a.employees
+      }))
     });
 
     setTransformedAssignments(transformed);
