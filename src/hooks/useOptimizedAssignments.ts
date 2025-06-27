@@ -1,318 +1,78 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Assignment } from '@/types/assignment';
-import { AssignmentFilterService } from '@/services/assignmentFilterService';
-import { OptimizedAssignmentService, OptimizedAssignmentData } from '@/services/optimizedAssignmentService';
-import { useToast } from '@/components/ui/use-toast';
-import { useTranslation } from '@/context/TranslationContext';
+
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { publishAssignmentHandler } from '@/utils/assignmentPublishing';
+import { OptimizedAssignmentService, OptimizedAssignmentData } from '@/services/optimizedAssignmentService';
 
-export type AssignmentFilter = 'all' | 'user' | 'published' | 'unpublished';
+type FilterType = 'all' | 'published' | 'unpublished' | 'user';
 
-export const useOptimizedAssignments = (filter: AssignmentFilter = 'all') => {
-  const [assignments, setAssignments] = useState<OptimizedAssignmentData[]>([]);
-  const [transformedAssignments, setTransformedAssignments] = useState<Assignment[] | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [operationStates, setOperationStates] = useState<{ [key: string]: 'idle' | 'loading' | 'success' | 'error' }>({});
-  const { toast } = useToast();
-  const { t } = useTranslation();
+interface UseOptimizedAssignmentsResult {
+  assignments: OptimizedAssignmentData[];
+  loading: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
+}
+
+export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimizedAssignmentsResult => {
   const { user } = useAuth();
-  
-  const userRole = user?.role;
-  const userId = user?.id;
+  const [assignments, setAssignments] = useState<OptimizedAssignmentData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const refetch = useCallback(async () => {
-    setLoading(true);
+  const fetchAssignments = useCallback(async () => {
+    if (!user?.id) {
+      console.log('[useOptimizedAssignments] No user ID available, skipping fetch');
+      setAssignments([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      let fetchedAssignments: OptimizedAssignmentData[];
-      
-      console.log('[useOptimizedAssignments] PHASE 4 FIX - Fetching with filter:', filter, 'for user:', user?.name, 'role:', userRole);
-      
-      if (filter === 'user' && userId) {
-        // PHASE 4 FIX: Dashboard context - get user assignments with ALL colleague names
-        console.log('[useOptimizedAssignments] PHASE 4 FIX - Dashboard: Fetching user assignments with ALL colleague names preserved');
-        fetchedAssignments = await OptimizedAssignmentService.fetchUserAssignments(userId, userRole);
-      } else if (filter === 'published') {
-        // PHASE 4 FIX: Planner context - get ALL published assignments
-        console.log('[useOptimizedAssignments] PHASE 4 FIX - Planner: Fetching ALL published assignments');
-        fetchedAssignments = await OptimizedAssignmentService.fetchPublishedAssignments(userId, userRole);
-      } else if (filter === 'all') {
-        console.log('[useOptimizedAssignments] PHASE 4 FIX - Admin: Fetching ALL assignments');
-        fetchedAssignments = await OptimizedAssignmentService.fetchAllAssignments(userRole);
-      } else if (filter === 'unpublished') {
-        fetchedAssignments = await OptimizedAssignmentService.fetchUnpublishedAssignments(userId, userRole);
-      } else {
-        fetchedAssignments = await OptimizedAssignmentService.fetchAllAssignments(userRole);
-      }
-      
-      console.log('[useOptimizedAssignments] PHASE 4 FIX - Fetched assignments:', fetchedAssignments.length);
-      
-      // PHASE 4 FIX: Detailed logging for debugging
-      console.log('[useOptimizedAssignments] PHASE 4 FIX - Assignment breakdown by filter:', {
-        filter,
-        userRole,
-        totalAssignments: fetchedAssignments.length,
-        assignmentsWithEmployees: fetchedAssignments.filter(a => a.employees.length > 0).length,
-        totalEmployeeNamesVisible: fetchedAssignments.reduce((sum, a) => sum + a.employees.length, 0),
-        asbestkursusAssignments: fetchedAssignments.filter(a => a.title.toLowerCase().includes('asbestkursus')).map(a => ({
-          title: a.title,
-          employees: a.employees.map(e => e.name),
-          date: a.assignment_date,
-          shouldShowBothNames: 'Mark Hansen AND Julie Mortensen'
-        }))
-      });
-      
-      setAssignments(fetchedAssignments);
       setError(null);
-    } catch (err: any) {
-      console.error('[useOptimizedAssignments] PHASE 4 FIX - Fetch error:', err);
-      setError(err);
-      toast({
-        title: t('common.error'),
-        description: t('planner.fetchError'),
-        variant: 'destructive'
-      });
+      console.log(`[useOptimizedAssignments] Fetching assignments with filter: ${filter} for user: ${user.name} (${user.role})`);
+      
+      let result: OptimizedAssignmentData[];
+      
+      switch (filter) {
+        case 'all':
+          result = await OptimizedAssignmentService.fetchAllAssignments(user.role);
+          break;
+        case 'published':
+          result = await OptimizedAssignmentService.fetchPublishedAssignments(user.id, user.role);
+          break;
+        case 'unpublished':
+          result = await OptimizedAssignmentService.fetchUnpublishedAssignments(user.id, user.role);
+          break;
+        case 'user':
+          result = await OptimizedAssignmentService.fetchUserAssignments(user.id, user.role);
+          break;
+        default:
+          result = [];
+      }
+
+      console.log(`[useOptimizedAssignments] Successfully fetched ${result.length} assignments`);
+      setAssignments(result);
+    } catch (err) {
+      console.error('[useOptimizedAssignments] Error fetching assignments:', err);
+      setError(err instanceof Error ? err : new Error('Failed to fetch assignments'));
+      setAssignments([]);
     } finally {
       setLoading(false);
     }
-  }, [filter, userId, userRole, t, toast, user?.name]);
+  }, [user?.id, user?.role, user?.name, filter]);
+
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    await fetchAssignments();
+  }, [fetchAssignments]);
 
   useEffect(() => {
-    refetch();
-  }, [refetch]);
-
-  const deleteAssignment = useCallback(async (id: string) => {
-    setOperationStates(prevState => ({ ...prevState, [id]: 'loading' }));
-    try {
-      setTransformedAssignments(prevAssignments => {
-        if (!prevAssignments) return prevAssignments;
-        return prevAssignments.filter(assignment => assignment.id !== id);
-      });
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const error = null;
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: t('common.success'),
-        description: t('planner.deleteSuccess'),
-      });
-      setOperationStates(prevState => ({ ...prevState, [id]: 'success' }));
-    } catch (err: any) {
-      console.error('Delete assignment error:', err);
-      toast({
-        title: t('common.error'),
-        description: t('planner.deleteError'),
-        variant: 'destructive'
-      });
-      setOperationStates(prevState => ({ ...prevState, [id]: 'error' }));
-      refetch();
-    }
-  }, [refetch, t, toast]);
-
-  const publishAssignment = useCallback(async (id: string) => {
-    setOperationStates(prevState => ({ ...prevState, [id]: 'loading' }));
-    try {
-      if (!transformedAssignments) return;
-      
-      const success = await publishAssignmentHandler(
-        transformedAssignments,
-        setTransformedAssignments,
-        [id]
-      );
-      
-      if (success) {
-        toast({
-          title: t('common.success'),
-          description: t('planner.publishSuccess'),
-        });
-        setOperationStates(prevState => ({ ...prevState, [id]: 'success' }));
-        
-        await refetch();
-      } else {
-        throw new Error('Failed to publish assignment');
-      }
-    } catch (err: any) {
-      console.error('Publish assignment error:', err);
-      toast({
-        title: t('common.error'),
-        description: t('planner.publishError'),
-        variant: 'destructive'
-      });
-      setOperationStates(prevState => ({ ...prevState, [id]: 'error' }));
-    }
-  }, [transformedAssignments, setTransformedAssignments, refetch, t, toast]);
-
-  const publishAssignmentsByDate = useCallback(async (date: string) => {
-    if (!transformedAssignments) return false;
-    
-    try {
-      const success = await publishAssignmentHandler(
-        transformedAssignments,
-        setTransformedAssignments,
-        null,
-        date
-      );
-      
-      if (success) {
-        await refetch();
-      }
-      
-      return success;
-    } catch (error) {
-      console.error('Error publishing assignments by date:', error);
-      return false;
-    }
-  }, [transformedAssignments, setTransformedAssignments, refetch]);
-
-  const updateAssignment = useCallback(
-    async (id: string, updates: Partial<Assignment>) => {
-      setOperationStates(prevState => ({ ...prevState, [id]: 'loading' }));
-      try {
-        setTransformedAssignments(prevAssignments => {
-          if (!prevAssignments) return prevAssignments;
-          return prevAssignments.map(assignment =>
-            assignment.id === id ? { ...assignment, ...updates } : assignment
-          );
-        });
-  
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const error = null;
-  
-        if (error) {
-          throw error;
-        }
-  
-        toast({
-          title: t('common.success'),
-          description: t('planner.updateSuccess'),
-        });
-        setOperationStates(prevState => ({ ...prevState, [id]: 'success' }));
-      } catch (err: any) {
-        console.error('Update assignment error:', err);
-        toast({
-          title: t('common.error'),
-          description: t('planner.updateError'),
-          variant: 'destructive'
-        });
-        setOperationStates(prevState => ({ ...prevState, [id]: 'error' }));
-        refetch();
-      }
-    },
-    [refetch, t, toast]
-  );
-
-  const createAssignment = useCallback(
-    async (newAssignment: Omit<Assignment, 'id'>) => {
-      setOperationStates(prevState => ({ ...prevState, 'create': 'loading' }));
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const error = null;
-  
-        if (error) {
-          throw error;
-        }
-  
-        toast({
-          title: t('common.success'),
-          description: t('planner.createSuccess'),
-        });
-        setOperationStates(prevState => ({ ...prevState, 'create': 'success' }));
-        refetch();
-      } catch (err: any) {
-        console.error('Create assignment error:', err);
-        toast({
-          title: t('common.error'),
-          description: t('planner.createError'),
-          variant: 'destructive'
-        });
-        setOperationStates(prevState => ({ ...prevState, 'create': 'error' }));
-      }
-    },
-    [refetch, t, toast]
-  );
-
-  const transformAssignments = useCallback(() => {
-    if (!assignments) {
-      return null;
-    }
-
-    console.log('[useOptimizedAssignments] PHASE 4 FIX - Transforming assignments:', assignments.length);
-
-    const transformed: Assignment[] = assignments.map(a => {
-      // PHASE 4 FIX: Ensure ALL employee names are preserved in transformation
-      const employeeNames = Array.isArray(a.employees) 
-        ? a.employees.map(emp => emp.name).filter(name => name && name.trim() !== '')
-        : [];
-      
-      // PHASE 4 FIX: Special attention to Asbestkursus
-      if (a.title.toLowerCase().includes('asbestkursus')) {
-        console.log(`[useOptimizedAssignments] PHASE 4 FIX - 🎯 ASBESTKURSUS TRANSFORMATION:`, {
-          title: a.title,
-          rawEmployees: a.employees,
-          transformedEmployeeNames: employeeNames,
-          shouldIncludeBoth: 'Mark Hansen AND Julie Mortensen'
-        });
-      }
-      
-      // CAR FIX: Handle car data properly
-      const carIds = a.cars?.map(car => car.id) || [];
-      const primaryCar = a.cars && a.cars.length > 0 ? a.cars[0].id : null;
-
-      console.log(`[useOptimizedAssignments] PHASE 4 FIX - Transformed assignment "${a.title}" with employees:`, employeeNames);
-
-      return {
-        id: a.id,
-        title: a.title,
-        description: a.description,
-        date: a.assignment_date,
-        fromTime: a.from_time,
-        toTime: a.to_time,
-        location: a.location,
-        type: a.type,
-        published: a.published,
-        responsibleUserId: a.responsible_user_id || '',
-        employees: employeeNames, // PHASE 4 FIX: This should now contain ALL names
-        car: primaryCar,
-        cars: carIds,
-        createdAt: a.created_at,
-        updatedAt: a.updated_at,
-        responsibleUser: a.responsible_user
-      };
-    });
-
-    console.log('[useOptimizedAssignments] PHASE 4 FIX - Transform complete:', {
-      totalTransformed: transformed.length,
-      assignmentsWithEmployees: transformed.filter(a => a.employees && a.employees.length > 0).length,
-      totalEmployeeNamesVisible: transformed.reduce((sum, a) => sum + (a.employees?.length || 0), 0),
-      asbestkursusTransformed: transformed.filter(a => a.title.toLowerCase().includes('asbestkursus')).map(a => ({
-        title: a.title,
-        employees: a.employees,
-        shouldShowBothNames: 'Mark Hansen AND Julie Mortensen'
-      }))
-    });
-
-    setTransformedAssignments(transformed);
-  }, [assignments]);
-
-  useEffect(() => {
-    transformAssignments();
-  }, [assignments, transformAssignments]);
+    fetchAssignments();
+  }, [fetchAssignments]);
 
   return {
-    assignments: transformedAssignments || [],
+    assignments,
     loading,
     error,
-    operationStates,
-    refetch,
-    deleteAssignment,
-    publishAssignment,
-    publishAssignmentsByDate,
-    updateAssignment,
-    createAssignment
+    refetch
   };
 };

@@ -5,38 +5,38 @@ import { Clock, Users, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
-import { useDashboard } from '@/hooks/useDashboard';
+import { useOptimizedAssignments } from '@/hooks/useOptimizedAssignments';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 
 const MineOpgaver: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { allAssignments, loading, error, refetch } = useDashboard();
+  const { assignments, loading, error, refetch } = useOptimizedAssignments('user');
 
   console.log('[MineOpgaver] Component rendered for user:', user?.name, 'role:', user?.role);
-  console.log('[MineOpgaver] Assignments received:', allAssignments?.length || 0);
+  console.log('[MineOpgaver] Assignments received:', assignments?.length || 0);
 
   const userAssignments = useMemo(() => {
-    if (!user?.id || !allAssignments) {
+    if (!user?.id || !assignments) {
       console.log('[MineOpgaver] Missing user or assignments:', {
         hasUser: !!user?.id,
-        hasAssignments: !!allAssignments,
-        assignmentCount: allAssignments?.length || 0
+        hasAssignments: !!assignments,
+        assignmentCount: assignments?.length || 0
       });
       return [];
     }
 
     console.log('[MineOpgaver] Using assignments from service:', {
-      totalAssignments: allAssignments.length,
-      sampleAssignment: allAssignments[0] ? {
-        title: allAssignments[0].title,
-        employees: allAssignments[0].employees,
-        date: allAssignments[0].date
+      totalAssignments: assignments.length,
+      sampleAssignment: assignments[0] ? {
+        title: assignments[0].title,
+        employees: assignments[0].employees,
+        date: assignments[0].date
       } : 'No assignments'
     });
 
-    return allAssignments;
-  }, [allAssignments, user]);
+    return assignments;
+  }, [assignments, user]);
 
   if (loading) {
     return (
@@ -59,32 +59,26 @@ const MineOpgaver: React.FC = () => {
 
   if (error) {
     return (
-      <Card className="border-2 border-border/50">
+      <Card className="border-2 border-destructive/20 bg-destructive/5">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-destructive" />
+          <CardTitle className="flex items-center gap-2 text-destructive">
+            <AlertCircle className="h-5 w-5" />
             {t('dashboard.myTasks')}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-destructive mb-2">
-              {t('common.error')}
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {error instanceof Error ? error.message : String(error)}
-            </p>
-            <Button 
-              onClick={() => refetch()}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              {t('common.retry')}
-            </Button>
-          </div>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            {t('common.error')}: {error.message}
+          </p>
+          <Button 
+            onClick={() => refetch()}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            {t('common.retry')}
+          </Button>
         </CardContent>
       </Card>
     );
@@ -154,7 +148,7 @@ const MineOpgaver: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground">
-                            {employeeList.join(', ')}
+                            {employeeList.map(emp => emp.name).join(', ')}
                           </span>
                         </div>
                       )}
