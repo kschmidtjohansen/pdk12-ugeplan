@@ -138,7 +138,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
       console.log(`[useAssignmentData] Successfully fetched ${data.length} assignments`);
 
       // Step 3: Fetch employees for assignments separately
-      const assignmentIds = data.map(a => a.id);
+      const assignmentIds = data.map(a => String(a.id)).filter(Boolean);
       
       const employeesResult = await withRetry(
         async () => {
@@ -161,7 +161,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
       // Fetch profiles for employee names
       let profilesData: any[] = [];
       if (employeesData && employeesData.length > 0) {
-        const userIds = [...new Set(employeesData.map(ae => ae.user_id))];
+        const userIds = [...new Set(employeesData.map(ae => String(ae.user_id)).filter(Boolean))];
         
         const profilesResult = await withRetry(
           async () => {
