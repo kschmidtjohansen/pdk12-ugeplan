@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -74,38 +73,25 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Login attempts tracking for rate limiting
-const loginAttempts = new Map<string, { count: number, timestamp: number }>();
-
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const { toast } = useToast();
-  
-  // Cache for user data to prevent repeated requests
-  const userDataCache = useRef<Map<string, { data: AppUser; timestamp: number }>>(new Map());
-  const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-  
-  // Simplified initialization with better error handling
+  const initializingRef = useRef(false);
+
+  // Simplified user data initialization
   const initializeUserData = useCallback(async (currentSession: Session) => {
-    const userId = currentSession.user.id;
-    const cacheKey = userId;
-    
-    // Check cache first
-    const cached = userDataCache.current.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      console.log('[AuthProvider] Using cached user data');
-      setUser(cached.data);
-      setLoading(false);
-      return;
-    }
+    if (initializingRef.current) return;
+    initializingRef.current = true;
 
     try {
-      console.log('[AuthProvider] Fetching user data for:', currentSession.user.email);
+      console.log('[AuthProvider] Initializing user data for:', currentSession.user.email);
       
-      // Fetch user data with simpler error handling
-      const [roleResult, profileResult] = await Promise.allSettled([
+      const userId = currentSession.user.id;
+      
+      // Fetch user role and profile in parallel
+      const [roleResponse, profileResponse] = await Promise.allSettled([
         supabase.from('user_roles').select('role').eq('user_id', userId).single(),
         supabase.from('profiles').select('name').eq('id', userId).single()
       ]);
@@ -113,14 +99,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       let role: UserRole = 'servicemedarbejder';
       let name = currentSession.user.email || '';
 
-      // Handle role result
-      if (roleResult.status === 'fulfilled' && roleResult.value.data) {
-        role = roleResult.value.data.role as UserRole;
+      if (roleResponse.status === 'fulfilled' && roleResponse.value.data) {
+        role = roleResponse.value.data.role as UserRole;
       }
 
-      // Handle profile result
-      if (profileResult.status === 'fulfilled' && profileResult.value.data) {
-        name = profileResult.value.data.name || name;
+      if (profileResponse.status === 'fulfilled' && profileResponse.value.data) {
+        name = profileResponse.value.data.name || name;
       }
 
       const appUser: AppUser = {
@@ -130,17 +114,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         role
       };
 
-      // Cache the user data
-      userDataCache.current.set(cacheKey, { data: appUser, timestamp: Date.now() });
-      
-      console.log('[AuthProvider] Successfully initialized user:', appUser);
+      console.log('[AuthProvider] User initialized:', appUser);
       setUser(appUser);
-    } catch (error) {
-      console.error('[AuthProvider] Error initializing user data:', error);
       
-      // Fallback user data
+    } catch (error) {
+      console.error('[AuthProvider] Error initializing user:', error);
+      
+      // Fallback user
       const fallbackUser: AppUser = {
-        id: userId,
+        id: currentSession.user.id,
         name: currentSession.user.email || '',
         email: currentSession.user.email || '',
         role: 'servicemedarbejder'
@@ -149,87 +131,56 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(fallbackUser);
     } finally {
       setLoading(false);
+      initializingRef.current = false;
     }
   }, []);
-  
-  // Simplified auth state setup
+
+  // Single auth state listener
   useEffect(() => {
     console.log('[AuthProvider] Setting up auth state listener');
     
-    let mounted = true;
-    
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        if (!mounted) return;
-        
         console.log('[AuthProvider] Auth state changed:', event);
+        
         setSession(currentSession);
         
         if (currentSession?.user) {
           await initializeUserData(currentSession);
         } else {
-          console.log('[AuthProvider] No session, clearing user state');
           setUser(null);
           setLoading(false);
-          userDataCache.current.clear();
         }
       }
     );
 
     // Check for existing session
-    const checkExistingSession = async () => {
+    const checkSession = async () => {
       try {
-        const { data: { session: existingSession }, error } = await supabase.auth.getSession();
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
         
-        if (error) {
-          console.error('[AuthProvider] Session check error:', error);
-          setLoading(false);
-          return;
-        }
-        
-        console.log('[AuthProvider] Initial session check:', existingSession?.user?.email || 'No session');
-        setSession(existingSession);
-        
-        if (existingSession?.user && mounted) {
+        if (existingSession?.user) {
+          setSession(existingSession);
           await initializeUserData(existingSession);
         } else {
-          setUser(null);
           setLoading(false);
         }
       } catch (error) {
-        console.error('[AuthProvider] Session initialization failed:', error);
+        console.error('[AuthProvider] Session check failed:', error);
         setLoading(false);
       }
     };
     
-    checkExistingSession();
-    
-    // Cleanup function
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    checkSession();
+
+    return () => subscription.unsubscribe();
   }, [initializeUserData]);
 
-  // Add loading timeout as safety net
-  useEffect(() => {
-    const loadingTimeout = setTimeout(() => {
-      if (loading) {
-        console.warn('[AuthProvider] Loading timeout reached, forcing completion');
-        setLoading(false);
-      }
-    }, 10000); // 10 second timeout
-    
-    return () => clearTimeout(loadingTimeout);
-  }, [loading]);
-
-  // Define permissions based on roles
+  // Simplified permissions
   const isAdmin = user?.role === 'administrator';
   const isSkadeleder = user?.role === 'skadeleder';
   const isServicemedarbejder = user?.role === 'servicemedarbejder';
   
-  // Define complex permissions
   const canViewFuelCardCode = isAdmin;
   const canPublishTasks = isAdmin || isSkadeleder;
   const canApproveVacation = isAdmin;
@@ -239,7 +190,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   const isAuthenticated = !!user;
 
-  // Security methods for role validation
+  // Validation methods
   const validateAdminAccess = (): boolean => {
     if (!user || user.role !== 'administrator') {
       toast({
@@ -276,67 +227,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return true;
   };
 
-  // Authentication functions with simplified error handling
+  // Simplified login function
   const login = async (email: string, password: string) => {
     try {
       console.log('[AuthProvider] Attempting login for:', email);
       
-      const now = Date.now();
-      const userAttempts = loginAttempts.get(email) || { count: 0, timestamp: now };
-      
-      if (now - userAttempts.timestamp > 15 * 60 * 1000) {
-        userAttempts.count = 0;
-        userAttempts.timestamp = now;
-      }
-      
-      if (userAttempts.count >= 5) {
-        return { error: 'Too many login attempts. Please try again later.' };
-      }
-      
-      userAttempts.count++;
-      userAttempts.timestamp = now;
-      loginAttempts.set(email, userAttempts);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email, 
+      const { error } = await supabase.auth.signInWithPassword({ 
+        email: email.trim().toLowerCase(), 
         password 
       });
       
-      console.log('[AuthProvider] Login response:', data?.user?.email, error?.message);
-      
-      if (!error) {
-        loginAttempts.delete(email);
+      if (error) {
+        console.error('[AuthProvider] Login error:', error.message);
+        return { error: error.message };
       }
       
-      return { error: error ? error.message : null };
+      console.log('[AuthProvider] Login successful');
+      return { error: null };
     } catch (error: any) {
-      console.error('[AuthProvider] Login error:', error);
+      console.error('[AuthProvider] Login exception:', error);
       return { error: 'An unexpected error occurred during login.' };
     }
   };
 
-  // Simplified logout function
+  // Simplified logout
   const logout = async () => {
     try {
       console.log('[AuthProvider] Logging out');
-      
-      const { error } = await supabase.auth.signOut({ scope: 'global' });
-      
-      if (error) {
-        console.error('[AuthProvider] Error during signOut:', error);
-      }
-      
+      await supabase.auth.signOut();
       setUser(null);
       setSession(null);
-      userDataCache.current.clear();
-      
-      console.log('[AuthProvider] Logout successful');
     } catch (error) {
       console.error('[AuthProvider] Logout error:', error);
-      // Still clear local state even if there was an API error
+      // Clear state anyway
       setUser(null);
       setSession(null);
-      userDataCache.current.clear();
     }
   };
 
@@ -346,9 +271,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         password,
         options: {
-          data: {
-            name
-          }
+          data: { name }
         }
       });
       
@@ -361,11 +284,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const resetPassword = async (email: string) => {
     try {
-      console.log('Requesting password reset for:', email);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/password-reset`,
       });
-      console.log('Password reset request result:', error ? `Error: ${error.message}` : 'Success');
       return { error: error ? error.message : null };
     } catch (error: any) {
       console.error('Password reset error:', error);
@@ -394,30 +315,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const updateUserRole = async (userId: string, role: UserRole) => {
     try {
-      console.log('[AuthContext] Starting role update for user:', userId, 'to role:', role);
-      
       if (!validateAdminAccess()) {
         return { error: 'Unauthorized - requires administrator role' };
       }
       
-      console.log('[AuthContext] Calling admin-user-role edge function...');
-      const { data, error: fnError } = await supabase.functions.invoke('admin-user-role', {
+      const { error: fnError } = await supabase.functions.invoke('admin-user-role', {
         body: { userId, role },
       });
       
-      console.log('[AuthContext] Edge function response:', { data, error: fnError });
-      
       if (fnError) {
-        console.error('[AuthContext] Edge function error:', fnError);
         throw new Error(fnError.message || 'Failed to update user role');
       }
       
-      // Clear cache for updated user
-      userDataCache.current.delete(userId);
-      
       return { error: null };
     } catch (error) {
-      console.error('[AuthContext] Role update error:', error);
+      console.error('Role update error:', error);
       return { 
         error: error instanceof Error ? error.message : 'An unexpected error occurred during role update.'
       };
@@ -426,41 +338,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const adminResetPassword = async (userId: string, newPassword: string) => {
     try {
-      console.log('[AuthContext] Starting admin password reset for user:', userId);
-      
       if (!validateAdminAccess()) {
         return { error: 'Unauthorized - requires administrator role' };
       }
       
-      // Validate password on frontend first
-      if (newPassword.length < 8) {
-        return { error: 'Password must be at least 8 characters long' };
-      }
-      if (!/[A-Z]/.test(newPassword)) {
-        return { error: 'Password must contain at least one uppercase letter' };
-      }
-      if (!/[a-z]/.test(newPassword)) {
-        return { error: 'Password must contain at least one lowercase letter' };
-      }
-      if (!/[0-9]/.test(newPassword)) {
-        return { error: 'Password must contain at least one number' };
-      }
-      
-      console.log('[AuthContext] Calling admin-reset-password edge function...');
-      const { data, error: fnError } = await supabase.functions.invoke('admin-reset-password', {
+      const { error: fnError } = await supabase.functions.invoke('admin-reset-password', {
         body: { userId, newPassword },
       });
       
-      console.log('[AuthContext] Edge function response:', { data, error: fnError });
-      
       if (fnError) {
-        console.error('[AuthContext] Edge function error:', fnError);
         throw new Error(fnError.message || 'Failed to reset password');
       }
       
       return { error: null };
     } catch (error) {
-      console.error('[AuthContext] Password reset error:', error);
+      console.error('Password reset error:', error);
       return { 
         error: error instanceof Error ? error.message : 'An unexpected error occurred during password reset.'
       };

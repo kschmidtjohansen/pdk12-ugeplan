@@ -17,9 +17,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const { t } = useTranslation();
 
-  // Simplified authentication check
+  // Simple authentication check without competing mechanisms
   React.useEffect(() => {
-    if (!isAuthenticated && !loading && 
+    if (!loading && !isAuthenticated && 
         location.pathname !== "/login" && 
         location.pathname !== "/password-reset") {
       
@@ -38,7 +38,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
-  // Simplified loading state
+  // Simple loading state
   if (loading) {
     return (
       <SecurityErrorBoundary>
@@ -53,7 +53,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
-  // If not authenticated, show brief loading state while redirecting
+  // If not authenticated, show loading while redirecting
   if (!isAuthenticated) {
     return (
       <SecurityErrorBoundary>
@@ -74,7 +74,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <div className="flex flex-col min-h-screen w-full">
         <TopNavbar />
         
-        {/* Main Content with simplified error boundary */}
         <main className="flex-1 w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 pt-20">
           <div className="animate-fade-in-up w-full">
             <SecurityErrorBoundary>

@@ -13,12 +13,14 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      navigate('/dashboard');
+      console.log('[LoginPage] User authenticated, redirecting to dashboard');
+      navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, loading, navigate]);
 
   const handleLoginSuccess = () => {
-    navigate('/dashboard');
+    console.log('[LoginPage] Login successful, redirecting to dashboard');
+    navigate('/dashboard', { replace: true });
   };
 
   if (loading) {
@@ -35,13 +37,27 @@ const LoginPage = () => {
     );
   }
 
+  // If already authenticated, show loading while redirecting
+  if (isAuthenticated) {
+    return (
+      <>
+        <SecurityHeaders />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Redirecting to dashboard...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <SecurityHeaders />
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            {/* Polygon Logo */}
             <div className="mb-6">
               <img 
                 src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" 

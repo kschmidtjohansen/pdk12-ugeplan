@@ -25,11 +25,11 @@ export interface OptimizedAssignmentData {
 
 export class OptimizedAssignmentService {
   private static requestCache = new Map<string, { data: OptimizedAssignmentData[]; timestamp: number }>();
-  private static readonly CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+  private static readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private static pendingRequests = new Map<string, Promise<OptimizedAssignmentData[]>>();
 
   private static getCacheKey(filter: string, userId?: string, userRole?: string): string {
-    return `${filter}-${userId}-${userRole}`;
+    return `${filter}-${userId || 'anon'}-${userRole || 'anon'}`;
   }
 
   private static async executeQuery(query: any): Promise<OptimizedAssignmentData[]> {
@@ -45,23 +45,26 @@ export class OptimizedAssignmentService {
         return [];
       }
 
-      // Transform the data to match our interface
+      // Transform the data with better error handling
       return data.map((assignment: any) => ({
         id: assignment.id,
         title: assignment.title || 'Untitled',
-        description: assignment.description,
+        description: assignment.description || '',
         date: assignment.assignment_date,
         fromTime: assignment.from_time,
         toTime: assignment.to_time,
         location: assignment.location || '',
-        type: assignment.type,
-        published: assignment.published,
+        type: assignment.type || 'other',
+        published: Boolean(assignment.published),
         responsible_user_id: assignment.responsible_user_id,
-        employees: assignment.employees || [],
-        cars: assignment.cars || [],
+        employees: [], // Will be populated separately to avoid join issues
+        cars: [], // Will be populated separately to avoid join issues
         created_at: assignment.created_at,
         updated_at: assignment.updated_at,
-        responsible_user: assignment.responsible_user
+        responsible_user: assignment.responsible_user ? {
+          id: assignment.responsible_user.id,
+          name: assignment.responsible_user.name
+        } : undefined
       }));
     } catch (error) {
       console.error('[OptimizedAssignmentService] Execute query error:', error);
@@ -199,8 +202,7 @@ export class OptimizedAssignmentService {
     return this.fetchWithCache(cacheKey, async () => {
       console.log('[OptimizedAssignmentService] Fetching user assignments for:', userId);
       
-      // For now, return published assignments as a fallback
-      // This will be expanded once the assignment-employee relationship is clarified
+      // For now, return published assignments as a safe fallback
       const query = supabase
         .from('assignments')
         .select(`
