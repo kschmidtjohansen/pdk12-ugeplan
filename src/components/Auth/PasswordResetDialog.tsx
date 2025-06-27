@@ -1,147 +1,131 @@
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from '@/context/TranslationContext';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
   DialogContent,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { useToast } from "@/components/ui/use-toast"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { useTranslation } from '@/context/TranslationContext';
+import { isValidEmail } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { authLog, secureError } from '@/utils/secureLogger';
 
 interface PasswordResetDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  setOpen: (open: boolean) => void;
+  email?: string;
 }
 
-const PasswordResetDialog: React.FC<PasswordResetDialogProps> = ({ open, onOpenChange }) => {
-  const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { resetPassword } = useAuth();
-  const { toast } = useToast();
+const PasswordResetDialog: React.FC<PasswordResetDialogProps> = ({
+  open,
+  setOpen,
+  email: initialEmail = ''
+}) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [email, setEmail] = useState(initialEmail);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    
+    setIsLoading(true);
+    setError('');
+    setSuccess(false);
+
     try {
-      console.log('Requesting password reset for email:', email);
-      
-      // Try to use the edge function for more reliable delivery
-      try {
-        const { error: fnError } = await supabase.functions.invoke('admin-reset-password', {
-          body: { email }
-        });
-        
-        if (!fnError) {
-          console.log('Password reset email sent via edge function');
-          toast({
-            title: t('login.passwordReset.emailSentTitle'),
-            description: t('login.passwordReset.checkEmail'),
-          });
-          onOpenChange(false);
-          return;
-        } else {
-          console.error('Edge function error, falling back to auth API:', fnError);
-        }
-      } catch (fnErr) {
-        console.error('Error calling edge function, falling back to auth API:', fnErr);
+      if (!email) {
+        throw new Error(t('auth.emailRequired'));
       }
-      
-      // Fall back to regular auth API if edge function fails
-      const { error } = await resetPassword(email);
-      
-      if (error) {
-        console.error('Password reset request failed:', error);
-        toast({
-          title: t('common.error'),
-          description: t('login.passwordReset.emailError'),
-          variant: 'destructive',
-        });
-      } else {
-        console.log('Password reset email sent successfully via auth API');
-        toast({
-          title: t('login.passwordReset.emailSentTitle'),
-          description: t('login.passwordReset.checkEmail'),
-        });
-        onOpenChange(false);
+
+      if (!isValidEmail(email)) {
+        throw new Error(t('auth.invalidEmail'));
       }
-    } catch (error) {
-      console.error('Password reset error:', error);
-      toast({
-        title: t('common.error'),
-        description: t('login.passwordReset.emailError'),
-        variant: 'destructive',
+
+      // Use secure logging
+      authLog('password_reset_requested', {
+        email: email,
+        timestamp: new Date().toISOString()
       });
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+
+      if (error) {
+        authLog('password_reset_failed', {
+          email: email,
+          errorType: error.message
+        });
+        throw error;
+      }
+
+      authLog('password_reset_sent', {
+        email: email,
+        timestamp: new Date().toISOString()
+      });
+
+      setSuccess(true);
+      
+      // Auto close dialog after 3 seconds
+      setTimeout(() => {
+        setOpen(false);
+        setEmail('');
+        setSuccess(false);
+      }, 3000);
+
+    } catch (err: any) {
+      secureError('Password reset error', err, { email });
+      setError(err.message || t('auth.resetError'));
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
-  // Added a direct navigate to reset password page for users who have the reset link
-  const handleDirectResetPage = () => {
-    onOpenChange(false);
-    navigate('/reset-password');
-  };
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t('login.passwordReset.title')}</DialogTitle>
+          <DialogTitle>{t('auth.resetPassword')}</DialogTitle>
           <DialogDescription>
-            {t('login.passwordReset.description')}
+            {t('auth.resetDescription')}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">{t('common.email')}</Label>
-              <Input
-                id="email"
-                placeholder={t('login.passwordReset.emailPlaceholder')}
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="email" className="text-right">
+              {t('auth.email')}
+            </Label>
+            <Input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="col-span-3"
+            />
           </div>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="sm:order-1"
-            >
-              {t('login.passwordReset.backToLogin')}
-            </Button>
-            <Button type="submit" disabled={isSubmitting} className="sm:order-2">
-              {isSubmitting 
-                ? t('login.passwordReset.buttonLoading') 
-                : t('login.passwordReset.sendResetEmail')
-              }
-            </Button>
-            <Button 
-              type="button" 
-              variant="link" 
-              onClick={handleDirectResetPage}
-              className="sm:order-3 mt-2 sm:mt-0"
-            >
-              I already have a reset link
-            </Button>
-          </DialogFooter>
-        </form>
+        </div>
+        {error && (
+          <div className="p-3 bg-red-100 text-red-500 rounded-md">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="p-3 bg-green-100 text-green-500 rounded-md">
+            {t('auth.resetSuccess')}
+          </div>
+        )}
+        <DialogFooter>
+          <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? t('common.loading') : t('auth.resetButton')}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -1,7 +1,33 @@
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.tsx'
+import './index.css'
+import { AuthProvider } from './context/AuthContext.tsx'
+import { TranslationProvider } from './context/TranslationContext.tsx'
+import { NotificationProvider } from './context/NotificationContext.tsx'
+import { SecurityProvider } from './context/SecurityContext.tsx'
+import { SessionSecurity } from './utils/sessionSecurity';
+import { DataRetentionManager } from './utils/dataRetention';
 
-import { createRoot } from 'react-dom/client';
-import App from './App.tsx';
-import './index.css';
+// Initialize security measures
+SessionSecurity.initialize();
+DataRetentionManager.schedulePeriodicCleanup();
 
-// Clean main.tsx - all providers are handled in App.tsx
-createRoot(document.getElementById("root")!).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <SecurityProvider>
+      <AuthProvider>
+        <TranslationProvider>
+          <NotificationProvider>
+            <App />
+          </NotificationProvider>
+        </TranslationProvider>
+      </AuthProvider>
+    </SecurityProvider>
+  </React.StrictMode>,
+)
+
+// Cleanup on app unmount
+window.addEventListener('beforeunload', () => {
+  SessionSecurity.cleanup();
+});
