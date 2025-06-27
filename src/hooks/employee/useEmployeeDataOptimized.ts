@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Employee } from '@/types/employee';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
-import { supabaseOptimized, ensureValidSessionOptimized, withRetry, clearSessionCache } from '@/integrations/supabase/clientOptimized';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useEmployeeDataOptimized = () => {
   const { toast } = useToast();
@@ -41,6 +41,28 @@ export const useEmployeeDataOptimized = () => {
     setLastFailureTime(Date.now());
   }, []);
 
+  // Simple retry helper function
+  const withRetry = async (operation: () => Promise<any>, operationName: string, maxRetries = 3) => {
+    let lastError;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error;
+        console.warn(`[${operationName}] Attempt ${attempt}/${maxRetries} failed:`, error);
+        
+        if (attempt < maxRetries) {
+          // Wait before retry with exponential backoff
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    
+    throw lastError;
+  };
+
   const fetchEmployees = useCallback(async () => {
     // Circuit breaker check
     if (isCircuitOpen()) {
@@ -62,25 +84,20 @@ export const useEmployeeDataOptimized = () => {
       setLoading(true);
       setError(null);
       
-      console.log('[useEmployeeDataOptimized] Starting optimized employee fetch with enhanced error recovery...');
+      console.log('[useEmployeeDataOptimized] Starting employee fetch...');
       
-      // Step 1: Ensure we have a valid authenticated session with retry
-      const sessionValid = await withRetry(
-        () => ensureValidSessionOptimized(),
-        'Session validation'
-      );
-      
-      if (!sessionValid) {
-        clearSessionCache();
+      // Step 1: Ensure we have a valid authenticated session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         throw new Error('Authentication session is invalid or expired. Please refresh the page.');
       }
       
       console.log('[useEmployeeDataOptimized] Session validated, fetching profiles...');
       
-      // Step 2: Fetch profiles with retry logic - FIXED: Add await here
+      // Step 2: Fetch profiles with retry logic
       const profilesResult = await withRetry(
         async () => {
-          const queryResult = await supabaseOptimized
+          const queryResult = await supabase
             .from('profiles')
             .select(`
               id,
@@ -116,14 +133,14 @@ export const useEmployeeDataOptimized = () => {
       
       console.log(`[useEmployeeDataOptimized] Successfully fetched ${profilesData.length} profiles`);
       
-      // Step 3: Fetch user roles with retry logic - FIXED: Add await here
+      // Step 3: Fetch user roles with retry logic
       const userIds = profilesData.map(profile => profile.id);
       
       console.log('[useEmployeeDataOptimized] Fetching user roles...');
       
       const rolesResult = await withRetry(
         async () => {
-          const queryResult = await supabaseOptimized
+          const queryResult = await supabase
             .from('user_roles')
             .select('user_id, role')
             .in('user_id', userIds);
@@ -208,7 +225,7 @@ export const useEmployeeDataOptimized = () => {
 
   // Set up enhanced realtime subscription with better error handling
   useEffect(() => {
-    console.log('[useEmployeeDataOptimized] Setting up enhanced realtime subscription...');
+    console.log('[useEmployeeDataOptimized] Setting up realtime subscription...');
     
     let timeoutId: NodeJS.Timeout;
     let retryCount = 0;
@@ -223,7 +240,7 @@ export const useEmployeeDataOptimized = () => {
     };
     
     const setupSubscription = () => {
-      const channel = supabaseOptimized
+      const channel = supabase
         .channel('profiles_changes_optimized_v2')
         .on(
           'postgres_changes',
@@ -262,7 +279,7 @@ export const useEmployeeDataOptimized = () => {
               console.log(`[useEmployeeDataOptimized] Retrying subscription in ${retryDelay}ms (attempt ${retryCount})`);
               
               setTimeout(() => {
-                supabaseOptimized.removeChannel(channel);
+                supabase.removeChannel(channel);
                 setupSubscription();
               }, retryDelay);
             } else {
@@ -281,7 +298,7 @@ export const useEmployeeDataOptimized = () => {
     return () => {
       console.log('[useEmployeeDataOptimized] Cleaning up realtime subscription');
       clearTimeout(timeoutId);
-      supabaseOptimized.removeChannel(channel);
+      supabase.removeChannel(channel);
     };
   }, [fetchEmployees]);
 

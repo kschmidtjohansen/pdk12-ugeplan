@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { supabaseOptimized } from '@/integrations/supabase/clientOptimized';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
 interface EmployeeErrorRecoveryOptions {
@@ -75,7 +75,7 @@ export const useEmployeeErrorRecovery = (options: EmployeeErrorRecoveryOptions =
         // Log critical errors for employee operations
         if (attempts === 1) {
           try {
-            await supabaseOptimized.rpc('log_security_event_safe', {
+            await supabase.rpc('log_security_event_safe', {
               event_type: `employee_${operationName.toLowerCase()}_failure`,
               event_message: `Employee ${operationName} failed: ${errorMessage}`,
               event_details: { 
@@ -138,7 +138,7 @@ export const useEmployeeErrorRecovery = (options: EmployeeErrorRecoveryOptions =
 
   const recoverEmployeeConnection = useCallback(async () => {
     return executeWithRecovery(async () => {
-      const { data, error } = await supabaseOptimized.from('profiles').select('count').limit(1);
+      const { data, error } = await supabase.from('profiles').select('count').limit(1);
       if (error) throw error;
       return data;
     }, 'Employee Database Connection Recovery');

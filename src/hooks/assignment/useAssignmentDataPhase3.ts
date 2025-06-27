@@ -1,9 +1,10 @@
+
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
-import { supabaseOptimized, ensureValidSessionOptimized, withRetry } from '@/integrations/supabase/clientOptimized';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AssignmentDataHookOptions {
   filter?: 'all' | 'user';
@@ -36,6 +37,28 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
     includeUnpublished
   }), [filter, user?.id, includeUnpublished]);
 
+  // Simple retry helper function
+  const withRetry = async (operation: () => Promise<any>, operationName: string, maxRetries = 3) => {
+    let lastError;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error;
+        console.warn(`[${operationName}] Attempt ${attempt}/${maxRetries} failed:`, error);
+        
+        if (attempt < maxRetries) {
+          // Wait before retry with exponential backoff
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    
+    throw lastError;
+  };
+
   // Enhanced fetchAssignments function with deduplication, error handling, and retry logic
   const fetchAssignments = useCallback(async () => {
     // Request deduplication
@@ -52,22 +75,18 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
       setLoading(true);
       setError(null);
 
-      console.log('[useAssignmentData] Starting optimized assignment fetch with enhanced error recovery...');
+      console.log('[useAssignmentData] Starting assignment fetch...');
 
-      // Step 1: Ensure we have a valid authenticated session with retry
-      const sessionValid = await withRetry(
-        () => ensureValidSessionOptimized(),
-        'Session validation'
-      );
-
-      if (!sessionValid) {
+      // Step 1: Check if user is authenticated
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         throw new Error('Authentication session is invalid or expired. Please refresh the page.');
       }
 
       console.log('[useAssignmentData] Session validated, fetching assignments...');
 
-      // Step 2: Fetch assignments with retry logic - FIXED: Remove non-existent 'employees' column
-      let query = supabaseOptimized
+      // Step 2: Fetch assignments with retry logic
+      let query = supabase
         .from('assignments')
         .select(`
           id,
@@ -86,7 +105,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
 
       // Apply user-based filter if specified
       if (filterCriteria.filter === 'user' && filterCriteria.userId) {
-        query = query.or(`employees.cs.{${user?.name}},responsible_user_id.eq.${filterCriteria.userId}`);
+        query = query.or(`responsible_user_id.eq.${filterCriteria.userId}`);
       }
 
       // Conditionally include unpublished assignments
@@ -123,7 +142,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
       
       const employeesResult = await withRetry(
         async () => {
-          const queryResult = await supabaseOptimized
+          const queryResult = await supabase
             .from('assignments_employees')
             .select('assignment_id, user_id')
             .in('assignment_id', assignmentIds);
@@ -146,7 +165,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
         
         const profilesResult = await withRetry(
           async () => {
-            const queryResult = await supabaseOptimized
+            const queryResult = await supabase
               .from('profiles')
               .select('id, name')
               .in('id', userIds);
@@ -217,7 +236,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
     if (!data || !Array.isArray(data)) return [];
     
     return data.map(assignment => {
-      // CRITICAL FIX: Handle employee arrays properly
+      // Handle employee arrays properly
       const employees = assignment.assignments_employees?.map((ae: any) => ae.profiles?.name).filter(Boolean) || [];
       const cars = assignment.cars?.map((car: any) => car.name).filter(Boolean) || [];
       
