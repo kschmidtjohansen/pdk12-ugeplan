@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
@@ -21,7 +20,7 @@ class UnifiedDataService {
   private circuitBreakers = new Map<string, { failures: number; lastFailure: number; isOpen: boolean }>();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
   private readonly CIRCUIT_BREAKER_THRESHOLD = 3;
-  private readonly CIRCUIT_BREAKER_TIMEOUT = 5000; // Reduced from 30 seconds to 5 seconds
+  private readonly CIRCUIT_BREAKER_TIMEOUT = 10000; // Reduced to 10 seconds
   private readonly MAX_RETRIES = 2;
 
   private getCircuitBreakerKey(operation: string): string {
@@ -156,7 +155,7 @@ class UnifiedDataService {
     }
 
     try {
-      console.log(`[UnifiedDataService] Fetching fresh ${operation} data`);
+      console.log(`[UnifiedDataService] Fetching fresh ${operation} data with fixed RLS policies`);
       
       const result = await this.withRetry(async () => {
         // Fetch profiles
@@ -177,7 +176,7 @@ class UnifiedDataService {
         if (profilesError) throw profilesError;
         if (!profilesData) throw new Error('No profiles data returned');
 
-        // Fetch user roles with graceful degradation
+        // Fetch user roles - should now work with fixed policies
         let rolesData: any[] = [];
         try {
           const { data: roles, error: rolesError } = await supabase
@@ -186,15 +185,17 @@ class UnifiedDataService {
             .in('user_id', profilesData.map(p => p.id));
           
           if (rolesError) {
-            console.warn(`[UnifiedDataService] Roles query failed, using default roles:`, rolesError);
+            console.warn(`[UnifiedDataService] Roles query failed:`, rolesError);
+            // Continue with defaults instead of failing
           } else {
             rolesData = roles || [];
+            console.log(`[UnifiedDataService] Successfully fetched ${rolesData.length} role assignments`);
           }
         } catch (roleError) {
-          console.warn(`[UnifiedDataService] Role fetching failed, continuing with defaults:`, roleError);
+          console.warn(`[UnifiedDataService] Role fetching failed:`, roleError);
         }
 
-        // Transform to Employee format with graceful role handling
+        // Transform to Employee format
         const employees: Employee[] = profilesData.map(profile => {
           const userRole = rolesData.find(r => r.user_id === profile.id);
           
@@ -306,7 +307,7 @@ class UnifiedDataService {
               profilesData = profData || [];
             }
           } catch (empError) {
-            console.warn('[UnifiedDataService] Failed to fetch assignment employees, continuing without:', empError);
+            console.warn('[UnifiedDataService] Failed to fetch assignment employees:', empError);
           }
         }
 
@@ -328,7 +329,7 @@ class UnifiedDataService {
             fromTime: assignment.from_time,
             toTime: assignment.to_time,
             location: assignment.location,
-            type: 'other' as const, // Default type since it's not in the query
+            type: 'other' as const,
             published: assignment.published,
             responsibleUserId: assignment.responsible_user_id || '',
             employees: employees,
@@ -405,6 +406,21 @@ class UnifiedDataService {
         error: errorMessage,
         fromCache: false
       };
+    }
+  }
+
+  async verifyDatabaseFix(): Promise<any> {
+    try {
+      console.log('[UnifiedDataService] Verifying database fix...');
+      const { data, error } = await supabase.rpc('check_data_access_health');
+      
+      if (error) throw error;
+      
+      console.log('[UnifiedDataService] Database fix verification:', data);
+      return data;
+    } catch (error) {
+      console.error('[UnifiedDataService] Database fix verification failed:', error);
+      return { status: 'error', message: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 

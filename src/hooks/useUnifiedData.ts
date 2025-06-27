@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { unifiedDataService } from '@/services/unifiedDataService';
 import { Employee } from '@/types/employee';
@@ -140,6 +139,26 @@ export const useUnifiedData = (includeUnpublishedAssignments: boolean = false) =
     console.log(`[useUnifiedData] Cars loaded: ${result.data.length} (from cache: ${result.fromCache})`);
   }, [toast, t]);
 
+  const verifyDatabaseFix = useCallback(async () => {
+    console.log('[useUnifiedData] Verifying database fix...');
+    const verification = await unifiedDataService.verifyDatabaseFix();
+    
+    if (verification.fix_status === 'SUCCESS') {
+      toast({
+        title: t('common.success') || 'Success',
+        description: 'Database policies are working correctly!',
+      });
+    } else {
+      toast({
+        title: 'Database Issue',
+        description: `Policy verification failed: ${verification.user_roles_policy_count || 0}/2 policies found`,
+        variant: 'destructive',
+      });
+    }
+    
+    return verification;
+  }, [toast, t]);
+
   const refetchAll = useCallback(async () => {
     console.log('[useUnifiedData] Refetching all data...');
     unifiedDataService.clearCache();
@@ -191,6 +210,7 @@ export const useUnifiedData = (includeUnpublishedAssignments: boolean = false) =
     fetchCars,
     resetCircuitBreakers,
     checkSystemHealth,
+    verifyDatabaseFix,
     serviceStatus: unifiedDataService.getStatus()
   };
 };

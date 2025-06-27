@@ -454,6 +454,10 @@ export type Database = {
         Args: { email: string }
         Returns: boolean
       }
+      verify_data_access_fix: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
     }
     Enums: {
       assignment_type: "waterDamage" | "fireDamage" | "mold" | "other"
