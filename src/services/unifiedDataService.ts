@@ -328,7 +328,7 @@ class UnifiedDataService {
             fromTime: assignment.from_time,
             toTime: assignment.to_time,
             location: assignment.location,
-            type: assignment.type,
+            type: 'other' as const, // Default type since it's not in the query
             published: assignment.published,
             responsibleUserId: assignment.responsible_user_id || '',
             employees: employees,

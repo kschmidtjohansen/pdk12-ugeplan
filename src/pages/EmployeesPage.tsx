@@ -25,7 +25,7 @@ const EmployeesPage: React.FC = () => {
     email: '',
     phone: '',
     jobTitle: '',
-    role: 'servicemedarbejder' as const,
+    role: 'servicemedarbejder' as 'servicemedarbejder',
     onLeave: false,
     notes: ''
   });
@@ -58,7 +58,7 @@ const EmployeesPage: React.FC = () => {
       email: employee.email,
       phone: employee.phone || '',
       jobTitle: employee.jobTitle || '',
-      role: employee.role,
+      role: employee.role as 'servicemedarbejder',
       onLeave: employee.onLeave,
       notes: employee.notes || ''
     });
@@ -72,10 +72,10 @@ const EmployeesPage: React.FC = () => {
     }));
   };
 
-  const handleSelectChange = (name: string, value: string) => {
+  const handleSelectChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      role: value as 'servicemedarbejder',
     }));
   };
 
