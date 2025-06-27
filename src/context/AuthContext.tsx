@@ -86,13 +86,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [initializationAttempts, setInitializationAttempts] = useState<number>(0);
   const { toast } = useToast();
   
-  // Session timeout states
+  // Session timeout states - Updated to 20 minutes
   const [lastActivity, setLastActivity] = useState<number>(Date.now());
   const sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const activityListenersAttached = useRef<boolean>(false);
   
-  const SESSION_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
+  const SESSION_TIMEOUT = 20 * 60 * 1000; // 20 minutes in milliseconds (was 5 minutes)
   const WARNING_TIME = 30 * 1000; // 30 seconds before logout
   
   // Reset activity timer
@@ -110,7 +110,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // Only set timers if user is authenticated
     if (user) {
-      // Set warning timer (4.5 minutes)
+      // Set warning timer (19.5 minutes)
       warningTimeoutRef.current = setTimeout(() => {
         toast({
           title: "Session Warning",
@@ -119,12 +119,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
       }, SESSION_TIMEOUT - WARNING_TIME);
       
-      // Set logout timer (5 minutes)
+      // Set logout timer (20 minutes)
       sessionTimeoutRef.current = setTimeout(() => {
-        console.log('[AuthProvider] Session expired due to inactivity');
+        console.log('[AuthProvider] Session expired due to inactivity after 20 minutes');
         toast({
           title: "Session Expired",
-          description: "You have been logged out due to inactivity.",
+          description: "You have been logged out due to inactivity after 20 minutes.",
           variant: "destructive",
         });
         logout();

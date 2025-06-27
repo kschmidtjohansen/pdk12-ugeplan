@@ -13,7 +13,7 @@ interface SecurityConfig {
 const defaultConfig: SecurityConfig = {
   enableThreatDetection: true,
   sessionTimeoutMinutes: 30,
-  maxIdleTimeMinutes: 5, // Changed from 15 to 5 minutes
+  maxIdleTimeMinutes: 20, // Changed from 5 to 20 minutes to match AuthContext
   enableActivityLogging: true
 };
 
@@ -43,7 +43,7 @@ export const useSecurityMonitoring = (config: Partial<SecurityConfig> = {}) => {
   const shouldExtendSession = isScreenDisplayRoute;
   
   // Use different idle time based on route
-  const effectiveIdleTime = shouldExtendSession ? 60 : finalConfig.maxIdleTimeMinutes; // 60 minutes for screen display, 5 minutes for others
+  const effectiveIdleTime = shouldExtendSession ? 60 : finalConfig.maxIdleTimeMinutes; // 60 minutes for screen display, 20 minutes for others
 
   // Track user activity for session management
   const updateActivity = useCallback(() => {
