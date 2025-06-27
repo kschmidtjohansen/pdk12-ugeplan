@@ -7,21 +7,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useOptimizedAssignments } from '@/hooks/useOptimizedAssignments';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
-import { Assignment } from '@/types/assignment';
-
-// Helper function to get employee names from assignment
-const getEmployeeNames = (assignment: Assignment): string[] => {
-  if (!assignment.employees) return [];
-  
-  if (Array.isArray(assignment.employees)) {
-    // Handle both string[] and {id, name}[] formats
-    return assignment.employees.map(emp => 
-      typeof emp === 'string' ? emp : emp.name
-    );
-  }
-  
-  return [];
-};
+import { Assignment, normalizeEmployees } from '@/types/assignment';
 
 const MineOpgaver: React.FC = () => {
   const { t } = useTranslation();
@@ -125,7 +111,7 @@ const MineOpgaver: React.FC = () => {
           ) : (
             <div className="space-y-3">
               {userAssignments.map((assignment) => {
-                const employeeNames = getEmployeeNames(assignment);
+                const employeeNames = normalizeEmployees(assignment.employees);
                 
                 console.log('[MineOpgaver] Rendering assignment:', {
                   title: assignment.title,
