@@ -26,14 +26,16 @@ export class DataRetentionManager {
 
       if (error) throw error;
 
+      const recordsAffected = data?.length || 0;
+
       secureLog('Old logs cleanup completed', {
         cutoffDate: cutoffDate.toISOString(),
-        recordsAffected: data?.length || 0
+        recordsAffected
       });
 
       await AuditLogger.logAdminAction('cleanup', 'logs', undefined, {
         cutoffDate: cutoffDate.toISOString(),
-        recordsDeleted: data?.length || 0
+        recordsDeleted: recordsAffected
       });
 
     } catch (error) {
@@ -55,14 +57,16 @@ export class DataRetentionManager {
 
       if (error) throw error;
 
+      const recordsAffected = data?.length || 0;
+
       secureLog('Old notifications cleanup completed', {
         cutoffDate: cutoffDate.toISOString(),
-        recordsAffected: data?.length || 0
+        recordsAffected
       });
 
       await AuditLogger.logAdminAction('cleanup', 'notifications', undefined, {
         cutoffDate: cutoffDate.toISOString(),
-        recordsDeleted: data?.length || 0
+        recordsDeleted: recordsAffected
       });
 
     } catch (error) {

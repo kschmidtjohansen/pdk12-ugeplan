@@ -5,6 +5,7 @@ import { useSecurity } from '@/context/SecurityContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { SecureInput } from '@/components/ui/secure-input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, AlertTriangle } from 'lucide-react';
@@ -119,30 +120,33 @@ export const SecureLoginForm: React.FC<SecureLoginFormProps> = ({ onSuccess }) =
         <form onSubmit={handleSubmit} className="space-y-4">
           <input type="hidden" name="csrf_token" value={csrfToken} />
           
-          <SecureInput
-            id="email"
-            label="Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder={t('login.emailPlaceholder')}
-            required
-            validateEmail={true}
-            disabled={isLoading || isBlocked}
-            autoComplete="email"
-          />
+          <div className="space-y-2">
+            <Label htmlFor="email">{t('auth.email')}</Label>
+            <SecureInput
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t('login.emailPlaceholder')}
+              required
+              disabled={isLoading || isBlocked}
+              autoComplete="email"
+            />
+          </div>
           
-          <SecureInput
-            id="password"
-            label={t('common.password')}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder={t('login.passwordPlaceholder')}
-            required
-            disabled={isLoading || isBlocked}
-            autoComplete="current-password"
-          />
+          <div className="space-y-2">
+            <Label htmlFor="password">{t('common.password')}</Label>
+            <SecureInput
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t('login.passwordPlaceholder')}
+              required
+              disabled={isLoading || isBlocked}
+              autoComplete="current-password"
+            />
+          </div>
 
           {error && (
             <Alert variant="destructive">
