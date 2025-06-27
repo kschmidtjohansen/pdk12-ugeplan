@@ -1,86 +1,90 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { securityLog } from '@/utils/securityLogger';
+import { generateCSRFToken, ClientRateLimit } from '@/utils/inputSanitization';
 
 interface SecurityContextType {
   csrfToken: string;
+  refreshCSRFToken: () => void;
+  checkRateLimit: (key: string, maxAttempts?: number) => boolean;
+  resetRateLimit: (key: string) => void;
   isSecureContext: boolean;
-  checkRateLimit: (action: string, limit: number) => boolean;
-  reportSecurityIncident: (incident: string, details?: Record<string, any>) => void;
 }
 
-const SecurityContext = createContext<SecurityContextType | undefined>(undefined);
+const SecurityContext = createContext<SecurityContextType>({
+  csrfToken: '',
+  refreshCSRFToken: () => {},
+  checkRateLimit: () => true,
+  resetRateLimit: () => {},
+  isSecureContext: false,
+});
 
 interface SecurityProviderProps {
   children: ReactNode;
 }
 
 export const SecurityProvider: React.FC<SecurityProviderProps> = ({ children }) => {
-  const [csrfToken] = useState(() => crypto.getRandomValues(new Uint32Array(4)).join('-'));
-  const [rateLimitData, setRateLimitData] = useState<Record<string, number[]>>({});
+  const [csrfToken, setCSRFToken] = useState<string>('');
+  const [rateLimit] = useState(() => new ClientRateLimit());
+  const [isSecureContext, setIsSecureContext] = useState<boolean>(false);
 
-  const isSecureContext = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
-
-  const checkRateLimit = (action: string, limit: number): boolean => {
-    const now = Date.now();
-    const windowMs = 15 * 60 * 1000; // 15 minutes
-    
-    const actionData = rateLimitData[action] || [];
-    const recentAttempts = actionData.filter(timestamp => now - timestamp < windowMs);
-    
-    if (recentAttempts.length >= limit) {
-      securityLog('Rate limit exceeded', { action, attempts: recentAttempts.length, limit });
-      return false;
+  const refreshCSRFToken = () => {
+    const newToken = generateCSRFToken();
+    setCSRFToken(newToken);
+    // Store in sessionStorage for validation
+    try {
+      sessionStorage.setItem('csrf_token', newToken);
+    } catch (error) {
+      console.warn('Unable to store CSRF token:', error);
     }
-    
-    setRateLimitData(prev => ({
-      ...prev,
-      [action]: [...recentAttempts, now]
-    }));
-    
-    return true;
   };
 
-  const reportSecurityIncident = (incident: string, details: Record<string, any> = {}) => {
-    securityLog(`Security incident: ${incident}`, details);
+  const checkRateLimit = (key: string, maxAttempts: number = 5): boolean => {
+    return rateLimit.check(key, maxAttempts);
+  };
+
+  const resetRateLimit = (key: string): void => {
+    rateLimit.reset(key);
   };
 
   useEffect(() => {
-    // Security monitoring setup
-    const handleSecurityViolation = (event: SecurityPolicyViolationEvent) => {
-      reportSecurityIncident('CSP Violation', {
-        violatedDirective: event.violatedDirective,
-        blockedURI: event.blockedURI,
-        sourceFile: event.sourceFile
-      });
-    };
+    // Initialize CSRF token
+    refreshCSRFToken();
+    
+    // Check if we're in a secure context
+    setIsSecureContext(
+      window.location.protocol === 'https:' || 
+      window.location.hostname === 'localhost'
+    );
 
-    if ('SecurityPolicyViolationEvent' in window) {
-      document.addEventListener('securitypolicyviolation', handleSecurityViolation as EventListener);
-    }
-
-    return () => {
-      if ('SecurityPolicyViolationEvent' in window) {
-        document.removeEventListener('securitypolicyviolation', handleSecurityViolation as EventListener);
-      }
-    };
+    // Refresh CSRF token periodically (every 30 minutes)
+    const interval = setInterval(refreshCSRFToken, 30 * 60 * 1000);
+    
+    return () => clearInterval(interval);
   }, []);
 
-  const value: SecurityContextType = {
-    csrfToken,
-    isSecureContext,
-    checkRateLimit,
-    reportSecurityIncident
-  };
+  // Log security warnings for development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && !isSecureContext) {
+      console.warn(
+        '[Security Warning] Not in secure context. HTTPS should be used in production.'
+      );
+    }
+  }, [isSecureContext]);
 
   return (
-    <SecurityContext.Provider value={value}>
+    <SecurityContext.Provider value={{
+      csrfToken,
+      refreshCSRFToken,
+      checkRateLimit,
+      resetRateLimit,
+      isSecureContext,
+    }}>
       {children}
     </SecurityContext.Provider>
   );
 };
 
-export const useSecurity = (): SecurityContextType => {
+export const useSecurity = () => {
   const context = useContext(SecurityContext);
   if (!context) {
     throw new Error('useSecurity must be used within a SecurityProvider');

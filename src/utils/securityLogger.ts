@@ -34,9 +34,6 @@ export const logSecurityEvent = async (
   }
 };
 
-// Add the missing securityLog export as an alias
-export const securityLog = logSecurityEvent;
-
 export const logAuthEvent = (eventType: string, details: Record<string, any> = {}) => {
   logSecurityEvent(`auth_${eventType}`, `Authentication event: ${eventType}`, details, 'info');
 };
