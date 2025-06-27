@@ -13,13 +13,11 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      console.log('[LoginPage] User authenticated, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, loading, navigate]);
 
   const handleLoginSuccess = () => {
-    console.log('[LoginPage] Login successful, redirecting to dashboard');
     navigate('/dashboard', { replace: true });
   };
 
@@ -37,14 +35,12 @@ const LoginPage = () => {
     );
   }
 
-  // If already authenticated, show loading while redirecting
   if (isAuthenticated) {
     return (
       <>
         <SecurityHeaders />
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
             <p>Redirecting to dashboard...</p>
           </div>
         </div>

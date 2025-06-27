@@ -1,19 +1,9 @@
 
 import { Navigate } from 'react-router-dom';
-import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 
 const Index = () => {
-  const { isAuthenticated, user, loading } = useAuth();
-
-  // Log when the index page is accessed
-  useEffect(() => {
-    console.log(`[Index] Page loaded on domain: ${window.location.hostname} - Auth status:`, { 
-      isAuthenticated, 
-      user: user?.name,
-      loading 
-    });
-  }, [isAuthenticated, user, loading]);
+  const { isAuthenticated, loading } = useAuth();
 
   // Show loading state while authentication is being determined
   if (loading) {
@@ -22,22 +12,13 @@ const Index = () => {
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
           <p className="text-muted-foreground">Loading...</p>
-          {window.location.hostname.includes('pdk12.dk') && (
-            <p className="text-sm text-gray-500">Initializing pdk12.dk connection...</p>
-          )}
         </div>
       </div>
     );
   }
 
-  // If authenticated, redirect to dashboard, otherwise redirect to login
-  if (isAuthenticated && user) {
-    console.log(`[Index] User is authenticated on ${window.location.hostname}, redirecting to dashboard`);
-    return <Navigate to="/dashboard" replace />;
-  } else {
-    console.log(`[Index] User is not authenticated on ${window.location.hostname}, redirecting to login`);
-    return <Navigate to="/login" replace />;
-  }
+  // Simple routing logic
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
 };
 
 export default Index;

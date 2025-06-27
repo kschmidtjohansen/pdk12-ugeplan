@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
+
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
@@ -75,120 +76,106 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AppUser | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const { toast } = useToast();
-  const initializingRef = useRef(false);
 
-  // Simplified user data initialization
-  const initializeUserData = useCallback(async (currentSession: Session) => {
-    if (initializingRef.current) return;
-    initializingRef.current = true;
-
-    try {
-      console.log('[AuthProvider] Initializing user data for:', currentSession.user.email);
-      
-      const userId = currentSession.user.id;
-      
-      // Fetch user role and profile in parallel
-      const [roleResponse, profileResponse] = await Promise.allSettled([
-        supabase.from('user_roles').select('role').eq('user_id', userId).single(),
-        supabase.from('profiles').select('name').eq('id', userId).single()
-      ]);
-
-      let role: UserRole = 'servicemedarbejder';
-      let name = currentSession.user.email || '';
-
-      if (roleResponse.status === 'fulfilled' && roleResponse.value.data) {
-        role = roleResponse.value.data.role as UserRole;
-      }
-
-      if (profileResponse.status === 'fulfilled' && profileResponse.value.data) {
-        name = profileResponse.value.data.name || name;
-      }
-
-      const appUser: AppUser = {
-        id: userId,
-        name,
-        email: currentSession.user.email || '',
-        role
-      };
-
-      console.log('[AuthProvider] User initialized:', appUser);
-      setUser(appUser);
-      
-    } catch (error) {
-      console.error('[AuthProvider] Error initializing user:', error);
-      
-      // Fallback user
-      const fallbackUser: AppUser = {
-        id: currentSession.user.id,
-        name: currentSession.user.email || '',
-        email: currentSession.user.email || '',
-        role: 'servicemedarbejder'
-      };
-      
-      setUser(fallbackUser);
-    } finally {
-      setLoading(false);
-      initializingRef.current = false;
-    }
-  }, []);
-
-  // Single auth state listener
+  // Single auth initialization effect
   useEffect(() => {
-    console.log('[AuthProvider] Setting up auth state listener');
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        console.log('[AuthProvider] Auth state changed:', event);
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        // Get current session
+        const { data: { session } } = await supabase.auth.getSession();
         
-        setSession(currentSession);
-        
-        if (currentSession?.user) {
-          await initializeUserData(currentSession);
-        } else {
-          setUser(null);
+        if (session?.user && mounted) {
+          await initializeUser(session.user);
+        }
+      } catch (error) {
+        console.error('[AuthProvider] Initial session check failed:', error);
+      } finally {
+        if (mounted) {
           setLoading(false);
         }
+      }
+    };
+
+    // Set up auth listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+
+        console.log('[AuthProvider] Auth event:', event);
+        
+        if (session?.user) {
+          await initializeUser(session.user);
+        } else {
+          setUser(null);
+        }
+        
+        setLoading(false);
       }
     );
 
-    // Check for existing session
-    const checkSession = async () => {
-      try {
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
-        
-        if (existingSession?.user) {
-          setSession(existingSession);
-          await initializeUserData(existingSession);
-        } else {
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('[AuthProvider] Session check failed:', error);
-        setLoading(false);
-      }
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
     };
-    
-    checkSession();
+  }, []);
 
-    return () => subscription.unsubscribe();
-  }, [initializeUserData]);
+  const initializeUser = async (authUser: User) => {
+    try {
+      // Fetch user data with fallbacks
+      const [profileResult, roleResult] = await Promise.allSettled([
+        supabase.from('profiles').select('name').eq('id', authUser.id).single(),
+        supabase.from('user_roles').select('role').eq('user_id', authUser.id).single()
+      ]);
 
-  // Simplified permissions
+      const name = profileResult.status === 'fulfilled' && profileResult.value.data
+        ? profileResult.value.data.name
+        : authUser.email || 'Unknown User';
+
+      const role = roleResult.status === 'fulfilled' && roleResult.value.data
+        ? roleResult.value.data.role as UserRole
+        : 'servicemedarbejder';
+
+      const appUser: AppUser = {
+        id: authUser.id,
+        name,
+        email: authUser.email || '',
+        role
+      };
+
+      setUser(appUser);
+      console.log('[AuthProvider] User initialized:', appUser.name, appUser.role);
+    } catch (error) {
+      console.error('[AuthProvider] User initialization failed:', error);
+      
+      // Fallback user
+      const fallbackUser: AppUser = {
+        id: authUser.id,
+        name: authUser.email || 'Unknown User',
+        email: authUser.email || '',
+        role: 'servicemedarbejder'
+      };
+      setUser(fallbackUser);
+    }
+  };
+
+  // Permissions
   const isAdmin = user?.role === 'administrator';
   const isSkadeleder = user?.role === 'skadeleder';
   const isServicemedarbejder = user?.role === 'servicemedarbejder';
-  
+  const isAuthenticated = !!user;
+
   const canViewFuelCardCode = isAdmin;
   const canPublishTasks = isAdmin || isSkadeleder;
   const canApproveVacation = isAdmin;
   const canEdit = isAdmin || isSkadeleder;
   const canCreate = isAdmin || isSkadeleder;
   const canSeeUnpublishedTasks = isAdmin || isSkadeleder;
-  
-  const isAuthenticated = !!user;
 
   // Validation methods
   const validateAdminAccess = (): boolean => {
@@ -227,41 +214,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return true;
   };
 
-  // Simplified login function
+  // Auth methods
   const login = async (email: string, password: string) => {
     try {
-      console.log('[AuthProvider] Attempting login for:', email);
-      
       const { error } = await supabase.auth.signInWithPassword({ 
         email: email.trim().toLowerCase(), 
         password 
       });
       
       if (error) {
-        console.error('[AuthProvider] Login error:', error.message);
         return { error: error.message };
       }
       
-      console.log('[AuthProvider] Login successful');
       return { error: null };
     } catch (error: any) {
-      console.error('[AuthProvider] Login exception:', error);
       return { error: 'An unexpected error occurred during login.' };
     }
   };
 
-  // Simplified logout
   const logout = async () => {
     try {
-      console.log('[AuthProvider] Logging out');
       await supabase.auth.signOut();
       setUser(null);
-      setSession(null);
     } catch (error) {
       console.error('[AuthProvider] Logout error:', error);
-      // Clear state anyway
       setUser(null);
-      setSession(null);
     }
   };
 
@@ -277,7 +254,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       return { error: error ? error.message : null };
     } catch (error) {
-      console.error('Signup error:', error);
       return { error: 'An unexpected error occurred during signup.' };
     }
   };
@@ -289,7 +265,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       return { error: error ? error.message : null };
     } catch (error: any) {
-      console.error('Password reset error:', error);
       return { error: 'An unexpected error occurred during password reset.' };
     }
   };
@@ -308,7 +283,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       return { error: null, user: data.user };
     } catch (error) {
-      console.error('User registration error:', error);
       return { error: 'An unexpected error occurred during registration.', user: null };
     }
   };
@@ -329,7 +303,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       return { error: null };
     } catch (error) {
-      console.error('Role update error:', error);
       return { 
         error: error instanceof Error ? error.message : 'An unexpected error occurred during role update.'
       };
@@ -352,7 +325,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       return { error: null };
     } catch (error) {
-      console.error('Password reset error:', error);
       return { 
         error: error instanceof Error ? error.message : 'An unexpected error occurred during password reset.'
       };

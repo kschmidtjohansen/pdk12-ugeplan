@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { SecurityHeaders } from '@/components/Auth/SecurityHeaders';
@@ -13,20 +13,8 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-
-  // Simple authentication check without competing mechanisms
-  React.useEffect(() => {
-    if (!loading && !isAuthenticated && 
-        location.pathname !== "/login" && 
-        location.pathname !== "/password-reset") {
-      
-      console.log(`[MainLayout] Redirecting unauthenticated user to login`);
-      navigate('/login', { replace: true });
-    }
-  }, [isAuthenticated, loading, navigate, location.pathname]);
 
   // Don't show layout for login page or password reset page
   if (location.pathname === "/login" || location.pathname === "/password-reset") {
@@ -38,7 +26,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
-  // Simple loading state
+  // Show loading state
   if (loading) {
     return (
       <SecurityErrorBoundary>
@@ -53,7 +41,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
-  // If not authenticated, show loading while redirecting
+  // If not authenticated, show basic message (routing will handle redirect)
   if (!isAuthenticated) {
     return (
       <SecurityErrorBoundary>
@@ -61,7 +49,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Redirecting to login...</p>
+            <p className="text-muted-foreground">Please wait...</p>
           </div>
         </div>
       </SecurityErrorBoundary>
