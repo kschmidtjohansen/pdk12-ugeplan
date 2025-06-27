@@ -163,24 +163,64 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
       if (employeesData && employeesData.length > 0) {
         const userIds = [...new Set(employeesData.map(ae => String(ae.user_id)).filter(Boolean))];
         
-        const profilesResult = await withRetry(
-          async () => {
-            const queryResult = await supabase
-              .from('profiles')
-              .select('id, name')
-              .in('id', userIds as string[]);
-            return queryResult;
-          },
-          'Profiles fetch'
-        );
+        if (userIds.length > 0) {
+          const profilesResult = await withRetry(
+            async () => {
+              const queryResult = await supabase
+                .from('profiles')
+                .select('id, name')
+                .in('id', userIds as string[]);
+              return queryResult;
+            },
+            'Profiles fetch'
+          );
 
-        if (profilesResult.data) {
-          profilesData = profilesResult.data;
+          if (profilesResult.data) {
+            profilesData = profilesResult.data;
+          }
         }
       }
 
       // Step 4: Transform data with employee information
-      const transformedAssignments = transformAssignments(data);
+      const transformedAssignments = data.map(assignment => {
+        // Map employees for this assignment
+        const assignmentEmployees = employeesData?.filter(ae => 
+          String(ae.assignment_id) === String(assignment.id)
+        ) || [];
+        
+        const employees = assignmentEmployees
+          .map(ae => {
+            const profile = profilesData.find(p => String(p.id) === String(ae.user_id));
+            return profile?.name;
+          })
+          .filter(Boolean);
+
+        console.log(`[useAssignmentDataPhase3] Transform assignment "${assignment.title}":`, {
+          assignmentId: assignment.id,
+          employeeRelations: assignmentEmployees.length,
+          transformedEmployees: employees,
+          employeeCount: employees.length
+        });
+
+        return {
+          id: assignment.id,
+          title: assignment.title,
+          description: assignment.description,
+          date: assignment.assignment_date,
+          fromTime: assignment.from_time,
+          toTime: assignment.to_time,
+          location: assignment.location,
+          type: assignment.type,
+          published: assignment.published,
+          responsibleUserId: assignment.responsible_user_id || '',
+          employees: employees,
+          car: null, // Will be populated if car data is needed
+          cars: [],
+          createdAt: assignment.created_at,
+          updatedAt: assignment.updated_at,
+          responsibleUser: assignment.responsibleUser
+        };
+      });
 
       setAssignments(transformedAssignments);
       setRetryCount(0); // Reset retry count on success
@@ -198,10 +238,10 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
           description: t('auth.sessionExpired') || 'Session expired - please refresh the page',
           variant: 'destructive',
         });
-      } else if (errorMessage.includes('row-level security')) {
+      } else if (errorMessage.includes('row-level security') || errorMessage.includes('infinite recursion')) {
         toast({
           title: t('planner.rlsErrorTitle') || 'Access Error',
-          description: t('planner.rlsErrorDescription') || 'Access error loading assignments. Security policies have been updated.',
+          description: t('planner.rlsErrorDescription') || 'Access error loading assignments. Please refresh the page.',
           variant: 'destructive',
         });
       } else {
@@ -230,42 +270,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
       setLoading(false);
       fetchInProgress.current = false;
     }
-  }, [toast, t, filterCriteria, retryCount, user?.name]);
-
-  const transformAssignments = useCallback((data: any[]) => {
-    if (!data || !Array.isArray(data)) return [];
-    
-    return data.map(assignment => {
-      // Handle employee arrays properly
-      const employees = assignment.assignments_employees?.map((ae: any) => ae.profiles?.name).filter(Boolean) || [];
-      const cars = assignment.cars?.map((car: any) => car.name).filter(Boolean) || [];
-      
-      console.log(`[useAssignmentDataPhase3] Transform assignment "${assignment.title}":`, {
-        rawEmployees: assignment.assignments_employees,
-        transformedEmployees: employees,
-        employeeCount: employees.length
-      });
-
-      return {
-        id: assignment.id,
-        title: assignment.title,
-        description: assignment.description,
-        date: assignment.assignment_date,
-        fromTime: assignment.from_time,
-        toTime: assignment.to_time,
-        location: assignment.location,
-        type: assignment.type,
-        published: assignment.published,
-        responsibleUserId: assignment.responsible_user_id || '',
-        employees: employees,
-        car: cars.length > 0 ? cars[0] : null,
-        cars: cars,
-        createdAt: assignment.created_at,
-        updatedAt: assignment.updated_at,
-        responsibleUser: assignment.responsible_user
-      };
-    });
-  }, []);
+  }, [toast, t, filterCriteria, retryCount]);
 
   // Load assignments on component mount and when filter criteria change
   useEffect(() => {
