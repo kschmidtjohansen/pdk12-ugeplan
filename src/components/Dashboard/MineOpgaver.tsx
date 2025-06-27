@@ -19,7 +19,7 @@ const MineOpgaver: React.FC = () => {
     return allAssignments.filter((assignment: Assignment) => {
       // Check if current user is assigned to this task
       const isUserAssigned = assignment.employees?.includes(user.name) || 
-                           assignment.responsibleUserId === user.id;
+                           assignment.responsibleUser?.id === user.id;
       
       console.log(`[MineOpgaver] FIXED - Assignment "${assignment.title}":`, {
         userAssigned: isUserAssigned,
