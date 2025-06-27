@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { EnhancedSecureLoginForm } from '@/components/Auth/EnhancedSecureLoginForm';
+import EnhancedSecureLoginForm from '@/components/Auth/EnhancedSecureLoginForm';
 import { useTranslation } from '@/context/TranslationContext';
 import { SecurityHeaders } from '@/components/Auth/SecurityHeaders';
 
