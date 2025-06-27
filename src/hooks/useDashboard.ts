@@ -2,7 +2,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useOptimizedAssignments } from './useOptimizedAssignments';
 import { getWeekNumber, getYearForDate, getCurrentWeekInfo, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/dates';
-import { Assignment } from '@/types/assignment';
 
 export const useDashboard = () => {
   // Get current week info for proper filtering
@@ -10,10 +9,10 @@ export const useDashboard = () => {
   const [selectedWeek, setSelectedWeek] = useState(currentWeekInfo.week);
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
 
-  console.log('[useDashboard] FIXED - Current week info:', currentWeekInfo);
-  console.log('[useDashboard] FIXED - Selected week/year:', selectedWeek, selectedYear);
+  console.log('[useDashboard] Current week info:', currentWeekInfo);
+  console.log('[useDashboard] Selected week/year:', selectedWeek, selectedYear);
 
-  // FIXED: Use 'user' filter for dashboard to get user's assignments with proper filtering
+  // Use 'user' filter for dashboard to get user's assignments
   const { 
     assignments, 
     loading, 
@@ -21,10 +20,15 @@ export const useDashboard = () => {
     refetch 
   } = useOptimizedAssignments('user');
 
-  console.log('[useDashboard] FIXED - Raw assignments from hook:', assignments.length);
+  console.log('[useDashboard] Raw assignments from hook:', assignments.length);
 
-  // FIXED: Filter assignments to only show the selected week with proper ISO week calculation
+  // Filter assignments to only show the selected week
   const weekAssignments = useMemo(() => {
+    if (!assignments || assignments.length === 0) {
+      console.log('[useDashboard] No assignments to filter');
+      return [];
+    }
+
     const filtered = assignments.filter(assignment => {
       const assignmentDate = new Date(assignment.date);
       const assignmentWeek = getWeekNumber(assignmentDate);
@@ -33,7 +37,7 @@ export const useDashboard = () => {
       const isInSelectedWeek = assignmentWeek === selectedWeek && assignmentYear === selectedYear;
       
       if (isInSelectedWeek) {
-        console.log('[useDashboard] FIXED - Assignment in week:', {
+        console.log('[useDashboard] Assignment in week:', {
           assignment: assignment.title,
           date: assignment.date,
           week: assignmentWeek,
@@ -45,22 +49,22 @@ export const useDashboard = () => {
       return isInSelectedWeek;
     });
 
-    console.log('[useDashboard] FIXED - Filtered to week', selectedWeek, ':', filtered.length, 'assignments');
+    console.log('[useDashboard] Filtered to week', selectedWeek, ':', filtered.length, 'assignments');
     return filtered;
   }, [assignments, selectedWeek, selectedYear]);
 
-  // Navigate to previous week with proper ISO week calculation
+  // Navigate to previous week
   const handlePreviousWeek = () => {
     const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
-    console.log('[useDashboard] FIXED - Previous week:', week, year);
+    console.log('[useDashboard] Previous week:', week, year);
     setSelectedWeek(week);
     setSelectedYear(year);
   };
 
-  // Navigate to next week with proper ISO week calculation
+  // Navigate to next week
   const handleNextWeek = () => {
     const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
-    console.log('[useDashboard] FIXED - Next week:', week, year);
+    console.log('[useDashboard] Next week:', week, year);
     setSelectedWeek(week);
     setSelectedYear(year);
   };
@@ -68,7 +72,7 @@ export const useDashboard = () => {
   // Reset to current week
   const resetToCurrentWeek = () => {
     const current = getCurrentWeekInfo();
-    console.log('[useDashboard] FIXED - Reset to current week:', current);
+    console.log('[useDashboard] Reset to current week:', current);
     setSelectedWeek(current.week);
     setSelectedYear(current.year);
   };

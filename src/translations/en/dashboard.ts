@@ -1,60 +1,32 @@
 
-const dashboard = {
-  welcome: 'Welcome, {name}',
-  title: 'Dashboard',
-  today: 'Today is {date}, Week {week}',
-  availableEmployees: 'Available Employees',
-  onLeaveEmployees: 'Employees on Leave',
-  availableCars: 'Available Cars',
-  todayAssignments: "Today's Assignments",
-  scheduledToday: 'Scheduled for today',
-  totalEmployees: '{count} total employees',
-  totalCars: '{count} total cars',
-  todaysDate: '{date}',
-  viewAll: 'View All',
-  myAssignments: 'My Assignments for Week {week}',
-  noAssignments: 'No assignments scheduled',
-  noAssignmentsScheduled: 'No assignments scheduled for this week',
-  connectionIssueDetected: 'Connection Issue Detected',
-  connectionIssueDescription: 'There may be connectivity issues. Data might not be current.',
-  
-  // Metrics
+export const dashboard = {
+  welcome: "Welcome back",
+  quickAccess: "Quick access",
+  myTasks: "My Tasks",
+  noTasks: "No tasks",
+  noTasksDescription: "You have no tasks assigned at the moment.",
+  weeklyOverview: "Weekly overview",
+  previousWeek: "Previous week",
+  nextWeek: "Next week",
+  currentWeek: "Current week",
+  resetToCurrentWeek: "Reset to current week",
+  connectionIssueDetected: "Connection issues detected",
+  connectionIssueDescription: "There may be connection issues. Try refreshing the page if data doesn't load properly.",
   metrics: {
-    availableEmployees: 'Available Employees',
-    unavailableEmployees: 'Unavailable Employees', 
-    unavailableSubtitle: 'On leave or vacation',
-    availableCars: 'Available Cars',
-    carsInUse: 'Cars in Use',
-    carsInUseSubtitle: 'Currently assigned'
+    availableEmployees: "Available employees",
+    unavailableEmployees: "Unavailable employees", 
+    unavailableSubtitle: "On vacation, leave, or fully booked",
+    availableCars: "Available cars",
+    carsInUse: "Cars in use",
+    carsInUseSubtitle: "Assigned to tasks or unavailable"
   },
-  
-  // Upcoming Vacations widget
-  upcomingVacations: 'Upcoming Vacations',
-  noUpcomingVacations: 'No upcoming vacations',
-  
-  // Employee availability dialogs
-  availableEmployeesDesc: 'Employees available and not assigned to tasks',
-  unavailableEmployeesDesc: 'Employees currently on leave or vacation',
-  
-  // Quick access items
-  quickAccess: {
-    planner: {
-      title: 'Planner',
-      description: 'View and manage weekly schedules'
-    },
-    vacation: {
-      title: 'Vacation',
-      description: 'Request and manage time off'
-    },
-    employees: {
-      title: 'Employees',
-      description: 'Manage employee information'
-    },
-    cars: {
-      title: 'Cars',
-      description: 'View and manage vehicle fleet'
-    }
+  charts: {
+    assignmentDistribution: "Assignment distribution"
+  },
+  assignments: {
+    waterDamage: "Water damage",
+    fireDamage: "Fire damage", 
+    mold: "Mold",
+    other: "Other"
   }
 };
-
-export default dashboard;

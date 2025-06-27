@@ -10,14 +10,14 @@ import { Assignment } from '@/types/assignment';
 const MineOpgaver: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { allAssignments, loading } = useDashboard();
+  const { allAssignments, loading, error } = useDashboard();
 
-  // DEBUG: Log component props to diagnose employee filtering
-  console.log('MineOpgaver.assignments prop:', JSON.stringify(allAssignments?.slice(0, 3), null, 2));
+  console.log('[MineOpgaver] Component rendered for user:', user?.name, 'role:', user?.role);
+  console.log('[MineOpgaver] Assignments received:', allAssignments?.length || 0);
 
   const userAssignments = useMemo(() => {
     if (!user?.id || !allAssignments) {
-      console.log(`[MineOpgaver] Missing user or assignments:`, {
+      console.log('[MineOpgaver] Missing user or assignments:', {
         hasUser: !!user?.id,
         hasAssignments: !!allAssignments,
         assignmentCount: allAssignments?.length || 0
@@ -25,29 +25,18 @@ const MineOpgaver: React.FC = () => {
       return [];
     }
 
-    // CRITICAL FIX: Just return all assignments - they're already filtered by the service
-    console.log(`[MineOpgaver] Using ALL assignments from service (already user-filtered):`, {
+    // Return all assignments (they're already filtered by the service for the user)
+    console.log('[MineOpgaver] Using assignments from service:', {
       totalAssignments: allAssignments.length,
-      employeeBreakdown: allAssignments.map(a => ({
-        title: a.title,
-        employees: a.employees,
-        employeeCount: a.employees?.length || 0,
-        shouldShowAll: 'YES - All colleague names should be visible'
-      }))
+      sampleAssignment: allAssignments[0] ? {
+        title: allAssignments[0].title,
+        employees: allAssignments[0].employees,
+        date: allAssignments[0].date
+      } : 'No assignments'
     });
 
     return allAssignments;
   }, [allAssignments, user]);
-
-  console.log(`[MineOpgaver] FINAL RENDER VERIFICATION:`, {
-    totalToRender: userAssignments.length,
-    renderingDetails: userAssignments.map(a => ({
-      title: a.title,
-      willRenderEmployees: a.employees?.join(', ') || 'NO EMPLOYEES',
-      expectedForAsbestkursus: a.title.toLowerCase().includes('asbestkursus') ? 
-        'SHOULD RENDER: Mark Hansen, Julie Mortensen' : 'N/A'
-    }))
-  });
 
   if (loading) {
     return (
@@ -62,6 +51,30 @@ const MineOpgaver: React.FC = () => {
           <div className="text-center py-4">
             <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
             <p className="text-sm text-muted-foreground mt-2">{t('common.loading')}...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="border-2 border-border/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-destructive" />
+            {t('dashboard.myTasks')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-destructive mb-2">
+              {t('common.error')}
+            </h3>
+            <p className="text-muted-foreground">
+              {t('planner.fetchError')}
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -95,13 +108,10 @@ const MineOpgaver: React.FC = () => {
             {userAssignments.map((assignment) => {
               const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
               
-              console.log(`[MineOpgaver] Rendering assignment "${assignment.title}":`, {
+              console.log('[MineOpgaver] Rendering assignment:', {
+                title: assignment.title,
                 employees: employeeList,
-                employeeCount: employeeList.length,
-                actualDisplayText: employeeList.join(', '),
-                isAsbestkursus: assignment.title.toLowerCase().includes('asbestkursus'),
-                expectedForAsbestkursus: assignment.title.toLowerCase().includes('asbestkursus') ? 
-                  'SHOULD DISPLAY: Mark Hansen, Julie Mortensen' : 'N/A'
+                date: assignment.date
               });
 
               return (
@@ -130,7 +140,6 @@ const MineOpgaver: React.FC = () => {
                       </span>
                     </div>
                     
-                    {/* CRITICAL FIX: Display ALL assignees, not just current user */}
                     {employeeList.length > 0 && (
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-muted-foreground" />

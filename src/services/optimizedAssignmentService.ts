@@ -22,6 +22,8 @@ export interface OptimizedAssignmentData {
 export class OptimizedAssignmentService {
   static async fetchAllAssignments(userRole?: string): Promise<OptimizedAssignmentData[]> {
     try {
+      console.log('[OptimizedAssignmentService] Fetching all assignments for role:', userRole);
+      
       const { data, error } = await supabase
         .from('assignments')
         .select(`
@@ -45,36 +47,43 @@ export class OptimizedAssignmentService {
         `)
         .order('assignment_date', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[OptimizedAssignmentService] Error fetching all assignments:', error);
+        throw error;
+      }
 
       const result = this.transformAssignmentData(data || []);
-      console.log('[OptimizedAssignmentService] fetchAllAssignments result:', JSON.stringify(result.slice(0, 3), null, 2));
+      console.log('[OptimizedAssignmentService] Fetched', result.length, 'assignments');
       return result;
     } catch (error) {
-      console.error('[OptimizedAssignmentService] Error fetching all assignments:', error);
+      console.error('[OptimizedAssignmentService] Error in fetchAllAssignments:', error);
       return [];
     }
   }
 
   static async fetchUserAssignments(userId: string, userRole?: string): Promise<OptimizedAssignmentData[]> {
     try {
-      // CRITICAL FIX: Two-step approach to get user assignments with ALL employee info
-      // Step 1: Get assignment IDs where user is assigned
+      console.log('[OptimizedAssignmentService] Fetching user assignments for:', userId, 'role:', userRole);
+      
+      // Get assignment IDs where user is assigned
       const { data: userAssignmentIds, error: idsError } = await supabase
         .from('assignments_employees')
         .select('assignment_id')
         .eq('user_id', userId);
 
-      if (idsError) throw idsError;
+      if (idsError) {
+        console.error('[OptimizedAssignmentService] Error fetching user assignment IDs:', idsError);
+        throw idsError;
+      }
 
       const assignmentIds = userAssignmentIds?.map(ae => ae.assignment_id) || [];
       
       if (assignmentIds.length === 0) {
-        console.log('[OptimizedAssignmentService] fetchUserAssignments - No assignments found for user');
+        console.log('[OptimizedAssignmentService] No assignments found for user');
         return [];
       }
 
-      // Step 2: Get full assignment data with ALL employees for those assignments
+      // Get full assignment data with ALL employees for those assignments
       const { data, error } = await supabase
         .from('assignments')
         .select(`
@@ -100,19 +109,24 @@ export class OptimizedAssignmentService {
         .eq('published', true)
         .order('assignment_date', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[OptimizedAssignmentService] Error fetching user assignments:', error);
+        throw error;
+      }
 
       const result = this.transformAssignmentData(data || []);
-      console.log('[OptimizedAssignmentService] API payload for MineOpgaver:', JSON.stringify(result.slice(0, 3), null, 2));
+      console.log('[OptimizedAssignmentService] Fetched', result.length, 'user assignments');
       return result;
     } catch (error) {
-      console.error('[OptimizedAssignmentService] Error fetching user assignments:', error);
+      console.error('[OptimizedAssignmentService] Error in fetchUserAssignments:', error);
       return [];
     }
   }
 
   static async fetchPublishedAssignments(userId?: string, userRole?: string): Promise<OptimizedAssignmentData[]> {
     try {
+      console.log('[OptimizedAssignmentService] Fetching published assignments');
+      
       const { data, error } = await supabase
         .from('assignments')
         .select(`
@@ -137,19 +151,24 @@ export class OptimizedAssignmentService {
         .eq('published', true)
         .order('assignment_date', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[OptimizedAssignmentService] Error fetching published assignments:', error);
+        throw error;
+      }
 
       const result = this.transformAssignmentData(data || []);
-      console.log('[OptimizedAssignmentService] fetchPublishedAssignments - ALL published assignments:', JSON.stringify(result.slice(0, 3), null, 2));
+      console.log('[OptimizedAssignmentService] Fetched', result.length, 'published assignments');
       return result;
     } catch (error) {
-      console.error('[OptimizedAssignmentService] Error fetching published assignments:', error);
+      console.error('[OptimizedAssignmentService] Error in fetchPublishedAssignments:', error);
       return [];
     }
   }
 
   static async fetchUnpublishedAssignments(userId?: string, userRole?: string): Promise<OptimizedAssignmentData[]> {
     try {
+      console.log('[OptimizedAssignmentService] Fetching unpublished assignments');
+      
       const { data, error } = await supabase
         .from('assignments')
         .select(`
@@ -174,28 +193,28 @@ export class OptimizedAssignmentService {
         .eq('published', false)
         .order('assignment_date', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[OptimizedAssignmentService] Error fetching unpublished assignments:', error);
+        throw error;
+      }
 
       return this.transformAssignmentData(data || []);
     } catch (error) {
-      console.error('[OptimizedAssignmentService] Error fetching unpublished assignments:', error);
+      console.error('[OptimizedAssignmentService] Error in fetchUnpublishedAssignments:', error);
       return [];
     }
   }
 
   private static transformAssignmentData(data: any[]): OptimizedAssignmentData[] {
     return data.map(assignment => {
-      // CRITICAL FIX: Preserve ALL employee information
+      // Preserve ALL employee information
       const employees = assignment.assignments_employees?.map((ae: any) => ({
         id: ae.profiles?.id || '',
         name: ae.profiles?.name || 'Unknown'
       })) || [];
 
-      console.log(`[OptimizedAssignmentService] Transform assignment "${assignment.title}":`, {
-        rawEmployees: assignment.assignments_employees,
-        transformedEmployees: employees,
-        employeeCount: employees.length
-      });
+      console.log(`[OptimizedAssignmentService] Transformed assignment "${assignment.title}" with ${employees.length} employees:`, 
+        employees.map(e => e.name));
 
       return {
         id: assignment.id,
