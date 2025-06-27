@@ -5,7 +5,7 @@ import planner from './planner';
 import employees from './employees';
 import cars from './cars';
 import vacation from './vacation';
-import dashboard from './dashboard';
+import { dashboard } from './dashboard';
 import notifications from './notifications';
 import login from './login';
 import { admin } from './admin';
