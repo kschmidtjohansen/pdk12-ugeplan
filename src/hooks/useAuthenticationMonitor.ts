@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 
 type ConnectionStatus = 'connected' | 'disconnected' | 'connecting';
@@ -10,7 +10,7 @@ export const useAuthenticationMonitor = () => {
   const [lastCheck, setLastCheck] = useState(new Date());
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connected');
 
-  // Simple periodic check without interfering with auth state
+  // Very simple monitoring without complex operations
   useEffect(() => {
     if (!isAuthenticated) {
       setConnectionStatus('disconnected');
@@ -18,17 +18,14 @@ export const useAuthenticationMonitor = () => {
     }
 
     setConnectionStatus('connected');
+    
+    // Simple periodic update
     const interval = setInterval(() => {
       setLastCheck(new Date());
-    }, 5 * 60 * 1000); // Check every 5 minutes
+    }, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, [isAuthenticated]);
-
-  const testDatabaseConnection = useCallback(async () => {
-    // Simplified test that doesn't cause issues
-    return true;
-  }, []);
 
   return {
     authStatus: {
@@ -39,6 +36,6 @@ export const useAuthenticationMonitor = () => {
       connectionStatus
     },
     checkAuthStatus: async () => isAuthenticated,
-    testDatabaseConnection
+    testDatabaseConnection: async () => true
   };
 };

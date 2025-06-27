@@ -16,6 +16,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const { t } = useTranslation();
 
+  console.log('[MainLayout] Render - path:', location.pathname, 'isAuthenticated:', isAuthenticated, 'loading:', loading);
+
   // Don't show layout for login page or password reset page
   if (location.pathname === "/login" || location.pathname === "/password-reset") {
     return (
@@ -26,7 +28,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
-  // Show loading state - simplified, no complex auth monitoring
+  // Show simple loading state
   if (loading) {
     return (
       <SecurityErrorBoundary>
@@ -41,14 +43,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
-  // If not authenticated, show basic message (routing will handle redirect)
+  // If not authenticated, show simple redirect message
   if (!isAuthenticated) {
     return (
       <SecurityErrorBoundary>
         <SecurityHeaders />
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary mx-auto mb-4"></div>
             <p className="text-muted-foreground">Redirecting to login...</p>
           </div>
         </div>
@@ -56,6 +57,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
+  // Show main layout for authenticated users
   return (
     <SecurityErrorBoundary>
       <SecurityHeaders />

@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
@@ -76,26 +76,39 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AppUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const { toast } = useToast();
 
-  // Single auth initialization effect
+  // Simplified auth initialization - no blocking async operations
   useEffect(() => {
     let mounted = true;
 
     const initializeAuth = async () => {
       try {
-        // Get current session
+        console.log('[AuthProvider] Initializing auth...');
+        
+        // Get current session without blocking
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user && mounted) {
-          await initializeUser(session.user);
+          console.log('[AuthProvider] Found existing session');
+          setSession(session);
+          // Create basic user object immediately - fetch additional data later
+          const basicUser: AppUser = {
+            id: session.user.id,
+            name: session.user.email || 'User',
+            email: session.user.email || '',
+            role: 'servicemedarbejder' // Default role
+          };
+          setUser(basicUser);
         }
       } catch (error) {
-        console.error('[AuthProvider] Initial session check failed:', error);
+        console.error('[AuthProvider] Session check failed:', error);
       } finally {
         if (mounted) {
           setLoading(false);
+          console.log('[AuthProvider] Auth initialization complete');
         }
       }
     };
@@ -107,8 +120,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         console.log('[AuthProvider] Auth event:', event);
         
+        setSession(session);
+        
         if (session?.user) {
-          await initializeUser(session.user);
+          // Create basic user immediately
+          const basicUser: AppUser = {
+            id: session.user.id,
+            name: session.user.email || 'User',
+            email: session.user.email || '',
+            role: 'servicemedarbejder'
+          };
+          setUser(basicUser);
+          
+          // Fetch additional user data in background without blocking
+          setTimeout(() => {
+            if (mounted) {
+              fetchUserDataBackground(session.user);
+            }
+          }, 100);
         } else {
           setUser(null);
         }
@@ -125,46 +154,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
 
-  const initializeUser = async (authUser: User) => {
+  // Background function to fetch user profile and role data
+  const fetchUserDataBackground = async (authUser: User) => {
     try {
-      // Fetch user data with fallbacks
+      console.log('[AuthProvider] Fetching user data in background for:', authUser.email);
+      
       const [profileResult, roleResult] = await Promise.allSettled([
         supabase.from('profiles').select('name').eq('id', authUser.id).single(),
         supabase.from('user_roles').select('role').eq('user_id', authUser.id).single()
       ]);
 
-      const name = profileResult.status === 'fulfilled' && profileResult.value.data
+      const name = profileResult.status === 'fulfilled' && profileResult.value.data?.name
         ? profileResult.value.data.name
-        : authUser.email || 'Unknown User';
+        : authUser.email || 'User';
 
-      const role = roleResult.status === 'fulfilled' && roleResult.value.data
+      const role = roleResult.status === 'fulfilled' && roleResult.value.data?.role
         ? roleResult.value.data.role as UserRole
         : 'servicemedarbejder';
 
-      const appUser: AppUser = {
+      const enhancedUser: AppUser = {
         id: authUser.id,
         name,
         email: authUser.email || '',
         role
       };
 
-      setUser(appUser);
-      console.log('[AuthProvider] User initialized:', appUser.name, appUser.role);
+      setUser(enhancedUser);
+      console.log('[AuthProvider] Enhanced user data loaded:', name, role);
     } catch (error) {
-      console.error('[AuthProvider] User initialization failed:', error);
-      
-      // Fallback user
-      const fallbackUser: AppUser = {
-        id: authUser.id,
-        name: authUser.email || 'Unknown User',
-        email: authUser.email || '',
-        role: 'servicemedarbejder'
-      };
-      setUser(fallbackUser);
+      console.error('[AuthProvider] Background user data fetch failed:', error);
+      // Don't fail - user already has basic data
     }
   };
 
-  // Permissions
+  // Permissions based on current user
   const isAdmin = user?.role === 'administrator';
   const isSkadeleder = user?.role === 'skadeleder';
   const isServicemedarbejder = user?.role === 'servicemedarbejder';
@@ -214,31 +237,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return true;
   };
 
-  // Auth methods
+  // Simplified auth methods
   const login = async (email: string, password: string) => {
     try {
+      console.log('[AuthProvider] Attempting login for:', email);
+      
       const { error } = await supabase.auth.signInWithPassword({ 
         email: email.trim().toLowerCase(), 
         password 
       });
       
       if (error) {
+        console.error('[AuthProvider] Login error:', error);
         return { error: error.message };
       }
       
+      console.log('[AuthProvider] Login successful');
       return { error: null };
     } catch (error: any) {
+      console.error('[AuthProvider] Login exception:', error);
       return { error: 'An unexpected error occurred during login.' };
     }
   };
 
   const logout = async () => {
     try {
+      console.log('[AuthProvider] Logging out...');
       await supabase.auth.signOut();
       setUser(null);
+      setSession(null);
     } catch (error) {
       console.error('[AuthProvider] Logout error:', error);
       setUser(null);
+      setSession(null);
     }
   };
 
