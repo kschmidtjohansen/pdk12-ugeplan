@@ -12,6 +12,9 @@ const MineOpgaver: React.FC = () => {
   const { user } = useAuth();
   const { allAssignments, loading } = useDashboard();
 
+  // DEBUG LOG: MineOpgaver props
+  console.log('MineOpgaver props:', JSON.stringify(allAssignments?.slice(0, 3), null, 2));
+
   console.log(`[MineOpgaver] PHASE 4 FIX - Raw data received:`, {
     userRole: user?.role,
     userName: user?.name,
@@ -30,7 +33,8 @@ const MineOpgaver: React.FC = () => {
     });
   });
 
-  // PHASE 4 FIX: Filter to show tasks where current user is assigned, but display ALL assignees
+  // CRITICAL FIX: Remove the redundant user filter - allAssignments already contains only user's assignments
+  // The service layer already filters for user assignments, so no need to filter again here
   const userAssignments = useMemo(() => {
     if (!user?.id || !allAssignments) {
       console.log(`[MineOpgaver] PHASE 4 FIX - Missing user or assignments:`, {
@@ -41,26 +45,10 @@ const MineOpgaver: React.FC = () => {
       return [];
     }
 
-    const filtered = allAssignments.filter((assignment: Assignment) => {
-      // Check if current user is assigned to this task
-      const isUserAssigned = assignment.employees?.includes(user.name) || 
-                           assignment.responsibleUser?.id === user.id;
-      
-      console.log(`[MineOpgaver] PHASE 4 FIX - Assignment "${assignment.title}" filtering:`, {
-        userAssigned: isUserAssigned,
-        allEmployees: assignment.employees,
-        currentUser: user.name,
-        responsibleUserId: assignment.responsibleUser?.id,
-        currentUserId: user.id
-      });
-      
-      return isUserAssigned;
-    });
-
-    console.log(`[MineOpgaver] PHASE 4 FIX - Final filtered results:`, {
-      totalFiltered: filtered.length,
-      filteredTitles: filtered.map(a => a.title),
-      employeeBreakdown: filtered.map(a => ({
+    // CRITICAL FIX: Just return all assignments - they're already filtered by the service
+    console.log(`[MineOpgaver] PHASE 4 FIX - Using ALL assignments from service (already user-filtered):`, {
+      totalAssignments: allAssignments.length,
+      employeeBreakdown: allAssignments.map(a => ({
         title: a.title,
         employees: a.employees,
         employeeCount: a.employees?.length || 0,
@@ -68,7 +56,7 @@ const MineOpgaver: React.FC = () => {
       }))
     });
 
-    return filtered;
+    return allAssignments;
   }, [allAssignments, user]);
 
   // PHASE 4 FIX: Add final rendering verification

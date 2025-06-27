@@ -105,6 +105,8 @@ export class OptimizedAssignmentService {
       }
 
       console.log('[OptimizedAssignmentService] PHASE 4 FIX - Retrieved assignments:', assignments.length);
+      // DEBUG LOG: API payload for assignments
+      console.log('API:', JSON.stringify(assignments.slice(0, 3), null, 2));
 
       // PHASE 4 FIX: Get ALL employee relationships for ALL retrieved assignments
       const assignmentIds = assignments.map(a => a.id);
@@ -307,7 +309,8 @@ export class OptimizedAssignmentService {
   }
 
   static async fetchPublishedAssignments(userId?: string, userRole?: string): Promise<OptimizedAssignmentData[]> {
-    return this.fetchAssignmentsWithFilter('published', userId, userRole);
+    // FIX: For published assignments, ignore userId completely to show ALL published assignments
+    return this.fetchAssignmentsWithFilter('published', undefined, userRole);
   }
 
   static async fetchUnpublishedAssignments(userId?: string, userRole?: string): Promise<OptimizedAssignmentData[]> {

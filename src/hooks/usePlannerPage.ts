@@ -46,6 +46,9 @@ export const usePlannerPage = () => {
     publishAssignment: publishAssignmentFromHook
   } = useOptimizedAssignments(plannerFilter);
 
+  // DEBUG LOG: Planner raw data
+  console.log('Planner raw:', JSON.stringify(assignments.slice(0, 3), null, 2));
+
   const {
     createAssignment,
     updateAssignment,
@@ -96,34 +99,32 @@ export const usePlannerPage = () => {
 
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // PHASE 4 FIX: Completely rewritten week filtering for servicemedarbejder
+  // CRITICAL FIX: Completely rewritten week filtering for servicemedarbejder
   const weekAssignments = React.useMemo(() => {
     console.log(`[usePlannerPage] PHASE 4 FIX - Starting week filter for week ${selectedWeek}/${selectedYear}`);
     console.log(`[usePlannerPage] PHASE 4 FIX - Input assignments:`, assignments.length, 'for user role:', user?.role);
     
     if (isServicemedarbejder) {
-      // PHASE 4 FIX: For servicemedarbejder, show ALL published assignments in the week
+      // CRITICAL FIX: For servicemedarbejder, ALL assignments are already published (due to 'published' filter)
+      // So we only need to filter by week, NOT by user assignment
       const filtered = assignments.filter(assignment => {
         const assignmentDate = new Date(assignment.date);
         const assignmentWeek = getWeekNumber(assignmentDate);
         const assignmentYear = getYearForDate(assignmentDate);
         
         const isInWeek = assignmentWeek === selectedWeek && assignmentYear === selectedYear;
-        const isPublished = assignment.published;
         
         console.log(`[usePlannerPage] PHASE 4 FIX - Assignment "${assignment.title}":`, {
           date: assignment.date,
           week: assignmentWeek,
           year: assignmentYear,
-          published: isPublished,
           isInWeek,
-          shouldShow: isInWeek && isPublished,
+          shouldShow: isInWeek,
           employees: assignment.employees,
-          userAssigned: assignment.employees?.includes(user?.name || ''),
           CRITICAL: 'Should show ALL published assignments regardless of user assignment'
         });
         
-        return isInWeek && isPublished;
+        return isInWeek;
       });
       
       console.log(`[usePlannerPage] PHASE 4 FIX - Servicemedarbejder filtered results:`, {
@@ -133,12 +134,19 @@ export const usePlannerPage = () => {
         allTaskTitles: filtered.map(a => a.title),
         CRITICAL: 'All published assignments in week should be visible'
       });
+
+      // DEBUG LOG: Planner displayed data
+      console.log('Planner displayed:', JSON.stringify(filtered.slice(0, 3), null, 2));
       
       return filtered;
     } else {
       // For admin/skadeleder, use existing filterByWeek logic
       const filtered = filterByWeek(assignments, selectedWeek, selectedYear);
       console.log(`[usePlannerPage] PHASE 4 FIX - Admin/Skadeleder filtered results:`, filtered.length);
+      
+      // DEBUG LOG: Planner displayed data
+      console.log('Planner displayed:', JSON.stringify(filtered.slice(0, 3), null, 2));
+      
       return filtered;
     }
   }, [assignments, selectedWeek, selectedYear, isServicemedarbejder, user?.name, filterByWeek]);
