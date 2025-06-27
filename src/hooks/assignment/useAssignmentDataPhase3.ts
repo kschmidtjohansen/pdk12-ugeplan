@@ -168,7 +168,7 @@ export const useAssignmentDataPhase3 = (options: AssignmentDataHookOptions = {})
             const queryResult = await supabase
               .from('profiles')
               .select('id, name')
-              .in('id', userIds);
+              .in('id', userIds as string[]);
             return queryResult;
           },
           'Profiles fetch'
