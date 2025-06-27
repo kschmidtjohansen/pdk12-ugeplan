@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { OptimizedAssignmentService, OptimizedAssignmentData } from '@/services/optimizedAssignmentService';
-import { Assignment } from '@/types/assignment';
+import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 
@@ -35,7 +35,7 @@ const convertToAssignment = (data: OptimizedAssignmentData): Assignment => {
     type: data.type,
     published: data.published,
     responsibleUserId: data.responsible_user_id || undefined,
-    employees: data.employees.map(emp => emp.name), // Convert to string array
+    employees: normalizeEmployees(data.employees), // Convert to string[]
     car: data.cars.length > 0 ? data.cars[0].id : '',
     cars: data.cars.map(car => car.id),
     createdAt: data.created_at,

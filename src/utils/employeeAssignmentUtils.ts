@@ -1,5 +1,5 @@
 
-import { Assignment } from '@/types/assignment';
+import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { isEmployeeOnVacation } from './employeeAvailability';
@@ -44,11 +44,12 @@ export const filterAvailableEmployeesFromAssignment = (
   employees: Employee[],
   vacations: Vacation[]
 ): string[] => {
-  if (!assignment.employees || !Array.isArray(assignment.employees)) {
+  const normalizedEmployees = normalizeEmployees(assignment.employees);
+  if (!normalizedEmployees || normalizedEmployees.length === 0) {
     return [];
   }
 
-  return assignment.employees.filter(employeeName => {
+  return normalizedEmployees.filter(employeeName => {
     const employee = employees.find(emp => emp.name === employeeName);
     if (!employee) {
       console.warn(`Employee ${employeeName} not found in employee list`);

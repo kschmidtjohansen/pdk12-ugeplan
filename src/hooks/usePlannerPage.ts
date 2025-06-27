@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -199,7 +200,7 @@ export const usePlannerPage = () => {
       setSelectedDay(assignment.date);
       setFormData({
         ...assignment,
-        employees: Array.isArray(assignment.employees) ? [...assignment.employees] : [],
+        employees: assignment.employees ? [...assignment.employees] : [],
         car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : '',
         published: assignment.published
       });
@@ -259,7 +260,7 @@ export const usePlannerPage = () => {
         id: undefined,
         date: freshTodayDate,
         published: false,
-        employees: Array.isArray(assignment.employees) ? [...assignment.employees] : [],
+        employees: assignment.employees ? [...assignment.employees] : [],
         car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : ''
       });
       setIsDialogOpen(true);

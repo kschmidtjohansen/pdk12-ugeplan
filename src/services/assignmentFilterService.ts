@@ -1,5 +1,5 @@
 
-import { Assignment } from '@/types/assignment';
+import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { getISOWeek, getISOWeekYear } from 'date-fns';
 
 export type AssignmentFilter = 'all' | 'user' | 'published' | 'unpublished';
@@ -8,10 +8,11 @@ export class AssignmentFilterService {
   static filterAssignments(assignments: Assignment[], filter: AssignmentFilter, userId?: string): Assignment[] {
     switch (filter) {
       case 'user':
-        return assignments.filter(assignment => 
-          assignment.employees?.includes(userId || '') ||
-          assignment.responsibleUserId === userId
-        );
+        return assignments.filter(assignment => {
+          const normalizedEmployees = normalizeEmployees(assignment.employees);
+          return normalizedEmployees.includes(userId || '') ||
+            assignment.responsibleUserId === userId;
+        });
       case 'published':
         return assignments.filter(assignment => assignment.published);
       case 'unpublished':
@@ -60,12 +61,12 @@ export class AssignmentFilterService {
   static filterForDashboard(assignments: Assignment[], options: { userRole?: string; userName?: string }): Assignment[] {
     // For dashboard, show user's assignments and published assignments
     if (options.userRole === 'servicemedarbejder') {
-      return assignments.filter(assignment => 
-        assignment.published && (
-          assignment.employees?.includes(options.userName || '') ||
-          assignment.responsibleUserId
-        )
-      );
+      return assignments.filter(assignment => {
+        if (!assignment.published) return false;
+        const normalizedEmployees = normalizeEmployees(assignment.employees);
+        return normalizedEmployees.includes(options.userName || '') ||
+          assignment.responsibleUserId;
+      });
     }
     return assignments.filter(assignment => assignment.published);
   }

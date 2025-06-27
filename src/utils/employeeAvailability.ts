@@ -1,6 +1,6 @@
 
 import { Employee } from '@/types/employee';
-import { Assignment } from '@/types/assignment';
+import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { Vacation } from '@/types/vacation';
 import { format } from 'date-fns';
 
@@ -168,9 +168,10 @@ export const getEmployeeAvailabilityStatus = (
     const isOnDate = assignmentDateStr === targetDateStr;
     
     let isAssigned = false;
-    if (assignment.employees && Array.isArray(assignment.employees)) {
+    const normalizedEmployees = normalizeEmployees(assignment.employees);
+    if (normalizedEmployees && normalizedEmployees.length > 0) {
       // Check if the employee is in the assignment by name OR by ID
-      isAssigned = assignment.employees.includes(employee.name) || assignment.employees.includes(employee.id);
+      isAssigned = normalizedEmployees.includes(employee.name) || normalizedEmployees.includes(employee.id);
     }
     
     const matches = isOnDate && isAssigned;
@@ -178,7 +179,7 @@ export const getEmployeeAvailabilityStatus = (
     console.log(`[getEmployeeAvailabilityStatus] Assignment check:`, {
       assignmentId: assignment.id,
       assignmentDate: assignmentDateStr,
-      assignmentEmployees: assignment.employees,
+      assignmentEmployees: normalizedEmployees,
       isOnDate,
       isAssigned,
       matches,

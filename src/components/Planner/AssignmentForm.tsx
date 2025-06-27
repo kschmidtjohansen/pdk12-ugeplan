@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Assignment } from '@/types/assignment';
+import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
@@ -261,7 +262,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           setSelectedCarId={handleCarChange}
           selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)}
           setSelectedResponsibleUserId={setResponsibleUserById}
-          selectedEmployees={formData.employees || []}
+          selectedEmployees={normalizeEmployees(formData.employees)}
           setSelectedEmployees={handleEmployeesChange}
           cars={cars}
           employees={employees}
