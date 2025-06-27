@@ -11,7 +11,7 @@ export interface Assignment {
   published: boolean;
   responsibleUserId?: string;
   employees?: string[];
-  car?: string;
+  car?: string | { id: string; name: string };
   cars?: string[];
   createdAt?: string;
   updatedAt?: string;

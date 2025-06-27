@@ -40,3 +40,17 @@ export const validatePasswordStrength = (password: string): {
     errors
   };
 };
+
+export const sanitizeInput = (input: string, maxLength: number = 1000): string => {
+  if (!input || typeof input !== 'string') return '';
+  
+  // Remove potential XSS patterns
+  const sanitized = input
+    .replace(/[<>]/g, '') // Remove angle brackets
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+\s*=/gi, '') // Remove event handlers
+    .replace(/data:/gi, '') // Remove data: protocol
+    .trim();
+  
+  return sanitized.substring(0, maxLength);
+};

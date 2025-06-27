@@ -20,3 +20,46 @@ export const supabase = (() => {
   }
   return supabaseInstance;
 })();
+
+// Session validation function
+export const ensureValidSession = async (): Promise<boolean> => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error('Session validation error:', error);
+      return false;
+    }
+    return !!session;
+  } catch (error) {
+    console.error('Session validation failed:', error);
+    return false;
+  }
+};
+
+// Retry utility function
+export const withRetry = async <T>(
+  operation: () => Promise<T>,
+  operationName: string,
+  maxRetries: number = 3
+): Promise<T> => {
+  let lastError: Error;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.warn(`${operationName} attempt ${attempt} failed:`, lastError.message);
+      
+      if (attempt === maxRetries) {
+        break;
+      }
+      
+      // Exponential backoff
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError;
+};

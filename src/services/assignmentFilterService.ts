@@ -1,5 +1,6 @@
 
 import { Assignment } from '@/types/assignment';
+import { getISOWeek, getISOWeekYear } from 'date-fns';
 
 export type AssignmentFilter = 'all' | 'user' | 'published' | 'unpublished';
 
@@ -38,5 +39,42 @@ export class AssignmentFilterService {
       groups[date].push(assignment);
       return groups;
     }, {} as Record<string, Assignment[]>);
+  }
+
+  static filterByWeek(assignments: Assignment[], weekNumber: number, year: number): Assignment[] {
+    return assignments.filter(assignment => {
+      const assignmentDate = new Date(assignment.date);
+      const assignmentWeek = getISOWeek(assignmentDate);
+      const assignmentYear = getISOWeekYear(assignmentDate);
+      return assignmentWeek === weekNumber && assignmentYear === year;
+    });
+  }
+
+  static filterByDateRange(assignments: Assignment[], startDate: string, endDate: string): Assignment[] {
+    return assignments.filter(assignment => {
+      const assignmentDate = assignment.date;
+      return assignmentDate >= startDate && assignmentDate <= endDate;
+    });
+  }
+
+  static filterForDashboard(assignments: Assignment[], options: { userRole?: string; userName?: string }): Assignment[] {
+    // For dashboard, show user's assignments and published assignments
+    if (options.userRole === 'servicemedarbejder') {
+      return assignments.filter(assignment => 
+        assignment.published && (
+          assignment.employees?.includes(options.userName || '') ||
+          assignment.responsibleUserId
+        )
+      );
+    }
+    return assignments.filter(assignment => assignment.published);
+  }
+
+  static filterForPlanner(assignments: Assignment[], options: { userRole?: string; includeUnpublished?: boolean }): Assignment[] {
+    // For planner, admin/skadeleder can see all, servicemedarbejder only published
+    if (options.userRole === 'servicemedarbejder') {
+      return assignments.filter(assignment => assignment.published);
+    }
+    return assignments; // Admin/skadeleder see all
   }
 }
