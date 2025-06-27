@@ -1,12 +1,12 @@
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import { format, getISOWeek, getISOWeekYear } from 'date-fns';
-import { useOptimizedAssignments } from '@/hooks/useOptimizedAssignments';
+import { useSimpleAssignments } from '@/hooks/useSimpleAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
 import { useVacations } from '@/hooks/useVacations';
-import { useAuthenticationMonitor } from '@/hooks/useAuthenticationMonitor';
 import { AssignmentFilterService } from '@/services/assignmentFilterService';
 import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
 import { getDailyQuote } from '@/utils/dailyQuotes';
@@ -20,16 +20,8 @@ const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   
-  // Enhanced authentication monitoring
-  const { authStatus } = useAuthenticationMonitor();
-  
-  // COMPREHENSIVE FIX: Use separate optimized queries for different contexts
-  // For dashboard metrics: show all published assignments for system-wide overview
-  const { assignments: allPublishedAssignments, loading: allAssignmentsLoading, error: allAssignmentsError } = useOptimizedAssignments('published');
-  
-  // For user's personal weekly view: show user's assignments with ALL colleague names preserved
-  const { assignments: userAssignments, loading: userAssignmentsLoading } = useOptimizedAssignments('user');
-  
+  // Simplified data fetching - no more complex optimization layers
+  const { assignments: allAssignments, loading: assignmentsLoading, error: assignmentsError } = useSimpleAssignments();
   const { employees, updateEmployeeLeaveStatusFromVacations } = useEmployees();
   const { cars } = useCars();
   const { vacations } = useVacations();
@@ -42,36 +34,8 @@ const DashboardPage: React.FC = () => {
 
   const dailyQuote = getDailyQuote();
 
-  // Show connection status if there are issues
-  const showConnectionIssue = !authStatus.sessionValid || authStatus.connectionStatus === 'disconnected';
-
-  console.log(`[DashboardPage] COMPREHENSIVE FIX - Dashboard for user: ${user?.name} (${user?.role})`);
-  console.log(`[DashboardPage] COMPREHENSIVE FIX - All published assignments for metrics: ${allPublishedAssignments.length}`);
-  console.log(`[DashboardPage] COMPREHENSIVE FIX - User assignments for weekly view: ${userAssignments.length}`);
-  
-  // COMPREHENSIVE FIX: Detailed assignment logging to debug employee name issues
-  console.log(`[DashboardPage] COMPREHENSIVE FIX - Detailed user assignment analysis:`);
-  userAssignments.forEach((assignment, index) => {
-    const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
-    console.log(`[DashboardPage] COMPREHENSIVE FIX - Assignment ${index + 1}: "${assignment.title}"`, {
-      id: assignment.id,
-      employees: employeeList,
-      employeeCount: employeeList.length,
-      date: assignment.date,
-      published: assignment.published
-    });
-    
-    // Special attention to Asbestkursus
-    if (assignment.title.toLowerCase().includes('asbestkursus')) {
-      console.log(`[DashboardPage] COMPREHENSIVE FIX - 🎯 ASBESTKURSUS DASHBOARD ANALYSIS:`, {
-        title: assignment.title,
-        employees: employeeList,
-        employeeCount: employeeList.length,
-        shouldShow: 'Mark Hansen, Julie Mortensen',
-        actuallyShowing: employeeList.join(', ')
-      });
-    }
-  });
+  console.log(`[DashboardPage] SIMPLIFIED - Dashboard for user: ${user?.name} (${user?.role})`);
+  console.log(`[DashboardPage] SIMPLIFIED - All assignments: ${allAssignments.length}`);
 
   useEffect(() => {
     const updateEmployeeStatuses = async () => {
@@ -115,39 +79,46 @@ const DashboardPage: React.FC = () => {
     setSelectedYear(year);
   };
 
-  // COMPREHENSIVE FIX: Filter user assignments for weekly view, with detailed logging
+  // Filter assignments for weekly view
   const myWeekAssignments = useMemo(() => {
     const filtered = AssignmentFilterService.filterByDateRange(
-      userAssignments, // User's assignments with ALL colleague info preserved
+      allAssignments,
       startDateISO,
       endDateISO
     );
     
-    console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignments for ${user?.name}: ${filtered.length} assignments`);
-    console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignment details:`);
-    filtered.forEach((assignment, index) => {
-      const employeeList = Array.isArray(assignment.employees) ? assignment.employees : [];
-      console.log(`[DashboardPage] COMPREHENSIVE FIX - Weekly assignment ${index + 1}: "${assignment.title}" employees: [${employeeList.join(', ')}]`);
-      
-      if (assignment.title.toLowerCase().includes('asbestkursus')) {
-        console.log(`[DashboardPage] COMPREHENSIVE FIX - 🎯 ASBESTKURSUS WEEKLY VIEW:`, {
-          title: assignment.title,
-          employees: employeeList,
-          date: assignment.date,
-          isInSelectedWeek: true
-        });
-      }
-    });
-    
+    console.log(`[DashboardPage] SIMPLIFIED - Weekly assignments: ${filtered.length} assignments`);
     return filtered;
-  }, [userAssignments, startDateISO, endDateISO, user?.name]);
+  }, [allAssignments, startDateISO, endDateISO]);
 
-  // Enhanced loading state with connection status
-  if (allAssignmentsLoading || userAssignmentsLoading) {
+  // Enhanced loading state with proper error handling
+  if (assignmentsLoading) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-pulse">Loading dashboard...</div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary"></div>
+          <div className="text-center">
+            <p className="text-lg font-medium text-gray-600">{t('common.loading')}...</p>
+            <p className="text-sm text-gray-500">Loading dashboard data</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (assignmentsError) {
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="text-red-500 text-xl font-semibold">Error Loading Dashboard</div>
+          <p className="text-gray-600">{assignmentsError.message}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -156,39 +127,18 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
-        {/* Connection Status Warning */}
-        {showConnectionIssue && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-yellow-800">
-                  {t('dashboard.connectionIssueDetected')}
-                </h3>
-                <div className="mt-1 text-sm text-yellow-700">
-                  {t('dashboard.connectionIssueDescription')}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Welcome Header */}
         <WelcomeHeader userName={user?.name} dailyQuote={dailyQuote} />
 
         {/* Quick Access Grid */}
         <QuickAccessGrid userRole={user?.role} />
 
-        {/* COMPREHENSIVE FIX: Dashboard Metrics - Use all published assignments for system-wide metrics */}
+        {/* Dashboard Metrics */}
         <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <DashboardMetrics selectedDate={format(new Date(), 'yyyy-MM-dd')} assignments={allPublishedAssignments} />
+          <DashboardMetrics selectedDate={format(new Date(), 'yyyy-MM-dd')} assignments={allAssignments} />
         </div>
 
-        {/* COMPREHENSIVE FIX: Weekly Assignments - Pass user assignments with ALL colleague info preserved */}
+        {/* Weekly Assignments */}
         <div style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
           <WeeklyAssignments
             assignments={myWeekAssignments}

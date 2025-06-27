@@ -26,7 +26,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
-  // Show loading state
+  // Show loading state - simplified, no complex auth monitoring
   if (loading) {
     return (
       <SecurityErrorBoundary>
@@ -49,7 +49,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Please wait...</p>
+            <p className="text-muted-foreground">Redirecting to login...</p>
           </div>
         </div>
       </SecurityErrorBoundary>

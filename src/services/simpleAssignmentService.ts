@@ -5,7 +5,7 @@ import { Assignment } from '@/types/assignment';
 export class SimpleAssignmentService {
   static async fetchAllPublishedAssignments(): Promise<Assignment[]> {
     try {
-      console.log('[SimpleAssignmentService] Fetching all published assignments with simple query');
+      console.log('[SimpleAssignmentService] Fetching all published assignments');
       
       // Simple query for published assignments
       const { data: assignments, error } = await supabase
@@ -16,14 +16,15 @@ export class SimpleAssignmentService {
 
       if (error) {
         console.error('[SimpleAssignmentService] Error fetching assignments:', error);
-        throw error;
+        throw new Error(`Failed to fetch assignments: ${error.message}`);
       }
-
-      console.log('[SimpleAssignmentService] Found assignments:', assignments?.length || 0);
 
       if (!assignments) {
+        console.log('[SimpleAssignmentService] No assignments found');
         return [];
       }
+
+      console.log('[SimpleAssignmentService] Found assignments:', assignments.length);
 
       // Get employee data for these assignments
       const assignmentIds = assignments.map(a => a.id);
@@ -37,17 +38,21 @@ export class SimpleAssignmentService {
 
         return {
           id: assignment.id,
-          title: assignment.title,
+          title: assignment.title || 'Untitled Assignment',
           description: assignment.description || '',
           date: assignment.assignment_date,
           fromTime: assignment.from_time,
           toTime: assignment.to_time,
-          location: assignment.location,
+          location: assignment.location || '',
+          type: assignment.type,
           car: null,
           cars: [],
           employees: employees,
           published: assignment.published,
-          responsibleUser: null
+          responsibleUserId: assignment.responsible_user_id,
+          responsibleUser: null,
+          createdAt: assignment.created_at,
+          updatedAt: assignment.updated_at
         };
       });
 
@@ -56,7 +61,7 @@ export class SimpleAssignmentService {
 
     } catch (error) {
       console.error('[SimpleAssignmentService] Critical error:', error);
-      throw error;
+      throw error instanceof Error ? error : new Error('Unknown error occurred');
     }
   }
 
@@ -65,10 +70,15 @@ export class SimpleAssignmentService {
       console.log('[SimpleAssignmentService] Fetching user assignments for:', userId);
       
       // Get assignments where user is assigned
-      const { data: userAssignmentIds } = await supabase
+      const { data: userAssignmentIds, error: assignmentError } = await supabase
         .from('assignments_employees')
         .select('assignment_id')
         .eq('user_id', userId);
+
+      if (assignmentError) {
+        console.error('[SimpleAssignmentService] Error fetching user assignment IDs:', assignmentError);
+        throw new Error(`Failed to fetch user assignments: ${assignmentError.message}`);
+      }
 
       const assignmentIds = userAssignmentIds?.map(ua => ua.assignment_id) || [];
       
@@ -86,7 +96,7 @@ export class SimpleAssignmentService {
 
       if (error) {
         console.error('[SimpleAssignmentService] Error fetching user assignments:', error);
-        throw error;
+        throw new Error(`Failed to fetch assignments: ${error.message}`);
       }
 
       if (!assignments) {
@@ -104,17 +114,21 @@ export class SimpleAssignmentService {
 
         return {
           id: assignment.id,
-          title: assignment.title,
+          title: assignment.title || 'Untitled Assignment',
           description: assignment.description || '',
           date: assignment.assignment_date,
           fromTime: assignment.from_time,
           toTime: assignment.to_time,
-          location: assignment.location,
+          location: assignment.location || '',
+          type: assignment.type,
           car: null,
           cars: [],
           employees: employees,
           published: assignment.published,
-          responsibleUser: null
+          responsibleUserId: assignment.responsible_user_id,
+          responsibleUser: null,
+          createdAt: assignment.created_at,
+          updatedAt: assignment.updated_at
         };
       });
 
@@ -123,7 +137,7 @@ export class SimpleAssignmentService {
 
     } catch (error) {
       console.error('[SimpleAssignmentService] Error fetching user assignments:', error);
-      throw error;
+      throw error instanceof Error ? error : new Error('Failed to fetch user assignments');
     }
   }
 
@@ -134,10 +148,15 @@ export class SimpleAssignmentService {
 
     try {
       // Get assignment-employee relationships
-      const { data: assignmentEmployees } = await supabase
+      const { data: assignmentEmployees, error: relError } = await supabase
         .from('assignments_employees')
         .select('assignment_id, user_id')
         .in('assignment_id', assignmentIds);
+
+      if (relError) {
+        console.error('[SimpleAssignmentService] Error fetching assignment-employee relationships:', relError);
+        return [];
+      }
 
       if (!assignmentEmployees || assignmentEmployees.length === 0) {
         return [];
@@ -145,10 +164,15 @@ export class SimpleAssignmentService {
 
       // Get user profiles
       const userIds = [...new Set(assignmentEmployees.map(ae => ae.user_id))];
-      const { data: profiles } = await supabase
+      const { data: profiles, error: profileError } = await supabase
         .from('profiles')
         .select('id, name')
         .in('id', userIds);
+
+      if (profileError) {
+        console.error('[SimpleAssignmentService] Error fetching user profiles:', profileError);
+        return [];
+      }
 
       if (!profiles) {
         return [];
