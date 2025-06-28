@@ -44,6 +44,12 @@ const DataHealthMonitor: React.FC<DataHealthMonitorProps> = ({ showInDashboard =
           title: 'Database Fix Verified',
           description: 'All RLS policies are working correctly!',
         });
+      } else {
+        toast({
+          title: 'Policy Issue Detected',
+          description: `Policy status: ${verification?.fix_status || 'UNKNOWN'}`,
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('Health check failed:', error);
@@ -89,7 +95,7 @@ const DataHealthMonitor: React.FC<DataHealthMonitorProps> = ({ showInDashboard =
     return accessible ? 'OK' : 'Error';
   };
 
-  if (showInDashboard && (!healthData || verificationData?.fix_status === 'SUCCESS')) {
+  if (showInDashboard && verificationData?.fix_status === 'SUCCESS' && !healthData?.profiles_error && !healthData?.assignments_error && !healthData?.cars_error) {
     return null; // Don't show on dashboard if everything is working
   }
 
@@ -133,10 +139,15 @@ const DataHealthMonitor: React.FC<DataHealthMonitorProps> = ({ showInDashboard =
             <AlertDescription>
               <div className="font-medium">Database Policy Fix Status</div>
               <div className="text-sm mt-1">
-                Policy Count: {verificationData.user_roles_policy_count}/2 |
+                Policy Count: {verificationData.policy_count}/2 |
                 Status: <Badge variant={verificationData.fix_status === 'SUCCESS' ? 'default' : 'destructive'}>
                   {verificationData.fix_status}
                 </Badge>
+                {verificationData.current_role && (
+                  <span className="ml-2">
+                    Current Role: <Badge variant="outline">{verificationData.current_role}</Badge>
+                  </span>
+                )}
               </div>
             </AlertDescription>
           </Alert>
@@ -151,9 +162,9 @@ const DataHealthMonitor: React.FC<DataHealthMonitorProps> = ({ showInDashboard =
                 <div className={`w-2 h-2 rounded-full ${getStatusColor(verificationData?.user_roles_accessible)}`}></div>
                 <span className="text-sm">{getStatusText(verificationData?.user_roles_accessible)}</span>
               </div>
-              {verificationData?.user_roles_count !== undefined && (
+              {verificationData?.count !== undefined && (
                 <div className="text-xs text-muted-foreground">
-                  Count: {verificationData.user_roles_count}
+                  Count: {verificationData.count}
                 </div>
               )}
             </div>
@@ -218,13 +229,13 @@ const DataHealthMonitor: React.FC<DataHealthMonitorProps> = ({ showInDashboard =
         </div>
 
         {/* Error Details */}
-        {(healthData?.profiles_error || healthData?.assignments_error || healthData?.cars_error || verificationData?.user_roles_error) && (
+        {(healthData?.profiles_error || healthData?.assignments_error || healthData?.cars_error || verificationData?.error) && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               <div className="font-medium">Errors detected:</div>
               <div className="text-sm mt-1 space-y-1">
-                {verificationData?.user_roles_error && <div>User Roles: {verificationData.user_roles_error}</div>}
+                {verificationData?.error && <div>Verification: {verificationData.error}</div>}
                 {healthData?.profiles_error && <div>Profiles: {healthData.profiles_error}</div>}
                 {healthData?.assignments_error && <div>Assignments: {healthData.assignments_error}</div>}
                 {healthData?.cars_error && <div>Cars: {healthData.cars_error}</div>}

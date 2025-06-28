@@ -458,6 +458,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      verify_policy_fix: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
     }
     Enums: {
       assignment_type: "waterDamage" | "fireDamage" | "mold" | "other"

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { unifiedDataService } from '@/services/unifiedDataService';
 import { Employee } from '@/types/employee';
@@ -151,7 +152,7 @@ export const useUnifiedData = (includeUnpublishedAssignments: boolean = false) =
     } else {
       toast({
         title: 'Database Issue',
-        description: `Policy verification failed: ${verification.user_roles_policy_count || 0}/2 policies found`,
+        description: `Policy verification failed: ${verification.policy_count || 0}/2 policies found`,
         variant: 'destructive',
       });
     }
