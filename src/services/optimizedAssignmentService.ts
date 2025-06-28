@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Assignment } from '@/types/assignment';
 
@@ -75,24 +74,41 @@ export class OptimizedAssignmentService {
   private static async fetchAssignmentEmployees(assignmentIds: string[]) {
     if (assignmentIds.length === 0) return [];
     
-    const { data, error } = await supabase
+    // Use separate queries to avoid join issues
+    const { data: assignmentEmployeeData, error: employeeError } = await supabase
       .from('assignments_employees')
-      .select(`
-        assignment_id,
-        user_id,
-        profiles!assignments_employees_user_id_fkey(
-          id,
-          name
-        )
-      `)
+      .select('assignment_id, user_id')
       .in('assignment_id', assignmentIds);
 
-    if (error) {
-      console.warn('[OptimizedAssignmentService] Assignment employees fetch error:', error);
+    if (employeeError) {
+      console.warn('[OptimizedAssignmentService] Assignment employees fetch error:', employeeError);
       return [];
     }
+
+    if (!assignmentEmployeeData || assignmentEmployeeData.length === 0) {
+      return [];
+    }
+
+    // Get unique user IDs
+    const userIds = [...new Set(assignmentEmployeeData.map(emp => emp.user_id))];
     
-    return data || [];
+    // Fetch profiles separately
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, name')
+      .in('id', userIds);
+
+    if (profilesError) {
+      console.warn('[OptimizedAssignmentService] Profiles fetch error:', profilesError);
+      return [];
+    }
+
+    // Combine the data
+    return assignmentEmployeeData.map(emp => ({
+      assignment_id: emp.assignment_id,
+      user_id: emp.user_id,
+      profiles: profilesData?.find(profile => profile.id === emp.user_id) || { id: emp.user_id, name: 'Unknown' }
+    }));
   }
 
   private static async fetchAssignmentCars(carIds: string[]) {
@@ -114,7 +130,7 @@ export class OptimizedAssignmentService {
   private static async enrichAssignmentData(assignments: any[]): Promise<OptimizedAssignmentData[]> {
     const assignmentIds = assignments.map(a => a.id);
     
-    // Fetch employees
+    // Fetch employees with improved error handling
     const employeesData = await this.fetchAssignmentEmployees(assignmentIds);
     
     // Collect all car IDs (both legacy car_id and new car_ids array)
