@@ -64,5 +64,28 @@ export const common = {
   retry: "Prøv igen",
   refresh: "Opdater",
   user: "Bruger",
-  debug: "Debug"
+  debug: "Debug",
+  
+  // New translations for operation states and toasters
+  publishing: "Publicerer",
+  deleting: "Sletter",
+  updating: "Opdaterer",
+  processing: "Behandler",
+  saving: "Gemmer",
+  loading_data: "Indlæser data",
+  operation_in_progress: "Operation i gang",
+  
+  // Database and system messages
+  database_fix_applied: "Database Fix Anvendt",
+  database_fix_description: "Databasen er blevet opdateret og optimeret for servicemedarbejdere",
+  system_optimized: "System Optimeret",
+  system_optimized_description: "Alle systemkomponenter kører nu optimalt for din rolle",
+  data_loaded_successfully: "Data Indlæst Med Succes",
+  data_loaded_description: "Alle opgaver og ressourcer er nu synlige",
+  
+  // Error handling
+  no_data_available: "Ingen data tilgængelig",
+  failed_to_load: "Det lykkedes ikke at indlæse",
+  try_again_later: "Prøv igen senere",
+  connection_error: "Forbindelsesfejl"
 };

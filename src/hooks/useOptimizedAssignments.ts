@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { OptimizedAssignmentService, OptimizedAssignmentData } from '@/services/optimizedAssignmentService';
@@ -24,11 +25,25 @@ interface UseOptimizedAssignmentsResult {
 // Helper function to convert OptimizedAssignmentData to Assignment
 const convertToAssignment = (data: OptimizedAssignmentData): Assignment => {
   // Convert assignment_employees to employee names array
-  const employees = data.assignment_employees?.map(emp => emp.profiles.name) || [];
+  const employees = data.assignment_employees?.map(emp => emp.profiles.name).filter(Boolean) || [];
   
-  // Convert assignment_cars to car IDs array and get first car
-  const cars = data.assignment_cars?.map(car => car.id) || [];
-  const firstCar = cars.length > 0 ? cars[0] : '';
+  // Handle car data - support both legacy car_id and new car_ids array
+  let cars: string[] = [];
+  let firstCar = '';
+  
+  if (data.assignment_cars && data.assignment_cars.length > 0) {
+    // Use the enriched car data from the service
+    cars = data.assignment_cars.map(car => car.id);
+    firstCar = cars[0] || '';
+  } else if (data.car_ids && Array.isArray(data.car_ids) && data.car_ids.length > 0) {
+    // Fallback to car_ids array
+    cars = data.car_ids;
+    firstCar = cars[0] || '';
+  } else if (data.car_id) {
+    // Legacy single car_id
+    cars = [data.car_id];
+    firstCar = data.car_id;
+  }
 
   return {
     id: data.id,

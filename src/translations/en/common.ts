@@ -63,5 +63,29 @@ export const common = {
   danger: "Danger",
   retry: "Retry",
   refresh: "Refresh",
-  user: "User"
+  user: "User",
+  debug: "Debug",
+  
+  // New translations for operation states and toasters
+  publishing: "Publishing",
+  deleting: "Deleting",
+  updating: "Updating",
+  processing: "Processing",
+  saving: "Saving",
+  loading_data: "Loading data",
+  operation_in_progress: "Operation in progress",
+  
+  // Database and system messages
+  database_fix_applied: "Database Fix Applied",
+  database_fix_description: "Database has been updated and optimized for service workers",
+  system_optimized: "System Optimized",
+  system_optimized_description: "All system components are now running optimally for your role",
+  data_loaded_successfully: "Data Loaded Successfully",
+  data_loaded_description: "All assignments and resources are now visible",
+  
+  // Error handling
+  no_data_available: "No data available",
+  failed_to_load: "Failed to load",
+  try_again_later: "Try again later",
+  connection_error: "Connection error"
 };

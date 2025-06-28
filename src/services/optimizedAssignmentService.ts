@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Assignment } from '@/types/assignment';
 
@@ -14,6 +15,8 @@ export interface OptimizedAssignmentData {
   responsible_user_id: string | null;
   created_at: string;
   updated_at: string;
+  car_id: string | null;
+  car_ids: string[] | null;
   responsible_user: {
     id: string;
     name: string;
@@ -69,31 +72,119 @@ export class OptimizedAssignmentService {
     console.log('[OptimizedAssignmentService] Cache cleared');
   }
 
-  private static transformAssignmentData(item: any): OptimizedAssignmentData {
-    return {
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      assignment_date: item.assignment_date,
-      from_time: item.from_time,
-      to_time: item.to_time,
-      location: item.location,
-      type: item.type,
-      published: item.published,
-      responsible_user_id: item.responsible_user_id,
-      created_at: item.created_at,
-      updated_at: item.updated_at,
-      responsible_user: item.responsible_user,
-      assignment_employees: item.assignment_employees,
-      assignment_cars: item.assignment_cars
-    };
+  private static async fetchAssignmentEmployees(assignmentIds: string[]) {
+    if (assignmentIds.length === 0) return [];
+    
+    const { data, error } = await supabase
+      .from('assignments_employees')
+      .select(`
+        assignment_id,
+        user_id,
+        profiles!assignments_employees_user_id_fkey(
+          id,
+          name
+        )
+      `)
+      .in('assignment_id', assignmentIds);
+
+    if (error) {
+      console.warn('[OptimizedAssignmentService] Assignment employees fetch error:', error);
+      return [];
+    }
+    
+    return data || [];
+  }
+
+  private static async fetchAssignmentCars(carIds: string[]) {
+    if (carIds.length === 0) return [];
+    
+    const { data, error } = await supabase
+      .from('cars')
+      .select('id, name')
+      .in('id', carIds);
+
+    if (error) {
+      console.warn('[OptimizedAssignmentService] Cars fetch error:', error);
+      return [];
+    }
+    
+    return data || [];
+  }
+
+  private static async enrichAssignmentData(assignments: any[]): Promise<OptimizedAssignmentData[]> {
+    const assignmentIds = assignments.map(a => a.id);
+    
+    // Fetch employees
+    const employeesData = await this.fetchAssignmentEmployees(assignmentIds);
+    
+    // Collect all car IDs (both legacy car_id and new car_ids array)
+    const allCarIds = new Set<string>();
+    assignments.forEach(assignment => {
+      if (assignment.car_id) {
+        allCarIds.add(assignment.car_id);
+      }
+      if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
+        assignment.car_ids.forEach((carId: string) => allCarIds.add(carId));
+      }
+    });
+    
+    // Fetch cars
+    const carsData = await this.fetchAssignmentCars(Array.from(allCarIds));
+    
+    // Enrich assignments with employee and car data
+    return assignments.map(assignment => {
+      // Get employees for this assignment
+      const assignmentEmployees = employeesData
+        .filter(emp => emp.assignment_id === assignment.id)
+        .map(emp => ({
+          user_id: emp.user_id,
+          profiles: emp.profiles
+        }));
+      
+      // Get cars for this assignment (handle both legacy and new format)
+      let assignmentCars: { id: string; name: string; }[] = [];
+      
+      if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
+        // New format: multiple cars in array
+        assignmentCars = assignment.car_ids
+          .map((carId: string) => carsData.find(car => car.id === carId))
+          .filter(Boolean)
+          .map((car: any) => ({ id: car.id, name: car.name }));
+      } else if (assignment.car_id) {
+        // Legacy format: single car
+        const car = carsData.find(car => car.id === assignment.car_id);
+        if (car) {
+          assignmentCars = [{ id: car.id, name: car.name }];
+        }
+      }
+      
+      return {
+        id: assignment.id,
+        title: assignment.title,
+        description: assignment.description,
+        assignment_date: assignment.assignment_date,
+        from_time: assignment.from_time,
+        to_time: assignment.to_time,
+        location: assignment.location,
+        type: assignment.type,
+        published: assignment.published,
+        responsible_user_id: assignment.responsible_user_id,
+        created_at: assignment.created_at,
+        updated_at: assignment.updated_at,
+        car_id: assignment.car_id,
+        car_ids: assignment.car_ids,
+        responsible_user: assignment.responsible_user,
+        assignment_employees: assignmentEmployees,
+        assignment_cars: assignmentCars
+      };
+    });
   }
 
   static async fetchAllAssignments(role: string): Promise<OptimizedAssignmentData[]> {
     try {
       console.log(`[OptimizedAssignmentService] Fetching all assignments for role: ${role}`);
 
-      const query = supabase
+      const { data, error } = await supabase
         .from('assignments')
         .select(`
           id,
@@ -108,26 +199,15 @@ export class OptimizedAssignmentService {
           responsible_user_id,
           created_at,
           updated_at,
+          car_id,
+          car_ids,
           responsible_user:profiles!assignments_responsible_user_id_fkey(
-            id,
-            name
-          ),
-          assignment_employees:assignments_employees(
-            user_id,
-            profiles(
-              id,
-              name
-            )
-          ),
-          assignment_cars:cars!assignments_car_ids_fkey(
             id,
             name
           )
         `)
         .order('assignment_date', { ascending: true })
         .order('from_time', { ascending: true });
-
-      const { data, error } = await query;
 
       if (error) {
         console.error('[OptimizedAssignmentService] Database error:', error);
@@ -140,23 +220,23 @@ export class OptimizedAssignmentService {
       }
 
       console.log(`[OptimizedAssignmentService] Found ${data.length} assignments`);
+      
+      // Enrich with employee and car data
+      const enrichedData = await this.enrichAssignmentData(data);
+      console.log('[OptimizedAssignmentService] Sample enriched data:', enrichedData[0]);
 
-      const transformedData = data.map(this.transformAssignmentData);
-      console.log('[OptimizedAssignmentService] Sample transformed data:', transformedData[0]);
-
-      return transformedData;
+      return enrichedData;
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error fetching all assignments:', error);
       throw error;
     }
   }
 
-  // CRITICAL FIX: Add method to fetch ALL published assignments (not user-specific)
   static async fetchAllPublishedAssignments(): Promise<OptimizedAssignmentData[]> {
     try {
       console.log('[OptimizedAssignmentService] Fetching ALL published assignments');
       
-      const query = supabase
+      const { data, error } = await supabase
         .from('assignments')
         .select(`
           id,
@@ -171,18 +251,9 @@ export class OptimizedAssignmentService {
           responsible_user_id,
           created_at,
           updated_at,
+          car_id,
+          car_ids,
           responsible_user:profiles!assignments_responsible_user_id_fkey(
-            id,
-            name
-          ),
-          assignment_employees:assignments_employees(
-            user_id,
-            profiles(
-              id,
-              name
-            )
-          ),
-          assignment_cars:cars!assignments_car_ids_fkey(
             id,
             name
           )
@@ -190,8 +261,6 @@ export class OptimizedAssignmentService {
         .eq('published', true)
         .order('assignment_date', { ascending: true })
         .order('from_time', { ascending: true });
-
-      const { data, error } = await query;
 
       if (error) {
         console.error('[OptimizedAssignmentService] Database error:', error);
@@ -205,10 +274,11 @@ export class OptimizedAssignmentService {
 
       console.log(`[OptimizedAssignmentService] Found ${data.length} published assignments`);
       
-      const transformedData = data.map(this.transformAssignmentData);
-      console.log('[OptimizedAssignmentService] Sample transformed data:', transformedData[0]);
+      // Enrich with employee and car data
+      const enrichedData = await this.enrichAssignmentData(data);
+      console.log('[OptimizedAssignmentService] Sample enriched data:', enrichedData[0]);
       
-      return transformedData;
+      return enrichedData;
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error fetching all published assignments:', error);
       throw error;
@@ -219,7 +289,7 @@ export class OptimizedAssignmentService {
     try {
       console.log(`[OptimizedAssignmentService] Fetching published assignments for user ${userId} with role ${role}`);
 
-      const query = supabase
+      const { data, error } = await supabase
         .from('assignments')
         .select(`
           id,
@@ -234,18 +304,9 @@ export class OptimizedAssignmentService {
           responsible_user_id,
           created_at,
           updated_at,
+          car_id,
+          car_ids,
           responsible_user:profiles!assignments_responsible_user_id_fkey(
-            id,
-            name
-          ),
-          assignment_employees:assignments_employees(
-            user_id,
-            profiles(
-              id,
-              name
-            )
-          ),
-          assignment_cars:cars!assignments_car_ids_fkey(
             id,
             name
           )
@@ -253,8 +314,6 @@ export class OptimizedAssignmentService {
         .eq('published', true)
         .order('assignment_date', { ascending: true })
         .order('from_time', { ascending: true });
-
-      const { data, error } = await query;
 
       if (error) {
         console.error('[OptimizedAssignmentService] Database error:', error);
@@ -268,10 +327,11 @@ export class OptimizedAssignmentService {
 
       console.log(`[OptimizedAssignmentService] Found ${data.length} published assignments`);
 
-      const transformedData = data.map(this.transformAssignmentData);
-      console.log('[OptimizedAssignmentService] Sample transformed data:', transformedData[0]);
+      // Enrich with employee and car data
+      const enrichedData = await this.enrichAssignmentData(data);
+      console.log('[OptimizedAssignmentService] Sample enriched data:', enrichedData[0]);
 
-      return transformedData;
+      return enrichedData;
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error fetching published assignments:', error);
       throw error;
@@ -282,7 +342,7 @@ export class OptimizedAssignmentService {
     try {
       console.log(`[OptimizedAssignmentService] Fetching unpublished assignments for user ${userId} with role ${role}`);
 
-      const query = supabase
+      const { data, error } = await supabase
         .from('assignments')
         .select(`
           id,
@@ -297,18 +357,9 @@ export class OptimizedAssignmentService {
           responsible_user_id,
           created_at,
           updated_at,
+          car_id,
+          car_ids,
           responsible_user:profiles!assignments_responsible_user_id_fkey(
-            id,
-            name
-          ),
-          assignment_employees:assignments_employees(
-            user_id,
-            profiles(
-              id,
-              name
-            )
-          ),
-          assignment_cars:cars!assignments_car_ids_fkey(
             id,
             name
           )
@@ -316,8 +367,6 @@ export class OptimizedAssignmentService {
         .eq('published', false)
         .order('assignment_date', { ascending: true })
         .order('from_time', { ascending: true });
-
-      const { data, error } = await query;
 
       if (error) {
         console.error('[OptimizedAssignmentService] Database error:', error);
@@ -331,10 +380,11 @@ export class OptimizedAssignmentService {
 
       console.log(`[OptimizedAssignmentService] Found ${data.length} unpublished assignments`);
 
-      const transformedData = data.map(this.transformAssignmentData);
-      console.log('[OptimizedAssignmentService] Sample transformed data:', transformedData[0]);
+      // Enrich with employee and car data
+      const enrichedData = await this.enrichAssignmentData(data);
+      console.log('[OptimizedAssignmentService] Sample enriched data:', enrichedData[0]);
 
-      return transformedData;
+      return enrichedData;
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error fetching unpublished assignments:', error);
       throw error;
@@ -345,7 +395,7 @@ export class OptimizedAssignmentService {
     try {
       console.log(`[OptimizedAssignmentService] Fetching assignments for user ${userId} with role ${role}`);
       
-      const query = supabase
+      const { data, error } = await supabase
         .from('assignments')
         .select(`
           id,
@@ -360,26 +410,15 @@ export class OptimizedAssignmentService {
           responsible_user_id,
           created_at,
           updated_at,
+          car_id,
+          car_ids,
           responsible_user:profiles!assignments_responsible_user_id_fkey(
-            id,
-            name
-          ),
-          assignment_employees:assignments_employees(
-            user_id,
-            profiles(
-              id,
-              name
-            )
-          ),
-          assignment_cars:cars!assignments_car_ids_fkey(
             id,
             name
           )
         `)
         .order('assignment_date', { ascending: true })
         .order('from_time', { ascending: true });
-
-      const { data, error } = await query;
 
       if (error) {
         console.error('[OptimizedAssignmentService] Database error:', error);
@@ -393,10 +432,11 @@ export class OptimizedAssignmentService {
 
       console.log(`[OptimizedAssignmentService] Found ${data.length} assignments`);
 
-      const transformedData = data.map(this.transformAssignmentData);
-      console.log('[OptimizedAssignmentService] Sample transformed data:', transformedData[0]);
+      // Enrich with employee and car data
+      const enrichedData = await this.enrichAssignmentData(data);
+      console.log('[OptimizedAssignmentService] Sample enriched data:', enrichedData[0]);
 
-      return transformedData;
+      return enrichedData;
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error fetching user assignments:', error);
       throw error;

@@ -6,6 +6,7 @@ import { Car } from '../../types/car';
 import AssignmentStatusBadge from './AssignmentStatusBadge';
 import AssignmentActionButtons from './AssignmentActionButtons';
 import AssignmentDetails from './AssignmentDetails';
+import { useTranslation } from '@/context/TranslationContext';
 
 interface AssignmentCardProps {
   assignment: Assignment;
@@ -28,6 +29,8 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   onCopy,
   operationState = null
 }) => {
+  const { t } = useTranslation();
+
   console.log(`[AssignmentCard] Rendering assignment card for ${assignment.title || assignment.location}:`);
   console.log(`  - Assignment ID: ${assignment.id}`);
   console.log(`  - Published status: ${assignment.published}`);
@@ -60,12 +63,26 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const isPublished = assignment.published === true;
   const isLoading = operationState !== null;
 
+  // Get operation text with translations
+  const getOperationText = (state: 'publishing' | 'deleting' | 'updating') => {
+    switch (state) {
+      case 'publishing':
+        return t('common.publishing') + '...';
+      case 'deleting':
+        return t('common.deleting') + '...';
+      case 'updating':
+        return t('common.updating') + '...';
+      default:
+        return t('common.processing') + '...';
+    }
+  };
+
   return (
     <Card className={`w-full p-4 bg-white hover:border-polygon-purple transition-colors ${isLoading ? 'opacity-75' : ''}`}>
       <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
         <div className="flex items-center gap-2">
           <div className="flex flex-col">
-            <h3 className="font-medium text-lg">{assignment.title || 'Untitled'}</h3>
+            <h3 className="font-medium text-lg">{assignment.title || t('planner.title')}</h3>
             {assignment.location && (
               <p className="text-sm text-gray-600">{assignment.location}</p>
             )}
@@ -73,9 +90,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           <AssignmentStatusBadge isPublished={isPublished} />
           {operationState && (
             <span className="text-xs text-blue-600 font-medium animate-pulse">
-              {operationState === 'publishing' && 'Publishing...'}
-              {operationState === 'deleting' && 'Deleting...'}
-              {operationState === 'updating' && 'Updating...'}
+              {getOperationText(operationState)}
             </span>
           )}
         </div>
