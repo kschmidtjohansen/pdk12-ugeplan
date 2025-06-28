@@ -120,7 +120,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
         <MetricCard
           title={t('dashboard.metrics.availableEmployees')}
           value={availableEmployees.length}
-          subtitle={`${allEmployees.length} i alt`}
+          subtitle={t('dashboard.metrics.totalCount', { count: allEmployees.length })}
           icon={Users}
           color="green"
           onClick={handleAvailabilityDialogOpen}
@@ -138,7 +138,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
         <MetricCard
           title={t('dashboard.metrics.availableCars')}
           value={availableCars}
-          subtitle={`${cars.length} i alt`}
+          subtitle={t('dashboard.metrics.totalCount', { count: cars.length })}
           icon={Car}
           color="blue"
         />

@@ -14,13 +14,29 @@ export const dashboard = {
   connectionIssueDetected: "Connection issues detected",
   connectionIssueDescription: "There may be connection issues. Try refreshing the page if data doesn't load properly.",
   
-  // New translations for servicemedarbejder dashboard
+  // Personal dashboard translations
   thisWeek: "This week",
+  today: "Today",
+  completed: "Completed",
   total: "Total",
   team: "Team",
   assignmentsThisWeek: "assignments this week",
   totalAssignments: "total assignments",
   yourRole: "your role",
+  tasksToday: "tasks today",
+  completedTasks: "completed tasks",
+  
+  // Welcome messages
+  welcomeUser: "Hello {name}! 👋",
+  welcomeBack: "Welcome back",
+  loadingDashboard: "Loading dashboard data",
+  
+  // Success messages
+  dataLoadedSuccessfully: "Dashboard Data Loaded Successfully! ✅",
+  dataLoadedDescription: "All data is now loading properly with optimized database access.",
+  
+  // Week navigation
+  week: "Week",
   
   metrics: {
     availableEmployees: "Available employees",
@@ -28,7 +44,8 @@ export const dashboard = {
     unavailableSubtitle: "On vacation, leave, or fully booked",
     availableCars: "Available cars",
     carsInUse: "Cars in use",
-    carsInUseSubtitle: "Assigned to tasks or unavailable"
+    carsInUseSubtitle: "Assigned to tasks or unavailable",
+    totalCount: "{count} total"
   },
   charts: {
     assignmentDistribution: "Assignment distribution"

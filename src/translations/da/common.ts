@@ -62,5 +62,6 @@ export const common = {
   warning: "Advarsel",
   danger: "Fare",
   retry: "Prøv igen",
-  refresh: "Opdater"
+  refresh: "Opdater",
+  user: "Bruger"
 };

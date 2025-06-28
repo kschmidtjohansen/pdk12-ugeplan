@@ -11,7 +11,7 @@ interface WelcomeHeaderProps {
 }
 
 const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, dailyQuote }) => {
-  const { currentLanguage } = useTranslation();
+  const { currentLanguage, t } = useTranslation();
 
   const getHeaderDateDisplay = () => {
     const today = new Date();
@@ -44,7 +44,7 @@ const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, dailyQuote }) =
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold tracking-tight">
-                Hej {userName || 'Bruger'}! 👋
+                {t('dashboard.welcomeUser', { name: userName || t('common.user') })}
               </h1>
             </div>
             <p className="text-blue-100 text-lg font-medium max-w-2xl">
@@ -59,7 +59,7 @@ const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, dailyQuote }) =
                 {headerDate.dayName}
               </p>
               <p className="uppercase tracking-wider font-semibold text-2xl text-white">
-                Uge {headerDate.weekNumber}
+                {t('dashboard.week')} {headerDate.weekNumber}
               </p>
               <p className="font-bold text-base text-blue-100">
                 {headerDate.dateString}

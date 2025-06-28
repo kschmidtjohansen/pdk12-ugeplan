@@ -99,12 +99,12 @@ const ServicemedarbejderDashboard: React.FC = () => {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
               <Clock className="h-4 w-4 text-blue-600" />
-              I dag
+              {t('dashboard.today')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">{todayAssignments.length}</div>
-            <p className="text-xs text-muted-foreground">opgaver i dag</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.tasksToday')}</p>
           </CardContent>
         </Card>
 
@@ -112,12 +112,12 @@ const ServicemedarbejderDashboard: React.FC = () => {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
               <CheckCircle2 className="h-4 w-4 text-green-600" />
-              Gennemført
+              {t('dashboard.completed')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{completedAssignments.length}</div>
-            <p className="text-xs text-muted-foreground">afsluttede opgaver</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.completedTasks')}</p>
           </CardContent>
         </Card>
       </div>

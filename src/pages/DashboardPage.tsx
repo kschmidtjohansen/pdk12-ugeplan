@@ -94,7 +94,7 @@ const DashboardPage: React.FC = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary"></div>
           <div className="text-center">
             <p className="text-lg font-medium text-gray-600">{t('common.loading')}...</p>
-            <p className="text-sm text-gray-500">Indlæser dashboard data</p>
+            <p className="text-sm text-gray-500">{t('dashboard.loadingDashboard')}</p>
           </div>
         </div>
       </div>
@@ -109,9 +109,9 @@ const DashboardPage: React.FC = () => {
           <Alert className="border-green-200 bg-green-50 animate-fade-in-up">
             <CheckCircle2 className="h-4 w-4" />
             <AlertDescription>
-              <div className="font-medium text-green-800">Dashboard Data Loaded Successfully! ✅</div>
+              <div className="font-medium text-green-800">{t('dashboard.dataLoadedSuccessfully')}</div>
               <div className="text-sm text-green-700 mt-1">
-                All data is now loading properly with optimized database access.
+                {t('dashboard.dataLoadedDescription')}
               </div>
             </AlertDescription>
           </Alert>

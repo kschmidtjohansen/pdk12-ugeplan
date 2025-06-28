@@ -14,13 +14,29 @@ export const dashboard = {
   connectionIssueDetected: "Forbindelsesproblemer registreret",
   connectionIssueDescription: "Der kan være forbindelsesproblemer. Prøv at opdatere siden, hvis data ikke indlæses korrekt.",
   
-  // New translations for servicemedarbejder dashboard
+  // Personal dashboard translations
   thisWeek: "Denne uge",
+  today: "I dag",
+  completed: "Gennemført",
   total: "I alt",
   team: "Team",
   assignmentsThisWeek: "opgaver denne uge",
   totalAssignments: "opgaver i alt",
   yourRole: "din rolle",
+  tasksToday: "opgaver i dag",
+  completedTasks: "afsluttede opgaver",
+  
+  // Welcome messages
+  welcomeUser: "Hej {name}! 👋",
+  welcomeBack: "Velkommen tilbage",
+  loadingDashboard: "Indlæser dashboard data",
+  
+  // Success messages
+  dataLoadedSuccessfully: "Dashboard Data Indlæst Med Succes! ✅",
+  dataLoadedDescription: "Alle data indlæses nu korrekt med optimeret databaseadgang.",
+  
+  // Week navigation
+  week: "Uge",
   
   metrics: {
     availableEmployees: "Tilgængelige medarbejdere",
@@ -28,7 +44,8 @@ export const dashboard = {
     unavailableSubtitle: "På ferie, orlov eller fuldt booket",
     availableCars: "Tilgængelige biler",
     carsInUse: "Biler i brug",
-    carsInUseSubtitle: "Tildelt opgaver eller utilgængelige"
+    carsInUseSubtitle: "Tildelt opgaver eller utilgængelige",
+    totalCount: "{count} i alt"
   },
   charts: {
     assignmentDistribution: "Opgavefordeling"
