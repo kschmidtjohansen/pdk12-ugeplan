@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 interface SystemHealthReport {
@@ -25,6 +24,12 @@ interface SystemHealthReport {
   };
   errors: string[];
   overallHealth: 'HEALTHY' | 'DEGRADED' | 'CRITICAL';
+}
+
+interface VerificationResponse {
+  policy_count?: number;
+  fix_status?: string;
+  [key: string]: any;
 }
 
 class SystemHealthService {
@@ -142,11 +147,12 @@ class SystemHealthService {
       }
       
       if (verificationData) {
-        report.policies.userRolesPolicyCount = verificationData.policy_count || 0;
-        report.policies.policiesCorrect = verificationData.fix_status === 'SUCCESS';
+        const response = verificationData as VerificationResponse;
+        report.policies.userRolesPolicyCount = response.policy_count || 0;
+        report.policies.policiesCorrect = response.fix_status === 'SUCCESS';
         
-        if (verificationData.policy_count !== 2) {
-          report.errors.push(`Incorrect policy count: ${verificationData.policy_count} (expected 2)`);
+        if ((response.policy_count || 0) !== 2) {
+          report.errors.push(`Incorrect policy count: ${response.policy_count || 0} (expected 2)`);
         }
       }
       

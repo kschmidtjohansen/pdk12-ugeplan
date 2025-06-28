@@ -8,19 +8,21 @@ import { useVacations } from '@/hooks/useVacations';
 import { AssignmentFilterService } from '@/services/assignmentFilterService';
 import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
 import { getDailyQuote } from '@/utils/dailyQuotes';
-import { isValidUUID } from '@/utils/uuidValidation';
 import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import WelcomeHeader from '@/components/Dashboard/WelcomeHeader';
 import QuickAccessGrid from '@/components/Dashboard/QuickAccessGrid';
 import WeeklyAssignments from '@/components/Dashboard/WeeklyAssignments';
+import ServicemedarbejderDashboard from '@/components/Dashboard/ServicemedarbejderDashboard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2 } from 'lucide-react';
+import { usePermissions } from '@/context/AuthContext';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const { isAdmin, isSkadeleder } = usePermissions();
   const { t } = useTranslation();
   
-  // Use the enhanced unified data service with comprehensive fix
+  // Use the enhanced unified data service
   const { 
     assignments: allAssignments, 
     employees,
@@ -41,14 +43,14 @@ const DashboardPage: React.FC = () => {
 
   const dailyQuote = getDailyQuote();
 
-  console.log(`[DashboardPage] ENHANCED DATA - Dashboard for user: ${user?.name} (${user?.role})`);
-  console.log(`[DashboardPage] ENHANCED DATA - All assignments: ${allAssignments.length}, employees: ${employees.length}, cars: ${cars.length}`);
+  console.log(`[DashboardPage] SERVICEMEDARBEJDER FIX - User: ${user?.name} (${user?.role})`);
+  console.log(`[DashboardPage] SERVICEMEDARBEJDER FIX - isAdmin: ${isAdmin}, isSkadeleder: ${isSkadeleder}`);
 
-  // Show success message when data loads successfully after the fix
+  // Show success message when data loads successfully
   useEffect(() => {
     if (!dataLoading && !dataErrors && isHealthy && (employees.length > 0 || allAssignments.length > 0 || cars.length > 0)) {
       setShowSuccessMessage(true);
-      const timer = setTimeout(() => setShowSuccessMessage(false), 10000); // Hide after 10 seconds
+      const timer = setTimeout(() => setShowSuccessMessage(false), 10000);
       return () => clearTimeout(timer);
     }
   }, [dataLoading, dataErrors, isHealthy, employees.length, allAssignments.length, cars.length]);
@@ -80,11 +82,11 @@ const DashboardPage: React.FC = () => {
       endDateISO
     );
     
-    console.log(`[DashboardPage] ENHANCED DATA - Weekly assignments: ${filtered.length} assignments`);
+    console.log(`[DashboardPage] SERVICEMEDARBEJDER FIX - Weekly assignments: ${filtered.length}`);
     return filtered;
   }, [allAssignments, startDateISO, endDateISO]);
 
-  // Enhanced loading state with proper error handling
+  // Loading state
   if (dataLoading) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
@@ -92,7 +94,7 @@ const DashboardPage: React.FC = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary"></div>
           <div className="text-center">
             <p className="text-lg font-medium text-gray-600">{t('common.loading')}...</p>
-            <p className="text-sm text-gray-500">Loading dashboard with comprehensive database fix</p>
+            <p className="text-sm text-gray-500">Indlæser dashboard data</p>
           </div>
         </div>
       </div>
@@ -107,11 +109,9 @@ const DashboardPage: React.FC = () => {
           <Alert className="border-green-200 bg-green-50 animate-fade-in-up">
             <CheckCircle2 className="h-4 w-4" />
             <AlertDescription>
-              <div className="font-medium text-green-800">Database Fix Successful! ✅</div>
+              <div className="font-medium text-green-800">Dashboard Data Loaded Successfully! ✅</div>
               <div className="text-sm text-green-700 mt-1">
-                All data fetching errors have been resolved! The infinite recursion issue is completely fixed, 
-                and all your data ({employees.length} employees, {allAssignments.length} assignments, {cars.length} cars) 
-                is now loading properly with clean, optimized database policies.
+                All data is now loading properly with optimized database access.
               </div>
             </AlertDescription>
           </Alert>
@@ -123,20 +123,30 @@ const DashboardPage: React.FC = () => {
         {/* Quick Access Grid */}
         <QuickAccessGrid userRole={user?.role} />
 
-        {/* Dashboard Metrics */}
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <DashboardMetrics selectedDate={format(new Date(), 'yyyy-MM-dd')} assignments={allAssignments} />
-        </div>
+        {/* SERVICEMEDARBEJDER FIX: Show appropriate dashboard based on user role */}
+        {(isAdmin || isSkadeleder) ? (
+          <>
+            {/* Dashboard Metrics for Admin/Skadeleder */}
+            <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <DashboardMetrics selectedDate={format(new Date(), 'yyyy-MM-dd')} assignments={allAssignments} />
+            </div>
 
-        {/* Weekly Assignments */}
-        <div style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
-          <WeeklyAssignments
-            assignments={myWeekAssignments}
-            selectedWeek={selectedWeek}
-            onPreviousWeek={handlePreviousWeek}
-            onNextWeek={handleNextWeek}
-          />
-        </div>
+            {/* Weekly Assignments for Admin/Skadeleder */}
+            <div style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
+              <WeeklyAssignments
+                assignments={myWeekAssignments}
+                selectedWeek={selectedWeek}
+                onPreviousWeek={handlePreviousWeek}
+                onNextWeek={handleNextWeek}
+              />
+            </div>
+          </>
+        ) : (
+          /* Servicemedarbejder Dashboard */
+          <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <ServicemedarbejderDashboard />
+          </div>
+        )}
       </div>
     </div>
   );

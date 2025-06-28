@@ -28,26 +28,21 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
   const [availabilityDialogOpen, setAvailabilityDialogOpen] = useState(false);
   const [unavailableDialogOpen, setUnavailableDialogOpen] = useState(false);
 
-  console.log('[DashboardMetrics] SERVICEMEDARBEJDER FIX - User role check:', {
+  console.log('[DashboardMetrics] ROLE CHECK - User role check:', {
     userRole: user?.role,
     isAdmin,
     isSkadeleder,
     shouldShowMetrics: isAdmin || isSkadeleder
   });
 
-  // SERVICEMEDARBEJDER FIX: Only show metrics for admin and skadeleder
+  // Only show metrics for admin and skadeleder
   if (!isAdmin && !isSkadeleder) {
-    console.log('[DashboardMetrics] SERVICEMEDARBEJDER FIX - Hiding metrics for servicemedarbejder user');
+    console.log('[DashboardMetrics] ROLE CHECK - Hiding metrics for servicemedarbejder user');
     return null;
   }
 
   const targetDate = selectedDate || format(new Date(), 'yyyy-MM-dd');
   const targetDateObj = new Date(targetDate + 'T12:00:00');
-
-  console.log(`[DashboardMetrics] ADMIN/SKADELEDER - Calculating metrics for date: ${targetDate}`);
-  console.log(`[DashboardMetrics] Total employees: ${employees.length}`);
-  console.log(`[DashboardMetrics] Total assignments: ${assignments.length}`);
-  console.log(`[DashboardMetrics] Total vacations: ${vacations.length}`);
 
   const allEmployees = employees;
 
@@ -65,7 +60,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
     return isAvailable;
   });
 
-  // METRICS FIX: Unavailable employees (fully booked, on leave, on vacation, OR partial vacation)
+  // Unavailable employees (fully booked, on leave, on vacation, OR partial vacation)
   const unavailableEmployees = allEmployees.filter(employee => {
     const availabilityInfo = getEmployeeAvailabilityStatus(
       employee,
@@ -83,15 +78,11 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
     return isUnavailable;
   });
 
-  console.log(`[DashboardMetrics] ADMIN/SKADELEDER - Available employees: ${availableEmployees.length}`);
-  console.log(`[DashboardMetrics] ADMIN/SKADELEDER - Unavailable employees: ${unavailableEmployees.length}`);
-
-  // METRICS FIX: Car calculations based on actual assignment usage
+  // Car calculations
   const carsInUseOnDate = new Set<string>();
   assignments
     .filter(a => a.date === targetDate)
     .forEach(assignment => {
-      // Handle both single car and multiple cars
       if (assignment.car) {
         const carId = typeof assignment.car === 'string' ? assignment.car : assignment.car.id;
         if (carId) {
@@ -107,23 +98,13 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
       }
     });
 
-  // METRICS FIX: Available cars = NOT in use today AND marked as available
   const availableCars = cars.filter(car => 
     car.is_available && !carsInUseOnDate.has(car.id)
   ).length;
 
-  // METRICS FIX: Cars in use = assigned to tasks today OR marked as unavailable
   const carsInUse = cars.filter(car => 
     carsInUseOnDate.has(car.id) || !car.is_available
   ).length;
-
-  console.log(`[DashboardMetrics] ADMIN/SKADELEDER - Car calculations:`, {
-    totalCars: cars.length,
-    carsInUseFromAssignments: carsInUseOnDate.size,
-    availableCars: availableCars,
-    carsInUse: carsInUse,
-    carsInUseToday: Array.from(carsInUseOnDate)
-  });
 
   const handleAvailabilityDialogOpen = () => {
     setAvailabilityDialogOpen(true);
@@ -139,7 +120,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
         <MetricCard
           title={t('dashboard.metrics.availableEmployees')}
           value={availableEmployees.length}
-          subtitle={`${allEmployees.length} ${t('admin.quickStats.total')}`}
+          subtitle={`${allEmployees.length} i alt`}
           icon={Users}
           color="green"
           onClick={handleAvailabilityDialogOpen}
@@ -157,7 +138,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assig
         <MetricCard
           title={t('dashboard.metrics.availableCars')}
           value={availableCars}
-          subtitle={`${cars.length} ${t('admin.quickStats.total')}`}
+          subtitle={`${cars.length} i alt`}
           icon={Car}
           color="blue"
         />
