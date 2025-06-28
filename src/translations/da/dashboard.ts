@@ -4,8 +4,12 @@ export const dashboard = {
   subtitle: "Oversigt over dagens opgaver og aktiviteter",
   quickAccess: "Hurtig adgang",
   myTasks: "Mine Opgaver",
+  myAssignments: "Mine Opgaver",
   noTasks: "Ingen opgaver",
   noTasksDescription: "Du har ingen opgaver tildelt i øjeblikket.",
+  noAssignments: "Ingen opgaver",
+  noAssignmentsDescription: "Du har ingen opgaver tildelt i øjeblikket.",
+  noAssignmentsScheduled: "Ingen opgaver planlagt for denne uge.",
   weeklyOverview: "Ugeoversigt",
   previousWeek: "Forrige uge",
   nextWeek: "Næste uge",
@@ -30,17 +34,37 @@ export const dashboard = {
   welcomeUser: "Hej {name}! 👋",
   welcomeBack: "Velkommen tilbage",
   loadingDashboard: "Indlæser dashboard data",
+  initializingSystem: "Initialiserer system...",
   
   // Success messages
   dataLoadedSuccessfully: "Dashboard Data Indlæst Med Succes! ✅",
   dataLoadedDescription: "Alle data indlæses nu korrekt med optimeret databaseadgang.",
+  databaseFixApplied: "Database Fix Anvendt! 🔧",
+  databaseFixDescription: "Databasen er blevet opdateret og optimeret for bedre ydeevne.",
+  systemOptimized: "System Optimeret! ⚡",
+  systemOptimizedDescription: "Alle systemkomponenter kører nu optimalt.",
+  
+  // Operation states
+  publishing: "Publicerer...",
+  deleting: "Sletter...",
+  updating: "Opdaterer...",
+  processing: "Behandler...",
+  saving: "Gemmer...",
+  
+  // Placeholder messages
+  functionalityNotImplemented: "Funktionalitet endnu ikke implementeret",
+  featureComingSoon: "Denne funktion kommer snart",
+  developmentInProgress: "Udvikling i gang...",
   
   // Week navigation
   week: "Uge",
   
+  // View all
+  viewAll: "Se alle",
+  
   metrics: {
     availableEmployees: "Tilgængelige medarbejdere",
-    unavailableEmployees: "Utilgængelige medarbejdere",
+    unavailableEmployees: "Utilgængelige medarbejdere", 
     unavailableSubtitle: "På ferie, orlov eller fuldt booket",
     availableCars: "Tilgængelige biler",
     carsInUse: "Biler i brug",
@@ -52,7 +76,7 @@ export const dashboard = {
   },
   assignments: {
     waterDamage: "Vandskade",
-    fireDamage: "Brandskade",
+    fireDamage: "Brandskade", 
     mold: "Skimmel",
     other: "Andet"
   }

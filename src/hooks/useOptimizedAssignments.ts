@@ -76,7 +76,12 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           result = await OptimizedAssignmentService.fetchAllAssignments(user.role);
           break;
         case 'published':
-          result = await OptimizedAssignmentService.fetchPublishedAssignments(user.id, user.role);
+          // CRITICAL FIX: For servicemedarbejder, fetch ALL published assignments (not user-specific)
+          if (user.role === 'servicemedarbejder') {
+            result = await OptimizedAssignmentService.fetchAllPublishedAssignments();
+          } else {
+            result = await OptimizedAssignmentService.fetchPublishedAssignments(user.id, user.role);
+          }
           break;
         case 'unpublished':
           result = await OptimizedAssignmentService.fetchUnpublishedAssignments(user.id, user.role);
@@ -92,6 +97,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       const convertedAssignments = result.map(convertToAssignment);
 
       console.log(`[useOptimizedAssignments] Successfully fetched ${convertedAssignments.length} assignments`);
+      console.log(`[useOptimizedAssignments] Sample assignment data:`, convertedAssignments[0]);
       setAssignments(convertedAssignments);
     } catch (err) {
       console.error('[useOptimizedAssignments] Error fetching assignments:', err);
@@ -114,7 +120,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     console.log('[useOptimizedAssignments] Create assignment not yet implemented', data);
     toast({
       title: t('common.info'),
-      description: 'Create assignment functionality not yet implemented'
+      description: t('dashboard.functionalityNotImplemented')
     });
   }, [toast, t]);
 
@@ -122,7 +128,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     console.log('[useOptimizedAssignments] Update assignment not yet implemented', id, data);
     toast({
       title: t('common.info'),
-      description: 'Update assignment functionality not yet implemented'
+      description: t('dashboard.functionalityNotImplemented')
     });
   }, [toast, t]);
 
@@ -132,7 +138,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       console.log('[useOptimizedAssignments] Delete assignment not yet implemented', id);
       toast({
         title: t('common.info'),
-        description: 'Delete assignment functionality not yet implemented'
+        description: t('dashboard.functionalityNotImplemented')
       });
       setOperationState(id, 'success');
     } catch (error) {
@@ -147,7 +153,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       console.log('[useOptimizedAssignments] Publish assignment not yet implemented', id);
       toast({
         title: t('common.info'),
-        description: 'Publish assignment functionality not yet implemented'
+        description: t('dashboard.functionalityNotImplemented')
       });
       setOperationState(id, 'success');
     } catch (error) {
@@ -161,7 +167,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       console.log('[useOptimizedAssignments] Publish assignments by date not yet implemented', date);
       toast({
         title: t('common.info'),
-        description: 'Publish assignments by date functionality not yet implemented'
+        description: t('dashboard.functionalityNotImplemented')
       });
     } catch (error) {
       console.error('[useOptimizedAssignments] Publish by date failed:', error);

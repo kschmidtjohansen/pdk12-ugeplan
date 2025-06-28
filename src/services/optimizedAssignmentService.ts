@@ -1,168 +1,98 @@
-
-import { supabase } from '@/integrations/supabase/client';
-import { UserRole } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { Assignment } from '@/types/assignment';
 
 export interface OptimizedAssignmentData {
   id: string;
   title: string;
-  description?: string;
-  date: string;
-  fromTime: string;
-  toTime: string;
+  description: string | null;
+  assignment_date: string;
+  from_time: string;
+  to_time: string;
   location: string;
-  type?: string;
+  type: string | null;
   published: boolean;
-  responsible_user_id?: string;
-  employees: string[];
-  cars: Array<{ id: string; name: string }>;
+  responsible_user_id: string | null;
   created_at: string;
   updated_at: string;
-  responsible_user?: {
+  responsible_user: {
     id: string;
     name: string;
-  };
+  } | null;
+  assignment_employees: {
+    user_id: string;
+    profiles: {
+      id: string;
+      name: string;
+    }
+  }[];
+  assignment_cars: {
+    id: string;
+    name: string;
+  }[];
 }
 
+const cache = new Map<string, OptimizedAssignmentData[]>();
+
+const getCacheKey = (userId: string, role: string, filter: string): string => {
+  return `${userId}-${role}-${filter}`;
+};
+
+const isCacheValid = (cacheKey: string, duration: number = 60000): boolean => {
+  const cachedData = cache.get(cacheKey);
+  if (!cachedData) return false;
+
+  const { timestamp } = (cachedData as any).metadata || {};
+  if (!timestamp) return false;
+
+  return (Date.now() - timestamp) < duration;
+};
+
+const setCache = (cacheKey: string, data: OptimizedAssignmentData[]): void => {
+  cache.set(cacheKey, {
+    data,
+    metadata: { timestamp: Date.now() }
+  } as any);
+};
+
+const getFromCache = (cacheKey: string): OptimizedAssignmentData[] | undefined => {
+  const cachedData = cache.get(cacheKey);
+  if (cachedData && isCacheValid(cacheKey)) {
+    console.log(`[OptimizedAssignmentService] Returning data from cache for key: ${cacheKey}`);
+    return (cachedData as any).data;
+  }
+  return undefined;
+};
+
 export class OptimizedAssignmentService {
-  private static requestCache = new Map<string, { data: OptimizedAssignmentData[]; timestamp: number }>();
-  private static readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-  private static pendingRequests = new Map<string, Promise<OptimizedAssignmentData[]>>();
-  private static readonly MAX_RETRIES = 2;
-
-  private static getCacheKey(filter: string, userId?: string, userRole?: string): string {
-    return `${filter}-${userId || 'anon'}-${userRole || 'anon'}`;
+  static clearCache(): void {
+    cache.clear();
+    console.log('[OptimizedAssignmentService] Cache cleared');
   }
 
-  private static async executeQuery(query: any, retryCount = 0): Promise<OptimizedAssignmentData[]> {
+  private static transformAssignmentData(item: any): OptimizedAssignmentData {
+    return {
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      assignment_date: item.assignment_date,
+      from_time: item.from_time,
+      to_time: item.to_time,
+      location: item.location,
+      type: item.type,
+      published: item.published,
+      responsible_user_id: item.responsible_user_id,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+      responsible_user: item.responsible_user,
+      assignment_employees: item.assignment_employees,
+      assignment_cars: item.assignment_cars
+    };
+  }
+
+  static async fetchAllAssignments(role: string): Promise<OptimizedAssignmentData[]> {
     try {
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error(`[OptimizedAssignmentService] Query error (attempt ${retryCount + 1}):`, error);
-        
-        if (retryCount < this.MAX_RETRIES) {
-          console.log(`[OptimizedAssignmentService] Retrying query...`);
-          await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
-          return this.executeQuery(query, retryCount + 1);
-        }
-        
-        // Return empty array instead of throwing to prevent app crashes
-        console.warn('[OptimizedAssignmentService] Max retries exceeded, returning empty array');
-        return [];
-      }
+      console.log(`[OptimizedAssignmentService] Fetching all assignments for role: ${role}`);
 
-      if (!Array.isArray(data)) {
-        console.warn('[OptimizedAssignmentService] Invalid data format, returning empty array');
-        return [];
-      }
-
-      // Transform the data with better error handling
-      return data.map((assignment: any) => {
-        try {
-          return {
-            id: assignment.id || '',
-            title: assignment.title || 'Untitled',
-            description: assignment.description || '',
-            date: assignment.assignment_date || '',
-            fromTime: assignment.from_time || '',
-            toTime: assignment.to_time || '',
-            location: assignment.location || '',
-            type: assignment.type || 'other',
-            published: Boolean(assignment.published),
-            responsible_user_id: assignment.responsible_user_id,
-            employees: [], // Simplified to avoid join issues
-            cars: [], // Simplified to avoid join issues
-            created_at: assignment.created_at || new Date().toISOString(),
-            updated_at: assignment.updated_at || new Date().toISOString(),
-            responsible_user: assignment.responsible_user ? {
-              id: assignment.responsible_user.id,
-              name: assignment.responsible_user.name
-            } : undefined
-          };
-        } catch (transformError) {
-          console.error('[OptimizedAssignmentService] Error transforming assignment:', transformError);
-          return {
-            id: assignment.id || '',
-            title: 'Error loading assignment',
-            description: '',
-            date: '',
-            fromTime: '',
-            toTime: '',
-            location: '',
-            type: 'other',
-            published: false,
-            responsible_user_id: undefined,
-            employees: [],
-            cars: [],
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-        }
-      }).filter(assignment => assignment.id); // Remove any assignments without IDs
-    } catch (error) {
-      console.error('[OptimizedAssignmentService] Execute query error:', error);
-      
-      if (retryCount < this.MAX_RETRIES) {
-        console.log(`[OptimizedAssignmentService] Retrying after error...`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
-        return this.executeQuery(query, retryCount + 1);
-      }
-      
-      // Return empty array instead of throwing
-      return [];
-    }
-  }
-
-  private static async fetchWithCache(
-    cacheKey: string,
-    queryFn: () => Promise<OptimizedAssignmentData[]>
-  ): Promise<OptimizedAssignmentData[]> {
-    try {
-      // Check cache first
-      const cached = this.requestCache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
-        console.log(`[OptimizedAssignmentService] Cache hit for ${cacheKey}`);
-        return cached.data;
-      }
-
-      // Check for pending request
-      const pending = this.pendingRequests.get(cacheKey);
-      if (pending) {
-        console.log(`[OptimizedAssignmentService] Returning pending request for ${cacheKey}`);
-        return pending;
-      }
-
-      // Execute new request
-      const requestPromise = queryFn();
-      this.pendingRequests.set(cacheKey, requestPromise);
-
-      try {
-        const result = await requestPromise;
-        
-        // Cache the result
-        this.requestCache.set(cacheKey, { data: result, timestamp: Date.now() });
-        
-        return result;
-      } catch (error) {
-        console.error(`[OptimizedAssignmentService] Request failed for ${cacheKey}:`, error);
-        // Return empty array instead of throwing
-        return [];
-      } finally {
-        // Clean up pending request
-        this.pendingRequests.delete(cacheKey);
-      }
-    } catch (error) {
-      console.error(`[OptimizedAssignmentService] Cache operation failed for ${cacheKey}:`, error);
-      return [];
-    }
-  }
-
-  static async fetchAllAssignments(userRole: UserRole): Promise<OptimizedAssignmentData[]> {
-    const cacheKey = this.getCacheKey('all', undefined, userRole);
-    
-    return this.fetchWithCache(cacheKey, async () => {
-      console.log('[OptimizedAssignmentService] Fetching all assignments');
-      
       const query = supabase
         .from('assignments')
         .select(`
@@ -177,19 +107,54 @@ export class OptimizedAssignmentService {
           published,
           responsible_user_id,
           created_at,
-          updated_at
+          updated_at,
+          responsible_user:profiles!assignments_responsible_user_id_fkey(
+            id,
+            name
+          ),
+          assignment_employees:assignments_employees(
+            user_id,
+            profiles(
+              id,
+              name
+            )
+          ),
+          assignment_cars:cars!assignments_car_ids_fkey(
+            id,
+            name
+          )
         `)
-        .order('assignment_date', { ascending: true });
+        .order('assignment_date', { ascending: true })
+        .order('from_time', { ascending: true });
 
-      return this.executeQuery(query);
-    });
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('[OptimizedAssignmentService] Database error:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      if (!data) {
+        console.log('[OptimizedAssignmentService] No assignments found');
+        return [];
+      }
+
+      console.log(`[OptimizedAssignmentService] Found ${data.length} assignments`);
+
+      const transformedData = data.map(this.transformAssignmentData);
+      console.log('[OptimizedAssignmentService] Sample transformed data:', transformedData[0]);
+
+      return transformedData;
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error fetching all assignments:', error);
+      throw error;
+    }
   }
 
-  static async fetchPublishedAssignments(userId: string, userRole: UserRole): Promise<OptimizedAssignmentData[]> {
-    const cacheKey = this.getCacheKey('published', userId, userRole);
-    
-    return this.fetchWithCache(cacheKey, async () => {
-      console.log('[OptimizedAssignmentService] Fetching published assignments');
+  // CRITICAL FIX: Add method to fetch ALL published assignments (not user-specific)
+  static async fetchAllPublishedAssignments(): Promise<OptimizedAssignmentData[]> {
+    try {
+      console.log('[OptimizedAssignmentService] Fetching ALL published assignments');
       
       const query = supabase
         .from('assignments')
@@ -205,21 +170,55 @@ export class OptimizedAssignmentService {
           published,
           responsible_user_id,
           created_at,
-          updated_at
+          updated_at,
+          responsible_user:profiles!assignments_responsible_user_id_fkey(
+            id,
+            name
+          ),
+          assignment_employees:assignments_employees(
+            user_id,
+            profiles(
+              id,
+              name
+            )
+          ),
+          assignment_cars:cars!assignments_car_ids_fkey(
+            id,
+            name
+          )
         `)
         .eq('published', true)
-        .order('assignment_date', { ascending: true });
+        .order('assignment_date', { ascending: true })
+        .order('from_time', { ascending: true });
 
-      return this.executeQuery(query);
-    });
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('[OptimizedAssignmentService] Database error:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      if (!data) {
+        console.log('[OptimizedAssignmentService] No published assignments found');
+        return [];
+      }
+
+      console.log(`[OptimizedAssignmentService] Found ${data.length} published assignments`);
+      
+      const transformedData = data.map(this.transformAssignmentData);
+      console.log('[OptimizedAssignmentService] Sample transformed data:', transformedData[0]);
+      
+      return transformedData;
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error fetching all published assignments:', error);
+      throw error;
+    }
   }
 
-  static async fetchUnpublishedAssignments(userId: string, userRole: UserRole): Promise<OptimizedAssignmentData[]> {
-    const cacheKey = this.getCacheKey('unpublished', userId, userRole);
-    
-    return this.fetchWithCache(cacheKey, async () => {
-      console.log('[OptimizedAssignmentService] Fetching unpublished assignments');
-      
+  static async fetchPublishedAssignments(userId: string, role: string): Promise<OptimizedAssignmentData[]> {
+    try {
+      console.log(`[OptimizedAssignmentService] Fetching published assignments for user ${userId} with role ${role}`);
+
       const query = supabase
         .from('assignments')
         .select(`
@@ -234,22 +233,118 @@ export class OptimizedAssignmentService {
           published,
           responsible_user_id,
           created_at,
-          updated_at
+          updated_at,
+          responsible_user:profiles!assignments_responsible_user_id_fkey(
+            id,
+            name
+          ),
+          assignment_employees:assignments_employees(
+            user_id,
+            profiles(
+              id,
+              name
+            )
+          ),
+          assignment_cars:cars!assignments_car_ids_fkey(
+            id,
+            name
+          )
+        `)
+        .eq('published', true)
+        .order('assignment_date', { ascending: true })
+        .order('from_time', { ascending: true });
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('[OptimizedAssignmentService] Database error:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      if (!data) {
+        console.log('[OptimizedAssignmentService] No published assignments found');
+        return [];
+      }
+
+      console.log(`[OptimizedAssignmentService] Found ${data.length} published assignments`);
+
+      const transformedData = data.map(this.transformAssignmentData);
+      console.log('[OptimizedAssignmentService] Sample transformed data:', transformedData[0]);
+
+      return transformedData;
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error fetching published assignments:', error);
+      throw error;
+    }
+  }
+
+  static async fetchUnpublishedAssignments(userId: string, role: string): Promise<OptimizedAssignmentData[]> {
+    try {
+      console.log(`[OptimizedAssignmentService] Fetching unpublished assignments for user ${userId} with role ${role}`);
+
+      const query = supabase
+        .from('assignments')
+        .select(`
+          id,
+          title,
+          description,
+          assignment_date,
+          from_time,
+          to_time,
+          location,
+          type,
+          published,
+          responsible_user_id,
+          created_at,
+          updated_at,
+          responsible_user:profiles!assignments_responsible_user_id_fkey(
+            id,
+            name
+          ),
+          assignment_employees:assignments_employees(
+            user_id,
+            profiles(
+              id,
+              name
+            )
+          ),
+          assignment_cars:cars!assignments_car_ids_fkey(
+            id,
+            name
+          )
         `)
         .eq('published', false)
-        .order('assignment_date', { ascending: true });
+        .order('assignment_date', { ascending: true })
+        .order('from_time', { ascending: true });
 
-      return this.executeQuery(query);
-    });
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('[OptimizedAssignmentService] Database error:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      if (!data) {
+        console.log('[OptimizedAssignmentService] No unpublished assignments found');
+        return [];
+      }
+
+      console.log(`[OptimizedAssignmentService] Found ${data.length} unpublished assignments`);
+
+      const transformedData = data.map(this.transformAssignmentData);
+      console.log('[OptimizedAssignmentService] Sample transformed data:', transformedData[0]);
+
+      return transformedData;
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error fetching unpublished assignments:', error);
+      throw error;
+    }
   }
 
-  static async fetchUserAssignments(userId: string, userRole: UserRole): Promise<OptimizedAssignmentData[]> {
-    const cacheKey = this.getCacheKey('user', userId, userRole);
-    
-    return this.fetchWithCache(cacheKey, async () => {
-      console.log('[OptimizedAssignmentService] Fetching user assignments for:', userId);
+  static async fetchUserAssignments(userId: string, role: string): Promise<OptimizedAssignmentData[]> {
+    try {
+      console.log(`[OptimizedAssignmentService] Fetching assignments for user ${userId} with role ${role}`);
       
-      // For now, return published assignments as a safe fallback
       const query = supabase
         .from('assignments')
         .select(`
@@ -264,24 +359,47 @@ export class OptimizedAssignmentService {
           published,
           responsible_user_id,
           created_at,
-          updated_at
+          updated_at,
+          responsible_user:profiles!assignments_responsible_user_id_fkey(
+            id,
+            name
+          ),
+          assignment_employees:assignments_employees(
+            user_id,
+            profiles(
+              id,
+              name
+            )
+          ),
+          assignment_cars:cars!assignments_car_ids_fkey(
+            id,
+            name
+          )
         `)
-        .eq('published', true)
-        .order('assignment_date', { ascending: true });
+        .order('assignment_date', { ascending: true })
+        .order('from_time', { ascending: true });
 
-      return this.executeQuery(query);
-    });
-  }
+      const { data, error } = await query;
 
-  static clearCache(): void {
-    console.log('[OptimizedAssignmentService] Clearing cache');
-    this.requestCache.clear();
-    this.pendingRequests.clear();
-  }
+      if (error) {
+        console.error('[OptimizedAssignmentService] Database error:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
 
-  static clearCacheForUser(userId: string): void {
-    console.log('[OptimizedAssignmentService] Clearing cache for user:', userId);
-    const keysToDelete = Array.from(this.requestCache.keys()).filter(key => key.includes(userId));
-    keysToDelete.forEach(key => this.requestCache.delete(key));
+      if (!data) {
+        console.log('[OptimizedAssignmentService] No assignments found');
+        return [];
+      }
+
+      console.log(`[OptimizedAssignmentService] Found ${data.length} assignments`);
+
+      const transformedData = data.map(this.transformAssignmentData);
+      console.log('[OptimizedAssignmentService] Sample transformed data:', transformedData[0]);
+
+      return transformedData;
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error fetching user assignments:', error);
+      throw error;
+    }
   }
 }

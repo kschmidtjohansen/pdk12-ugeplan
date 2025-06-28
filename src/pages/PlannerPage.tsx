@@ -71,6 +71,8 @@ const PlannerPage: React.FC = () => {
       title: assignment.title,
       published: assignment.published,
       employees: assignment.employees,
+      cars: assignment.cars,
+      responsibleUser: assignment.responsibleUser,
       currentUserAssigned: assignment.employees?.includes(user?.name || ''),
       shouldBeVisibleToServicemedarbejder: assignment.published
     });
@@ -158,7 +160,7 @@ const PlannerPage: React.FC = () => {
                   {/* PHASE 3 DEBUG: Add debug info in header for servicemedarbejder */}
                   {user?.role === 'servicemedarbejder' && (
                     <p className="text-blue-200 text-xs">
-                      DEBUG: Showing {sortedWeekAssignments.length} assignments ({sortedWeekAssignments.filter(a => a.published).length} published)
+                      {t('common.debug')}: {t('dashboard.processing')} {sortedWeekAssignments.length} {t('planner.assignments').toLowerCase()} ({sortedWeekAssignments.filter(a => a.published).length} {t('planner.published').toLowerCase()})
                     </p>
                   )}
                 </div>

@@ -4,8 +4,12 @@ export const dashboard = {
   subtitle: "Overview of today's tasks and activities",
   quickAccess: "Quick access",
   myTasks: "My Tasks",
+  myAssignments: "My Assignments",
   noTasks: "No tasks",
   noTasksDescription: "You have no tasks assigned at the moment.",
+  noAssignments: "No assignments",
+  noAssignmentsDescription: "You have no assignments at the moment.",
+  noAssignmentsScheduled: "No assignments scheduled for this week.",
   weeklyOverview: "Weekly overview",
   previousWeek: "Previous week",
   nextWeek: "Next week",
@@ -30,13 +34,33 @@ export const dashboard = {
   welcomeUser: "Hello {name}! 👋",
   welcomeBack: "Welcome back",
   loadingDashboard: "Loading dashboard data",
+  initializingSystem: "Initializing system...",
   
   // Success messages
   dataLoadedSuccessfully: "Dashboard Data Loaded Successfully! ✅",
   dataLoadedDescription: "All data is now loading properly with optimized database access.",
+  databaseFixApplied: "Database Fix Applied! 🔧",
+  databaseFixDescription: "The database has been updated and optimized for better performance.",
+  systemOptimized: "System Optimized! ⚡",
+  systemOptimizedDescription: "All system components are now running optimally.",
+  
+  // Operation states
+  publishing: "Publishing...",
+  deleting: "Deleting...",
+  updating: "Updating...",
+  processing: "Processing...",
+  saving: "Saving...",
+  
+  // Placeholder messages
+  functionalityNotImplemented: "Functionality not yet implemented",
+  featureComingSoon: "This feature is coming soon",
+  developmentInProgress: "Development in progress...",
   
   // Week navigation
   week: "Week",
+  
+  // View all
+  viewAll: "View all",
   
   metrics: {
     availableEmployees: "Available employees",

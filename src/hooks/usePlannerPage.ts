@@ -193,7 +193,10 @@ export const usePlannerPage = () => {
       console.log(`[usePlannerPage] Opening edit dialog for assignment:`, {
         id: assignment.id,
         title: assignment.title,
-        published: assignment.published
+        published: assignment.published,
+        responsibleUser: assignment.responsibleUser,
+        employees: assignment.employees,
+        cars: assignment.cars
       });
       
       setCurrentAssignment(assignment);
@@ -240,7 +243,7 @@ export const usePlannerPage = () => {
     handlePublishAllUnpublished: () => {
       toast({
         title: t('common.info'),
-        description: 'Publish all unpublished functionality not yet implemented'
+        description: t('dashboard.functionalityNotImplemented')
       });
     },
     deleteAssignment: async (id: string) => {
