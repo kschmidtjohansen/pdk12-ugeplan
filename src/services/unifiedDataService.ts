@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
@@ -156,10 +155,10 @@ class UnifiedDataService {
     }
 
     try {
-      console.log(`[UnifiedDataService] Fetching fresh ${operation} data with fixed RLS policies`);
+      console.log(`[UnifiedDataService] Fetching fresh ${operation} data with CLEAN RLS policies`);
       
       const result = await this.withRetry(async () => {
-        // Fetch profiles
+        // Fetch profiles with clean, optimized query
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select(`
@@ -177,7 +176,7 @@ class UnifiedDataService {
         if (profilesError) throw profilesError;
         if (!profilesData) throw new Error('No profiles data returned');
 
-        // Fetch user roles - now works with fixed policies
+        // Fetch user roles - now with CLEAN policies (no recursion!)
         let rolesData: any[] = [];
         try {
           const { data: roles, error: rolesError } = await supabase
@@ -186,13 +185,13 @@ class UnifiedDataService {
             .in('user_id', profilesData.map(p => p.id));
           
           if (rolesError) {
-            console.warn(`[UnifiedDataService] Roles query failed:`, rolesError);
+            console.warn(`[UnifiedDataService] Roles query failed (but continuing):`, rolesError);
           } else {
             rolesData = roles || [];
-            console.log(`[UnifiedDataService] Successfully fetched ${rolesData.length} role assignments`);
+            console.log(`[UnifiedDataService] SUCCESS: Fetched ${rolesData.length} role assignments with clean policies!`);
           }
         } catch (roleError) {
-          console.warn(`[UnifiedDataService] Role fetching failed:`, roleError);
+          console.warn(`[UnifiedDataService] Role fetching failed (continuing without roles):`, roleError);
         }
 
         // Transform to Employee format
@@ -218,7 +217,7 @@ class UnifiedDataService {
       this.setCache(cacheKey, result);
       this.recordSuccess(operation);
       
-      console.log(`[UnifiedDataService] Successfully fetched ${result.length} employees`);
+      console.log(`[UnifiedDataService] SUCCESS: Fetched ${result.length} employees with clean database policies!`);
       return { data: result, error: null, fromCache: false };
 
     } catch (error) {
@@ -409,17 +408,17 @@ class UnifiedDataService {
     }
   }
 
-  async verifyDatabaseFix(): Promise<any> {
+  async verifyCompleteFix(): Promise<any> {
     try {
-      console.log('[UnifiedDataService] Verifying database fix...');
-      const { data, error } = await supabase.rpc('verify_policy_fix');
+      console.log('[UnifiedDataService] Verifying complete database fix...');
+      const { data, error } = await supabase.rpc('verify_complete_fix');
       
       if (error) throw error;
       
-      console.log('[UnifiedDataService] Database fix verification:', data);
+      console.log('[UnifiedDataService] Complete fix verification:', data);
       return data;
     } catch (error) {
-      console.error('[UnifiedDataService] Database fix verification failed:', error);
+      console.error('[UnifiedDataService] Complete fix verification failed:', error);
       return { status: 'error', message: error instanceof Error ? error.message : 'Unknown error' };
     }
   }

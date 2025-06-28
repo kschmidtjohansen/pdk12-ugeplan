@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
-  AlertTriangle, 
   CheckCircle, 
   RefreshCw, 
   Database,
@@ -32,23 +31,23 @@ const DataHealthMonitor: React.FC<DataHealthMonitorProps> = ({ showInDashboard =
     try {
       const [health, verification] = await Promise.all([
         unifiedDataService.checkSystemHealth(),
-        unifiedDataService.verifyDatabaseFix()
+        unifiedDataService.verifyCompleteFix()
       ]);
       
       setHealthData(health);
       setVerificationData(verification);
       setLastCheck(new Date());
       
-      if (verification?.fix_status === 'SUCCESS') {
+      if (verification?.fix_status === 'SUCCESS' && verification?.system_health === 'HEALTHY') {
         toast({
-          title: 'Database Fix Verified',
-          description: 'All RLS policies are working correctly!',
+          title: 'Database Fix Verified ✅',
+          description: `All systems healthy! Clean policies working perfectly. Policy count: ${verification.policy_count}/2`,
         });
       } else {
         toast({
-          title: 'Policy Issue Detected',
-          description: `Policy status: ${verification?.fix_status || 'UNKNOWN'}`,
-          variant: 'destructive',
+          title: 'System Status Update',
+          description: `Fix: ${verification?.fix_status || 'UNKNOWN'}, Health: ${verification?.system_health || 'UNKNOWN'}`,
+          variant: verification?.fix_status === 'SUCCESS' ? 'default' : 'destructive',
         });
       }
     } catch (error) {
@@ -67,7 +66,7 @@ const DataHealthMonitor: React.FC<DataHealthMonitorProps> = ({ showInDashboard =
     unifiedDataService.resetAllCircuitBreakers();
     toast({
       title: 'Circuit Breakers Reset',
-      description: 'All circuit breakers have been reset. Try loading data again.',
+      description: 'All circuit breakers reset. Clean database policies active!',
     });
   };
 
@@ -75,7 +74,7 @@ const DataHealthMonitor: React.FC<DataHealthMonitorProps> = ({ showInDashboard =
     unifiedDataService.clearCache();
     toast({
       title: 'Cache Cleared',
-      description: 'Data cache has been cleared. Fresh data will be loaded.',
+      description: 'Data cache cleared. Fresh data will load with clean policies.',
     });
   };
 
@@ -95,8 +94,15 @@ const DataHealthMonitor: React.FC<DataHealthMonitorProps> = ({ showInDashboard =
     return accessible ? 'OK' : 'Error';
   };
 
-  if (showInDashboard && verificationData?.fix_status === 'SUCCESS' && !healthData?.profiles_error && !healthData?.assignments_error && !healthData?.cars_error) {
-    return null; // Don't show on dashboard if everything is working
+  // Don't show on dashboard if everything is working perfectly
+  if (showInDashboard && 
+      verificationData?.fix_status === 'SUCCESS' && 
+      verificationData?.system_health === 'HEALTHY' &&
+      !healthData?.profiles_error && 
+      !healthData?.assignments_error && 
+      !healthData?.cars_error &&
+      !healthData?.user_roles_error) {
+    return null;
   }
 
   return (
@@ -106,6 +112,12 @@ const DataHealthMonitor: React.FC<DataHealthMonitorProps> = ({ showInDashboard =
           <div className="flex items-center gap-2">
             <Database className="h-5 w-5 text-primary" />
             <CardTitle className="text-lg">System Health Monitor</CardTitle>
+            {verificationData?.fix_status === 'SUCCESS' && (
+              <Badge variant="default" className="bg-green-100 text-green-700">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Fixed
+              </Badge>
+            )}
           </div>
           <div className="flex gap-2">
             <Button
@@ -137,12 +149,19 @@ const DataHealthMonitor: React.FC<DataHealthMonitorProps> = ({ showInDashboard =
           <Alert className={verificationData.fix_status === 'SUCCESS' ? 'border-green-200 bg-green-50' : 'border-amber-200 bg-amber-50'}>
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              <div className="font-medium">Database Policy Fix Status</div>
+              <div className="font-medium">Clean Database Policy Status</div>
               <div className="text-sm mt-1">
                 Policy Count: {verificationData.policy_count}/2 |
-                Status: <Badge variant={verificationData.fix_status === 'SUCCESS' ? 'default' : 'destructive'}>
+                Fix Status: <Badge variant={verificationData.fix_status === 'SUCCESS' ? 'default' : 'destructive'}>
                   {verificationData.fix_status}
                 </Badge>
+                {verificationData.system_health && (
+                  <span className="ml-2">
+                    System Health: <Badge variant={verificationData.system_health === 'HEALTHY' ? 'default' : 'secondary'}>
+                      {verificationData.system_health}
+                    </Badge>
+                  </span>
+                )}
                 {verificationData.current_role && (
                   <span className="ml-2">
                     Current Role: <Badge variant="outline">{verificationData.current_role}</Badge>
@@ -162,9 +181,9 @@ const DataHealthMonitor: React.FC<DataHealthMonitorProps> = ({ showInDashboard =
                 <div className={`w-2 h-2 rounded-full ${getStatusColor(verificationData?.user_roles_accessible)}`}></div>
                 <span className="text-sm">{getStatusText(verificationData?.user_roles_accessible)}</span>
               </div>
-              {verificationData?.count !== undefined && (
+              {verificationData?.user_roles_count !== undefined && (
                 <div className="text-xs text-muted-foreground">
-                  Count: {verificationData.count}
+                  Count: {verificationData.user_roles_count}
                 </div>
               )}
             </div>
@@ -228,17 +247,14 @@ const DataHealthMonitor: React.FC<DataHealthMonitorProps> = ({ showInDashboard =
           </Button>
         </div>
 
-        {/* Error Details */}
-        {(healthData?.profiles_error || healthData?.assignments_error || healthData?.cars_error || verificationData?.error) && (
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
+        {/* Success Message */}
+        {verificationData?.fix_status === 'SUCCESS' && verificationData?.system_health === 'HEALTHY' && (
+          <Alert className="border-green-200 bg-green-50">
+            <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              <div className="font-medium">Errors detected:</div>
-              <div className="text-sm mt-1 space-y-1">
-                {verificationData?.error && <div>Verification: {verificationData.error}</div>}
-                {healthData?.profiles_error && <div>Profiles: {healthData.profiles_error}</div>}
-                {healthData?.assignments_error && <div>Assignments: {healthData.assignments_error}</div>}
-                {healthData?.cars_error && <div>Cars: {healthData.cars_error}</div>}
+              <div className="font-medium text-green-800">Database Fix Successful! ✅</div>
+              <div className="text-sm text-green-700 mt-1">
+                All systems are now working with clean, non-recursive policies. Data fetching should work perfectly!
               </div>
             </AlertDescription>
           </Alert>

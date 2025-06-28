@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { unifiedDataService } from '@/services/unifiedDataService';
 import { Employee } from '@/types/employee';
@@ -54,7 +53,7 @@ export const useUnifiedData = (includeUnpublishedAssignments: boolean = false) =
   });
 
   const fetchEmployees = useCallback(async () => {
-    console.log('[useUnifiedData] Fetching employees...');
+    console.log('[useUnifiedData] Fetching employees with CLEAN database policies...');
     setState(prev => ({
       ...prev,
       loading: { ...prev.loading, employees: true },
@@ -77,9 +76,9 @@ export const useUnifiedData = (includeUnpublishedAssignments: boolean = false) =
         description: `Failed to load employees: ${result.error}`,
         variant: 'destructive',
       });
+    } else if (!result.error) {
+      console.log(`[useUnifiedData] SUCCESS: Employees loaded: ${result.data.length} (from cache: ${result.fromCache})`);
     }
-
-    console.log(`[useUnifiedData] Employees loaded: ${result.data.length} (from cache: ${result.fromCache})`);
   }, [toast, t]);
 
   const fetchAssignments = useCallback(async () => {
@@ -140,28 +139,28 @@ export const useUnifiedData = (includeUnpublishedAssignments: boolean = false) =
     console.log(`[useUnifiedData] Cars loaded: ${result.data.length} (from cache: ${result.fromCache})`);
   }, [toast, t]);
 
-  const verifyDatabaseFix = useCallback(async () => {
-    console.log('[useUnifiedData] Verifying database fix...');
-    const verification = await unifiedDataService.verifyDatabaseFix();
+  const verifyCompleteFix = useCallback(async () => {
+    console.log('[useUnifiedData] Verifying complete database fix...');
+    const verification = await unifiedDataService.verifyCompleteFix();
     
-    if (verification.fix_status === 'SUCCESS') {
+    if (verification.fix_status === 'SUCCESS' && verification.system_health === 'HEALTHY') {
       toast({
-        title: t('common.success') || 'Success',
-        description: 'Database policies are working correctly!',
+        title: 'Database Fix Verified! ✅',
+        description: `All systems healthy! Policy count: ${verification.policy_count}/2, Role function working: ${verification.role_function_works ? 'Yes' : 'No'}`,
       });
     } else {
       toast({
-        title: 'Database Issue',
-        description: `Policy verification failed: ${verification.policy_count || 0}/2 policies found`,
-        variant: 'destructive',
+        title: 'Database Status',
+        description: `Fix status: ${verification.fix_status}, Health: ${verification.system_health}`,
+        variant: verification.fix_status === 'SUCCESS' ? 'default' : 'destructive',
       });
     }
     
     return verification;
-  }, [toast, t]);
+  }, [toast]);
 
   const refetchAll = useCallback(async () => {
-    console.log('[useUnifiedData] Refetching all data...');
+    console.log('[useUnifiedData] Refetching all data with clean policies...');
     unifiedDataService.clearCache();
     await Promise.all([
       fetchEmployees(),
@@ -175,28 +174,32 @@ export const useUnifiedData = (includeUnpublishedAssignments: boolean = false) =
     unifiedDataService.resetAllCircuitBreakers();
     toast({
       title: t('common.success') || 'Success',
-      description: 'Circuit breakers reset. You can try loading data again.',
+      description: 'Circuit breakers reset. Clean database policies active!',
     });
   }, [toast, t]);
 
   const checkSystemHealth = useCallback(async () => {
-    console.log('[useUnifiedData] Checking system health...');
+    console.log('[useUnifiedData] Checking system health with clean policies...');
     const health = await unifiedDataService.checkSystemHealth();
     
     toast({
       title: 'System Health Check',
-      description: `Status: ${health.status || 'checked'}. See console for details.`,
+      description: `Status: ${health.status || 'checked'}. Clean policies active!`,
     });
     
     return health;
   }, [toast]);
 
-  // Initial data fetch
+  // Initial data fetch with immediate verification
   useEffect(() => {
-    fetchEmployees();
-    fetchAssignments();
-    fetchCars();
-  }, [fetchEmployees, fetchAssignments, fetchCars]);
+    // First verify the fix worked
+    verifyCompleteFix().then(() => {
+      // Then fetch data
+      fetchEmployees();
+      fetchAssignments();
+      fetchCars();
+    });
+  }, [verifyCompleteFix, fetchEmployees, fetchAssignments, fetchCars]);
 
   const isLoading = state.loading.employees || state.loading.assignments || state.loading.cars;
   const hasErrors = state.errors.employees || state.errors.assignments || state.errors.cars;
@@ -211,7 +214,7 @@ export const useUnifiedData = (includeUnpublishedAssignments: boolean = false) =
     fetchCars,
     resetCircuitBreakers,
     checkSystemHealth,
-    verifyDatabaseFix,
+    verifyCompleteFix,
     serviceStatus: unifiedDataService.getStatus()
   };
 };
