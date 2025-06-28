@@ -62,6 +62,26 @@ export const dashboard = {
   // View all
   viewAll: "Se alle",
   
+  // Quick Access translations
+  quickAccess: {
+    planner: {
+      title: "Planlægger",
+      description: "Administrer og planlæg opgaver"
+    },
+    vacation: {
+      title: "Ferie",
+      description: "Administrer ferieansøgninger"
+    },
+    employees: {
+      title: "Medarbejdere",
+      description: "Administrer medarbejdere og tilgængelighed"
+    },
+    cars: {
+      title: "Biler",
+      description: "Administrer køretøjer og tilgængelighed"
+    }
+  },
+  
   metrics: {
     availableEmployees: "Tilgængelige medarbejdere",
     unavailableEmployees: "Utilgængelige medarbejdere", 

@@ -22,13 +22,42 @@ const ServicemedarbejderDashboard: React.FC = () => {
   const [selectedWeek, setSelectedWeek] = useState(currentWeek);
   const [selectedYear, setSelectedYear] = useState(currentYear);
 
-  // Filter assignments for the current user only
+  console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - User:', user?.name, 'Role:', user?.role);
+  console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - Total assignments available:', assignments.length);
+  console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - Sample assignments:', assignments.slice(0, 3));
+
+  // For servicemedarbejder, filter to show assignments where they are assigned OR responsible
   const userAssignments = useMemo(() => {
-    if (!user?.name) return [];
-    return assignments.filter(assignment => 
-      assignment.employees?.includes(user.name) || 
-      assignment.responsibleUserId === user.id
-    );
+    if (!user?.name && !user?.id) {
+      console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - No user info available');
+      return [];
+    }
+
+    const filtered = assignments.filter(assignment => {
+      // Check if user is assigned as employee
+      const isEmployee = assignment.employees?.includes(user.name || '');
+      
+      // Check if user is responsible user
+      const isResponsible = assignment.responsibleUserId === user.id;
+      
+      // For servicemedarbejder, show published assignments where they are involved
+      const shouldShow = assignment.published && (isEmployee || isResponsible);
+      
+      if (shouldShow) {
+        console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - Including assignment:', {
+          title: assignment.title,
+          employees: assignment.employees,
+          isEmployee,
+          isResponsible,
+          published: assignment.published
+        });
+      }
+      
+      return shouldShow;
+    });
+
+    console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - Filtered user assignments:', filtered.length);
+    return filtered;
   }, [assignments, user]);
 
   // Get weekly assignments
@@ -37,25 +66,34 @@ const ServicemedarbejderDashboard: React.FC = () => {
   const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
 
   const weeklyAssignments = useMemo(() => {
-    return AssignmentFilterService.filterByDateRange(
+    const filtered = AssignmentFilterService.filterByDateRange(
       userAssignments,
       startDateISO,
       endDateISO
     );
+    
+    console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - Weekly assignments:', filtered.length);
+    return filtered;
   }, [userAssignments, startDateISO, endDateISO]);
 
   // Today's assignments
   const todayAssignments = useMemo(() => {
     const todayStr = format(today, 'yyyy-MM-dd');
-    return userAssignments.filter(assignment => assignment.date === todayStr);
+    const filtered = userAssignments.filter(assignment => assignment.date === todayStr);
+    
+    console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - Today assignments:', filtered.length);
+    return filtered;
   }, [userAssignments, today]);
 
   // Completed assignments (published ones from the past)
   const completedAssignments = useMemo(() => {
     const todayStr = format(today, 'yyyy-MM-dd');
-    return userAssignments.filter(assignment => 
+    const filtered = userAssignments.filter(assignment => 
       assignment.date < todayStr && assignment.published
     );
+    
+    console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - Completed assignments:', filtered.length);
+    return filtered;
   }, [userAssignments, today]);
 
   const handlePreviousWeek = () => {
@@ -80,7 +118,7 @@ const ServicemedarbejderDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Personal Stats */}
+      {/* Personal Stats - Enhanced */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">

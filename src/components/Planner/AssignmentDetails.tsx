@@ -14,7 +14,7 @@ interface AssignmentDetailsProps {
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars }) => {
   const { t } = useTranslation();
 
-  // COMPREHENSIVE CAR FIX: Handle both car object and car ID formats with fallbacks
+  // Enhanced car name resolution with comprehensive fallbacks
   const getCarNames = (assignment: Assignment): string[] => {
     const carNames: string[] = [];
     
@@ -31,7 +31,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
           if (car) {
             carNames.push(car.name);
           } else {
-            // Fallback: use the ID if we can't find the car object, but make it more readable
+            // Enhanced fallback: use the ID if we can't find the car object
             carNames.push(`Car ${carId.substring(0, 8)}`);
           }
         }
@@ -43,7 +43,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
         if (car) {
           carNames.push(car.name);
         } else {
-          // Fallback: use the ID if we can't find the car object
+          // Enhanced fallback for string car ID
           carNames.push(`Car ${assignment.car.substring(0, 8)}`);
         }
       } else if (typeof assignment.car === 'object' && assignment.car.name) {
@@ -57,11 +57,25 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
 
   const carNames = getCarNames(assignment);
 
+  // Enhanced employee name resolution
+  const getEmployeeNames = (assignment: Assignment): string[] => {
+    if (!assignment.employees || !Array.isArray(assignment.employees)) {
+      return [];
+    }
+    
+    return assignment.employees
+      .filter(employee => employee && typeof employee === 'string')
+      .map(employee => employee.trim())
+      .filter(employee => employee.length > 0);
+  };
+
+  const employeeNames = getEmployeeNames(assignment);
+
   return (
     <div className="grid grid-cols-2 gap-4 text-sm">
       {/* Left Column */}
       <div className="space-y-3">
-        {/* Time - styled to match dashboard */}
+        {/* Time - enhanced styling */}
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-green-50 border border-green-200">
             <Clock className="h-3.5 w-3.5 text-green-600" />
@@ -71,7 +85,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
           </span>
         </div>
 
-        {/* COMPREHENSIVE CAR FIX: Cars - improved display with better styling and fallbacks */}
+        {/* Cars - enhanced display with comprehensive fallbacks */}
         {carNames.length > 0 && (
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-200">
@@ -79,7 +93,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
             </div>
             <div className="flex flex-wrap gap-1">
               {carNames.map((carName, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
+                <Badge key={index} variant="outline" className="text-xs bg-blue-50">
                   {carName}
                 </Badge>
               ))}
@@ -90,7 +104,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
 
       {/* Right Column */}
       <div className="space-y-3">
-        {/* Responsible User - styled to match dashboard with fallback */}
+        {/* Responsible User - enhanced with better fallback */}
         {assignment.responsibleUser && (
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
@@ -102,16 +116,16 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
           </div>
         )}
 
-        {/* COMPREHENSIVE FIX: Employees - properly displayed with complete names and fallbacks */}
-        {assignment.employees && assignment.employees.length > 0 && (
+        {/* Employees - enhanced with comprehensive name handling */}
+        {employeeNames.length > 0 && (
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
               <Users className="h-3.5 w-3.5 text-purple-600" />
             </div>
             <div className="flex flex-wrap gap-1">
-              {assignment.employees.map((employee, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {employee || t('planner.unknownEmployee')}
+              {employeeNames.map((employeeName, index) => (
+                <Badge key={index} variant="secondary" className="text-xs bg-purple-50">
+                  {employeeName || t('planner.unknownEmployee')}
                 </Badge>
               ))}
             </div>
