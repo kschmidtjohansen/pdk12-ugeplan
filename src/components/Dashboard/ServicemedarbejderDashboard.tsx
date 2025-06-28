@@ -17,7 +17,7 @@ const ServicemedarbejderDashboard: React.FC = () => {
   const { assignments, isLoading } = useEnhancedUnifiedData();
 
   const today = new Date();
-  const currentWeek = getCurrentWeekNumber(today);
+  const currentWeek = getCurrentWeekNumber();
   const currentYear = new Date().getFullYear();
   const [selectedWeek, setSelectedWeek] = useState(currentWeek);
   const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -27,7 +27,7 @@ const ServicemedarbejderDashboard: React.FC = () => {
     if (!user?.name) return [];
     return assignments.filter(assignment => 
       assignment.employees?.includes(user.name) || 
-      assignment.responsible_user_id === user.id
+      assignment.responsibleUserId === user.id
     );
   }, [assignments, user]);
 
