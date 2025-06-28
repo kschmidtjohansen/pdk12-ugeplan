@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { OptimizedAssignmentService, OptimizedAssignmentData } from '@/services/optimizedAssignmentService';
@@ -24,20 +23,27 @@ interface UseOptimizedAssignmentsResult {
 
 // Helper function to convert OptimizedAssignmentData to Assignment
 const convertToAssignment = (data: OptimizedAssignmentData): Assignment => {
+  // Convert assignment_employees to employee names array
+  const employees = data.assignment_employees?.map(emp => emp.profiles.name) || [];
+  
+  // Convert assignment_cars to car IDs array and get first car
+  const cars = data.assignment_cars?.map(car => car.id) || [];
+  const firstCar = cars.length > 0 ? cars[0] : '';
+
   return {
     id: data.id,
     title: data.title,
     description: data.description || '',
-    date: data.date,
-    fromTime: data.fromTime,
-    toTime: data.toTime,
+    date: data.assignment_date,
+    fromTime: data.from_time,
+    toTime: data.to_time,
     location: data.location,
     type: data.type,
     published: data.published,
     responsibleUserId: data.responsible_user_id || undefined,
-    employees: normalizeEmployees(data.employees),
-    car: data.cars.length > 0 ? data.cars[0].id : '',
-    cars: data.cars.map(car => car.id),
+    employees: employees,
+    car: firstCar,
+    cars: cars,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
     responsibleUser: data.responsible_user
