@@ -62,8 +62,8 @@ export const dashboard = {
   // View all
   viewAll: "View all",
   
-  // Quick Access translations
-  quickAccess: {
+  // Quick Access translations - consolidated
+  quickAccessGrid: {
     planner: {
       title: "Planner",
       description: "Manage and schedule assignments"

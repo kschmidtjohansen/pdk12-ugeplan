@@ -62,8 +62,8 @@ export const dashboard = {
   // View all
   viewAll: "Se alle",
   
-  // Quick Access translations
-  quickAccess: {
+  // Quick Access translations - consolidated
+  quickAccessGrid: {
     planner: {
       title: "Planlægger",
       description: "Administrer og planlæg opgaver"
