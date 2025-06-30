@@ -8,7 +8,6 @@ const employees = {
   email: 'Email',
   phone: 'Telefon',
   role: 'Rolle',
-  status: 'Status',
   actions: 'Handlinger',
   jobTitle: 'Job titel',
   
