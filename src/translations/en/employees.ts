@@ -16,13 +16,24 @@ const employees = {
   administrator: 'Administrator',
   user: 'User',
   
-  // Employee status
+  // Employee status - STANDARDIZED SECTION
   available: 'Available',
   unavailable: 'Unavailable',
   onLeave: 'On Leave',
   onVacation: 'On Vacation',
   availableAfter: 'Available after {time}',
   fullyBooked: 'Fully Booked',
+  
+  // NEW: Additional status translations
+  status: {
+    available: 'Available',
+    unavailable: 'Unavailable',
+    partiallyAvailable: 'Partially available',
+    onVacation: 'On vacation',
+    onLeave: 'On leave',
+    fullyBooked: 'Fully booked',
+    unknown: 'Unknown status'
+  },
   
   // Actions
   add: 'Add Employee',

@@ -130,7 +130,7 @@ export const getEmployeeAvailabilityStatus = (
       console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on full day vacation on ${dateStr}`);
       return {
         status: 'onVacation',
-        statusText: t('planner.onVacation'),
+        statusText: t('employees.status.onVacation'),
         badgeColor: 'bg-blue-100 text-blue-800 border-blue-200'
       };
     } else if (vacationStatus.vacationType === 'partial_day' && vacationStatus.startTime) {
@@ -149,7 +149,7 @@ export const getEmployeeAvailabilityStatus = (
     console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is manually marked as on leave`);
     return {
       status: 'onLeave',
-      statusText: t('employees.onLeave'),
+      statusText: t('employees.status.onLeave'),
       badgeColor: 'bg-gray-100 text-gray-800 border-gray-200'
     };
   }
@@ -195,7 +195,7 @@ export const getEmployeeAvailabilityStatus = (
     console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is available (no assignments)`);
     return {
       status: 'available',
-      statusText: t('dashboard.available'),
+      statusText: t('employees.status.available'),
       badgeColor: 'bg-green-100 text-green-800 border-green-200'
     };
   }
@@ -215,7 +215,7 @@ export const getEmployeeAvailabilityStatus = (
     console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is fully booked (ends at workday end)`);
     return {
       status: 'fullyBooked',
-      statusText: t('employees.fullyBooked'),
+      statusText: t('employees.status.fullyBooked'),
       badgeColor: 'bg-red-100 text-red-800 border-red-200'
     };
   }

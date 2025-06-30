@@ -16,13 +16,24 @@ const employees = {
   administrator: 'Administrator',
   user: 'Bruger',
   
-  // Employee status
+  // Employee status - STANDARDIZED SECTION
   available: 'Tilgængelig',
   unavailable: 'Ikke tilgængelig',
   onLeave: 'På orlov',
   onVacation: 'På ferie',
   availableAfter: 'Ledig efter {time}',
   fullyBooked: 'Fuldt booket',
+  
+  // NEW: Additional status translations
+  status: {
+    available: 'Tilgængelig',
+    unavailable: 'Ikke tilgængelig',
+    partiallyAvailable: 'Delvis tilgængelig',
+    onVacation: 'På ferie',
+    onLeave: 'På orlov',
+    fullyBooked: 'Fuldt booket',
+    unknown: 'Ukendt status'
+  },
   
   // Actions
   add: 'Tilføj medarbejder',

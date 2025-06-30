@@ -1,4 +1,3 @@
-
 export const dashboard = {
   welcome: "Welcome back",
   subtitle: "Overview of today's tasks and activities",
@@ -29,6 +28,7 @@ export const dashboard = {
   yourRole: "your role",
   tasksToday: "tasks today",
   completedTasks: "completed tasks",
+  available: "Available", // ADDED: Missing dashboard available translation
   
   // Welcome messages
   welcomeUser: "Hello {name}! 👋",

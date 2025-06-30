@@ -1,4 +1,3 @@
-
 export const dashboard = {
   welcome: "Velkommen tilbage",
   subtitle: "Oversigt over dagens opgaver og aktiviteter",
@@ -29,6 +28,7 @@ export const dashboard = {
   yourRole: "din rolle",
   tasksToday: "opgaver i dag",
   completedTasks: "afsluttede opgaver",
+  available: "Tilgængelig", // ADDED: Missing dashboard available translation
   
   // Welcome messages
   welcomeUser: "Hej {name}! 👋",
