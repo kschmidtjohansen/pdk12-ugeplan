@@ -65,12 +65,12 @@ export const dashboard = {
   // Quick Access translations - consolidated
   quickAccessGrid: {
     planner: {
-      title: "Planlægger",
-      description: "Administrer og planlæg opgaver"
+      title: "Ugeplan",
+      description: "Se opgaver for ugen"
     },
     vacation: {
-      title: "Ferie",
-      description: "Administrer ferieansøgninger"
+      title: "Fridage",
+      description: "Se og ønsk fridage"
     },
     employees: {
       title: "Medarbejdere",
