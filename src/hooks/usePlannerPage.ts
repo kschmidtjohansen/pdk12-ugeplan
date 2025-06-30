@@ -52,7 +52,9 @@ export const usePlannerPage = () => {
   const {
     createAssignment,
     updateAssignment,
-    deleteAssignment: deleteAssignmentAction
+    deleteAssignment: deleteAssignmentAction,
+    publishAssignment: publishAssignmentAction,
+    publishAssignmentsByDate: publishAssignmentsByDateAction
   } = useAssignmentActions(refetch, setIsDialogOpen);
 
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
@@ -220,14 +222,13 @@ export const usePlannerPage = () => {
         console.error('[usePlannerPage] Operation failed:', error);
       }
     },
-    handlePublishDay: (date: string) => {
+    handlePublishDay: async (date: string) => {
       console.log('[usePlannerPage] Publishing day:', date);
+      await publishAssignmentsByDateAction(date);
     },
-    handlePublishAllUnpublished: () => {
-      toast({
-        title: t('common.info'),
-        description: t('dashboard.functionalityNotImplemented')
-      });
+    handlePublishAllUnpublished: async () => {
+      console.log('[usePlannerPage] Publishing all unpublished assignments');
+      await publishAssignmentsByDate(getFreshToday());
     },
     deleteAssignment: async (id: string) => {
       console.log('[usePlannerPage] Deleting assignment:', id);

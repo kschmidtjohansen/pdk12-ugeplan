@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { OptimizedAssignmentService, OptimizedAssignmentData } from '@/services/optimizedAssignmentService';
@@ -136,7 +135,6 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     await fetchAssignments();
   }, [fetchAssignments]);
 
-  // Placeholder implementations for CRUD operations
   const createAssignment = useCallback(async (data: Partial<Assignment>) => {
     console.log('[useOptimizedAssignments] Create assignment not yet implemented', data);
     toast({
@@ -171,29 +169,54 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   const publishAssignment = useCallback(async (id: string) => {
     setOperationState(id, 'loading');
     try {
-      console.log('[useOptimizedAssignments] Publish assignment not yet implemented', id);
+      console.log('[useOptimizedAssignments] Publishing assignment:', id);
+      
+      await OptimizedAssignmentService.publishAssignment(id);
+      
       toast({
-        title: t('common.info'),
-        description: t('dashboard.functionalityNotImplemented')
+        title: t('planner.assignmentPublished'),
+        description: t('planner.assignmentPublishedMsg')
       });
+      
       setOperationState(id, 'success');
+      
+      // Refetch to get updated data
+      await refetch();
     } catch (error) {
       console.error('[useOptimizedAssignments] Publish failed:', error);
       setOperationState(id, 'error');
+      
+      toast({
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('planner.errorPublishingAssignment'),
+        variant: "destructive"
+      });
     }
-  }, [toast, t, setOperationState]);
+  }, [toast, t, setOperationState, refetch]);
 
   const publishAssignmentsByDate = useCallback(async (date: string) => {
     try {
-      console.log('[useOptimizedAssignments] Publish assignments by date not yet implemented', date);
+      console.log('[useOptimizedAssignments] Publishing assignments by date:', date);
+      
+      await OptimizedAssignmentService.publishAssignmentsByDate(date);
+      
       toast({
-        title: t('common.info'),
-        description: t('dashboard.functionalityNotImplemented')
+        title: t('planner.dayPublished'),
+        description: t('planner.dayPublishedMsg', { date })
       });
+      
+      // Refetch to get updated data
+      await refetch();
     } catch (error) {
       console.error('[useOptimizedAssignments] Publish by date failed:', error);
+      
+      toast({
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('planner.errorPublishingDay'),
+        variant: "destructive"
+      });
     }
-  }, [toast, t]);
+  }, [toast, t, refetch]);
 
   useEffect(() => {
     fetchAssignments();

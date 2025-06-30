@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -282,9 +281,72 @@ export const useAssignmentActions = (
     }
   }, [toast, t, refetch]);
 
+  // Publish an assignment
+  const publishAssignment = useCallback(async (id: string) => {
+    try {
+      if (!isValidUUID(id)) {
+        throw new Error('Invalid assignment ID provided');
+      }
+
+      const { error } = await supabase
+        .from('assignments')
+        .update({ published: true, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast({
+        title: t('planner.assignmentPublished'),
+        description: t('planner.assignmentPublishedMsg'),
+      });
+      
+      refetch();
+      return true;
+    } catch (error: any) {
+      console.error('Error publishing assignment:', error);
+      toast({
+        title: t('common.error'),
+        description: t('planner.errorPublishingAssignment'),
+        variant: "destructive",
+      });
+      return false;
+    }
+  }, [toast, t, refetch]);
+
+  // Publish all assignments for a specific date
+  const publishAssignmentsByDate = useCallback(async (date: string) => {
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .update({ published: true, updated_at: new Date().toISOString() })
+        .eq('assignment_date', date)
+        .eq('published', false);
+
+      if (error) throw error;
+      
+      toast({
+        title: t('planner.dayPublished'),
+        description: t('planner.dayPublishedMsg', { date }),
+      });
+      
+      refetch();
+      return true;
+    } catch (error: any) {
+      console.error('Error publishing assignments by date:', error);
+      toast({
+        title: t('common.error'),
+        description: t('planner.errorPublishingDay'),
+        variant: "destructive",
+      });
+      return false;
+    }
+  }, [toast, t, refetch]);
+
   return {
     createAssignment,
     updateAssignment,
-    deleteAssignment
+    deleteAssignment,
+    publishAssignment,
+    publishAssignmentsByDate
   };
 };

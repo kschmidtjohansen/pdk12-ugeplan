@@ -545,4 +545,51 @@ export class OptimizedAssignmentService {
       throw error;
     }
   }
+
+  static async publishAssignment(id: string): Promise<void> {
+    try {
+      console.log(`[OptimizedAssignmentService] Publishing assignment: ${id}`);
+      
+      const { error } = await supabase
+        .from('assignments')
+        .update({ published: true, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) {
+        console.error('[OptimizedAssignmentService] Error publishing assignment:', error);
+        throw new Error(`Failed to publish assignment: ${error.message}`);
+      }
+
+      // Clear cache to ensure fresh data
+      this.clearCache();
+      console.log(`[OptimizedAssignmentService] Successfully published assignment: ${id}`);
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error in publishAssignment:', error);
+      throw error;
+    }
+  }
+
+  static async publishAssignmentsByDate(date: string): Promise<void> {
+    try {
+      console.log(`[OptimizedAssignmentService] Publishing all assignments for date: ${date}`);
+      
+      const { error } = await supabase
+        .from('assignments')
+        .update({ published: true, updated_at: new Date().toISOString() })
+        .eq('assignment_date', date)
+        .eq('published', false);
+
+      if (error) {
+        console.error('[OptimizedAssignmentService] Error publishing assignments by date:', error);
+        throw new Error(`Failed to publish assignments for date ${date}: ${error.message}`);
+      }
+
+      // Clear cache to ensure fresh data
+      this.clearCache();
+      console.log(`[OptimizedAssignmentService] Successfully published all assignments for date: ${date}`);
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error in publishAssignmentsByDate:', error);
+      throw error;
+    }
+  }
 }
