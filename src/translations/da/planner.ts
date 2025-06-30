@@ -15,8 +15,6 @@ const planner = {
   fromTime: 'Fra Tid',
   toTime: 'Til Tid',
   location: 'Adresse',
-  description: 'Beskrivelse',
-  descriptionPlaceholder: 'Indtast beskrivelse',
   selectEmployees: 'Vælg Medarbejdere',
   car: 'Bil',
   selectCar: 'Vælg Bil',
@@ -102,7 +100,7 @@ const planner = {
   tableTitle: 'Titel',
   tableDate: 'Dato',
   tableTime: 'Tid',
-  tableLocation: 'Lokation',
+  tableLocation: 'Adresse',
   tableActions: 'Handlinger',
   
   // Filters and sorting

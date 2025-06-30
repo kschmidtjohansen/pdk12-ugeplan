@@ -15,8 +15,6 @@ const planner = {
   fromTime: 'From Time',
   toTime: 'To Time',
   location: 'Location',
-  description: 'Description',
-  descriptionPlaceholder: 'Enter description',
   selectEmployees: 'Select Employees',
   car: 'Car',
   selectCar: 'Select Car',

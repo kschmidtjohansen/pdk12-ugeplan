@@ -24,25 +24,43 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   const { t } = useTranslation();
   const { employees } = useEmployees();
 
-  console.log('[ResponsibleUserSelector] DEBUG: Component rendering with:');
+  console.log('[ResponsibleUserSelector] COMPREHENSIVE DEBUG:');
   console.log('[ResponsibleUserSelector] Total employees from hook:', employees.length);
   console.log('[ResponsibleUserSelector] Selected user ID:', selectedUserId);
-  console.log('[ResponsibleUserSelector] Translation context working:', t('planner.responsibleUser'));
+  console.log('[ResponsibleUserSelector] Translation test - responsibleUser:', t('planner.responsibleUser'));
+  console.log('[ResponsibleUserSelector] Translation test - selectResponsibleUser:', t('planner.selectResponsibleUser'));
+  console.log('[ResponsibleUserSelector] Translation test - noResponsibleUser:', t('planner.noResponsibleUser'));
 
   // Filter employees to only show administrators and skadeleders
   const eligibleUsers = employees.filter(employee => {
     const isEligible = employee.role === 'administrator' || employee.role === 'skadeleder';
-    console.log(`[ResponsibleUserSelector] Employee ${employee.name} (${employee.role}): eligible = ${isEligible}`);
+    console.log(`[ResponsibleUserSelector] Employee "${employee.name}" (role: "${employee.role}") -> eligible: ${isEligible}`);
     return isEligible;
   });
 
-  console.log('[ResponsibleUserSelector] DEBUG: Final filtering results:');
+  console.log('[ResponsibleUserSelector] FINAL RESULTS:');
   console.log('[ResponsibleUserSelector] Eligible users count:', eligibleUsers.length);
-  console.log('[ResponsibleUserSelector] Eligible users:', eligibleUsers.map(u => ({ 
-    id: u.id, 
+  console.log('[ResponsibleUserSelector] Eligible users list:', eligibleUsers.map(u => ({ 
+    id: u.id.substring(0, 8) + '...', 
     name: u.name, 
     role: u.role 
   })));
+
+  // Expected eligible users for debugging
+  const expectedUsers = [
+    'Bjarke Højland', 'Kasper Johansen', 'Morten Stokholm', // administrators
+    'Anders Axelsen', 'Betina Poulsen', 'Nick Berg Hansen', 'Sisse Rud Hansen' // skadeleders
+  ];
+  
+  console.log('[ResponsibleUserSelector] EXPECTED USERS VERIFICATION:');
+  expectedUsers.forEach(expectedName => {
+    const found = employees.find(emp => emp.name === expectedName);
+    console.log(`Expected user "${expectedName}":`, {
+      found: !!found,
+      role: found?.role || 'NOT_FOUND',
+      isEligible: found ? (found.role === 'administrator' || found.role === 'skadeleder') : false
+    });
+  });
 
   // Get display text for selected user
   const getSelectedUserDisplay = () => {
@@ -51,9 +69,9 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     }
     
     const user = eligibleUsers.find(user => user.id === selectedUserId);
-    console.log('[ResponsibleUserSelector] DEBUG: Finding selected user:', {
-      selectedUserId,
-      foundUser: user ? { id: user.id, name: user.name, role: user.role } : null
+    console.log('[ResponsibleUserSelector] Finding selected user:', {
+      selectedUserId: selectedUserId.substring(0, 8) + '...',
+      foundUser: user ? { id: user.id.substring(0, 8) + '...', name: user.name, role: user.role } : null
     });
     
     return user ? user.name : t('planner.selectResponsibleUser');
@@ -62,7 +80,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   // Handle user selection
   const handleUserSelect = (userId: string) => {
     console.log('[ResponsibleUserSelector] User selection:', {
-      userId,
+      userId: userId === 'none' ? 'none' : userId.substring(0, 8) + '...',
       isNone: userId === 'none'
     });
     
@@ -106,7 +124,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
           {eligibleUsers.length === 0 ? (
             <DropdownMenuItem disabled className="p-2">
               <span className="text-gray-500">
-                {t('planner.noResponsibleUser')} - Debugging: {employees.length} total employees loaded
+                Ingen sagsansvarlige fundet - Debug: {employees.length} medarbejdere indlæst
               </span>
             </DropdownMenuItem>
           ) : (
@@ -129,10 +147,12 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
       
-      {/* Debug info in development */}
+      {/* Enhanced debug info */}
       {process.env.NODE_ENV === 'development' && (
         <div className="text-xs text-gray-400 mt-1 p-2 bg-gray-50 rounded">
-          Debug: {employees.length} total, {eligibleUsers.length} eligible | Translation: "{t('planner.responsibleUser')}"
+          Debug: {employees.length} total, {eligibleUsers.length} eligible | 
+          Label: "{t('planner.responsibleUser')}" | 
+          Select: "{t('planner.selectResponsibleUser')}"
         </div>
       )}
     </div>
