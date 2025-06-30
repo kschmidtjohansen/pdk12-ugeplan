@@ -58,6 +58,19 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   }));
   console.log('[ResponsibleUserSelector] DEBUG: Role distribution:', roleDistribution);
 
+  // Expected users from database query
+  const expectedUsers = [
+    'Bjarke Højland', 'Kasper Johansen', 'Morten Stokholm', // administrators
+    'Anders Axelsen', 'Betina Poulsen', 'Nick Berg Hansen', 'Sisse Rud Hansen' // skadeleders
+  ];
+  
+  const missingUsers = expectedUsers.filter(name => 
+    !employees.find(emp => emp.name === name)
+  );
+  
+  console.log('[ResponsibleUserSelector] DEBUG: Expected users from DB:', expectedUsers);
+  console.log('[ResponsibleUserSelector] DEBUG: Missing users:', missingUsers);
+
   // Get display text for selected user
   const getSelectedUserDisplay = () => {
     if (!selectedUserId || selectedUserId === '') {
@@ -133,7 +146,6 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
                   <div className="flex items-center gap-2">
                     <UserCheck className="h-4 w-4" />
                     <span className="truncate">{user.name}</span>
-                    <span className="text-sm text-gray-500">({user.role})</span>
                   </div>
                 </div>
               </DropdownMenuItem>

@@ -74,7 +74,7 @@ const planner = {
   date: 'Date',
   time: 'Time',
   
-  // Form labels - Fixed translation keys
+  // Form labels
   titleLabel: 'Title',
   enterTitle: 'Enter title',
   descriptionLabel: 'Description',
@@ -146,6 +146,7 @@ const planner = {
   employeeAvailable: 'Available',
   employeeUnavailable: 'Unavailable',
   noEmployeesSelected: 'No employees selected',
+  onVacation: 'On vacation',
   
   // Responsible user translations
   responsibleUserDisplay: 'Responsible: {name}',

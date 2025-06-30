@@ -10,19 +10,19 @@ const planner = {
   createNew: 'Opret Ny Opgave',
   
   // Assignment details
-  titlePlaceholder: 'Indtast titel',
-  locationPlaceholder: 'Indtast lokation',
+  titlePlaceholder: 'Sagsnummer',
+  locationPlaceholder: 'Indtast adresse',
   fromTime: 'Fra Tid',
   toTime: 'Til Tid',
-  location: 'Lokation',
+  location: 'Adresse',
   description: 'Beskrivelse',
   descriptionPlaceholder: 'Indtast beskrivelse',
   selectEmployees: 'Vælg Medarbejdere',
   car: 'Bil',
   selectCar: 'Vælg Bil',
-  responsibleUser: 'Ansvarlig Bruger',
-  selectResponsibleUser: 'Vælg Ansvarlig Bruger',
-  noResponsibleUser: 'Ingen ansvarlig bruger',
+  responsibleUser: 'Sagsansvarlig',
+  selectResponsibleUser: 'Vælg Sagsansvarlig',
+  noResponsibleUser: 'Ingen sagsansvarlig',
   
   // Actions
   addAssignment: 'Tilføj Opgave',
@@ -74,9 +74,9 @@ const planner = {
   date: 'Dato',
   time: 'Tid',
   
-  // Form labels - Fixed translation keys
-  titleLabel: 'Titel',
-  enterTitle: 'Indtast titel',
+  // Form labels
+  titleLabel: 'Sagsnummer',
+  enterTitle: 'Sagsnummer',
   descriptionLabel: 'Beskrivelse',
   assignmentDescription: 'Opgave beskrivelse',
   notesPlaceholder: 'Indtast noter',
@@ -85,11 +85,11 @@ const planner = {
   timeLabel: 'Tid',
   startTime: 'Start tid',
   endTime: 'Slut tid',
-  locationLabel: 'Lokation',
-  enterLocation: 'Indtast lokation',
+  locationLabel: 'Adresse',
+  enterLocation: 'Indtast adresse',
   carLabel: 'Bil',
   employeesLabel: 'Medarbejdere',
-  responsibleUserLabel: 'Ansvarlig Bruger',
+  responsibleUserLabel: 'Sagsansvarlig',
   
   // Placeholders
   timePlaceholder: 'Vælg tidspunkt',
@@ -146,6 +146,7 @@ const planner = {
   employeeAvailable: 'Tilgængelig',
   employeeUnavailable: 'Ikke tilgængelig',
   noEmployeesSelected: 'Ingen medarbejdere valgt',
+  onVacation: 'På ferie',
   
   // Responsible user translations
   responsibleUserDisplay: 'Ansvarlig: {name}',
