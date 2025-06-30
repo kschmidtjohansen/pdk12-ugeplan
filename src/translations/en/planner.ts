@@ -22,6 +22,7 @@ const planner = {
   selectCar: 'Select Car',
   responsibleUser: 'Responsible User',
   selectResponsibleUser: 'Select Responsible User',
+  noResponsibleUser: 'No responsible user',
   
   // Actions
   addAssignment: 'Add Assignment',
@@ -29,7 +30,9 @@ const planner = {
   copyAssignment: 'Copy Assignment',
   deleteAssignment: 'Delete Assignment',
   publish: 'Publish',
+  publishDayTasks: 'Publish Day Tasks',
   showOnScreen: 'Show on Screen',
+  newAssignment: 'New Assignment',
   
   // Messages
   assignmentCreated: 'Assignment Created',
@@ -56,7 +59,8 @@ const planner = {
   
   // Empty states
   addFirst: 'Add your first assignment',
-
+  nothingPlannedToday: 'Nothing planned today',
+  
   // Publishing messages
   assignmentPublished: 'Assignment Published',
   assignmentPublishedMsg: 'The assignment has been published successfully',
@@ -68,7 +72,59 @@ const planner = {
   // Required fields
   employees: 'Employees',
   date: 'Date',
-  time: 'Time'
+  time: 'Time',
+  
+  // Form labels
+  titleLabel: 'Title',
+  descriptionLabel: 'Description',
+  dateLabel: 'Date',
+  timeLabel: 'Time',
+  locationLabel: 'Location',
+  carLabel: 'Car',
+  employeesLabel: 'Employees',
+  responsibleUserLabel: 'Responsible User',
+  
+  // Placeholders
+  timePlaceholder: 'Select time',
+  datePlaceholder: 'Select date',
+  
+  // Status messages
+  deleteConfirmation: 'Are you sure you want to delete this assignment?',
+  
+  // Table headers
+  tableTitle: 'Title',
+  tableDate: 'Date',
+  tableTime: 'Time',
+  tableLocation: 'Location',
+  tableActions: 'Actions',
+  
+  // Filters and sorting
+  filterPublished: 'Published',
+  filterUnpublished: 'Unpublished',
+  sortByDate: 'Sort by date',
+  sortByTime: 'Sort by time',
+  
+  // Date and time formats
+  dateFormat: 'MM/dd/yyyy',
+  timeFormat: 'HH:mm',
+  
+  // Assignment types
+  typeCleaning: 'Cleaning',
+  typeMaintenance: 'Maintenance',
+  typeInspection: 'Inspection',
+  typeOther: 'Other',
+  
+  // Common terms
+  assignment: 'assignment',
+  createFirst: 'Create your first assignment',
+  
+  // Unassigned resources
+  unassignedResources: 'Unassigned Resources',
+  unassignedEmployees: 'Unassigned Employees',
+  unassignedCars: 'Unassigned Cars',
+  employeesOnVacation: 'Employees on Vacation',
+  availableEmployees: 'Available Employees',
+  availableCars: 'Available Cars'
 };
 
 export default planner;

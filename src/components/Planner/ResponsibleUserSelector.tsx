@@ -29,6 +29,8 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     employee.role === 'administrator' || employee.role === 'skadeleder'
   );
 
+  console.log('[ResponsibleUserSelector] Eligible users:', eligibleUsers.map(u => ({ id: u.id, name: u.name, role: u.role })));
+
   // Get display text for selected user
   const getSelectedUserDisplay = () => {
     if (!selectedUserId || selectedUserId === '') {
@@ -41,6 +43,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
 
   // Handle user selection
   const handleUserSelect = (userId: string) => {
+    console.log('[ResponsibleUserSelector] Selecting user:', userId);
     if (userId === 'none') {
       onUserSelect('');
     } else {
@@ -88,6 +91,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
                 <div className="flex items-center gap-2">
                   <UserCheck className="h-4 w-4" />
                   <span className="truncate">{user.name}</span>
+                  <span className="text-sm text-gray-500">({user.role})</span>
                 </div>
               </div>
             </DropdownMenuItem>

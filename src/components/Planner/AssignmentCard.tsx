@@ -7,6 +7,7 @@ import AssignmentStatusBadge from './AssignmentStatusBadge';
 import AssignmentActionButtons from './AssignmentActionButtons';
 import AssignmentDetails from './AssignmentDetails';
 import { useTranslation } from '@/context/TranslationContext';
+import { UserCheck } from 'lucide-react';
 
 interface AssignmentCardProps {
   assignment: Assignment;
@@ -35,6 +36,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   console.log(`  - Assignment ID: ${assignment.id}`);
   console.log(`  - Published status: ${assignment.published}`);
   console.log(`  - Operation state: ${operationState}`);
+  console.log(`  - Responsible user: ${assignment.responsibleUser}`);
 
   const handleEditClick = (assignment: Assignment) => {
     console.log('[AssignmentCard] Edit clicked for assignment:', assignment.id);
@@ -77,12 +79,30 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     }
   };
 
+  // Get responsible user display name
+  const getResponsibleUserName = () => {
+    if (!assignment.responsibleUser) return null;
+    return typeof assignment.responsibleUser === 'string' 
+      ? assignment.responsibleUser 
+      : assignment.responsibleUser.name;
+  };
+
+  const responsibleUserName = getResponsibleUserName();
+
   return (
     <Card className={`w-full p-4 bg-white hover:border-polygon-purple transition-colors ${isLoading ? 'opacity-75' : ''}`}>
       <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
         <div className="flex items-center gap-2">
           <div className="flex flex-col">
-            <h3 className="font-medium text-lg">{assignment.title || t('planner.title')}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-medium text-lg">{assignment.title || t('planner.titleLabel')}</h3>
+              {responsibleUserName && (
+                <div className="flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
+                  <UserCheck className="h-3 w-3" />
+                  <span>{responsibleUserName}</span>
+                </div>
+              )}
+            </div>
             {assignment.location && (
               <p className="text-sm text-gray-600">{assignment.location}</p>
             )}

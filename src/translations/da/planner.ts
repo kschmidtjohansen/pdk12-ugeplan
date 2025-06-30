@@ -3,7 +3,78 @@ const planner = {
   title: 'Planner',
   description: 'Administrer opgaver og planlæg arbejdsdagen',
   
-  // Assignment labels
+  // Assignment list
+  assignments: 'Opgaver',
+  noAssignments: 'Ingen opgaver fundet',
+  noAssignmentsWeek: 'Ingen opgaver i denne uge',
+  createNew: 'Opret Ny Opgave',
+  
+  // Assignment details
+  titlePlaceholder: 'Indtast titel',
+  locationPlaceholder: 'Indtast lokation',
+  fromTime: 'Fra Tid',
+  toTime: 'Til Tid',
+  location: 'Lokation',
+  description: 'Beskrivelse',
+  descriptionPlaceholder: 'Indtast beskrivelse',
+  selectEmployees: 'Vælg Medarbejdere',
+  car: 'Bil',
+  selectCar: 'Vælg Bil',
+  responsibleUser: 'Ansvarlig Bruger',
+  selectResponsibleUser: 'Vælg Ansvarlig Bruger',
+  noResponsibleUser: 'Ingen ansvarlig bruger',
+  
+  // Actions
+  addAssignment: 'Tilføj Opgave',
+  editAssignment: 'Rediger Opgave',
+  copyAssignment: 'Kopier Opgave',
+  deleteAssignment: 'Slet Opgave',
+  publish: 'Publicer',
+  publishDayTasks: 'Publicer Dagens Opgaver',
+  showOnScreen: 'Vis på Skærm',
+  newAssignment: 'Ny Opgave',
+  
+  // Messages
+  assignmentCreated: 'Opgave Oprettet',
+  assignmentCreatedMsg: 'Opgaven {title} er blevet oprettet',
+  assignmentUpdated: 'Opgave Opdateret',
+  assignmentUpdatedMsg: 'Opgaven {title} er blevet opdateret',
+  assignmentDeleted: 'Opgave Slettet',
+  assignmentDeletedMsg: 'Opgaven er blevet slettet',
+  errorCreatingAssignment: 'Fejl ved oprettelse af opgave',
+  errorUpdatingAssignment: 'Fejl ved opdatering af opgave',
+  errorDeletingAssignment: 'Fejl ved sletning af opgave',
+  
+  // Week view
+  weekView: 'Uge {week}, {year} ({start} - {end})',
+  week: 'Uge',
+  
+  // Status
+  published: 'Publiceret',
+  notPublished: 'Ikke Publiceret',
+  
+  // Confirmation dialogs
+  deleteConfirm: 'Slet Opgave',
+  deleteWarning: 'Er du sikker på, at du vil slette denne opgave?',
+  
+  // Empty states
+  addFirst: 'Tilføj din første opgave',
+  nothingPlannedToday: 'Intet planlagt i dag',
+  
+  // Publishing messages
+  assignmentPublished: 'Opgave Publiceret',
+  assignmentPublishedMsg: 'Opgaven er blevet publiceret med succes',
+  dayPublished: 'Dag Publiceret',
+  dayPublishedMsg: 'Alle opgaver for {date} er blevet publiceret',
+  errorPublishingAssignment: 'Kunne ikke publicere opgave',
+  errorPublishingDay: 'Kunne ikke publicere opgaver for dagen',
+  
+  // Required fields
+  employees: 'Medarbejdere',
+  date: 'Dato',
+  time: 'Tid',
+  
+  // Form labels
   titleLabel: 'Titel',
   descriptionLabel: 'Beskrivelse',
   dateLabel: 'Dato',
@@ -13,37 +84,11 @@ const planner = {
   employeesLabel: 'Medarbejdere',
   responsibleUserLabel: 'Ansvarlig Bruger',
   
-  // Assignment placeholders
-  titlePlaceholder: 'Indtast titel',
-  descriptionPlaceholder: 'Indtast beskrivelse',
-  locationPlaceholder: 'Indtast lokation',
+  // Placeholders
   timePlaceholder: 'Vælg tidspunkt',
   datePlaceholder: 'Vælg dato',
   
-  // Assignment actions
-  newAssignment: 'Ny opgave',
-  editAssignment: 'Rediger opgave',
-  copyAssignment: 'Kopier opgave',
-  deleteAssignment: 'Slet opgave',
-  publish: 'Offentliggør',
-  assignments: 'opgaver',
-  assignment: 'opgave',
-  showOnScreen: 'Vis på skærm',
-  
   // Status messages
-  assignmentCreated: 'Opgave oprettet',
-  assignmentCreatedMsg: 'Opgaven "{title}" er oprettet',
-  assignmentUpdated: 'Opgave opdateret',
-  assignmentUpdatedMsg: 'Opgaven "{title}" er opdateret',
-  assignmentDeleted: 'Opgave slettet',
-  assignmentDeletedMsg: 'Opgaven er slettet',
-  
-  // Error messages
-  errorCreatingAssignment: 'Fejl ved oprettelse af opgave',
-  errorUpdatingAssignment: 'Fejl ved opdatering af opgave',
-  errorDeletingAssignment: 'Fejl ved sletning af opgave',
-  
-  // Confirmation messages
   deleteConfirmation: 'Er du sikker på, at du vil slette denne opgave?',
   
   // Table headers
@@ -54,29 +99,14 @@ const planner = {
   tableActions: 'Handlinger',
   
   // Filters and sorting
-  filterPublished: 'Offentliggjort',
-  filterUnpublished: 'Ikke offentliggjort',
+  filterPublished: 'Publiceret',
+  filterUnpublished: 'Ikke publiceret',
   sortByDate: 'Sortér efter dato',
   sortByTime: 'Sortér efter tid',
-  
-  // Empty states
-  noAssignments: 'Ingen opgaver fundet',
-  noAssignmentsWeek: 'Ingen opgaver i denne uge',
-  createFirst: 'Opret din første opgave',
   
   // Date and time formats
   dateFormat: 'dd/MM/yyyy',
   timeFormat: 'HH:mm',
-  
-  // Week view
-  weekView: 'Uge {week}, {start} - {end}, {year}',
-  
-  // Common terms
-  location: 'Lokation',
-  date: 'Dato',
-  time: 'Tid',
-  description: 'Beskrivelse',
-  employees: 'Medarbejdere',
   
   // Assignment types
   typeCleaning: 'Rengøring',
@@ -84,17 +114,17 @@ const planner = {
   typeInspection: 'Inspektion',
   typeOther: 'Andet',
   
-  // Status
-  published: 'Offentliggjort',
-  notPublished: 'Ikke offentliggjort',
-
-  // Publishing messages
-  assignmentPublished: 'Opgave Publiceret',
-  assignmentPublishedMsg: 'Opgaven er blevet publiceret med succes',
-  dayPublished: 'Dag Publiceret',
-  dayPublishedMsg: 'Alle opgaver for {date} er blevet publiceret',
-  errorPublishingAssignment: 'Kunne ikke publicere opgave',
-  errorPublishingDay: 'Kunne ikke publicere opgaver for dagen'
+  // Common terms
+  assignment: 'opgave',
+  createFirst: 'Opret din første opgave',
+  
+  // Unassigned resources
+  unassignedResources: 'Ikke-tildelte Ressourcer',
+  unassignedEmployees: 'Ikke-tildelte Medarbejdere',
+  unassignedCars: 'Ikke-tildelte Biler',
+  employeesOnVacation: 'Medarbejdere på Ferie',
+  availableEmployees: 'Tilgængelige Medarbejdere',
+  availableCars: 'Tilgængelige Biler'
 };
 
 export default planner;
