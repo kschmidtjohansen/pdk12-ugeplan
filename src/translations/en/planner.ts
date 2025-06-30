@@ -124,7 +124,30 @@ const planner = {
   unassignedCars: 'Unassigned Cars',
   employeesOnVacation: 'Employees on Vacation',
   availableEmployees: 'Available Employees',
-  availableCars: 'Available Cars'
+  availableCars: 'Available Cars',
+  
+  // Car-related translations
+  availableCarsTitle: 'Available Cars',
+  unavailableCarsTitle: 'Unavailable Cars',
+  noCarsAvailable: 'No cars available',
+  noCarsUnavailable: 'All cars are available',
+  carWithTrailer: 'Car with trailer',
+  carWithoutTrailer: 'Car without trailer',
+  
+  // Employee-related translations
+  employeeOnVacation: 'On vacation',
+  employeeAvailable: 'Available',
+  employeeUnavailable: 'Unavailable',
+  noEmployeesSelected: 'No employees selected',
+  
+  // Responsible user translations
+  responsibleUserDisplay: 'Responsible: {name}',
+  noResponsibleUserAssigned: 'No responsible assigned',
+  
+  // Assignment status
+  assignmentStatus: 'Status',
+  assignmentPublishedStatus: 'Published',
+  assignmentUnpublishedStatus: 'Unpublished'
 };
 
 export default planner;

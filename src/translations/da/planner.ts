@@ -124,7 +124,30 @@ const planner = {
   unassignedCars: 'Ikke-tildelte Biler',
   employeesOnVacation: 'Medarbejdere på Ferie',
   availableEmployees: 'Tilgængelige Medarbejdere',
-  availableCars: 'Tilgængelige Biler'
+  availableCars: 'Tilgængelige Biler',
+  
+  // Car-related translations
+  availableCarsTitle: 'Tilgængelige Biler',
+  unavailableCarsTitle: 'Ikke Tilgængelige Biler',
+  noCarsAvailable: 'Ingen biler tilgængelige',
+  noCarsUnavailable: 'Alle biler er tilgængelige',
+  carWithTrailer: 'Bil med trailer',
+  carWithoutTrailer: 'Bil uden trailer',
+  
+  // Employee-related translations
+  employeeOnVacation: 'På ferie',
+  employeeAvailable: 'Tilgængelig',
+  employeeUnavailable: 'Ikke tilgængelig',
+  noEmployeesSelected: 'Ingen medarbejdere valgt',
+  
+  // Responsible user translations
+  responsibleUserDisplay: 'Ansvarlig: {name}',
+  noResponsibleUserAssigned: 'Ingen ansvarlig tildelt',
+  
+  // Assignment status
+  assignmentStatus: 'Status',
+  assignmentPublishedStatus: 'Publiceret',
+  assignmentUnpublishedStatus: 'Ikke publiceret'
 };
 
 export default planner;
