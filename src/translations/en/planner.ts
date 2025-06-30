@@ -39,5 +39,13 @@ export const planner = {
   showOnScreen: "Show on Screen",
   
   // Fetch errors
-  fetchError: "Failed to load assignments"
+  fetchError: "Failed to load assignments",
+  
+  // Unassigned resources
+  unassignedResources: "Unassigned resources",
+  today: "Today",
+  unassignedCars: "Unassigned cars",
+  allCarsAssigned: "All cars are assigned",
+  showLess: "Show less",
+  showMore: "show more"
 };

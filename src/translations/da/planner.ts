@@ -39,5 +39,13 @@ export const planner = {
   showOnScreen: "Vis på skærm",
   
   // Fetch errors
-  fetchError: "Kunne ikke indlæse opgaver"
+  fetchError: "Kunne ikke indlæse opgaver",
+  
+  // Unassigned resources
+  unassignedResources: "Ikke-tildelte ressourcer",
+  today: "I dag",
+  unassignedCars: "Ikke-tildelte biler",
+  allCarsAssigned: "Alle biler er tildelt",
+  showLess: "Vis færre",
+  showMore: "vis flere"
 };
