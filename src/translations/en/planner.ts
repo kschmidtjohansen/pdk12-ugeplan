@@ -74,12 +74,19 @@ const planner = {
   date: 'Date',
   time: 'Time',
   
-  // Form labels
+  // Form labels - Fixed translation keys
   titleLabel: 'Title',
+  enterTitle: 'Enter title',
   descriptionLabel: 'Description',
+  assignmentDescription: 'Assignment description',
+  notesPlaceholder: 'Enter notes',
   dateLabel: 'Date',
+  assignmentDate: 'Assignment date',
   timeLabel: 'Time',
+  startTime: 'Start time',
+  endTime: 'End time',
   locationLabel: 'Location',
+  enterLocation: 'Enter location',
   carLabel: 'Car',
   employeesLabel: 'Employees',
   responsibleUserLabel: 'Responsible User',

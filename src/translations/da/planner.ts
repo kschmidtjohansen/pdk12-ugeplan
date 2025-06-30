@@ -74,12 +74,19 @@ const planner = {
   date: 'Dato',
   time: 'Tid',
   
-  // Form labels
+  // Form labels - Fixed translation keys
   titleLabel: 'Titel',
+  enterTitle: 'Indtast titel',
   descriptionLabel: 'Beskrivelse',
+  assignmentDescription: 'Opgave beskrivelse',
+  notesPlaceholder: 'Indtast noter',
   dateLabel: 'Dato',
+  assignmentDate: 'Opgave dato',
   timeLabel: 'Tid',
+  startTime: 'Start tid',
+  endTime: 'Slut tid',
   locationLabel: 'Lokation',
+  enterLocation: 'Indtast lokation',
   carLabel: 'Bil',
   employeesLabel: 'Medarbejdere',
   responsibleUserLabel: 'Ansvarlig Bruger',

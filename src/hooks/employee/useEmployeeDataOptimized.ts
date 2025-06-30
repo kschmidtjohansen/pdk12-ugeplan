@@ -132,11 +132,12 @@ export const useEmployeeDataOptimized = () => {
       }
       
       console.log(`[useEmployeeDataOptimized] Successfully fetched ${profilesData.length} profiles`);
+      console.log('[useEmployeeDataOptimized] DEBUG: Profile data sample:', profilesData.slice(0, 3));
       
       // Step 3: Fetch user roles with retry logic
       const userIds = profilesData.map(profile => profile.id);
       
-      console.log('[useEmployeeDataOptimized] Fetching user roles...');
+      console.log('[useEmployeeDataOptimized] Fetching user roles for user IDs:', userIds);
       
       const rolesResult = await withRetry(
         async () => {
@@ -158,12 +159,13 @@ export const useEmployeeDataOptimized = () => {
       }
       
       console.log(`[useEmployeeDataOptimized] Successfully fetched ${rolesData?.length || 0} role assignments`);
+      console.log('[useEmployeeDataOptimized] DEBUG: Roles data:', rolesData);
       
       // Step 4: Transform data to Employee format
       const transformedEmployees: Employee[] = profilesData.map(profile => {
         const userRole = rolesData?.find(r => r.user_id === profile.id);
         
-        return {
+        const employee = {
           id: profile.id,
           name: profile.name || 'Unknown',
           email: profile.email || '',
@@ -174,9 +176,30 @@ export const useEmployeeDataOptimized = () => {
           notes: profile.notes || '',
           avatar_url: profile.avatar_url
         };
+        
+        // DEBUG: Log each employee transformation
+        console.log(`[useEmployeeDataOptimized] DEBUG: Transformed employee:`, {
+          name: employee.name,  
+          role: employee.role,
+          originalRole: userRole?.role,
+          hasRole: !!userRole,
+          isEligibleForResponsible: employee.role === 'administrator' || employee.role === 'skadeleder'
+        });
+        
+        return employee;
       });
       
       console.log(`[useEmployeeDataOptimized] Successfully transformed ${transformedEmployees.length} employees`);
+      
+      // DEBUG: Count eligible users for responsible selection
+      const eligibleUsers = transformedEmployees.filter(emp => 
+        emp.role === 'administrator' || emp.role === 'skadeleder'
+      );
+      console.log(`[useEmployeeDataOptimized] DEBUG: Eligible responsible users:`, {
+        total: eligibleUsers.length,
+        users: eligibleUsers.map(u => ({ name: u.name, role: u.role }))
+      });
+      
       setEmployees(transformedEmployees);
       
       // Clear any previous errors and reset circuit breaker
