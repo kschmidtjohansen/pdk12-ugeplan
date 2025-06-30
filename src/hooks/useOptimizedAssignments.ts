@@ -97,9 +97,9 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           result = await OptimizedAssignmentService.fetchAllAssignments(user.role);
           break;
         case 'published':
-          // CRITICAL FIX: For servicemedarbejder, fetch ALL published assignments (not user-specific)
+          // CRITICAL FIX: For servicemedarbejder, fetch only PUBLISHED assignments where they are assigned
           if (user.role === 'servicemedarbejder') {
-            result = await OptimizedAssignmentService.fetchAllPublishedAssignments();
+            result = await OptimizedAssignmentService.fetchUserSpecificPublishedAssignments(user.id, user.name);
           } else {
             result = await OptimizedAssignmentService.fetchPublishedAssignments(user.id, user.role);
           }

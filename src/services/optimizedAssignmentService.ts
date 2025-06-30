@@ -370,6 +370,77 @@ export class OptimizedAssignmentService {
     }
   }
 
+  static async fetchUserSpecificPublishedAssignments(userId: string, userName: string): Promise<OptimizedAssignmentData[]> {
+    try {
+      console.log(`[OptimizedAssignmentService] Fetching published assignments for servicemedarbejder user: ${userName} (${userId})`);
+      
+      // First, get all published assignments
+      const { data, error } = await supabase
+        .from('assignments')
+        .select(`
+          id,
+          title,
+          description,
+          assignment_date,
+          from_time,
+          to_time,
+          location,
+          type,
+          published,
+          responsible_user_id,
+          created_at,
+          updated_at,
+          car_id,
+          car_ids,
+          responsible_user:profiles!assignments_responsible_user_id_fkey(
+            id,
+            name
+          )
+        `)
+        .eq('published', true)
+        .order('assignment_date', { ascending: true })
+        .order('from_time', { ascending: true });
+
+      if (error) {
+        console.error('[OptimizedAssignmentService] Database error:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      if (!data) {
+        console.log('[OptimizedAssignmentService] No published assignments found');
+        return [];
+      }
+
+      console.log(`[OptimizedAssignmentService] Found ${data.length} published assignments, now filtering for user assignment`);
+      
+      // Enrich with employee and car data
+      const enrichedData = await this.enrichAssignmentData(data);
+      
+      // CRITICAL FIX: Filter to only assignments where the user is assigned as an employee
+      const userSpecificAssignments = enrichedData.filter(assignment => {
+        const isAssignedEmployee = assignment.assignment_employees.some(emp => 
+          emp.user_id === userId || emp.profiles.name === userName
+        );
+        
+        console.log(`[OptimizedAssignmentService] Assignment "${assignment.title}":`, {
+          employees: assignment.assignment_employees.map(emp => emp.profiles.name),
+          isAssignedEmployee,
+          userName,
+          userId
+        });
+        
+        return isAssignedEmployee;
+      });
+      
+      console.log(`[OptimizedAssignmentService] SERVICEMEDARBEJDER filtered results: ${userSpecificAssignments.length} assignments where user is assigned`);
+      
+      return userSpecificAssignments;
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error fetching user-specific published assignments:', error);
+      throw error;
+    }
+  }
+
   static async fetchUnpublishedAssignments(userId: string, role: string): Promise<OptimizedAssignmentData[]> {
     try {
       console.log(`[OptimizedAssignmentService] Fetching unpublished assignments for user ${userId} with role ${role}`);

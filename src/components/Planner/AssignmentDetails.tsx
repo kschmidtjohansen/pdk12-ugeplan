@@ -104,15 +104,20 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
 
       {/* Right Column */}
       <div className="space-y-3">
-        {/* Responsible User - enhanced with better fallback */}
+        {/* Responsible User - enhanced with label and better fallback */}
         {assignment.responsibleUser && (
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
               <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
             </div>
-            <span className="text-foreground font-medium text-sm">
-              {assignment.responsibleUser.name || t('planner.noResponsibleUser')}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-xs text-muted-foreground font-medium">
+                {t('planner.responsibleUser')}
+              </span>
+              <span className="text-foreground font-medium text-sm">
+                {assignment.responsibleUser.name || t('planner.noResponsibleUser')}
+              </span>
+            </div>
           </div>
         )}
 

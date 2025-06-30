@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -31,7 +30,7 @@ export const usePlannerPage = () => {
   const isAdminOrSkadeleder = user?.role === 'administrator' || user?.role === 'skadeleder';
   const isServicemedarbejder = user?.role === 'servicemedarbejder';
   
-  // CRITICAL FIX: Use 'published' for servicemedarbejder to see ALL published tasks
+  // CRITICAL FIX: Use 'published' for servicemedarbejder to get only their assigned tasks
   const plannerFilter = isAdminOrSkadeleder ? 'all' : 'published';
   
   console.log(`[usePlannerPage] User: ${user?.name} (${user?.role})`);
@@ -86,65 +85,49 @@ export const usePlannerPage = () => {
 
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // CRITICAL FIX: Completely rewritten week filtering for servicemedarbejder
+  // CRITICAL FIX: Simplified week filtering - assignments are already user-filtered at service level
   const weekAssignments = React.useMemo(() => {
     console.log(`[usePlannerPage] Starting week filter for week ${selectedWeek}/${selectedYear}`);
     console.log(`[usePlannerPage] Input assignments:`, assignments.length, 'for user role:', user?.role);
     
-    if (isServicemedarbejder) {
-      // CRITICAL FIX: For servicemedarbejder, ALL assignments are already published (due to 'published' filter)
-      // So we only need to filter by week, NOT by user assignment
-      const filtered = assignments.filter(assignment => {
-        const assignmentDate = new Date(assignment.date);
-        const assignmentWeek = getWeekNumber(assignmentDate);
-        const assignmentYear = getYearForDate(assignmentDate);
-        
-        const isInWeek = assignmentWeek === selectedWeek && assignmentYear === selectedYear;
-        
-        console.log(`[usePlannerPage] Assignment "${assignment.title}":`, {
-          date: assignment.date,
-          week: assignmentWeek,
-          year: assignmentYear,
-          isInWeek,
-          shouldShow: isInWeek,
-          employees: assignment.employees,
-          CRITICAL: 'Should show ALL published assignments regardless of user assignment'
-        });
-        
-        return isInWeek;
+    // For all users, just filter by week - user-specific filtering is now handled in the service
+    const filtered = assignments.filter(assignment => {
+      const assignmentDate = new Date(assignment.date);
+      const assignmentWeek = getWeekNumber(assignmentDate);
+      const assignmentYear = getYearForDate(assignmentDate);
+      
+      const isInWeek = assignmentWeek === selectedWeek && assignmentYear === selectedYear;
+      
+      console.log(`[usePlannerPage] Assignment "${assignment.title}":`, {
+        date: assignment.date,
+        week: assignmentWeek,
+        year: assignmentYear,
+        isInWeek,
+        employees: assignment.employees,
+        userRole: user?.role
       });
       
-      console.log(`[usePlannerPage] Servicemedarbejder filtered results:`, {
-        totalFiltered: filtered.length,
-        includesTasksNotAssignedToUser: filtered.filter(a => !a.employees?.includes(user?.name || '')).length,
-        includesTasksAssignedToUser: filtered.filter(a => a.employees?.includes(user?.name || '')).length,
-        allTaskTitles: filtered.map(a => a.title),
-        CRITICAL: 'All published assignments in week should be visible'
-      });
+      return isInWeek;
+    });
+    
+    console.log(`[usePlannerPage] Week filtered results:`, {
+      totalFiltered: filtered.length,
+      userRole: user?.role,
+      week: selectedWeek,
+      year: selectedYear
+    });
 
-      // DEBUG: Log filtered planner data
-      console.log('Planner filtered assignments:', JSON.stringify(filtered.slice(0, 3), null, 2));
-      
-      return filtered;
-    } else {
-      // For admin/skadeleder, use existing filterByWeek logic
-      const filtered = filterByWeek(assignments, selectedWeek, selectedYear);
-      console.log(`[usePlannerPage] Admin/Skadeleder filtered results:`, filtered.length);
-      
-      // DEBUG: Log filtered planner data
-      console.log('Planner filtered assignments:', JSON.stringify(filtered.slice(0, 3), null, 2));
-      
-      return filtered;
-    }
-  }, [assignments, selectedWeek, selectedYear, isServicemedarbejder, user?.name, filterByWeek]);
+    // DEBUG: Log filtered planner data
+    console.log('Planner filtered assignments:', JSON.stringify(filtered.slice(0, 3), null, 2));
+    
+    return filtered;
+  }, [assignments, selectedWeek, selectedYear, user?.role, user?.name]);
 
   console.log(`[usePlannerPage] Final week assignments for display:`, {
     count: weekAssignments.length,
     userRole: user?.role,
     week: selectedWeek,
-    year: selectedYear,
-    shouldShowAllPublished: isServicemedarbejder,
-    CRITICAL: 'Final assignments ready for planner display'
+    year: selectedYear
   });
 
   return {
