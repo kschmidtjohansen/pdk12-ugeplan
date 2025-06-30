@@ -2,7 +2,7 @@
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
-import { useOptimizedAssignments } from './useOptimizedAssignments';
+import { useAssignmentData } from './assignment/useAssignmentData';
 import { useAssignmentActions } from './assignment/useAssignmentActions';
 import { 
   getWeekDates, 
@@ -12,7 +12,6 @@ import {
   getWeekNumber,
   getYearForDate
 } from '@/utils/dates';
-import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
@@ -27,29 +26,18 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // CRITICAL FIX: Improved role-based filtering
+  // Role-based filtering
   const isAdminOrSkadeleder = user?.role === 'administrator' || user?.role === 'skadeleder';
-  const isServicemedarbejder = user?.role === 'servicemedarbejder';
-  
-  // CRITICAL FIX: Use 'published' for servicemedarbejder to get only their assigned tasks
   const plannerFilter = isAdminOrSkadeleder ? 'all' : 'published';
   
-  console.log(`[usePlannerPage] User: ${user?.name} (${user?.role})`);
-  console.log(`[usePlannerPage] Using filter: ${plannerFilter} (admin/skadeleder: ${isAdminOrSkadeleder}, servicemedarbejder: ${isServicemedarbejder})`);
+  console.log(`[usePlannerPage] User: ${user?.name} (${user?.role}), Filter: ${plannerFilter}`);
   
   const { 
     assignments, 
     loading,
     error,
-    operationStates,
-    refetch,
-    deleteAssignment: deleteAssignmentFromHook,
-    publishAssignment: publishAssignmentFromHook,
-    publishAssignmentsByDate: publishAssignmentsByDateFromHook
-  } = useOptimizedAssignments(plannerFilter);
-
-  // DEBUG: Log raw planner data
-  console.log('Planner raw assignments:', JSON.stringify(assignments.slice(0, 3), null, 2));
+    fetchAssignments
+  } = useAssignmentData(plannerFilter);
 
   const {
     createAssignment,
@@ -57,12 +45,9 @@ export const usePlannerPage = () => {
     deleteAssignment: deleteAssignmentAction,
     publishAssignment: publishAssignmentAction,
     publishAssignmentsByDate: publishAssignmentsByDateAction
-  } = useAssignmentActions(refetch, setIsDialogOpen);
+  } = useAssignmentActions(fetchAssignments, setIsDialogOpen);
 
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
-  const { filterByWeek } = useAssignmentFilters();
-
-  console.log(`[usePlannerPage] Received ${assignments.length} assignments for planner display`);
   
   const getFreshToday = useCallback(() => {
     const now = new Date();
@@ -89,50 +74,21 @@ export const usePlannerPage = () => {
 
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // CRITICAL FIX: Simplified week filtering - assignments are already user-filtered at service level
+  // Filter assignments by week
   const weekAssignments = React.useMemo(() => {
-    console.log(`[usePlannerPage] Starting week filter for week ${selectedWeek}/${selectedYear}`);
-    console.log(`[usePlannerPage] Input assignments:`, assignments.length, 'for user role:', user?.role);
+    console.log(`[usePlannerPage] Filtering ${assignments.length} assignments for week ${selectedWeek}/${selectedYear}`);
     
-    // For all users, just filter by week - user-specific filtering is now handled in the service
     const filtered = assignments.filter(assignment => {
       const assignmentDate = new Date(assignment.date);
       const assignmentWeek = getWeekNumber(assignmentDate);
       const assignmentYear = getYearForDate(assignmentDate);
       
-      const isInWeek = assignmentWeek === selectedWeek && assignmentYear === selectedYear;
-      
-      console.log(`[usePlannerPage] Assignment "${assignment.title}":`, {
-        date: assignment.date,
-        week: assignmentWeek,
-        year: assignmentYear,
-        isInWeek,
-        employees: assignment.employees,
-        userRole: user?.role
-      });
-      
-      return isInWeek;
+      return assignmentWeek === selectedWeek && assignmentYear === selectedYear;
     });
     
-    console.log(`[usePlannerPage] Week filtered results:`, {
-      totalFiltered: filtered.length,
-      userRole: user?.role,
-      week: selectedWeek,
-      year: selectedYear
-    });
-
-    // DEBUG: Log filtered planner data
-    console.log('Planner filtered assignments:', JSON.stringify(filtered.slice(0, 3), null, 2));
-    
+    console.log(`[usePlannerPage] Week filtered results: ${filtered.length} assignments`);
     return filtered;
-  }, [assignments, selectedWeek, selectedYear, user?.role, user?.name]);
-
-  console.log(`[usePlannerPage] Final week assignments for display:`, {
-    count: weekAssignments.length,
-    userRole: user?.role,
-    week: selectedWeek,
-    year: selectedYear
-  });
+  }, [assignments, selectedWeek, selectedYear]);
 
   return {
     selectedWeek,
@@ -142,7 +98,7 @@ export const usePlannerPage = () => {
     assignments,
     loading,
     error,
-    operationStates,
+    operationStates: {}, // Simplified for now
     isDialogOpen,
     setIsDialogOpen,
     currentAssignment,
@@ -177,14 +133,7 @@ export const usePlannerPage = () => {
       setIsDialogOpen(true);
     },
     handleOpenEditDialog: (assignment: Assignment) => {
-      console.log(`[usePlannerPage] Opening edit dialog for assignment:`, {
-        id: assignment.id,
-        title: assignment.title,
-        published: assignment.published,
-        responsibleUser: assignment.responsibleUser,
-        employees: assignment.employees,
-        cars: assignment.cars
-      });
+      console.log(`[usePlannerPage] Opening edit dialog for assignment:`, assignment.title);
       
       setCurrentAssignment(assignment);
       setSelectedDay(assignment.date);
@@ -197,48 +146,31 @@ export const usePlannerPage = () => {
       setIsDialogOpen(true);
     },
     handleSubmit: async (data: Partial<Assignment>) => {
-      console.log('[usePlannerPage] Form submission data:', data);
-      console.log('[usePlannerPage] Current assignment:', currentAssignment?.id);
-      
       try {
         if (currentAssignment?.id) {
           const updateData = {
             ...data,
             published: currentAssignment.published
           };
-          
-          console.log('[usePlannerPage] Updating assignment with preserved published status:', {
-            id: currentAssignment.id,
-            originalPublished: currentAssignment.published,
-            updatePublished: updateData.published
-          });
-          
           await updateAssignment(currentAssignment.id, updateData);
         } else {
-          console.log('[usePlannerPage] Creating new assignment');
           await createAssignment(data);
         }
-        
-        console.log('[usePlannerPage] Operation completed successfully');
       } catch (error) {
         console.error('[usePlannerPage] Operation failed:', error);
       }
     },
     handlePublishDay: async (date: string) => {
-      console.log('[usePlannerPage] Publishing day:', date);
-      await publishAssignmentsByDateFromHook(date);
+      await publishAssignmentsByDateAction(date);
     },
     handlePublishAllUnpublished: async () => {
-      console.log('[usePlannerPage] Publishing all unpublished assignments');
-      await publishAssignmentsByDateFromHook(getFreshToday());
+      await publishAssignmentsByDateAction(getFreshToday());
     },
     deleteAssignment: async (id: string) => {
-      console.log('[usePlannerPage] Deleting assignment:', id);
       await deleteAssignmentAction(id);
     },
     publishAssignment: async (id: string) => {
-      console.log('[usePlannerPage] Publishing assignment:', id);
-      await publishAssignmentFromHook(id);
+      await publishAssignmentAction(id);
     },
     handleCopyAssignment: (assignment: Assignment) => {
       setCurrentAssignment(null);

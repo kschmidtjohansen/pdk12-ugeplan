@@ -47,20 +47,15 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
   
-  // Use unified data service for employees and cars
+  // Use streamlined unified data service
   const { employees, cars } = useUnifiedData();
   const { vacations } = useVacations();
 
-  console.log(`[PlannerContent] UNIFIED DATA - Displaying ${weekAssignments.length} assignments with ${employees.length} employees and ${cars.length} cars`);
-  weekAssignments.forEach(assignment => {
-    console.log(`[PlannerContent] UNIFIED DATA - Assignment: ${assignment.id} - ${assignment.title} - Employees: [${assignment.employees?.join(', ')}] - Published: ${assignment.published}`);
-  });
+  console.log(`[PlannerContent] Displaying ${weekAssignments.length} assignments with ${employees.length} employees and ${cars.length} cars`);
 
   // Group assignments by day
   const groupedAssignments = useMemo(() => {
-    const grouped = groupAssignmentsByDay(weekAssignments || []);
-    console.log(`[PlannerContent] UNIFIED DATA - Grouped assignments:`, grouped);
-    return grouped;
+    return groupAssignmentsByDay(weekAssignments || []);
   }, [weekAssignments]);
 
   // Generate dates array for the week
@@ -89,7 +84,6 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   // Determine current date to split past and current/future days
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const todayStr = format(today, 'yyyy-MM-dd');
 
   // Split dates into past and current/future
   const { pastDates, currentAndFutureDates } = useMemo(() => {
@@ -118,12 +112,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     }, { pastDates: [], currentAndFutureDates: [] });
   }, [weekDateStrings, today]);
 
-  // CRITICAL FIX: ALWAYS show planner to ALL authenticated users with ALL assignments
-  const shouldShowPlanner = true;
-
-  console.log(`[PlannerContent] UNIFIED DATA - Showing planner with unified data service`);
-
-  if (!shouldShowPlanner && Array.isArray(weekAssignments) && weekAssignments.length === 0) {
+  if (Array.isArray(weekAssignments) && weekAssignments.length === 0) {
     return <EmptyState message={t("planner.noAssignmentsWeek")} />;
   }
 

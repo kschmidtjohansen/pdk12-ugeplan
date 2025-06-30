@@ -1,47 +1,31 @@
 
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useNotifications } from '@/context/NotificationContext';
-import { isValidUUID } from '@/utils/uuidValidation';
+import { Employee } from '@/types/employee';
 
 export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { addNotification } = useNotifications();
 
-  /**
-   * Update employee onLeave status
-   */
-  const toggleEmployeeLeave = async (employee: any, setOnLeave: boolean, notes: string | null = null) => {
-    // Validate employee ID
-    if (!employee?.id || !isValidUUID(employee.id)) {
-      console.error('Invalid employee ID provided:', employee?.id);
-      toast({
-        title: t('common.error'),
-        description: 'Invalid employee ID',
-        variant: 'destructive',
-      });
-      return false;
-    }
-    
+  const toggleEmployeeLeave = async (employee: Employee, setOnLeave: boolean, notes: string | null = null) => {
     try {
-      // Update the onLeave status and optionally update notes
-      const { data, error } = await supabase
+      console.log('[useEmployeeActions] Updating employee leave status:', {
+        employeeId: employee.id,
+        onLeave: setOnLeave
+      });
+      
+      const { error } = await supabase
         .from('profiles')
         .update({ 
           on_leave: setOnLeave,
-          notes: notes || null
+          notes: notes || null,
+          updated_at: new Date().toISOString()
         })
-        .eq('id', employee.id)
-        .select();
+        .eq('id', employee.id);
       
-      if (error) {
-        console.error('Error updating employee leave status:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      // Show toast notification
       toast({
         title: setOnLeave 
           ? t('employees.employeeOnLeave') 
@@ -51,61 +35,31 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
           : t('employees.employeeAvailableMsg', { name: employee.name })
       });
       
-      // Refresh the employees list after toggle
       await refreshEmployees();
-      
       return true;
     } catch (err) {
-      console.error('Error toggling employee leave status:', err);
-      
+      console.error('[useEmployeeActions] Error:', err);
       toast({
         title: t('common.error'),
         description: t('employees.updateError'),
         variant: 'destructive',
       });
-      
       return false;
     }
   };
 
-  /**
-   * SIMPLIFIED: This function no longer automatically marks employees as on leave based on vacations
-   * Manual leave status is now separate from vacation-based availability
-   */
-  const updateEmployeeLeaveStatusFromVacations = async () => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('updateEmployeeLeaveStatusFromVacations: This function is now simplified and only refreshes employee data');
-    }
-    
-    try {
-      // Just refresh the employee list to get the latest data
-      await refreshEmployees();
-      return true;
-    } catch (err) {
-      console.error('Error refreshing employee data:', err);
-      return false;
-    }
-  };
-
-  /**
-   * Create a new employee with enhanced validation
-   */
   const createEmployee = async (formData: any) => {
     try {
-      // Validate required fields
       if (!formData.email || !formData.password || !formData.name) {
         throw new Error('Email, password, and name are required');
       }
 
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        throw new Error('Please provide a valid email address');
-      }
+      console.log('[useEmployeeActions] Creating employee:', {
+        email: formData.email,
+        name: formData.name,
+        role: formData.role || 'servicemedarbejder'
+      });
 
-      console.log('[createEmployee] Creating employee with role:', formData.role);
-
-      // Call the admin-create-user function to create a new user
       const { data, error } = await supabase.functions.invoke('admin-create-user', {
         body: {
           email: formData.email,
@@ -115,93 +69,57 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         }
       });
       
-      if (error) {
-        console.error('Error calling admin-create-user function:', error);
-        throw error;
-      }
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       
-      if (data?.error) {
-        console.error('Function returned error:', data.error);
-        throw new Error(data.error);
-      }
-      
-      console.log('[createEmployee] Employee created successfully:', data);
-      
-      // Update the profile with additional fields if we have a valid ID
-      if (data?.id && isValidUUID(data.id)) {
+      // Update profile with additional fields
+      if (data?.id) {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
             phone: formData.phone || null,
             job_title: formData.jobTitle || null,
             on_leave: formData.onLeave || false,
-            notes: formData.notes || null
+            notes: formData.notes || null,
+            updated_at: new Date().toISOString()
           })
           .eq('id', data.id);
         
         if (profileError) {
-          console.error('Error updating profile:', profileError);
-          // Don't throw here, the user was created successfully
-          if (process.env.NODE_ENV === 'development') {
-            console.warn('Profile update failed, but user was created');
-          }
-        }
-      } else {
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('Invalid or missing user ID returned from creation:', data?.id);
+          console.warn('[useEmployeeActions] Profile update warning:', profileError);
         }
       }
       
       toast({
         title: t('employees.employeeAdded'),
-        description: t('employees.employeeAddedMsg', { name: formData.name, role: formData.role })
+        description: t('employees.employeeAddedMsg', { 
+          name: formData.name, 
+          role: formData.role || 'servicemedarbejder'
+        })
       });
       
-      // Refresh the employees list
       await refreshEmployees();
-      
       return true;
     } catch (err) {
-      console.error('Error creating employee:', err);
-      
-      // Show error toast with specific message if available
+      console.error('[useEmployeeActions] Creation error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to create employee';
       toast({
         title: t('common.error'),
         description: errorMessage,
         variant: 'destructive',
       });
-      
       return false;
     }
   };
 
-  /**
-   * Update an existing employee with enhanced validation
-   */
-  const updateEmployee = async (employee: any, formData: any) => {
-    if (!isValidUUID(employee?.id)) {
-      console.error('Invalid employee ID for update:', employee?.id);
-      toast({
-        title: t('common.error'),
-        description: 'Invalid employee ID',
-        variant: 'destructive',
-      });
-      return false;
-    }
-    
+  const updateEmployee = async (employee: Employee, formData: any) => {
     try {
-      // Validate email format if provided
-      if (formData.email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(formData.email)) {
-          throw new Error('Please provide a valid email address');
-        }
-      }
-
-      console.log('[updateEmployee] Updating employee:', employee.id, 'with role:', formData.role);
+      console.log('[useEmployeeActions] Updating employee:', {
+        employeeId: employee.id,
+        roleChange: employee.role !== formData.role
+      });
       
-      // Update the profile data
+      // Update profile
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -210,19 +128,15 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
           phone: formData.phone || null,
           job_title: formData.jobTitle || null,
           on_leave: formData.onLeave || false,
-          notes: formData.notes || null
+          notes: formData.notes || null,
+          updated_at: new Date().toISOString()
         })
         .eq('id', employee.id);
       
-      if (profileError) {
-        console.error('Error updating profile:', profileError);
-        throw profileError;
-      }
+      if (profileError) throw profileError;
       
-      // Update the user role if it changed
+      // Handle role update if changed
       if (employee.role !== formData.role) {
-        console.log('[updateEmployee] Role changed, updating from', employee.role, 'to', formData.role);
-        
         const { error: roleError } = await supabase.functions.invoke('admin-user-role', {
           body: {
             userId: employee.id,
@@ -230,10 +144,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
           }
         });
         
-        if (roleError) {
-          console.error('Error updating role:', roleError);
-          throw roleError;
-        }
+        if (roleError) throw roleError;
       }
       
       toast({
@@ -241,103 +152,49 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         description: t('employees.employeeUpdateMsg', { name: formData.name })
       });
       
-      // Refresh the employees list
       await refreshEmployees();
-      
       return true;
     } catch (err) {
-      console.error('Error updating employee:', err);
-      
+      console.error('[useEmployeeActions] Update error:', err);
       const errorMessage = err instanceof Error ? err.message : t('employees.updateError');
       toast({
         title: t('common.error'),
         description: errorMessage,
         variant: 'destructive',
       });
-      
       return false;
     }
   };
 
-  /**
-   * Delete an employee with enhanced validation and error handling
-   */
-  const deleteEmployee = async (employeeId: string, allEmployees: any[]) => {
-    if (!isValidUUID(employeeId)) {
-      console.error('Invalid employee ID for deletion:', employeeId);
-      toast({
-        title: t('common.error'),
-        description: 'Invalid employee ID',
-        variant: 'destructive',
-      });
-      return false;
-    }
-    
+  const deleteEmployee = async (employeeId: string, allEmployees: Employee[]) => {
     try {
-      // Find employee name before deletion
       const employee = allEmployees.find(e => e.id === employeeId);
       if (!employee) throw new Error('Employee not found');
       
-      console.log('[deleteEmployee] Deleting employee:', employeeId, 'Name:', employee.name);
+      console.log('[useEmployeeActions] Deleting employee:', employeeId);
       
-      // Delete the user through the admin function with improved error handling
       const { data, error } = await supabase.functions.invoke('admin-user-delete', {
-        body: {
-          userId: employeeId
-        }
+        body: { userId: employeeId }
       });
       
-      if (error) {
-        console.error('Error calling admin-user-delete function:', error);
-        
-        // Check for specific error types
-        if (error.message?.includes('Failed to send a request')) {
-          throw new Error('Network error: Unable to connect to the server. Please check your connection and try again.');
-        } else if (error.message?.includes('Not authenticated')) {
-          throw new Error('Authentication error: Please refresh the page and try again.');
-        } else if (error.message?.includes('Unauthorized')) {
-          throw new Error('You do not have permission to delete users.');
-        } else if (error.message?.includes('non-2xx status code')) {
-          throw new Error('Server error: The deletion operation failed. The user may have associated data that prevents deletion.');
-        }
-        
-        throw new Error(`Server error: ${error.message}`);
-      }
-      
-      if (data?.error) {
-        console.error('Function returned error:', data.error);
-        
-        // Handle specific business logic errors from the edge function
-        if (data.error.includes('Cannot delete user: User is still assigned')) {
-          throw new Error('Cannot delete user: This employee is assigned as responsible for some assignments. Please reassign those assignments to another employee first.');
-        } else if (data.error.includes('Cannot delete user')) {
-          throw new Error(data.error);
-        }
-        
-        throw new Error(data.error);
-      }
-      
-      console.log('[deleteEmployee] Employee deleted successfully:', data);
+      if (error) throw new Error(`Server error: ${error.message}`);
+      if (data?.error) throw new Error(data.error);
       
       toast({
         title: t('employees.employeeDeleted'),
         description: t('employees.employeeDeletedMsg', { name: employee.name })
       });
       
-      // Refresh the employees list
       await refreshEmployees();
-      
       return true;
     } catch (err) {
-      console.error('Error deleting employee:', err);
-      
+      console.error('[useEmployeeActions] Delete error:', err);
       const errorMessage = err instanceof Error ? err.message : t('employees.deleteError');
       toast({
         title: t('common.error'),
         description: errorMessage,
         variant: 'destructive',
       });
-      
       return false;
     }
   };
@@ -346,7 +203,6 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
     createEmployee,
     updateEmployee,
     deleteEmployee,
-    toggleEmployeeLeave,
-    updateEmployeeLeaveStatusFromVacations
+    toggleEmployeeLeave
   };
 };
