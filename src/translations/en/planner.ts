@@ -1,4 +1,5 @@
 
+
 export const planner = {
   // Basic terms
   title: "Title",
@@ -47,5 +48,38 @@ export const planner = {
   unassignedCars: "Unassigned cars",
   allCarsAssigned: "All cars are assigned",
   showLess: "Show less",
-  showMore: "show more"
+  showMore: "show more",
+  
+  // NEW: Missing translations - Core functionality
+  nothingPlannedToday: "Nothing planned today",
+  selectResponsibleUser: "Select responsible user",
+  
+  // NEW: Form field translations
+  enterTitle: "Enter title",
+  enterLocation: "Enter location",
+  assignmentDescription: "Assignment description",
+  notesPlaceholder: "Notes and comments...",
+  startTime: "Start time",
+  endTime: "End time",
+  createNew: "Create new",
+  publishAssignment: "Publish assignment",
+  
+  // NEW: Action and status translations
+  deleteAssignment: "Delete assignment",
+  publishDayTasks: "Publish day tasks",
+  previousDays: "Previous days",
+  noAssignments: "No assignments",
+  
+  // NEW: Car selection translations
+  selectCar: "Select car",
+  selectCars: "Select cars",
+  carsSelected: "cars selected",
+  unavailable: "Unavailable",
+  available: "Available",
+  bookedUntil: "Booked until",
+  carNotAvailable: "Car not available",
+  
+  // NEW: Employee status translations
+  onVacation: "On vacation"
 };
+
