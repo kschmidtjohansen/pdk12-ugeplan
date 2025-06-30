@@ -137,7 +137,7 @@ export const useEmployeeDataOptimized = () => {
       // Step 3: Fetch user roles with retry logic
       const userIds = profilesData.map(profile => profile.id);
       
-      console.log('[useEmployeeDataOptimized] Fetching user roles for user IDs:', userIds);
+      console.log('[useEmployeeDataOptimized] CRITICAL DEBUG: Fetching user roles for user IDs:', userIds);
       
       const rolesResult = await withRetry(
         async () => {
@@ -153,13 +153,31 @@ export const useEmployeeDataOptimized = () => {
       const { data: rolesData, error: rolesError } = rolesResult;
       
       if (rolesError) {
-        console.error('[useEmployeeDataOptimized] Roles query error:', rolesError);
+        console.error('[useEmployeeDataOptimized] CRITICAL ERROR: Roles query error:', rolesError);
         // Continue with default roles instead of failing completely
         console.warn('[useEmployeeDataOptimized] Continuing with default roles due to error:', rolesError.message);
       }
       
-      console.log(`[useEmployeeDataOptimized] Successfully fetched ${rolesData?.length || 0} role assignments`);
-      console.log('[useEmployeeDataOptimized] DEBUG: Roles data:', rolesData);
+      console.log(`[useEmployeeDataOptimized] CRITICAL DEBUG: Successfully fetched ${rolesData?.length || 0} role assignments`);
+      console.log('[useEmployeeDataOptimized] CRITICAL DEBUG: Complete roles data:', rolesData);
+      
+      // Additional debugging: Check for specific users
+      const expectedEligibleUsers = [
+        'Bjarke Højland', 'Kasper Johansen', 'Morten Stokholm', // administrators
+        'Anders Axelsen', 'Betina Poulsen', 'Nick Berg Hansen', 'Sisse Rud Hansen' // skadeleders
+      ];
+      
+      expectedEligibleUsers.forEach(name => {
+        const profile = profilesData.find(p => p.name === name);
+        const role = rolesData?.find(r => r.user_id === profile?.id);
+        console.log(`[useEmployeeDataOptimized] CRITICAL DEBUG: User ${name}:`, {
+          hasProfile: !!profile,
+          profileId: profile?.id,
+          hasRole: !!role,
+          roleValue: role?.role,
+          isEligible: role?.role === 'administrator' || role?.role === 'skadeleder'
+        });
+      });
       
       // Step 4: Transform data to Employee format
       const transformedEmployees: Employee[] = profilesData.map(profile => {
@@ -177,12 +195,13 @@ export const useEmployeeDataOptimized = () => {
           avatar_url: profile.avatar_url
         };
         
-        // DEBUG: Log each employee transformation
-        console.log(`[useEmployeeDataOptimized] DEBUG: Transformed employee:`, {
+        // CRITICAL DEBUG: Log each employee transformation
+        console.log(`[useEmployeeDataOptimized] CRITICAL DEBUG: Transformed employee ${profile.name}:`, {
           name: employee.name,  
           role: employee.role,
           originalRole: userRole?.role,
           hasRole: !!userRole,
+          userId: profile.id,
           isEligibleForResponsible: employee.role === 'administrator' || employee.role === 'skadeleder'
         });
         
@@ -191,14 +210,22 @@ export const useEmployeeDataOptimized = () => {
       
       console.log(`[useEmployeeDataOptimized] Successfully transformed ${transformedEmployees.length} employees`);
       
-      // DEBUG: Count eligible users for responsible selection
+      // CRITICAL DEBUG: Count eligible users for responsible selection
       const eligibleUsers = transformedEmployees.filter(emp => 
         emp.role === 'administrator' || emp.role === 'skadeleder'
       );
-      console.log(`[useEmployeeDataOptimized] DEBUG: Eligible responsible users:`, {
+      console.log(`[useEmployeeDataOptimized] CRITICAL DEBUG: Final eligible responsible users:`, {
         total: eligibleUsers.length,
-        users: eligibleUsers.map(u => ({ name: u.name, role: u.role }))
+        users: eligibleUsers.map(u => ({ name: u.name, role: u.role, id: u.id }))
       });
+      
+      // CRITICAL DEBUG: Role distribution
+      const roleCounts = {
+        administrator: transformedEmployees.filter(emp => emp.role === 'administrator').length,
+        skadeleder: transformedEmployees.filter(emp => emp.role === 'skadeleder').length,
+        servicemedarbejder: transformedEmployees.filter(emp => emp.role === 'servicemedarbejder').length
+      };
+      console.log(`[useEmployeeDataOptimized] CRITICAL DEBUG: Role distribution:`, roleCounts);
       
       setEmployees(transformedEmployees);
       
