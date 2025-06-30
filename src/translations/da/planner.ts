@@ -1,5 +1,4 @@
 
-
 const planner = {
   title: 'Planner',
   description: 'Administrer opgaver og planlæg arbejdsdagen',

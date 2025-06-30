@@ -1,5 +1,4 @@
 
-
 const planner = {
   title: 'Planner',
   description: 'Manage assignments and schedule employees',
@@ -13,8 +12,6 @@ const planner = {
   // Assignment details
   titlePlaceholder: 'Enter title',
   locationPlaceholder: 'Enter location',
-  date: 'Date',
-  time: 'Time',
   fromTime: 'From Time',
   toTime: 'To Time',
   location: 'Location',
@@ -69,7 +66,9 @@ const planner = {
   errorPublishingDay: 'Failed to publish assignments for the day',
   
   // Required fields
-  employees: 'Employees'
+  employees: 'Employees',
+  date: 'Date',
+  time: 'Time'
 };
 
 export default planner;
