@@ -1,4 +1,5 @@
 
+
 const planner = {
   title: 'Planner',
   description: 'Administrer opgaver og planlæg arbejdsdagen',
@@ -72,11 +73,11 @@ const planner = {
   weekView: 'Uge {week}, {start} - {end}, {year}',
   
   // Common terms
-  title: 'Titel',
   location: 'Lokation',
   date: 'Dato',
   time: 'Tid',
   description: 'Beskrivelse',
+  employees: 'Medarbejdere',
   
   // Assignment types
   typeCleaning: 'Rengøring',
@@ -84,11 +85,11 @@ const planner = {
   typeInspection: 'Inspektion',
   typeOther: 'Andet',
   
-  // Status - only one definition
+  // Status
   published: 'Offentliggjort',
   notPublished: 'Ikke offentliggjort',
 
-  // Publishing messages - only one definition
+  // Publishing messages
   assignmentPublished: 'Opgave Publiceret',
   assignmentPublishedMsg: 'Opgaven er blevet publiceret med succes',
   dayPublished: 'Dag Publiceret',
@@ -98,3 +99,4 @@ const planner = {
 };
 
 export default planner;
+

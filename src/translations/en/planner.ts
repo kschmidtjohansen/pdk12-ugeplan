@@ -1,4 +1,5 @@
 
+
 const planner = {
   title: 'Planner',
   description: 'Manage assignments and schedule employees',
@@ -67,9 +68,9 @@ const planner = {
   errorPublishingAssignment: 'Failed to publish assignment',
   errorPublishingDay: 'Failed to publish assignments for the day',
   
-  // Additional required fields
-  title: 'Title',
+  // Required fields
   employees: 'Employees'
 };
 
 export default planner;
+
