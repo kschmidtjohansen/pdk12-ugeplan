@@ -84,7 +84,7 @@ export const useEmployeeDataOptimized = () => {
       setLoading(true);
       setError(null);
       
-      console.log('[useEmployeeDataOptimized] Starting employee fetch...');
+      console.log('[useEmployeeDataOptimized] ===== STARTING EMPLOYEE FETCH =====');
       
       // Step 1: Ensure we have a valid authenticated session
       const { data: { session } } = await supabase.auth.getSession();
@@ -94,7 +94,7 @@ export const useEmployeeDataOptimized = () => {
       
       console.log('[useEmployeeDataOptimized] Session validated, fetching profiles...');
       
-      // Step 2: Fetch profiles with retry logic
+      // Step 2: Fetch profiles with comprehensive debugging
       const profilesResult = await withRetry(
         async () => {
           const queryResult = await supabase
@@ -132,12 +132,12 @@ export const useEmployeeDataOptimized = () => {
       }
       
       console.log(`[useEmployeeDataOptimized] Successfully fetched ${profilesData.length} profiles`);
-      console.log('[useEmployeeDataOptimized] DEBUG: Profile data sample:', profilesData.slice(0, 3));
       
-      // Step 3: Fetch user roles with retry logic
+      // Step 3: Fetch user roles with comprehensive debugging
       const userIds = profilesData.map(profile => profile.id);
       
-      console.log('[useEmployeeDataOptimized] CRITICAL DEBUG: Fetching user roles for user IDs:', userIds);
+      console.log('[useEmployeeDataOptimized] ===== USER ROLES FETCH =====');
+      console.log('[useEmployeeDataOptimized] Fetching roles for user IDs:', userIds.slice(0, 5), '...and', userIds.length - 5, 'more');
       
       const rolesResult = await withRetry(
         async () => {
@@ -153,34 +153,17 @@ export const useEmployeeDataOptimized = () => {
       const { data: rolesData, error: rolesError } = rolesResult;
       
       if (rolesError) {
-        console.error('[useEmployeeDataOptimized] CRITICAL ERROR: Roles query error:', rolesError);
-        // Continue with default roles instead of failing completely
-        console.warn('[useEmployeeDataOptimized] Continuing with default roles due to error:', rolesError.message);
+        console.error('[useEmployeeDataOptimized] CRITICAL ERROR: Roles query failed:', rolesError);
+        console.warn('[useEmployeeDataOptimized] Continuing with default roles (servicemedarbejder)');
+      } else {
+        console.log(`[useEmployeeDataOptimized] ===== ROLES FETCH SUCCESS =====`);
+        console.log(`[useEmployeeDataOptimized] Successfully fetched ${rolesData?.length || 0} role assignments`);
+        console.log('[useEmployeeDataOptimized] Sample roles data:', rolesData?.slice(0, 5));
       }
       
-      console.log(`[useEmployeeDataOptimized] CRITICAL DEBUG: Successfully fetched ${rolesData?.length || 0} role assignments`);
-      console.log('[useEmployeeDataOptimized] CRITICAL DEBUG: Complete roles data:', rolesData);
-      
-      // Additional debugging: Check for specific users
-      const expectedEligibleUsers = [
-        'Bjarke Højland', 'Kasper Johansen', 'Morten Stokholm', // administrators
-        'Anders Axelsen', 'Betina Poulsen', 'Nick Berg Hansen', 'Sisse Rud Hansen' // skadeleders
-      ];
-      
-      expectedEligibleUsers.forEach(name => {
-        const profile = profilesData.find(p => p.name === name);
-        const role = rolesData?.find(r => r.user_id === profile?.id);
-        console.log(`[useEmployeeDataOptimized] CRITICAL DEBUG: User ${name}:`, {
-          hasProfile: !!profile,
-          profileId: profile?.id,
-          hasRole: !!role,
-          roleValue: role?.role,
-          isEligible: role?.role === 'administrator' || role?.role === 'skadeleder'
-        });
-      });
-      
-      // Step 4: Transform data to Employee format
-      const transformedEmployees: Employee[] = profilesData.map(profile => {
+      // Step 4: Transform data with comprehensive debugging
+      console.log('[useEmployeeDataOptimized] ===== DATA TRANSFORMATION =====');
+      const transformedEmployees: Employee[] = profilesData.map((profile, index) => {
         const userRole = rolesData?.find(r => r.user_id === profile.id);
         
         const employee = {
@@ -195,46 +178,73 @@ export const useEmployeeDataOptimized = () => {
           avatar_url: profile.avatar_url
         };
         
-        // CRITICAL DEBUG: Log each employee transformation
-        console.log(`[useEmployeeDataOptimized] CRITICAL DEBUG: Transformed employee ${profile.name}:`, {
-          name: employee.name,  
-          role: employee.role,
-          originalRole: userRole?.role,
-          hasRole: !!userRole,
-          userId: profile.id,
-          isEligibleForResponsible: employee.role === 'administrator' || employee.role === 'skadeleder'
-        });
+        // Log first 10 transformations in detail
+        if (index < 10) {
+          console.log(`[useEmployeeDataOptimized] Employee ${index + 1}: ${profile.name}`, {
+            profileId: profile.id,
+            foundRole: !!userRole,
+            roleValue: userRole?.role,
+            finalRole: employee.role,
+            isEligible: employee.role === 'administrator' || employee.role === 'skadeleder'
+          });
+        }
         
         return employee;
       });
       
-      console.log(`[useEmployeeDataOptimized] Successfully transformed ${transformedEmployees.length} employees`);
+      console.log(`[useEmployeeDataOptimized] ===== TRANSFORMATION COMPLETE =====`);
+      console.log(`[useEmployeeDataOptimized] Transformed ${transformedEmployees.length} employees`);
       
-      // CRITICAL DEBUG: Count eligible users for responsible selection
-      const eligibleUsers = transformedEmployees.filter(emp => 
-        emp.role === 'administrator' || emp.role === 'skadeleder'
-      );
-      console.log(`[useEmployeeDataOptimized] CRITICAL DEBUG: Final eligible responsible users:`, {
-        total: eligibleUsers.length,
-        users: eligibleUsers.map(u => ({ name: u.name, role: u.role, id: u.id }))
-      });
-      
-      // CRITICAL DEBUG: Role distribution
-      const roleCounts = {
+      // Final analysis
+      const roleDistribution = {
         administrator: transformedEmployees.filter(emp => emp.role === 'administrator').length,
         skadeleder: transformedEmployees.filter(emp => emp.role === 'skadeleder').length,
         servicemedarbejder: transformedEmployees.filter(emp => emp.role === 'servicemedarbejder').length
       };
-      console.log(`[useEmployeeDataOptimized] CRITICAL DEBUG: Role distribution:`, roleCounts);
+      
+      const eligibleUsers = transformedEmployees.filter(emp => 
+        emp.role === 'administrator' || emp.role === 'skadeleder'
+      );
+
+      console.log(`[useEmployeeDataOptimized] ===== FINAL ANALYSIS =====`);
+      console.log('[useEmployeeDataOptimized] Role distribution:', roleDistribution);
+      console.log(`[useEmployeeDataOptimized] Eligible users for responsible selection: ${eligibleUsers.length}`);
+      console.log('[useEmployeeDataOptimized] Eligible users:', eligibleUsers.map(u => ({ 
+        name: u.name, 
+        role: u.role, 
+        id: u.id.substring(0, 8) + '...' 
+      })));
+      
+      // Expected users verification
+      const expectedEligibleUsers = [
+        'Bjarke Højland', 'Kasper Johansen', 'Morten Stokholm', // administrators
+        'Anders Axelsen', 'Betina Poulsen', 'Nick Berg Hansen', 'Sisse Rud Hansen' // skadeleders
+      ];
+      
+      console.log('[useEmployeeDataOptimized] ===== EXPECTED USERS VERIFICATION =====');
+      expectedEligibleUsers.forEach(name => {
+        const profile = profilesData.find(p => p.name === name);
+        const role = rolesData?.find(r => r.user_id === profile?.id);
+        const finalEmployee = transformedEmployees.find(e => e.name === name);
+        
+        console.log(`[useEmployeeDataOptimized] Expected user: ${name}`, {
+          hasProfile: !!profile,
+          hasRoleInDB: !!role,
+          dbRole: role?.role,
+          finalRole: finalEmployee?.role,
+          isEligible: finalEmployee?.role === 'administrator' || finalEmployee?.role === 'skadeleder'
+        });
+      });
       
       setEmployees(transformedEmployees);
-      
-      // Clear any previous errors and reset circuit breaker
       setError(null);
       resetCircuitBreaker();
       
+      console.log('[useEmployeeDataOptimized] ===== FETCH COMPLETE SUCCESS =====');
+      
     } catch (err) {
-      console.error('[useEmployeeDataOptimized] Error in fetchEmployees:', err);
+      console.error('[useEmployeeDataOptimized] ===== FETCH FAILED =====');
+      console.error('[useEmployeeDataOptimized] Error:', err);
       
       recordFailure();
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';

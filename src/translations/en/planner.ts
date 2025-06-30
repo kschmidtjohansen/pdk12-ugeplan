@@ -146,7 +146,6 @@ const planner = {
   employeeAvailable: 'Available',
   employeeUnavailable: 'Unavailable',
   noEmployeesSelected: 'No employees selected',
-  onVacation: 'On vacation',
   
   // Responsible user translations
   responsibleUserDisplay: 'Responsible: {name}',

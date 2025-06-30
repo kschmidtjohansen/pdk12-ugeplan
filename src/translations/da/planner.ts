@@ -146,7 +146,6 @@ const planner = {
   employeeAvailable: 'Tilgængelig',
   employeeUnavailable: 'Ikke tilgængelig',
   noEmployeesSelected: 'Ingen medarbejdere valgt',
-  onVacation: 'På ferie',
   
   // Responsible user translations
   responsibleUserDisplay: 'Ansvarlig: {name}',

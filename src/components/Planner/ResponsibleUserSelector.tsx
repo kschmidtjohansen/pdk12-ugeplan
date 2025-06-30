@@ -24,52 +24,25 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   const { t } = useTranslation();
   const { employees } = useEmployees();
 
-  console.log('[ResponsibleUserSelector] DEBUG: Hook data received:');
+  console.log('[ResponsibleUserSelector] DEBUG: Component rendering with:');
   console.log('[ResponsibleUserSelector] Total employees from hook:', employees.length);
-  console.log('[ResponsibleUserSelector] All employees:', employees.map(e => ({ 
-    id: e.id, 
-    name: e.name, 
-    role: e.role,
-    email: e.email 
-  })));
+  console.log('[ResponsibleUserSelector] Selected user ID:', selectedUserId);
+  console.log('[ResponsibleUserSelector] Translation context working:', t('planner.responsibleUser'));
 
   // Filter employees to only show administrators and skadeleders
-  const eligibleUsers = employees.filter(employee => 
-    employee.role === 'administrator' || employee.role === 'skadeleder'
-  );
+  const eligibleUsers = employees.filter(employee => {
+    const isEligible = employee.role === 'administrator' || employee.role === 'skadeleder';
+    console.log(`[ResponsibleUserSelector] Employee ${employee.name} (${employee.role}): eligible = ${isEligible}`);
+    return isEligible;
+  });
 
-  console.log('[ResponsibleUserSelector] DEBUG: Filtering results:');
+  console.log('[ResponsibleUserSelector] DEBUG: Final filtering results:');
   console.log('[ResponsibleUserSelector] Eligible users count:', eligibleUsers.length);
-  console.log('[ResponsibleUserSelector] Eligible users details:', eligibleUsers.map(u => ({ 
+  console.log('[ResponsibleUserSelector] Eligible users:', eligibleUsers.map(u => ({ 
     id: u.id, 
     name: u.name, 
-    role: u.role,
-    email: u.email
+    role: u.role 
   })));
-
-  // Additional debug: Check if we're missing any users that should be eligible
-  const allRoles = [...new Set(employees.map(e => e.role))];
-  console.log('[ResponsibleUserSelector] DEBUG: All unique roles found:', allRoles);
-  
-  const roleDistribution = allRoles.map(role => ({
-    role,
-    count: employees.filter(e => e.role === role).length,
-    users: employees.filter(e => e.role === role).map(e => e.name)
-  }));
-  console.log('[ResponsibleUserSelector] DEBUG: Role distribution:', roleDistribution);
-
-  // Expected users from database query
-  const expectedUsers = [
-    'Bjarke Højland', 'Kasper Johansen', 'Morten Stokholm', // administrators
-    'Anders Axelsen', 'Betina Poulsen', 'Nick Berg Hansen', 'Sisse Rud Hansen' // skadeleders
-  ];
-  
-  const missingUsers = expectedUsers.filter(name => 
-    !employees.find(emp => emp.name === name)
-  );
-  
-  console.log('[ResponsibleUserSelector] DEBUG: Expected users from DB:', expectedUsers);
-  console.log('[ResponsibleUserSelector] DEBUG: Missing users:', missingUsers);
 
   // Get display text for selected user
   const getSelectedUserDisplay = () => {
@@ -78,7 +51,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     }
     
     const user = eligibleUsers.find(user => user.id === selectedUserId);
-    console.log('[ResponsibleUserSelector] DEBUG: Looking for selected user:', {
+    console.log('[ResponsibleUserSelector] DEBUG: Finding selected user:', {
       selectedUserId,
       foundUser: user ? { id: user.id, name: user.name, role: user.role } : null
     });
@@ -90,8 +63,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   const handleUserSelect = (userId: string) => {
     console.log('[ResponsibleUserSelector] User selection:', {
       userId,
-      isNone: userId === 'none',
-      selectedUser: userId !== 'none' ? eligibleUsers.find(u => u.id === userId) : null
+      isNone: userId === 'none'
     });
     
     if (userId === 'none') {
@@ -133,7 +105,9 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
           
           {eligibleUsers.length === 0 ? (
             <DropdownMenuItem disabled className="p-2">
-              <span className="text-gray-500">No eligible users found (administrators or skadeleders)</span>
+              <span className="text-gray-500">
+                {t('planner.noResponsibleUser')} - Debugging: {employees.length} total employees loaded
+              </span>
             </DropdownMenuItem>
           ) : (
             eligibleUsers.map((user) => (
@@ -147,6 +121,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
                     <UserCheck className="h-4 w-4" />
                     <span className="truncate">{user.name}</span>
                   </div>
+                  <span className="text-xs text-gray-500 ml-2">({user.role})</span>
                 </div>
               </DropdownMenuItem>
             ))
@@ -156,8 +131,8 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
       
       {/* Debug info in development */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="text-xs text-gray-400 mt-1">
-          Debug: {employees.length} total employees, {eligibleUsers.length} eligible for responsible selection
+        <div className="text-xs text-gray-400 mt-1 p-2 bg-gray-50 rounded">
+          Debug: {employees.length} total, {eligibleUsers.length} eligible | Translation: "{t('planner.responsibleUser')}"
         </div>
       )}
     </div>
