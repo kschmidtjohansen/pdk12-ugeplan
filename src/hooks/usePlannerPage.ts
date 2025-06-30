@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
@@ -43,7 +44,8 @@ export const usePlannerPage = () => {
     operationStates,
     refetch,
     deleteAssignment: deleteAssignmentFromHook,
-    publishAssignment: publishAssignmentFromHook
+    publishAssignment: publishAssignmentFromHook,
+    publishAssignmentsByDate: publishAssignmentsByDateFromHook
   } = useOptimizedAssignments(plannerFilter);
 
   // DEBUG: Log raw planner data
@@ -224,11 +226,11 @@ export const usePlannerPage = () => {
     },
     handlePublishDay: async (date: string) => {
       console.log('[usePlannerPage] Publishing day:', date);
-      await publishAssignmentsByDateAction(date);
+      await publishAssignmentsByDateFromHook(date);
     },
     handlePublishAllUnpublished: async () => {
       console.log('[usePlannerPage] Publishing all unpublished assignments');
-      await publishAssignmentsByDate(getFreshToday());
+      await publishAssignmentsByDateFromHook(getFreshToday());
     },
     deleteAssignment: async (id: string) => {
       console.log('[usePlannerPage] Deleting assignment:', id);

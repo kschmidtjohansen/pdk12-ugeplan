@@ -1,3 +1,4 @@
+
 const planner = {
   title: 'Planner',
   description: 'Manage assignments and schedule employees',
@@ -18,7 +19,6 @@ const planner = {
   location: 'Location',
   description: 'Description',
   descriptionPlaceholder: 'Enter description',
-  employees: 'Employees',
   selectEmployees: 'Select Employees',
   car: 'Car',
   selectCar: 'Select Car',
@@ -65,7 +65,11 @@ const planner = {
   dayPublished: 'Day Published',
   dayPublishedMsg: 'All assignments for {date} have been published',
   errorPublishingAssignment: 'Failed to publish assignment',
-  errorPublishingDay: 'Failed to publish assignments for the day'
+  errorPublishingDay: 'Failed to publish assignments for the day',
+  
+  // Additional required fields
+  title: 'Title',
+  employees: 'Employees'
 };
 
 export default planner;

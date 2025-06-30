@@ -1,4 +1,5 @@
 
+
 import { common } from './da/common';
 import navigation from './da/navigation';
 import notifications from './da/notifications';
@@ -7,7 +8,7 @@ import accessDenied from './da/accessDenied';
 import login from './da/login';
 import { admin } from './da/admin';
 import employees from './da/employees';
-import { planner } from './da/planner';
+import planner from './da/planner';
 import { dashboard } from './da/dashboard';
 import vacation from './da/vacation';
 import cars from './da/cars';

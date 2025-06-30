@@ -1,3 +1,4 @@
+
 const planner = {
   title: 'Planner',
   description: 'Administrer opgaver og planlæg arbejdsdagen',
@@ -83,17 +84,17 @@ const planner = {
   typeInspection: 'Inspektion',
   typeOther: 'Andet',
   
-  // Status
+  // Status - only one definition
   published: 'Offentliggjort',
   notPublished: 'Ikke offentliggjort',
 
-  // Publishing messages
+  // Publishing messages - only one definition
   assignmentPublished: 'Opgave Publiceret',
   assignmentPublishedMsg: 'Opgaven er blevet publiceret med succes',
   dayPublished: 'Dag Publiceret',
   dayPublishedMsg: 'Alle opgaver for {date} er blevet publiceret',
   errorPublishingAssignment: 'Kunne ikke publicere opgave',
-  errorPublishingDay: 'Kunne ikke publicere opgaver for dagen',
+  errorPublishingDay: 'Kunne ikke publicere opgaver for dagen'
 };
 
 export default planner;

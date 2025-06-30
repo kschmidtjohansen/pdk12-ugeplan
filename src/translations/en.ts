@@ -1,4 +1,5 @@
 
+
 import { common } from './en/common';
 import navigation from './en/navigation';
 import notifications from './en/notifications';
@@ -8,7 +9,7 @@ import vacation from './en/vacation';
 import employees from './en/employees';
 import { profile } from './en/profile';
 import login from './en/login';
-import { planner } from './en/planner';
+import planner from './en/planner';
 import cars from './en/cars';
 import { admin } from './en/admin';
 import { auth } from './en/auth';
