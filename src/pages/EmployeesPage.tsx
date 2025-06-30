@@ -33,8 +33,8 @@ const EmployeesPage: React.FC = () => {
   // Use unified data service
   const { 
     employees, 
-    loading: { employees: loading }, 
-    errors: { employees: error },
+    loading, 
+    error,
     fetchEmployees 
   } = useUnifiedData();
 

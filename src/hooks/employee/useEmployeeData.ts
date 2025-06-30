@@ -50,7 +50,13 @@ export const useEmployeeData = () => {
       
       // Transform data with proper role mapping
       const transformedEmployees: Employee[] = profilesWithRoles.map(profile => {
-        const role = profile.user_roles?.[0]?.role || 'servicemedarbejder';
+        // Handle the role properly - user_roles is an array, get the first role
+        const userRole = Array.isArray(profile.user_roles) && profile.user_roles.length > 0 
+          ? profile.user_roles[0] 
+          : null;
+        const role = userRole && typeof userRole === 'object' && 'role' in userRole 
+          ? userRole.role 
+          : 'servicemedarbejder';
         
         const employee = {
           id: profile.id,
