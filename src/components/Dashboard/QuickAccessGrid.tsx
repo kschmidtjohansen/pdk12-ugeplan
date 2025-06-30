@@ -23,16 +23,16 @@ const QuickAccessGrid: React.FC<QuickAccessGridProps> = ({ userRole }) => {
   const getQuickAccessItems = (): QuickAccessItem[] => {
     const baseItems = [
       {
-        title: t('dashboard.quickAccess.planner.title'),
+        title: t('dashboard.quickAccessGrid.planner.title'),
         icon: <Clock className="h-6 w-6" />,
-        description: t('dashboard.quickAccess.planner.description'),
+        description: t('dashboard.quickAccessGrid.planner.description'),
         link: '/planner',
         color: 'blue'
       },
       {
-        title: t('dashboard.quickAccess.vacation.title'),
+        title: t('dashboard.quickAccessGrid.vacation.title'),
         icon: <Calendar className="h-6 w-6" />,
-        description: t('dashboard.quickAccess.vacation.description'),
+        description: t('dashboard.quickAccessGrid.vacation.description'),
         link: '/vacation',
         color: 'green'
       }
@@ -40,15 +40,15 @@ const QuickAccessGrid: React.FC<QuickAccessGridProps> = ({ userRole }) => {
 
     if (userRole === 'administrator' || userRole === 'skadeleder') {
       baseItems.push({
-        title: t('dashboard.quickAccess.employees.title'),
+        title: t('dashboard.quickAccessGrid.employees.title'),
         icon: <Users className="h-6 w-6" />,
-        description: t('dashboard.quickAccess.employees.description'),
+        description: t('dashboard.quickAccessGrid.employees.description'),
         link: '/employees',
         color: 'purple'
       }, {
-        title: t('dashboard.quickAccess.cars.title'),
+        title: t('dashboard.quickAccessGrid.cars.title'),
         icon: <Car className="h-6 w-6" />,
-        description: t('dashboard.quickAccess.cars.description'),
+        description: t('dashboard.quickAccessGrid.cars.description'),
         link: '/cars',
         color: 'orange'
       });
