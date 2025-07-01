@@ -14,14 +14,12 @@ interface AssignmentDetailsProps {
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars }) => {
   const { t } = useTranslation();
 
+  console.log('[AssignmentDetails] SAGSANSVARLIG DEBUG - Assignment:', assignment.id);
+  console.log('[AssignmentDetails] SAGSANSVARLIG DEBUG - Responsible user:', assignment.responsibleUser);
+
   // Enhanced car name resolution with comprehensive fallbacks
   const getCarNames = (assignment: Assignment): string[] => {
     const carNames: string[] = [];
-    
-    console.log('[AssignmentDetails] COMPREHENSIVE CAR FIX - Getting car names for assignment:', assignment.id);
-    console.log('[AssignmentDetails] COMPREHENSIVE CAR FIX - Assignment cars array:', assignment.cars);
-    console.log('[AssignmentDetails] COMPREHENSIVE CAR FIX - Assignment car (legacy):', assignment.car);
-    console.log('[AssignmentDetails] COMPREHENSIVE CAR FIX - Available cars for lookup:', cars.length);
     
     if (assignment.cars && Array.isArray(assignment.cars) && assignment.cars.length > 0) {
       // New format: multiple cars array with IDs
@@ -51,7 +49,6 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
       }
     }
     
-    console.log('[AssignmentDetails] COMPREHENSIVE CAR FIX - Final car names:', carNames);
     return carNames;
   };
 
@@ -104,18 +101,18 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
 
       {/* Right Column */}
       <div className="space-y-3">
-        {/* Responsible User - enhanced with label and better fallback */}
+        {/* Sagsansvarlig - CRITICAL FIX: Always show if there's a responsible user */}
         {assignment.responsibleUser && (
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
               <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0 flex-1">
               <span className="text-xs text-muted-foreground font-medium">
-                {t('planner.responsibleUser')}
+                {t('planner.responsibleUser') || 'Sagsansvarlig'}
               </span>
-              <span className="text-foreground font-medium text-sm">
-                {assignment.responsibleUser.name || t('planner.noResponsibleUser')}
+              <span className="text-foreground font-medium text-sm truncate">
+                {assignment.responsibleUser.name || (t('planner.noResponsibleUser') || 'Ingen sagsansvarlig')}
               </span>
             </div>
           </div>
@@ -130,7 +127,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
             <div className="flex flex-wrap gap-1">
               {employeeNames.map((employeeName, index) => (
                 <Badge key={index} variant="secondary" className="text-xs bg-purple-50">
-                  {employeeName || t('planner.unknownEmployee')}
+                  {employeeName || (t('planner.unknownEmployee') || 'Ukendt medarbejder')}
                 </Badge>
               ))}
             </div>

@@ -32,11 +32,8 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  console.log(`[AssignmentCard] Rendering assignment card for ${assignment.title || assignment.location}:`);
-  console.log(`  - Assignment ID: ${assignment.id}`);
-  console.log(`  - Published status: ${assignment.published}`);
-  console.log(`  - Operation state: ${operationState}`);
-  console.log(`  - Responsible user: ${assignment.responsibleUser}`);
+  console.log(`[AssignmentCard] SAGSANSVARLIG DEBUG - Assignment: ${assignment.title || assignment.location}`);
+  console.log(`[AssignmentCard] SAGSANSVARLIG DEBUG - Responsible user:`, assignment.responsibleUser);
 
   const handleEditClick = (assignment: Assignment) => {
     console.log('[AssignmentCard] Edit clicked for assignment:', assignment.id);
@@ -69,22 +66,20 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const getOperationText = (state: 'publishing' | 'deleting' | 'updating') => {
     switch (state) {
       case 'publishing':
-        return t('common.publishing') + '...';
+        return (t('common.publishing') || 'Publicerer') + '...';
       case 'deleting':
-        return t('common.deleting') + '...';
+        return (t('common.deleting') || 'Sletter') + '...';
       case 'updating':
-        return t('common.updating') + '...';
+        return (t('common.updating') || 'Opdaterer') + '...';
       default:
-        return t('common.processing') + '...';
+        return (t('common.processing') || 'Behandler') + '...';
     }
   };
 
-  // Get responsible user display name
+  // Get responsible user display name - CRITICAL FIX
   const getResponsibleUserName = () => {
     if (!assignment.responsibleUser) return null;
-    return typeof assignment.responsibleUser === 'string' 
-      ? assignment.responsibleUser 
-      : assignment.responsibleUser.name;
+    return assignment.responsibleUser.name;
   };
 
   const responsibleUserName = getResponsibleUserName();
@@ -94,12 +89,15 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
         <div className="flex items-center gap-2">
           <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium text-lg">{assignment.title || t('planner.titleLabel')}</h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-medium text-lg">{assignment.title || (t('planner.titleLabel') || 'Titel')}</h3>
+              {/* CRITICAL FIX: Show Sagsansvarlig badge when present */}
               {responsibleUserName && (
                 <div className="flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
                   <UserCheck className="h-3 w-3" />
-                  <span>{responsibleUserName}</span>
+                  <span title={t('planner.responsibleUser') || 'Sagsansvarlig'}>
+                    {responsibleUserName}
+                  </span>
                 </div>
               )}
             </div>

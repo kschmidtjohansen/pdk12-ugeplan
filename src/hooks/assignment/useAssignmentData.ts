@@ -21,7 +21,7 @@ export const useAssignmentData = (filter: 'all' | 'published' | 'my' = 'all') =>
       
       console.log('[useAssignmentData] Fetching assignments with filter:', filter);
       
-      // Build the query based on user role and filter
+      // Build the query - removed the problematic foreign key reference
       let query = supabase
         .from('assignments')
         .select(`
@@ -42,10 +42,6 @@ export const useAssignmentData = (filter: 'all' | 'published' | 'my' = 'all') =>
             id,
             name,
             car_number
-          ),
-          responsible_user:profiles!fk_assignments_responsible_user_id (
-            id,
-            name
           )
         `)
         .order('assignment_date', { ascending: true });
@@ -66,6 +62,8 @@ export const useAssignmentData = (filter: 'all' | 'published' | 'my' = 'all') =>
         return;
       }
       
+      console.log(`[useAssignmentData] Fetched ${assignmentsData.length} assignments from database`);
+      
       // Get assignment-employee relationships
       const assignmentIds = assignmentsData.map(a => a.id);
       const { data: assignmentEmployees } = await supabase
@@ -84,6 +82,23 @@ export const useAssignmentData = (filter: 'all' | 'published' | 'my' = 'all') =>
           .select('id, name')
           .in('id', uniqueUserIds);
         profilesData = profiles || [];
+      }
+      
+      // CRITICAL FIX: Fetch responsible user data separately
+      const responsibleUserIds = assignmentsData
+        .map(a => a.responsible_user_id)
+        .filter(id => id !== null && id !== undefined);
+      
+      let responsibleUsersData: any[] = [];
+      if (responsibleUserIds.length > 0) {
+        const { data: responsibleUsers } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .in('id', responsibleUserIds);
+        
+        responsibleUsersData = responsibleUsers || [];
+        console.log(`[useAssignmentData] SAGSANSVARLIG FIX - Fetched ${responsibleUsersData.length} responsible users:`, 
+          responsibleUsersData.map(u => ({ id: u.id, name: u.name })));
       }
       
       // Process assignments
@@ -114,6 +129,21 @@ export const useAssignmentData = (filter: 'all' | 'published' | 'my' = 'all') =>
           carData = { id: assignment.car.id, name: assignment.car.name };
         }
         
+        // CRITICAL FIX: Handle responsible user data properly
+        let responsibleUserData = null;
+        if (assignment.responsible_user_id) {
+          const responsibleUser = responsibleUsersData.find(u => u.id === assignment.responsible_user_id);
+          if (responsibleUser) {
+            responsibleUserData = {
+              id: responsibleUser.id,
+              name: responsibleUser.name
+            };
+            console.log(`[useAssignmentData] SAGSANSVARLIG FIX - Assignment "${assignment.title}" has responsible user: ${responsibleUser.name}`);
+          } else {
+            console.warn(`[useAssignmentData] SAGSANSVARLIG FIX - Could not find responsible user for ID: ${assignment.responsible_user_id}`);
+          }
+        }
+        
         return {
           id: assignment.id,
           title: assignment.title,
@@ -126,10 +156,7 @@ export const useAssignmentData = (filter: 'all' | 'published' | 'my' = 'all') =>
           cars: carsArray,
           employees: employeeNames,
           published: assignment.published || false,
-          responsibleUser: assignment.responsible_user && typeof assignment.responsible_user === 'object' ? {
-            id: assignment.responsible_user.id,
-            name: assignment.responsible_user.name
-          } : null
+          responsibleUser: responsibleUserData
         } as Assignment;
       });
 
@@ -140,7 +167,13 @@ export const useAssignmentData = (filter: 'all' | 'published' | 'my' = 'all') =>
         );
       }
       
-      console.log(`[useAssignmentData] Processed ${processedAssignments.length} assignments for ${user?.role}`);
+      console.log(`[useAssignmentData] SAGSANSVARLIG FIX - Final processed ${processedAssignments.length} assignments`);
+      console.log(`[useAssignmentData] SAGSANSVARLIG FIX - Assignments with responsible users:`, 
+        processedAssignments.filter(a => a.responsibleUser).map(a => ({ 
+          title: a.title, 
+          responsibleUser: a.responsibleUser?.name 
+        })));
+      
       setAssignments(processedAssignments);
       
     } catch (err) {
