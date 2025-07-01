@@ -19,44 +19,46 @@ export const useEmployeeData = () => {
       
       console.log('[useEmployeeData] Starting employee fetch...');
       
-      // Fetch profiles and roles in a single optimized query
-      const { data: profilesWithRoles, error: fetchError } = await supabase
+      // Fetch profiles first
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          name,
-          email,
-          phone,
-          job_title,
-          on_leave,
-          notes,
-          avatar_url,
-          user_roles!inner (
-            role
-          )
-        `)
+        .select('*')
         .order('name', { ascending: true });
       
-      if (fetchError) {
-        console.error('[useEmployeeData] Fetch error:', fetchError);
-        throw fetchError;
+      if (profilesError) {
+        console.error('[useEmployeeData] Profiles fetch error:', profilesError);
+        throw profilesError;
       }
       
-      if (!profilesWithRoles || profilesWithRoles.length === 0) {
-        console.log('[useEmployeeData] No employees found');
+      if (!profiles || profiles.length === 0) {
+        console.log('[useEmployeeData] No profiles found');
         setEmployees([]);
         return;
       }
       
+      console.log(`[useEmployeeData] Found ${profiles.length} profiles`);
+      
+      // Fetch user roles separately
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+      
+      if (rolesError) {
+        console.error('[useEmployeeData] User roles fetch error:', rolesError);
+        throw rolesError;
+      }
+      
+      console.log(`[useEmployeeData] Found ${userRoles?.length || 0} user roles`);
+      
+      // Create a lookup map for roles
+      const rolesMap = new Map<string, string>();
+      userRoles?.forEach(userRole => {
+        rolesMap.set(userRole.user_id, userRole.role);
+      });
+      
       // Transform data with proper role mapping
-      const transformedEmployees: Employee[] = profilesWithRoles.map(profile => {
-        // Handle the role properly - user_roles is an array, get the first role
-        const userRole = Array.isArray(profile.user_roles) && profile.user_roles.length > 0 
-          ? profile.user_roles[0] 
-          : null;
-        const role = userRole && typeof userRole === 'object' && 'role' in userRole 
-          ? userRole.role 
-          : 'servicemedarbejder';
+      const transformedEmployees: Employee[] = profiles.map(profile => {
+        const role = rolesMap.get(profile.id) || 'servicemedarbejder';
         
         const employee = {
           id: profile.id,

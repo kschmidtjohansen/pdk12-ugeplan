@@ -41,11 +41,11 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   // Get display text for selected user
   const getSelectedUserDisplay = () => {
     if (!selectedUserId || selectedUserId === '') {
-      return t('planner.selectResponsibleUser');
+      return t('planner.selectResponsibleUser') || 'Vælg sagsansvarlig';
     }
     
     const user = eligibleUsers.find(user => user.id === selectedUserId);
-    return user ? user.name : t('planner.selectResponsibleUser');
+    return user ? user.name : (t('planner.selectResponsibleUser') || 'Vælg sagsansvarlig');
   };
 
   // Handle user selection
@@ -61,7 +61,9 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
 
   return (
     <div className="space-y-2">
-      <Label className="text-sm font-medium">{t('planner.responsibleUser')}</Label>
+      <Label className="text-sm font-medium">
+        {t('planner.responsibleUser') || 'Sagsansvarlig'}
+      </Label>
       
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -84,7 +86,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
             <div className="flex items-center justify-between w-full space-x-2">
               <div className="flex items-center gap-2">
                 <UserCheck className="h-4 w-4" />
-                <span>{t('planner.noResponsibleUser')}</span>
+                <span>{t('planner.noResponsibleUser') || 'Ingen sagsansvarlig'}</span>
               </div>
             </div>
           </DropdownMenuItem>
@@ -92,7 +94,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
           {eligibleUsers.length === 0 ? (
             <DropdownMenuItem disabled className="p-2">
               <span className="text-gray-500">
-                Ingen sagsansvarlige fundet (Debug: {employees.length} medarbejdere indlæst)
+                {t('employees.noEmployees') || 'Ingen sagsansvarlige fundet'} (Debug: {employees.length} medarbejdere indlæst)
               </span>
             </DropdownMenuItem>
           ) : (

@@ -44,6 +44,8 @@ export const useEmployees = () => {
     return await toggleEmployeeLeaveAction(employee, setOnLeave, notes);
   };
 
+  console.log(`[useEmployees] Providing ${employees.length} employees`);
+
   return {
     employees,
     loading,
