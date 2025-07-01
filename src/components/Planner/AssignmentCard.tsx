@@ -32,8 +32,8 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  console.log(`[AssignmentCard] SAGSANSVARLIG DEBUG - Assignment: ${assignment.title || assignment.location}`);
-  console.log(`[AssignmentCard] SAGSANSVARLIG DEBUG - Responsible user:`, assignment.responsibleUser);
+  console.log(`[AssignmentCard] SAGSANSVARLIG FIX - Assignment: ${assignment.title || assignment.location}`);
+  console.log(`[AssignmentCard] SAGSANSVARLIG FIX - Responsible user:`, assignment.responsibleUser);
 
   const handleEditClick = (assignment: Assignment) => {
     console.log('[AssignmentCard] Edit clicked for assignment:', assignment.id);
@@ -76,14 +76,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     }
   };
 
-  // Get responsible user display name - CRITICAL FIX
-  const getResponsibleUserName = () => {
-    if (!assignment.responsibleUser) return null;
-    return assignment.responsibleUser.name;
-  };
-
-  const responsibleUserName = getResponsibleUserName();
-
   return (
     <Card className={`w-full p-4 bg-white hover:border-polygon-purple transition-colors ${isLoading ? 'opacity-75' : ''}`}>
       <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
@@ -92,11 +84,11 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-medium text-lg">{assignment.title || (t('planner.titleLabel') || 'Titel')}</h3>
               {/* CRITICAL FIX: Show Sagsansvarlig badge when present */}
-              {responsibleUserName && (
+              {assignment.responsibleUser && assignment.responsibleUser.name && (
                 <div className="flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
                   <UserCheck className="h-3 w-3" />
                   <span title={t('planner.responsibleUser') || 'Sagsansvarlig'}>
-                    {responsibleUserName}
+                    {assignment.responsibleUser.name}
                   </span>
                 </div>
               )}

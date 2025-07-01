@@ -14,8 +14,8 @@ interface AssignmentDetailsProps {
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars }) => {
   const { t } = useTranslation();
 
-  console.log('[AssignmentDetails] SAGSANSVARLIG DEBUG - Assignment:', assignment.id);
-  console.log('[AssignmentDetails] SAGSANSVARLIG DEBUG - Responsible user:', assignment.responsibleUser);
+  console.log('[AssignmentDetails] SAGSANSVARLIG FIX - Assignment:', assignment.id);
+  console.log('[AssignmentDetails] SAGSANSVARLIG FIX - Responsible user:', assignment.responsibleUser);
 
   // Enhanced car name resolution with comprehensive fallbacks
   const getCarNames = (assignment: Assignment): string[] => {
@@ -101,8 +101,8 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
 
       {/* Right Column */}
       <div className="space-y-3">
-        {/* Sagsansvarlig - CRITICAL FIX: Always show if there's a responsible user */}
-        {assignment.responsibleUser && (
+        {/* CRITICAL FIX: Sagsansvarlig - Always show if there's a responsible user */}
+        {assignment.responsibleUser && assignment.responsibleUser.name && (
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
               <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
@@ -112,7 +112,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
                 {t('planner.responsibleUser') || 'Sagsansvarlig'}
               </span>
               <span className="text-foreground font-medium text-sm truncate">
-                {assignment.responsibleUser.name || (t('planner.noResponsibleUser') || 'Ingen sagsansvarlig')}
+                {assignment.responsibleUser.name}
               </span>
             </div>
           </div>

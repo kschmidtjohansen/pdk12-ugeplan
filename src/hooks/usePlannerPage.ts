@@ -1,8 +1,7 @@
-
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
-import { useAssignmentData } from './assignment/useAssignmentData';
+import { useAssignmentDataOptimized } from './assignment/useAssignmentDataOptimized';
 import { useAssignmentActions } from './assignment/useAssignmentActions';
 import { 
   getWeekDates, 
@@ -32,12 +31,13 @@ export const usePlannerPage = () => {
   
   console.log(`[usePlannerPage] User: ${user?.name} (${user?.role}), Filter: ${plannerFilter}`);
   
+  // CRITICAL FIX: Use the optimized hook that properly fetches responsible user data
   const { 
     assignments, 
     loading,
     error,
     fetchAssignments
-  } = useAssignmentData(plannerFilter);
+  } = useAssignmentDataOptimized();
 
   const {
     createAssignment,
@@ -74,21 +74,32 @@ export const usePlannerPage = () => {
 
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // Filter assignments by week
+  // Filter assignments by week and apply role-based filtering
   const weekAssignments = React.useMemo(() => {
-    console.log(`[usePlannerPage] Filtering ${assignments.length} assignments for week ${selectedWeek}/${selectedYear}`);
+    console.log(`[usePlannerPage] SAGSANSVARLIG FIX - Filtering ${assignments.length} assignments for week ${selectedWeek}/${selectedYear}`);
     
-    const filtered = assignments.filter(assignment => {
+    let filteredAssignments = assignments.filter(assignment => {
       const assignmentDate = new Date(assignment.date);
       const assignmentWeek = getWeekNumber(assignmentDate);
       const assignmentYear = getYearForDate(assignmentDate);
       
       return assignmentWeek === selectedWeek && assignmentYear === selectedYear;
     });
+
+    // Apply role-based filtering
+    if (!isAdminOrSkadeleder) {
+      filteredAssignments = filteredAssignments.filter(assignment => assignment.published);
+    }
     
-    console.log(`[usePlannerPage] Week filtered results: ${filtered.length} assignments`);
-    return filtered;
-  }, [assignments, selectedWeek, selectedYear]);
+    console.log(`[usePlannerPage] SAGSANSVARLIG FIX - Week filtered results: ${filteredAssignments.length} assignments`);
+    console.log(`[usePlannerPage] SAGSANSVARLIG FIX - Assignments with responsible users:`, 
+      filteredAssignments.filter(a => a.responsibleUser).map(a => ({ 
+        title: a.title, 
+        responsibleUser: a.responsibleUser?.name 
+      })));
+    
+    return filteredAssignments;
+  }, [assignments, selectedWeek, selectedYear, isAdminOrSkadeleder]);
 
   return {
     selectedWeek,
