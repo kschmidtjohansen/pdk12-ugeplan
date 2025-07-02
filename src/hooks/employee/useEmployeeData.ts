@@ -17,7 +17,7 @@ export const useEmployeeData = () => {
       setLoading(true);
       setError(null);
       
-      console.log('[useEmployeeData] Starting employee fetch...');
+      console.log('[useEmployeeData] USER ROLES FIX - Starting employee fetch...');
       
       // Fetch profiles first
       const { data: profiles, error: profilesError } = await supabase
@@ -26,37 +26,60 @@ export const useEmployeeData = () => {
         .order('name', { ascending: true });
       
       if (profilesError) {
-        console.error('[useEmployeeData] Profiles fetch error:', profilesError);
+        console.error('[useEmployeeData] USER ROLES FIX - Profiles fetch error:', profilesError);
         throw profilesError;
       }
       
       if (!profiles || profiles.length === 0) {
-        console.log('[useEmployeeData] No profiles found');
+        console.log('[useEmployeeData] USER ROLES FIX - No profiles found');
         setEmployees([]);
         return;
       }
       
-      console.log(`[useEmployeeData] Found ${profiles.length} profiles`);
+      console.log(`[useEmployeeData] USER ROLES FIX - Found ${profiles.length} profiles`);
       
-      // Fetch user roles separately
+      // Fetch user roles with enhanced validation
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
       
       if (rolesError) {
-        console.error('[useEmployeeData] User roles fetch error:', rolesError);
+        console.error('[useEmployeeData] USER ROLES FIX - User roles fetch error:', rolesError);
         throw rolesError;
       }
       
-      console.log(`[useEmployeeData] Found ${userRoles?.length || 0} user roles`);
+      console.log(`[useEmployeeData] USER ROLES FIX - Found ${userRoles?.length || 0} user roles`);
       
-      // Create a lookup map for roles
+      // Validate and create role mapping with enhanced checks
       const rolesMap = new Map<string, string>();
+      const roleDistribution: Record<string, number> = {};
+      const duplicateCheck = new Map<string, string[]>();
+      
       userRoles?.forEach(userRole => {
+        // Track duplicates for validation
+        if (!duplicateCheck.has(userRole.user_id)) {
+          duplicateCheck.set(userRole.user_id, []);
+        }
+        duplicateCheck.get(userRole.user_id)!.push(userRole.role);
+        
+        // Set role (last one wins if duplicates exist)
         rolesMap.set(userRole.user_id, userRole.role);
+        
+        // Track distribution
+        roleDistribution[userRole.role] = (roleDistribution[userRole.role] || 0) + 1;
       });
       
-      // Transform data with proper role mapping
+      // Log potential issues
+      duplicateCheck.forEach((roles, userId) => {
+        if (roles.length > 1) {
+          const profile = profiles.find(p => p.id === userId);
+          console.warn(`[useEmployeeData] USER ROLES FIX - User ${profile?.name || userId} has multiple roles:`, roles);
+        }
+      });
+      
+      console.log('[useEmployeeData] USER ROLES FIX - Role distribution:', roleDistribution);
+      
+      // Transform data with proper role mapping and validation
       const transformedEmployees: Employee[] = profiles.map(profile => {
         const role = rolesMap.get(profile.id) || 'servicemedarbejder';
         
@@ -72,29 +95,31 @@ export const useEmployeeData = () => {
           avatar_url: profile.avatar_url
         };
         
-        console.log(`[useEmployeeData] Employee: ${profile.name} -> Role: ${role}`);
         return employee;
       });
       
-      // Debug role distribution
-      const roleDistribution = transformedEmployees.reduce((acc, emp) => {
-        acc[emp.role] = (acc[emp.role] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+      // Enhanced logging for administrators and skadeledere
+      const administrators = transformedEmployees.filter(emp => emp.role === 'administrator');
+      const skadeledere = transformedEmployees.filter(emp => emp.role === 'skadeleder');
       
-      console.log('[useEmployeeData] Role distribution:', roleDistribution);
+      console.log('[useEmployeeData] USER ROLES FIX - Administrators:', administrators.map(a => ({ name: a.name, email: a.email })));
+      console.log('[useEmployeeData] USER ROLES FIX - Skadeledere:', skadeledere.map(s => ({ name: s.name, email: s.email })));
       
       const eligibleForResponsible = transformedEmployees.filter(emp => 
         emp.role === 'administrator' || emp.role === 'skadeleder'
       );
       
-      console.log(`[useEmployeeData] Eligible for responsible user: ${eligibleForResponsible.length}`, 
-        eligibleForResponsible.map(e => ({ name: e.name, role: e.role })));
+      console.log(`[useEmployeeData] USER ROLES FIX - Total eligible for responsible user: ${eligibleForResponsible.length}`);
+      
+      // Validation: Ensure only one administrator (should be Kasper)
+      if (administrators.length !== 1) {
+        console.warn(`[useEmployeeData] USER ROLES FIX - Expected 1 administrator, found ${administrators.length}`);
+      }
       
       setEmployees(transformedEmployees);
       
     } catch (err) {
-      console.error('[useEmployeeData] Error:', err);
+      console.error('[useEmployeeData] USER ROLES FIX - Error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch employees';
       setError(errorMessage);
       

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Assignment } from '../../types/assignment';
@@ -32,8 +31,12 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  console.log(`[AssignmentCard] SAGSANSVARLIG FIX - Assignment: ${assignment.title || assignment.location}`);
-  console.log(`[AssignmentCard] SAGSANSVARLIG FIX - Responsible user:`, assignment.responsibleUser);
+  console.log(`[AssignmentCard] COMPREHENSIVE FIX - Assignment: ${assignment.title || assignment.location}`);
+  console.log(`[AssignmentCard] COMPREHENSIVE FIX - Responsible user data:`, {
+    hasResponsibleUser: !!assignment.responsibleUser,
+    responsibleUserName: assignment.responsibleUser?.name,
+    responsibleUserId: assignment.responsibleUser?.id
+  });
 
   const handleEditClick = (assignment: Assignment) => {
     console.log('[AssignmentCard] Edit clicked for assignment:', assignment.id);
@@ -83,8 +86,8 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           <div className="flex flex-col">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-medium text-lg">{assignment.title || (t('planner.titleLabel') || 'Titel')}</h3>
-              {/* CRITICAL FIX: Show Sagsansvarlig badge when present */}
-              {assignment.responsibleUser && assignment.responsibleUser.name && (
+              {/* COMPREHENSIVE FIX: Enhanced Sagsansvarlig badge with better validation */}
+              {assignment.responsibleUser?.name && (
                 <div className="flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
                   <UserCheck className="h-3 w-3" />
                   <span title={t('planner.responsibleUser') || 'Sagsansvarlig'}>

@@ -1,157 +1,104 @@
 
-import { useState, useEffect } from 'react';
-import { useToast } from '@/components/ui/use-toast';
-import { useTranslation } from '@/context/TranslationContext';
+import { useState, useEffect, useCallback } from 'react';
 import { Assignment } from '@/types/assignment';
+import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useAssignmentDataOptimized = () => {
+  const { toast } = useToast();
+  const { t } = useTranslation();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
-  const { t } = useTranslation();
 
-  // Optimized fetch with improved query structure and error handling
-  const fetchAssignments = async () => {
+  const fetchAssignments = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('[useAssignmentDataOptimized] Starting optimized assignment fetch...');
+      console.log('[useAssignmentDataOptimized] SAGSANSVARLIG FIX - Starting assignment fetch...');
       
-      // Single optimized query with explicit foreign key hints to resolve ambiguity
-      const { data: assignmentsData, error: assignmentsError } = await supabase
+      // CRITICAL FIX: Use the correct foreign key constraint name from the database
+      const { data: assignments, error: assignmentsError } = await supabase
         .from('assignments')
         .select(`
-          id,
-          title,
-          description,
-          assignment_date,
-          from_time,
-          to_time,
-          location,
-          car_id,
-          car_ids,
-          published,
-          responsible_user_id,
-          created_at,
-          updated_at,
-          car:cars!fk_assignments_car_id (
+          *,
+          responsible_user:profiles!assignments_responsible_user_id_fkey(
             id,
             name,
-            car_number
-          ),
-          responsible_user:profiles!fk_assignments_responsible_user_id (
-            id,
-            name
+            email
           )
         `)
-        .order('assignment_date', { ascending: true });
+        .order('assignment_date', { ascending: true })
+        .order('from_time', { ascending: true });
       
       if (assignmentsError) {
-        console.error('[useAssignmentDataOptimized] Assignment fetch error:', assignmentsError);
+        console.error('[useAssignmentDataOptimized] SAGSANSVARLIG FIX - Assignment fetch error:', assignmentsError);
         throw assignmentsError;
       }
       
-      if (!assignmentsData || assignmentsData.length === 0) {
-        console.log('[useAssignmentDataOptimized] No assignments found');
+      console.log(`[useAssignmentDataOptimized] SAGSANSVARLIG FIX - Raw assignments fetched:`, assignments?.length || 0);
+      
+      if (!assignments || assignments.length === 0) {
+        console.log('[useAssignmentDataOptimized] SAGSANSVARLIG FIX - No assignments found');
         setAssignments([]);
         return;
       }
-      
-      console.log('[useAssignmentDataOptimized] Fetched assignments:', assignmentsData.length);
-      
-      // Separate queries for assignment employees and profiles to avoid join issues
-      const assignmentIds = assignmentsData.map(a => a.id);
-      
-      // Get assignment-employee relationships
+
+      // Get all unique employee IDs from assignments_employees table
       const { data: assignmentEmployees, error: employeeError } = await supabase
         .from('assignments_employees')
-        .select('assignment_id, user_id')
-        .in('assignment_id', assignmentIds);
+        .select('assignment_id, user_id');
       
       if (employeeError) {
-        console.warn('[useAssignmentDataOptimized] Employee fetch warning:', employeeError);
-        // Continue without employee data rather than failing
+        console.error('[useAssignmentDataOptimized] Employee fetch error:', employeeError);
+        throw employeeError;
       }
       
-      // Get all unique user IDs from assignment employees
-      const userIds = assignmentEmployees?.map(emp => emp.user_id) || [];
-      const uniqueUserIds = [...new Set(userIds)];
+      // Get all employee profiles
+      const { data: employeeProfiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, email');
       
-      // Fetch profiles for these users
-      let profilesData: any[] = [];
-      if (uniqueUserIds.length > 0) {
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, name')
-          .in('id', uniqueUserIds);
-          
-        if (profilesError) {
-          console.warn('[useAssignmentDataOptimized] Profiles fetch warning:', profilesError);
-        } else {
-          profilesData = profiles || [];
-        }
+      if (profilesError) {
+        console.error('[useAssignmentDataOptimized] Profiles fetch error:', profilesError);
+        throw profilesError;
       }
       
-      // Optimized car data fetch for multiple cars
-      const allCarIds = new Set<string>();
-      assignmentsData.forEach(assignment => {
-        if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
-          assignment.car_ids.forEach((carId: string) => allCarIds.add(carId));
+      // Create lookup maps
+      const employeeMap = new Map<string, { id: string; name: string; email: string }>();
+      employeeProfiles?.forEach(profile => {
+        employeeMap.set(profile.id, profile);
+      });
+      
+      const assignmentEmployeeMap = new Map<string, string[]>();
+      assignmentEmployees?.forEach(ae => {
+        if (!assignmentEmployeeMap.has(ae.assignment_id)) {
+          assignmentEmployeeMap.set(ae.assignment_id, []);
         }
-        if (assignment.car_id) {
-          allCarIds.add(assignment.car_id);
+        const employee = employeeMap.get(ae.user_id);
+        if (employee) {
+          assignmentEmployeeMap.get(ae.assignment_id)!.push(employee.name);
         }
       });
-
-      let carsData: any[] = [];
-      if (allCarIds.size > 0) {
-        const { data: cars, error: carsError } = await supabase
-          .from('cars')
-          .select('id, name, car_number')
-          .in('id', Array.from(allCarIds));
-        
-        if (carsError) {
-          console.warn('[useAssignmentDataOptimized] Cars fetch warning:', carsError);
-        } else {
-          carsData = cars || [];
-        }
-      }
       
-      // Process assignments with optimized data mapping
-      const processedAssignments = assignmentsData.map(assignment => {
-        // Map employee relationships efficiently using lookup maps
-        const assignmentEmployeeData = assignmentEmployees?.filter(
-          emp => emp.assignment_id === assignment.id
-        ) || [];
+      // Transform assignments
+      const transformedAssignments: Assignment[] = assignments.map(assignment => {
+        const employeeNames = assignmentEmployeeMap.get(assignment.id) || [];
         
-        const employeeNames = assignmentEmployeeData
-          .map(emp => {
-            const profile = profilesData.find(p => p.id === emp.user_id);
-            return profile?.name;
-          })
-          .filter(name => name && typeof name === 'string')
-          .map(name => name.trim());
+        // CRITICAL FIX: Properly handle responsible user data
+        const responsibleUser = assignment.responsible_user ? {
+          id: assignment.responsible_user.id,
+          name: assignment.responsible_user.name,
+          email: assignment.responsible_user.email
+        } : null;
         
-        // Handle multiple cars efficiently
-        let carData = null;
-        let carsArray: string[] = [];
-        
-        if (assignment.car_ids && Array.isArray(assignment.car_ids) && assignment.car_ids.length > 0) {
-          carsArray = assignment.car_ids;
-          const firstCar = carsData.find(c => c.id === assignment.car_ids[0]);
-          if (firstCar) {
-            carData = { id: firstCar.id, name: firstCar.name };
-          }
-        } else if (assignment.car_id) {
-          carsArray = [assignment.car_id];
-          const car = carsData.find(c => c.id === assignment.car_id);
-          if (car) {
-            carData = { id: car.id, name: car.name };
-          }
-        }
+        console.log(`[useAssignmentDataOptimized] SAGSANSVARLIG FIX - Assignment "${assignment.title}":`, {
+          hasResponsibleUser: !!responsibleUser,
+          responsibleUserName: responsibleUser?.name,
+          responsibleUserId: responsibleUser?.id
+        });
         
         return {
           id: assignment.id,
@@ -161,98 +108,68 @@ export const useAssignmentDataOptimized = () => {
           fromTime: assignment.from_time,
           toTime: assignment.to_time,
           location: assignment.location,
-          car: carData,
-          cars: carsArray,
           employees: employeeNames,
+          cars: assignment.car_ids || (assignment.car_id ? [assignment.car_id] : []),
+          car: assignment.car_id || (assignment.car_ids && assignment.car_ids.length > 0 ? assignment.car_ids[0] : ''),
           published: assignment.published || false,
-          responsibleUser: assignment.responsible_user && typeof assignment.responsible_user === 'object' ? {
-            id: assignment.responsible_user.id,
-            name: assignment.responsible_user.name
-          } : null
-        } as Assignment;
+          responsibleUser: responsibleUser, // CRITICAL: This should now contain proper data
+          type: assignment.type || 'other'
+        };
       });
       
-      console.log('[useAssignmentDataOptimized] Successfully processed assignments:', processedAssignments.length);
-      setAssignments(processedAssignments);
+      console.log(`[useAssignmentDataOptimized] SAGSANSVARLIG FIX - Final assignments with responsible users:`, 
+        transformedAssignments.filter(a => a.responsibleUser).map(a => ({ 
+          title: a.title, 
+          responsibleUser: a.responsibleUser?.name 
+        })));
+      
+      setAssignments(transformedAssignments);
       
     } catch (err) {
-      console.error('[useAssignmentDataOptimized] Critical error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch assignments');
+      console.error('[useAssignmentDataOptimized] SAGSANSVARLIG FIX - Error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch assignments';
+      setError(errorMessage);
       
-      if (err instanceof Error && err.message.includes('row-level security')) {
-        toast({
-          title: t('common.error'),
-          description: t('auth.sessionExpired') || 'Session expired, please log in again',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: t('common.error'),
-          description: t('planner.fetchError') || 'Failed to load assignments',
-          variant: 'destructive',
-        });
-      }
+      toast({
+        title: t('common.error') || 'Error',
+        description: t('planner.fetchError') || 'Error loading assignments',
+        variant: 'destructive',
+      });
+      
       setAssignments([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, t]);
 
   // Load assignments on mount
   useEffect(() => {
     fetchAssignments();
-  }, []);
-  
-  // Optimized realtime subscription with debouncing
+  }, [fetchAssignments]);
+
+  // Set up realtime subscription
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    const debouncedRefresh = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(fetchAssignments, 300); // 300ms debounce
-    };
-    
     const channel = supabase
-      .channel('assignments_optimized_realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'assignments'
-        },
-        (payload) => {
-          console.log('[useAssignmentDataOptimized] Assignment change detected:', payload.eventType);
-          debouncedRefresh();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'assignments_employees'
-        },
-        (payload) => {
-          console.log('[useAssignmentDataOptimized] Assignment employee change detected:', payload.eventType);
-          debouncedRefresh();
-        }
-      )
-      .subscribe((status) => {
-        console.log('[useAssignmentDataOptimized] Realtime subscription status:', status);
-      });
+      .channel('assignment_changes_optimized')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, () => {
+        console.log('[useAssignmentDataOptimized] Assignment change detected, refreshing...');
+        fetchAssignments();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments_employees' }, () => {
+        console.log('[useAssignmentDataOptimized] Assignment employee change detected, refreshing...');
+        fetchAssignments();
+      })
+      .subscribe();
       
     return () => {
-      clearTimeout(timeoutId);
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchAssignments]);
 
   return {
     assignments,
     loading,
     error,
-    fetchAssignments,
-    setAssignments
+    fetchAssignments
   };
 };

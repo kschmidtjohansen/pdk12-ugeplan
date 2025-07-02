@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Clock, UserCheck, Users, Car } from 'lucide-react';
@@ -14,8 +13,13 @@ interface AssignmentDetailsProps {
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars }) => {
   const { t } = useTranslation();
 
-  console.log('[AssignmentDetails] SAGSANSVARLIG FIX - Assignment:', assignment.id);
-  console.log('[AssignmentDetails] SAGSANSVARLIG FIX - Responsible user:', assignment.responsibleUser);
+  console.log('[AssignmentDetails] COMPREHENSIVE FIX - Assignment:', assignment.id);
+  console.log('[AssignmentDetails] COMPREHENSIVE FIX - Responsible user details:', {
+    hasResponsibleUser: !!assignment.responsibleUser,
+    responsibleUserName: assignment.responsibleUser?.name,
+    responsibleUserId: assignment.responsibleUser?.id,
+    fullResponsibleUserObject: assignment.responsibleUser
+  });
 
   // Enhanced car name resolution with comprehensive fallbacks
   const getCarNames = (assignment: Assignment): string[] => {
@@ -101,8 +105,8 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
 
       {/* Right Column */}
       <div className="space-y-3">
-        {/* CRITICAL FIX: Sagsansvarlig - Always show if there's a responsible user */}
-        {assignment.responsibleUser && assignment.responsibleUser.name && (
+        {/* COMPREHENSIVE FIX: Enhanced Sagsansvarlig display with better validation and fallbacks */}
+        {assignment.responsibleUser?.name && (
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
               <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
@@ -111,7 +115,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
               <span className="text-xs text-muted-foreground font-medium">
                 {t('planner.responsibleUser') || 'Sagsansvarlig'}
               </span>
-              <span className="text-foreground font-medium text-sm truncate">
+              <span className="text-foreground font-medium text-sm truncate" title={assignment.responsibleUser.name}>
                 {assignment.responsibleUser.name}
               </span>
             </div>

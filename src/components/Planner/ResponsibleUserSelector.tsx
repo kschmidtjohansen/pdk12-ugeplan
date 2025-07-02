@@ -24,37 +24,57 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   const { t } = useTranslation();
   const { employees } = useEmployees();
 
-  console.log('[ResponsibleUserSelector] Debug info:');
-  console.log('- Total employees:', employees.length);
+  console.log('[ResponsibleUserSelector] COMPREHENSIVE FIX - Debug info:');
+  console.log('- Total employees loaded:', employees.length);
   console.log('- Selected user ID:', selectedUserId);
-  console.log('- All employees with roles:', employees.map(e => ({ name: e.name, role: e.role })));
+  console.log('- All employees with roles:', employees.map(e => ({ 
+    name: e.name, 
+    role: e.role, 
+    id: e.id.substring(0, 8) + '...' 
+  })));
 
-  // Filter employees to only show administrators and skadeleders
+  // Filter employees to only show administrators and skadeleders with enhanced validation
   const eligibleUsers = employees.filter(employee => {
     const isEligible = employee.role === 'administrator' || employee.role === 'skadeleder';
     console.log(`- Employee "${employee.name}" (${employee.role}): eligible = ${isEligible}`);
     return isEligible;
   });
 
-  console.log('- Final eligible users:', eligibleUsers.length, eligibleUsers.map(u => ({ name: u.name, role: u.role })));
+  console.log('- Final eligible users count:', eligibleUsers.length);
+  console.log('- Eligible users details:', eligibleUsers.map(u => ({ 
+    name: u.name, 
+    role: u.role,
+    id: u.id.substring(0, 8) + '...'
+  })));
 
-  // Get display text for selected user
+  // Get display text for selected user with better validation
   const getSelectedUserDisplay = () => {
     if (!selectedUserId || selectedUserId === '') {
       return t('planner.selectResponsibleUser') || 'Vælg sagsansvarlig';
     }
     
     const user = eligibleUsers.find(user => user.id === selectedUserId);
-    return user ? user.name : (t('planner.selectResponsibleUser') || 'Vælg sagsansvarlig');
+    if (user) {
+      console.log(`[ResponsibleUserSelector] Found selected user: ${user.name} (${user.role})`);
+      return user.name;
+    } else {
+      console.warn(`[ResponsibleUserSelector] Selected user ID ${selectedUserId} not found in eligible users`);
+      return t('planner.selectResponsibleUser') || 'Vælg sagsansvarlig';
+    }
   };
 
-  // Handle user selection
+  // Handle user selection with enhanced logging
   const handleUserSelect = (userId: string) => {
-    console.log('[ResponsibleUserSelector] User selected:', userId === 'none' ? 'none' : userId);
+    console.log('[ResponsibleUserSelector] COMPREHENSIVE FIX - User selected:', {
+      userId: userId === 'none' ? 'none' : userId,
+      isNone: userId === 'none'
+    });
     
     if (userId === 'none') {
       onUserSelect('');
     } else {
+      const selectedUser = eligibleUsers.find(u => u.id === userId);
+      console.log('[ResponsibleUserSelector] Selected user details:', selectedUser?.name, selectedUser?.role);
       onUserSelect(userId);
     }
   };
@@ -94,7 +114,8 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
           {eligibleUsers.length === 0 ? (
             <DropdownMenuItem disabled className="p-2">
               <span className="text-gray-500">
-                {t('employees.noEmployees') || 'Ingen sagsansvarlige fundet'} (Debug: {employees.length} medarbejdere indlæst)
+                {t('employees.noEmployees') || 'Ingen sagsansvarlige fundet'} 
+                {process.env.NODE_ENV === 'development' && ` (Debug: ${employees.length} medarbejdere indlæst)`}
               </span>
             </DropdownMenuItem>
           ) : (
@@ -117,10 +138,11 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
       
-      {/* Debug info in development */}
+      {/* Enhanced debug info for development */}
       {process.env.NODE_ENV === 'development' && (
         <div className="text-xs text-gray-400 mt-1 p-2 bg-gray-50 rounded">
-          Debug: {employees.length} total, {eligibleUsers.length} eligible users found
+          Debug: {employees.length} total employees, {eligibleUsers.length} eligible
+          {selectedUserId && ` | Selected: ${selectedUserId.substring(0, 8)}...`}
         </div>
       )}
     </div>
