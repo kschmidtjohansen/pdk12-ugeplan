@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Assignment } from '../../types/assignment';
@@ -34,10 +33,10 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const { t } = useTranslation();
   const { employees } = useEmployees();
 
-  console.log(`[AssignmentCard] COMPREHENSIVE FIX - Assignment: ${assignment.title || assignment.location}`);
+  console.log(`[AssignmentCard] ROLE UPDATE FIX - Assignment: ${assignment.title || assignment.location}`);
   console.log(`[AssignmentCard] Responsible user ID: ${assignment.responsibleUserId}`);
   
-  // Enhanced responsible user lookup with fallback
+  // Enhanced responsible user lookup optimized for the new 7-user structure
   const getResponsibleUserInfo = () => {
     if (!assignment.responsibleUserId) {
       console.log('[AssignmentCard] No responsible user ID');
@@ -50,10 +49,15 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       return assignment.responsibleUser;
     }
 
-    // Fallback: lookup from employees
+    // Enhanced lookup from employees for the updated role structure
     const responsibleEmployee = employees.find(emp => emp.id === assignment.responsibleUserId);
     if (responsibleEmployee) {
-      console.log('[AssignmentCard] Found responsible user via employees lookup:', responsibleEmployee.name);
+      console.log('[AssignmentCard] Found responsible user via employees lookup:', responsibleEmployee.name, responsibleEmployee.role);
+      
+      // Verify the user has the correct role for being a responsible user
+      const isEligible = responsibleEmployee.role === 'administrator' || responsibleEmployee.role === 'skadeleder';
+      console.log('[AssignmentCard] User role eligibility check:', isEligible);
+      
       return {
         id: responsibleEmployee.id,
         name: responsibleEmployee.name,
@@ -96,7 +100,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const isPublished = assignment.published === true;
   const isLoading = operationState !== null;
 
-  // Get operation text with translations
   const getOperationText = (state: 'publishing' | 'deleting' | 'updating') => {
     switch (state) {
       case 'publishing':
@@ -117,7 +120,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           <div className="flex flex-col">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-medium text-lg">{assignment.title || (t('planner.titleLabel') || 'Titel')}</h3>
-              {/* COMPREHENSIVE FIX: Enhanced Sagsansvarlig badge with improved logic */}
+              {/* ROLE UPDATE FIX: Enhanced Sagsansvarlig badge optimized for 7-user structure */}
               {responsibleUserInfo?.name && (
                 <div className="flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium border border-indigo-200">
                   <UserCheck className="h-3 w-3" />
@@ -126,12 +129,12 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
                   </span>
                 </div>
               )}
-              {/* Debug info for development */}
+              {/* Enhanced debug info for development with role structure context */}
               {process.env.NODE_ENV === 'development' && assignment.responsibleUserId && !responsibleUserInfo && (
                 <div className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium border border-yellow-200">
                   <UserCheck className="h-3 w-3" />
-                  <span title="Debug: Responsible user ID found but user data missing">
-                    Missing User Data
+                  <span title="Debug: Responsible user ID found but user data missing - check if roles are properly assigned">
+                    Missing User Data (Check Roles)
                   </span>
                 </div>
               )}

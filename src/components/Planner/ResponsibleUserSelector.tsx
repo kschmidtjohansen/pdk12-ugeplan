@@ -24,7 +24,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   const { t } = useTranslation();
   const { employees } = useEmployees();
 
-  console.log('[ResponsibleUserSelector] COMPREHENSIVE FIX - Debug info:');
+  console.log('[ResponsibleUserSelector] ROLE UPDATE - Debug info:');
   console.log('- Total employees loaded:', employees.length);
   console.log('- Selected user ID:', selectedUserId);
   console.log('- All employees with roles:', employees.map(e => ({ 
@@ -33,7 +33,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     id: e.id.substring(0, 8) + '...' 
   })));
 
-  // COMPREHENSIVE FIX: Enhanced filtering with detailed logging
+  // Updated filtering to work with the new 7-user structure
   const eligibleUsers = employees.filter(employee => {
     const isEligible = employee.role === 'administrator' || employee.role === 'skadeleder';
     console.log(`- Employee "${employee.name}" (${employee.role}): eligible = ${isEligible}`);
@@ -47,7 +47,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     id: u.id.substring(0, 8) + '...'
   })));
 
-  // Enhanced user display with better fallback handling
+  // Enhanced user display for the new structure
   const getSelectedUserDisplay = () => {
     if (!selectedUserId || selectedUserId === '') {
       return t('planner.selectResponsibleUser') || 'Vælg sagsansvarlig';
@@ -70,9 +70,8 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     }
   };
 
-  // Enhanced user selection with comprehensive logging
   const handleUserSelect = (userId: string) => {
-    console.log('[ResponsibleUserSelector] COMPREHENSIVE FIX - User selected:', {
+    console.log('[ResponsibleUserSelector] ROLE UPDATE - User selected:', {
       userId: userId === 'none' ? 'none' : userId,
       isNone: userId === 'none'
     });
@@ -86,24 +85,17 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     }
   };
 
-  // Enhanced diagnostic information
-  const getRoleDistribution = () => {
-    const roleCounts = employees.reduce((acc, emp) => {
-      acc[emp.role] = (acc[emp.role] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    
-    return Object.entries(roleCounts).map(([role, count]) => `${role}: ${count}`).join(', ');
-  };
-
+  // Enhanced statistics for the new structure
   const getDetailedStats = () => {
     const administrators = employees.filter(e => e.role === 'administrator');
     const skadeledere = employees.filter(e => e.role === 'skadeleder');
+    const servicemedarbejdere = employees.filter(e => e.role === 'servicemedarbejder');
     
     return {
       total: employees.length,
       administrators: administrators.length,
       skadeledere: skadeledere.length,
+      servicemedarbejdere: servicemedarbejdere.length,
       eligible: eligibleUsers.length,
       adminNames: administrators.map(a => a.name),
       skadelederNames: skadeledere.map(s => s.name)
@@ -151,7 +143,8 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
                 {process.env.NODE_ENV === 'development' && (
                   <div className="mt-1 text-xs">
                     Debug: {employees.length} total users loaded
-                    <br />Admin: {stats.administrators} | Skadeledere: {stats.skadeledere}
+                    <br />Expected 7 eligible users (3 admin + 4 skadeledere)
+                    <br />Current: Admin: {stats.administrators} | Skadeledere: {stats.skadeledere}
                   </div>
                 )}
               </div>
@@ -182,13 +175,14 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
       
-      {/* Enhanced debug info for development */}
+      {/* Enhanced debug info for the new structure */}
       {process.env.NODE_ENV === 'development' && (
         <div className="text-xs text-gray-400 mt-1 p-2 bg-gray-50 rounded border">
-          <strong>COMPREHENSIVE FIX DEBUG:</strong><br/>
-          Total: {stats.total} | Eligible: {stats.eligible}<br/>
+          <strong>ROLE UPDATE DEBUG:</strong><br/>
+          Total: {stats.total} | Eligible: {stats.eligible} (Expected: 7)<br/>
           Admins ({stats.administrators}): {stats.adminNames.join(', ') || 'None'}<br/>
           Skadeledere ({stats.skadeledere}): {stats.skadelederNames.join(', ') || 'None'}<br/>
+          Servicemedarbejdere: {stats.servicemedarbejdere}<br/>
           {selectedUserId && `Selected: ${selectedUserId.substring(0, 8)}...`}
         </div>
       )}

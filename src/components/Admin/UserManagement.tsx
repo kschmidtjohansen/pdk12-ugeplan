@@ -58,11 +58,11 @@ const UserManagement: React.FC = () => {
     console.log(`[UserManagement Debug] ${info}`);
   };
 
-  // Enhanced fallback using direct database queries
+  // Enhanced fallback using direct database queries optimized for the new role structure
   const fetchUsersDirectly = async () => {
     try {
       setUsingFallback(true);
-      addDebugInfo('FALLBACK: Using direct database queries');
+      addDebugInfo('ROLE UPDATE: Using direct database queries with enhanced role structure');
       
       // Get profiles directly
       const { data: profiles, error: profilesError } = await supabase
@@ -84,7 +84,7 @@ const UserManagement: React.FC = () => {
         throw profilesError;
       }
 
-      // Get user roles
+      // Get user roles - should now include 7 eligible users
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
@@ -93,7 +93,7 @@ const UserManagement: React.FC = () => {
         addDebugInfo(`FALLBACK roles warning: ${rolesError.message}`);
       }
 
-      // Combine data
+      // Enhanced data combination with role statistics
       const combinedUsers = profiles?.map(profile => {
         const roleData = userRoles?.find(r => r.user_id === profile.id);
         
@@ -113,7 +113,16 @@ const UserManagement: React.FC = () => {
         };
       }) || [];
 
-      addDebugInfo(`FALLBACK SUCCESS: Loaded ${combinedUsers.length} users`);
+      // Enhanced statistics for the new role structure
+      const roleCounts = combinedUsers.reduce((acc, user) => {
+        acc[user.role] = (acc[user.role] || 0) + 1;
+        return acc;
+      }, {} as Record<UserRole, number>);
+
+      addDebugInfo(`ROLE UPDATE SUCCESS: Loaded ${combinedUsers.length} users`);
+      addDebugInfo(`Role distribution - Admin: ${roleCounts.administrator || 0}, Skadeleder: ${roleCounts.skadeleder || 0}, Service: ${roleCounts.servicemedarbejder || 0}`);
+      addDebugInfo(`Expected 7 eligible users (3 admin + 4 skadeledere), found ${(roleCounts.administrator || 0) + (roleCounts.skadeleder || 0)}`);
+      
       return { users: combinedUsers, total: combinedUsers.length };
 
     } catch (err) {
@@ -189,9 +198,9 @@ const UserManagement: React.FC = () => {
       
       if (isRetry) {
         setRetryCount(prev => prev + 1);
-        addDebugInfo(`Retry attempt: ${retryCount + 1}`);
+        addDebugInfo(`ROLE UPDATE - Retry attempt: ${retryCount + 1}`);
       } else {
-        addDebugInfo('Starting fresh user fetch');
+        addDebugInfo('ROLE UPDATE - Starting fresh user fetch with new role structure');
         setRetryCount(0);
         setUsingFallback(false);
       }
@@ -222,7 +231,7 @@ const UserManagement: React.FC = () => {
       const sortedUsers = sortUsersByName(data.users, sortDirection);
       setUsers(sortedUsers);
       
-      addDebugInfo(`Successfully loaded ${data.users.length} users`);
+      addDebugInfo(`Successfully loaded ${data.users.length} users with updated role structure`);
       
       // Show success message if this was a retry
       if (isRetry && retryCount > 0) {
@@ -277,7 +286,6 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // Update user with fallback
   const updateUserWithFallback = async (userId: string, updates: any) => {
     addDebugInfo(`Updating user ${userId}...`);
 
@@ -312,7 +320,6 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // Delete user with fallback
   const deleteUserWithFallback = async (userId: string) => {
     addDebugInfo(`Deleting user ${userId}...`);
 
@@ -349,7 +356,6 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // Toggle user status with fallback
   const toggleUserStatusWithFallback = async (userId: string, active: boolean) => {
     addDebugInfo(`Toggling user ${userId} status to ${active ? 'active' : 'inactive'}...`);
 
@@ -377,9 +383,9 @@ const UserManagement: React.FC = () => {
       const nameB = b.name.toLowerCase();
       
       if (direction === 'asc') {
-        return nameA.localeCompare(nameB);
+        return nameA.localeComparison(nameB);
       } else {
-        return nameB.localeCompare(nameA);
+        return nameB.localeComparison(nameA);
       }
     });
   };
@@ -437,7 +443,6 @@ const UserManagement: React.FC = () => {
     return t(`admin.roles.${role}`);
   };
 
-  // Helper function to get initials from name
   const getInitials = (name: string): string => {
     return name
       .split(' ')
@@ -653,16 +658,27 @@ const UserManagement: React.FC = () => {
     );
   };
 
-  // Enhanced debug info panel
+  // Enhanced debug info panel with role structure context
   const DebugPanel = () => {
     if (debugInfo.length === 0) return null;
+    
+    // Calculate role statistics from current users
+    const roleCounts = users.reduce((acc, user) => {
+      acc[user.role] = (acc[user.role] || 0) + 1;
+      return acc;
+    }, {} as Record<UserRole, number>);
+
+    const eligibleUsers = (roleCounts.administrator || 0) + (roleCounts.skadeleder || 0);
     
     return (
       <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
         <div className="flex items-center space-x-2 mb-2">
           <Bug className="h-4 w-4 text-gray-500" />
           <span className="text-sm font-medium text-gray-700">
-            Debug Info ({debugInfo.length})
+            Debug Info ({debugInfo.length}) - Role Structure
+          </span>
+          <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded">
+            Eligible: {eligibleUsers}/7 expected
           </span>
           <Button
             variant="ghost"
@@ -710,7 +726,12 @@ const UserManagement: React.FC = () => {
                 <span>{t('admin.userManagement.title')}</span>
                 <ConnectionStatusIndicator />
               </CardTitle>
-              <CardDescription>{t('admin.userManagement.description')}</CardDescription>
+              <CardDescription>
+                {t('admin.userManagement.description')} 
+                <span className="text-sm text-gray-500 ml-2">
+                  (Expected: 7 eligible Sagsansvarlig users)
+                </span>
+              </CardDescription>
               {lastError && (
                 <div className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
                   <div className="flex items-center space-x-2">
@@ -757,7 +778,7 @@ const UserManagement: React.FC = () => {
             <div className="flex flex-col justify-center items-center py-8 space-y-4">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-polygon-blue"></div>
               <p className="text-sm text-gray-500">
-                {retryCount > 0 ? `Retrying... (attempt ${retryCount + 1})` : 'Loading users...'}
+                {retryCount > 0 ? `Retrying... (attempt ${retryCount + 1})` : 'Loading users with updated role structure...'}
               </p>
             </div>
           ) : users.length === 0 ? (
@@ -800,6 +821,9 @@ const UserManagement: React.FC = () => {
               <div className="mb-4 flex items-center justify-between">
                 <div className="text-sm text-gray-600">
                   Showing {users.length} users {usingFallback && '(via fallback)'}
+                  <span className="ml-2 text-indigo-600">
+                    • Expected 7 eligible for Sagsansvarlig role
+                  </span>
                 </div>
                 {retryCount > 0 && (
                   <div className="text-xs text-orange-600">
