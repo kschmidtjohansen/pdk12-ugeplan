@@ -79,6 +79,16 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     }
   };
 
+  // Get role counts for debug display
+  const getRoleCounts = () => {
+    const roleCounts = employees.reduce((acc, emp) => {
+      acc[emp.role] = (acc[emp.role] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    return Object.entries(roleCounts).map(([role, count]) => `${role}: ${count}`).join(', ');
+  };
+
   return (
     <div className="space-y-2">
       <Label className="text-sm font-medium text-indigo-700">
@@ -150,10 +160,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
           <strong>PHASE 4 DEBUG:</strong> {employees.length} total employees, {eligibleUsers.length} eligible
           {selectedUserId && ` | Selected: ${selectedUserId.substring(0, 8)}...`}
           <br />
-          <strong>Roles found:</strong> {employees.reduce((acc, emp) => {
-            acc[emp.role] = (acc[emp.role] || 0) + 1;
-            return acc;
-          }, {} as Record<string, number>)}
+          <strong>Roles found:</strong> {getRoleCounts()}
         </div>
       )}
     </div>
