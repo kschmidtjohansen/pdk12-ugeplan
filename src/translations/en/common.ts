@@ -65,6 +65,8 @@ export const common = {
   refresh: "Refresh",
   user: "User",
   debug: "Debug",
+  today: "Today",
+  tomorrow: "Tomorrow",
   
   // New translations for operation states and toasters
   publishing: "Publishing",
@@ -87,5 +89,16 @@ export const common = {
   no_data_available: "No data available",
   failed_to_load: "Failed to load",
   try_again_later: "Try again later",
-  connection_error: "Connection error"
+  connection_error: "Connection error",
+  
+  // Additional common terms
+  yes: "Yes",
+  no: "No",
+  week: "Week",
+  available: "Available",
+  unavailable: "Unavailable",
+  deleting: "Deleting...",
+  lightMode: "Light mode",
+  darkMode: "Dark mode",
+  toggleTheme: "Toggle theme"
 };

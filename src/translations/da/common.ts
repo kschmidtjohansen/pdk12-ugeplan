@@ -65,6 +65,8 @@ export const common = {
   refresh: "Opdater",
   user: "Bruger",
   debug: "Debug",
+  today: "I dag",
+  tomorrow: "I morgen",
   
   // New translations for operation states and toasters
   publishing: "Publicerer",
@@ -87,5 +89,16 @@ export const common = {
   no_data_available: "Ingen data tilgængelig",
   failed_to_load: "Det lykkedes ikke at indlæse",
   try_again_later: "Prøv igen senere",
-  connection_error: "Forbindelsesfejl"
+  connection_error: "Forbindelsesfejl",
+  
+  // Additional common terms
+  yes: "Ja",
+  no: "Nej",
+  week: "Uge",
+  available: "Tilgængelig",
+  unavailable: "Ikke tilgængelig",
+  deleting: "Sletter...",
+  lightMode: "Lys tilstand",
+  darkMode: "Mørk tilstand",
+  toggleTheme: "Skift tema"
 };

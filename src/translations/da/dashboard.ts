@@ -1,3 +1,4 @@
+
 export const dashboard = {
   welcome: "Velkommen tilbage",
   subtitle: "Oversigt over dagens opgaver og aktiviteter",
@@ -9,6 +10,8 @@ export const dashboard = {
   noAssignments: "Ingen opgaver",
   noAssignmentsDescription: "Du har ingen opgaver tildelt i øjeblikket.",
   noAssignmentsScheduled: "Ingen opgaver planlagt for denne uge.",
+  noUpcomingTasks: "Ingen kommende opgaver",
+  viewAllTasks: "Se alle opgaver",
   weeklyOverview: "Ugeoversigt",
   previousWeek: "Forrige uge",
   nextWeek: "Næste uge",

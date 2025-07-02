@@ -75,6 +75,7 @@ const employees = {
   
   // Empty states
   noEmployees: 'Ingen medarbejdere fundet',
+  noResponsibleUsersFound: 'Ingen sagsansvarlige fundet',
   addFirst: 'Tilføj din første medarbejder',
   
   // Validation

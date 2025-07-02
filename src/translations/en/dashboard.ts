@@ -1,3 +1,4 @@
+
 export const dashboard = {
   welcome: "Welcome back",
   subtitle: "Overview of today's tasks and activities",
@@ -9,6 +10,8 @@ export const dashboard = {
   noAssignments: "No assignments",
   noAssignmentsDescription: "You have no assignments at the moment.",
   noAssignmentsScheduled: "No assignments scheduled for this week.",
+  noUpcomingTasks: "No upcoming tasks",
+  viewAllTasks: "View all tasks",
   weeklyOverview: "Weekly overview",
   previousWeek: "Previous week",
   nextWeek: "Next week",

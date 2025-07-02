@@ -75,6 +75,7 @@ const employees = {
   
   // Empty states
   noEmployees: 'No employees found',
+  noResponsibleUsersFound: 'No responsible users found',
   addFirst: 'Add your first employee',
   
   // Validation

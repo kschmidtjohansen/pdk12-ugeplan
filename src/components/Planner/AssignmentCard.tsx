@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Assignment } from '../../types/assignment';
@@ -120,35 +121,35 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           <div className="flex flex-col">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-medium text-lg">{assignment.title || (t('planner.titleLabel') || 'Titel')}</h3>
-              {/* ROLE UPDATE FIX: Enhanced Sagsansvarlig badge optimized for 7-user structure */}
-              {responsibleUserInfo?.name && (
-                <div className="flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium border border-indigo-200">
-                  <UserCheck className="h-3 w-3" />
-                  <span title={`${t('planner.responsibleUser') || 'Sagsansvarlig'}: ${responsibleUserInfo.name}${responsibleUserInfo.role ? ` (${responsibleUserInfo.role})` : ''}`}>
-                    {responsibleUserInfo.name}
-                  </span>
-                </div>
-              )}
-              {/* Enhanced debug info for development with role structure context */}
-              {process.env.NODE_ENV === 'development' && assignment.responsibleUserId && !responsibleUserInfo && (
-                <div className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium border border-yellow-200">
-                  <UserCheck className="h-3 w-3" />
-                  <span title="Debug: Responsible user ID found but user data missing - check if roles are properly assigned">
-                    Missing User Data (Check Roles)
-                  </span>
-                </div>
+              <AssignmentStatusBadge isPublished={isPublished} />
+              {operationState && (
+                <span className="text-xs text-blue-600 font-medium animate-pulse">
+                  {getOperationText(operationState)}
+                </span>
               )}
             </div>
             {assignment.location && (
               <p className="text-sm text-gray-600">{assignment.location}</p>
             )}
+            {/* IMPROVED: More subtle responsible user display */}
+            {responsibleUserInfo?.name && (
+              <div className="flex items-center gap-1 mt-1">
+                <UserCheck className="h-3 w-3 text-gray-500" />
+                <span className="text-xs text-gray-600" title={`${t('planner.responsibleUser') || 'Sagsansvarlig'}: ${responsibleUserInfo.name}${responsibleUserInfo.role ? ` (${responsibleUserInfo.role})` : ''}`}>
+                  {responsibleUserInfo.name}
+                </span>
+              </div>
+            )}
+            {/* Enhanced debug info for development with role structure context */}
+            {process.env.NODE_ENV === 'development' && assignment.responsibleUserId && !responsibleUserInfo && (
+              <div className="flex items-center gap-1 mt-1">
+                <UserCheck className="h-3 w-3 text-yellow-600" />
+                <span className="text-xs text-yellow-600" title="Debug: Responsible user ID found but user data missing - check if roles are properly assigned">
+                  Missing User Data (Check Roles)
+                </span>
+              </div>
+            )}
           </div>
-          <AssignmentStatusBadge isPublished={isPublished} />
-          {operationState && (
-            <span className="text-xs text-blue-600 font-medium animate-pulse">
-              {getOperationText(operationState)}
-            </span>
-          )}
         </div>
         
         <AssignmentActionButtons 
