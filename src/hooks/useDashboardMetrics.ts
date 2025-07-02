@@ -38,11 +38,18 @@ export const useDashboardMetrics = () => {
     // Calculate available cars (not assigned to today's assignments)
     const assignedCarIds = new Set(
       assignments
-        .filter(assignment => assignment.date === todayStr || assignment.assignment_date === todayStr)
+        .filter(assignment => assignment.date === todayStr)
         .flatMap(assignment => {
           const carIds = [];
-          if (assignment.car_id) carIds.push(assignment.car_id);
-          if (assignment.car_ids) carIds.push(...assignment.car_ids);
+          if (assignment.car) {
+            // Handle car property which can be string or object
+            if (typeof assignment.car === 'string') {
+              carIds.push(assignment.car);
+            } else if (assignment.car && typeof assignment.car === 'object' && 'id' in assignment.car) {
+              carIds.push(assignment.car.id);
+            }
+          }
+          if (assignment.cars) carIds.push(...assignment.cars);
           return carIds;
         })
     );
