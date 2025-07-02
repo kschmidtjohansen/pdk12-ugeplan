@@ -1,3 +1,4 @@
+
 export const dashboard = {
   welcome: "Velkommen tilbage",
   subtitle: "Oversigt over dagens opgaver og aktiviteter",
@@ -28,7 +29,7 @@ export const dashboard = {
   yourRole: "din rolle",
   tasksToday: "opgaver i dag",
   completedTasks: "afsluttede opgaver",
-  available: "Tilgængelig", // ADDED: Missing dashboard available translation
+  available: "Tilgængelig",
   
   // Welcome messages
   welcomeUser: "Hej {name}! 👋",
@@ -82,13 +83,17 @@ export const dashboard = {
     }
   },
   
+  // Dashboard metrics - ADDED MISSING TRANSLATIONS
   metrics: {
+    activeEmployees: "Active Medarbejdere",
     availableEmployees: "Tilgængelige medarbejdere",
     unavailableEmployees: "Utilgængelige medarbejdere", 
     unavailableSubtitle: "På ferie, orlov eller fuldt booket",
     availableCars: "Tilgængelige biler",
     carsInUse: "Biler i brug",
     carsInUseSubtitle: "Tildelt opgaver eller utilgængelige",
+    publishedAssignments: "Publicerede Opgaver",
+    todayAssignments: "Dagens Opgaver",
     totalCount: "{count} i alt"
   },
   charts: {

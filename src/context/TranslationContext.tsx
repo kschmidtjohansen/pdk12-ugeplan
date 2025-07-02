@@ -35,7 +35,7 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
     localStorage.setItem('polygonLanguage', lang);
   };
   
-  // COMPREHENSIVE FIX: Improved translation function with better error handling
+  // IMPROVED: Enhanced translation function with better error handling and dev warnings
   const t = (key: string, params?: Record<string, any>) => {
     try {
       // Use the imported translations object
@@ -49,14 +49,17 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (translation && typeof translation === 'object' && part in translation) {
           translation = translation[part];
         } else {
-          // COMPREHENSIVE FIX: Return the key as fallback instead of logging errors
+          // IMPROVED: Add development warnings for missing keys
+          if (process.env.NODE_ENV === 'development') {
+            console.warn(`Translation key "${key}" not found for language "${currentLanguage}"`);
+          }
           return key;
         }
       }
       
       // Return the translation if it's a string
       if (typeof translation === 'string') {
-        // Replace parameters
+        // Replace parameters with improved error handling
         if (params) {
           let result = translation;
           // Iterate over each parameter key and replace it in the string
@@ -64,7 +67,12 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
             if (Object.prototype.hasOwnProperty.call(params, paramKey)) {
               const value = params[paramKey];
               const placeholder = `{${paramKey}}`;
-              result = result.replace(new RegExp(placeholder, 'g'), String(value));
+              // IMPROVED: Better parameter replacement with validation
+              if (typeof value !== 'undefined' && value !== null) {
+                result = result.replace(new RegExp(placeholder, 'g'), String(value));
+              } else if (process.env.NODE_ENV === 'development') {
+                console.warn(`Parameter "${paramKey}" is undefined for translation key "${key}"`);
+              }
             }
           }
           return result;
@@ -72,9 +80,16 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
         return translation;
       }
       
+      // IMPROVED: Better fallback handling
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`Translation key "${key}" exists but is not a string for language "${currentLanguage}"`);
+      }
       return key;
     } catch (error) {
-      // COMPREHENSIVE FIX: Silent fallback to key on any error
+      // IMPROVED: Better error logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`Error processing translation key "${key}":`, error);
+      }
       return key;
     }
   };

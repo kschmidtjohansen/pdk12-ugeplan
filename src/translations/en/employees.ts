@@ -11,8 +11,10 @@ const employees = {
   actions: 'Actions',
   jobTitle: 'Job Title',
   
-  // Employee roles
+  // Employee roles - STANDARDIZED: Use admin.roles instead
   administrator: 'Administrator',
+  skadeleder: 'Damage Manager',
+  servicemedarbejder: 'Service Employee',
   user: 'User',
   
   // Employee status - STANDARDIZED SECTION
@@ -23,7 +25,7 @@ const employees = {
   availableAfter: 'Available after {time}',
   fullyBooked: 'Fully Booked',
   
-  // NEW: Additional status translations
+  // Additional status translations
   status: {
     available: 'Available',
     unavailable: 'Unavailable',
@@ -36,6 +38,7 @@ const employees = {
   
   // Actions
   add: 'Add Employee',
+  addEmployee: 'Add Employee',
   edit: 'Edit Employee',
   delete: 'Delete Employee',
   markAvailable: 'Mark Available',

@@ -16,6 +16,14 @@ export const admin = {
     title: 'Administrationspanel',
     description: 'Systemoversigt og hurtig adgang til administrative funktioner'
   },
+  // Add missing data health translations
+  dataHealth: {
+    title: 'Data Sundhed',
+    status: 'Status',
+    cacheSize: 'Cache Størrelse',
+    healthMonitoring: 'Sundhedsovervågning',
+    clearCache: 'Ryd Cache'
+  },
   security: {
     title: 'Sikkerhedsovervågning',
     description: 'Overvåg sikkerhedshændelser og adgangslogfiler'
@@ -234,7 +242,7 @@ export const admin = {
     resetError: 'Fejl. Kunne ikke nulstille adgangskode. Prøv igen.',
     passwordMismatch: 'Adgangskoder matcher ikke',
     passwordMinLength: 'Adgangskoden skal være mindst 8 tegn lang',
-    passwordChanged: 'Adgangskode ændret',
+    passwordChanged: 'Adgangskone ændret',
     passwordChangedMsg: 'Adgangskoden er blevet ændret.',
     passwordTooShort: 'Adgangskode for kort. Skal indeholde 6 tegn.',
     passwordsMustMatch: 'Adgangskoder skal være ens'

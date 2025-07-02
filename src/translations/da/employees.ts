@@ -11,8 +11,10 @@ const employees = {
   actions: 'Handlinger',
   jobTitle: 'Job titel',
   
-  // Employee roles
+  // Employee roles - STANDARDIZED: Use admin.roles instead
   administrator: 'Administrator',
+  skadeleder: 'Skadeleder',
+  servicemedarbejder: 'Servicemedarbejder',
   user: 'Bruger',
   
   // Employee status - STANDARDIZED SECTION
@@ -23,7 +25,7 @@ const employees = {
   availableAfter: 'Ledig efter {time}',
   fullyBooked: 'Fuldt booket',
   
-  // NEW: Additional status translations
+  // Additional status translations
   status: {
     available: 'Tilgængelig',
     unavailable: 'Ikke tilgængelig',
@@ -36,6 +38,7 @@ const employees = {
   
   // Actions
   add: 'Tilføj medarbejder',
+  addEmployee: 'Tilføj medarbejder',
   edit: 'Rediger medarbejder',
   delete: 'Slet medarbejder',
   markAvailable: 'Marker som tilgængelig',

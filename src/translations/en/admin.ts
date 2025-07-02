@@ -16,6 +16,14 @@ export const admin = {
     title: 'Admin Dashboard',
     description: 'System overview and quick access to administrative functions'
   },
+  // Add missing data health translations
+  dataHealth: {
+    title: 'Data Health',
+    status: 'Status',
+    cacheSize: 'Cache Size',
+    healthMonitoring: 'Health Monitoring',
+    clearCache: 'Clear Cache'
+  },
   security: {
     title: 'Security Monitoring',
     description: 'Monitor security events and access logs'

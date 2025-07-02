@@ -1,9 +1,7 @@
 
-
 import { common } from './en/common';
 import navigation from './en/navigation';
 import notifications from './en/notifications';
-import { en } from './en/index';
 import { dashboard } from './en/dashboard';
 import vacation from './en/vacation';
 import employees from './en/employees';
@@ -14,6 +12,8 @@ import cars from './en/cars';
 import { admin } from './en/admin';
 import { auth } from './en/auth';
 import screenDisplay from './en/screenDisplay';
+import accessDenied from './en/accessDenied';
+import deleteConfirm from './en/deleteConfirm';
 
 const enTranslations = {
   // Common components
@@ -33,8 +33,6 @@ const enTranslations = {
   navigation: navigation,
   // Notifications
   notifications: notifications,
-  // Index page
-  index: en,
   // Dashboard
   dashboard: dashboard,
   // Vacation
@@ -55,19 +53,10 @@ const enTranslations = {
   auth: auth,
   // Screen Display
   screenDisplay: screenDisplay,
-  // Access denied - adding for consistency
-  accessDenied: {
-    title: 'Access Denied',
-    message: 'You need to be logged in to access this page.',
-    restricted: 'You do not have permission to perform this action.'
-  },
-  // Delete confirmations - adding for consistency
-  deleteConfirm: {
-    title: 'Are you absolutely sure?',
-    carWarning: 'You are about to delete {name} from the department. This action cannot be undone.',
-    cancel: 'Cancel',
-    delete: 'Delete'
-  }
+  // Access denied
+  accessDenied: accessDenied,
+  // Delete confirmations
+  deleteConfirm: deleteConfirm
 };
 
 export type EnTranslations = typeof enTranslations;

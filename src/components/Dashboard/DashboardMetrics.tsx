@@ -85,7 +85,7 @@ const DashboardMetrics: React.FC = () => {
             </div>
             {metric.total && (
               <Badge variant="outline" className="mt-1">
-                {Math.round((metric.value / metric.total) * 100)}% active
+                {Math.round((metric.value / metric.total) * 100)}% {t('common.available').toLowerCase()}
               </Badge>
             )}
           </CardContent>
