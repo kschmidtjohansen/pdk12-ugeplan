@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +28,12 @@ const DataHealthMonitor: React.FC = () => {
     setError(null);
     try {
       const status = unifiedDataService.getStatus();
-      setHealthStatus(status);
+      // Add the missing healthMonitoring property
+      const healthStatusWithMonitoring = {
+        ...status,
+        healthMonitoring: true // Default to true since we're actively monitoring
+      };
+      setHealthStatus(healthStatusWithMonitoring);
       setIsHealthy(true);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch health status';
@@ -55,7 +61,7 @@ const DataHealthMonitor: React.FC = () => {
     if (!isHealthy) {
       return 'error';
     }
-    if (healthStatus?.cacheSize > 0) {
+    if (healthStatus?.cacheSize && healthStatus.cacheSize > 0) {
       return 'cached';
     }
     return 'online';
@@ -119,7 +125,7 @@ const DataHealthMonitor: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span>{t('admin.dataHealth.cacheSize')}:</span>
-              <span>{healthStatus?.cacheSize}</span>
+              <span>{healthStatus?.cacheSize || 0}</span>
             </div>
             <div className="flex items-center justify-between">
               <span>{t('admin.dataHealth.healthMonitoring')}:</span>

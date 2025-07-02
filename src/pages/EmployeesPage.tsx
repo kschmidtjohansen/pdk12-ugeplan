@@ -1,102 +1,48 @@
+
 import React, { useState } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Users, UserCheck, UserX, ShieldCheck, Search } from 'lucide-react';
+import { Plus, Users } from 'lucide-react';
 import EmployeeList from '@/components/Employees/EmployeeList';
 import EmployeeFormDialog from '@/components/Employees/EmployeeFormDialog';
 import EmployeeDeleteDialog from '@/components/Employees/EmployeeDeleteDialog';
-import { useUnifiedData } from '@/hooks/data/useUnifiedData';
+import { useEmployees } from '@/hooks/useEmployees';
 import { Employee } from '@/types/employee';
-import { useToast } from '@/hooks/use-toast';
-import { Input } from '@/components/ui/input';
 
 const EmployeesPage: React.FC = () => {
   const { isAdmin } = usePermissions();
   const { t } = useTranslation();
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [markLeaveDialogOpen, setMarkLeaveDialogOpen] = useState(false);
   const [markAvailableDialogOpen, setMarkAvailableDialogOpen] = useState(false);
   const [employeeNote, setEmployeeNote] = useState('');
-  const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    jobTitle: '',
-    role: 'servicemedarbejder' as 'servicemedarbejder',
-    onLeave: false,
-    notes: ''
-  });
 
-  // Use unified data service
+  // Use the correct employees hook
   const { 
     employees, 
     loading, 
     error,
-    fetchEmployees 
-  } = useUnifiedData();
-
-  const prepareForCreate = () => {
-    setCurrentEmployee(null);
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      jobTitle: '',
-      role: 'servicemedarbejder',
-      onLeave: false,
-      notes: ''
-    });
-  };
-
-  const prepareForEdit = (employee: Employee) => {
-    setCurrentEmployee(employee);
-    setFormData({
-      name: employee.name,
-      email: employee.email,
-      phone: employee.phone || '',
-      jobTitle: employee.jobTitle || '',
-      role: employee.role as 'servicemedarbejder',
-      onLeave: employee.onLeave,
-      notes: employee.notes || ''
-    });
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSelectChange = (value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      role: value as 'servicemedarbejder',
-    }));
-  };
-
-  const handleCheckboxChange = (name: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: checked,
-    }));
-  };
+    fetchEmployees,
+    currentEmployee,
+    formData,
+    prepareForCreate,
+    prepareForEdit,
+    handleInputChange,
+    handleSelectChange,
+    handleCheckboxChange,
+    createEmployee,
+    updateEmployee,
+    deleteEmployee,
+    toggleEmployeeLeave
+  } = useEmployees();
 
   const handleCreateNew = () => {
     prepareForCreate();
-    setDialogOpen(true);
   };
 
   const handleEdit = (employee: Employee) => {
     prepareForEdit(employee);
-    setDialogOpen(true);
   };
 
   const handleDelete = (employee: Employee) => {
@@ -104,24 +50,10 @@ const EmployeesPage: React.FC = () => {
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (currentEmployee) {
-      // TODO: Implement delete functionality
-      console.log('Delete employee:', currentEmployee.id);
+      await deleteEmployee(currentEmployee.id);
       setDeleteDialogOpen(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      // TODO: Implement create/update functionality
-      console.log('Submit employee:', formData);
-      setDialogOpen(false);
-      await fetchEmployees(); // Refresh data
-    } catch (error) {
-      console.error('[EmployeesPage] Submit error:', error);
     }
   };
 
@@ -137,26 +69,23 @@ const EmployeesPage: React.FC = () => {
     }
   };
 
-  const handleConfirmMarkLeave = () => {
+  const handleConfirmMarkLeave = async () => {
     if (currentEmployee) {
-      // TODO: Implement toggle leave functionality
-      console.log('Mark leave:', currentEmployee.id, employeeNote);
+      await toggleEmployeeLeave(currentEmployee, true, employeeNote);
       setMarkLeaveDialogOpen(false);
     }
   };
 
-  const handleConfirmMarkAvailableWithNote = () => {
+  const handleConfirmMarkAvailableWithNote = async () => {
     if (currentEmployee) {
-      // TODO: Implement toggle available functionality
-      console.log('Mark available (keep note):', currentEmployee.id);
+      await toggleEmployeeLeave(currentEmployee, false, employeeNote);
       setMarkAvailableDialogOpen(false);
     }
   };
 
-  const handleConfirmMarkAvailableWithoutNote = () => {
+  const handleConfirmMarkAvailableWithoutNote = async () => {
     if (currentEmployee) {
-      // TODO: Implement toggle available functionality
-      console.log('Mark available (remove note):', currentEmployee.id);
+      await toggleEmployeeLeave(currentEmployee, false, null);
       setMarkAvailableDialogOpen(false);
     }
   };
@@ -216,24 +145,23 @@ const EmployeesPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Use the correct dialog components with proper props */}
         <EmployeeFormDialog 
-          dialogOpen={dialogOpen} 
-          currentEmployee={currentEmployee} 
-          formData={formData} 
-          employeeNote={employeeNote} 
-          handleInputChange={handleInputChange} 
-          handleSelectChange={handleSelectChange} 
-          handleCheckboxChange={handleCheckboxChange} 
-          handleNoteChange={setEmployeeNote} 
-          handleSubmit={handleSubmit} 
-          onCloseDialog={() => setDialogOpen(false)} 
-          onConfirmDelete={confirmDelete} 
-          onCloseDeleteDialog={setDeleteDialogOpen} 
-          onConfirmMarkLeave={handleConfirmMarkLeave} 
-          onCancelMarkLeave={() => setMarkLeaveDialogOpen(false)} 
-          onConfirmMarkAvailableWithNote={handleConfirmMarkAvailableWithNote} 
-          onConfirmMarkAvailableWithoutNote={handleConfirmMarkAvailableWithoutNote} 
-          onCancelMarkAvailable={() => setMarkAvailableDialogOpen(false)} 
+          open={!!currentEmployee || formData.name !== ''}
+          employee={currentEmployee}
+          onClose={() => prepareForCreate()}
+          onSubmit={currentEmployee ? updateEmployee : createEmployee}
+          formData={formData}
+          onInputChange={handleInputChange}
+          onSelectChange={handleSelectChange}
+          onCheckboxChange={handleCheckboxChange}
+        />
+
+        <EmployeeDeleteDialog
+          open={deleteDialogOpen}
+          employee={currentEmployee}
+          onClose={() => setDeleteDialogOpen(false)}
+          onConfirm={confirmDelete}
         />
       </div>
     </div>
