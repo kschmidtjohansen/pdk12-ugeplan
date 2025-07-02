@@ -1,58 +1,77 @@
 
-import React, { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, Users, AlertCircle, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useTranslation } from '@/context/TranslationContext';
+import React from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useOptimizedAssignments } from '@/hooks/useOptimizedAssignments';
-import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
-import { Assignment, normalizeEmployees } from '@/types/assignment';
+import { useTranslation } from '@/context/TranslationContext';
+import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentDataOptimized';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Clock, MapPin, UserCheck, Calendar } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
+import { format, parseISO, isToday, isTomorrow } from 'date-fns';
+import { da } from 'date-fns/locale';
 
 const MineOpgaver: React.FC = () => {
-  const { t } = useTranslation();
   const { user } = useAuth();
-  const { assignments, loading, error, refetch } = useOptimizedAssignments('user');
+  const { t, currentLanguage } = useTranslation();
+  const { assignments, loading, error } = useAssignmentDataOptimized();
 
-  console.log('[MineOpgaver] Component rendered for user:', user?.name, 'role:', user?.role);
-  console.log('[MineOpgaver] Assignments received:', assignments?.length || 0);
-
-  const userAssignments = useMemo(() => {
-    if (!user?.id || !assignments) {
-      console.log('[MineOpgaver] Missing user or assignments:', {
-        hasUser: !!user?.id,
-        hasAssignments: !!assignments,
-        assignmentCount: assignments?.length || 0
-      });
-      return [];
-    }
-
-    console.log('[MineOpgaver] Using assignments from service:', {
-      totalAssignments: assignments.length,
-      sampleAssignment: assignments[0] ? {
-        title: assignments[0].title,
-        employees: assignments[0].employees,
-        date: assignments[0].date
-      } : 'No assignments'
+  // PHASE 3 FIX: Filter assignments for current user
+  const userAssignments = React.useMemo(() => {
+    if (!user?.name || !assignments) return [];
+    
+    const today = new Date();
+    const userTasks = assignments.filter(assignment => {
+      // Check if user is assigned to this task OR is the responsible user
+      const isAssigned = assignment.employees?.includes(user.name);
+      const isResponsible = assignment.responsibleUser?.id === user.id;
+      const assignmentDate = parseISO(assignment.date);
+      const isUpcoming = assignmentDate >= today || isToday(assignmentDate);
+      
+      return (isAssigned || isResponsible) && isUpcoming && assignment.published;
     });
 
-    return assignments;
+    return userTasks.sort((a, b) => {
+      const dateA = parseISO(a.date);
+      const dateB = parseISO(b.date);
+      if (dateA.getTime() !== dateB.getTime()) {
+        return dateA.getTime() - dateB.getTime();
+      }
+      return a.fromTime.localeCompare(b.fromTime);
+    }).slice(0, 5); // Show max 5 upcoming tasks
   }, [assignments, user]);
+
+  // PHASE 3 FIX: Enhanced date formatting
+  const formatAssignmentDate = (dateStr: string) => {
+    const date = parseISO(dateStr);
+    const locale = currentLanguage === 'da' ? da : undefined;
+    
+    if (isToday(date)) {
+      return t('common.today') || 'I dag';
+    } else if (isTomorrow(date)) {
+      return t('common.tomorrow') || 'I morgen';
+    } else {
+      return format(date, 'EEE d. MMM', { locale });
+    }
+  };
+
+  console.log(`[MineOpgaver] PHASE 3 FIX - User assignments:`, {
+    userName: user?.name,
+    totalAssignments: assignments.length,
+    userAssignments: userAssignments.length,
+    assignmentsWithResponsible: userAssignments.filter(a => a.responsibleUser).length
+  });
 
   if (loading) {
     return (
-      <Card className="border-2 border-border/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            {t('dashboard.myTasks')}
+      <Card className="h-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            {t('dashboard.myTasks') || 'Mine Opgaver'}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-center py-4">
-            <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
-            <p className="text-sm text-muted-foreground mt-2">{t('common.loading')}...</p>
-          </div>
+        <CardContent className="flex items-center justify-center py-12">
+          <Spinner size="sm" />
         </CardContent>
       </Card>
     );
@@ -60,116 +79,111 @@ const MineOpgaver: React.FC = () => {
 
   if (error) {
     return (
-      <Card className="border-2 border-destructive/20 bg-destructive/5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-destructive">
-            <AlertCircle className="h-5 w-5" />
-            {t('dashboard.myTasks')}
+      <Card className="h-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            {t('dashboard.myTasks') || 'Mine Opgaver'}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex items-center justify-center py-12">
           <p className="text-sm text-muted-foreground">
-            {t('common.error')}: {error.message}
+            {t('common.error') || 'Fejl ved indlæsning'}
           </p>
-          <Button 
-            onClick={() => refetch()}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className="h-4 w-4" />
-            {t('common.retry')}
-          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (userAssignments.length === 0) {
+    return (
+      <Card className="h-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            {t('dashboard.myTasks') || 'Mine Opgaver'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-12">
+          <p className="text-sm text-muted-foreground text-center">
+            {t('dashboard.noUpcomingTasks') || 'Ingen kommende opgaver'}
+          </p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <DataFetchErrorBoundary>
-      <Card className="border-2 border-border/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-primary" />
-            {t('dashboard.myTasks')}
-            <span className="text-sm font-normal text-muted-foreground">
-              ({userAssignments.length})
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {userAssignments.length === 0 ? (
-            <div className="text-center py-8">
-              <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-muted-foreground mb-2">
-                {t('dashboard.noTasks')}
-              </h3>
-              <p className="text-muted-foreground">
-                {t('dashboard.noTasksDescription')}
-              </p>
+    <Card className="h-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold flex items-center gap-2">
+          <Calendar className="h-5 w-5 text-primary" />
+          {t('dashboard.myTasks') || 'Mine Opgaver'}
+          <Badge variant="secondary" className="ml-auto">
+            {userAssignments.length}
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {userAssignments.map((assignment) => (
+          <div
+            key={assignment.id}
+            className="flex flex-col space-y-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+          >
+            {/* Title and Date */}
+            <div className="flex items-start justify-between">
+              <h4 className="font-medium text-sm leading-tight">
+                {assignment.title}
+              </h4>
+              <Badge 
+                variant="outline" 
+                className={`text-xs ${
+                  isToday(parseISO(assignment.date)) 
+                    ? 'bg-primary/10 text-primary border-primary/20' 
+                    : 'bg-muted'
+                }`}
+              >
+                {formatAssignmentDate(assignment.date)}
+              </Badge>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {userAssignments.map((assignment) => {
-                const employeeNames = normalizeEmployees(assignment.employees);
-                
-                console.log('[MineOpgaver] Rendering assignment:', {
-                  title: assignment.title,
-                  employees: employeeNames,
-                  date: assignment.date
-                });
 
-                return (
-                  <div
-                    key={assignment.id}
-                    className="border rounded-lg p-4 bg-gradient-to-br from-card to-card/50"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold text-foreground">{assignment.title}</h4>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(assignment.date).toLocaleDateString()}
-                      </span>
-                    </div>
-                    
-                    {assignment.description && (
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {assignment.description}
-                      </p>
-                    )}
+            {/* Location */}
+            {assignment.location && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <MapPin className="h-3 w-3" />
+                <span className="truncate">{assignment.location}</span>
+              </div>
+            )}
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          {assignment.fromTime} - {assignment.toTime}
-                        </span>
-                      </div>
-                      
-                      {employeeNames.length > 0 && (
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">
-                            {employeeNames.join(', ')}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {assignment.location && (
-                      <div className="mt-2">
-                        <span className="text-xs text-muted-foreground">
-                          📍 {assignment.location}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+            {/* Time */}
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              <span>{assignment.fromTime?.substring(0, 5)} - {assignment.toTime?.substring(0, 5)}</span>
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </DataFetchErrorBoundary>
+
+            {/* PHASE 3 FIX: Show Sagsansvarlig if present */}
+            {assignment.responsibleUser?.name && (
+              <div className="flex items-center gap-1 text-xs text-indigo-600">
+                <UserCheck className="h-3 w-3" />
+                <span className="font-medium">
+                  {t('planner.responsibleUser') || 'Sagsansvarlig'}: {assignment.responsibleUser.name}
+                </span>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* View all link */}
+        <div className="pt-2 border-t">
+          <button 
+            className="text-xs text-primary hover:underline w-full text-center"
+            onClick={() => window.location.href = '/planner'}
+          >
+            {t('dashboard.viewAllTasks') || 'Se alle opgaver'} →
+          </button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

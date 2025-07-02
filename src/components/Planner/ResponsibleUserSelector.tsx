@@ -24,7 +24,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   const { t } = useTranslation();
   const { employees } = useEmployees();
 
-  console.log('[ResponsibleUserSelector] COMPREHENSIVE FIX - Debug info:');
+  console.log('[ResponsibleUserSelector] PHASE 4 FIX - Debug info:');
   console.log('- Total employees loaded:', employees.length);
   console.log('- Selected user ID:', selectedUserId);
   console.log('- All employees with roles:', employees.map(e => ({ 
@@ -33,7 +33,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     id: e.id.substring(0, 8) + '...' 
   })));
 
-  // Filter employees to only show administrators and skadeleders with enhanced validation
+  // PHASE 4 FIX: Filter employees to only show administrators and skadeledere with proper role validation
   const eligibleUsers = employees.filter(employee => {
     const isEligible = employee.role === 'administrator' || employee.role === 'skadeleder';
     console.log(`- Employee "${employee.name}" (${employee.role}): eligible = ${isEligible}`);
@@ -65,7 +65,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
 
   // Handle user selection with enhanced logging
   const handleUserSelect = (userId: string) => {
-    console.log('[ResponsibleUserSelector] COMPREHENSIVE FIX - User selected:', {
+    console.log('[ResponsibleUserSelector] PHASE 4 FIX - User selected:', {
       userId: userId === 'none' ? 'none' : userId,
       isNone: userId === 'none'
     });
@@ -81,18 +81,18 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
 
   return (
     <div className="space-y-2">
-      <Label className="text-sm font-medium">
-        {t('planner.responsibleUser') || 'Sagsansvarlig'}
+      <Label className="text-sm font-medium text-indigo-700">
+        {t('planner.responsibleUser') || 'Sagsansvarlig'} ⭐
       </Label>
       
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="w-full justify-between h-11 px-4 py-2"
+            className="w-full justify-between h-11 px-4 py-2 border-indigo-200 hover:border-indigo-300 focus:border-indigo-400"
           >
             <div className="flex items-center gap-2">
-              <UserCheck className="h-4 w-4" />
+              <UserCheck className="h-4 w-4 text-indigo-600" />
               <span className="truncate">{getSelectedUserDisplay()}</span>
             </div>
           </Button>
@@ -101,11 +101,11 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
           {/* No responsible user option */}
           <DropdownMenuItem
             onClick={() => handleUserSelect('none')}
-            className="cursor-pointer p-2"
+            className="cursor-pointer p-2 hover:bg-gray-50"
           >
             <div className="flex items-center justify-between w-full space-x-2">
               <div className="flex items-center gap-2">
-                <UserCheck className="h-4 w-4" />
+                <UserCheck className="h-4 w-4 text-gray-400" />
                 <span>{t('planner.noResponsibleUser') || 'Ingen sagsansvarlig'}</span>
               </div>
             </div>
@@ -114,7 +114,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
           {eligibleUsers.length === 0 ? (
             <DropdownMenuItem disabled className="p-2">
               <span className="text-gray-500">
-                {t('employees.noEmployees') || 'Ingen sagsansvarlige fundet'} 
+                {t('employees.noResponsibleUsersFound') || 'Ingen sagsansvarlige fundet'} 
                 {process.env.NODE_ENV === 'development' && ` (Debug: ${employees.length} medarbejdere indlæst)`}
               </span>
             </DropdownMenuItem>
@@ -123,14 +123,20 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
               <DropdownMenuItem
                 key={user.id}
                 onClick={() => handleUserSelect(user.id)}
-                className="cursor-pointer p-2"
+                className="cursor-pointer p-2 hover:bg-indigo-50"
               >
                 <div className="flex items-center justify-between w-full space-x-2">
                   <div className="flex items-center gap-2">
-                    <UserCheck className="h-4 w-4" />
-                    <span className="truncate">{user.name}</span>
+                    <UserCheck className="h-4 w-4 text-indigo-600" />
+                    <span className="truncate font-medium">{user.name}</span>
                   </div>
-                  <span className="text-xs text-gray-500 ml-2">({user.role})</span>
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                    user.role === 'administrator' 
+                      ? 'bg-red-100 text-red-700' 
+                      : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {user.role === 'administrator' ? 'Admin' : 'Skadeleder'}
+                  </span>
                 </div>
               </DropdownMenuItem>
             ))
@@ -140,9 +146,14 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
       
       {/* Enhanced debug info for development */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="text-xs text-gray-400 mt-1 p-2 bg-gray-50 rounded">
-          Debug: {employees.length} total employees, {eligibleUsers.length} eligible
+        <div className="text-xs text-gray-400 mt-1 p-2 bg-gray-50 rounded border">
+          <strong>PHASE 4 DEBUG:</strong> {employees.length} total employees, {eligibleUsers.length} eligible
           {selectedUserId && ` | Selected: ${selectedUserId.substring(0, 8)}...`}
+          <br />
+          <strong>Roles found:</strong> {employees.reduce((acc, emp) => {
+            acc[emp.role] = (acc[emp.role] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>)}
         </div>
       )}
     </div>

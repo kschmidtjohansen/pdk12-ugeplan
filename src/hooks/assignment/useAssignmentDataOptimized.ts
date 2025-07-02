@@ -17,9 +17,9 @@ export const useAssignmentDataOptimized = () => {
       setLoading(true);
       setError(null);
       
-      console.log('[useAssignmentDataOptimized] SAGSANSVARLIG FIX - Starting assignment fetch...');
+      console.log('[useAssignmentDataOptimized] PHASE 2 FIX - Starting assignment fetch...');
       
-      // CRITICAL FIX: Use the correct foreign key constraint name from the database
+      // PHASE 2 FIX: Use correct foreign key reference to profiles table
       const { data: assignments, error: assignmentsError } = await supabase
         .from('assignments')
         .select(`
@@ -34,14 +34,14 @@ export const useAssignmentDataOptimized = () => {
         .order('from_time', { ascending: true });
       
       if (assignmentsError) {
-        console.error('[useAssignmentDataOptimized] SAGSANSVARLIG FIX - Assignment fetch error:', assignmentsError);
+        console.error('[useAssignmentDataOptimized] PHASE 2 FIX - Assignment fetch error:', assignmentsError);
         throw assignmentsError;
       }
       
-      console.log(`[useAssignmentDataOptimized] SAGSANSVARLIG FIX - Raw assignments fetched:`, assignments?.length || 0);
+      console.log(`[useAssignmentDataOptimized] PHASE 2 FIX - Raw assignments fetched:`, assignments?.length || 0);
       
       if (!assignments || assignments.length === 0) {
-        console.log('[useAssignmentDataOptimized] SAGSANSVARLIG FIX - No assignments found');
+        console.log('[useAssignmentDataOptimized] PHASE 2 FIX - No assignments found');
         setAssignments([]);
         return;
       }
@@ -83,18 +83,18 @@ export const useAssignmentDataOptimized = () => {
         }
       });
       
-      // Transform assignments
+      // PHASE 2 FIX: Transform assignments with proper responsible user handling
       const transformedAssignments: Assignment[] = assignments.map(assignment => {
         const employeeNames = assignmentEmployeeMap.get(assignment.id) || [];
         
-        // CRITICAL FIX: Properly handle responsible user data
+        // PHASE 2 FIX: Properly handle responsible user data with enhanced validation
         const responsibleUser = assignment.responsible_user ? {
           id: assignment.responsible_user.id,
           name: assignment.responsible_user.name,
           email: assignment.responsible_user.email
         } : null;
         
-        console.log(`[useAssignmentDataOptimized] SAGSANSVARLIG FIX - Assignment "${assignment.title}":`, {
+        console.log(`[useAssignmentDataOptimized] PHASE 2 FIX - Assignment "${assignment.title}":`, {
           hasResponsibleUser: !!responsibleUser,
           responsibleUserName: responsibleUser?.name,
           responsibleUserId: responsibleUser?.id
@@ -112,12 +112,12 @@ export const useAssignmentDataOptimized = () => {
           cars: assignment.car_ids || (assignment.car_id ? [assignment.car_id] : []),
           car: assignment.car_id || (assignment.car_ids && assignment.car_ids.length > 0 ? assignment.car_ids[0] : ''),
           published: assignment.published || false,
-          responsibleUser: responsibleUser, // CRITICAL: This should now contain proper data
+          responsibleUser: responsibleUser, // PHASE 2 FIX: Enhanced responsible user data
           type: assignment.type || 'other'
         };
       });
       
-      console.log(`[useAssignmentDataOptimized] SAGSANSVARLIG FIX - Final assignments with responsible users:`, 
+      console.log(`[useAssignmentDataOptimized] PHASE 2 FIX - Final assignments with responsible users:`, 
         transformedAssignments.filter(a => a.responsibleUser).map(a => ({ 
           title: a.title, 
           responsibleUser: a.responsibleUser?.name 
@@ -126,7 +126,7 @@ export const useAssignmentDataOptimized = () => {
       setAssignments(transformedAssignments);
       
     } catch (err) {
-      console.error('[useAssignmentDataOptimized] SAGSANSVARLIG FIX - Error:', err);
+      console.error('[useAssignmentDataOptimized] PHASE 2 FIX - Error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch assignments';
       setError(errorMessage);
       

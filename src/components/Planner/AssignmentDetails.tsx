@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Clock, UserCheck, Users, Car } from 'lucide-react';
@@ -13,8 +14,8 @@ interface AssignmentDetailsProps {
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars }) => {
   const { t } = useTranslation();
 
-  console.log('[AssignmentDetails] COMPREHENSIVE FIX - Assignment:', assignment.id);
-  console.log('[AssignmentDetails] COMPREHENSIVE FIX - Responsible user details:', {
+  console.log('[AssignmentDetails] PHASE 3 FIX - Assignment:', assignment.id);
+  console.log('[AssignmentDetails] PHASE 3 FIX - Responsible user details:', {
     hasResponsibleUser: !!assignment.responsibleUser,
     responsibleUserName: assignment.responsibleUser?.name,
     responsibleUserId: assignment.responsibleUser?.id,
@@ -105,14 +106,14 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
 
       {/* Right Column */}
       <div className="space-y-3">
-        {/* COMPREHENSIVE FIX: Enhanced Sagsansvarlig display with better validation and fallbacks */}
+        {/* PHASE 3 FIX: Enhanced Sagsansvarlig display with prominent styling */}
         {assignment.responsibleUser?.name && (
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
               <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-xs text-muted-foreground font-medium">
+              <span className="text-xs text-indigo-600 font-semibold uppercase tracking-wide">
                 {t('planner.responsibleUser') || 'Sagsansvarlig'}
               </span>
               <span className="text-foreground font-medium text-sm truncate" title={assignment.responsibleUser.name}>

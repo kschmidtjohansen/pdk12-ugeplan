@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Assignment } from '../../types/assignment';
@@ -31,8 +32,8 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  console.log(`[AssignmentCard] COMPREHENSIVE FIX - Assignment: ${assignment.title || assignment.location}`);
-  console.log(`[AssignmentCard] COMPREHENSIVE FIX - Responsible user data:`, {
+  console.log(`[AssignmentCard] PHASE 3 FIX - Assignment: ${assignment.title || assignment.location}`);
+  console.log(`[AssignmentCard] PHASE 3 FIX - Responsible user data:`, {
     hasResponsibleUser: !!assignment.responsibleUser,
     responsibleUserName: assignment.responsibleUser?.name,
     responsibleUserId: assignment.responsibleUser?.id
@@ -86,11 +87,11 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           <div className="flex flex-col">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-medium text-lg">{assignment.title || (t('planner.titleLabel') || 'Titel')}</h3>
-              {/* COMPREHENSIVE FIX: Enhanced Sagsansvarlig badge with better validation */}
+              {/* PHASE 3 FIX: Enhanced Sagsansvarlig badge with better styling */}
               {assignment.responsibleUser?.name && (
-                <div className="flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
+                <div className="flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium border border-indigo-200">
                   <UserCheck className="h-3 w-3" />
-                  <span title={t('planner.responsibleUser') || 'Sagsansvarlig'}>
+                  <span title={`${t('planner.responsibleUser') || 'Sagsansvarlig'}: ${assignment.responsibleUser.name}`}>
                     {assignment.responsibleUser.name}
                   </span>
                 </div>
