@@ -19,21 +19,43 @@ const MineOpgaver: React.FC = () => {
 
   // Filter assignments for current week only
   const userAssignments = React.useMemo(() => {
-    if (!user?.name || !assignments) return [];
+    if (!user?.id || !assignments) return [];
     
     const { week: currentWeek, year: currentYear } = getCurrentWeekInfo();
     const currentWeekDates = getWeekDates(currentWeek, currentYear);
     
+    console.log('[MineOpgaver] COMPREHENSIVE FIX - Filtering assignments:', {
+      userName: user.name,
+      userId: user.id,
+      totalAssignments: assignments.length,
+      currentWeek,
+      currentYear
+    });
+    
     const userTasks = assignments.filter(assignment => {
-      // Check if user is assigned to this task OR is the responsible user
-      const isAssigned = assignment.employees?.includes(user.name);
+      // Check if user is assigned via assignedEmployees (preferred) or legacy employees array
+      const isAssignedViaNew = assignment.assignedEmployees?.some(emp => emp.id === user.id);
+      const isAssignedViaLegacy = assignment.employees?.includes(user.name);
       const isResponsible = assignment.responsibleUser?.id === user.id;
       const assignmentDate = parseISO(assignment.date);
       
       // Check if assignment is in current week
       const isInCurrentWeek = assignmentDate >= currentWeekDates.start && assignmentDate <= currentWeekDates.end;
       
-      return (isAssigned || isResponsible) && isInCurrentWeek && assignment.published;
+      const isUserInvolved = isAssignedViaNew || isAssignedViaLegacy || isResponsible;
+      
+      console.log(`[MineOpgaver] Assignment "${assignment.title}":`, {
+        isAssignedViaNew,
+        isAssignedViaLegacy,
+        isResponsible,
+        isInCurrentWeek,
+        isUserInvolved,
+        published: assignment.published,
+        assignedEmployees: assignment.assignedEmployees?.map(e => e.name),
+        legacyEmployees: assignment.employees
+      });
+      
+      return isUserInvolved && isInCurrentWeek && assignment.published;
     });
 
     return userTasks.sort((a, b) => {
@@ -168,6 +190,19 @@ const MineOpgaver: React.FC = () => {
               <Clock className="h-3 w-3" />
               <span>{assignment.fromTime?.substring(0, 5)} - {assignment.toTime?.substring(0, 5)}</span>
             </div>
+
+            {/* Show team members (all users can see full team) */}
+            {(assignment.assignedEmployees?.length || assignment.employees?.length) && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <span className="font-medium">Team:</span>
+                <span>
+                  {assignment.assignedEmployees?.length 
+                    ? assignment.assignedEmployees.map(emp => emp.name).join(', ')
+                    : assignment.employees?.join(', ')
+                  }
+                </span>
+              </div>
+            )}
 
             {/* Show Sagsansvarlig if present */}
             {assignment.responsibleUser?.name && (

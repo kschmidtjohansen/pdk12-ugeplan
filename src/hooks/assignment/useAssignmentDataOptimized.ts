@@ -101,12 +101,14 @@ export const useAssignmentDataOptimized = () => {
           email: assignment.responsible_user.email
         } : null;
         
-        console.log(`[useAssignmentDataOptimized] PHASE 3 FIX - Assignment "${assignment.title}":`, {
+        console.log(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Assignment "${assignment.title}":`, {
           hasResponsibleUser: !!responsibleUser,
           responsibleUserName: responsibleUser?.name,
           responsibleUserId: responsibleUser?.id,
           employeeCount: employeeNames.length,
-          employees: employeeNames
+          employees: employeeNames,
+          assignedEmployeesCount: assignedEmployees.length,
+          assignedEmployeesNames: assignedEmployees.map(e => e.name)
         });
         
         return {
@@ -117,12 +119,13 @@ export const useAssignmentDataOptimized = () => {
           fromTime: assignment.from_time,
           toTime: assignment.to_time,
           location: assignment.location,
-          employees: employeeNames,
-          assignedEmployees: assignedEmployees, // PHASE 3 FIX: Full employee data for enhanced display
+          employees: employeeNames, // Legacy format for backward compatibility
+          assignedEmployees: assignedEmployees, // COMPREHENSIVE FIX: Full employee data with IDs for enhanced display
           cars: assignment.car_ids || (assignment.car_id ? [assignment.car_id] : []),
           car: assignment.car_id || (assignment.car_ids && assignment.car_ids.length > 0 ? assignment.car_ids[0] : ''),
           published: assignment.published || false,
-          responsibleUser: responsibleUser, // PHASE 3 FIX: Enhanced responsible user data
+          responsibleUser: responsibleUser, // Enhanced responsible user data
+          responsibleUserId: assignment.responsible_user_id, // Add for compatibility
           type: assignment.type || 'other'
         };
       });

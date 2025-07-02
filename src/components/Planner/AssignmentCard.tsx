@@ -34,8 +34,14 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const { t } = useTranslation();
   const { employees } = useEmployees();
 
-  console.log(`[AssignmentCard] ROLE UPDATE FIX - Assignment: ${assignment.title || assignment.location}`);
-  console.log(`[AssignmentCard] Responsible user ID: ${assignment.responsibleUserId}`);
+  console.log(`[AssignmentCard] COMPREHENSIVE FIX - Assignment: ${assignment.title || assignment.location}`);
+  console.log(`[AssignmentCard] COMPREHENSIVE FIX - Employee data:`, {
+    hasAssignedEmployees: !!assignment.assignedEmployees?.length,
+    assignedEmployees: assignment.assignedEmployees?.map(e => e.name),
+    hasLegacyEmployees: !!assignment.employees?.length,
+    legacyEmployees: assignment.employees,
+    responsibleUserId: assignment.responsibleUserId || assignment.responsibleUser?.id
+  });
   
   // Enhanced responsible user lookup optimized for the new 7-user structure
   const getResponsibleUserInfo = () => {

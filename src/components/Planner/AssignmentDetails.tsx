@@ -15,12 +15,14 @@ interface AssignmentDetailsProps {
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars, showFullTeamDetails = false }) => {
   const { t } = useTranslation();
 
-  console.log('[AssignmentDetails] PHASE 3 FIX - Assignment:', assignment.id);
-  console.log('[AssignmentDetails] PHASE 3 FIX - Responsible user details:', {
+  console.log('[AssignmentDetails] COMPREHENSIVE FIX - Assignment:', assignment.id);
+  console.log('[AssignmentDetails] COMPREHENSIVE FIX - Employee data:', {
+    hasAssignedEmployees: !!assignment.assignedEmployees?.length,
+    assignedEmployees: assignment.assignedEmployees?.map(e => e.name),
+    hasLegacyEmployees: !!assignment.employees?.length,
+    legacyEmployees: assignment.employees,
     hasResponsibleUser: !!assignment.responsibleUser,
-    responsibleUserName: assignment.responsibleUser?.name,
-    responsibleUserId: assignment.responsibleUser?.id,
-    fullResponsibleUserObject: assignment.responsibleUser
+    responsibleUserName: assignment.responsibleUser?.name
   });
 
   // Enhanced car name resolution with comprehensive fallbacks
@@ -60,27 +62,33 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
 
   const carNames = getCarNames(assignment);
 
-  // Enhanced employee name resolution - always show full team
+  // COMPREHENSIVE FIX: Always show ALL team members regardless of user role
   const getEmployeeData = (assignment: Assignment): { names: string[], hasFullData: boolean } => {
+    console.log('[AssignmentDetails] COMPREHENSIVE FIX - Processing employee data for:', assignment.id);
+    
     // Always prioritize enhanced employee data if available
     if (assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
+      const names = assignment.assignedEmployees.map(emp => emp.name);
+      console.log('[AssignmentDetails] Using assignedEmployees:', names);
       return {
-        names: assignment.assignedEmployees.map(emp => emp.name),
+        names,
         hasFullData: true
       };
     }
     
     // Fallback to legacy employee names array
-    if (!assignment.employees || !Array.isArray(assignment.employees)) {
-      return { names: [], hasFullData: false };
+    if (assignment.employees && Array.isArray(assignment.employees) && assignment.employees.length > 0) {
+      const names = assignment.employees
+        .filter(employee => employee && typeof employee === 'string')
+        .map(employee => employee.trim())
+        .filter(employee => employee.length > 0);
+      
+      console.log('[AssignmentDetails] Using legacy employees:', names);
+      return { names, hasFullData: false };
     }
     
-    const names = assignment.employees
-      .filter(employee => employee && typeof employee === 'string')
-      .map(employee => employee.trim())
-      .filter(employee => employee.length > 0);
-      
-    return { names, hasFullData: false };
+    console.log('[AssignmentDetails] No employee data found');
+    return { names: [], hasFullData: false };
   };
 
   const employeeData = getEmployeeData(assignment);
