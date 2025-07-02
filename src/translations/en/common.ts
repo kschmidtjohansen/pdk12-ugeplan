@@ -97,7 +97,6 @@ export const common = {
   week: "Week",
   available: "Available",
   unavailable: "Unavailable",
-  deleting: "Deleting...",
   lightMode: "Light mode",
   darkMode: "Dark mode",
   toggleTheme: "Toggle theme"

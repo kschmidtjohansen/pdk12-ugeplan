@@ -23,8 +23,11 @@ export const useDashboardMetrics = () => {
       };
     }
 
-    // Calculate available employees (not fully booked, on vacation, or on leave)
+    // Calculate available employees (servicemedarbejder only, not fully booked, on vacation, or on leave)
     const availableEmployeesList = employees.filter(employee => {
+      // Only include servicemedarbejder role
+      if (employee.role !== 'servicemedarbejder') return false;
+      
       const status = getEmployeeAvailabilityStatus(employee, today, assignments, vacations, t);
       return status.status === 'available' || status.status === 'partiallyBooked';
     }).map(employee => {

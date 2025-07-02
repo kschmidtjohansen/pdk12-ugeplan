@@ -104,9 +104,9 @@ export const dashboard = {
     absentEmployeesDetails: "Absent Employees Details",
     
     // Status descriptions
-    availableEmployeesDesc: "Employees ready for assignments",
-    availableCarsDesc: "Cars not assigned today",
-    absentEmployeesDesc: "Employees on vacation or leave",
+    availableEmployeesDesc: "Service employees ready for assignments",
+    availableCarsDesc: "Cars not in use today",
+    absentEmployeesDesc: "Employees on vacation or absent",
     
     // Employee statuses
     fullyBooked: "Fully Booked",

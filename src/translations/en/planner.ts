@@ -149,6 +149,12 @@ const planner = {
   responsibleUserDisplay: 'Responsible: {name}',
   noResponsibleUserAssigned: 'No responsible assigned',
   
+  // Additional translations for unassigned resources
+  showMore: "more",
+  showLess: "Show less",
+  allCarsAssigned: "All cars are assigned",
+  availableResources: "available resources",
+  
   // Assignment status
   assignmentStatus: 'Status',
   assignmentPublishedStatus: 'Published',

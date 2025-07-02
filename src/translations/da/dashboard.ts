@@ -104,9 +104,9 @@ export const dashboard = {
     absentEmployeesDetails: "Fraværende detaljer",
     
     // Status descriptions
-    availableEmployeesDesc: "Medarbejdere klar til opgaver",
-    availableCarsDesc: "Biler ikke tildelt i dag",
-    absentEmployeesDesc: "Medarbejdere på ferie eller orlov",
+    availableEmployeesDesc: "Servicemedarbejdere klar til opgaver",
+    availableCarsDesc: "Biler ikke i brug i dag",
+    absentEmployeesDesc: "Medarbejdere på ferie eller fraværende",
     
     // Employee statuses
     fullyBooked: "Fuldt booket",

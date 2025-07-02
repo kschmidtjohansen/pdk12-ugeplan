@@ -58,44 +58,22 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   // Get available and partially available employees only
   const getAvailableEmployees = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    console.log(`[UnassignedResourcesSection] === CALCULATING AVAILABLE EMPLOYEES FOR DATE: ${dateStr} ===`);
-    console.log(`[UnassignedResourcesSection] Total employees: ${employees.length}`);
-    console.log(`[UnassignedResourcesSection] Total assignments: ${assignments.length}`);
-    console.log(`[UnassignedResourcesSection] Total vacations: ${vacations.length}`);
     
     // Filter to service employees only
-    const serviceEmployees = employees.filter(employee => {
-      const isService = employee.role === 'servicemedarbejder';
-      console.log(`[UnassignedResourcesSection] Employee ${employee.name}: role=${employee.role}, isService=${isService}`);
-      return isService;
-    });
-    
-    console.log(`[UnassignedResourcesSection] Service employees: ${serviceEmployees.length}`);
+    const serviceEmployees = employees.filter(employee => employee.role === 'servicemedarbejder');
     
     const availableEmployeesWithStatus = serviceEmployees
       .map(employee => {
-        console.log(`[UnassignedResourcesSection] === Checking availability for ${employee.name} ===`);
-        
         const status = getEmployeeAvailabilityStatus(employee, date, assignments, vacations, t);
-        
-        console.log(`[UnassignedResourcesSection] Employee ${employee.name}: status=${status.status}, statusText="${status.statusText}"`);
-        
         return {
           employee,
           status
         };
       })
       .filter(({ status }) => {
-        const isAvailable = status.status === 'available' || status.status === 'partiallyBooked';
-        console.log(`[UnassignedResourcesSection] Status ${status.status} -> isAvailable: ${isAvailable}`);
-        return isAvailable;
+        return status.status === 'available' || status.status === 'partiallyBooked';
       });
       
-    console.log(`[UnassignedResourcesSection] === FINAL AVAILABLE EMPLOYEES: ${availableEmployeesWithStatus.length} ===`);
-    availableEmployeesWithStatus.forEach(({ employee, status }) => {
-      console.log(`  - ${employee.name}: ${status.status}`);
-    });
-    
     return availableEmployeesWithStatus;
   };
 
@@ -118,49 +96,63 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   const displayedCars = showAllCars ? unassignedCars : unassignedCars.slice(0, 3);
 
   return (
-    <div className="border border-blue-200 rounded-lg p-4 mb-6 bg-polygon-light">
+    <div className="border border-primary/20 rounded-lg p-6 mb-6 bg-gradient-to-br from-primary/5 to-primary/10 shadow-sm">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-blue-600" />
-          <h5 className="font-semibold text-blue-800">
-            {t('planner.unassignedResources')} ({availableEmployeesWithStatus.length + unassignedCars.length})
-          </h5>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
+            <Users className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h5 className="font-semibold text-primary text-lg">
+              {t('planner.unassignedResources')}
+            </h5>
+            <p className="text-sm text-muted-foreground">
+              {availableEmployeesWithStatus.length + unassignedCars.length} {t('planner.availableResources')}
+            </p>
+          </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)} className="text-blue-600 hover:text-blue-800">
-          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)} className="text-primary hover:text-primary/80 hover:bg-primary/10">
+          {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
         </Button>
       </div>
       
       {isExpanded && (
-        <div className="mt-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleToday}>
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-4 p-3 bg-background/50 rounded-lg border">
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="sm" onClick={handleToday} className="h-8">
                 {t('planner.today')}
               </Button>
-              <Button variant="outline" size="sm" onClick={handlePreviousDay}>
-                ←
-              </Button>
-              <span className="px-3 py-1 bg-white rounded text-sm font-medium border">
-                {formatDate(selectedDate)}
-              </span>
-              <Button variant="outline" size="sm" onClick={handleNextDay}>
-                →
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button variant="outline" size="sm" onClick={handlePreviousDay} className="h-8 w-8 p-0">
+                  ←
+                </Button>
+                <span className="px-3 py-1 bg-primary/10 text-primary rounded font-medium text-sm border border-primary/20 min-w-[200px] text-center">
+                  {formatDate(selectedDate)}
+                </span>
+                <Button variant="outline" size="sm" onClick={handleNextDay} className="h-8 w-8 p-0">
+                  →
+                </Button>
+              </div>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Users className="h-4 w-4 text-blue-600" />
-                <span className="font-medium text-sm">{t('planner.employees')} ({availableEmployeesWithStatus.length})</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-3 bg-background/50 rounded-lg border">
+                <div className="p-1.5 rounded bg-blue-500/10 border border-blue-500/20">
+                  <Users className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">{t('planner.employees')}</span>
+                  <span className="text-sm text-muted-foreground ml-2">({availableEmployeesWithStatus.length})</span>
+                </div>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {displayedEmployees.map(({ employee, status }) => (
-                  <div key={employee.id} className="text-sm bg-white p-2 rounded border">
+                  <div key={employee.id} className="p-3 bg-background border rounded-lg hover:shadow-sm transition-shadow">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">{employee.name}</span>
+                      <span className="font-medium text-foreground">{employee.name}</span>
                       <Badge className={`text-xs ${status.badgeColor}`}>
                         {status.statusText}
                       </Badge>
@@ -168,29 +160,36 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                   </div>
                 ))}
                 {availableEmployeesWithStatus.length > 6 && (
-                  <Button variant="ghost" size="sm" onClick={() => setShowAllEmployees(!showAllEmployees)} className="text-sm text-blue-600 hover:text-blue-800 p-1 h-auto">
+                  <Button variant="ghost" size="sm" onClick={() => setShowAllEmployees(!showAllEmployees)} className="text-sm text-primary hover:text-primary/80 p-2 h-auto w-full">
                     {showAllEmployees ? t('planner.showLess') : `+${availableEmployeesWithStatus.length - 6} ${t('planner.showMore')}`}
                   </Button>
                 )}
               </div>
             </div>
 
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Car className="h-4 w-4 text-green-600" />
-                <span className="font-medium text-sm">{t('planner.unassignedCars')} ({unassignedCars.length})</span>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-3 bg-background/50 rounded-lg border">
+                <div className="p-1.5 rounded bg-green-500/10 border border-green-500/20">
+                  <Car className="h-4 w-4 text-green-600" />
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">{t('planner.unassignedCars')}</span>
+                  <span className="text-sm text-muted-foreground ml-2">({unassignedCars.length})</span>
+                </div>
               </div>
               {unassignedCars.length === 0 ? (
-                <p className="text-sm text-gray-500">{t('planner.allCarsAssigned')}</p>
+                <div className="p-4 bg-muted/50 rounded-lg border-dashed border-2 text-center">
+                  <p className="text-sm text-muted-foreground">{t('planner.allCarsAssigned')}</p>
+                </div>
               ) : (
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {displayedCars.map(car => (
-                    <div key={car.id} className="text-sm bg-white p-2 rounded border">
-                      {car.car_number} - {car.name}
+                    <div key={car.id} className="p-3 bg-background border rounded-lg hover:shadow-sm transition-shadow">
+                      <span className="font-medium text-foreground">{car.car_number} - {car.name}</span>
                     </div>
                   ))}
                   {unassignedCars.length > 3 && (
-                    <Button variant="ghost" size="sm" onClick={() => setShowAllCars(!showAllCars)} className="text-sm text-blue-600 hover:text-blue-800 p-1 h-auto">
+                    <Button variant="ghost" size="sm" onClick={() => setShowAllCars(!showAllCars)} className="text-sm text-primary hover:text-primary/80 p-2 h-auto w-full">
                       {showAllCars ? t('planner.showLess') : `+${unassignedCars.length - 3} ${t('planner.showMore')}`}
                     </Button>
                   )}

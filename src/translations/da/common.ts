@@ -97,7 +97,6 @@ export const common = {
   week: "Uge",
   available: "Tilgængelig",
   unavailable: "Ikke tilgængelig",
-  deleting: "Sletter...",
   lightMode: "Lys tilstand",
   darkMode: "Mørk tilstand",
   toggleTheme: "Skift tema"
