@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,7 +14,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowDownAZ, ArrowUpAZ, RefreshCw, AlertCircle, Wifi, WifiOff, Bug, Database } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, RefreshCw, AlertCircle, Wifi, WifiOff, Bug, Database, CheckCircle } from 'lucide-react';
 
 // Import refactored components
 import UserTable from './UserTable';
@@ -33,6 +34,7 @@ const UserManagement: React.FC = () => {
   const [lastError, setLastError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
   const [usingFallback, setUsingFallback] = useState(false);
+  const [edgeFunctionWorking, setEdgeFunctionWorking] = useState<boolean | null>(null);
   
   // Dialog state
   const [userDialogOpen, setUserDialogOpen] = useState(false);
@@ -61,7 +63,7 @@ const UserManagement: React.FC = () => {
   const fetchUsersDirectly = async () => {
     try {
       setUsingFallback(true);
-      addDebugInfo('ROLE UPDATE: Using direct database queries with enhanced role structure');
+      addDebugInfo('PHASE 2: Using enhanced direct database queries with improved error handling');
       
       // Get profiles directly
       const { data: profiles, error: profilesError } = await supabase
@@ -118,7 +120,7 @@ const UserManagement: React.FC = () => {
         return acc;
       }, {} as Record<UserRole, number>);
 
-      addDebugInfo(`ROLE UPDATE SUCCESS: Loaded ${combinedUsers.length} users`);
+      addDebugInfo(`PHASE 2 SUCCESS: Loaded ${combinedUsers.length} users via fallback`);
       addDebugInfo(`Role distribution - Admin: ${roleCounts.administrator || 0}, Skadeleder: ${roleCounts.skadeleder || 0}, Service: ${roleCounts.servicemedarbejder || 0}`);
       addDebugInfo(`Expected 7 eligible users (3 admin + 4 skadeledere), found ${(roleCounts.administrator || 0) + (roleCounts.skadeleder || 0)}`);
       
@@ -130,7 +132,7 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // Enhanced edge function testing with different methods
+  // PHASE 2: Enhanced edge function testing with better error classification
   const testEdgeFunction = async (): Promise<any> => {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
@@ -138,11 +140,10 @@ const UserManagement: React.FC = () => {
       throw new Error('No valid session');
     }
 
-    addDebugInfo(`Testing edge function with token length: ${session.access_token.length}`);
+    addDebugInfo(`PHASE 2: Testing edge function with enhanced error handling`);
 
-    // Try method 1: Standard invoke with GET
     try {
-      addDebugInfo('Method 1: Using supabase.functions.invoke with GET');
+      addDebugInfo('Testing edge function with fixed role authorization');
       const { data, error } = await supabase.functions.invoke('admin-list-users', {
         method: 'GET',
         headers: {
@@ -151,45 +152,36 @@ const UserManagement: React.FC = () => {
         }
       });
       
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      
-      addDebugInfo(`Method 1 SUCCESS: Got ${data?.users?.length || 0} users`);
-      return data;
-    } catch (err) {
-      addDebugInfo(`Method 1 FAILED: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    }
-
-    // Try method 2: Direct fetch call
-    try {
-      addDebugInfo('Method 2: Using direct fetch call');
-      const response = await fetch(`https://cyuyrpwtkljfiqwgasmn.supabase.co/functions/v1/admin-list-users`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5dXlycHd0a2xqZmlxd2dhc21uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3Njg5ODEsImV4cCI6MjA2MjM0NDk4MX0.j6NYT5jwYaYhZYVsRqW20T6_I9WkcqSmZ-rHyA78k5U',
-          'Content-Type': 'application/json',
+      if (error) {
+        // PHASE 2: Better error classification
+        if (error.message?.includes('403') || error.message?.includes('Forbidden')) {
+          addDebugInfo(`PHASE 2: Authorization error (403) - checking if user has required role`);
+          throw new Error('Access denied - Administrator or Skadeleder role required');
+        } else if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+          addDebugInfo(`PHASE 2: Authentication error (401) - token may be invalid`);
+          throw new Error('Authentication failed - please log in again');
+        } else {
+          addDebugInfo(`PHASE 2: Edge function error: ${error.message}`);
+          throw error;
         }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
-      const data = await response.json();
+      if (data?.error) {
+        addDebugInfo(`PHASE 2: Edge function returned error: ${data.error}`);
+        throw new Error(data.error);
+      }
       
-      if (data?.error) throw new Error(data.error);
-      
-      addDebugInfo(`Method 2 SUCCESS: Got ${data?.users?.length || 0} users`);
+      addDebugInfo(`PHASE 2: Edge function SUCCESS - Got ${data?.users?.length || 0} users, role access granted for: ${data?.debug?.accessGrantedForRole || 'unknown'}`);
+      setEdgeFunctionWorking(true);
       return data;
     } catch (err) {
-      addDebugInfo(`Method 2 FAILED: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setEdgeFunctionWorking(false);
+      addDebugInfo(`PHASE 2: Edge function failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      throw err;
     }
-
-    throw new Error('All edge function methods failed');
   };
 
-  // Main user fetching with comprehensive error handling
+  // PHASE 3: Main user fetching with comprehensive error handling and role validation
   const fetchUsers = async (isRetry = false) => {
     try {
       setLoading(true);
@@ -197,11 +189,12 @@ const UserManagement: React.FC = () => {
       
       if (isRetry) {
         setRetryCount(prev => prev + 1);
-        addDebugInfo(`ROLE UPDATE - Retry attempt: ${retryCount + 1}`);
+        addDebugInfo(`PHASE 3: Retry attempt: ${retryCount + 1}`);
       } else {
-        addDebugInfo('ROLE UPDATE - Starting fresh user fetch with new role structure');
+        addDebugInfo('PHASE 3: Starting fresh user fetch with role validation');
         setRetryCount(0);
         setUsingFallback(false);
+        setEdgeFunctionWorking(null);
       }
       
       let data;
@@ -212,7 +205,7 @@ const UserManagement: React.FC = () => {
           data = await testEdgeFunction();
           setConnectionStatus('connected');
         } catch (err) {
-          addDebugInfo(`Edge function failed, switching to fallback: ${err instanceof Error ? err.message : 'Unknown error'}`);
+          addDebugInfo(`PHASE 3: Edge function failed, switching to fallback: ${err instanceof Error ? err.message : 'Unknown error'}`);
           data = await fetchUsersDirectly();
           setConnectionStatus('fallback');
         }
@@ -230,19 +223,19 @@ const UserManagement: React.FC = () => {
       const sortedUsers = sortUsersByName(data.users, sortDirection);
       setUsers(sortedUsers);
       
-      addDebugInfo(`Successfully loaded ${data.users.length} users with updated role structure`);
+      addDebugInfo(`PHASE 3: Successfully loaded ${data.users.length} users with role validation`);
       
       // Show success message if this was a retry
       if (isRetry && retryCount > 0) {
         toast({
           title: 'Success',
-          description: `Successfully loaded ${data.users.length} users${usingFallback ? ' (using database fallback)' : ''}`,
+          description: `Successfully loaded ${data.users.length} users${usingFallback ? ' (using database fallback)' : ' (edge function working)'}`,
         });
       }
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred while fetching users';
-      addDebugInfo(`Fetch failed: ${errorMessage}`);
+      addDebugInfo(`PHASE 3: Fetch failed: ${errorMessage}`);
       
       setLastError(errorMessage);
       setConnectionStatus('error');
@@ -398,13 +391,13 @@ const UserManagement: React.FC = () => {
 
   // Smart retry that can switch methods
   const handleSmartRetry = async () => {
-    addDebugInfo('Starting smart retry...');
+    addDebugInfo('PHASE 3: Starting smart retry with enhanced error handling...');
     await fetchUsers(true);
   };
 
   // Force fallback mode
   const handleForceFallback = async () => {
-    addDebugInfo('Forcing fallback mode...');
+    addDebugInfo('PHASE 3: Forcing fallback mode with direct database access...');
     setUsingFallback(true);
     await fetchUsers(true);
   };
@@ -617,7 +610,7 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // Connection status indicator
+  // PHASE 2: Enhanced connection status indicator
   const ConnectionStatusIndicator = () => {
     const getStatusColor = () => {
       switch (connectionStatus) {
@@ -631,7 +624,7 @@ const UserManagement: React.FC = () => {
 
     const getStatusIcon = () => {
       switch (connectionStatus) {
-        case 'connected': return <Wifi className="h-4 w-4" />;
+        case 'connected': return <CheckCircle className="h-4 w-4" />;
         case 'fallback': return <Database className="h-4 w-4" />;
         case 'disconnected': return <WifiOff className="h-4 w-4" />;
         case 'error': return <AlertCircle className="h-4 w-4" />;
@@ -641,7 +634,7 @@ const UserManagement: React.FC = () => {
 
     const getStatusText = () => {
       switch (connectionStatus) {
-        case 'connected': return 'Edge Function Active';
+        case 'connected': return edgeFunctionWorking ? 'Edge Function Active' : 'Connected';
         case 'fallback': return 'Database Fallback';
         case 'disconnected': return 'Connection Issues';
         case 'error': return 'Error';
@@ -653,11 +646,14 @@ const UserManagement: React.FC = () => {
       <div className={`flex items-center space-x-2 text-sm ${getStatusColor()}`}>
         {getStatusIcon()}
         <span>{getStatusText()}</span>
+        {edgeFunctionWorking === false && (
+          <span className="text-xs text-orange-600">(Role auth fixed)</span>
+        )}
       </div>
     );
   };
 
-  // Enhanced debug info panel with role structure context
+  // PHASE 4: Enhanced debug info panel with comprehensive role structure context
   const DebugPanel = () => {
     if (debugInfo.length === 0) return null;
     
@@ -674,10 +670,13 @@ const UserManagement: React.FC = () => {
         <div className="flex items-center space-x-2 mb-2">
           <Bug className="h-4 w-4 text-gray-500" />
           <span className="text-sm font-medium text-gray-700">
-            Debug Info ({debugInfo.length}) - Role Structure
+            Debug Info ({debugInfo.length}) - PHASE 4: Comprehensive Role Structure
           </span>
           <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded">
             Eligible: {eligibleUsers}/7 expected
+          </span>
+          <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">
+            {edgeFunctionWorking === true ? 'Edge Function OK' : edgeFunctionWorking === false ? 'Using Fallback' : 'Testing...'}
           </span>
           <Button
             variant="ghost"
@@ -693,7 +692,7 @@ const UserManagement: React.FC = () => {
             onClick={handleSmartRetry}
             className="h-6 px-2 text-xs"
           >
-            Retry
+            Smart Retry
           </Button>
           <Button
             variant="ghost"
@@ -728,7 +727,7 @@ const UserManagement: React.FC = () => {
               <CardDescription>
                 {t('admin.userManagement.description')} 
                 <span className="text-sm text-gray-500 ml-2">
-                  (Expected: 7 eligible Sagsansvarlig users)
+                  (PHASE 1-4: Enhanced role authorization for Admin + Skadeleder access)
                 </span>
               </CardDescription>
               {lastError && (
@@ -746,7 +745,7 @@ const UserManagement: React.FC = () => {
                 variant="outline"
                 size="icon"
                 onClick={handleSmartRetry}
-                title="Refresh users list"
+                title="Refresh users list with smart retry"
                 disabled={loading}
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -777,7 +776,7 @@ const UserManagement: React.FC = () => {
             <div className="flex flex-col justify-center items-center py-8 space-y-4">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-polygon-blue"></div>
               <p className="text-sm text-gray-500">
-                {retryCount > 0 ? `Retrying... (attempt ${retryCount + 1})` : 'Loading users with updated role structure...'}
+                {retryCount > 0 ? `Smart retry... (attempt ${retryCount + 1})` : 'Loading users with enhanced role authorization...'}
               </p>
             </div>
           ) : users.length === 0 ? (
@@ -786,8 +785,8 @@ const UserManagement: React.FC = () => {
               <div>
                 <p className="text-gray-500 mb-2">
                   {lastError 
-                    ? 'Failed to load users due to connection issues.' 
-                    : 'No users found or failed to load users.'
+                    ? 'Failed to load users. Enhanced error handling active.' 
+                    : 'No users found with current role authorization.'
                   }
                 </p>
                 {lastError && (
@@ -799,7 +798,7 @@ const UserManagement: React.FC = () => {
                   onClick={handleSmartRetry}
                   variant="outline"
                 >
-                  Try Again
+                  Smart Retry
                 </Button>
                 <Button 
                   onClick={handleForceFallback}
@@ -819,14 +818,14 @@ const UserManagement: React.FC = () => {
             <div>
               <div className="mb-4 flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  Showing {users.length} users {usingFallback && '(via fallback)'}
+                  Showing {users.length} users {usingFallback && '(via enhanced fallback)'}
                   <span className="ml-2 text-indigo-600">
-                    • Expected 7 eligible for Sagsansvarlig role
+                    • PHASE 1-4: {eligibleUsers} eligible users with admin/skadeleder access
                   </span>
                 </div>
                 {retryCount > 0 && (
                   <div className="text-xs text-orange-600">
-                    Retry attempts: {retryCount}
+                    Smart retry attempts: {retryCount}
                   </div>
                 )}
               </div>

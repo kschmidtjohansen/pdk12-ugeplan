@@ -124,7 +124,7 @@ serve(async (req) => {
 
     console.log(`[${requestId}] User authenticated: ${user.id} (${user.email})`);
 
-    // Check if user has admin role
+    // PHASE 1 FIX: Check if user has admin OR skadeleder role (not just administrator)
     const { data: roleData, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
@@ -142,10 +142,15 @@ serve(async (req) => {
       );
     }
 
-    if (roleData?.role !== 'administrator') {
-      console.error(`[${requestId}] User not admin. Role: ${roleData?.role}, User: ${user.email}`);
+    // PHASE 1 FIX: Allow both administrator and skadeleder roles
+    if (!roleData?.role || !['administrator', 'skadeleder'].includes(roleData.role)) {
+      console.error(`[${requestId}] User not authorized. Role: ${roleData?.role}, User: ${user.email}`);
       return new Response(
-        JSON.stringify({ error: 'Administrator access required. Current role: ' + (roleData?.role || 'unknown') }),
+        JSON.stringify({ 
+          error: 'Administrator or Skadeleder access required. Current role: ' + (roleData?.role || 'unknown'),
+          allowedRoles: ['administrator', 'skadeleder'],
+          currentRole: roleData?.role || 'unknown'
+        }),
         { 
           status: 403, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -153,7 +158,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] Admin access confirmed for ${user.email}, fetching users...`);
+    console.log(`[${requestId}] Access granted for role: ${roleData.role} (${user.email}), fetching users...`);
 
     // Get profiles with role information
     const { data: profilesWithRoles, error: fetchError } = await supabaseAdmin
@@ -242,7 +247,8 @@ serve(async (req) => {
           method: req.method,
           profileCount: profilesWithRoles.length,
           authUserCount: authUsers?.users?.length || 0,
-          requestTime: new Date().toISOString()
+          requestTime: new Date().toISOString(),
+          accessGrantedForRole: roleData.role
         }
       }),
       { 
