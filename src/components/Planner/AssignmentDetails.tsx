@@ -60,10 +60,10 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
 
   const carNames = getCarNames(assignment);
 
-  // PHASE 3 FIX: Enhanced employee name resolution with full team support
+  // Enhanced employee name resolution - always show full team
   const getEmployeeData = (assignment: Assignment): { names: string[], hasFullData: boolean } => {
-    // If we have enhanced employee data with full details, use that
-    if (showFullTeamDetails && assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
+    // Always prioritize enhanced employee data if available
+    if (assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
       return {
         names: assignment.assignedEmployees.map(emp => emp.name),
         hasFullData: true

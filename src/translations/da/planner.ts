@@ -162,7 +162,10 @@ const planner = {
   
   // Additional translations
   unknownEmployee: 'Ukendt medarbejder',
-  today: 'I dag'
+  today: 'I dag',
+  
+  // New translations for unassigned resources
+  noEmployeesAvailable: 'Alle medarbejdere er tildelt eller på ferie'
 };
 
 export default planner;

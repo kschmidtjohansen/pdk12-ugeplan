@@ -162,7 +162,10 @@ const planner = {
   
   // Additional translations
   unknownEmployee: 'Unknown employee',
-  today: 'Today'
+  today: 'Today',
+  
+  // New translations for unassigned resources
+  noEmployeesAvailable: 'All employees are assigned or on vacation'
 };
 
 export default planner;

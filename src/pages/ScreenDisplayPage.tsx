@@ -106,8 +106,22 @@ const ScreenDisplayPage: React.FC = () => {
 
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
   const todayAssignments = filteredAssignments
-    .filter(a => a.date === selectedDateStr && a.published)
+    .filter(a => {
+      const isCorrectDate = a.date === selectedDateStr;
+      const isPublished = a.published;
+      console.log('[ScreenDisplay] Assignment filter check:', {
+        assignmentId: a.id,
+        assignmentDate: a.date,
+        selectedDate: selectedDateStr,
+        isCorrectDate,
+        isPublished,
+        title: a.title
+      });
+      return isCorrectDate && isPublished;
+    })
     .sort((a, b) => a.fromTime.localeCompare(b.fromTime));
+
+  console.log('[ScreenDisplay] Final filtered assignments for', selectedDateStr, ':', todayAssignments.length);
 
   const handlePreviousDay = () => {
     const newDate = subDays(selectedDate, 1);
