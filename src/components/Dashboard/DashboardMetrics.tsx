@@ -1,179 +1,97 @@
 
-import React, { useState } from 'react';
-import { Users, Car } from 'lucide-react';
-import { useEmployees } from '@/hooks/useEmployees';
-import { useCars } from '@/hooks/car';
-import { useVacations } from '@/hooks/useVacations';
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Users, Car, Calendar, Clock } from 'lucide-react';
+import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
 import { useTranslation } from '@/context/TranslationContext';
-import { usePermissions, useAuth } from '@/context/AuthContext';
-import { format } from 'date-fns';
-import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
-import MetricCard from './MetricCard';
-import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
-import { Assignment } from '@/types/assignment';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import EmptyState from '@/components/shared/EmptyState';
 
-interface DashboardMetricsProps {
-  selectedDate?: string;
-  assignments: Assignment[];
-}
-
-const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ selectedDate, assignments }) => {
-  const { isAdmin, isSkadeleder } = usePermissions();
-  const { user } = useAuth();
+const DashboardMetrics: React.FC = () => {
+  const { employees, assignments, cars, loading, error } = useEnhancedUnifiedData();
   const { t } = useTranslation();
-  const { employees } = useEmployees();
-  const { cars } = useCars();
-  const { vacations } = useVacations();
-  
-  const [availabilityDialogOpen, setAvailabilityDialogOpen] = useState(false);
-  const [unavailableDialogOpen, setUnavailableDialogOpen] = useState(false);
 
-  console.log('[DashboardMetrics] ROLE CHECK - User role check:', {
-    userRole: user?.role,
-    isAdmin,
-    isSkadeleder,
-    shouldShowMetrics: isAdmin || isSkadeleder
-  });
-
-  // Only show metrics for admin and skadeleder
-  if (!isAdmin && !isSkadeleder) {
-    console.log('[DashboardMetrics] ROLE CHECK - Hiding metrics for servicemedarbejder user');
-    return null;
+  if (loading) {
+    return <LoadingSpinner message={t('common.loading')} />;
   }
 
-  const targetDate = selectedDate || format(new Date(), 'yyyy-MM-dd');
-  const targetDateObj = new Date(targetDate + 'T12:00:00');
-
-  const allEmployees = employees;
-
-  // Available employees (available OR partially booked)
-  const availableEmployees = allEmployees.filter(employee => {
-    const availabilityInfo = getEmployeeAvailabilityStatus(
-      employee,
-      targetDateObj,
-      assignments,
-      vacations,
-      t
+  if (error) {
+    return (
+      <EmptyState
+        title={t('common.error')}
+        description={error}
+        action={{
+          label: t('common.retry'),
+          onClick: () => window.location.reload()
+        }}
+      />
     );
-    
-    const isAvailable = availabilityInfo.status === 'available' || availabilityInfo.status === 'partiallyBooked';
-    return isAvailable;
-  });
+  }
 
-  // Unavailable employees (fully booked, on leave, on vacation, OR partial vacation)
-  const unavailableEmployees = allEmployees.filter(employee => {
-    const availabilityInfo = getEmployeeAvailabilityStatus(
-      employee,
-      targetDateObj,
-      assignments,
-      vacations,
-      t
-    );
-    
-    const isUnavailable = availabilityInfo.status === 'fullyBooked' || 
-                         availabilityInfo.status === 'onLeave' || 
-                         availabilityInfo.status === 'onVacation' ||
-                         availabilityInfo.status === 'partialVacation';
-    
-    return isUnavailable;
-  });
-
-  // Car calculations
-  const carsInUseOnDate = new Set<string>();
-  assignments
-    .filter(a => a.date === targetDate)
-    .forEach(assignment => {
-      if (assignment.car) {
-        const carId = typeof assignment.car === 'string' ? assignment.car : assignment.car.id;
-        if (carId) {
-          carsInUseOnDate.add(carId);
-        }
-      }
-      if (assignment.cars && Array.isArray(assignment.cars)) {
-        assignment.cars.forEach(carId => {
-          if (carId) {
-            carsInUseOnDate.add(carId);
-          }
-        });
-      }
-    });
-
-  const availableCars = cars.filter(car => 
-    car.is_available && !carsInUseOnDate.has(car.id)
+  const activeEmployees = employees.filter(emp => !emp.onLeave).length;
+  const availableCars = cars.filter(car => car.is_available).length;
+  const publishedAssignments = assignments.filter(assignment => assignment.published).length;
+  const todayAssignments = assignments.filter(assignment => 
+    assignment.date === new Date().toISOString().split('T')[0]
   ).length;
 
-  const carsInUse = cars.filter(car => 
-    carsInUseOnDate.has(car.id) || !car.is_available
-  ).length;
-
-  const handleAvailabilityDialogOpen = () => {
-    setAvailabilityDialogOpen(true);
-  };
-
-  const handleUnavailableDialogOpen = () => {
-    setUnavailableDialogOpen(true);
-  };
+  const metrics = [
+    {
+      title: t('dashboard.metrics.activeEmployees'),
+      value: activeEmployees,
+      total: employees.length,
+      icon: Users,
+      color: 'text-green-600'
+    },
+    {
+      title: t('dashboard.metrics.availableCars'),
+      value: availableCars,
+      total: cars.length,
+      icon: Car,
+      color: 'text-blue-600'
+    },
+    {
+      title: t('dashboard.metrics.publishedAssignments'),
+      value: publishedAssignments,
+      total: assignments.length,
+      icon: Calendar,
+      color: 'text-purple-600'
+    },
+    {
+      title: t('dashboard.metrics.todayAssignments'),
+      value: todayAssignments,
+      icon: Clock,
+      color: 'text-orange-600'
+    }
+  ];
 
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <MetricCard
-          title={t('dashboard.metrics.availableEmployees')}
-          value={availableEmployees.length}
-          subtitle={t('dashboard.metrics.totalCount', { count: allEmployees.length })}
-          icon={Users}
-          color="green"
-          onClick={handleAvailabilityDialogOpen}
-        />
-        
-        <MetricCard
-          title={t('dashboard.metrics.unavailableEmployees')}
-          value={unavailableEmployees.length}
-          subtitle={t('dashboard.metrics.unavailableSubtitle')}
-          icon={Users}
-          color="red"
-          onClick={handleUnavailableDialogOpen}
-        />
-        
-        <MetricCard
-          title={t('dashboard.metrics.availableCars')}
-          value={availableCars}
-          subtitle={t('dashboard.metrics.totalCount', { count: cars.length })}
-          icon={Car}
-          color="blue"
-        />
-        
-        <MetricCard
-          title={t('dashboard.metrics.carsInUse')}
-          value={carsInUse}
-          subtitle={t('dashboard.metrics.carsInUseSubtitle')}
-          icon={Car}
-          color="orange"
-        />
-      </div>
-
-      {/* Employee Availability Dialog */}
-      <EmployeeAvailabilityDialog
-        open={availabilityDialogOpen}
-        onOpenChange={setAvailabilityDialogOpen}
-        employees={availableEmployees}
-        assignments={assignments}
-        vacations={vacations}
-        selectedDate={targetDate}
-        title={t('dashboard.metrics.availableEmployees')}
-      />
-
-      {/* Unavailable Employees Dialog */}
-      <EmployeeAvailabilityDialog
-        open={unavailableDialogOpen}
-        onOpenChange={setUnavailableDialogOpen}
-        employees={unavailableEmployees}
-        assignments={assignments}
-        vacations={vacations}
-        selectedDate={targetDate}
-        title={t('dashboard.metrics.unavailableEmployees')}
-      />
-    </>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {metrics.map((metric, index) => (
+        <Card key={index}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
+            <metric.icon className={`h-4 w-4 ${metric.color}`} />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {metric.value}
+              {metric.total && (
+                <span className="text-sm text-muted-foreground ml-1">
+                  / {metric.total}
+                </span>
+              )}
+            </div>
+            {metric.total && (
+              <Badge variant="outline" className="mt-1">
+                {Math.round((metric.value / metric.total) * 100)}% active
+              </Badge>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };
 

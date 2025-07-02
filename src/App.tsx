@@ -39,11 +39,11 @@ const App = () => {
                     <Routes>
                       <Route path="/" element={<Index />} />
                       
-                      {/* Login and password reset routes - now properly wrapped in providers */}
+                      {/* Authentication routes */}
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/password-reset" element={<PasswordResetPage />} />
                       
-                      {/* Protected routes - All wrapped in MainLayout */}
+                      {/* Protected routes wrapped in MainLayout */}
                       <Route path="/dashboard" element={<MainLayout><DashboardPage /></MainLayout>} />
                       <Route path="/planner" element={<MainLayout><PlannerPage /></MainLayout>} />
                       <Route path="/planner/:assignmentId" element={<MainLayout><PlannerPage /></MainLayout>} />
@@ -51,9 +51,11 @@ const App = () => {
                       <Route path="/cars" element={<MainLayout><CarsPage /></MainLayout>} />
                       <Route path="/vacation" element={<MainLayout><VacationPage /></MainLayout>} />
                       <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />
+                      
+                      {/* Special routes */}
                       <Route path="/screen-display" element={<ScreenDisplayPage />} />
                       
-                      {/* Catch all other routes and redirect to NotFound */}
+                      {/* Catch all other routes */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </BrowserRouter>

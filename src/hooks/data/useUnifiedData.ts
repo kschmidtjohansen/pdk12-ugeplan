@@ -1,29 +1,25 @@
 
 import { useState, useEffect } from 'react';
-import { enhancedUnifiedDataService } from '@/services/enhancedUnifiedDataService';
+import { unifiedDataService } from '@/services/data/unifiedDataService';
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 
-interface UseEnhancedUnifiedDataResult {
+interface UseUnifiedDataResult {
   employees: Employee[];
   assignments: Assignment[];
   cars: Car[];
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
-  fromCache: boolean;
-  healthCheck: boolean;
 }
 
-export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
+export const useUnifiedData = (): UseUnifiedDataResult => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [cars, setCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [fromCache, setFromCache] = useState(false);
-  const [healthCheck, setHealthCheck] = useState(true);
 
   const fetchAllData = async () => {
     try {
@@ -31,9 +27,9 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
       setError(null);
 
       const [employeesResult, assignmentsResult, carsResult] = await Promise.all([
-        enhancedUnifiedDataService.fetchEmployees(),
-        enhancedUnifiedDataService.fetchAssignments(),
-        enhancedUnifiedDataService.fetchCars()
+        unifiedDataService.fetchEmployees(),
+        unifiedDataService.fetchAssignments(),
+        unifiedDataService.fetchCars()
       ]);
 
       if (employeesResult.error || assignmentsResult.error || carsResult.error) {
@@ -46,21 +42,18 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
       setEmployees(employeesResult.data);
       setAssignments(assignmentsResult.data);
       setCars(carsResult.data);
-      setFromCache(employeesResult.fromCache || assignmentsResult.fromCache || carsResult.fromCache);
-      setHealthCheck(employeesResult.healthCheck && assignmentsResult.healthCheck && carsResult.healthCheck);
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';
       setError(errorMessage);
-      setHealthCheck(false);
-      console.error('[useEnhancedUnifiedData] Error:', err);
+      console.error('[useUnifiedData] Error:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const refetch = async () => {
-    enhancedUnifiedDataService.clearCache();
+    unifiedDataService.clearCache();
     await fetchAllData();
   };
 
@@ -74,8 +67,6 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
     cars,
     loading,
     error,
-    refetch,
-    fromCache,
-    healthCheck
+    refetch
   };
 };
