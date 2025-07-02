@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -383,9 +382,9 @@ const UserManagement: React.FC = () => {
       const nameB = b.name.toLowerCase();
       
       if (direction === 'asc') {
-        return nameA.localeComparison(nameB);
+        return nameA.localeCompare(nameB);
       } else {
-        return nameB.localeComparison(nameA);
+        return nameB.localeCompare(nameA);
       }
     });
   };
