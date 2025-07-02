@@ -14,6 +14,10 @@ interface UseEnhancedUnifiedDataResult {
   refetch: () => Promise<void>;
   fromCache: boolean;
   healthCheck: boolean;
+  // Add the missing properties that components expect
+  isLoading: boolean;
+  hasErrors: boolean;
+  isHealthy: boolean;
 }
 
 export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
@@ -76,6 +80,10 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
     error,
     refetch,
     fromCache,
-    healthCheck
+    healthCheck,
+    // Map to expected properties
+    isLoading: loading,
+    hasErrors: !!error,
+    isHealthy: healthCheck
   };
 };

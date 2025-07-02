@@ -11,7 +11,8 @@ import CurrentAndFutureDays from './CurrentAndFutureDays';
 import PastAssignments from './PastAssignments';
 import EmptyState from './EmptyState';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
-import { useUnifiedData } from '@/hooks/useUnifiedData';
+// Fix the import path
+import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
 import { Monitor } from 'lucide-react';
 

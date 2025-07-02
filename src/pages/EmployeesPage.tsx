@@ -1,15 +1,18 @@
-
 import React, { useState } from 'react';
-import { usePermissions } from '../context/AuthContext';
-import { useTranslation } from '../context/TranslationContext';
+import { useTranslation } from '@/context/TranslationContext';
+import { usePermissions } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Plus, Users } from 'lucide-react';
-
-// Import custom components and hooks
-import EmployeesTable from '../components/Employees/EmployeesTable';
-import EmployeeDialogManager from '../components/Employees/EmployeeDialogManager';
-import { useUnifiedData } from '@/hooks/useUnifiedData';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Plus, Users, UserCheck, UserX, ShieldCheck, Search } from 'lucide-react';
+import EmployeeList from '@/components/Employees/EmployeeList';
+import EmployeeFormDialog from '@/components/Employees/EmployeeFormDialog';
+import EmployeeDeleteDialog from '@/components/Employees/EmployeeDeleteDialog';
+import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { Employee } from '@/types/employee';
+import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
 
 const EmployeesPage: React.FC = () => {
   const { isAdmin } = usePermissions();
@@ -201,7 +204,7 @@ const EmployeesPage: React.FC = () => {
         {/* Employees Content - Compact Table Layout */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
           <div className="p-4">
-            <EmployeesTable 
+            <EmployeeList 
               employees={employees}
               onEdit={handleEdit}
               onDelete={handleDelete}
@@ -213,11 +216,8 @@ const EmployeesPage: React.FC = () => {
           </div>
         </div>
 
-        <EmployeeDialogManager 
+        <EmployeeFormDialog 
           dialogOpen={dialogOpen} 
-          deleteDialogOpen={deleteDialogOpen} 
-          markLeaveDialogOpen={markLeaveDialogOpen} 
-          markAvailableDialogOpen={markAvailableDialogOpen} 
           currentEmployee={currentEmployee} 
           formData={formData} 
           employeeNote={employeeNote} 

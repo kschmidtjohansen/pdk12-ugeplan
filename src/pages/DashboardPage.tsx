@@ -27,9 +27,9 @@ const DashboardPage: React.FC = () => {
     assignments: allAssignments, 
     employees,
     cars,
-    isLoading: dataLoading, 
-    hasErrors: dataErrors,
-    isHealthy
+    loading: dataLoading, 
+    error: dataErrors,
+    healthCheck: isHealthy
   } = useEnhancedUnifiedData();
   
   const { vacations } = useVacations();
@@ -136,7 +136,7 @@ const DashboardPage: React.FC = () => {
           <>
             {/* Dashboard Metrics for Admin/Skadeleder */}
             <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <DashboardMetrics selectedDate={format(new Date(), 'yyyy-MM-dd')} assignments={allAssignments} />
+              <DashboardMetrics />
             </div>
 
             {/* Weekly Assignments for Admin/Skadeleder */}

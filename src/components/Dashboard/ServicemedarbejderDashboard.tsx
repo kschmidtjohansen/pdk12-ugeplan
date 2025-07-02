@@ -14,7 +14,7 @@ import { useMemo, useState } from 'react';
 const ServicemedarbejderDashboard: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const { assignments, isLoading } = useEnhancedUnifiedData();
+  const { assignments, loading } = useEnhancedUnifiedData();
 
   const today = new Date();
   const currentWeek = getCurrentWeekNumber();
@@ -108,7 +108,7 @@ const ServicemedarbejderDashboard: React.FC = () => {
     setSelectedYear(year);
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
