@@ -1,4 +1,3 @@
-
 export const dashboard = {
   welcome: "Velkommen tilbage",
   subtitle: "Oversigt over dagens opgaver og aktiviteter",
@@ -83,19 +82,41 @@ export const dashboard = {
     }
   },
   
-  // Dashboard metrics - ADDED MISSING TRANSLATIONS
+  // UPDATED Dashboard metrics with new structure  
   metrics: {
-    activeEmployees: "Active Medarbejdere",
-    availableEmployees: "Tilgængelige medarbejdere",
-    unavailableEmployees: "Utilgængelige medarbejdere", 
-    unavailableSubtitle: "På ferie, orlov eller fuldt booket",
+    availableEmployees: "Ledige medarbejdere",
     availableCars: "Tilgængelige biler",
-    carsInUse: "Biler i brug",
-    carsInUseSubtitle: "Tildelt opgaver eller utilgængelige",
-    publishedAssignments: "Publicerede Opgaver",
-    todayAssignments: "Dagens Opgaver",
-    totalCount: "{count} i alt"
+    absentEmployees: "Fraværende",
+    clickToView: "Klik for at se detaljer",
+    availableCount: "{count} ledige",
+    absentCount: "{count} fraværende", 
+    returnsOn: "Tilbage {date}",
+    partiallyAvailable: "Delvis ledig",
+    fullyAvailable: "Fuldt ledig",
+    totalCount: "{count} i alt",
+    
+    // Detail modal titles
+    availableEmployeesDetails: "Ledige medarbejdere detaljer",
+    availableCarsDetails: "Tilgængelige biler detaljer",
+    absentEmployeesDetails: "Fraværende detaljer",
+    
+    // Status descriptions
+    availableEmployeesDesc: "Medarbejdere klar til opgaver",
+    availableCarsDesc: "Biler ikke tildelt i dag",
+    absentEmployeesDesc: "Medarbejdere på ferie eller orlov",
+    
+    // Employee statuses
+    fullyBooked: "Fuldt booket",
+    onVacation: "På ferie",
+    onLeave: "På orlov",
+    availableAfter: "Ledig efter {time}",
+    
+    // Car details
+    carNumber: "Bil #{number}",
+    hasTrailerHitch: "Har anhængertræk",
+    noTrailerHitch: "Ingen anhængertræk"
   },
+  
   charts: {
     assignmentDistribution: "Opgavefordeling"
   },

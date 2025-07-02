@@ -1,4 +1,3 @@
-
 export const dashboard = {
   welcome: "Welcome back",
   subtitle: "Overview of today's tasks and activities",
@@ -83,19 +82,41 @@ export const dashboard = {
     }
   },
   
-  // Dashboard metrics - ADDED MISSING TRANSLATIONS
+  // UPDATED Dashboard metrics with new structure
   metrics: {
-    activeEmployees: "Active Employees",
-    availableEmployees: "Available employees",
-    unavailableEmployees: "Unavailable employees", 
-    unavailableSubtitle: "On vacation, leave, or fully booked",
-    availableCars: "Available cars",
-    carsInUse: "Cars in use",
-    carsInUseSubtitle: "Assigned to tasks or unavailable",
-    publishedAssignments: "Published Assignments",
-    todayAssignments: "Today's Assignments",
-    totalCount: "{count} total"
+    availableEmployees: "Available Employees",
+    availableCars: "Available Cars",
+    absentEmployees: "Absent Employees", 
+    clickToView: "Click to view details",
+    availableCount: "{count} available",
+    absentCount: "{count} absent",
+    returnsOn: "Returns {date}",
+    partiallyAvailable: "Partially available",
+    fullyAvailable: "Fully available",
+    totalCount: "{count} total",
+    
+    // Detail modal titles
+    availableEmployeesDetails: "Available Employees Details",
+    availableCarsDetails: "Available Cars Details", 
+    absentEmployeesDetails: "Absent Employees Details",
+    
+    // Status descriptions
+    availableEmployeesDesc: "Employees ready for assignments",
+    availableCarsDesc: "Cars not assigned today",
+    absentEmployeesDesc: "Employees on vacation or leave",
+    
+    // Employee statuses
+    fullyBooked: "Fully Booked",
+    onVacation: "On Vacation",
+    onLeave: "On Leave",
+    availableAfter: "Available after {time}",
+    
+    // Car details
+    carNumber: "Car #{number}",
+    hasTrailerHitch: "Has trailer hitch",
+    noTrailerHitch: "No trailer hitch"
   },
+  
   charts: {
     assignmentDistribution: "Assignment distribution"
   },
