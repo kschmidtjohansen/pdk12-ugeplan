@@ -8,6 +8,7 @@ import AssignmentActionButtons from './AssignmentActionButtons';
 import AssignmentDetails from './AssignmentDetails';
 import { useTranslation } from '@/context/TranslationContext';
 import { UserCheck } from 'lucide-react';
+import { useEmployees } from '@/hooks/useEmployees';
 
 interface AssignmentCardProps {
   assignment: Assignment;
@@ -31,13 +32,42 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   operationState = null
 }) => {
   const { t } = useTranslation();
+  const { employees } = useEmployees();
 
-  console.log(`[AssignmentCard] PHASE 3 FIX - Assignment: ${assignment.title || assignment.location}`);
-  console.log(`[AssignmentCard] PHASE 3 FIX - Responsible user data:`, {
-    hasResponsibleUser: !!assignment.responsibleUser,
-    responsibleUserName: assignment.responsibleUser?.name,
-    responsibleUserId: assignment.responsibleUser?.id
-  });
+  console.log(`[AssignmentCard] COMPREHENSIVE FIX - Assignment: ${assignment.title || assignment.location}`);
+  console.log(`[AssignmentCard] Responsible user ID: ${assignment.responsible_user_id}`);
+  
+  // Enhanced responsible user lookup with fallback
+  const getResponsibleUserInfo = () => {
+    if (!assignment.responsible_user_id) {
+      console.log('[AssignmentCard] No responsible user ID');
+      return null;
+    }
+
+    // First check if we have the user data from the assignment object
+    if (assignment.responsibleUser?.name) {
+      console.log('[AssignmentCard] Using assignment.responsibleUser:', assignment.responsibleUser.name);
+      return assignment.responsibleUser;
+    }
+
+    // Fallback: lookup from employees
+    const responsibleEmployee = employees.find(emp => emp.id === assignment.responsible_user_id);
+    if (responsibleEmployee) {
+      console.log('[AssignmentCard] Found responsible user via employees lookup:', responsibleEmployee.name);
+      return {
+        id: responsibleEmployee.id,
+        name: responsibleEmployee.name,
+        role: responsibleEmployee.role
+      };
+    }
+
+    console.warn('[AssignmentCard] Responsible user not found in employees list');
+    return null;
+  };
+
+  const responsibleUserInfo = getResponsibleUserInfo();
+
+  console.log(`[AssignmentCard] Final responsible user info:`, responsibleUserInfo);
 
   const handleEditClick = (assignment: Assignment) => {
     console.log('[AssignmentCard] Edit clicked for assignment:', assignment.id);
@@ -87,12 +117,21 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           <div className="flex flex-col">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-medium text-lg">{assignment.title || (t('planner.titleLabel') || 'Titel')}</h3>
-              {/* PHASE 3 FIX: Enhanced Sagsansvarlig badge with better styling */}
-              {assignment.responsibleUser?.name && (
+              {/* COMPREHENSIVE FIX: Enhanced Sagsansvarlig badge with improved logic */}
+              {responsibleUserInfo?.name && (
                 <div className="flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium border border-indigo-200">
                   <UserCheck className="h-3 w-3" />
-                  <span title={`${t('planner.responsibleUser') || 'Sagsansvarlig'}: ${assignment.responsibleUser.name}`}>
-                    {assignment.responsibleUser.name}
+                  <span title={`${t('planner.responsibleUser') || 'Sagsansvarlig'}: ${responsibleUserInfo.name}${responsibleUserInfo.role ? ` (${responsibleUserInfo.role})` : ''}`}>
+                    {responsibleUserInfo.name}
+                  </span>
+                </div>
+              )}
+              {/* Debug info for development */}
+              {process.env.NODE_ENV === 'development' && assignment.responsible_user_id && !responsibleUserInfo && (
+                <div className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium border border-yellow-200">
+                  <UserCheck className="h-3 w-3" />
+                  <span title="Debug: Responsible user ID found but user data missing">
+                    Missing User Data
                   </span>
                 </div>
               )}

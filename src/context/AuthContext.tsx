@@ -42,6 +42,7 @@ interface AuthContextType {
   validateAdminAccess: () => boolean;
   validateSkadelederAccess: () => boolean;
   hasRequiredRole: (requiredRoles: UserRole[]) => boolean;
+  refreshUserData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -68,6 +69,7 @@ const AuthContext = createContext<AuthContextType>({
   validateAdminAccess: () => false,
   validateSkadelederAccess: () => false,
   hasRequiredRole: () => false,
+  refreshUserData: async () => {},
 });
 
 interface AuthProviderProps {
@@ -80,88 +82,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const { toast } = useToast();
 
-  // Simplified auth initialization - no blocking async operations
-  useEffect(() => {
-    let mounted = true;
-
-    const initializeAuth = async () => {
-      try {
-        console.log('[AuthProvider] Initializing auth...');
-        
-        // Get current session without blocking
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user && mounted) {
-          console.log('[AuthProvider] Found existing session');
-          setSession(session);
-          // Create basic user object immediately - fetch additional data later
-          const basicUser: AppUser = {
-            id: session.user.id,
-            name: session.user.email || 'User',
-            email: session.user.email || '',
-            role: 'servicemedarbejder' // Default role
-          };
-          setUser(basicUser);
-        }
-      } catch (error) {
-        console.error('[AuthProvider] Session check failed:', error);
-      } finally {
-        if (mounted) {
-          setLoading(false);
-          console.log('[AuthProvider] Auth initialization complete');
-        }
-      }
-    };
-
-    // Set up auth listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-
-        console.log('[AuthProvider] Auth event:', event);
-        
-        setSession(session);
-        
-        if (session?.user) {
-          // Create basic user immediately
-          const basicUser: AppUser = {
-            id: session.user.id,
-            name: session.user.email || 'User',
-            email: session.user.email || '',
-            role: 'servicemedarbejder'
-          };
-          setUser(basicUser);
-          
-          // Fetch additional user data in background without blocking
-          setTimeout(() => {
-            if (mounted) {
-              fetchUserDataBackground(session.user);
-            }
-          }, 100);
-        } else {
-          setUser(null);
-        }
-        
-        setLoading(false);
-      }
-    );
-
-    initializeAuth();
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Background function to fetch user profile and role data
-  const fetchUserDataBackground = async (authUser: User) => {
+  // Fetch user profile and role data with retry logic
+  const fetchUserDataWithRetry = async (authUser: User, retryCount = 0): Promise<AppUser | null> => {
+    const maxRetries = 3;
+    
     try {
-      console.log('[AuthProvider] Fetching user data in background for:', authUser.email);
+      console.log(`[AuthProvider] Fetching user data (attempt ${retryCount + 1})...`);
       
       const [profileResult, roleResult] = await Promise.allSettled([
-        supabase.from('profiles').select('name').eq('id', authUser.id).single(),
-        supabase.from('user_roles').select('role').eq('user_id', authUser.id).single()
+        supabase.from('profiles').select('name').eq('id', authUser.id).maybeSingle(),
+        supabase.from('user_roles').select('role').eq('user_id', authUser.id).maybeSingle()
       ]);
 
       const name = profileResult.status === 'fulfilled' && profileResult.value.data?.name
@@ -179,13 +109,136 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         role
       };
 
-      setUser(enhancedUser);
-      console.log('[AuthProvider] Enhanced user data loaded:', name, role);
+      console.log(`[AuthProvider] User data loaded successfully:`, { name, role, email: authUser.email });
+      return enhancedUser;
+      
     } catch (error) {
-      console.error('[AuthProvider] Background user data fetch failed:', error);
-      // Don't fail - user already has basic data
+      console.error(`[AuthProvider] Attempt ${retryCount + 1} failed:`, error);
+      
+      if (retryCount < maxRetries) {
+        console.log(`[AuthProvider] Retrying in ${(retryCount + 1) * 1000}ms...`);
+        await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
+        return fetchUserDataWithRetry(authUser, retryCount + 1);
+      }
+      
+      console.error(`[AuthProvider] All ${maxRetries} attempts failed, using fallback`);
+      return {
+        id: authUser.id,
+        name: authUser.email || 'User',
+        email: authUser.email || '',
+        role: 'servicemedarbejder'
+      };
     }
   };
+
+  // Refresh user data function
+  const refreshUserData = async (): Promise<void> => {
+    if (!session?.user) return;
+    
+    console.log('[AuthProvider] Refreshing user data...');
+    try {
+      const refreshedUser = await fetchUserDataWithRetry(session.user);
+      if (refreshedUser) {
+        setUser(refreshedUser);
+        console.log('[AuthProvider] User data refreshed successfully');
+      }
+    } catch (error) {
+      console.error('[AuthProvider] Failed to refresh user data:', error);
+    }
+  };
+
+  // Enhanced auth initialization
+  useEffect(() => {
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        console.log('[AuthProvider] Initializing auth...');
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user && mounted) {
+          console.log('[AuthProvider] Found existing session');
+          setSession(session);
+          
+          // Fetch complete user data
+          const userData = await fetchUserDataWithRetry(session.user);
+          if (userData && mounted) {
+            setUser(userData);
+          }
+        }
+      } catch (error) {
+        console.error('[AuthProvider] Session check failed:', error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+          console.log('[AuthProvider] Auth initialization complete');
+        }
+      }
+    };
+
+    // Set up auth listener with enhanced handling
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+
+        console.log('[AuthProvider] Auth event:', event);
+        
+        setSession(session);
+        
+        if (session?.user) {
+          // Set loading true for role fetch
+          if (event === 'SIGNED_IN') {
+            setLoading(true);
+          }
+          
+          const userData = await fetchUserDataWithRetry(session.user);
+          if (userData && mounted) {
+            setUser(userData);
+          }
+        } else {
+          setUser(null);
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Set up realtime listener for role changes
+  useEffect(() => {
+    if (!user?.id) return;
+
+    console.log('[AuthProvider] Setting up realtime role listener...');
+    
+    const channel = supabase
+      .channel('user_role_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'user_roles',
+          filter: `user_id=eq.${user.id}`
+        }, 
+        async (payload) => {
+          console.log('[AuthProvider] Role change detected:', payload);
+          await refreshUserData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('[AuthProvider] Cleaning up realtime listener');
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   // Permissions based on current user
   const isAdmin = user?.role === 'administrator';
@@ -237,7 +290,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return true;
   };
 
-  // Simplified auth methods
+  // Auth methods with better error handling
   const login = async (email: string, password: string) => {
     try {
       console.log('[AuthProvider] Attempting login for:', email);
@@ -332,6 +385,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(fnError.message || 'Failed to update user role');
       }
       
+      // Refresh data after successful role update
+      await refreshUserData();
+      
       return { error: null };
     } catch (error) {
       return { 
@@ -386,6 +442,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     validateAdminAccess,
     validateSkadelederAccess,
     hasRequiredRole,
+    refreshUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -466,6 +466,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      verify_role_assignments: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_name: string
+          user_email: string
+          assigned_role: Database["public"]["Enums"]["user_role"]
+          is_current_user: boolean
+        }[]
+      }
     }
     Enums: {
       assignment_type: "waterDamage" | "fireDamage" | "mold" | "other"

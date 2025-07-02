@@ -46,7 +46,7 @@ serve(async (req) => {
       );
     }
 
-    // Get environment variables
+    // Get environment variables with validation
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
@@ -98,9 +98,9 @@ serve(async (req) => {
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (roleError || roleData?.role !== 'administrator') {
+    if (roleError || !roleData || roleData.role !== 'administrator') {
       console.error(`[${requestId}] User not admin. Role: ${roleData?.role}, User: ${user.email}`);
       return new Response(
         JSON.stringify({ error: 'Administrator access required' }),
@@ -126,7 +126,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] Deleting user: ${userId}`);
+    console.log(`[${requestId}] Attempting to delete user: ${userId}`);
 
     // Prevent self-deletion
     if (userId === user.id) {
@@ -138,6 +138,13 @@ serve(async (req) => {
         }
       );
     }
+
+    // Get user info before deletion for logging
+    const { data: targetUser } = await supabaseAdmin
+      .from('profiles')
+      .select('name, email')
+      .eq('id', userId)
+      .maybeSingle();
 
     // Delete user from auth (this will cascade to profiles and user_roles due to foreign keys)
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
@@ -153,12 +160,13 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] User deleted successfully`);
+    console.log(`[${requestId}] User deleted successfully: ${targetUser?.name || userId}`);
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: 'User deleted successfully'
+        message: 'User deleted successfully',
+        deletedUser: targetUser
       }),
       { 
         status: 200, 

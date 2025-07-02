@@ -24,7 +24,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   const { t } = useTranslation();
   const { employees } = useEmployees();
 
-  console.log('[ResponsibleUserSelector] PHASE 4 FIX - Debug info:');
+  console.log('[ResponsibleUserSelector] COMPREHENSIVE FIX - Debug info:');
   console.log('- Total employees loaded:', employees.length);
   console.log('- Selected user ID:', selectedUserId);
   console.log('- All employees with roles:', employees.map(e => ({ 
@@ -33,7 +33,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     id: e.id.substring(0, 8) + '...' 
   })));
 
-  // PHASE 4 FIX: Filter employees to only show administrators and skadeledere with proper role validation
+  // COMPREHENSIVE FIX: Enhanced filtering with detailed logging
   const eligibleUsers = employees.filter(employee => {
     const isEligible = employee.role === 'administrator' || employee.role === 'skadeleder';
     console.log(`- Employee "${employee.name}" (${employee.role}): eligible = ${isEligible}`);
@@ -47,7 +47,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     id: u.id.substring(0, 8) + '...'
   })));
 
-  // Get display text for selected user with better validation
+  // Enhanced user display with better fallback handling
   const getSelectedUserDisplay = () => {
     if (!selectedUserId || selectedUserId === '') {
       return t('planner.selectResponsibleUser') || 'Vælg sagsansvarlig';
@@ -59,13 +59,20 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
       return user.name;
     } else {
       console.warn(`[ResponsibleUserSelector] Selected user ID ${selectedUserId} not found in eligible users`);
+      // Try to find in all employees as fallback
+      const fallbackUser = employees.find(emp => emp.id === selectedUserId);
+      if (fallbackUser) {
+        console.warn(`[ResponsibleUserSelector] Fallback: Found user ${fallbackUser.name} but role is ${fallbackUser.role}`);
+        return `${fallbackUser.name} (${fallbackUser.role})`;
+      }
+      
       return t('planner.selectResponsibleUser') || 'Vælg sagsansvarlig';
     }
   };
 
-  // Handle user selection with enhanced logging
+  // Enhanced user selection with comprehensive logging
   const handleUserSelect = (userId: string) => {
-    console.log('[ResponsibleUserSelector] PHASE 4 FIX - User selected:', {
+    console.log('[ResponsibleUserSelector] COMPREHENSIVE FIX - User selected:', {
       userId: userId === 'none' ? 'none' : userId,
       isNone: userId === 'none'
     });
@@ -79,8 +86,8 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     }
   };
 
-  // Get role counts for debug display
-  const getRoleCounts = () => {
+  // Enhanced diagnostic information
+  const getRoleDistribution = () => {
     const roleCounts = employees.reduce((acc, emp) => {
       acc[emp.role] = (acc[emp.role] || 0) + 1;
       return acc;
@@ -88,6 +95,22 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     
     return Object.entries(roleCounts).map(([role, count]) => `${role}: ${count}`).join(', ');
   };
+
+  const getDetailedStats = () => {
+    const administrators = employees.filter(e => e.role === 'administrator');
+    const skadeledere = employees.filter(e => e.role === 'skadeleder');
+    
+    return {
+      total: employees.length,
+      administrators: administrators.length,
+      skadeledere: skadeledere.length,
+      eligible: eligibleUsers.length,
+      adminNames: administrators.map(a => a.name),
+      skadelederNames: skadeledere.map(s => s.name)
+    };
+  };
+
+  const stats = getDetailedStats();
 
   return (
     <div className="space-y-2">
@@ -123,10 +146,15 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
           
           {eligibleUsers.length === 0 ? (
             <DropdownMenuItem disabled className="p-2">
-              <span className="text-gray-500">
-                {t('employees.noResponsibleUsersFound') || 'Ingen sagsansvarlige fundet'} 
-                {process.env.NODE_ENV === 'development' && ` (Debug: ${employees.length} medarbejdere indlæst)`}
-              </span>
+              <div className="text-gray-500 text-sm">
+                <div>{t('employees.noResponsibleUsersFound') || 'Ingen sagsansvarlige fundet'}</div>
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="mt-1 text-xs">
+                    Debug: {employees.length} total users loaded
+                    <br />Admin: {stats.administrators} | Skadeledere: {stats.skadeledere}
+                  </div>
+                )}
+              </div>
             </DropdownMenuItem>
           ) : (
             eligibleUsers.map((user) => (
@@ -157,10 +185,11 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
       {/* Enhanced debug info for development */}
       {process.env.NODE_ENV === 'development' && (
         <div className="text-xs text-gray-400 mt-1 p-2 bg-gray-50 rounded border">
-          <strong>PHASE 4 DEBUG:</strong> {employees.length} total employees, {eligibleUsers.length} eligible
-          {selectedUserId && ` | Selected: ${selectedUserId.substring(0, 8)}...`}
-          <br />
-          <strong>Roles found:</strong> {getRoleCounts()}
+          <strong>COMPREHENSIVE FIX DEBUG:</strong><br/>
+          Total: {stats.total} | Eligible: {stats.eligible}<br/>
+          Admins ({stats.administrators}): {stats.adminNames.join(', ') || 'None'}<br/>
+          Skadeledere ({stats.skadeledere}): {stats.skadelederNames.join(', ') || 'None'}<br/>
+          {selectedUserId && `Selected: ${selectedUserId.substring(0, 8)}...`}
         </div>
       )}
     </div>

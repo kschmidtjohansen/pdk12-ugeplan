@@ -98,9 +98,9 @@ serve(async (req) => {
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (roleError || roleData?.role !== 'administrator') {
+    if (roleError || !roleData || roleData.role !== 'administrator') {
       console.error(`[${requestId}] User not admin. Role: ${roleData?.role}, User: ${user.email}`);
       return new Response(
         JSON.stringify({ error: 'Administrator access required' }),
