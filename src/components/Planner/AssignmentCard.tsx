@@ -35,11 +35,11 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const { employees } = useEmployees();
 
   console.log(`[AssignmentCard] COMPREHENSIVE FIX - Assignment: ${assignment.title || assignment.location}`);
-  console.log(`[AssignmentCard] Responsible user ID: ${assignment.responsible_user_id}`);
+  console.log(`[AssignmentCard] Responsible user ID: ${assignment.responsibleUserId}`);
   
   // Enhanced responsible user lookup with fallback
   const getResponsibleUserInfo = () => {
-    if (!assignment.responsible_user_id) {
+    if (!assignment.responsibleUserId) {
       console.log('[AssignmentCard] No responsible user ID');
       return null;
     }
@@ -51,7 +51,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     }
 
     // Fallback: lookup from employees
-    const responsibleEmployee = employees.find(emp => emp.id === assignment.responsible_user_id);
+    const responsibleEmployee = employees.find(emp => emp.id === assignment.responsibleUserId);
     if (responsibleEmployee) {
       console.log('[AssignmentCard] Found responsible user via employees lookup:', responsibleEmployee.name);
       return {
@@ -127,7 +127,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
                 </div>
               )}
               {/* Debug info for development */}
-              {process.env.NODE_ENV === 'development' && assignment.responsible_user_id && !responsibleUserInfo && (
+              {process.env.NODE_ENV === 'development' && assignment.responsibleUserId && !responsibleUserInfo && (
                 <div className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium border border-yellow-200">
                   <UserCheck className="h-3 w-3" />
                   <span title="Debug: Responsible user ID found but user data missing">

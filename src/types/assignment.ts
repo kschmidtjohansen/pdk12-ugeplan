@@ -18,6 +18,7 @@ export interface Assignment {
   responsibleUser?: {
     id: string;
     name: string;
+    role?: string;
   };
 }
 
