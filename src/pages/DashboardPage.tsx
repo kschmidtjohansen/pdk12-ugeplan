@@ -5,6 +5,7 @@ import { useTranslation } from '../context/TranslationContext';
 import { getDailyQuote } from '@/utils/dailyQuotes';
 import WelcomeHeader from '@/components/Dashboard/WelcomeHeader';
 import QuickAccessGrid from '@/components/Dashboard/QuickAccessGrid';
+import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import MineOpgaver from '@/components/Dashboard/MineOpgaver';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2 } from 'lucide-react';
@@ -17,6 +18,9 @@ const DashboardPage: React.FC = () => {
   const dailyQuote = getDailyQuote();
 
   console.log(`[DashboardPage] SIMPLIFIED - User: ${user?.name} (${user?.role})`);
+
+  // Check if user should see metrics (administrators and skadeledere)
+  const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
 
   // Show success message briefly
   useEffect(() => {
@@ -49,8 +53,15 @@ const DashboardPage: React.FC = () => {
         {/* Quick Access Grid */}
         <QuickAccessGrid userRole={user?.role} />
 
+        {/* Dashboard Metrics - Only for administrators and skadeledere */}
+        {shouldShowMetrics && (
+          <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+            <DashboardMetrics />
+          </div>
+        )}
+
         {/* Main Content - Mine Opgaver for all users */}
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <div className="animate-fade-in-up" style={{ animationDelay: shouldShowMetrics ? '0.2s' : '0.1s' }}>
           <MineOpgaver />
         </div>
       </div>
