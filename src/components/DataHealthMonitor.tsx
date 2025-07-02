@@ -22,16 +22,30 @@ const DataHealthMonitor: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isHealthy, setIsHealthy] = useState(true);
+  const [rlsFixStatus, setRlsFixStatus] = useState<string>('unknown');
 
   const fetchDataHealth = async () => {
     setLoading(true);
     setError(null);
     try {
+      // Test the RLS fix by trying to fetch user roles
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .limit(5);
+
+      if (rolesError) {
+        setRlsFixStatus('failed');
+        console.error('[DataHealthMonitor] RLS fix test failed:', rolesError);
+      } else {
+        setRlsFixStatus('success');
+        console.log('[DataHealthMonitor] RLS fix test passed, fetched', userRoles?.length, 'roles');
+      }
+
       const status = unifiedDataService.getStatus();
-      // Add the missing healthMonitoring property
       const healthStatusWithMonitoring = {
         ...status,
-        healthMonitoring: true // Default to true since we're actively monitoring
+        healthMonitoring: true
       };
       setHealthStatus(healthStatusWithMonitoring);
       setIsHealthy(true);
@@ -61,6 +75,9 @@ const DataHealthMonitor: React.FC = () => {
     if (!isHealthy) {
       return 'error';
     }
+    if (rlsFixStatus === 'failed') {
+      return 'rls_error';
+    }
     if (healthStatus?.cacheSize && healthStatus.cacheSize > 0) {
       return 'cached';
     }
@@ -73,6 +90,8 @@ const DataHealthMonitor: React.FC = () => {
         return 'text-green-500';
       case 'cached':
         return 'text-blue-500';
+      case 'rls_error':
+        return 'text-orange-500';
       case 'error':
         return 'text-red-500';
       default:
@@ -86,10 +105,27 @@ const DataHealthMonitor: React.FC = () => {
         return <Wifi className="h-4 w-4" />;
       case 'cached':
         return <Database className="h-4 w-4" />;
+      case 'rls_error':
+        return <AlertTriangle className="h-4 w-4" />;
       case 'error':
         return <WifiOff className="h-4 w-4" />;
       default:
         return <Wifi className="h-4 w-4" />;
+    }
+  };
+
+  const getStatusText = () => {
+    switch (getConnectionStatus()) {
+      case 'online':
+        return 'Online';
+      case 'cached':
+        return 'Cached';
+      case 'rls_error':
+        return 'RLS Issue';
+      case 'error':
+        return 'Error';
+      default:
+        return 'Unknown';
     }
   };
 
@@ -103,8 +139,14 @@ const DataHealthMonitor: React.FC = () => {
               <span className={getConnectionColor()}>
                 {getConnectionIcon()}
               </span>
-              {t('admin.dataHealth.status')}: {getConnectionStatus()}
+              {t('admin.dataHealth.status')}: {getStatusText()}
             </Badge>
+            {rlsFixStatus === 'success' && (
+              <Badge variant="outline" className="text-green-600">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                RLS Fixed
+              </Badge>
+            )}
             <Button variant="outline" size="icon" onClick={handleRefreshData} disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
@@ -126,6 +168,22 @@ const DataHealthMonitor: React.FC = () => {
             <div className="flex items-center justify-between">
               <span>{t('admin.dataHealth.cacheSize')}:</span>
               <span>{healthStatus?.cacheSize || 0}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>RLS Policy Status:</span>
+              <span className={rlsFixStatus === 'success' ? 'text-green-600' : 'text-orange-600'}>
+                {rlsFixStatus === 'success' ? (
+                  <>
+                    <CheckCircle className="h-4 w-4 inline-block mr-1" />
+                    Fixed
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="h-4 w-4 inline-block mr-1" />
+                    Needs Check
+                  </>
+                )}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span>{t('admin.dataHealth.healthMonitoring')}:</span>

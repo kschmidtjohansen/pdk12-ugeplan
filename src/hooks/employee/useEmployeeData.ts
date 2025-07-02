@@ -12,40 +12,43 @@ export const useEmployeeData = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // SIMPLIFIED: Single fetch attempt without retry loops
+  // FIXED: Now that RLS policy is corrected, we can fetch normally
   const fetchEmployees = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('[useEmployeeData] SIMPLIFIED - Starting employee fetch...');
+      console.log('[useEmployeeData] FIXED - Starting employee fetch with corrected RLS policy...');
       
-      // Single query attempt - no retries to prevent loops
+      // Fetch profiles with proper error handling
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .order('name', { ascending: true });
       
       if (profilesError) {
-        console.error('[useEmployeeData] SIMPLIFIED - Profiles fetch error:', profilesError);
+        console.error('[useEmployeeData] FIXED - Profiles fetch error:', profilesError);
         throw new Error(`Profiles fetch failed: ${profilesError.message}`);
       }
       
       if (!profiles || profiles.length === 0) {
-        console.log('[useEmployeeData] SIMPLIFIED - No profiles found');
+        console.log('[useEmployeeData] FIXED - No profiles found');
         setEmployees([]);
         return;
       }
       
-      console.log(`[useEmployeeData] SIMPLIFIED - Found ${profiles.length} profiles`);
+      console.log(`[useEmployeeData] FIXED - Found ${profiles.length} profiles`);
       
-      // Single user roles fetch - no retries
+      // Now fetch user roles - this should work without infinite recursion
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
       
       if (rolesError) {
-        console.warn('[useEmployeeData] SIMPLIFIED - User roles fetch failed, using defaults:', rolesError);
+        console.error('[useEmployeeData] FIXED - User roles fetch error (this should now work):', rolesError);
+        // Don't throw here, use default roles
+      } else {
+        console.log(`[useEmployeeData] FIXED - Successfully fetched ${userRoles?.length || 0} user roles`);
       }
       
       // Create role mapping
@@ -54,7 +57,7 @@ export const useEmployeeData = () => {
         rolesMap.set(userRole.user_id, userRole.role);
       });
       
-      console.log(`[useEmployeeData] SIMPLIFIED - Role mapping created for ${rolesMap.size} users`);
+      console.log(`[useEmployeeData] FIXED - Role mapping created for ${rolesMap.size} users`);
       
       // Transform data
       const transformedEmployees: Employee[] = profiles.map(profile => {
@@ -78,16 +81,16 @@ export const useEmployeeData = () => {
       const administrators = transformedEmployees.filter(emp => emp.role === 'administrator');
       const skadeledere = transformedEmployees.filter(emp => emp.role === 'skadeleder');
       
-      console.log('[useEmployeeData] SIMPLIFIED - Final distribution:');
+      console.log('[useEmployeeData] FIXED - Final distribution:');
       console.log('- Administrators:', administrators.length);
       console.log('- Skadeledere:', skadeledere.length);
       console.log('- Total employees:', transformedEmployees.length);
       
       setEmployees(transformedEmployees);
-      console.log('[useEmployeeData] SIMPLIFIED - Employee data set successfully');
+      console.log('[useEmployeeData] FIXED - Employee data set successfully');
       
     } catch (err) {
-      console.error('[useEmployeeData] SIMPLIFIED - Error:', err);
+      console.error('[useEmployeeData] FIXED - Error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch employees';
       setError(errorMessage);
       
@@ -108,16 +111,16 @@ export const useEmployeeData = () => {
     fetchEmployees();
   }, [fetchEmployees]);
 
-  // SIMPLIFIED: Single realtime subscription with debouncing
+  // FIXED: Realtime subscription with proper debouncing
   useEffect(() => {
-    console.log('[useEmployeeData] SIMPLIFIED - Setting up realtime subscription...');
+    console.log('[useEmployeeData] FIXED - Setting up realtime subscription...');
     
     let timeoutId: NodeJS.Timeout;
     
     const channel = supabase
-      .channel('employee_changes_simple')
+      .channel('employee_changes_fixed')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
-        console.log('[useEmployeeData] SIMPLIFIED - Profile change detected:', payload.eventType);
+        console.log('[useEmployeeData] FIXED - Profile change detected:', payload.eventType);
         
         // Debounce updates to prevent rapid-fire refetches
         clearTimeout(timeoutId);
@@ -126,7 +129,7 @@ export const useEmployeeData = () => {
         }, 1000);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, (payload) => {
-        console.log('[useEmployeeData] SIMPLIFIED - Role change detected:', payload.eventType);
+        console.log('[useEmployeeData] FIXED - Role change detected:', payload.eventType);
         
         // Debounce updates to prevent rapid-fire refetches
         clearTimeout(timeoutId);
@@ -135,11 +138,11 @@ export const useEmployeeData = () => {
         }, 1000);
       })
       .subscribe((status) => {
-        console.log('[useEmployeeData] SIMPLIFIED - Subscription status:', status);
+        console.log('[useEmployeeData] FIXED - Subscription status:', status);
       });
       
     return () => {
-      console.log('[useEmployeeData] SIMPLIFIED - Cleaning up realtime subscription');
+      console.log('[useEmployeeData] FIXED - Cleaning up realtime subscription');
       clearTimeout(timeoutId);
       supabase.removeChannel(channel);
     };
