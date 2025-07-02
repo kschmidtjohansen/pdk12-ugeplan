@@ -79,21 +79,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
-  // FIXED: Simplified user data fetching without retry loops
+  // FIXED: Enhanced user data fetching with proper error handling and timeouts
   const fetchUserData = async (authUser: User): Promise<AppUser | null> => {
+    const startTime = Date.now();
+    console.log(`[AuthContext] FIXED - Starting user data fetch for: ${authUser.email}`);
+    
     try {
-      console.log(`[AuthContext] SIMPLIFIED - Fetching user data for: ${authUser.email}`);
-      
-      // Single query attempt without retries
-      const [profileResult, roleResult] = await Promise.all([
+      // Create timeout promise (5 seconds)
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('User data fetch timeout after 5 seconds')), 5000);
+      });
+
+      // Create the actual fetch promise
+      const fetchPromise = Promise.all([
         supabase.from('profiles').select('name').eq('id', authUser.id).maybeSingle(),
         supabase.from('user_roles').select('role').eq('user_id', authUser.id).maybeSingle()
       ]);
 
+      // Race between fetch and timeout
+      const [profileResult, roleResult] = await Promise.race([fetchPromise, timeoutPromise]);
+
+      console.log(`[AuthContext] FIXED - Database queries completed in ${Date.now() - startTime}ms`);
+      console.log(`[AuthContext] FIXED - Profile result:`, profileResult);
+      console.log(`[AuthContext] FIXED - Role result:`, roleResult);
+
+      // Handle profile data
       const name = profileResult.data?.name || authUser.email || 'User';
+      
+      // Handle role data with fallback
       const role = (roleResult.data?.role as UserRole) || 'servicemedarbejder';
 
       const enhancedUser: AppUser = {
@@ -103,97 +118,137 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         role
       };
 
-      console.log(`[AuthContext] SIMPLIFIED - User data loaded:`, { name, role, email: authUser.email });
+      console.log(`[AuthContext] FIXED - User data created successfully:`, {
+        name,
+        role,
+        email: authUser.email,
+        totalTime: Date.now() - startTime
+      });
+      
       return enhancedUser;
       
     } catch (error) {
-      console.error(`[AuthContext] SIMPLIFIED - Failed to fetch user data:`, error);
-      // Return basic user data as fallback
-      return {
+      console.error(`[AuthContext] FIXED - User data fetch failed after ${Date.now() - startTime}ms:`, error);
+      
+      // CRITICAL: Always return fallback user data to prevent login loops
+      const fallbackUser: AppUser = {
         id: authUser.id,
         name: authUser.email || 'User',
         email: authUser.email || '',
         role: 'servicemedarbejder'
       };
+      
+      console.log(`[AuthContext] FIXED - Using fallback user data:`, fallbackUser);
+      return fallbackUser;
     }
   };
 
   // Refresh user data function
   const refreshUserData = async (): Promise<void> => {
-    if (!session?.user) return;
+    if (!session?.user) {
+      console.log('[AuthContext] FIXED - No session user for refresh');
+      return;
+    }
     
-    console.log('[AuthContext] SIMPLIFIED - Refreshing user data...');
+    console.log('[AuthContext] FIXED - Refreshing user data...');
     try {
       const refreshedUser = await fetchUserData(session.user);
       if (refreshedUser) {
         setUser(refreshedUser);
-        console.log('[AuthContext] SIMPLIFIED - User data refreshed successfully');
+        console.log('[AuthContext] FIXED - User data refreshed successfully');
       }
     } catch (error) {
-      console.error('[AuthContext] SIMPLIFIED - Failed to refresh user data:', error);
+      console.error('[AuthContext] FIXED - Failed to refresh user data:', error);
     }
   };
 
-  // FIXED: Simplified auth initialization with timeout
+  // FIXED: Improved auth initialization with better error handling
   useEffect(() => {
     let mounted = true;
+    let initTimeout: NodeJS.Timeout;
 
     const initializeAuth = async () => {
       try {
-        console.log('[AuthContext] SIMPLIFIED - Initializing auth...');
+        console.log('[AuthContext] FIXED - Starting auth initialization...');
         
-        // Set a loading timeout to prevent infinite loading
-        const timeout = setTimeout(() => {
+        // Set initialization timeout (10 seconds)
+        initTimeout = setTimeout(() => {
           if (mounted) {
-            console.warn('[AuthContext] SIMPLIFIED - Loading timeout reached, forcing completion');
+            console.warn('[AuthContext] FIXED - Auth initialization timeout, forcing completion');
             setLoading(false);
           }
-        }, 10000); // 10 second timeout
-        
-        setLoadingTimeout(timeout);
+        }, 10000);
 
-        const { data: { session } } = await supabase.auth.getSession();
+        // Get current session
+        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
         
-        if (session?.user && mounted) {
-          console.log('[AuthContext] SIMPLIFIED - Found existing session');
-          setSession(session);
-          
-          // Fetch user data without retry mechanism
-          const userData = await fetchUserData(session.user);
-          if (userData && mounted) {
-            setUser(userData);
-          }
+        if (sessionError) {
+          console.error('[AuthContext] FIXED - Session check error:', sessionError);
+          throw sessionError;
         }
         
-        clearTimeout(timeout);
+        if (currentSession?.user && mounted) {
+          console.log('[AuthContext] FIXED - Found existing session for:', currentSession.user.email);
+          setSession(currentSession);
+          
+          // Fetch user data with timeout protection
+          try {
+            const userData = await fetchUserData(currentSession.user);
+            if (userData && mounted) {
+              setUser(userData);
+              console.log('[AuthContext] FIXED - User data set successfully');
+            }
+          } catch (userDataError) {
+            console.error('[AuthContext] FIXED - User data fetch failed, but continuing with session');
+          }
+        } else {
+          console.log('[AuthContext] FIXED - No existing session found');
+        }
+        
+        clearTimeout(initTimeout);
       } catch (error) {
-        console.error('[AuthContext] SIMPLIFIED - Session check failed:', error);
+        console.error('[AuthContext] FIXED - Auth initialization error:', error);
       } finally {
         if (mounted) {
           setLoading(false);
-          console.log('[AuthContext] SIMPLIFIED - Auth initialization complete');
+          console.log('[AuthContext] FIXED - Auth initialization complete');
         }
       }
     };
 
-    // FIXED: Simplified auth listener without complex logic
+    // FIXED: Improved auth state change handler
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event, newSession) => {
         if (!mounted) return;
 
-        console.log('[AuthContext] SIMPLIFIED - Auth event:', event);
+        console.log('[AuthContext] FIXED - Auth event:', event);
         
-        setSession(session);
+        // Always update session first
+        setSession(newSession);
         
-        if (session?.user) {
-          const userData = await fetchUserData(session.user);
-          if (userData && mounted) {
-            setUser(userData);
-          }
+        if (newSession?.user) {
+          console.log('[AuthContext] FIXED - Processing auth event with user:', newSession.user.email);
+          
+          // Defer user data fetching to avoid blocking the auth flow
+          setTimeout(async () => {
+            if (!mounted) return;
+            
+            try {
+              const userData = await fetchUserData(newSession.user);
+              if (userData && mounted) {
+                setUser(userData);
+                console.log('[AuthContext] FIXED - User data updated from auth event');
+              }
+            } catch (error) {
+              console.error('[AuthContext] FIXED - User data fetch failed in auth event:', error);
+            }
+          }, 0);
         } else {
+          console.log('[AuthContext] FIXED - No user in auth event, clearing user state');
           setUser(null);
         }
         
+        // Always ensure loading is false after auth events
         setLoading(false);
       }
     );
@@ -202,15 +257,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     return () => {
       mounted = false;
-      if (loadingTimeout) {
-        clearTimeout(loadingTimeout);
+      if (initTimeout) {
+        clearTimeout(initTimeout);
       }
       subscription.unsubscribe();
     };
   }, []);
-
-  // REMOVED: Realtime listener to prevent conflicts with useEmployeeData
-  // This will be handled by useEmployeeData only to avoid duplicate subscriptions
 
   // Permissions based on current user
   const isAdmin = user?.role === 'administrator';
@@ -262,10 +314,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return true;
   };
 
-  // SIMPLIFIED: Auth methods without complex error handling
+  // FIXED: Enhanced login method with better error handling
   const login = async (email: string, password: string) => {
     try {
-      console.log('[AuthProvider] SIMPLIFIED - Attempting login for:', email);
+      console.log('[AuthProvider] FIXED - Attempting login for:', email);
       
       const { error } = await supabase.auth.signInWithPassword({ 
         email: email.trim().toLowerCase(), 
@@ -273,26 +325,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       
       if (error) {
-        console.error('[AuthProvider] SIMPLIFIED - Login error:', error);
+        console.error('[AuthProvider] FIXED - Login error:', error);
         return { error: error.message };
       }
       
-      console.log('[AuthProvider] SIMPLIFIED - Login successful');
+      console.log('[AuthProvider] FIXED - Login successful, auth state change will handle user data');
       return { error: null };
     } catch (error: any) {
-      console.error('[AuthProvider] SIMPLIFIED - Login exception:', error);
+      console.error('[AuthProvider] FIXED - Login exception:', error);
       return { error: 'An unexpected error occurred during login.' };
     }
   };
 
   const logout = async () => {
     try {
-      console.log('[AuthProvider] SIMPLIFIED - Logging out...');
+      console.log('[AuthProvider] FIXED - Logging out...');
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
     } catch (error) {
-      console.error('[AuthProvider] SIMPLIFIED - Logout error:', error);
+      console.error('[AuthProvider] FIXED - Logout error:', error);
       setUser(null);
       setSession(null);
     }

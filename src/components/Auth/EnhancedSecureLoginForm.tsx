@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, AlertTriangle, Eye, EyeOff } from 'lucide-react';
+import { Shield, AlertTriangle, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface EnhancedSecureLoginFormProps {
@@ -21,6 +21,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [attempts, setAttempts] = useState(0);
+  const [loginTimeout, setLoginTimeout] = useState(false);
 
   const { login } = useAuth();
   const { toast } = useToast();
@@ -32,6 +33,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoginTimeout(false);
 
     if (isBlocked) {
       setError('Account temporarily locked due to too many failed attempts. Please try again later.');
@@ -43,14 +45,25 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
       return;
     }
 
-    console.log('[LoginForm] Attempting login...');
+    console.log('[LoginForm] FIXED - Attempting login for:', email);
     setIsLoading(true);
+
+    // FIXED: Add login timeout protection (15 seconds)
+    const loginTimeoutId = setTimeout(() => {
+      setLoginTimeout(true);
+      setIsLoading(false);
+      setError('Login is taking longer than expected. Please try again.');
+      console.warn('[LoginForm] FIXED - Login timeout reached');
+    }, 15000);
 
     try {
       const result = await login(email, password);
       
+      // Clear timeout if login completes
+      clearTimeout(loginTimeoutId);
+      
       if (result.error) {
-        console.log('[LoginForm] Login failed:', result.error);
+        console.log('[LoginForm] FIXED - Login failed:', result.error);
         setAttempts(prev => prev + 1);
         setError(t('login.invalidCredentials'));
         
@@ -62,20 +75,30 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
           });
         }
       } else {
-        console.log('[LoginForm] Login successful');
+        console.log('[LoginForm] FIXED - Login successful, waiting for auth state change');
         setAttempts(0);
+        setError('');
+        
+        // Show success message
         toast({
           title: t('login.success'),
-          description: "Welcome back!",
+          description: "Login successful! Redirecting...",
         });
-        onSuccess?.();
+        
+        // Call success callback after a brief delay to allow auth state to update
+        setTimeout(() => {
+          onSuccess?.();
+        }, 500);
       }
     } catch (error) {
-      console.error('[LoginForm] Login error:', error);
+      clearTimeout(loginTimeoutId);
+      console.error('[LoginForm] FIXED - Login error:', error);
       setAttempts(prev => prev + 1);
       setError('An unexpected error occurred. Please try again.');
     } finally {
-      setIsLoading(false);
+      if (!loginTimeout) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -102,6 +125,21 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
             <AlertDescription>
               Account temporarily locked due to too many failed login attempts. 
               Please wait 15 minutes before trying again.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {loginTimeout && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Login is taking longer than expected. This might be a connectivity issue.
+              <button 
+                onClick={() => window.location.reload()} 
+                className="ml-2 underline hover:no-underline"
+              >
+                Refresh page
+              </button>
             </AlertDescription>
           </Alert>
         )}
@@ -165,9 +203,16 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={isLoading || isBlocked}
+            disabled={isLoading || isBlocked || loginTimeout}
           >
-            {isLoading ? t('login.buttonLoading') : t('login.button')}
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>
+                {t('login.buttonLoading')}
+              </div>
+            ) : (
+              t('login.button')
+            )}
           </Button>
         </form>
 
