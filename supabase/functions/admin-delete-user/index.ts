@@ -5,7 +5,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'DELETE, OPTIONS',
   'Access-Control-Max-Age': '86400',
 }
 
@@ -20,7 +20,7 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  if (req.method !== 'POST') {
+  if (req.method !== 'DELETE') {
     console.log(`[${requestId}] Method not allowed: ${req.method}`);
     return new Response(
       JSON.stringify({ error: `Method ${req.method} not allowed` }),
@@ -111,12 +111,14 @@ serve(async (req) => {
       );
     }
 
-    // Parse request body
-    const { userId, action } = await req.json();
+    // Get user ID from URL path
+    const url = new URL(req.url);
+    const pathParts = url.pathname.split('/');
+    const userId = pathParts[pathParts.length - 1];
 
-    if (!userId || !action) {
+    if (!userId || userId === 'admin-delete-user') {
       return new Response(
-        JSON.stringify({ error: 'User ID and action are required' }),
+        JSON.stringify({ error: 'User ID is required in URL path' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -124,25 +126,12 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] ${action} user: ${userId}`);
+    console.log(`[${requestId}] Deleting user: ${userId}`);
 
-    let result;
-    if (action === 'ban') {
-      // Ban user for 24 hours
-      const banUntil = new Date();
-      banUntil.setHours(banUntil.getHours() + 24);
-      
-      result = await supabaseAdmin.auth.admin.updateUserById(userId, {
-        ban_duration: '24h'
-      });
-    } else if (action === 'unban') {
-      // Unban user
-      result = await supabaseAdmin.auth.admin.updateUserById(userId, {
-        ban_duration: 'none'
-      });
-    } else {
+    // Prevent self-deletion
+    if (userId === user.id) {
       return new Response(
-        JSON.stringify({ error: 'Invalid action. Use "ban" or "unban"' }),
+        JSON.stringify({ error: 'Cannot delete your own account' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -150,10 +139,13 @@ serve(async (req) => {
       );
     }
 
-    if (result.error) {
-      console.error(`[${requestId}] Failed to ${action} user:`, result.error);
+    // Delete user from auth (this will cascade to profiles and user_roles due to foreign keys)
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+
+    if (deleteError) {
+      console.error(`[${requestId}] Failed to delete user:`, deleteError);
       return new Response(
-        JSON.stringify({ error: result.error.message }),
+        JSON.stringify({ error: deleteError.message }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -161,12 +153,12 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] User ${action}ned successfully`);
+    console.log(`[${requestId}] User deleted successfully`);
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: `User ${action}ned successfully`
+        message: 'User deleted successfully'
       }),
       { 
         status: 200, 
