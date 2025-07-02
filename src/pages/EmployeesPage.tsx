@@ -7,6 +7,8 @@ import { Plus, Users } from 'lucide-react';
 import EmployeeList from '@/components/Employees/EmployeeList';
 import EmployeeFormDialog from '@/components/Employees/EmployeeFormDialog';
 import EmployeeDeleteDialog from '@/components/Employees/EmployeeDeleteDialog';
+import { Dialog } from '@/components/ui/dialog';
+import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useEmployees } from '@/hooks/useEmployees';
 import { Employee } from '@/types/employee';
 
@@ -14,9 +16,7 @@ const EmployeesPage: React.FC = () => {
   const { isAdmin } = usePermissions();
   const { t } = useTranslation();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [markLeaveDialogOpen, setMarkLeaveDialogOpen] = useState(false);
-  const [markAvailableDialogOpen, setMarkAvailableDialogOpen] = useState(false);
-  const [employeeNote, setEmployeeNote] = useState('');
+  const [formDialogOpen, setFormDialogOpen] = useState(false);
 
   // Use the correct employees hook
   const { 
@@ -39,10 +39,12 @@ const EmployeesPage: React.FC = () => {
 
   const handleCreateNew = () => {
     prepareForCreate();
+    setFormDialogOpen(true);
   };
 
   const handleEdit = (employee: Employee) => {
     prepareForEdit(employee);
+    setFormDialogOpen(true);
   };
 
   const handleDelete = (employee: Employee) => {
@@ -57,37 +59,18 @@ const EmployeesPage: React.FC = () => {
     }
   };
 
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const success = currentEmployee ? await updateEmployee() : await createEmployee();
+    if (success) {
+      setFormDialogOpen(false);
+    }
+  };
+
   const handleToggleLeave = (employee: Employee) => {
     if (!isAdmin) return;
-    prepareForEdit(employee);
-    if (employee.onLeave) {
-      setMarkAvailableDialogOpen(true);
-      setEmployeeNote(employee.notes || '');
-    } else {
-      setMarkLeaveDialogOpen(true);
-      setEmployeeNote('');
-    }
-  };
-
-  const handleConfirmMarkLeave = async () => {
-    if (currentEmployee) {
-      await toggleEmployeeLeave(currentEmployee, true, employeeNote);
-      setMarkLeaveDialogOpen(false);
-    }
-  };
-
-  const handleConfirmMarkAvailableWithNote = async () => {
-    if (currentEmployee) {
-      await toggleEmployeeLeave(currentEmployee, false, employeeNote);
-      setMarkAvailableDialogOpen(false);
-    }
-  };
-
-  const handleConfirmMarkAvailableWithoutNote = async () => {
-    if (currentEmployee) {
-      await toggleEmployeeLeave(currentEmployee, false, null);
-      setMarkAvailableDialogOpen(false);
-    }
+    // For now, just toggle the leave status without additional dialogs
+    toggleEmployeeLeave(employee, !employee.onLeave);
   };
 
   const handleRetry = () => {
@@ -145,24 +128,26 @@ const EmployeesPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Use the correct dialog components with proper props */}
-        <EmployeeFormDialog 
-          open={!!currentEmployee || formData.name !== ''}
-          employee={currentEmployee}
-          onClose={() => prepareForCreate()}
-          onSubmit={currentEmployee ? updateEmployee : createEmployee}
-          formData={formData}
-          onInputChange={handleInputChange}
-          onSelectChange={handleSelectChange}
-          onCheckboxChange={handleCheckboxChange}
-        />
+        {/* Form Dialog */}
+        <Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>
+          <EmployeeFormDialog 
+            currentEmployee={currentEmployee}
+            formData={formData}
+            handleInputChange={handleInputChange}
+            handleSelectChange={handleSelectChange}
+            handleCheckboxChange={handleCheckboxChange}
+            handleSubmit={handleFormSubmit}
+            onClose={() => setFormDialogOpen(false)}
+          />
+        </Dialog>
 
-        <EmployeeDeleteDialog
-          open={deleteDialogOpen}
-          employee={currentEmployee}
-          onClose={() => setDeleteDialogOpen(false)}
-          onConfirm={confirmDelete}
-        />
+        {/* Delete Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <EmployeeDeleteDialog
+            employee={currentEmployee}
+            onConfirmDelete={confirmDelete}
+          />
+        </AlertDialog>
       </div>
     </div>
   );
