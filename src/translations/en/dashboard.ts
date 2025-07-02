@@ -128,5 +128,9 @@ export const dashboard = {
     fireDamage: "Fire damage", 
     mold: "Mold",
     other: "Other"
-  }
+  },
+  
+  // Additional translations
+  noEmployeesFoundForDate: "No employees found for this date",
+  loadingEmployees: "Loading employees"
 };

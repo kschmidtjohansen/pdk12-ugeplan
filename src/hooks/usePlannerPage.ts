@@ -25,9 +25,9 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Role-based filtering
+  // Role-based filtering - servicemedarbejder users can now see all published assignments
   const isAdminOrSkadeleder = user?.role === 'administrator' || user?.role === 'skadeleder';
-  const plannerFilter = isAdminOrSkadeleder ? 'all' : 'published';
+  const plannerFilter = 'all'; // All users can see published assignments due to updated RLS policy
   
   console.log(`[usePlannerPage] User: ${user?.name} (${user?.role}), Filter: ${plannerFilter}`);
   
@@ -86,10 +86,7 @@ export const usePlannerPage = () => {
       return assignmentWeek === selectedWeek && assignmentYear === selectedYear;
     });
 
-    // Apply role-based filtering
-    if (!isAdminOrSkadeleder) {
-      filteredAssignments = filteredAssignments.filter(assignment => assignment.published);
-    }
+    // RLS policies now handle access control, no additional filtering needed
     
     console.log(`[usePlannerPage] SAGSANSVARLIG FIX - Week filtered results: ${filteredAssignments.length} assignments`);
     console.log(`[usePlannerPage] SAGSANSVARLIG FIX - Assignments with responsible users:`, 

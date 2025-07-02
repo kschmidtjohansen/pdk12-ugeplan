@@ -5,6 +5,7 @@ import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Vacation } from '@/types/vacation';
 import { EmployeeListItem } from './EmployeeListItem';
+import { useTranslation } from '@/context/TranslationContext';
 
 interface EmployeeListProps {
   employees: Employee[];
@@ -21,12 +22,13 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
   vacations,
   viewedDate
 }) => {
+  const { t } = useTranslation();
   return (
     <ScrollArea className="max-h-96">
       <div className="space-y-2">
         {employees.length === 0 ? (
           <div className="text-center text-gray-500 py-4">
-            Ingen medarbejdere fundet for denne dato
+            {t('dashboard.noEmployeesFoundForDate')}
           </div>
         ) : (
           employees.map(employee => (

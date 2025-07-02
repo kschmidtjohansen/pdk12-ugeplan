@@ -128,5 +128,9 @@ export const dashboard = {
     fireDamage: "Brandskade", 
     mold: "Skimmel",
     other: "Andet"
-  }
+  },
+  
+  // Additional translations
+  noEmployeesFoundForDate: "Ingen medarbejdere fundet for denne dato",
+  loadingEmployees: "Indlæser medarbejdere"
 };

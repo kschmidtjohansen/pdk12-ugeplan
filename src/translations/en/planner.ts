@@ -158,7 +158,10 @@ const planner = {
   // Assignment status
   assignmentStatus: 'Status',
   assignmentPublishedStatus: 'Published',
-  assignmentUnpublishedStatus: 'Unpublished'
+  assignmentUnpublishedStatus: 'Unpublished',
+  
+  // Additional translations
+  unknownEmployee: 'Unknown employee'
 };
 
 export default planner;

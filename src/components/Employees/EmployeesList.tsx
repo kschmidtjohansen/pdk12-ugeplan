@@ -96,7 +96,7 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
       <div className="flex items-center gap-2 mb-6">
         <Users className="h-5 w-5 text-primary" />
         <span className="text-sm font-medium">
-          {employees.length} {t('employees.title') || 'employees'}
+          {t('employees.title')} ({employees.length})
         </span>
       </div>
       

@@ -158,7 +158,10 @@ const planner = {
   // Assignment status
   assignmentStatus: 'Status',
   assignmentPublishedStatus: 'Publiceret',
-  assignmentUnpublishedStatus: 'Ikke publiceret'
+  assignmentUnpublishedStatus: 'Ikke publiceret',
+  
+  // Additional translations
+  unknownEmployee: 'Ukendt medarbejder'
 };
 
 export default planner;
