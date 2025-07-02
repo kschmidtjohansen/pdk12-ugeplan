@@ -161,7 +161,8 @@ const planner = {
   assignmentUnpublishedStatus: 'Unpublished',
   
   // Additional translations
-  unknownEmployee: 'Unknown employee'
+  unknownEmployee: 'Unknown employee',
+  today: 'Today'
 };
 
 export default planner;

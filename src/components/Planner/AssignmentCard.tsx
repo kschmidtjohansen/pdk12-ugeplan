@@ -168,7 +168,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <p className="text-gray-600 mb-3">{assignment.description}</p>
       )}
       
-      <AssignmentDetails assignment={assignment} cars={cars} />
+      <AssignmentDetails assignment={assignment} cars={cars} showFullTeamDetails={true} />
     </Card>
   );
 };

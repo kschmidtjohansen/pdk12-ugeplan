@@ -161,7 +161,8 @@ const planner = {
   assignmentUnpublishedStatus: 'Ikke publiceret',
   
   // Additional translations
-  unknownEmployee: 'Ukendt medarbejder'
+  unknownEmployee: 'Ukendt medarbejder',
+  today: 'I dag'
 };
 
 export default planner;

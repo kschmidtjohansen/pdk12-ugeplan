@@ -3,9 +3,10 @@ import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentDataOptimized';
+import { useCars } from '@/hooks/car';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, UserCheck, Calendar } from 'lucide-react';
+import { Clock, MapPin, UserCheck, Calendar, Users, Car } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { da } from 'date-fns/locale';
@@ -14,6 +15,7 @@ const MineOpgaver: React.FC = () => {
   const { user } = useAuth();
   const { t, currentLanguage } = useTranslation();
   const { assignments, loading, error } = useAssignmentDataOptimized();
+  const { cars } = useCars();
 
   // PHASE 3 FIX: Filter assignments for current user
   const userAssignments = React.useMemo(() => {
@@ -54,11 +56,37 @@ const MineOpgaver: React.FC = () => {
     }
   };
 
+  // PHASE 3 FIX: Helper function to get car names for display
+  const getCarNames = (assignment: any): string[] => {
+    const carNames: string[] = [];
+    
+    if (assignment.cars && Array.isArray(assignment.cars) && assignment.cars.length > 0) {
+      assignment.cars.forEach((carId: string) => {
+        const car = cars.find(c => c.id === carId);
+        if (car) {
+          carNames.push(car.name);
+        }
+      });
+    } else if (assignment.car) {
+      if (typeof assignment.car === 'string') {
+        const car = cars.find(c => c.id === assignment.car);
+        if (car) {
+          carNames.push(car.name);
+        }
+      } else if (typeof assignment.car === 'object' && assignment.car.name) {
+        carNames.push(assignment.car.name);
+      }
+    }
+    
+    return carNames;
+  };
+
   console.log(`[MineOpgaver] PHASE 3 FIX - User assignments:`, {
     userName: user?.name,
     totalAssignments: assignments.length,
     userAssignments: userAssignments.length,
-    assignmentsWithResponsible: userAssignments.filter(a => a.responsibleUser).length
+    assignmentsWithResponsible: userAssignments.filter(a => a.responsibleUser).length,
+    assignmentsWithFullEmployeeData: userAssignments.filter(a => a.assignedEmployees?.length).length
   });
 
   if (loading) {
@@ -160,6 +188,29 @@ const MineOpgaver: React.FC = () => {
               <Clock className="h-3 w-3" />
               <span>{assignment.fromTime?.substring(0, 5)} - {assignment.toTime?.substring(0, 5)}</span>
             </div>
+
+            {/* PHASE 3 FIX: Show team members */}
+            {assignment.assignedEmployees && assignment.assignedEmployees.length > 0 && (
+              <div className="flex items-center gap-1 text-xs text-emerald-600">
+                <Users className="h-3 w-3" />
+                <span className="font-medium">
+                  {t('common.team') || 'Team'}: {assignment.assignedEmployees.map(emp => emp.name).join(', ')}
+                </span>
+              </div>
+            )}
+
+            {/* PHASE 3 FIX: Show car information */}
+            {(() => {
+              const carNames = getCarNames(assignment);
+              return carNames.length > 0 && (
+                <div className="flex items-center gap-1 text-xs text-orange-600">
+                  <Car className="h-3 w-3" />
+                  <span className="font-medium">
+                    {t('planner.car') || 'Bil'}: {carNames.join(', ')}
+                  </span>
+                </div>
+              );
+            })()}
 
             {/* PHASE 3 FIX: Show Sagsansvarlig if present */}
             {assignment.responsibleUser?.name && (

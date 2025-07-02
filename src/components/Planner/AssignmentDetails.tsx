@@ -9,9 +9,10 @@ import { Car as CarType } from '../../types/car';
 interface AssignmentDetailsProps {
   assignment: Assignment;
   cars: CarType[];
+  showFullTeamDetails?: boolean;
 }
 
-const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars }) => {
+const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars, showFullTeamDetails = false }) => {
   const { t } = useTranslation();
 
   console.log('[AssignmentDetails] PHASE 3 FIX - Assignment:', assignment.id);
@@ -59,19 +60,30 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
 
   const carNames = getCarNames(assignment);
 
-  // Enhanced employee name resolution
-  const getEmployeeNames = (assignment: Assignment): string[] => {
-    if (!assignment.employees || !Array.isArray(assignment.employees)) {
-      return [];
+  // PHASE 3 FIX: Enhanced employee name resolution with full team support
+  const getEmployeeData = (assignment: Assignment): { names: string[], hasFullData: boolean } => {
+    // If we have enhanced employee data with full details, use that
+    if (showFullTeamDetails && assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
+      return {
+        names: assignment.assignedEmployees.map(emp => emp.name),
+        hasFullData: true
+      };
     }
     
-    return assignment.employees
+    // Fallback to legacy employee names array
+    if (!assignment.employees || !Array.isArray(assignment.employees)) {
+      return { names: [], hasFullData: false };
+    }
+    
+    const names = assignment.employees
       .filter(employee => employee && typeof employee === 'string')
       .map(employee => employee.trim())
       .filter(employee => employee.length > 0);
+      
+    return { names, hasFullData: false };
   };
 
-  const employeeNames = getEmployeeNames(assignment);
+  const employeeData = getEmployeeData(assignment);
 
   return (
     <div className="grid grid-cols-2 gap-4 text-sm">
@@ -123,18 +135,23 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars 
           </div>
         )}
 
-        {/* Employees - enhanced with comprehensive name handling */}
-        {employeeNames.length > 0 && (
+        {/* PHASE 3 FIX: Enhanced employees display with full team support */}
+        {employeeData.names.length > 0 && (
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
               <Users className="h-3.5 w-3.5 text-purple-600" />
             </div>
-            <div className="flex flex-wrap gap-1">
-              {employeeNames.map((employeeName, index) => (
-                <Badge key={index} variant="secondary" className="text-xs bg-purple-50">
-                  {employeeName || (t('planner.unknownEmployee') || 'Ukendt medarbejder')}
-                </Badge>
-              ))}
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-xs text-purple-600 font-semibold uppercase tracking-wide">
+                {t('planner.employees') || 'Medarbejdere'} {employeeData.hasFullData ? '(Full Team)' : ''}
+              </span>
+              <div className="flex flex-wrap gap-1">
+                {employeeData.names.map((employeeName, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs bg-purple-50">
+                    {employeeName || (t('planner.unknownEmployee') || 'Ukendt medarbejder')}
+                  </Badge>
+                ))}
+              </div>
             </div>
           </div>
         )}

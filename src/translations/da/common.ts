@@ -99,5 +99,8 @@ export const common = {
   unavailable: "Ikke tilgængelig",
   lightMode: "Lys tilstand",
   darkMode: "Mørk tilstand",
-  toggleTheme: "Skift tema"
+  toggleTheme: "Skift tema",
+  actions: "Handlinger",
+  language: "Sprog",
+  team: "Team"
 };

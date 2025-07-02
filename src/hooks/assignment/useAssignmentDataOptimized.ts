@@ -19,7 +19,7 @@ export const useAssignmentDataOptimized = () => {
       
       console.log('[useAssignmentDataOptimized] PHASE 2 FIX - Starting assignment fetch...');
       
-      // PHASE 2 FIX: Use correct foreign key reference to profiles table
+      // PHASE 3 FIX: Enhanced query to get all assignment data with employee details
       const { data: assignments, error: assignmentsError } = await supabase
         .from('assignments')
         .select(`
@@ -46,8 +46,8 @@ export const useAssignmentDataOptimized = () => {
         return;
       }
 
-      // Get all unique employee IDs from assignments_employees table
-      const { data: assignmentEmployees, error: employeeError } = await supabase
+      // PHASE 3 FIX: Get assignment employees and then fetch profile data separately
+      const { data: assignmentEmployeesData, error: employeeError } = await supabase
         .from('assignments_employees')
         .select('assignment_id, user_id');
       
@@ -66,26 +66,33 @@ export const useAssignmentDataOptimized = () => {
         throw profilesError;
       }
       
-      // Create lookup maps
+      
+      // PHASE 3 FIX: Enhanced assignment-employee mapping with full employee data
       const employeeMap = new Map<string, { id: string; name: string; email: string }>();
       employeeProfiles?.forEach(profile => {
         employeeMap.set(profile.id, profile);
       });
       
-      const assignmentEmployeeMap = new Map<string, string[]>();
-      assignmentEmployees?.forEach(ae => {
+      const assignmentEmployeeMap = new Map<string, Array<{ id: string; name: string; email: string }>>();
+      const assignmentEmployeeNameMap = new Map<string, string[]>();
+      
+      assignmentEmployeesData?.forEach(ae => {
         if (!assignmentEmployeeMap.has(ae.assignment_id)) {
           assignmentEmployeeMap.set(ae.assignment_id, []);
+          assignmentEmployeeNameMap.set(ae.assignment_id, []);
         }
+        
         const employee = employeeMap.get(ae.user_id);
         if (employee) {
-          assignmentEmployeeMap.get(ae.assignment_id)!.push(employee.name);
+          assignmentEmployeeMap.get(ae.assignment_id)!.push(employee);
+          assignmentEmployeeNameMap.get(ae.assignment_id)!.push(employee.name);
         }
       });
       
-      // PHASE 2 FIX: Transform assignments with proper responsible user handling
+      // PHASE 3 FIX: Transform assignments with enhanced employee and responsible user data
       const transformedAssignments: Assignment[] = assignments.map(assignment => {
-        const employeeNames = assignmentEmployeeMap.get(assignment.id) || [];
+        const employeeNames = assignmentEmployeeNameMap.get(assignment.id) || [];
+        const assignedEmployees = assignmentEmployeeMap.get(assignment.id) || [];
         
         // PHASE 2 FIX: Properly handle responsible user data with enhanced validation
         const responsibleUser = assignment.responsible_user ? {
@@ -94,10 +101,12 @@ export const useAssignmentDataOptimized = () => {
           email: assignment.responsible_user.email
         } : null;
         
-        console.log(`[useAssignmentDataOptimized] PHASE 2 FIX - Assignment "${assignment.title}":`, {
+        console.log(`[useAssignmentDataOptimized] PHASE 3 FIX - Assignment "${assignment.title}":`, {
           hasResponsibleUser: !!responsibleUser,
           responsibleUserName: responsibleUser?.name,
-          responsibleUserId: responsibleUser?.id
+          responsibleUserId: responsibleUser?.id,
+          employeeCount: employeeNames.length,
+          employees: employeeNames
         });
         
         return {
@@ -109,18 +118,21 @@ export const useAssignmentDataOptimized = () => {
           toTime: assignment.to_time,
           location: assignment.location,
           employees: employeeNames,
+          assignedEmployees: assignedEmployees, // PHASE 3 FIX: Full employee data for enhanced display
           cars: assignment.car_ids || (assignment.car_id ? [assignment.car_id] : []),
           car: assignment.car_id || (assignment.car_ids && assignment.car_ids.length > 0 ? assignment.car_ids[0] : ''),
           published: assignment.published || false,
-          responsibleUser: responsibleUser, // PHASE 2 FIX: Enhanced responsible user data
+          responsibleUser: responsibleUser, // PHASE 3 FIX: Enhanced responsible user data
           type: assignment.type || 'other'
         };
       });
       
-      console.log(`[useAssignmentDataOptimized] PHASE 2 FIX - Final assignments with responsible users:`, 
-        transformedAssignments.filter(a => a.responsibleUser).map(a => ({ 
+      console.log(`[useAssignmentDataOptimized] PHASE 3 FIX - Final assignments with enhanced data:`, 
+        transformedAssignments.map(a => ({ 
           title: a.title, 
-          responsibleUser: a.responsibleUser?.name 
+          responsibleUser: a.responsibleUser?.name,
+          employees: a.employees,
+          employeeCount: a.employees?.length || 0
         })));
       
       setAssignments(transformedAssignments);

@@ -99,5 +99,8 @@ export const common = {
   unavailable: "Unavailable",
   lightMode: "Light mode",
   darkMode: "Dark mode",
-  toggleTheme: "Toggle theme"
+  toggleTheme: "Toggle theme",
+  actions: "Actions",
+  language: "Language",
+  team: "Team"
 };

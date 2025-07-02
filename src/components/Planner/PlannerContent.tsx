@@ -10,7 +10,7 @@ import { getAllWeekDays } from '@/utils/dates';
 import CurrentAndFutureDays from './CurrentAndFutureDays';
 import PastAssignments from './PastAssignments';
 import EmptyState from './EmptyState';
-import UnassignedResourcesSection from './UnassignedResourcesSection';
+import UnassignedResourcesSectionNew from './UnassignedResourcesSectionNew';
 // Fix the import path
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
@@ -121,7 +121,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     <div className="space-y-6 pb-6">
       {/* Unassigned Resources Section */}
       {(canEdit || canPublishTasks) && (
-        <UnassignedResourcesSection 
+        <UnassignedResourcesSectionNew 
           assignments={weekAssignments}
           employees={employees}
           cars={cars}
