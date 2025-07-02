@@ -21,6 +21,23 @@ export interface EmployeeVacationInfo {
   vacation?: Vacation;
 }
 
+// Helper function to check if a time is within working hours
+const isWithinWorkingHours = (time: string, selectedDate: Date): boolean => {
+  const dayOfWeek = selectedDate.getDay(); // 0=Sunday, 1=Monday, ..., 5=Friday
+  const workdayEndTime = getWorkdayEndTime(selectedDate);
+  
+  // Normalize time to HH:MM format
+  const normalizedTime = normalizeTime(time);
+  
+  // Check if it's a working day (Monday-Friday)
+  if (dayOfWeek < 1 || dayOfWeek > 5) {
+    return false;
+  }
+  
+  // Check if time is before workday end
+  return normalizedTime < workdayEndTime;
+};
+
 // Enhanced function to get detailed vacation information
 export const getEmployeeVacationStatus = (employeeId: string, selectedDate: Date, vacations: Vacation[]): EmployeeVacationInfo => {
   console.log(`[getEmployeeVacationStatus] Checking vacation for employee ${employeeId} on ${format(selectedDate, 'yyyy-MM-dd')}`);
@@ -200,7 +217,7 @@ export const getEmployeeAvailabilityStatus = (
     };
   }
 
-  // UPDATED: Get the correct workday end time based on the day of the week
+  // Get the correct workday end time based on the day of the week
   const workdayEndTime = getWorkdayEndTime(selectedDate);
   console.log(`[getEmployeeAvailabilityStatus] Workday end time for ${dateStr}: ${workdayEndTime}`);
   
@@ -228,6 +245,16 @@ export const getEmployeeAvailabilityStatus = (
       latestEndTime = normalizedTime;
     }
   });
+  
+  // ENHANCED: Check if the latest end time is within working hours
+  if (!isWithinWorkingHours(latestEndTime, selectedDate)) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} latest assignment ends at ${latestEndTime} which is past working hours, marking as fully booked`);
+    return {
+      status: 'fullyBooked',
+      statusText: t('employees.status.fullyBooked'),
+      badgeColor: 'bg-red-100 text-red-800 border-red-200'
+    };
+  }
   
   const formattedTime = latestEndTime.substring(0, 5);
   console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is partially booked, available after ${formattedTime}`);
