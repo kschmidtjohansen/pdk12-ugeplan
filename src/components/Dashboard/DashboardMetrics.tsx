@@ -6,17 +6,21 @@ import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import EmptyState from '@/components/shared/EmptyState';
 import InteractiveMetricCard from './InteractiveMetricCard';
-import EmployeeAvailabilityModal from './EmployeeAvailabilityModal';
+import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import CarAvailabilityModal from './CarAvailabilityModal';
 import AbsentEmployeesModal from './AbsentEmployeesModal';
+import { format } from 'date-fns';
 
 const DashboardMetrics: React.FC = () => {
-  const { metrics, loading, error } = useDashboardMetrics();
+  const { metrics, loading, error, assignments, vacations } = useDashboardMetrics();
   const { t } = useTranslation();
   
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [carModalOpen, setCarModalOpen] = useState(false);
   const [absentModalOpen, setAbsentModalOpen] = useState(false);
+
+  const today = new Date();
+  const todayStr = format(today, 'yyyy-MM-dd');
 
   if (loading) {
     return <LoadingSpinner message={t('common.loading')} />;
@@ -69,10 +73,13 @@ const DashboardMetrics: React.FC = () => {
       </div>
 
       {/* Detail Modals */}
-      <EmployeeAvailabilityModal
-        isOpen={employeeModalOpen}
-        onClose={() => setEmployeeModalOpen(false)}
+      <EmployeeAvailabilityDialog
+        open={employeeModalOpen}
+        onOpenChange={setEmployeeModalOpen}
         employees={metrics.availableEmployees.employees}
+        assignments={assignments}
+        vacations={vacations}
+        selectedDate={todayStr}
         title={t('dashboard.metrics.availableEmployeesDetails')}
       />
       

@@ -27,28 +27,28 @@ const CarAvailabilityModal: React.FC<CarAvailabilityModalProps> = ({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="space-y-3">
           {cars.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
+            <p className="text-muted-foreground text-center py-8 text-sm">
               {t('cars.noCars')}
             </p>
           ) : (
             cars.map((car) => (
-              <div key={car.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div key={car.id} className="flex items-center justify-between p-2 border rounded-lg">
                 <div className="flex-1">
-                  <h4 className="font-medium">{car.name}</h4>
-                  <p className="text-sm text-muted-foreground">
+                  <h4 className="font-medium text-sm">{car.name}</h4>
+                  <p className="text-xs text-muted-foreground">
                     {t('dashboard.metrics.carNumber', { number: car.car_number })}
                   </p>
-                  <p className="text-sm text-muted-foreground">{car.number_plate}</p>
+                  <p className="text-xs text-muted-foreground">{car.number_plate}</p>
                   {car.notes && (
-                    <p className="text-sm text-muted-foreground mt-1">{car.notes}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{car.notes}</p>
                   )}
                 </div>
                 
-                <div className="flex flex-col items-end gap-2">
+                <div className="flex flex-col items-end gap-1">
                   <Badge 
-                    className="bg-green-100 text-green-800 border-green-200"
+                    className="bg-green-100 text-green-800 border-green-200 text-xs"
                     variant="outline"
                   >
                     {t('common.available')}

@@ -35,23 +35,19 @@ const AbsentEmployeesModal: React.FC<AbsentEmployeesModalProps> = ({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="space-y-3">
           {employees.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
+            <p className="text-muted-foreground text-center py-8 text-sm">
               {t('employees.noEmployees')}
             </p>
           ) : (
             employees.map((employee) => (
-              <div key={employee.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div key={employee.id} className="flex items-center justify-between p-2 border rounded-lg">
                 <div className="flex-1">
-                  <h4 className="font-medium">{employee.name}</h4>
-                  <p className="text-sm text-muted-foreground">{employee.email}</p>
-                  {employee.jobTitle && (
-                    <p className="text-sm text-muted-foreground">{employee.jobTitle}</p>
-                  )}
+                  <h4 className="font-medium text-sm">{employee.name}</h4>
                   
                   {employee.vacation && (
-                    <div className="mt-2 text-sm">
+                    <div className="mt-1 text-xs">
                       <p className="text-muted-foreground">
                         {format(new Date(employee.vacation.start_date), 'dd/MM/yyyy')} - {' '}
                         {format(new Date(employee.vacation.end_date), 'dd/MM/yyyy')}
@@ -63,7 +59,7 @@ const AbsentEmployeesModal: React.FC<AbsentEmployeesModalProps> = ({
                   )}
                 </div>
                 
-                <div className="flex flex-col items-end gap-2">
+                <div className="flex flex-col items-end gap-1">
                   <Badge 
                     className={employee.availabilityStatus.badgeColor}
                     variant="outline"

@@ -99,6 +99,8 @@ export const useDashboardMetrics = () => {
   return {
     metrics,
     loading: loading || vacationsLoading,
-    error
+    error,
+    assignments,
+    vacations
   };
 };
