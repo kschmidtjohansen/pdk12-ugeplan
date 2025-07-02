@@ -53,6 +53,14 @@ const UserManagement: React.FC = () => {
     role: 'servicemedarbejder' as UserRole,
   });
 
+  // Calculate role statistics - moved to main component scope
+  const roleCounts = users.reduce((acc, user) => {
+    acc[user.role] = (acc[user.role] || 0) + 1;
+    return acc;
+  }, {} as Record<UserRole, number>);
+
+  const eligibleUsers = (roleCounts.administrator || 0) + (roleCounts.skadeleder || 0);
+
   const addDebugInfo = (info: string) => {
     const timestamp = new Date().toISOString().substring(11, 23);
     setDebugInfo(prev => [`[${timestamp}] ${info}`, ...prev.slice(0, 19)]);
@@ -656,14 +664,6 @@ const UserManagement: React.FC = () => {
   // PHASE 4: Enhanced debug info panel with comprehensive role structure context
   const DebugPanel = () => {
     if (debugInfo.length === 0) return null;
-    
-    // Calculate role statistics from current users
-    const roleCounts = users.reduce((acc, user) => {
-      acc[user.role] = (acc[user.role] || 0) + 1;
-      return acc;
-    }, {} as Record<UserRole, number>);
-
-    const eligibleUsers = (roleCounts.administrator || 0) + (roleCounts.skadeleder || 0);
     
     return (
       <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
