@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -67,11 +66,11 @@ const UserManagement: React.FC = () => {
     console.log(`[UserManagement Debug] ${info}`);
   };
 
-  // Enhanced fallback using direct database queries optimized for the new role structure
+  // FIXED: Enhanced fallback using direct database queries with proper role mapping
   const fetchUsersDirectly = async () => {
     try {
       setUsingFallback(true);
-      addDebugInfo('PHASE 2: Using enhanced direct database queries with improved error handling');
+      addDebugInfo('FALLBACK: Using direct database queries with fixed role mapping');
       
       // Get profiles directly
       const { data: profiles, error: profilesError } = await supabase
@@ -93,18 +92,22 @@ const UserManagement: React.FC = () => {
         throw profilesError;
       }
 
-      // Get user roles - should now include 7 eligible users
+      // Get user roles with proper error handling
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
 
       if (rolesError) {
-        addDebugInfo(`FALLBACK roles warning: ${rolesError.message}`);
+        addDebugInfo(`FALLBACK roles error: ${rolesError.message}`);
+        throw rolesError;
       }
 
-      // Enhanced data combination with role statistics
+      addDebugInfo(`FALLBACK: Got ${profiles?.length || 0} profiles and ${userRoles?.length || 0} role assignments`);
+
+      // FIXED: Proper data combination with role mapping
       const combinedUsers = profiles?.map(profile => {
         const roleData = userRoles?.find(r => r.user_id === profile.id);
+        const userRole = roleData?.role || 'servicemedarbejder';
         
         return {
           id: profile.id,
@@ -112,7 +115,7 @@ const UserManagement: React.FC = () => {
           name: profile.name,
           phone: profile.phone,
           jobTitle: profile.job_title,
-          role: roleData?.role || 'servicemedarbejder' as UserRole,
+          role: userRole as UserRole,
           created_at: profile.created_at,
           updated_at: profile.updated_at,
           last_sign_in_at: null,
@@ -122,15 +125,17 @@ const UserManagement: React.FC = () => {
         };
       }) || [];
 
-      // Enhanced statistics for the new role structure
-      const roleCounts = combinedUsers.reduce((acc, user) => {
+      // FIXED: Accurate statistics calculation
+      const roleStatistics = combinedUsers.reduce((acc, user) => {
         acc[user.role] = (acc[user.role] || 0) + 1;
         return acc;
       }, {} as Record<UserRole, number>);
 
-      addDebugInfo(`PHASE 2 SUCCESS: Loaded ${combinedUsers.length} users via fallback`);
-      addDebugInfo(`Role distribution - Admin: ${roleCounts.administrator || 0}, Skadeleder: ${roleCounts.skadeleder || 0}, Service: ${roleCounts.servicemedarbejder || 0}`);
-      addDebugInfo(`Expected 7 eligible users (3 admin + 4 skadeledere), found ${(roleCounts.administrator || 0) + (roleCounts.skadeleder || 0)}`);
+      const eligibleCount = (roleStatistics.administrator || 0) + (roleStatistics.skadeleder || 0);
+
+      addDebugInfo(`FALLBACK SUCCESS: Loaded ${combinedUsers.length} users`);
+      addDebugInfo(`FALLBACK Role distribution - Admin: ${roleStatistics.administrator || 0}, Skadeleder: ${roleStatistics.skadeleder || 0}, Service: ${roleStatistics.servicemedarbejder || 0}`);
+      addDebugInfo(`FALLBACK Eligible users: ${eligibleCount}/7 expected`);
       
       return { users: combinedUsers, total: combinedUsers.length };
 
@@ -140,7 +145,7 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // PHASE 2: Enhanced edge function testing with better error classification
+  // FIXED: Enhanced edge function testing with better error capture
   const testEdgeFunction = async (): Promise<any> => {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
@@ -148,10 +153,9 @@ const UserManagement: React.FC = () => {
       throw new Error('No valid session');
     }
 
-    addDebugInfo(`PHASE 2: Testing edge function with enhanced error handling`);
+    addDebugInfo(`EDGE FUNCTION: Testing with enhanced error handling`);
 
     try {
-      addDebugInfo('Testing edge function with fixed role authorization');
       const { data, error } = await supabase.functions.invoke('admin-list-users', {
         method: 'GET',
         headers: {
@@ -161,35 +165,46 @@ const UserManagement: React.FC = () => {
       });
       
       if (error) {
-        // PHASE 2: Better error classification
+        // FIXED: Better error classification with specific HTTP status handling
+        addDebugInfo(`EDGE FUNCTION ERROR: ${error.message}`);
+        
         if (error.message?.includes('403') || error.message?.includes('Forbidden')) {
-          addDebugInfo(`PHASE 2: Authorization error (403) - checking if user has required role`);
           throw new Error('Access denied - Administrator or Skadeleder role required');
         } else if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-          addDebugInfo(`PHASE 2: Authentication error (401) - token may be invalid`);
           throw new Error('Authentication failed - please log in again');
+        } else if (error.message?.includes('500')) {
+          throw new Error('Server error - using fallback method');
         } else {
-          addDebugInfo(`PHASE 2: Edge function error: ${error.message}`);
-          throw error;
+          throw new Error(`Edge function error: ${error.message}`);
         }
       }
       
       if (data?.error) {
-        addDebugInfo(`PHASE 2: Edge function returned error: ${data.error}`);
+        addDebugInfo(`EDGE FUNCTION returned error: ${data.error}`);
         throw new Error(data.error);
       }
       
-      addDebugInfo(`PHASE 2: Edge function SUCCESS - Got ${data?.users?.length || 0} users, role access granted for: ${data?.debug?.accessGrantedForRole || 'unknown'}`);
+      // FIXED: Better success validation
+      if (!data?.users || !Array.isArray(data.users)) {
+        addDebugInfo(`EDGE FUNCTION returned invalid data structure`);
+        throw new Error('Invalid response from edge function');
+      }
+      
+      addDebugInfo(`EDGE FUNCTION SUCCESS: Got ${data.users.length} users`);
+      if (data.debug) {
+        addDebugInfo(`EDGE FUNCTION Debug: ${JSON.stringify(data.debug)}`);
+      }
+      
       setEdgeFunctionWorking(true);
       return data;
     } catch (err) {
       setEdgeFunctionWorking(false);
-      addDebugInfo(`PHASE 2: Edge function failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      addDebugInfo(`EDGE FUNCTION failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
       throw err;
     }
   };
 
-  // PHASE 3: Main user fetching with comprehensive error handling and role validation
+  // FIXED: Main user fetching with comprehensive error handling
   const fetchUsers = async (isRetry = false) => {
     try {
       setLoading(true);
@@ -197,9 +212,9 @@ const UserManagement: React.FC = () => {
       
       if (isRetry) {
         setRetryCount(prev => prev + 1);
-        addDebugInfo(`PHASE 3: Retry attempt: ${retryCount + 1}`);
+        addDebugInfo(`RETRY attempt: ${retryCount + 1}`);
       } else {
-        addDebugInfo('PHASE 3: Starting fresh user fetch with role validation');
+        addDebugInfo('FRESH FETCH: Starting user fetch with fixed role handling');
         setRetryCount(0);
         setUsingFallback(false);
         setEdgeFunctionWorking(null);
@@ -213,7 +228,7 @@ const UserManagement: React.FC = () => {
           data = await testEdgeFunction();
           setConnectionStatus('connected');
         } catch (err) {
-          addDebugInfo(`PHASE 3: Edge function failed, switching to fallback: ${err instanceof Error ? err.message : 'Unknown error'}`);
+          addDebugInfo(`EDGE FUNCTION failed, switching to fallback: ${err instanceof Error ? err.message : 'Unknown error'}`);
           data = await fetchUsersDirectly();
           setConnectionStatus('fallback');
         }
@@ -231,7 +246,7 @@ const UserManagement: React.FC = () => {
       const sortedUsers = sortUsersByName(data.users, sortDirection);
       setUsers(sortedUsers);
       
-      addDebugInfo(`PHASE 3: Successfully loaded ${data.users.length} users with role validation`);
+      addDebugInfo(`SUCCESS: Loaded ${data.users.length} users`);
       
       // Show success message if this was a retry
       if (isRetry && retryCount > 0) {
@@ -243,7 +258,7 @@ const UserManagement: React.FC = () => {
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred while fetching users';
-      addDebugInfo(`PHASE 3: Fetch failed: ${errorMessage}`);
+      addDebugInfo(`FETCH FAILED: ${errorMessage}`);
       
       setLastError(errorMessage);
       setConnectionStatus('error');
@@ -618,7 +633,7 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // PHASE 2: Enhanced connection status indicator
+  // FIXED: Enhanced connection status indicator
   const ConnectionStatusIndicator = () => {
     const getStatusColor = () => {
       switch (connectionStatus) {
@@ -655,13 +670,13 @@ const UserManagement: React.FC = () => {
         {getStatusIcon()}
         <span>{getStatusText()}</span>
         {edgeFunctionWorking === false && (
-          <span className="text-xs text-orange-600">(Role auth fixed)</span>
+          <span className="text-xs text-orange-600">(Using Fallback)</span>
         )}
       </div>
     );
   };
 
-  // PHASE 4: Enhanced debug info panel with comprehensive role structure context
+  // FIXED: Enhanced debug info panel
   const DebugPanel = () => {
     if (debugInfo.length === 0) return null;
     
@@ -670,7 +685,7 @@ const UserManagement: React.FC = () => {
         <div className="flex items-center space-x-2 mb-2">
           <Bug className="h-4 w-4 text-gray-500" />
           <span className="text-sm font-medium text-gray-700">
-            Debug Info ({debugInfo.length}) - PHASE 4: Comprehensive Role Structure
+            Debug Info ({debugInfo.length}) - FIXED Role Structure
           </span>
           <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded">
             Eligible: {eligibleUsers}/7 expected
@@ -727,7 +742,7 @@ const UserManagement: React.FC = () => {
               <CardDescription>
                 {t('admin.userManagement.description')} 
                 <span className="text-sm text-gray-500 ml-2">
-                  (PHASE 1-4: Enhanced role authorization for Admin + Skadeleder access)
+                  (FIXED: Enhanced role authorization for Admin + Skadeleder access)
                 </span>
               </CardDescription>
               {lastError && (
@@ -776,7 +791,7 @@ const UserManagement: React.FC = () => {
             <div className="flex flex-col justify-center items-center py-8 space-y-4">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-polygon-blue"></div>
               <p className="text-sm text-gray-500">
-                {retryCount > 0 ? `Smart retry... (attempt ${retryCount + 1})` : 'Loading users with enhanced role authorization...'}
+                {retryCount > 0 ? `Smart retry... (attempt ${retryCount + 1})` : 'Loading users with fixed role handling...'}
               </p>
             </div>
           ) : users.length === 0 ? (
@@ -785,7 +800,7 @@ const UserManagement: React.FC = () => {
               <div>
                 <p className="text-gray-500 mb-2">
                   {lastError 
-                    ? 'Failed to load users. Enhanced error handling active.' 
+                    ? 'Failed to load users. Fixed error handling active.' 
                     : 'No users found with current role authorization.'
                   }
                 </p>
@@ -818,9 +833,9 @@ const UserManagement: React.FC = () => {
             <div>
               <div className="mb-4 flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  Showing {users.length} users {usingFallback && '(via enhanced fallback)'}
+                  Showing {users.length} users {usingFallback && '(via fixed fallback)'}
                   <span className="ml-2 text-indigo-600">
-                    • PHASE 1-4: {eligibleUsers} eligible users with admin/skadeleder access
+                    • FIXED: {eligibleUsers} eligible users with admin/skadeleder access
                   </span>
                 </div>
                 {retryCount > 0 && (

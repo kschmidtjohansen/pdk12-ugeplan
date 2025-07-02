@@ -11,11 +11,8 @@ const corsHeaders = {
 
 serve(async (req) => {
   const requestId = crypto.randomUUID().substring(0, 8);
-  const url = new URL(req.url);
   
   console.log(`[${requestId}] REQUEST START - Method: ${req.method}, URL: ${req.url}`);
-  console.log(`[${requestId}] Request headers:`, Object.fromEntries(req.headers.entries()));
-  console.log(`[${requestId}] URL pathname: ${url.pathname}, search: ${url.search}`);
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -38,20 +35,9 @@ serve(async (req) => {
   try {
     console.log(`[${requestId}] Processing ${req.method} request...`);
     
-    // Log request body for POST requests
-    if (req.method === 'POST') {
-      try {
-        const body = await req.text();
-        console.log(`[${requestId}] Request body:`, body || '(empty)');
-      } catch (e) {
-        console.log(`[${requestId}] Could not read request body:`, e.message);
-      }
-    }
-    
     // Get authorization header
     const authHeader = req.headers.get('Authorization');
     console.log(`[${requestId}] Auth header present: ${!!authHeader}`);
-    console.log(`[${requestId}] Auth header value: ${authHeader ? authHeader.substring(0, 20) + '...' : 'none'}`);
     
     if (!authHeader) {
       console.error(`[${requestId}] Missing authorization header`);
@@ -71,8 +57,6 @@ serve(async (req) => {
     console.log(`[${requestId}] Environment check:`, {
       hasUrl: !!supabaseUrl,
       hasServiceKey: !!supabaseServiceKey,
-      urlValue: supabaseUrl?.substring(0, 30) + '...',
-      keyLength: supabaseServiceKey?.length || 0
     });
     
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -124,17 +108,32 @@ serve(async (req) => {
 
     console.log(`[${requestId}] User authenticated: ${user.id} (${user.email})`);
 
-    // PHASE 1 FIX: Check if user has admin OR skadeleder role (not just administrator)
+    // FIXED: Check if user has admin OR skadeleder role with better error handling
     const { data: roleData, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle(); // Use maybeSingle instead of single to avoid errors
 
     if (roleError) {
       console.error(`[${requestId}] Role check error:`, roleError);
       return new Response(
         JSON.stringify({ error: 'Failed to verify user permissions: ' + roleError.message }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // FIXED: Better handling when no role is found
+    if (!roleData || !roleData.role) {
+      console.error(`[${requestId}] No role found for user: ${user.email}`);
+      return new Response(
+        JSON.stringify({ 
+          error: 'No role assigned to user. Please contact administrator.',
+          userEmail: user.email
+        }),
         { 
           status: 403, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -142,14 +141,14 @@ serve(async (req) => {
       );
     }
 
-    // PHASE 1 FIX: Allow both administrator and skadeleder roles
-    if (!roleData?.role || !['administrator', 'skadeleder'].includes(roleData.role)) {
-      console.error(`[${requestId}] User not authorized. Role: ${roleData?.role}, User: ${user.email}`);
+    // FIXED: Allow both administrator and skadeleder roles
+    if (!['administrator', 'skadeleder'].includes(roleData.role)) {
+      console.error(`[${requestId}] User not authorized. Role: ${roleData.role}, User: ${user.email}`);
       return new Response(
         JSON.stringify({ 
-          error: 'Administrator or Skadeleder access required. Current role: ' + (roleData?.role || 'unknown'),
+          error: 'Administrator or Skadeleder access required. Current role: ' + roleData.role,
           allowedRoles: ['administrator', 'skadeleder'],
-          currentRole: roleData?.role || 'unknown'
+          currentRole: roleData.role
         }),
         { 
           status: 403, 
@@ -160,7 +159,7 @@ serve(async (req) => {
 
     console.log(`[${requestId}] Access granted for role: ${roleData.role} (${user.email}), fetching users...`);
 
-    // Get profiles with role information
+    // Get profiles with role information using better join
     const { data: profilesWithRoles, error: fetchError } = await supabaseAdmin
       .from('profiles')
       .select(`
@@ -173,7 +172,7 @@ serve(async (req) => {
         notes,
         created_at,
         updated_at,
-        user_roles (
+        user_roles!inner (
           role
         )
       `);
@@ -202,7 +201,7 @@ serve(async (req) => {
       );
     }
 
-    // Get auth users data
+    // Get auth users data for additional info
     const { data: authUsers, error: authError2 } = await supabaseAdmin.auth.admin.listUsers();
     
     if (authError2) {
@@ -213,12 +212,19 @@ serve(async (req) => {
 
     console.log(`[${requestId}] Auth users fetched: ${authUsers?.users?.length || 0}`);
 
-    // Combine profile and auth data
+    // FIXED: Better role mapping from the database response
     const combinedUsers = profilesWithRoles.map(profile => {
       const authUser = authUsers?.users?.find(au => au.id === profile.id);
-      const userRole = Array.isArray(profile.user_roles) 
-        ? profile.user_roles[0]?.role 
-        : profile.user_roles?.role;
+      
+      // FIXED: Proper role extraction from the user_roles relation
+      let userRole = 'servicemedarbejder';
+      if (profile.user_roles) {
+        if (Array.isArray(profile.user_roles)) {
+          userRole = profile.user_roles[0]?.role || 'servicemedarbejder';
+        } else {
+          userRole = profile.user_roles.role || 'servicemedarbejder';
+        }
+      }
       
       return {
         id: profile.id,
@@ -226,7 +232,7 @@ serve(async (req) => {
         name: profile.name || authUser?.user_metadata?.name || profile.email || 'Unknown',
         phone: profile.phone || authUser?.user_metadata?.phone || null,
         jobTitle: profile.job_title || null,
-        role: userRole || 'servicemedarbejder',
+        role: userRole,
         created_at: authUser?.created_at || profile.created_at,
         updated_at: authUser?.updated_at || profile.updated_at,
         last_sign_in_at: authUser?.last_sign_in_at || null,
@@ -236,7 +242,17 @@ serve(async (req) => {
       };
     });
 
+    // FIXED: Calculate role statistics for debugging
+    const roleStats = combinedUsers.reduce((acc, user) => {
+      acc[user.role] = (acc[user.role] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const eligibleCount = (roleStats.administrator || 0) + (roleStats.skadeleder || 0);
+
     console.log(`[${requestId}] SUCCESS - Combined ${combinedUsers.length} users`);
+    console.log(`[${requestId}] Role distribution:`, roleStats);
+    console.log(`[${requestId}] Eligible users (admin + skadeleder): ${eligibleCount}`);
 
     return new Response(
       JSON.stringify({ 
@@ -247,6 +263,8 @@ serve(async (req) => {
           method: req.method,
           profileCount: profilesWithRoles.length,
           authUserCount: authUsers?.users?.length || 0,
+          roleDistribution: roleStats,
+          eligibleUsers: eligibleCount,
           requestTime: new Date().toISOString(),
           accessGrantedForRole: roleData.role
         }
