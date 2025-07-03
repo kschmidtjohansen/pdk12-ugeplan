@@ -55,7 +55,7 @@ const MineOpgaver: React.FC = () => {
         legacyEmployees: assignment.employees
       });
       
-      return isUserInvolved && isInCurrentWeek && assignment.published;
+      return isUserInvolved && isInCurrentWeek; // FIXED: Removed published filter so servicemedarbejder can see all assignments they're involved in
     });
 
     return userTasks.sort((a, b) => {
@@ -191,7 +191,7 @@ const MineOpgaver: React.FC = () => {
               <span>{assignment.fromTime?.substring(0, 5)} - {assignment.toTime?.substring(0, 5)}</span>
             </div>
 
-            {/* Show team members (all users can see full team) */}
+            {/* COMPREHENSIVE FIX: Show ALL team members - always prioritize assignedEmployees for complete data */}
             {(assignment.assignedEmployees?.length || assignment.employees?.length) && (
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <span className="font-medium">Team:</span>

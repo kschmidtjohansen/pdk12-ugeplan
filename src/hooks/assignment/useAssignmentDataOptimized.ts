@@ -67,16 +67,24 @@ export const useAssignmentDataOptimized = () => {
       }
       
       
-      // PHASE 3 FIX: Enhanced assignment-employee mapping with full employee data
+      // COMPREHENSIVE FIX: Enhanced assignment-employee mapping with detailed logging
       const employeeMap = new Map<string, { id: string; name: string; email: string }>();
       employeeProfiles?.forEach(profile => {
         employeeMap.set(profile.id, profile);
       });
       
+      console.log(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Employee profiles available:`, employeeProfiles?.length || 0);
+      console.log(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Assignment employees data:`, assignmentEmployeesData?.length || 0);
+      
       const assignmentEmployeeMap = new Map<string, Array<{ id: string; name: string; email: string }>>();
       const assignmentEmployeeNameMap = new Map<string, string[]>();
       
       assignmentEmployeesData?.forEach(ae => {
+        console.log(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Processing assignment employee:`, {
+          assignmentId: ae.assignment_id,
+          userId: ae.user_id
+        });
+        
         if (!assignmentEmployeeMap.has(ae.assignment_id)) {
           assignmentEmployeeMap.set(ae.assignment_id, []);
           assignmentEmployeeNameMap.set(ae.assignment_id, []);
@@ -86,6 +94,12 @@ export const useAssignmentDataOptimized = () => {
         if (employee) {
           assignmentEmployeeMap.get(ae.assignment_id)!.push(employee);
           assignmentEmployeeNameMap.get(ae.assignment_id)!.push(employee.name);
+          console.log(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Added employee to assignment:`, {
+            assignmentId: ae.assignment_id,
+            employeeName: employee.name
+          });
+        } else {
+          console.warn(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Employee not found in profiles:`, ae.user_id);
         }
       });
       
@@ -130,12 +144,14 @@ export const useAssignmentDataOptimized = () => {
         };
       });
       
-      console.log(`[useAssignmentDataOptimized] PHASE 3 FIX - Final assignments with enhanced data:`, 
+      console.log(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Final assignments with complete data:`, 
         transformedAssignments.map(a => ({ 
           title: a.title, 
           responsibleUser: a.responsibleUser?.name,
           employees: a.employees,
-          employeeCount: a.employees?.length || 0
+          employeeCount: a.employees?.length || 0,
+          assignedEmployees: a.assignedEmployees?.map(e => e.name),
+          assignedEmployeeCount: a.assignedEmployees?.length || 0
         })));
       
       setAssignments(transformedAssignments);
