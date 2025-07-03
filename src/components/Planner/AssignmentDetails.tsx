@@ -52,25 +52,14 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
   };
   const carNames = getCarNames(assignment);
 
-  // PHASE 3 FIX: Role-based employee data processing with visibility controls
+  // Enhanced employee data processing - show all team members for assignments user is involved in
   const getEmployeeData = (assignment: Assignment): {
     names: string[];
     hasFullData: boolean;
   } => {
-    const currentUserRole = user?.role;
-    const isServicemedarbejder = currentUserRole === 'servicemedarbejder';
-    
-
-    // Enhanced employee data with role-based filtering
+    // Enhanced employee data - show all team members
     if (assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
-      let names = assignment.assignedEmployees.map(emp => emp.name).filter(name => name && name.trim());
-      
-      // Apply role-based filtering for servicemedarbejder
-      if (isServicemedarbejder && user?.id) {
-        // Only show current user if they're in the team
-        const currentUserInTeam = assignment.assignedEmployees.some(emp => emp.id === user.id);
-        names = currentUserInTeam ? [user.name] : [];
-      }
+      const names = assignment.assignedEmployees.map(emp => emp.name).filter(name => name && name.trim());
       
       return {
         names,
@@ -78,22 +67,15 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       };
     }
 
-    // Fallback to legacy employee names array with role-based filtering
+    // Fallback to legacy employee names array
     if (assignment.employees && Array.isArray(assignment.employees) && assignment.employees.length > 0) {
-      let names = assignment.employees.filter(employee => employee && typeof employee === 'string').map(employee => employee.trim()).filter(employee => employee.length > 0);
-      
-      // Apply role-based filtering for servicemedarbejder
-      if (isServicemedarbejder && user?.name) {
-        // Only show current user's name if they're in the legacy employees list
-        names = names.includes(user.name) ? [user.name] : [];
-      }
+      const names = assignment.employees.filter(employee => employee && typeof employee === 'string').map(employee => employee.trim()).filter(employee => employee.length > 0);
       
       return {
         names,
         hasFullData: false
       };
     }
-    
     
     return {
       names: [],
@@ -130,7 +112,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       {/* Right Column */}
       <div className="space-y-3">
 
-        {/* SERVICEMEDARBEJDER FIX: Always show all team members for all users */}
+        {/* Show all team members for assignments user can access */}
         {employeeData.names.length > 0 && <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
               <Users className="h-3.5 w-3.5 text-purple-600" />

@@ -195,32 +195,16 @@ const MineOpgaver: React.FC = () => {
               <span>{assignment.fromTime?.substring(0, 5)} - {assignment.toTime?.substring(0, 5)}</span>
             </div>
 
-            {/* PHASE 2 FIX: Role-based team member visibility */}
+            {/* Show all team members for assignments user can access */}
             {(assignment.assignedEmployees?.length || assignment.employees?.length) && (() => {
-              // Get current user's role from useAuth context
-              const currentUserRole = user?.role;
-              const isServicemedarbejder = currentUserRole === 'servicemedarbejder';
-              
               let teamMembers = [];
               
               if (assignment.assignedEmployees?.length) {
-                if (isServicemedarbejder) {
-                  // Show only current user if they're in the team
-                  teamMembers = assignment.assignedEmployees
-                    .filter(emp => emp.id === user?.id)
-                    .map(emp => emp.name);
-                } else {
-                  // Show all team members for admin/skadeleder
-                  teamMembers = assignment.assignedEmployees.map(emp => emp.name);
-                }
+                // Show all team members
+                teamMembers = assignment.assignedEmployees.map(emp => emp.name);
               } else if (assignment.employees?.length) {
-                if (isServicemedarbejder) {
-                  // Show only current user's name if they're in the legacy employees list
-                  teamMembers = assignment.employees.includes(user?.name) ? [user?.name] : [];
-                } else {
-                  // Show all team members for admin/skadeleder
-                  teamMembers = assignment.employees;
-                }
+                // Show all team members from legacy format
+                teamMembers = assignment.employees;
               }
               
               return teamMembers.length > 0 ? (
