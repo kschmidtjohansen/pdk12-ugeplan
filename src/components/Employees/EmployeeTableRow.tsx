@@ -99,11 +99,13 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, onEd
         </div>
       </TableCell>
       <TableCell>{employee.jobTitle}</TableCell>
-      <TableCell>
-        <StatusBadge variant={getRoleVariant(employee.role)}>
-          {USER_ROLES.find(role => role.value === employee.role)?.label}
-        </StatusBadge>
-      </TableCell>
+      {(isAdmin) && (
+        <TableCell>
+          <StatusBadge variant={getRoleVariant(employee.role)}>
+            {USER_ROLES.find(role => role.value === employee.role)?.label}
+          </StatusBadge>
+        </TableCell>
+      )}
       <TableCell>
         {employee.onLeave ? (
           <StatusBadge variant="error">

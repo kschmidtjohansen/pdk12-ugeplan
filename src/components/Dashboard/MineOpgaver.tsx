@@ -6,7 +6,7 @@ import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentData
 import { useCars } from '@/hooks/car';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, UserCheck, Calendar } from 'lucide-react';
+import { Clock, MapPin, UserCheck, Calendar, Users } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { getCurrentWeekInfo, getWeekDates } from '@/utils/dates';
@@ -45,14 +45,18 @@ const MineOpgaver: React.FC = () => {
       const isUserInvolved = isAssignedViaNew || isAssignedViaLegacy || isResponsible;
       
       console.log(`[MineOpgaver] Assignment "${assignment.title}":`, {
+        currentUserId: user.id,
+        currentUserName: user.name,
         isAssignedViaNew,
         isAssignedViaLegacy,
         isResponsible,
         isInCurrentWeek,
         isUserInvolved,
         published: assignment.published,
-        assignedEmployees: assignment.assignedEmployees?.map(e => e.name),
-        legacyEmployees: assignment.employees
+        assignedEmployeeIds: assignment.assignedEmployees?.map(e => e.id),
+        assignedEmployeeNames: assignment.assignedEmployees?.map(e => e.name),
+        legacyEmployees: assignment.employees,
+        responsibleUserId: assignment.responsibleUser?.id
       });
       
       return isUserInvolved && isInCurrentWeek; // FIXED: Removed published filter so servicemedarbejder can see all assignments they're involved in
@@ -194,7 +198,7 @@ const MineOpgaver: React.FC = () => {
             {/* COMPREHENSIVE FIX: Show ALL team members - always prioritize assignedEmployees for complete data */}
             {(assignment.assignedEmployees?.length || assignment.employees?.length) && (
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <span className="font-medium">Team:</span>
+                <Users className="h-3 w-3" />
                 <span>
                   {assignment.assignedEmployees?.length 
                     ? assignment.assignedEmployees.map(emp => emp.name).join(', ')

@@ -94,7 +94,9 @@ export const useAssignmentDataOptimized = () => {
           employees: employeeNames,
           assignedEmployeesCount: assignedEmployees.length,
           assignedEmployeesNames: assignedEmployees.map(e => e.name),
-          rawEmployeeData: employeesForAssignment
+          rawEmployeeData: employeesForAssignment,
+          employeeUserIds: assignedEmployees.map(e => e.id),
+          currentUserId: 'Will be shown in component filtering'
         });
         
         return {
