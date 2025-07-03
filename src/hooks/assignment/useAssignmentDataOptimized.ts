@@ -17,10 +17,10 @@ export const useAssignmentDataOptimized = () => {
       setLoading(true);
       setError(null);
       
-      console.log('[useAssignmentDataOptimized] TEAM FIX - Starting two-step fetch...');
+      console.log('[useAssignmentDataOptimized] SINGLE QUERY FIX - Starting comprehensive fetch...');
       
-      // TEAM FIX: First fetch assignments with responsible users
-      const { data: assignments, error: assignmentsError } = await supabase
+      // SINGLE QUERY FIX: Use a single comprehensive query with proper joins
+      const { data: assignmentsWithEmployees, error: fetchError } = await supabase
         .from('assignments')
         .select(`
           *,
@@ -28,70 +28,43 @@ export const useAssignmentDataOptimized = () => {
             id,
             name,
             email
+          ),
+          assignments_employees(
+            user_id,
+            profiles(
+              id,
+              name,
+              email
+            )
           )
         `)
         .order('assignment_date', { ascending: true })
         .order('from_time', { ascending: true });
       
-      if (assignmentsError) {
-        console.error('[useAssignmentDataOptimized] TEAM FIX - Assignments fetch error:', assignmentsError);
-        throw assignmentsError;
+      if (fetchError) {
+        console.error('[useAssignmentDataOptimized] SINGLE QUERY FIX - Fetch error:', fetchError);
+        throw fetchError;
       }
       
-      if (!assignments || assignments.length === 0) {
-        console.log('[useAssignmentDataOptimized] TEAM FIX - No assignments found');
+      if (!assignmentsWithEmployees || assignmentsWithEmployees.length === 0) {
+        console.log('[useAssignmentDataOptimized] SINGLE QUERY FIX - No assignments found');
         setAssignments([]);
         return;
       }
       
-      console.log(`[useAssignmentDataOptimized] TEAM FIX - Assignments fetched:`, assignments.length);
+      console.log(`[useAssignmentDataOptimized] SINGLE QUERY FIX - Raw data fetched:`, assignmentsWithEmployees.length);
+      console.log('[useAssignmentDataOptimized] SINGLE QUERY FIX - Sample raw assignment:', assignmentsWithEmployees[0]);
       
-      // COMPREHENSIVE FIX: Then fetch all assignment-employee relationships with detailed logging
-      console.log('[useAssignmentDataOptimized] COMPREHENSIVE FIX - Starting employee relationships fetch...');
-      
-      const { data: assignmentEmployees, error: employeesError } = await supabase
-        .from('assignments_employees')
-        .select(`
-          assignment_id,
-          user_id,
-          profiles(
-            id,
-            name,
-            email
-          )
-        `);
-      
-      if (employeesError) {
-        console.error('[useAssignmentDataOptimized] COMPREHENSIVE FIX - Employees fetch error:', employeesError);
-        throw employeesError;
-      }
-      
-      console.log(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Assignment employees fetched:`, assignmentEmployees?.length || 0);
-      console.log('[useAssignmentDataOptimized] COMPREHENSIVE FIX - Raw assignment employees data:', assignmentEmployees);
-      
-      // Debug: Group by assignment to see distribution
-      const employeesByAssignment = assignmentEmployees?.reduce((acc, ae) => {
-        if (!acc[ae.assignment_id]) acc[ae.assignment_id] = [];
-        acc[ae.assignment_id].push({
-          user_id: ae.user_id,
-          name: ae.profiles?.name,
-          email: ae.profiles?.email
-        });
-        return acc;
-      }, {} as Record<string, any[]>);
-      
-      console.log('[useAssignmentDataOptimized] COMPREHENSIVE FIX - Employees grouped by assignment:', employeesByAssignment);
-      
-      // TEAM FIX: Process and combine the data
-      const transformedAssignments: Assignment[] = assignments.map(assignment => {
-        // Find all employees for this assignment
-        const employeesForAssignment = assignmentEmployees?.filter(ae => ae.assignment_id === assignment.id) || [];
-        
-        const assignedEmployees = employeesForAssignment.map(ae => ({
-          id: ae.profiles?.id || ae.user_id,
-          name: ae.profiles?.name || 'Unknown',
-          email: ae.profiles?.email || 'unknown@example.com'
-        })).filter(emp => emp.name !== 'Unknown');
+      // SINGLE QUERY FIX: Transform the comprehensive data
+      const transformedAssignments: Assignment[] = assignmentsWithEmployees.map(assignment => {
+        // Extract employee data from the nested structure
+        const assignedEmployees = (assignment.assignments_employees || [])
+          .map(ae => ({
+            id: ae.profiles?.id || ae.user_id,
+            name: ae.profiles?.name || 'Unknown',
+            email: ae.profiles?.email || 'unknown@example.com'
+          }))
+          .filter(emp => emp.name && emp.name !== 'Unknown');
         
         const employeeNames = assignedEmployees.map(emp => emp.name);
         
@@ -102,17 +75,14 @@ export const useAssignmentDataOptimized = () => {
           email: assignment.responsible_user.email
         } : null;
         
-        console.log(`[useAssignmentDataOptimized] TEAM FIX - Assignment "${assignment.title}":`, {
-          hasResponsibleUser: !!responsibleUser,
-          responsibleUserName: responsibleUser?.name,
-          responsibleUserId: responsibleUser?.id,
+        console.log(`[useAssignmentDataOptimized] SINGLE QUERY FIX - Assignment "${assignment.title}":`, {
+          assignmentId: assignment.id,
+          rawEmployeeData: assignment.assignments_employees,
+          processedEmployees: assignedEmployees,
+          employeeNames: employeeNames,
           employeeCount: employeeNames.length,
-          employees: employeeNames,
-          assignedEmployeesCount: assignedEmployees.length,
-          assignedEmployeesNames: assignedEmployees.map(e => e.name),
-          rawEmployeeData: employeesForAssignment,
-          employeeUserIds: assignedEmployees.map(e => e.id),
-          currentUserId: 'Will be shown in component filtering'
+          responsibleUser: responsibleUser?.name,
+          responsibleUserId: responsibleUser?.id
         });
         
         return {
@@ -124,24 +94,23 @@ export const useAssignmentDataOptimized = () => {
           toTime: assignment.to_time,
           location: assignment.location,
           employees: employeeNames, // Legacy format for backward compatibility
-          assignedEmployees: assignedEmployees, // RACE CONDITION FIX: Complete employee data with IDs
+          assignedEmployees: assignedEmployees, // Complete employee data with IDs
           cars: assignment.car_ids || (assignment.car_id ? [assignment.car_id] : []),
           car: assignment.car_id || (assignment.car_ids && assignment.car_ids.length > 0 ? assignment.car_ids[0] : ''),
           published: assignment.published || false,
-          responsibleUser: responsibleUser, // Enhanced responsible user data
-          responsibleUserId: assignment.responsible_user_id, // Add for compatibility
+          responsibleUser: responsibleUser,
+          responsibleUserId: assignment.responsible_user_id,
           type: assignment.type || 'other'
         };
       });
       
-      console.log(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Final assignments with complete data:`, 
+      console.log(`[useAssignmentDataOptimized] SINGLE QUERY FIX - Final transformed assignments:`, 
         transformedAssignments.map(a => ({ 
           title: a.title, 
-          responsibleUser: a.responsibleUser?.name,
-          employees: a.employees,
           employeeCount: a.employees?.length || 0,
-          assignedEmployees: a.assignedEmployees?.map(e => e.name),
-          assignedEmployeeCount: a.assignedEmployees?.length || 0
+          employees: a.employees,
+          assignedEmployeeCount: a.assignedEmployees?.length || 0,
+          assignedEmployeeNames: a.assignedEmployees?.map(e => e.name)
         })));
       
       setAssignments(transformedAssignments);
