@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
@@ -22,10 +16,13 @@ import UserDeleteDialog from './UserDeleteDialog';
 import PasswordChangeDialog from './PasswordChangeDialog';
 import UserStatusDialog from './UserStatusDialog';
 import { AdminUser } from './UserTableRow';
-
 const UserManagement: React.FC = () => {
-  const { toast } = useToast();
-  const { t } = useTranslation();
+  const {
+    toast
+  } = useToast();
+  const {
+    t
+  } = useTranslation();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
@@ -34,7 +31,7 @@ const UserManagement: React.FC = () => {
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
   const [usingFallback, setUsingFallback] = useState(false);
   const [edgeFunctionWorking, setEdgeFunctionWorking] = useState<boolean | null>(null);
-  
+
   // Dialog state
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -49,7 +46,7 @@ const UserManagement: React.FC = () => {
     email: '',
     phone: '',
     jobTitle: '',
-    role: 'servicemedarbejder' as UserRole,
+    role: 'servicemedarbejder' as UserRole
   });
 
   // Calculate role statistics - moved to main component scope
@@ -57,9 +54,7 @@ const UserManagement: React.FC = () => {
     acc[user.role] = (acc[user.role] || 0) + 1;
     return acc;
   }, {} as Record<UserRole, number>);
-
   const eligibleUsers = (roleCounts.administrator || 0) + (roleCounts.skadeleder || 0);
-
   const addDebugInfo = (info: string) => {
     const timestamp = new Date().toISOString().substring(11, 23);
     setDebugInfo(prev => [`[${timestamp}] ${info}`, ...prev.slice(0, 19)]);
@@ -71,11 +66,12 @@ const UserManagement: React.FC = () => {
     try {
       setUsingFallback(true);
       addDebugInfo('FALLBACK: Using direct database queries with fixed role mapping');
-      
+
       // Get profiles directly
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select(`
+      const {
+        data: profiles,
+        error: profilesError
+      } = await supabase.from('profiles').select(`
           id,
           name,
           email,
@@ -86,29 +82,26 @@ const UserManagement: React.FC = () => {
           created_at,
           updated_at
         `);
-
       if (profilesError) {
         addDebugInfo(`FALLBACK profiles error: ${profilesError.message}`);
         throw profilesError;
       }
 
       // Get user roles with proper error handling
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-
+      const {
+        data: userRoles,
+        error: rolesError
+      } = await supabase.from('user_roles').select('user_id, role');
       if (rolesError) {
         addDebugInfo(`FALLBACK roles error: ${rolesError.message}`);
         throw rolesError;
       }
-
       addDebugInfo(`FALLBACK: Got ${profiles?.length || 0} profiles and ${userRoles?.length || 0} role assignments`);
 
       // FIXED: Proper data combination with role mapping
       const combinedUsers = profiles?.map(profile => {
         const roleData = userRoles?.find(r => r.user_id === profile.id);
         const userRole = roleData?.role || 'servicemedarbejder';
-        
         return {
           id: profile.id,
           email: profile.email,
@@ -130,15 +123,14 @@ const UserManagement: React.FC = () => {
         acc[user.role] = (acc[user.role] || 0) + 1;
         return acc;
       }, {} as Record<UserRole, number>);
-
       const eligibleCount = (roleStatistics.administrator || 0) + (roleStatistics.skadeleder || 0);
-
       addDebugInfo(`FALLBACK SUCCESS: Loaded ${combinedUsers.length} users`);
       addDebugInfo(`FALLBACK Role distribution - Admin: ${roleStatistics.administrator || 0}, Skadeleder: ${roleStatistics.skadeleder || 0}, Service: ${roleStatistics.servicemedarbejder || 0}`);
       addDebugInfo(`FALLBACK Eligible users: ${eligibleCount}/7 expected`);
-      
-      return { users: combinedUsers, total: combinedUsers.length };
-
+      return {
+        users: combinedUsers,
+        total: combinedUsers.length
+      };
     } catch (err) {
       addDebugInfo(`FALLBACK FAILED: ${err instanceof Error ? err.message : 'Unknown error'}`);
       throw err;
@@ -147,27 +139,30 @@ const UserManagement: React.FC = () => {
 
   // FIXED: Enhanced edge function testing with better error capture
   const testEdgeFunction = async (): Promise<any> => {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
+    const {
+      data: {
+        session
+      },
+      error: sessionError
+    } = await supabase.auth.getSession();
     if (sessionError || !session?.access_token) {
       throw new Error('No valid session');
     }
-
     addDebugInfo(`EDGE FUNCTION: Testing with enhanced error handling`);
-
     try {
-      const { data, error } = await supabase.functions.invoke('admin-list-users', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('admin-list-users', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         }
       });
-      
       if (error) {
         // FIXED: Better error classification with specific HTTP status handling
         addDebugInfo(`EDGE FUNCTION ERROR: ${error.message}`);
-        
         if (error.message?.includes('403') || error.message?.includes('Forbidden')) {
           throw new Error('Access denied - Administrator or Skadeleder role required');
         } else if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
@@ -178,23 +173,20 @@ const UserManagement: React.FC = () => {
           throw new Error(`Edge function error: ${error.message}`);
         }
       }
-      
       if (data?.error) {
         addDebugInfo(`EDGE FUNCTION returned error: ${data.error}`);
         throw new Error(data.error);
       }
-      
+
       // FIXED: Better success validation
       if (!data?.users || !Array.isArray(data.users)) {
         addDebugInfo(`EDGE FUNCTION returned invalid data structure`);
         throw new Error('Invalid response from edge function');
       }
-      
       addDebugInfo(`EDGE FUNCTION SUCCESS: Got ${data.users.length} users`);
       if (data.debug) {
         addDebugInfo(`EDGE FUNCTION Debug: ${JSON.stringify(data.debug)}`);
       }
-      
       setEdgeFunctionWorking(true);
       return data;
     } catch (err) {
@@ -209,7 +201,6 @@ const UserManagement: React.FC = () => {
     try {
       setLoading(true);
       setLastError(null);
-      
       if (isRetry) {
         setRetryCount(prev => prev + 1);
         addDebugInfo(`RETRY attempt: ${retryCount + 1}`);
@@ -219,9 +210,8 @@ const UserManagement: React.FC = () => {
         setUsingFallback(false);
         setEdgeFunctionWorking(null);
       }
-      
       let data;
-      
+
       // Try edge function first (unless we're already using fallback)
       if (!usingFallback) {
         try {
@@ -237,38 +227,32 @@ const UserManagement: React.FC = () => {
         data = await fetchUsersDirectly();
         setConnectionStatus('fallback');
       }
-      
       if (!data?.users) {
         throw new Error('No users data returned');
       }
-      
+
       // Sort users by name
       const sortedUsers = sortUsersByName(data.users, sortDirection);
       setUsers(sortedUsers);
-      
       addDebugInfo(`SUCCESS: Loaded ${data.users.length} users`);
-      
+
       // Show success message if this was a retry
       if (isRetry && retryCount > 0) {
         toast({
           title: 'Success',
-          description: `Successfully loaded ${data.users.length} users${usingFallback ? ' (using database fallback)' : ' (edge function working)'}`,
+          description: `Successfully loaded ${data.users.length} users${usingFallback ? ' (using database fallback)' : ' (edge function working)'}`
         });
       }
-      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred while fetching users';
       addDebugInfo(`FETCH FAILED: ${errorMessage}`);
-      
       setLastError(errorMessage);
       setConnectionStatus('error');
-      
       toast({
         title: t('common.error'),
         description: errorMessage,
-        variant: 'destructive',
+        variant: 'destructive'
       });
-      
       setUsers([]);
     } finally {
       setLoading(false);
@@ -277,112 +261,117 @@ const UserManagement: React.FC = () => {
 
   // Create user with fallback
   const createUserWithFallback = async (userData: any) => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: {
+        session
+      }
+    } = await supabase.auth.getSession();
     if (!session) throw new Error('No session');
-
     addDebugInfo('Attempting to create user...');
 
     // Try edge function first
     try {
-      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('admin-create-user', {
         body: userData
       });
-      
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      
       addDebugInfo('User created via edge function');
       return data;
     } catch (err) {
       addDebugInfo(`Edge function create failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      
+
       // Fallback: Manual user creation (this requires admin privileges)
       throw new Error('User creation via edge function failed. Please try again or contact support.');
     }
   };
-
   const updateUserWithFallback = async (userId: string, updates: any) => {
     addDebugInfo(`Updating user ${userId}...`);
-
     try {
       // Update profile data
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          name: updates.name,
-          phone: updates.phone,
-          job_title: updates.jobTitle
-        })
-        .eq('id', userId);
-        
+      const {
+        error: profileError
+      } = await supabase.from('profiles').update({
+        name: updates.name,
+        phone: updates.phone,
+        job_title: updates.jobTitle
+      }).eq('id', userId);
       if (profileError) throw profileError;
 
       // Update role if provided
       if (updates.role) {
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .update({ role: updates.role })
-          .eq('user_id', userId);
-          
+        const {
+          error: roleError
+        } = await supabase.from('user_roles').update({
+          role: updates.role
+        }).eq('user_id', userId);
         if (roleError) throw roleError;
       }
-
       addDebugInfo('User updated successfully');
-      return { success: true };
+      return {
+        success: true
+      };
     } catch (err) {
       addDebugInfo(`User update failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
       throw err;
     }
   };
-
   const deleteUserWithFallback = async (userId: string) => {
     addDebugInfo(`Deleting user ${userId}...`);
 
     // Try edge function first
     try {
-      const { data, error } = await supabase.functions.invoke('admin-user-delete', {
-        body: { userId }
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('admin-user-delete', {
+        body: {
+          userId
+        }
       });
-      
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      
       addDebugInfo('User deleted via edge function');
       return data;
     } catch (err) {
       addDebugInfo(`Edge function delete failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      
+
       // Fallback: Manual deletion
       try {
         // Delete from profiles first (this will cascade due to foreign keys)
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .delete()
-          .eq('id', userId);
-          
+        const {
+          error: profileError
+        } = await supabase.from('profiles').delete().eq('id', userId);
         if (profileError) throw profileError;
-
         addDebugInfo('User deleted via fallback method');
-        return { success: true };
+        return {
+          success: true
+        };
       } catch (fallbackErr) {
         addDebugInfo(`Fallback delete failed: ${fallbackErr instanceof Error ? fallbackErr.message : 'Unknown error'}`);
         throw new Error('User deletion failed. The user may have associated data that prevents deletion.');
       }
     }
   };
-
   const toggleUserStatusWithFallback = async (userId: string, active: boolean) => {
     addDebugInfo(`Toggling user ${userId} status to ${active ? 'active' : 'inactive'}...`);
 
     // Try edge function first
     try {
-      const { data, error } = await supabase.functions.invoke('admin-user-status', {
-        body: { userId, active }
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('admin-user-status', {
+        body: {
+          userId,
+          active
+        }
       });
-      
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      
       addDebugInfo('User status toggled via edge function');
       return data;
     } catch (err) {
@@ -390,13 +379,12 @@ const UserManagement: React.FC = () => {
       throw new Error('User status toggle failed. This requires admin authentication access.');
     }
   };
-  
+
   // Function to sort users by name
   const sortUsersByName = (userList: AdminUser[], direction: 'asc' | 'desc'): AdminUser[] => {
     return [...userList].sort((a, b) => {
       const nameA = a.name.toLowerCase();
       const nameB = b.name.toLowerCase();
-      
       if (direction === 'asc') {
         return nameA.localeCompare(nameB);
       } else {
@@ -424,7 +412,7 @@ const UserManagement: React.FC = () => {
     setUsingFallback(true);
     await fetchUsers(true);
   };
-  
+
   // Load users on component mount
   useEffect(() => {
     fetchUsers();
@@ -432,22 +420,14 @@ const UserManagement: React.FC = () => {
 
   // Set up realtime subscription for profile changes
   useEffect(() => {
-    const channel = supabase
-      .channel('profiles_admin_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles'
-        },
-        (payload) => {
-          console.log('Profile change detected in admin:', payload.eventType);
-          fetchUsers(); // Refresh user data when profiles change
-        }
-      )
-      .subscribe();
-
+    const channel = supabase.channel('profiles_admin_changes').on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'profiles'
+    }, payload => {
+      console.log('Profile change detected in admin:', payload.eventType);
+      fetchUsers(); // Refresh user data when profiles change
+    }).subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
@@ -457,16 +437,9 @@ const UserManagement: React.FC = () => {
   const getRoleLabel = (role: UserRole): string => {
     return t(`admin.roles.${role}`);
   };
-
   const getInitials = (name: string): string => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+    return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
   };
-
   const handleCreateUser = () => {
     setCurrentUser(null);
     setFormData({
@@ -474,11 +447,10 @@ const UserManagement: React.FC = () => {
       email: '',
       phone: '',
       jobTitle: '',
-      role: 'servicemedarbejder',
+      role: 'servicemedarbejder'
     });
     setUserDialogOpen(true);
   };
-
   const handleEditUser = (user: AdminUser) => {
     setCurrentUser(user);
     setFormData({
@@ -486,118 +458,104 @@ const UserManagement: React.FC = () => {
       email: user.email,
       phone: user.phone || '',
       jobTitle: user.jobTitle || '',
-      role: user.role,
+      role: user.role
     });
     setUserDialogOpen(true);
   };
-
   const handleDeleteUser = (user: AdminUser) => {
     setCurrentUser(user);
     setDeleteDialogOpen(true);
   };
-
   const handleResetPassword = (user: AdminUser) => {
     setCurrentUser(user);
     setPasswordDialogOpen(true);
   };
-
   const handleToggleUserStatus = (user: AdminUser) => {
     setCurrentUser(user);
     const isCurrentlyActive = !user.banned_until || new Date(user.banned_until) <= new Date();
     setIsActivating(!isCurrentlyActive);
     setStatusDialogOpen(true);
   };
-
   const confirmToggleUserStatus = async () => {
     if (!currentUser) return;
-
     try {
       const isCurrentlyActive = !currentUser.banned_until || new Date(currentUser.banned_until) <= new Date();
-      
       await toggleUserStatusWithFallback(currentUser.id, !isCurrentlyActive);
-      
       toast({
-        title: isCurrentlyActive 
-          ? t('admin.userManagement.userDeactivated')
-          : t('admin.userManagement.userActivated'),
-        description: isCurrentlyActive 
-          ? t('admin.userManagement.userDeactivatedMsg', { name: currentUser.name })
-          : t('admin.userManagement.userActivatedMsg', { name: currentUser.name }),
+        title: isCurrentlyActive ? t('admin.userManagement.userDeactivated') : t('admin.userManagement.userActivated'),
+        description: isCurrentlyActive ? t('admin.userManagement.userDeactivatedMsg', {
+          name: currentUser.name
+        }) : t('admin.userManagement.userActivatedMsg', {
+          name: currentUser.name
+        })
       });
-      
+
       // Refresh users list
       await fetchUsers();
       setStatusDialogOpen(false);
     } catch (err) {
       console.error('[UserManagement] Error toggling user status:', err);
-      
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       toast({
         title: t('common.error'),
         description: errorMessage,
-        variant: 'destructive',
+        variant: 'destructive'
       });
     }
   };
-
   const confirmDeleteUser = async () => {
     if (!currentUser) return;
-
     try {
       setIsDeleting(true);
-      
       await deleteUserWithFallback(currentUser.id);
-      
       toast({
         title: t('admin.userManagement.userDeleted'),
-        description: t('admin.userManagement.userDeletedMsg', { name: currentUser.name }),
+        description: t('admin.userManagement.userDeletedMsg', {
+          name: currentUser.name
+        })
       });
-      
       setDeleteDialogOpen(false);
       setCurrentUser(null);
-      
+
       // Refresh the user list
       await fetchUsers();
-      
     } catch (err) {
       console.error('[UserManagement] Error deleting user:', err);
-      
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      
       toast({
         title: t('common.error'),
         description: errorMessage,
-        variant: 'destructive',
+        variant: 'destructive'
       });
     } finally {
       setIsDeleting(false);
     }
   };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const {
+      name,
+      value
+    } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
-
   const handleRoleChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
-      role: value as UserRole,
+      role: value as UserRole
     }));
   };
-
   const handleSubmitUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
       if (!currentUser) {
         // Creating new user
         await createUserWithFallback({
           email: formData.email,
-          password: '', // This will be handled by the form dialog
+          password: '',
+          // This will be handled by the form dialog
           userData: {
             name: formData.name,
             phone: formData.phone,
@@ -609,26 +567,19 @@ const UserManagement: React.FC = () => {
         // Updating existing user
         await updateUserWithFallback(currentUser.id, formData);
       }
-      
       await fetchUsers();
       setUserDialogOpen(false);
-      
       toast({
         title: t('common.success'),
-        description: currentUser 
-          ? t('admin.userManagement.updateSuccess') 
-          : t('admin.userManagement.createSuccess'),
+        description: currentUser ? t('admin.userManagement.updateSuccess') : t('admin.userManagement.createSuccess')
       });
-      
     } catch (err) {
       console.error('[UserManagement] Error saving user:', err);
-      
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      
       toast({
         title: t('common.error'),
         description: errorMessage,
-        variant: 'destructive',
+        variant: 'destructive'
       });
     }
   };
@@ -637,51 +588,53 @@ const UserManagement: React.FC = () => {
   const ConnectionStatusIndicator = () => {
     const getStatusColor = () => {
       switch (connectionStatus) {
-        case 'connected': return 'text-green-600';
-        case 'fallback': return 'text-blue-600';
-        case 'disconnected': return 'text-orange-600';
-        case 'error': return 'text-red-600';
-        default: return 'text-gray-600';
+        case 'connected':
+          return 'text-green-600';
+        case 'fallback':
+          return 'text-blue-600';
+        case 'disconnected':
+          return 'text-orange-600';
+        case 'error':
+          return 'text-red-600';
+        default:
+          return 'text-gray-600';
       }
     };
-
     const getStatusIcon = () => {
       switch (connectionStatus) {
-        case 'connected': return <CheckCircle className="h-4 w-4" />;
-        case 'fallback': return <Database className="h-4 w-4" />;
-        case 'disconnected': return <WifiOff className="h-4 w-4" />;
-        case 'error': return <AlertCircle className="h-4 w-4" />;
-        default: return <Wifi className="h-4 w-4" />;
+        case 'connected':
+          return <CheckCircle className="h-4 w-4" />;
+        case 'fallback':
+          return <Database className="h-4 w-4" />;
+        case 'disconnected':
+          return <WifiOff className="h-4 w-4" />;
+        case 'error':
+          return <AlertCircle className="h-4 w-4" />;
+        default:
+          return <Wifi className="h-4 w-4" />;
       }
     };
-
     const getStatusText = () => {
       switch (connectionStatus) {
-        case 'connected': return edgeFunctionWorking ? 'Edge Function Active' : 'Connected';
-        case 'fallback': return 'Database Fallback';
-        case 'disconnected': return 'Connection Issues';
-        case 'error': return 'Error';
-        default: return 'Unknown';
+        case 'connected':
+          return edgeFunctionWorking ? 'Edge Function Active' : 'Connected';
+        case 'fallback':
+          return 'Database Fallback';
+        case 'disconnected':
+          return 'Connection Issues';
+        case 'error':
+          return 'Error';
+        default:
+          return 'Unknown';
       }
     };
-
-    return (
-      <div className={`flex items-center space-x-2 text-sm ${getStatusColor()}`}>
-        {getStatusIcon()}
-        <span>{getStatusText()}</span>
-        {edgeFunctionWorking === false && (
-          <span className="text-xs text-orange-600">(Using Fallback)</span>
-        )}
-      </div>
-    );
+    return;
   };
 
   // FIXED: Enhanced debug info panel
   const DebugPanel = () => {
     if (debugInfo.length === 0) return null;
-    
-    return (
-      <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
+    return <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
         <div className="flex items-center space-x-2 mb-2">
           <Bug className="h-4 w-4 text-gray-500" />
           <span className="text-sm font-medium text-gray-700">
@@ -693,44 +646,24 @@ const UserManagement: React.FC = () => {
           <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">
             {edgeFunctionWorking === true ? 'Edge Function OK' : edgeFunctionWorking === false ? 'Using Fallback' : 'Testing...'}
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setDebugInfo([])}
-            className="ml-auto h-6 px-2 text-xs"
-          >
+          <Button variant="ghost" size="sm" onClick={() => setDebugInfo([])} className="ml-auto h-6 px-2 text-xs">
             Clear
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleSmartRetry}
-            className="h-6 px-2 text-xs"
-          >
+          <Button variant="ghost" size="sm" onClick={handleSmartRetry} className="h-6 px-2 text-xs">
             Smart Retry
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleForceFallback}
-            className="h-6 px-2 text-xs"
-          >
+          <Button variant="ghost" size="sm" onClick={handleForceFallback} className="h-6 px-2 text-xs">
             Force Fallback
           </Button>
         </div>
         <div className="space-y-1 max-h-40 overflow-y-auto">
-          {debugInfo.map((info, index) => (
-            <div key={index} className="text-xs text-gray-600 font-mono">
+          {debugInfo.map((info, index) => <div key={index} className="text-xs text-gray-600 font-mono">
               {info}
-            </div>
-          ))}
+            </div>)}
         </div>
-      </div>
-    );
+      </div>;
   };
-
-  return (
-    <>
+  return <>
       <Card className="mb-6">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -741,162 +674,83 @@ const UserManagement: React.FC = () => {
               </CardTitle>
               <CardDescription>
                 {t('admin.userManagement.description')} 
-                <span className="text-sm text-gray-500 ml-2">
-                  (FIXED: Enhanced role authorization for Admin + Skadeleder access)
-                </span>
+                
               </CardDescription>
-              {lastError && (
-                <div className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
+              {lastError && <div className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
                   <div className="flex items-center space-x-2">
                     <AlertCircle className="h-4 w-4" />
                     <span>{lastError}</span>
                   </div>
-                </div>
-              )}
+                </div>}
               <DebugPanel />
             </div>
             <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleSmartRetry}
-                title="Refresh users list with smart retry"
-                disabled={loading}
-              >
+              <Button variant="outline" size="icon" onClick={handleSmartRetry} title="Refresh users list with smart retry" disabled={loading}>
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={toggleSortDirection}
-                title={sortDirection === 'asc' ? 'Sort Z-A' : 'Sort A-Z'}
-              >
-                {sortDirection === 'asc' ? (
-                  <ArrowDownAZ className="h-4 w-4" />
-                ) : (
-                  <ArrowUpAZ className="h-4 w-4" />
-                )}
+              <Button variant="outline" size="icon" onClick={toggleSortDirection} title={sortDirection === 'asc' ? 'Sort Z-A' : 'Sort A-Z'}>
+                {sortDirection === 'asc' ? <ArrowDownAZ className="h-4 w-4" /> : <ArrowUpAZ className="h-4 w-4" />}
               </Button>
-              <Button 
-                onClick={handleCreateUser}
-                className="bg-polygon-blue hover:bg-polygon-darkblue"
-              >
+              <Button onClick={handleCreateUser} className="bg-polygon-blue hover:bg-polygon-darkblue">
                 {t('admin.userManagement.addUser')}
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex flex-col justify-center items-center py-8 space-y-4">
+          {loading ? <div className="flex flex-col justify-center items-center py-8 space-y-4">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-polygon-blue"></div>
               <p className="text-sm text-gray-500">
                 {retryCount > 0 ? `Smart retry... (attempt ${retryCount + 1})` : 'Loading users with fixed role handling...'}
               </p>
-            </div>
-          ) : users.length === 0 ? (
-            <div className="text-center py-8 space-y-4">
+            </div> : users.length === 0 ? <div className="text-center py-8 space-y-4">
               <AlertCircle className="h-12 w-12 text-gray-400 mx-auto" />
               <div>
                 <p className="text-gray-500 mb-2">
-                  {lastError 
-                    ? 'Failed to load users. Fixed error handling active.' 
-                    : 'No users found with current role authorization.'
-                  }
+                  {lastError ? 'Failed to load users. Fixed error handling active.' : 'No users found with current role authorization.'}
                 </p>
-                {lastError && (
-                  <p className="text-sm text-red-600 mb-4">{lastError}</p>
-                )}
+                {lastError && <p className="text-sm text-red-600 mb-4">{lastError}</p>}
               </div>
               <div className="space-x-2">
-                <Button 
-                  onClick={handleSmartRetry}
-                  variant="outline"
-                >
+                <Button onClick={handleSmartRetry} variant="outline">
                   Smart Retry
                 </Button>
-                <Button 
-                  onClick={handleForceFallback}
-                  variant="outline"
-                >
+                <Button onClick={handleForceFallback} variant="outline">
                   Use Fallback
                 </Button>
-                <Button 
-                  onClick={handleCreateUser}
-                  className="bg-polygon-blue hover:bg-polygon-darkblue"
-                >
+                <Button onClick={handleCreateUser} className="bg-polygon-blue hover:bg-polygon-darkblue">
                   Add First User
                 </Button>
               </div>
-            </div>
-          ) : (
-            <div>
+            </div> : <div>
               <div className="mb-4 flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  Showing {users.length} users {usingFallback && '(via fixed fallback)'}
-                  <span className="ml-2 text-indigo-600">
-                    • FIXED: {eligibleUsers} eligible users with admin/skadeleder access
-                  </span>
-                </div>
-                {retryCount > 0 && (
-                  <div className="text-xs text-orange-600">
+                
+                {retryCount > 0 && <div className="text-xs text-orange-600">
                     Smart retry attempts: {retryCount}
-                  </div>
-                )}
+                  </div>}
               </div>
-              <UserTable 
-                users={users}
-                onEditUser={handleEditUser}
-                onDeleteUser={handleDeleteUser}
-                onResetPassword={handleResetPassword}
-                onToggleUserStatus={handleToggleUserStatus}
-                getRoleLabel={getRoleLabel}
-                getInitials={getInitials}
-              />
-            </div>
-          )}
+              <UserTable users={users} onEditUser={handleEditUser} onDeleteUser={handleDeleteUser} onResetPassword={handleResetPassword} onToggleUserStatus={handleToggleUserStatus} getRoleLabel={getRoleLabel} getInitials={getInitials} />
+            </div>}
         </CardContent>
       </Card>
 
       {/* User Add/Edit Dialog */}
       <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
-        <UserFormDialog 
-          currentUser={currentUser}
-          formData={formData}
-          handleInputChange={handleInputChange}
-          handleRoleChange={handleRoleChange}
-          handleSubmit={handleSubmitUser}
-          onClose={() => setUserDialogOpen(false)}
-        />
+        <UserFormDialog currentUser={currentUser} formData={formData} handleInputChange={handleInputChange} handleRoleChange={handleRoleChange} handleSubmit={handleSubmitUser} onClose={() => setUserDialogOpen(false)} />
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <UserDeleteDialog 
-          currentUser={currentUser}
-          onConfirmDelete={confirmDeleteUser}
-          isDeleting={isDeleting}
-        />
+        <UserDeleteDialog currentUser={currentUser} onConfirmDelete={confirmDeleteUser} isDeleting={isDeleting} />
       </AlertDialog>
 
       {/* Password Change Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-        <PasswordChangeDialog
-          currentUser={currentUser}
-          onClose={() => setPasswordDialogOpen(false)}
-        />
+        <PasswordChangeDialog currentUser={currentUser} onClose={() => setPasswordDialogOpen(false)} />
       </Dialog>
 
       {/* User Status Toggle Dialog */}
-      <UserStatusDialog
-        open={statusDialogOpen}
-        onOpenChange={setStatusDialogOpen}
-        user={currentUser}
-        onConfirm={confirmToggleUserStatus}
-        isActivating={isActivating}
-      />
-    </>
-  );
+      <UserStatusDialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen} user={currentUser} onConfirm={confirmToggleUserStatus} isActivating={isActivating} />
+    </>;
 };
-
 export default UserManagement;
