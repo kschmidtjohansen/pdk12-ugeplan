@@ -126,14 +126,9 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
                   </div>}
               </div>
             </DropdownMenuItem> : eligibleUsers.map(user => <DropdownMenuItem key={user.id} onClick={() => handleUserSelect(user.id)} className="cursor-pointer p-2 hover:bg-indigo-50">
-                <div className="flex items-center justify-between w-full space-x-2">
-                  <div className="flex items-center gap-2">
-                    <UserCheck className="h-4 w-4 text-indigo-600" />
-                    <span className="truncate font-medium">{user.name}</span>
-                  </div>
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${user.role === 'administrator' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
-                    {user.role === 'administrator' ? 'Admin' : 'Skadeleder'}
-                  </span>
+                <div className="flex items-center gap-2">
+                  <UserCheck className="h-4 w-4 text-indigo-600" />
+                  <span className="truncate font-medium">{user.name}</span>
                 </div>
               </DropdownMenuItem>)}
         </DropdownMenuContent>

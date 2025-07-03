@@ -137,12 +137,12 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
             {assignment.location && (
               <p className="text-sm text-gray-600">{assignment.location}</p>
             )}
-            {/* IMPROVED: More subtle responsible user display */}
+            {/* Enhanced responsible user display with proper label */}
             {responsibleUserInfo?.name && (
               <div className="flex items-center gap-1 mt-1">
-                <UserCheck className="h-3 w-3 text-gray-500" />
-                <span className="text-xs text-gray-600" title={`${t('planner.responsibleUser') || 'Sagsansvarlig'}: ${responsibleUserInfo.name}${responsibleUserInfo.role ? ` (${responsibleUserInfo.role})` : ''}`}>
-                  {responsibleUserInfo.name}
+                <UserCheck className="h-4 w-4 text-blue-600" />
+                <span className="text-sm text-gray-800 font-medium">
+                  {t('planner.responsibleUser') || 'Sagsansvarlig'}: {responsibleUserInfo.name}
                 </span>
               </div>
             )}
