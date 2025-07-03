@@ -22,7 +22,7 @@ export const useVacationData = () => {
       setLoading(true);
       setError(null);
 
-      console.log('[useVacationData] Fetching vacations with enhanced error handling...');
+      
 
       const result = await executeWithRecovery(
         async () => {
@@ -30,9 +30,6 @@ export const useVacationData = () => {
           
           if (vacationsError) throw vacationsError;
           
-          if (fromCache) {
-            console.log('[useVacationData] Using cached vacation data');
-          }
           
           return vacationsData;
         },
@@ -61,7 +58,7 @@ export const useVacationData = () => {
         'Vacation User Profiles Fetch'
       );
 
-      console.log(`[useVacationData] Successfully processed ${vacationsData.length} vacations`);
+      
 
       // Transform the data to match our Vacation interface
       const transformedVacations: Vacation[] = vacationsData.map(vacation => {
@@ -90,7 +87,7 @@ export const useVacationData = () => {
       });
 
       setVacations(transformedVacations);
-      console.log('[useVacationData] Vacation data transformed and set successfully');
+      
 
     } catch (err) {
       console.error('[useVacationData] Error in fetchVacations:', err);
@@ -126,12 +123,11 @@ export const useVacationData = () => {
 
   // Use centralized realtime manager for vacation subscriptions
   useEffect(() => {
-    console.log('[useVacationData] Setting up enhanced realtime subscription...');
+    
     
     const subscriptionId = 'vacations_enhanced';
     
     const handleRealtimeUpdate = () => {
-      console.log('[useVacationData] Realtime refresh triggered');
       dataFetchingService.clearCache('vacations');
       fetchVacations();
       
@@ -154,9 +150,7 @@ export const useVacationData = () => {
     );
 
     if (!subscription) {
-      console.warn('[useVacationData] Failed to create realtime subscription, using polling fallback');
       const pollInterval = setInterval(() => {
-        console.log('[useVacationData] Polling for updates (realtime failed)');
         fetchVacations();
       }, 30000);
       
@@ -164,7 +158,6 @@ export const useVacationData = () => {
     }
 
     return () => {
-      console.log('[useVacationData] Cleaning up enhanced realtime subscription');
       realtimeManager.unsubscribe(subscriptionId);
     };
   }, [fetchVacations]);

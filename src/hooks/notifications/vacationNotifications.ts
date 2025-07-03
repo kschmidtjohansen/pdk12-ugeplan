@@ -15,12 +15,10 @@ export const useVacationNotifications = (
   const createNotificationsForPendingRequests = useCallback(async () => {
     // Only run for administrators
     if (!user || user.role !== 'administrator') {
-      console.log('Not an admin user, skipping vacation notification check');
       return;
     }
     
     try {
-      console.log('Checking for pending vacation requests that need notifications...');
       
       const { data: pendingVacations, error } = await supabase
         .from('vacations')
@@ -40,11 +38,8 @@ export const useVacationNotifications = (
       }
       
       if (!pendingVacations || pendingVacations.length === 0) {
-        console.log('No pending vacation requests found');
         return;
       }
-      
-      console.log(`Found ${pendingVacations.length} pending vacation requests:`, pendingVacations);
       
       // Fetch employee names for these vacations
       const userIds = pendingVacations.map(v => v.user_id);
@@ -79,7 +74,7 @@ export const useVacationNotifications = (
         return;
       }
       
-      console.log(`Found ${existingNotifications?.length || 0} existing unread vacation notifications`);
+      
       
       // Create notifications for pending requests if needed
       for (const vacation of pendingVacations) {
@@ -102,7 +97,6 @@ export const useVacationNotifications = (
         });
         
         if (!hasNotification) {
-          console.log(`Creating notification for pending vacation request from ${employeeName}`);
           
           const notifyMessage = t('notifications.newVacationRequestActionRequired', {
             name: employeeName,
@@ -119,12 +113,10 @@ export const useVacationNotifications = (
               link: '/vacation'
             });
             
-            console.log(`Created notification for pending request:`, notificationId);
+            
           } catch (notifErr) {
             console.error('Error creating notification for pending request:', notifErr);
           }
-        } else {
-          console.log(`Notification already exists for vacation ${vacation.id}, skipping`);
         }
       }
     } catch (err) {
@@ -135,7 +127,6 @@ export const useVacationNotifications = (
   // Run when user becomes an admin
   useEffect(() => {
     if (user?.role === 'administrator') {
-      console.log('Admin user detected, checking for pending vacation notifications');
       createNotificationsForPendingRequests();
     }
   }, [user?.role, createNotificationsForPendingRequests]);

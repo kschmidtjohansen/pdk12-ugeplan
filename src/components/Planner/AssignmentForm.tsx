@@ -46,16 +46,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     canPublishTasks
   } = usePermissions();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  console.log('[AssignmentForm] Rendering with:', {
-    currentAssignment: currentAssignment?.id,
-    formDataDate: formData.date,
-    selectedDay,
-    formDataTitle: formData.title,
-    formDataEmployees: formData.employees,
-    formDataCar: formData.car,
-    carType: typeof formData.car,
-    isPublished: currentAssignment?.published
-  });
   const {
     handleSubmit,
     formState: {
@@ -68,15 +58,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   // Handle form submission with comprehensive debugging
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[AssignmentForm] ===== FORM SUBMISSION START =====');
-    console.log('[AssignmentForm] Current form data:', formData);
-    console.log('[AssignmentForm] Is editing:', !!currentAssignment);
-    console.log('[AssignmentForm] Assignment ID:', currentAssignment?.id);
-    console.log('[AssignmentForm] Car data in form:', {
-      car: formData.car,
-      carType: typeof formData.car,
-      isEmpty: !formData.car || formData.car === ''
-    });
 
     // Validate required fields
     if (!formData.title || !formData.location || !formData.date) {

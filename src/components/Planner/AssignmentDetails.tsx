@@ -17,15 +17,6 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
 }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  console.log('[AssignmentDetails] COMPREHENSIVE FIX - Assignment:', assignment.id);
-  console.log('[AssignmentDetails] COMPREHENSIVE FIX - Employee data:', {
-    hasAssignedEmployees: !!assignment.assignedEmployees?.length,
-    assignedEmployees: assignment.assignedEmployees?.map(e => e.name),
-    hasLegacyEmployees: !!assignment.employees?.length,
-    legacyEmployees: assignment.employees,
-    hasResponsibleUser: !!assignment.responsibleUser,
-    responsibleUserName: assignment.responsibleUser?.name
-  });
 
   // Enhanced car name resolution with comprehensive fallbacks
   const getCarNames = (assignment: Assignment): string[] => {
@@ -69,18 +60,6 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
     const currentUserRole = user?.role;
     const isServicemedarbejder = currentUserRole === 'servicemedarbejder';
     
-    console.log('[AssignmentDetails] PHASE 3 FIX - Processing employee data for:', assignment.id, {
-      currentUserRole,
-      isServicemedarbejder,
-      currentUserId: user?.id,
-      currentUserName: user?.name,
-      hasAssignedEmployees: !!assignment.assignedEmployees?.length,
-      assignedEmployeesCount: assignment.assignedEmployees?.length || 0,
-      assignedEmployeesNames: assignment.assignedEmployees?.map(e => e.name),
-      hasLegacyEmployees: !!assignment.employees?.length,
-      legacyEmployeesCount: assignment.employees?.length || 0,
-      legacyEmployees: assignment.employees
-    });
 
     // Enhanced employee data with role-based filtering
     if (assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
@@ -91,9 +70,6 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
         // Only show current user if they're in the team
         const currentUserInTeam = assignment.assignedEmployees.some(emp => emp.id === user.id);
         names = currentUserInTeam ? [user.name] : [];
-        console.log('[AssignmentDetails] PHASE 3 FIX - Servicemedarbejder filtered names:', names);
-      } else {
-        console.log('[AssignmentDetails] PHASE 3 FIX - Admin/Skadeleder sees all names:', names);
       }
       
       return {
@@ -110,9 +86,6 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       if (isServicemedarbejder && user?.name) {
         // Only show current user's name if they're in the legacy employees list
         names = names.includes(user.name) ? [user.name] : [];
-        console.log('[AssignmentDetails] PHASE 3 FIX - Servicemedarbejder filtered legacy names:', names);
-      } else {
-        console.log('[AssignmentDetails] PHASE 3 FIX - Admin/Skadeleder sees all legacy names:', names);
       }
       
       return {
@@ -121,7 +94,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       };
     }
     
-    console.log('[AssignmentDetails] PHASE 3 FIX - No employee data found for assignment:', assignment.id);
+    
     return {
       names: [],
       hasFullData: false
