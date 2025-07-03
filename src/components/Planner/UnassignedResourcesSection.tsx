@@ -31,7 +31,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   // State for collapsible functionality
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('unassignedResourcesCollapsed');
-    return saved ? JSON.parse(saved) : false;
+    return saved ? JSON.parse(saved) : true;
   });
   
   // State for selected date
@@ -65,7 +65,10 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       })
       .map(vacation => {
         const employee = employees.find(emp => emp.id === vacation.user_id);
-        return employee ? employee.name : 'Unknown Employee';
+        return employee ? {
+          name: employee.name,
+          returnDate: vacation.end_date
+        } : null;
       })
       .filter(Boolean);
   }, [vacations, employees, targetDate]);
@@ -130,7 +133,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     
     return employees.filter(employee => {
       // Skip if on vacation
-      if (employeesOnVacation.includes(employee.name)) return false;
+      if (employeesOnVacation.find(emp => emp.name === employee.name)) return false;
       
       // Skip if assigned to a task
       if (assignedEmployeeNames.has(employee.name)) return false;
@@ -365,15 +368,18 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                     </Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {employeesOnVacation.map((employeeName, index) => (
-                      <Badge key={index} variant="outline" className="bg-orange-50 text-orange-700">
-                        {employeeName}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
+                 <CardContent>
+                   <div className="space-y-2">
+                     {employeesOnVacation.map((employee, index) => (
+                       <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-orange-50 border border-orange-200">
+                         <span className="font-medium text-sm text-orange-700">{employee.name}</span>
+                         <Badge variant="outline" className="text-xs bg-orange-100 text-orange-600">
+                           {t('vacation.returnsOn')} {formatDate(employee.returnDate)}
+                         </Badge>
+                       </div>
+                     ))}
+                   </div>
+                 </CardContent>
               </Card>
             )}
           </CardContent>

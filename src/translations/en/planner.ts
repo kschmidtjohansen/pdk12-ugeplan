@@ -172,7 +172,8 @@ const planner = {
   expandResources: 'Show resources', 
   selectDate: 'Select date',
   previousDay: 'Previous day',
-  nextDay: 'Next day'
+  nextDay: 'Next day',
+  previousDays: 'Previous days'
 };
 
 export default planner;

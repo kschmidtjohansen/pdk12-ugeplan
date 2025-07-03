@@ -172,7 +172,8 @@ const planner = {
   expandResources: 'Vis ressourcer',
   selectDate: 'Vælg dato',
   previousDay: 'Forrige dag',
-  nextDay: 'Næste dag'
+  nextDay: 'Næste dag',
+  previousDays: 'Forrige dage'
 };
 
 export default planner;

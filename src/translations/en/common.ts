@@ -102,5 +102,7 @@ export const common = {
   toggleTheme: "Toggle theme",
   actions: "Actions",
   language: "Language",
-  team: "Team"
+  team: "Team",
+  areYouSure: "Are you sure?",
+  deleteWarning: "Your action cannot be undone when you delete this."
 };

@@ -102,5 +102,7 @@ export const common = {
   toggleTheme: "Skift tema",
   actions: "Handlinger",
   language: "Sprog",
-  team: "Team"
+  team: "Team",
+  areYouSure: "Er du sikker?",
+  deleteWarning: "Din handling kan ikke ændres når du sletter denne."
 };
