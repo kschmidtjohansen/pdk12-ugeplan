@@ -62,14 +62,14 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
 
   const carNames = getCarNames(assignment);
 
-  // COMPREHENSIVE FIX: Always show ALL team members regardless of user role
+  // COMPREHENSIVE FIX: Always show ALL team members for ALL users
   const getEmployeeData = (assignment: Assignment): { names: string[], hasFullData: boolean } => {
-    console.log('[AssignmentDetails] COMPREHENSIVE FIX - Processing employee data for:', assignment.id);
+    console.log('[AssignmentDetails] SERVICEMEDARBEJDER FIX - Processing employee data for:', assignment.id);
     
     // Always prioritize enhanced employee data if available
     if (assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
       const names = assignment.assignedEmployees.map(emp => emp.name);
-      console.log('[AssignmentDetails] Using assignedEmployees:', names);
+      console.log('[AssignmentDetails] SERVICEMEDARBEJDER FIX - Using assignedEmployees:', names);
       return {
         names,
         hasFullData: true
@@ -83,11 +83,11 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
         .map(employee => employee.trim())
         .filter(employee => employee.length > 0);
       
-      console.log('[AssignmentDetails] Using legacy employees:', names);
+      console.log('[AssignmentDetails] SERVICEMEDARBEJDER FIX - Using legacy employees:', names);
       return { names, hasFullData: false };
     }
     
-    console.log('[AssignmentDetails] No employee data found');
+    console.log('[AssignmentDetails] SERVICEMEDARBEJDER FIX - No employee data found');
     return { names: [], hasFullData: false };
   };
 
@@ -126,7 +126,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
 
       {/* Right Column */}
       <div className="space-y-3">
-        {/* PHASE 3 FIX: Enhanced Sagsansvarlig display with prominent styling */}
+        {/* SERVICEMEDARBEJDER FIX: Always show Sagsansvarlig for all users */}
         {assignment.responsibleUser?.name && (
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
@@ -143,7 +143,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
           </div>
         )}
 
-        {/* PHASE 3 FIX: Enhanced employees display with full team support */}
+        {/* SERVICEMEDARBEJDER FIX: Always show all team members for all users */}
         {employeeData.names.length > 0 && (
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
@@ -151,7 +151,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
             </div>
             <div className="flex flex-col min-w-0 flex-1">
               <span className="text-xs text-purple-600 font-semibold uppercase tracking-wide">
-                {t('planner.employees') || 'Medarbejdere'} {employeeData.hasFullData ? '(Full Team)' : ''}
+                {t('planner.employees') || 'Medarbejdere'}
               </span>
               <div className="flex flex-wrap gap-1">
                 {employeeData.names.map((employeeName, index) => (

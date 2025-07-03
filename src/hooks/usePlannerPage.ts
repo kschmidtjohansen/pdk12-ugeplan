@@ -25,11 +25,11 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Role-based filtering - servicemedarbejder users can now see all published assignments
+  // SERVICEMEDARBEJDER FIX: All users can now see all assignments due to updated RLS policy
   const isAdminOrSkadeleder = user?.role === 'administrator' || user?.role === 'skadeleder';
-  const plannerFilter = 'all'; // All users can see published assignments due to updated RLS policy
+  const plannerFilter = 'all'; // All users including servicemedarbejder can see all assignments
   
-  console.log(`[usePlannerPage] User: ${user?.name} (${user?.role}), Filter: ${plannerFilter}`);
+  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - User: ${user?.name} (${user?.role}), Filter: ${plannerFilter}`);
   
   // CRITICAL FIX: Use the optimized hook that properly fetches responsible user data
   const { 
@@ -74,9 +74,9 @@ export const usePlannerPage = () => {
 
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // Filter assignments by week and apply role-based filtering
+  // SERVICEMEDARBEJDER FIX: Filter assignments by week only - RLS handles access control
   const weekAssignments = React.useMemo(() => {
-    console.log(`[usePlannerPage] SAGSANSVARLIG FIX - Filtering ${assignments.length} assignments for week ${selectedWeek}/${selectedYear}`);
+    console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Filtering ${assignments.length} assignments for week ${selectedWeek}/${selectedYear}`);
     
     let filteredAssignments = assignments.filter(assignment => {
       const assignmentDate = new Date(assignment.date);
@@ -86,17 +86,19 @@ export const usePlannerPage = () => {
       return assignmentWeek === selectedWeek && assignmentYear === selectedYear;
     });
 
-    // RLS policies now handle access control, no additional filtering needed
+    // RLS policies now handle access control - servicemedarbejder can see all assignments
     
-    console.log(`[usePlannerPage] SAGSANSVARLIG FIX - Week filtered results: ${filteredAssignments.length} assignments`);
-    console.log(`[usePlannerPage] SAGSANSVARLIG FIX - Assignments with responsible users:`, 
-      filteredAssignments.filter(a => a.responsibleUser).map(a => ({ 
+    console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Week filtered results: ${filteredAssignments.length} assignments`);
+    console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - All assignments with details:`, 
+      filteredAssignments.map(a => ({ 
         title: a.title, 
-        responsibleUser: a.responsibleUser?.name 
+        responsibleUser: a.responsibleUser?.name,
+        employees: a.assignedEmployees?.map(e => e.name) || a.employees,
+        cars: a.cars
       })));
     
     return filteredAssignments;
-  }, [assignments, selectedWeek, selectedYear, isAdminOrSkadeleder]);
+  }, [assignments, selectedWeek, selectedYear]);
 
   return {
     selectedWeek,
