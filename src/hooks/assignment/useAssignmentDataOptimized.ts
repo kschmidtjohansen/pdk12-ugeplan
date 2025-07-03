@@ -29,9 +29,9 @@ export const useAssignmentDataOptimized = () => {
             name,
             email
           ),
-          assignment_employees:assignments_employees(
+          assignment_employees:assignments_employees!assignments_employees_assignment_id_fkey(
             user_id,
-            profiles:profiles(
+            profiles(
               id,
               name,
               email
