@@ -17,10 +17,10 @@ export const useAssignmentDataOptimized = () => {
       setLoading(true);
       setError(null);
       
-      console.log('[useAssignmentDataOptimized] PHASE 2 FIX - Starting assignment fetch...');
+      console.log('[useAssignmentDataOptimized] RACE CONDITION FIX - Starting comprehensive fetch...');
       
-      // PHASE 3 FIX: Enhanced query to get all assignment data with employee details
-      const { data: assignments, error: assignmentsError } = await supabase
+      // RACE CONDITION FIX: Use a single comprehensive query to avoid timing issues
+      const { data: assignmentsWithEmployees, error: fetchError } = await supabase
         .from('assignments')
         .select(`
           *,
@@ -28,101 +28,60 @@ export const useAssignmentDataOptimized = () => {
             id,
             name,
             email
+          ),
+          assignment_employees:assignments_employees(
+            user_id,
+            profiles:profiles(
+              id,
+              name,
+              email
+            )
           )
         `)
         .order('assignment_date', { ascending: true })
         .order('from_time', { ascending: true });
       
-      if (assignmentsError) {
-        console.error('[useAssignmentDataOptimized] PHASE 2 FIX - Assignment fetch error:', assignmentsError);
-        throw assignmentsError;
+      if (fetchError) {
+        console.error('[useAssignmentDataOptimized] RACE CONDITION FIX - Comprehensive fetch error:', fetchError);
+        throw fetchError;
       }
       
-      console.log(`[useAssignmentDataOptimized] PHASE 2 FIX - Raw assignments fetched:`, assignments?.length || 0);
+      console.log(`[useAssignmentDataOptimized] RACE CONDITION FIX - Comprehensive data fetched:`, assignmentsWithEmployees?.length || 0);
       
-      if (!assignments || assignments.length === 0) {
-        console.log('[useAssignmentDataOptimized] PHASE 2 FIX - No assignments found');
+      if (!assignmentsWithEmployees || assignmentsWithEmployees.length === 0) {
+        console.log('[useAssignmentDataOptimized] RACE CONDITION FIX - No assignments found');
         setAssignments([]);
         return;
       }
-
-      // PHASE 3 FIX: Get assignment employees and then fetch profile data separately
-      const { data: assignmentEmployeesData, error: employeeError } = await supabase
-        .from('assignments_employees')
-        .select('assignment_id, user_id');
-      
-      if (employeeError) {
-        console.error('[useAssignmentDataOptimized] Employee fetch error:', employeeError);
-        throw employeeError;
-      }
-      
-      // Get all employee profiles
-      const { data: employeeProfiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, name, email');
-      
-      if (profilesError) {
-        console.error('[useAssignmentDataOptimized] Profiles fetch error:', profilesError);
-        throw profilesError;
-      }
       
       
-      // COMPREHENSIVE FIX: Enhanced assignment-employee mapping with detailed logging
-      const employeeMap = new Map<string, { id: string; name: string; email: string }>();
-      employeeProfiles?.forEach(profile => {
-        employeeMap.set(profile.id, profile);
-      });
-      
-      console.log(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Employee profiles available:`, employeeProfiles?.length || 0);
-      console.log(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Assignment employees data:`, assignmentEmployeesData?.length || 0);
-      
-      const assignmentEmployeeMap = new Map<string, Array<{ id: string; name: string; email: string }>>();
-      const assignmentEmployeeNameMap = new Map<string, string[]>();
-      
-      assignmentEmployeesData?.forEach(ae => {
-        console.log(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Processing assignment employee:`, {
-          assignmentId: ae.assignment_id,
-          userId: ae.user_id
-        });
+      // RACE CONDITION FIX: Process the comprehensive data directly from the single query
+      const transformedAssignments: Assignment[] = assignmentsWithEmployees.map(assignment => {
+        // Extract employee data from the comprehensive query
+        const assignedEmployees = assignment.assignment_employees?.map(ae => ({
+          id: ae.profiles?.id || ae.user_id,
+          name: ae.profiles?.name || 'Unknown',
+          email: ae.profiles?.email || 'unknown@example.com'
+        })).filter(emp => emp.name !== 'Unknown') || [];
         
-        if (!assignmentEmployeeMap.has(ae.assignment_id)) {
-          assignmentEmployeeMap.set(ae.assignment_id, []);
-          assignmentEmployeeNameMap.set(ae.assignment_id, []);
-        }
+        const employeeNames = assignedEmployees.map(emp => emp.name);
         
-        const employee = employeeMap.get(ae.user_id);
-        if (employee) {
-          assignmentEmployeeMap.get(ae.assignment_id)!.push(employee);
-          assignmentEmployeeNameMap.get(ae.assignment_id)!.push(employee.name);
-          console.log(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Added employee to assignment:`, {
-            assignmentId: ae.assignment_id,
-            employeeName: employee.name
-          });
-        } else {
-          console.warn(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Employee not found in profiles:`, ae.user_id);
-        }
-      });
-      
-      // PHASE 3 FIX: Transform assignments with enhanced employee and responsible user data
-      const transformedAssignments: Assignment[] = assignments.map(assignment => {
-        const employeeNames = assignmentEmployeeNameMap.get(assignment.id) || [];
-        const assignedEmployees = assignmentEmployeeMap.get(assignment.id) || [];
-        
-        // PHASE 2 FIX: Properly handle responsible user data with enhanced validation
+        // Handle responsible user data
         const responsibleUser = assignment.responsible_user ? {
           id: assignment.responsible_user.id,
           name: assignment.responsible_user.name,
           email: assignment.responsible_user.email
         } : null;
         
-        console.log(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Assignment "${assignment.title}":`, {
+        console.log(`[useAssignmentDataOptimized] RACE CONDITION FIX - Assignment "${assignment.title}":`, {
           hasResponsibleUser: !!responsibleUser,
           responsibleUserName: responsibleUser?.name,
           responsibleUserId: responsibleUser?.id,
           employeeCount: employeeNames.length,
           employees: employeeNames,
           assignedEmployeesCount: assignedEmployees.length,
-          assignedEmployeesNames: assignedEmployees.map(e => e.name)
+          assignedEmployeesNames: assignedEmployees.map(e => e.name),
+          rawEmployeeData: assignment.assignment_employees
         });
         
         return {
@@ -134,7 +93,7 @@ export const useAssignmentDataOptimized = () => {
           toTime: assignment.to_time,
           location: assignment.location,
           employees: employeeNames, // Legacy format for backward compatibility
-          assignedEmployees: assignedEmployees, // COMPREHENSIVE FIX: Full employee data with IDs for enhanced display
+          assignedEmployees: assignedEmployees, // RACE CONDITION FIX: Complete employee data with IDs
           cars: assignment.car_ids || (assignment.car_id ? [assignment.car_id] : []),
           car: assignment.car_id || (assignment.car_ids && assignment.car_ids.length > 0 ? assignment.car_ids[0] : ''),
           published: assignment.published || false,

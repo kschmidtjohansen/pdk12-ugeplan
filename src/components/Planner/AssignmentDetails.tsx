@@ -62,14 +62,21 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
 
   const carNames = getCarNames(assignment);
 
-  // COMPREHENSIVE FIX: Always show ALL team members for ALL users
+  // RACE CONDITION FIX: Enhanced employee data processing with better logging
   const getEmployeeData = (assignment: Assignment): { names: string[], hasFullData: boolean } => {
-    console.log('[AssignmentDetails] SERVICEMEDARBEJDER FIX - Processing employee data for:', assignment.id);
+    console.log('[AssignmentDetails] RACE CONDITION FIX - Processing employee data for:', assignment.id, {
+      hasAssignedEmployees: !!assignment.assignedEmployees?.length,
+      assignedEmployeesCount: assignment.assignedEmployees?.length || 0,
+      assignedEmployeesNames: assignment.assignedEmployees?.map(e => e.name),
+      hasLegacyEmployees: !!assignment.employees?.length,
+      legacyEmployeesCount: assignment.employees?.length || 0,
+      legacyEmployees: assignment.employees
+    });
     
     // Always prioritize enhanced employee data if available
     if (assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
-      const names = assignment.assignedEmployees.map(emp => emp.name);
-      console.log('[AssignmentDetails] SERVICEMEDARBEJDER FIX - Using assignedEmployees:', names);
+      const names = assignment.assignedEmployees.map(emp => emp.name).filter(name => name && name.trim());
+      console.log('[AssignmentDetails] RACE CONDITION FIX - Using assignedEmployees:', names);
       return {
         names,
         hasFullData: true
@@ -83,11 +90,11 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
         .map(employee => employee.trim())
         .filter(employee => employee.length > 0);
       
-      console.log('[AssignmentDetails] SERVICEMEDARBEJDER FIX - Using legacy employees:', names);
+      console.log('[AssignmentDetails] RACE CONDITION FIX - Using legacy employees:', names);
       return { names, hasFullData: false };
     }
     
-    console.log('[AssignmentDetails] SERVICEMEDARBEJDER FIX - No employee data found');
+    console.log('[AssignmentDetails] RACE CONDITION FIX - No employee data found for assignment:', assignment.id);
     return { names: [], hasFullData: false };
   };
 
