@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Assignment, normalizeEmployees } from '@/types/assignment';
@@ -11,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Send, Trash2, Edit3 } from 'lucide-react';
 import { format } from 'date-fns';
 import AssignmentFormFields from './AssignmentFormFields';
-
 interface AssignmentFormProps {
   currentAssignment: Assignment | null;
   formData: Partial<Assignment>;
@@ -26,7 +24,6 @@ interface AssignmentFormProps {
   selectedDay: string;
   onPublishDay: (date: string) => void;
 }
-
 const AssignmentForm: React.FC<AssignmentFormProps> = ({
   currentAssignment,
   formData,
@@ -216,9 +213,15 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
         month: date.getMonth() + 1,
         day: date.getDate()
       });
-      setFormData({ ...formData, date: dateString });
+      setFormData({
+        ...formData,
+        date: dateString
+      });
     } else {
-      setFormData({ ...formData, date: '' });
+      setFormData({
+        ...formData,
+        date: ''
+      });
     }
   };
 
@@ -230,46 +233,37 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           {currentAssignment ? t('planner.editAssignment') : t('planner.createNew')}
         </h2>
         
-        <AssignmentFormFields
-          title={formData.title || ''}
-          setTitle={value => {
-            console.log('[AssignmentForm] Title updated:', value);
-            setFormData({ ...formData, title: value });
-          }}
-          location={formData.location || ''}
-          setLocation={value => {
-            console.log('[AssignmentForm] Location updated:', value);
-            setFormData({ ...formData, location: value });
-          }}
-          selectedDate={formData.date ? new Date(formData.date) : undefined}
-          setSelectedDate={handleDateChange}
-          fromTime={formData.fromTime || '08:00'}
-          setFromTime={value => {
-            console.log('[AssignmentForm] From time updated:', value);
-            setFormData({ ...formData, fromTime: value });
-          }}
-          toTime={formData.toTime || '16:00'}
-          setToTime={value => {
-            console.log('[AssignmentForm] To time updated:', value);
-            setFormData({ ...formData, toTime: value });
-          }}
-          description={formData.description || ''}
-          setDescription={value => {
-            console.log('[AssignmentForm] Description updated:', value);
-            setFormData({ ...formData, description: value });
-          }}
-          selectedCarId={getCarId(formData.car)}
-          setSelectedCarId={handleCarChange}
-          selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)}
-          setSelectedResponsibleUserId={setResponsibleUserById}
-          selectedEmployees={normalizeEmployees(formData.employees)}
-          setSelectedEmployees={handleEmployeesChange}
-          cars={cars}
-          employees={employees}
-          vacations={vacations}
-          assignmentId={currentAssignment?.id}
-          assignments={assignments}
-        />
+        <AssignmentFormFields title={formData.title || ''} setTitle={value => {
+        console.log('[AssignmentForm] Title updated:', value);
+        setFormData({
+          ...formData,
+          title: value
+        });
+      }} location={formData.location || ''} setLocation={value => {
+        console.log('[AssignmentForm] Location updated:', value);
+        setFormData({
+          ...formData,
+          location: value
+        });
+      }} selectedDate={formData.date ? new Date(formData.date) : undefined} setSelectedDate={handleDateChange} fromTime={formData.fromTime || '08:00'} setFromTime={value => {
+        console.log('[AssignmentForm] From time updated:', value);
+        setFormData({
+          ...formData,
+          fromTime: value
+        });
+      }} toTime={formData.toTime || '16:00'} setToTime={value => {
+        console.log('[AssignmentForm] To time updated:', value);
+        setFormData({
+          ...formData,
+          toTime: value
+        });
+      }} description={formData.description || ''} setDescription={value => {
+        console.log('[AssignmentForm] Description updated:', value);
+        setFormData({
+          ...formData,
+          description: value
+        });
+      }} selectedCarId={getCarId(formData.car)} setSelectedCarId={handleCarChange} selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)} setSelectedResponsibleUserId={setResponsibleUserById} selectedEmployees={normalizeEmployees(formData.employees)} setSelectedEmployees={handleEmployeesChange} cars={cars} employees={employees} vacations={vacations} assignmentId={currentAssignment?.id} assignments={assignments} />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
@@ -280,20 +274,10 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
         {currentAssignment && canEdit}
 
-        {canPublishAssignment && (
-          <Button
-            type="button"
-            onClick={handlePublishClick}
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-          >
-            <Send className="mr-2 h-4 w-4" />
-            {t('planner.publishAssignment')}
-          </Button>
-        )}
+        {canPublishAssignment}
 
         {canPublishTasks && selectedDay}
       </div>
     </form>;
 };
-
 export default AssignmentForm;
