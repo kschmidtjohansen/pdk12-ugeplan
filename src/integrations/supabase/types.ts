@@ -477,9 +477,21 @@ export type Database = {
         Args: { input_text: string; max_length?: number }
         Returns: string
       }
+      test_query_performance: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       user_has_role: {
         Args: { check_role: Database["public"]["Enums"]["user_role"] }
         Returns: boolean
+      }
+      validate_data_integrity: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      validate_database_health: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       validate_email_format_enhanced: {
         Args: { email: string }
