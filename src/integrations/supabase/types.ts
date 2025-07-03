@@ -60,20 +60,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "assignments_car_id_fkey"
-            columns: ["car_id"]
-            isOneToOne: false
-            referencedRelation: "cars"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "assignments_responsible_user_id_fkey"
-            columns: ["responsible_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fk_assignments_car_id"
             columns: ["car_id"]
             isOneToOne: false
@@ -103,13 +89,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "assignments_employees_assignment_id_fkey"
-            columns: ["assignment_id"]
-            isOneToOne: false
-            referencedRelation: "assignments"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "fk_assignments_employees_assignment_id"
             columns: ["assignment_id"]
