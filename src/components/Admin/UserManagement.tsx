@@ -628,7 +628,12 @@ const UserManagement: React.FC = () => {
           return 'Unknown';
       }
     };
-    return;
+    return (
+      <div className={`flex items-center space-x-1 text-xs ${getStatusColor()}`}>
+        {getStatusIcon()}
+        <span>{getStatusText()}</span>
+      </div>
+    );
   };
 
   // FIXED: Enhanced debug info panel
