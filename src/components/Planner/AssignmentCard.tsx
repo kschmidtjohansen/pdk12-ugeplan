@@ -146,12 +146,11 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   return (
     <Card className={`w-full p-4 bg-white hover:border-polygon-purple transition-colors ${isLoading ? 'opacity-75' : ''}`}>
-      <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex justify-between items-start gap-2 mb-2">
+        <div className="flex items-center gap-2 flex-1">
+          <div className="flex flex-col flex-1">
+            <div className="flex items-center gap-2">
               <h3 className="font-medium text-lg">{assignment.title || (t('planner.titleLabel') || 'Titel')}</h3>
-              <AssignmentStatusBadge isPublished={isPublished} />
               {operationState && (
                 <span className="text-xs text-blue-600 font-medium animate-pulse">
                   {getOperationText(operationState)}
@@ -182,7 +181,9 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           </div>
         </div>
         
-        <AssignmentActionButtons 
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <AssignmentStatusBadge isPublished={isPublished} />
+          <AssignmentActionButtons
           assignment={assignment}
           onEdit={handleEditClick}
           onDelete={onDelete}
@@ -190,8 +191,9 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
             await handlePublishClick();
           }}
           onCopy={handleCopyClick}
-          operationState={operationState}
-        />
+            operationState={operationState}
+          />
+        </div>
       </div>
       
       {assignment.description && (

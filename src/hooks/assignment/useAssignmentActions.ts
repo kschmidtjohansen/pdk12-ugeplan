@@ -67,6 +67,8 @@ export const useAssignmentActions = (
       let responsibleUserId = null;
       if (assignmentData.responsibleUserId) {
         responsibleUserId = safeUUID(assignmentData.responsibleUserId);
+      } else if (assignmentData.responsibleUser?.id) {
+        responsibleUserId = safeUUID(assignmentData.responsibleUser.id);
       }
 
       // Insert the new assignment
@@ -166,6 +168,8 @@ export const useAssignmentActions = (
       let responsibleUserId = null;
       if (assignmentData.responsibleUserId) {
         responsibleUserId = safeUUID(assignmentData.responsibleUserId);
+      } else if (assignmentData.responsibleUser?.id) {
+        responsibleUserId = safeUUID(assignmentData.responsibleUser.id);
       }
 
       // Update the assignment
