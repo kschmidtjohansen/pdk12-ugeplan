@@ -412,6 +412,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      final_database_optimization: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      generate_database_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
@@ -476,6 +484,10 @@ export type Database = {
       sanitize_text_input: {
         Args: { input_text: string; max_length?: number }
         Returns: string
+      }
+      schedule_maintenance_tasks: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       test_query_performance: {
         Args: Record<PropertyKey, never>
