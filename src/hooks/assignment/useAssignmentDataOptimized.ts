@@ -19,7 +19,7 @@ export const useAssignmentDataOptimized = () => {
       
       console.log('[useAssignmentDataOptimized] SINGLE QUERY FIX - Starting comprehensive fetch...');
       
-      // SINGLE QUERY FIX: Use a single comprehensive query with proper joins
+      // SINGLE QUERY FIX: Use a single comprehensive query with explicit foreign key specification
       const { data: assignmentsWithEmployees, error: fetchError } = await supabase
         .from('assignments')
         .select(`
@@ -29,7 +29,7 @@ export const useAssignmentDataOptimized = () => {
             name,
             email
           ),
-          assignments_employees(
+          assignments_employees!assignments_employees_assignment_id_fkey(
             user_id,
             profiles(
               id,
