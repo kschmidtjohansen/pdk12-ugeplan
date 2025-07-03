@@ -19,19 +19,19 @@ export const useAssignmentDataOptimized = () => {
       
       console.log('[useAssignmentDataOptimized] SINGLE QUERY FIX - Starting comprehensive fetch...');
       
-      // SINGLE QUERY FIX: Use a single comprehensive query with explicit foreign key specification
+      // SINGLE QUERY FIX: Use a single comprehensive query with proper foreign key specification
       const { data: assignmentsWithEmployees, error: fetchError } = await supabase
         .from('assignments')
         .select(`
           *,
-          responsible_user:profiles!assignments_responsible_user_id_fkey(
+          responsible_user:profiles!fk_assignments_responsible_user_id(
             id,
             name,
             email
           ),
-          assignments_employees!assignments_employees_assignment_id_fkey(
+          assignments_employees!fk_assignments_employees_assignment_id(
             user_id,
-            profiles(
+            profiles!fk_assignments_employees_user_id(
               id,
               name,
               email
@@ -69,10 +69,10 @@ export const useAssignmentDataOptimized = () => {
         const employeeNames = assignedEmployees.map(emp => emp.name);
         
         // Handle responsible user data
-        const responsibleUser = assignment.responsible_user ? {
-          id: assignment.responsible_user.id,
-          name: assignment.responsible_user.name,
-          email: assignment.responsible_user.email
+        const responsibleUser = assignment.responsible_user && typeof assignment.responsible_user === 'object' ? {
+          id: assignment.responsible_user.id || '',
+          name: assignment.responsible_user.name || '',
+          email: assignment.responsible_user.email || ''
         } : null;
         
         console.log(`[useAssignmentDataOptimized] SINGLE QUERY FIX - Assignment "${assignment.title}":`, {

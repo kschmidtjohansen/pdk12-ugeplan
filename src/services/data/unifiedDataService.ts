@@ -50,7 +50,7 @@ class UnifiedDataService {
     try {
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, name, email, phone, job_title, on_leave, notes, avatar_url')
+        .select('id, name, email, phone, job_title, on_leave, notes, avatar_url, status')
         .order('name', { ascending: true });
 
       if (profilesError) {
@@ -77,6 +77,7 @@ class UnifiedDataService {
           jobTitle: profile.job_title || '',
           role: userRole?.role || 'servicemedarbejder',
           onLeave: profile.on_leave || false,
+          status: profile.status || 'active', // Add status from database
           notes: profile.notes || '',
           avatar_url: profile.avatar_url
         };

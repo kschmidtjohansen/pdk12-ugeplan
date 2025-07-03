@@ -215,6 +215,7 @@ export type Database = {
           notes: string | null
           on_leave: boolean | null
           phone: string | null
+          status: Database["public"]["Enums"]["employee_status"]
           updated_at: string
         }
         Insert: {
@@ -227,6 +228,7 @@ export type Database = {
           notes?: string | null
           on_leave?: boolean | null
           phone?: string | null
+          status?: Database["public"]["Enums"]["employee_status"]
           updated_at?: string
         }
         Update: {
@@ -239,6 +241,7 @@ export type Database = {
           notes?: string | null
           on_leave?: boolean | null
           phone?: string | null
+          status?: Database["public"]["Enums"]["employee_status"]
           updated_at?: string
         }
         Relationships: []
@@ -457,6 +460,7 @@ export type Database = {
     }
     Enums: {
       assignment_type: "waterDamage" | "fireDamage" | "mold" | "other"
+      employee_status: "active" | "inactive" | "on_leave" | "terminated"
       user_role: "administrator" | "skadeleder" | "servicemedarbejder"
       vacation_status: "pending" | "approved" | "rejected"
     }
@@ -575,6 +579,7 @@ export const Constants = {
   public: {
     Enums: {
       assignment_type: ["waterDamage", "fireDamage", "mold", "other"],
+      employee_status: ["active", "inactive", "on_leave", "terminated"],
       user_role: ["administrator", "skadeleder", "servicemedarbejder"],
       vacation_status: ["pending", "approved", "rejected"],
     },

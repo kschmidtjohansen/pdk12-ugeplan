@@ -71,6 +71,7 @@ export const useEmployeeData = () => {
           jobTitle: profile.job_title || '',
           role: role as 'administrator' | 'skadeleder' | 'servicemedarbejder',
           onLeave: profile.on_leave || false,
+          status: profile.status || 'active', // Add status from database
           notes: profile.notes || '',
           avatar_url: profile.avatar_url
         };
