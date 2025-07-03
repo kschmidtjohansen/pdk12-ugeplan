@@ -157,7 +157,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
         responsibleUser: {
           id: userId,
           name: userName
-        }
+        },
+        responsibleUserId: userId // FIX: Also set the responsibleUserId field
       };
       console.log('[AssignmentForm] Updated form data with responsible user:', updatedData);
       setFormData(updatedData);
@@ -165,7 +166,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       console.log('[AssignmentForm] Clearing responsible user');
       setFormData({
         ...formData,
-        responsibleUser: null
+        responsibleUser: null,
+        responsibleUserId: '' // FIX: Also clear the responsibleUserId field
       });
     }
   };
