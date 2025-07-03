@@ -109,6 +109,7 @@ const vacation = {
   availableHours: "Available {startTime} - {endTime}",
   offHours: "Off {startTime} - {endTime}",
   offFrom: "Off from {time}",
+  returnsOn: "Returns on:",
   
   // Nested status keys for better organization
   status: {

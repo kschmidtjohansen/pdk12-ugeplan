@@ -63,6 +63,12 @@ export const useAssignmentActions = (
         }
       }
       
+      // Format responsible user ID for storage
+      let responsibleUserId = null;
+      if (assignmentData.responsibleUserId) {
+        responsibleUserId = safeUUID(assignmentData.responsibleUserId);
+      }
+
       // Insert the new assignment
       const { data: newAssignment, error } = await supabase
         .from('assignments')
@@ -74,6 +80,7 @@ export const useAssignmentActions = (
           from_time: assignmentData.fromTime,
           to_time: assignmentData.toTime,
           car_id: carId,
+          responsible_user_id: responsibleUserId,
           published: assignmentData.published || false,
           created_at: new Date().toISOString()
         })
@@ -155,6 +162,12 @@ export const useAssignmentActions = (
         }
       }
       
+      // Format responsible user ID for storage
+      let responsibleUserId = null;
+      if (assignmentData.responsibleUserId) {
+        responsibleUserId = safeUUID(assignmentData.responsibleUserId);
+      }
+
       // Update the assignment
       const { error } = await supabase
         .from('assignments')
@@ -166,6 +179,7 @@ export const useAssignmentActions = (
           from_time: assignmentData.fromTime,
           to_time: assignmentData.toTime,
           car_id: carId,
+          responsible_user_id: responsibleUserId,
           published: assignmentData.published,
           updated_at: new Date().toISOString()
         })

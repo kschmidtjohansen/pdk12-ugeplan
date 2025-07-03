@@ -131,6 +131,7 @@ const vacation = {
   availableHours: "Tilgængelig {startTime} - {endTime}",
   offHours: "Fri {startTime} - {endTime}",
   offFrom: "Fri fra {time}",
+  returnsOn: "Ferie/fri til:",
 };
 
 export default vacation;
