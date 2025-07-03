@@ -46,7 +46,9 @@ export const useAssignmentDataOptimized = () => {
       
       console.log(`[useAssignmentDataOptimized] TEAM FIX - Assignments fetched:`, assignments.length);
       
-      // TEAM FIX: Then fetch all assignment-employee relationships
+      // COMPREHENSIVE FIX: Then fetch all assignment-employee relationships with detailed logging
+      console.log('[useAssignmentDataOptimized] COMPREHENSIVE FIX - Starting employee relationships fetch...');
+      
       const { data: assignmentEmployees, error: employeesError } = await supabase
         .from('assignments_employees')
         .select(`
@@ -60,11 +62,25 @@ export const useAssignmentDataOptimized = () => {
         `);
       
       if (employeesError) {
-        console.error('[useAssignmentDataOptimized] TEAM FIX - Employees fetch error:', employeesError);
+        console.error('[useAssignmentDataOptimized] COMPREHENSIVE FIX - Employees fetch error:', employeesError);
         throw employeesError;
       }
       
-      console.log(`[useAssignmentDataOptimized] TEAM FIX - Assignment employees fetched:`, assignmentEmployees?.length || 0);
+      console.log(`[useAssignmentDataOptimized] COMPREHENSIVE FIX - Assignment employees fetched:`, assignmentEmployees?.length || 0);
+      console.log('[useAssignmentDataOptimized] COMPREHENSIVE FIX - Raw assignment employees data:', assignmentEmployees);
+      
+      // Debug: Group by assignment to see distribution
+      const employeesByAssignment = assignmentEmployees?.reduce((acc, ae) => {
+        if (!acc[ae.assignment_id]) acc[ae.assignment_id] = [];
+        acc[ae.assignment_id].push({
+          user_id: ae.user_id,
+          name: ae.profiles?.name,
+          email: ae.profiles?.email
+        });
+        return acc;
+      }, {} as Record<string, any[]>);
+      
+      console.log('[useAssignmentDataOptimized] COMPREHENSIVE FIX - Employees grouped by assignment:', employeesByAssignment);
       
       // TEAM FIX: Process and combine the data
       const transformedAssignments: Assignment[] = assignments.map(assignment => {
