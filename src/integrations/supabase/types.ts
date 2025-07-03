@@ -70,6 +70,13 @@ export type Database = {
             foreignKeyName: "fk_assignments_responsible_user_id"
             columns: ["responsible_user_id"]
             isOneToOne: false
+            referencedRelation: "mv_active_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_assignments_responsible_user_id"
+            columns: ["responsible_user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -94,6 +101,13 @@ export type Database = {
             columns: ["assignment_id"]
             isOneToOne: false
             referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_assignments_employees_user_id"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_active_employees"
             referencedColumns: ["id"]
           },
           {
@@ -344,7 +358,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      mv_active_employees: {
+        Row: {
+          avatar_url: string | null
+          email: string | null
+          id: string | null
+          job_title: string | null
+          name: string | null
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          status: Database["public"]["Enums"]["employee_status"] | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
+      mv_assignment_stats: {
+        Row: {
+          month: string | null
+          published_assignments: number | null
+          total_assignments: number | null
+          unique_cars_used: number | null
+          unique_responsible_users: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_access_assignment: {
@@ -352,6 +389,10 @@ export type Database = {
         Returns: boolean
       }
       can_user_access_assignment: {
+        Args: { assignment_id: string; user_id: string }
+        Returns: boolean
+      }
+      can_view_assignment_optimized: {
         Args: { assignment_id: string; user_id: string }
         Returns: boolean
       }
@@ -422,6 +463,14 @@ export type Database = {
       }
       log_vacation_security_event: {
         Args: { event_type: string; vacation_id: string; details?: Json }
+        Returns: undefined
+      }
+      perform_database_maintenance: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      refresh_materialized_views: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       sanitize_text_input: {
