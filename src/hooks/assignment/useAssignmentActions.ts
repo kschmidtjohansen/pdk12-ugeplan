@@ -50,7 +50,16 @@ export const useAssignmentActions = (
   // Create a new assignment
   const createAssignment = useCallback(async (assignmentData: Partial<Assignment>) => {
     try {
-      console.log("Creating assignment with data:", assignmentData);
+      console.log("[useAssignmentActions] ===== CREATE ASSIGNMENT START =====");
+      console.log("[useAssignmentActions] Full assignment data received:", assignmentData);
+      console.log("[useAssignmentActions] ResponsibleUser structure:", {
+        hasResponsibleUserId: !!assignmentData.responsibleUserId,
+        responsibleUserId: assignmentData.responsibleUserId,
+        hasResponsibleUserObject: !!assignmentData.responsibleUser,
+        responsibleUserObject: assignmentData.responsibleUser,
+        responsibleUserObjectId: assignmentData.responsibleUser?.id,
+        responsibleUserObjectName: assignmentData.responsibleUser?.name
+      });
       
       // Format car information for storage
       let carId = null;
@@ -67,9 +76,14 @@ export const useAssignmentActions = (
       let responsibleUserId = null;
       if (assignmentData.responsibleUserId) {
         responsibleUserId = safeUUID(assignmentData.responsibleUserId);
+        console.log("[useAssignmentActions] Using responsibleUserId:", responsibleUserId);
       } else if (assignmentData.responsibleUser?.id) {
         responsibleUserId = safeUUID(assignmentData.responsibleUser.id);
+        console.log("[useAssignmentActions] Using responsibleUser.id:", responsibleUserId);
+      } else {
+        console.log("[useAssignmentActions] No responsible user found in data");
       }
+      console.log("[useAssignmentActions] Final responsibleUserId to store:", responsibleUserId);
 
       // Insert the new assignment
       const { data: newAssignment, error } = await supabase
@@ -151,7 +165,16 @@ export const useAssignmentActions = (
         throw new Error('Invalid assignment ID provided');
       }
 
-      console.log("Updating assignment with data:", assignmentData);
+      console.log("[useAssignmentActions] ===== UPDATE ASSIGNMENT START =====");
+      console.log("[useAssignmentActions] Full assignment data received:", assignmentData);
+      console.log("[useAssignmentActions] ResponsibleUser structure:", {
+        hasResponsibleUserId: !!assignmentData.responsibleUserId,
+        responsibleUserId: assignmentData.responsibleUserId,
+        hasResponsibleUserObject: !!assignmentData.responsibleUser,
+        responsibleUserObject: assignmentData.responsibleUser,
+        responsibleUserObjectId: assignmentData.responsibleUser?.id,
+        responsibleUserObjectName: assignmentData.responsibleUser?.name
+      });
       
       // Format car information for storage
       let carId = null;
@@ -168,9 +191,14 @@ export const useAssignmentActions = (
       let responsibleUserId = null;
       if (assignmentData.responsibleUserId) {
         responsibleUserId = safeUUID(assignmentData.responsibleUserId);
+        console.log("[useAssignmentActions] Using responsibleUserId:", responsibleUserId);
       } else if (assignmentData.responsibleUser?.id) {
         responsibleUserId = safeUUID(assignmentData.responsibleUser.id);
+        console.log("[useAssignmentActions] Using responsibleUser.id:", responsibleUserId);
+      } else {
+        console.log("[useAssignmentActions] No responsible user found in data");
       }
+      console.log("[useAssignmentActions] Final responsibleUserId to store:", responsibleUserId);
 
       // Update the assignment
       const { error } = await supabase

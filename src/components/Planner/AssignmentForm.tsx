@@ -147,16 +147,22 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   const setResponsibleUserById = (userId: string) => {
     console.log('[AssignmentForm] Setting responsible user ID:', userId);
     if (userId) {
+      // Find the user in employees to get their name
+      const user = employees.find(emp => emp.id === userId);
+      const userName = user ? user.name : '';
+      console.log('[AssignmentForm] Found user for ID:', { userId, userName, user: user?.name });
+      
       const updatedData = {
         ...formData,
         responsibleUser: {
           id: userId,
-          name: ''
+          name: userName
         }
       };
       console.log('[AssignmentForm] Updated form data with responsible user:', updatedData);
       setFormData(updatedData);
     } else {
+      console.log('[AssignmentForm] Clearing responsible user');
       setFormData({
         ...formData,
         responsibleUser: null
