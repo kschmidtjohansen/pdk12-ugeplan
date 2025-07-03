@@ -156,20 +156,6 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
 
       {/* Right Column */}
       <div className="space-y-3">
-        {/* SERVICEMEDARBEJDER FIX: Always show Sagsansvarlig for all users */}
-        {assignment.responsibleUser?.name && <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
-              <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
-            </div>
-            <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-xs text-indigo-600 font-semibold uppercase tracking-wide">
-                {t('planner.responsibleUser')}
-              </span>
-              <span className="text-foreground font-medium text-sm truncate" title={assignment.responsibleUser.name}>
-                {assignment.responsibleUser.name}
-              </span>
-            </div>
-          </div>}
 
         {/* SERVICEMEDARBEJDER FIX: Always show all team members for all users */}
         {employeeData.names.length > 0 && <div className="flex items-center gap-2">
