@@ -1,20 +1,22 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Clock, UserCheck, Users, Car } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '../../types/assignment';
 import { Car as CarType } from '../../types/car';
-
 interface AssignmentDetailsProps {
   assignment: Assignment;
   cars: CarType[];
   showFullTeamDetails?: boolean;
 }
-
-const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars, showFullTeamDetails = false }) => {
-  const { t } = useTranslation();
-
+const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
+  assignment,
+  cars,
+  showFullTeamDetails = false
+}) => {
+  const {
+    t
+  } = useTranslation();
   console.log('[AssignmentDetails] COMPREHENSIVE FIX - Assignment:', assignment.id);
   console.log('[AssignmentDetails] COMPREHENSIVE FIX - Employee data:', {
     hasAssignedEmployees: !!assignment.assignedEmployees?.length,
@@ -28,7 +30,6 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
   // Enhanced car name resolution with comprehensive fallbacks
   const getCarNames = (assignment: Assignment): string[] => {
     const carNames: string[] = [];
-    
     if (assignment.cars && Array.isArray(assignment.cars) && assignment.cars.length > 0) {
       // New format: multiple cars array with IDs
       assignment.cars.forEach(carId => {
@@ -56,14 +57,15 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
         carNames.push(assignment.car.name);
       }
     }
-    
     return carNames;
   };
-
   const carNames = getCarNames(assignment);
 
   // RACE CONDITION FIX: Enhanced employee data processing with better logging
-  const getEmployeeData = (assignment: Assignment): { names: string[], hasFullData: boolean } => {
+  const getEmployeeData = (assignment: Assignment): {
+    names: string[];
+    hasFullData: boolean;
+  } => {
     console.log('[AssignmentDetails] RACE CONDITION FIX - Processing employee data for:', assignment.id, {
       hasAssignedEmployees: !!assignment.assignedEmployees?.length,
       assignedEmployeesCount: assignment.assignedEmployees?.length || 0,
@@ -72,7 +74,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
       legacyEmployeesCount: assignment.employees?.length || 0,
       legacyEmployees: assignment.employees
     });
-    
+
     // Always prioritize enhanced employee data if available
     if (assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
       const names = assignment.assignedEmployees.map(emp => emp.name).filter(name => name && name.trim());
@@ -82,26 +84,24 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
         hasFullData: true
       };
     }
-    
+
     // Fallback to legacy employee names array
     if (assignment.employees && Array.isArray(assignment.employees) && assignment.employees.length > 0) {
-      const names = assignment.employees
-        .filter(employee => employee && typeof employee === 'string')
-        .map(employee => employee.trim())
-        .filter(employee => employee.length > 0);
-      
+      const names = assignment.employees.filter(employee => employee && typeof employee === 'string').map(employee => employee.trim()).filter(employee => employee.length > 0);
       console.log('[AssignmentDetails] RACE CONDITION FIX - Using legacy employees:', names);
-      return { names, hasFullData: false };
+      return {
+        names,
+        hasFullData: false
+      };
     }
-    
     console.log('[AssignmentDetails] RACE CONDITION FIX - No employee data found for assignment:', assignment.id);
-    return { names: [], hasFullData: false };
+    return {
+      names: [],
+      hasFullData: false
+    };
   };
-
   const employeeData = getEmployeeData(assignment);
-
-  return (
-    <div className="grid grid-cols-2 gap-4 text-sm">
+  return <div className="grid grid-cols-2 gap-4 text-sm">
       {/* Left Column */}
       <div className="space-y-3">
         {/* Time - enhanced styling */}
@@ -115,27 +115,22 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
         </div>
 
         {/* Cars - enhanced display with comprehensive fallbacks */}
-        {carNames.length > 0 && (
-          <div className="flex items-center gap-2">
+        {carNames.length > 0 && <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-200">
               <Car className="h-3.5 w-3.5 text-blue-600" />
             </div>
             <div className="flex flex-wrap gap-1">
-              {carNames.map((carName, index) => (
-                <Badge key={index} variant="outline" className="text-xs bg-blue-50">
+              {carNames.map((carName, index) => <Badge key={index} variant="outline" className="text-xs bg-blue-50">
                   {carName}
-                </Badge>
-              ))}
+                </Badge>)}
             </div>
-          </div>
-        )}
+          </div>}
       </div>
 
       {/* Right Column */}
       <div className="space-y-3">
         {/* SERVICEMEDARBEJDER FIX: Always show Sagsansvarlig for all users */}
-        {assignment.responsibleUser?.name && (
-          <div className="flex items-center gap-2">
+        {assignment.responsibleUser?.name && <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
               <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
             </div>
@@ -147,32 +142,23 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({ assignment, cars,
                 {assignment.responsibleUser.name}
               </span>
             </div>
-          </div>
-        )}
+          </div>}
 
         {/* SERVICEMEDARBEJDER FIX: Always show all team members for all users */}
-        {employeeData.names.length > 0 && (
-          <div className="flex items-center gap-2">
+        {employeeData.names.length > 0 && <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
               <Users className="h-3.5 w-3.5 text-purple-600" />
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-xs text-purple-600 font-semibold uppercase tracking-wide">
-                {t('planner.employees') || 'Medarbejdere'}
-              </span>
+              
               <div className="flex flex-wrap gap-1">
-                {employeeData.names.map((employeeName, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs bg-purple-50">
-                    {employeeName || (t('planner.unknownEmployee') || 'Ukendt medarbejder')}
-                  </Badge>
-                ))}
+                {employeeData.names.map((employeeName, index) => <Badge key={index} variant="secondary" className="text-xs bg-purple-50">
+                    {employeeName || t('planner.unknownEmployee') || 'Ukendt medarbejder'}
+                  </Badge>)}
               </div>
             </div>
-          </div>
-        )}
+          </div>}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default AssignmentDetails;

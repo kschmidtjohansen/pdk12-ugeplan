@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTranslation } from '../context/TranslationContext';
 import { usePlannerPage } from '../hooks/usePlannerPage';
@@ -12,15 +11,27 @@ import { Clock, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/spinner';
-
 const PlannerPage: React.FC = () => {
-  const { t, currentLanguage } = useTranslation();
-  const { canCreate, canPublishTasks } = usePermissions();
-  const { user } = useAuth();
-  const { employees } = useEmployees();
-  const { cars } = useCars();
-  const { vacations } = useVacations();
-  
+  const {
+    t,
+    currentLanguage
+  } = useTranslation();
+  const {
+    canCreate,
+    canPublishTasks
+  } = usePermissions();
+  const {
+    user
+  } = useAuth();
+  const {
+    employees
+  } = useEmployees();
+  const {
+    cars
+  } = useCars();
+  const {
+    vacations
+  } = useVacations();
   const {
     selectedWeek,
     selectedYear,
@@ -56,7 +67,6 @@ const PlannerPage: React.FC = () => {
     selectedWeek,
     selectedYear
   });
-
   console.log(`[PlannerPage] PHASE 3 DEBUG - Weekly assignments breakdown:`, {
     totalAssignments: weekAssignments?.length || 0,
     publishedAssignments: weekAssignments?.filter(a => a.published).length || 0,
@@ -77,7 +87,6 @@ const PlannerPage: React.FC = () => {
       shouldBeVisibleToServicemedarbejder: assignment.published
     });
   });
-
   const sortedWeekAssignments = React.useMemo(() => {
     if (!weekAssignments) return [];
     return [...weekAssignments].sort((a, b) => {
@@ -87,33 +96,26 @@ const PlannerPage: React.FC = () => {
       return a.fromTime.localeCompare(b.fromTime);
     });
   }, [weekAssignments]);
-  
   const handleShowOnScreen = () => {
     const today = new Date().toISOString().split('T')[0];
     const screenUrl = `/screen-display?date=${today}`;
     window.open(screenUrl, '_blank', 'fullscreen=yes');
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+    return <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Spinner size="lg" />
           <p className="text-lg font-medium text-gray-600">{t('common.loading')}...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (error) {
-    return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+    return <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-red-600 mb-2">{t('common.error')}</h2>
           <p className="text-gray-600">{typeof error === 'string' ? error : 'An error occurred'}</p>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Convert operation states to match expected format
@@ -126,9 +128,7 @@ const PlannerPage: React.FC = () => {
       return;
     }
   });
-
-  return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
+  return <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
         {/* Enhanced Header with Responsive Design */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 lg:p-8 text-white shadow-2xl animate-fade-in-up">
@@ -150,19 +150,15 @@ const PlannerPage: React.FC = () => {
                   </h1>
                   <p className="text-blue-100 text-sm lg:text-lg font-medium">
                     {t('planner.weekView', {
-                      week: selectedWeek,
-                      year: selectedYear,
-                      start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
-                      end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
-                    })}
+                    week: selectedWeek,
+                    year: selectedYear,
+                    start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
+                    end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
+                  })}
                   </p>
                   
                   {/* PHASE 3 DEBUG: Add debug info in header for servicemedarbejder */}
-                  {user?.role === 'servicemedarbejder' && (
-                    <p className="text-blue-200 text-xs">
-                      {t('common.debug')}: {t('dashboard.processing')} {sortedWeekAssignments.length} {t('planner.assignments').toLowerCase()} ({sortedWeekAssignments.filter(a => a.published).length} {t('planner.published').toLowerCase()})
-                    </p>
-                  )}
+                  {user?.role === 'servicemedarbejder'}
                 </div>
               </div>
 
@@ -170,12 +166,7 @@ const PlannerPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:gap-4">
                 {/* Week Navigation */}
                 <div className="flex items-center justify-center gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handlePreviousWeek} 
-                    className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                  >
+                  <Button variant="outline" size="sm" onClick={handlePreviousWeek} className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm">
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   
@@ -183,65 +174,27 @@ const PlannerPage: React.FC = () => {
                     {t('planner.week')} {selectedWeek}
                   </span>
                   
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleNextWeek} 
-                    className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                  >
+                  <Button variant="outline" size="sm" onClick={handleNextWeek} className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm">
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
 
                 {/* Create Assignment Button */}
-                {canCreate && (
-                  <Button 
-                    onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])}
-                    size="sm" 
-                    className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                  >
+                {canCreate && <Button onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} size="sm" className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm">
                     <Plus className="h-4 w-4" />
                     {t('planner.newAssignment')}
-                  </Button>
-                )}
+                  </Button>}
               </div>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <PlannerContent 
-          weekAssignments={sortedWeekAssignments}
-          operationStates={convertedOperationStates}
-          onEditAssignment={handleOpenEditDialog}
-          onDeleteAssignment={deleteAssignment}
-          onPublishAssignment={publishAssignment}
-          onPublishDay={handlePublishDay}
-          onCreateAssignment={handleOpenCreateDialog}
-          onCopyAssignment={handleCopyAssignment}
-          selectedWeek={selectedWeek}
-          selectedYear={selectedYear}
-          weekDates={weekDates}
-          handleShowOnScreen={handleShowOnScreen}
-        />
+        <PlannerContent weekAssignments={sortedWeekAssignments} operationStates={convertedOperationStates} onEditAssignment={handleOpenEditDialog} onDeleteAssignment={deleteAssignment} onPublishAssignment={publishAssignment} onPublishDay={handlePublishDay} onCreateAssignment={handleOpenCreateDialog} onCopyAssignment={handleCopyAssignment} selectedWeek={selectedWeek} selectedYear={selectedYear} weekDates={weekDates} handleShowOnScreen={handleShowOnScreen} />
 
         {/* Assignment Dialog */}
-        <PlannerDialogContainer
-          isDialogOpen={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)}
-          onSubmit={handleSubmit}
-          currentAssignment={currentAssignment}
-          selectedDay={selectedDay}
-          formData={formData}
-          setFormData={setFormData}
-          employees={employees}
-          cars={cars}
-          vacations={vacations}
-          assignments={sortedWeekAssignments}
-        />
+        <PlannerDialogContainer isDialogOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onSubmit={handleSubmit} currentAssignment={currentAssignment} selectedDay={selectedDay} formData={formData} setFormData={setFormData} employees={employees} cars={cars} vacations={vacations} assignments={sortedWeekAssignments} />
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default PlannerPage;
