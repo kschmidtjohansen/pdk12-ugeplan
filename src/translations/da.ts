@@ -27,7 +27,9 @@ const daTranslations = {
     deleting: 'Sletter...',
     lightMode: 'Lys tilstand',
     darkMode: 'Mørk tilstand',
-    toggleTheme: 'Skift tema'
+    toggleTheme: 'Skift tema',
+    today: 'I dag',
+    tomorrow: 'I morgen'
   },
   // Navigation items
   navigation: navigation,

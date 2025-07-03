@@ -27,7 +27,9 @@ const enTranslations = {
     deleting: 'Deleting...',
     lightMode: 'Light mode',
     darkMode: 'Dark mode',
-    toggleTheme: 'Toggle theme'
+    toggleTheme: 'Toggle theme',
+    today: 'Today',
+    tomorrow: 'Tomorrow'
   },
   // Navigation items
   navigation: navigation,

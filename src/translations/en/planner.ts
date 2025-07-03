@@ -165,7 +165,14 @@ const planner = {
   today: 'Today',
   
   // New translations for unassigned resources
-  noEmployeesAvailable: 'All employees are assigned or on vacation'
+  noEmployeesAvailable: 'All employees are assigned or on vacation',
+  
+  // Collapsible and date navigation
+  collapseResources: 'Hide resources',
+  expandResources: 'Show resources', 
+  selectDate: 'Select date',
+  previousDay: 'Previous day',
+  nextDay: 'Next day'
 };
 
 export default planner;

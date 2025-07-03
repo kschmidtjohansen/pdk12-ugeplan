@@ -126,6 +126,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
           employees={employees}
           cars={cars}
           vacations={vacations}
+          weekDates={weekDates}
         />
       )}
       

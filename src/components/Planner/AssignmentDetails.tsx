@@ -136,7 +136,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
             </div>
             <div className="flex flex-col min-w-0 flex-1">
               <span className="text-xs text-indigo-600 font-semibold uppercase tracking-wide">
-                {t('planner.responsibleUser') || 'Sagsansvarlig'}
+                {t('planner.responsibleUser')}
               </span>
               <span className="text-foreground font-medium text-sm truncate" title={assignment.responsibleUser.name}>
                 {assignment.responsibleUser.name}
@@ -153,7 +153,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
               
               <div className="flex flex-wrap gap-1">
                 {employeeData.names.map((employeeName, index) => <Badge key={index} variant="secondary" className="text-xs bg-purple-50">
-                    {employeeName || t('planner.unknownEmployee') || 'Ukendt medarbejder'}
+                    {employeeName || t('planner.unknownEmployee')}
                   </Badge>)}
               </div>
             </div>

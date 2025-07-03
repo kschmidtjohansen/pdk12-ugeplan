@@ -165,7 +165,14 @@ const planner = {
   today: 'I dag',
   
   // New translations for unassigned resources
-  noEmployeesAvailable: 'Alle medarbejdere er tildelt eller på ferie'
+  noEmployeesAvailable: 'Alle medarbejdere er tildelt eller på ferie',
+  
+  // Collapsible and date navigation
+  collapseResources: 'Skjul ressourcer',
+  expandResources: 'Vis ressourcer',
+  selectDate: 'Vælg dato',
+  previousDay: 'Forrige dag',
+  nextDay: 'Næste dag'
 };
 
 export default planner;
