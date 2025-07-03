@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Clock, UserCheck, Users, Car } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 import { Assignment } from '../../types/assignment';
 import { Car as CarType } from '../../types/car';
 interface AssignmentDetailsProps {
@@ -14,9 +15,8 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
   cars,
   showFullTeamDetails = false
 }) => {
-  const {
-    t
-  } = useTranslation();
+  const { t } = useTranslation();
+  const { user } = useAuth();
   console.log('[AssignmentDetails] COMPREHENSIVE FIX - Assignment:', assignment.id);
   console.log('[AssignmentDetails] COMPREHENSIVE FIX - Employee data:', {
     hasAssignedEmployees: !!assignment.assignedEmployees?.length,
@@ -61,12 +61,19 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
   };
   const carNames = getCarNames(assignment);
 
-  // RACE CONDITION FIX: Enhanced employee data processing with better logging
+  // PHASE 3 FIX: Role-based employee data processing with visibility controls
   const getEmployeeData = (assignment: Assignment): {
     names: string[];
     hasFullData: boolean;
   } => {
-    console.log('[AssignmentDetails] RACE CONDITION FIX - Processing employee data for:', assignment.id, {
+    const currentUserRole = user?.role;
+    const isServicemedarbejder = currentUserRole === 'servicemedarbejder';
+    
+    console.log('[AssignmentDetails] PHASE 3 FIX - Processing employee data for:', assignment.id, {
+      currentUserRole,
+      isServicemedarbejder,
+      currentUserId: user?.id,
+      currentUserName: user?.name,
       hasAssignedEmployees: !!assignment.assignedEmployees?.length,
       assignedEmployeesCount: assignment.assignedEmployees?.length || 0,
       assignedEmployeesNames: assignment.assignedEmployees?.map(e => e.name),
@@ -75,26 +82,46 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       legacyEmployees: assignment.employees
     });
 
-    // Always prioritize enhanced employee data if available
+    // Enhanced employee data with role-based filtering
     if (assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
-      const names = assignment.assignedEmployees.map(emp => emp.name).filter(name => name && name.trim());
-      console.log('[AssignmentDetails] RACE CONDITION FIX - Using assignedEmployees:', names);
+      let names = assignment.assignedEmployees.map(emp => emp.name).filter(name => name && name.trim());
+      
+      // Apply role-based filtering for servicemedarbejder
+      if (isServicemedarbejder && user?.id) {
+        // Only show current user if they're in the team
+        const currentUserInTeam = assignment.assignedEmployees.some(emp => emp.id === user.id);
+        names = currentUserInTeam ? [user.name] : [];
+        console.log('[AssignmentDetails] PHASE 3 FIX - Servicemedarbejder filtered names:', names);
+      } else {
+        console.log('[AssignmentDetails] PHASE 3 FIX - Admin/Skadeleder sees all names:', names);
+      }
+      
       return {
         names,
         hasFullData: true
       };
     }
 
-    // Fallback to legacy employee names array
+    // Fallback to legacy employee names array with role-based filtering
     if (assignment.employees && Array.isArray(assignment.employees) && assignment.employees.length > 0) {
-      const names = assignment.employees.filter(employee => employee && typeof employee === 'string').map(employee => employee.trim()).filter(employee => employee.length > 0);
-      console.log('[AssignmentDetails] RACE CONDITION FIX - Using legacy employees:', names);
+      let names = assignment.employees.filter(employee => employee && typeof employee === 'string').map(employee => employee.trim()).filter(employee => employee.length > 0);
+      
+      // Apply role-based filtering for servicemedarbejder
+      if (isServicemedarbejder && user?.name) {
+        // Only show current user's name if they're in the legacy employees list
+        names = names.includes(user.name) ? [user.name] : [];
+        console.log('[AssignmentDetails] PHASE 3 FIX - Servicemedarbejder filtered legacy names:', names);
+      } else {
+        console.log('[AssignmentDetails] PHASE 3 FIX - Admin/Skadeleder sees all legacy names:', names);
+      }
+      
       return {
         names,
         hasFullData: false
       };
     }
-    console.log('[AssignmentDetails] RACE CONDITION FIX - No employee data found for assignment:', assignment.id);
+    
+    console.log('[AssignmentDetails] PHASE 3 FIX - No employee data found for assignment:', assignment.id);
     return {
       names: [],
       hasFullData: false

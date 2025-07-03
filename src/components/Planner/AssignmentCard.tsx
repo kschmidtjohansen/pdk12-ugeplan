@@ -43,27 +43,47 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     responsibleUserId: assignment.responsibleUserId || assignment.responsibleUser?.id
   });
   
-  // Enhanced responsible user lookup optimized for the new 7-user structure
+  // PHASE 1 FIX: Enhanced responsible user lookup with comprehensive debugging
   const getResponsibleUserInfo = () => {
-    if (!assignment.responsibleUserId) {
-      console.log('[AssignmentCard] No responsible user ID');
+    console.log('[AssignmentCard] DEBUG - Getting responsible user info:', {
+      assignmentId: assignment.id,
+      responsibleUserId: assignment.responsibleUserId,
+      responsibleUserFromAssignment: assignment.responsibleUser,
+      employeesCount: employees.length,
+      hasResponsibleUserId: !!assignment.responsibleUserId
+    });
+
+    // Check multiple possible sources for responsible user ID
+    const responsibleId = assignment.responsibleUserId || assignment.responsibleUser?.id;
+    
+    if (!responsibleId) {
+      console.log('[AssignmentCard] DEBUG - No responsible user ID found');
       return null;
     }
 
     // First check if we have the user data from the assignment object
     if (assignment.responsibleUser?.name) {
-      console.log('[AssignmentCard] Using assignment.responsibleUser:', assignment.responsibleUser.name);
-      return assignment.responsibleUser;
+      console.log('[AssignmentCard] DEBUG - Using assignment.responsibleUser:', assignment.responsibleUser.name);
+      return {
+        id: assignment.responsibleUser.id,
+        name: assignment.responsibleUser.name,
+        role: assignment.responsibleUser.role || 'unknown'
+      };
     }
 
-    // Enhanced lookup from employees for the updated role structure
-    const responsibleEmployee = employees.find(emp => emp.id === assignment.responsibleUserId);
+    // Enhanced lookup from employees with detailed logging
+    console.log('[AssignmentCard] DEBUG - Searching in employees list:', {
+      searchingForId: responsibleId,
+      employeeIds: employees.map(e => ({ id: e.id.substring(0, 8) + '...', name: e.name, role: e.role }))
+    });
+
+    const responsibleEmployee = employees.find(emp => emp.id === responsibleId);
     if (responsibleEmployee) {
-      console.log('[AssignmentCard] Found responsible user via employees lookup:', responsibleEmployee.name, responsibleEmployee.role);
-      
-      // Verify the user has the correct role for being a responsible user
-      const isEligible = responsibleEmployee.role === 'administrator' || responsibleEmployee.role === 'skadeleder';
-      console.log('[AssignmentCard] User role eligibility check:', isEligible);
+      console.log('[AssignmentCard] DEBUG - Found responsible user via employees lookup:', {
+        name: responsibleEmployee.name,
+        role: responsibleEmployee.role,
+        id: responsibleEmployee.id.substring(0, 8) + '...'
+      });
       
       return {
         id: responsibleEmployee.id,
@@ -72,7 +92,11 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       };
     }
 
-    console.warn('[AssignmentCard] Responsible user not found in employees list');
+    console.warn('[AssignmentCard] DEBUG - Responsible user not found anywhere:', {
+      searchedId: responsibleId,
+      totalEmployees: employees.length,
+      assignmentTitle: assignment.title
+    });
     return null;
   };
 

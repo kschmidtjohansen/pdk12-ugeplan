@@ -195,18 +195,41 @@ const MineOpgaver: React.FC = () => {
               <span>{assignment.fromTime?.substring(0, 5)} - {assignment.toTime?.substring(0, 5)}</span>
             </div>
 
-            {/* COMPREHENSIVE FIX: Show ALL team members - always prioritize assignedEmployees for complete data */}
-            {(assignment.assignedEmployees?.length || assignment.employees?.length) && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Users className="h-3 w-3" />
-                <span>
-                  {assignment.assignedEmployees?.length 
-                    ? assignment.assignedEmployees.map(emp => emp.name).join(', ')
-                    : assignment.employees?.join(', ')
-                  }
-                </span>
-              </div>
-            )}
+            {/* PHASE 2 FIX: Role-based team member visibility */}
+            {(assignment.assignedEmployees?.length || assignment.employees?.length) && (() => {
+              // Get current user's role from useAuth context
+              const currentUserRole = user?.role;
+              const isServicemedarbejder = currentUserRole === 'servicemedarbejder';
+              
+              let teamMembers = [];
+              
+              if (assignment.assignedEmployees?.length) {
+                if (isServicemedarbejder) {
+                  // Show only current user if they're in the team
+                  teamMembers = assignment.assignedEmployees
+                    .filter(emp => emp.id === user?.id)
+                    .map(emp => emp.name);
+                } else {
+                  // Show all team members for admin/skadeleder
+                  teamMembers = assignment.assignedEmployees.map(emp => emp.name);
+                }
+              } else if (assignment.employees?.length) {
+                if (isServicemedarbejder) {
+                  // Show only current user's name if they're in the legacy employees list
+                  teamMembers = assignment.employees.includes(user?.name) ? [user?.name] : [];
+                } else {
+                  // Show all team members for admin/skadeleder
+                  teamMembers = assignment.employees;
+                }
+              }
+              
+              return teamMembers.length > 0 ? (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Users className="h-3 w-3" />
+                  <span>{teamMembers.join(', ')}</span>
+                </div>
+              ) : null;
+            })()}
 
             {/* Show Sagsansvarlig if present */}
             {assignment.responsibleUser?.name && (
