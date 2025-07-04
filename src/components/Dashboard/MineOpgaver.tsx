@@ -6,7 +6,7 @@ import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentData
 import { useCars } from '@/hooks/car';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, UserCheck, Calendar, Users } from 'lucide-react';
+import { Clock, MapPin, UserCheck, Calendar, Users, Car } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { getCurrentWeekInfo, getWeekDates } from '@/utils/dates';
@@ -16,6 +16,7 @@ const MineOpgaver: React.FC = () => {
   const { user } = useAuth();
   const { t, currentLanguage } = useTranslation();
   const { assignments, loading, error } = useAssignmentDataOptimized();
+  const { cars } = useCars();
 
   // Filter assignments for current week only
   const userAssignments = React.useMemo(() => {
@@ -71,6 +72,37 @@ const MineOpgaver: React.FC = () => {
       return a.fromTime.localeCompare(b.fromTime);
     }).slice(0, 5); // Show max 5 upcoming tasks
   }, [assignments, user]);
+
+  // Helper function to get car names from assignment
+  const getCarNames = (assignment: any): string[] => {
+    const carNames: string[] = [];
+    if (assignment.cars && Array.isArray(assignment.cars) && assignment.cars.length > 0) {
+      // New format: multiple cars array with IDs
+      assignment.cars.forEach((carId: string) => {
+        if (carId) {
+          const car = cars.find(c => c.id === carId);
+          if (car) {
+            carNames.push(car.name);
+          } else {
+            carNames.push(`Car ${carId.substring(0, 8)}`);
+          }
+        }
+      });
+    } else if (assignment.car) {
+      // Old format: single car
+      if (typeof assignment.car === 'string') {
+        const car = cars.find(c => c.id === assignment.car);
+        if (car) {
+          carNames.push(car.name);
+        } else {
+          carNames.push(`Car ${assignment.car.substring(0, 8)}`);
+        }
+      } else if (typeof assignment.car === 'object' && assignment.car.name) {
+        carNames.push(assignment.car.name);
+      }
+    }
+    return carNames;
+  };
 
   // PHASE 3 FIX: Enhanced date formatting
   const formatAssignmentDate = (dateStr: string) => {
@@ -194,6 +226,23 @@ const MineOpgaver: React.FC = () => {
               <Clock className="h-3 w-3" />
               <span>{assignment.fromTime?.substring(0, 5)} - {assignment.toTime?.substring(0, 5)}</span>
             </div>
+
+            {/* Cars */}
+            {(() => {
+              const carNames = getCarNames(assignment);
+              return carNames.length > 0 ? (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Car className="h-3 w-3" />
+                  <div className="flex flex-wrap gap-1">
+                    {carNames.map((carName, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {carName}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
 
             {/* Show all team members for assignments user can access */}
             {(assignment.assignedEmployees?.length || assignment.employees?.length) && (() => {
