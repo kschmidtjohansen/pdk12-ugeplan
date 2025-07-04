@@ -233,13 +233,7 @@ const MineOpgaver: React.FC = () => {
               return carNames.length > 0 ? (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Car className="h-3 w-3" />
-                  <div className="flex flex-wrap gap-1">
-                    {carNames.map((carName, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {carName}
-                      </Badge>
-                    ))}
-                  </div>
+                  <span>{carNames.join(', ')}</span>
                 </div>
               ) : null;
             })()}
