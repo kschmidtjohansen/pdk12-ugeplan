@@ -448,6 +448,10 @@ export type Database = {
         Args: { password: string }
         Returns: boolean
       }
+      is_user_assigned_to_assignment: {
+        Args: { assignment_id: string; user_id: string }
+        Returns: boolean
+      }
       is_valid_email: {
         Args: { email: string }
         Returns: boolean
