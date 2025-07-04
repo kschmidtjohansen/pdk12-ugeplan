@@ -10,7 +10,7 @@ const AssignmentStatusBadge: React.FC<AssignmentStatusBadgeProps> = ({
   const {
     t
   } = useTranslation();
-  return isPublished ? <StatusBadge variant="success" className="px-0">
+  return isPublished ? <StatusBadge variant="success">
       {t('planner.published')}
     </StatusBadge> : <StatusBadge variant="warning">
       {t('planner.notPublished')}
