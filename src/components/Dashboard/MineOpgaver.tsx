@@ -181,15 +181,18 @@ const MineOpgaver: React.FC = () => {
 
   return (
     <Card className="h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-primary" />
-          {t('dashboard.myTasks') || 'Mine Opgaver'}
-          <Badge variant="secondary" className="ml-auto">
-            {userAssignments.length}
-          </Badge>
-        </CardTitle>
-      </CardHeader>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            {t('dashboard.myTasks') || 'Mine Opgaver'}
+            <span className="text-sm font-normal text-muted-foreground">
+              - Uge {getCurrentWeekInfo().week}
+            </span>
+            <Badge variant="secondary" className="ml-auto">
+              {userAssignments.length}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
       <CardContent className="space-y-4">
         {userAssignments.map((assignment) => (
           <div

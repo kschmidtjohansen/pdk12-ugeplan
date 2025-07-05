@@ -485,6 +485,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      run_automated_maintenance: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       sanitize_text_input: {
         Args: { input_text: string; max_length?: number }
         Returns: string
