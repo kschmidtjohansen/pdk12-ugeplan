@@ -6,7 +6,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Vacation, VacationRequestType } from '@/types/vacation';
 import { logSecurityEvent, logSystemError } from '@/utils/securityLogger';
 import { useErrorRecovery } from '@/hooks/useErrorRecovery';
-import { dataFetchingService } from '@/services/dataFetchingService';
+import { enhancedDataFetching } from '@/services/enhancedDataFetching';
+import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
 import { realtimeManager } from '@/services/realtimeManager';
 
 export const useVacationData = () => {
@@ -22,43 +23,33 @@ export const useVacationData = () => {
       setLoading(true);
       setError(null);
 
+      console.log('[useVacationData] Starting enhanced vacation fetch...');
+
+      // Use enhanced data fetching with better error handling
+      const vacationResult = await enhancedDataFetching.fetchVacationsEnhanced();
       
-
-      const result = await executeWithRecovery(
-        async () => {
-          const { data: vacationsData, error: vacationsError, fromCache } = await dataFetchingService.fetchVacations();
-          
-          if (vacationsError) throw vacationsError;
-          
-          
-          return vacationsData;
-        },
-        'Vacation Data Fetch'
-      );
-
-      if (result.error || !result.data) {
-        throw result.error || new Error('No vacation data received');
+      if (vacationResult.error || !vacationResult.data) {
+        throw vacationResult.error || new Error('No vacation data received');
       }
 
-      const vacationsData = result.data;
+      const vacationsData = vacationResult.data;
+      console.log(`[useVacationData] Fetched ${vacationsData.length} vacation records`);
 
-      // Fetch user profiles separately with error recovery
+      // Fetch user profiles with enhanced error handling
       const userIds = [...new Set(vacationsData.map(v => v.user_id).filter(id => typeof id === 'string'))] as string[];
       
-      const profileResult = await executeWithRecovery(
-        async () => {
-          const { data: profilesData, error: profilesError } = await supabase
-            .from('profiles')
-            .select('id, name, email')
-            .in('id', userIds);
-
-          if (profilesError) throw profilesError;
-          return profilesData;
-        },
-        'Vacation User Profiles Fetch'
-      );
-
+      const profileResult = await enhancedDataFetching.fetchUserProfilesEnhanced(userIds);
       
+      if (profileResult.error) {
+        console.warn('[useVacationData] Profile fetch failed, continuing with vacation data only:', profileResult.error);
+        // Log warning but don't fail the entire operation
+        await enhancedErrorHandler.logError(profileResult.error, {
+          operation: 'fetchUserProfilesForVacations',
+          userId: undefined,
+          retryCount: (profileResult as any).retryCount || 0,
+          additionalData: { userIdsCount: userIds.length }
+        });
+      }
 
       // Transform the data to match our Vacation interface
       const transformedVacations: Vacation[] = vacationsData.map(vacation => {
@@ -87,25 +78,33 @@ export const useVacationData = () => {
       });
 
       setVacations(transformedVacations);
-      
+      console.log(`[useVacationData] Successfully processed ${transformedVacations.length} vacation records`);
 
     } catch (err) {
       console.error('[useVacationData] Error in fetchVacations:', err);
       
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      setError(errorMessage);
+      // Enhanced error handling with proper serialization
+      const serializedError = enhancedErrorHandler.serializeError(err);
+      const category = enhancedErrorHandler.categorizeError(serializedError);
+      const userFriendlyMessage = enhancedErrorHandler.getUserFriendlyMessage(serializedError, category);
       
-      // Log system error with enhanced details
-      await logSystemError('useVacationData', err, { 
-        context: 'fetch_vacations',
-        timestamp: new Date().toISOString()
+      setError(userFriendlyMessage);
+      
+      // Log error with enhanced context
+      await enhancedErrorHandler.logError(err, {
+        operation: 'fetchVacations',
+        additionalData: { 
+          context: 'useVacationData',
+          component: 'vacation_data_hook',
+          category
+        }
       });
       
-      // Don't show toast for authentication errors
-      if (!errorMessage.includes('JWT') && !errorMessage.includes('auth')) {
+      // Only show toast for non-auth errors to avoid spam
+      if (category !== 'auth') {
         toast({
           title: t('common.error') || 'Error',
-          description: t('vacation.fetchError') || 'Error loading vacation requests',
+          description: userFriendlyMessage,
           variant: 'destructive',
         });
       }
@@ -114,7 +113,7 @@ export const useVacationData = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, t, executeWithRecovery]);
+  }, [toast, t]);
 
   // Load vacations on component mount
   useEffect(() => {
@@ -128,16 +127,17 @@ export const useVacationData = () => {
     const subscriptionId = 'vacations_enhanced';
     
     const handleRealtimeUpdate = () => {
-      dataFetchingService.clearCache('vacations');
+      enhancedDataFetching.clearCache('vacations');
       fetchVacations();
       
-      // Log realtime data changes for monitoring
+      // Log realtime data changes for monitoring with enhanced logging
       logSecurityEvent(
         'vacation_realtime_change',
         'Vacation change detected via centralized realtime manager',
         { 
           subscription_id: subscriptionId,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          source: 'realtime_manager'
         },
         'info'
       );

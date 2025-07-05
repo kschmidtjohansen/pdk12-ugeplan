@@ -8,6 +8,7 @@ import { useSystemHealthMonitoring } from '@/hooks/useSystemHealthMonitoring';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { SystemOptimizationMonitor } from '@/components/SystemOptimizationMonitor';
+import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import DataHealthMonitor from '@/components/DataHealthMonitor';
 import { SecurityLogViewer } from '@/components/Admin/SecurityLogViewer';
 
@@ -221,6 +222,39 @@ export const SystemHealthDashboard: React.FC = () => {
 
       {/* Security Log Viewer */}
       <SecurityLogViewer />
+      
+      {/* Circuit Breaker Status */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Circuit Breaker Status</span>
+            <Badge variant="outline">Enhanced Monitoring</Badge>
+          </CardTitle>
+          <CardDescription>
+            Monitor circuit breaker status for critical data operations
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {Object.entries(enhancedDataFetching.getCircuitBreakerStatus()).map(([operation, status]) => (
+              <div key={operation} className="flex items-center justify-between p-2 border rounded">
+                <span className="text-sm font-medium">{operation}</span>
+                <div className="flex items-center space-x-2">
+                  <Badge variant={(status as any).isOpen ? 'destructive' : 'default'}>
+                    {(status as any).isOpen ? 'Open' : 'Closed'}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    Failures: {(status as any).failures}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {Object.entries(enhancedDataFetching.getCircuitBreakerStatus()).length === 0 && (
+              <p className="text-sm text-muted-foreground">No circuit breakers active - system operating normally</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
