@@ -12,10 +12,10 @@ interface SecurityConfig {
 }
 
 const defaultConfig: SecurityConfig = {
-  enableThreatDetection: false, // Disabled to prevent interference with auth
+  enableThreatDetection: false, // Disabled to prevent log pollution
   sessionTimeoutMinutes: 30,
   maxIdleTimeMinutes: 20,
-  enableActivityLogging: false // Disabled to prevent interference with auth
+  enableActivityLogging: false // Disabled to prevent excessive logging
 };
 
 export const useSecurityMonitoring = (config: Partial<SecurityConfig> = {}) => {
@@ -52,17 +52,17 @@ export const useSecurityMonitoring = (config: Partial<SecurityConfig> = {}) => {
     return true;
   }, [user, isAuthenticated]);
 
-  // Simplified activity detection (disabled by default)
+  // Highly selective activity detection to prevent log pollution
   const detectSuspiciousActivity = useCallback((activityType: string, details: any = {}) => {
     if (!finalConfig.enableThreatDetection) return;
     
-    // Only log truly suspicious activities
-    if (activityType === 'rapid_requests' || activityType === 'unauthorized_access') {
+    // Only log critical security threats, not user activity
+    if (activityType === 'unauthorized_access' || activityType === 'security_breach' || activityType === 'auth_tampering') {
       logSecurityEvent(
         'suspicious_activity',
-        `Suspicious activity detected: ${activityType}`,
+        `Critical security event: ${activityType}`,
         details,
-        'warning'
+        'critical'
       );
     }
   }, [finalConfig.enableThreatDetection]);

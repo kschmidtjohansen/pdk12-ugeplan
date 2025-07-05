@@ -72,22 +72,14 @@ export const useErrorRecovery = (options: ErrorRecoveryOptions = {}) => {
           errorCategory = 'database_schema';
         }
 
-        // Log critical errors to database with enhanced details
+        // Log critical errors using optimized data fetch error logging
         if (attempts === 1) {
           try {
-            await supabase.rpc('log_security_event_safe', {
-              event_type: `${operationName.toLowerCase()}_failure`,
-              event_message: `${operationName} failed: ${errorMessage}`,
-              event_details: { 
-                operation: operationName, 
-                error: errorMessage,
-                error_category: errorCategory,
-                attempt: attempts,
-                timestamp: new Date().toISOString(),
-                user_agent: navigator.userAgent,
-                url: window.location.href
-              },
-              severity: 'error'
+            await supabase.rpc('log_data_fetch_error_safe', {
+              operation_type: operationName,
+              error_message: errorMessage,
+              user_id_param: null, // Will use auth.uid() in function
+              retry_count: attempts - 1
             });
           } catch (logError) {
             console.warn('[ErrorRecovery] Failed to log error:', logError);

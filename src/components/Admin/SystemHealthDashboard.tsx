@@ -7,6 +7,9 @@ import { Shield, Database, AlertTriangle, CheckCircle2, RefreshCw, Activity } fr
 import { useSystemHealthMonitoring } from '@/hooks/useSystemHealthMonitoring';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
+import { SystemOptimizationMonitor } from '@/components/SystemOptimizationMonitor';
+import DataHealthMonitor from '@/components/DataHealthMonitor';
+import { SecurityLogViewer } from '@/components/Admin/SecurityLogViewer';
 
 export const SystemHealthDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -59,6 +62,44 @@ export const SystemHealthDashboard: React.FC = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* System Overview Cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
+        <SystemOptimizationMonitor />
+        <DataHealthMonitor />
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              Quick System Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">System Health:</span>
+                <Badge variant={isHealthy ? 'default' : 'destructive'}>
+                  {isHealthy ? 'Healthy' : 'Issues Detected'}
+                </Badge>
+              </div>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Security Events:</span>
+                  <span>{metrics.totalSecurityEvents}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Recent Errors:</span>
+                  <Badge variant={metrics.recentErrors > 10 ? 'destructive' : 'secondary'}>
+                    {metrics.recentErrors}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* System Status */}
@@ -177,6 +218,9 @@ export const SystemHealthDashboard: React.FC = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Security Log Viewer */}
+      <SecurityLogViewer />
     </div>
   );
 };

@@ -412,6 +412,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      emergency_log_cleanup: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       final_database_optimization: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -456,11 +460,33 @@ export type Database = {
         Args: { email: string }
         Returns: boolean
       }
+      log_data_fetch_error_safe: {
+        Args: {
+          operation_type: string
+          error_message: string
+          user_id_param?: string
+          retry_count?: number
+        }
+        Returns: undefined
+      }
+      log_realtime_change_throttled: {
+        Args: { table_name: string; operation: string; record_id: string }
+        Returns: undefined
+      }
       log_security_event: {
         Args: {
           event_type: string
           event_message: string
           event_details?: Json
+        }
+        Returns: undefined
+      }
+      log_security_event_optimized: {
+        Args: {
+          event_type: string
+          event_message: string
+          event_details?: Json
+          severity?: string
         }
         Returns: undefined
       }

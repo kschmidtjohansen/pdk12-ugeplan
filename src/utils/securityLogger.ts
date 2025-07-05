@@ -15,7 +15,8 @@ export const logSecurityEvent = async (
   severity: 'info' | 'warning' | 'error' | 'critical' = 'info'
 ) => {
   try {
-    const { error } = await supabase.rpc('log_security_event_safe', {
+    // Use optimized logging to reduce false positives
+    const { error } = await supabase.rpc('log_security_event_optimized', {
       event_type: eventType,
       event_message: message,
       event_details: details,
@@ -75,12 +76,15 @@ export const logInputValidationError = (field: string, input: string, error: str
 };
 
 export const logPerformanceIssue = (operation: string, duration: number, threshold: number) => {
-  logSecurityEvent(
-    'performance_issue',
-    `Slow operation detected: ${operation} took ${duration}ms (threshold: ${threshold}ms)`,
-    { operation, duration, threshold },
-    'warning'
-  );
+  // Only log truly slow operations to reduce noise
+  if (duration > threshold * 2) {
+    logSecurityEvent(
+      'performance_issue',
+      `Slow operation detected: ${operation} took ${duration}ms (threshold: ${threshold}ms)`,
+      { operation, duration, threshold },
+      'warning'
+    );
+  }
 };
 
 export const logSystemError = (component: string, error: any, context: Record<string, any> = {}) => {
