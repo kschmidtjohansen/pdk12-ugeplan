@@ -14,6 +14,7 @@ import { SystemCleanupPanel } from '@/components/Admin/SystemCleanupPanel';
 import { SecurityAuditPanel } from '@/components/Admin/SecurityAuditPanel';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
 import PasswordResetDebugger from '@/components/Admin/PasswordResetDebugger';
+import { IntelligentResolverPanel } from '@/components/Admin/IntelligentResolverPanel';
 const AdminPage: React.FC = () => {
   const {
     user,
@@ -47,10 +48,14 @@ const AdminPage: React.FC = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <BarChart3 className="h-4 w-4" />
               <span>{t('admin.tabs.overview')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="intelligent-resolver" className="flex items-center space-x-2">
+              <Zap className="h-4 w-4" />
+              <span>AI Resolver</span>
             </TabsTrigger>
             <TabsTrigger value="security-audit" className="flex items-center space-x-2">
               <Lock className="h-4 w-4" />
@@ -89,6 +94,10 @@ const AdminPage: React.FC = () => {
                 <SystemHealthDashboard />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="intelligent-resolver" className="space-y-6">
+            <IntelligentResolverPanel />
           </TabsContent>
 
           <TabsContent value="security-audit" className="space-y-6">
