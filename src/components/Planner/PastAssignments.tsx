@@ -51,7 +51,7 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
             key={dateKey}
             dateKey={dateKey}
             dayAssignments={groupedAssignments[dateKey] || []}
-            isExpanded={expandedDays[dateKey] !== false}
+            isExpanded={expandedDays[dateKey] === true}
             onToggleExpansion={onToggleExpansion}
             onPublishDay={onPublishDay}
             onEditAssignment={onEditAssignment}
