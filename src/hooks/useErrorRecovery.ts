@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
 
 interface ErrorRecoveryOptions {
   maxRetries?: number;
@@ -58,32 +59,21 @@ export const useErrorRecovery = (options: ErrorRecoveryOptions = {}) => {
           console.warn(`[ErrorRecovery] ${operationName} failed on attempt ${attempts}:`, error);
         }
 
-        // Enhanced error categorization
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        let errorCategory = 'unknown';
-        
-        if (errorMessage.includes('JWT') || errorMessage.includes('auth') || errorMessage.includes('unauthorized')) {
-          errorCategory = 'authentication';
-        } else if (errorMessage.includes('RLS') || errorMessage.includes('policy') || errorMessage.includes('permission')) {
-          errorCategory = 'authorization';
-        } else if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('timeout')) {
-          errorCategory = 'network';
-        } else if (errorMessage.includes('relation') || errorMessage.includes('column') || errorMessage.includes('table')) {
-          errorCategory = 'database_schema';
-        }
+        // Use enhanced error handling for proper serialization and categorization
+        const serializedError = enhancedErrorHandler.serializeError(error);
+        const errorCategory = enhancedErrorHandler.categorizeError(serializedError);
 
-        // Log critical errors using optimized data fetch error logging
-        if (attempts === 1) {
-          try {
-            await supabase.rpc('log_data_fetch_error_safe', {
-              operation_type: operationName,
-              error_message: errorMessage,
-              user_id_param: null, // Will use auth.uid() in function
-              retry_count: attempts - 1
-            });
-          } catch (logError) {
-            console.warn('[ErrorRecovery] Failed to log error:', logError);
-          }
+        // Log errors using enhanced error handler (only for significant attempts)
+        if (attempts === 1 || attempts === maxRetries) {
+          await enhancedErrorHandler.logError(error, {
+            operation: operationName,
+            retryCount: attempts - 1,
+            additionalData: { 
+              errorCategory,
+              isRetry: attempts > 1,
+              finalAttempt: attempts === maxRetries
+            }
+          });
         }
 
         if (attempts < maxRetries) {
@@ -99,16 +89,10 @@ export const useErrorRecovery = (options: ErrorRecoveryOptions = {}) => {
       console.error(`[ErrorRecovery] ${operationName} failed after ${maxRetries} attempts:`, lastError);
     }
 
-    const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
-    let userFriendlyMessage = `${operationName} failed after ${maxRetries} attempts. Please try again later.`;
-    
-    if (errorMessage.includes('JWT') || errorMessage.includes('auth')) {
-      userFriendlyMessage = 'Session expired. Please log in again.';
-    } else if (errorMessage.includes('RLS') || errorMessage.includes('policy')) {
-      userFriendlyMessage = 'Access denied. You may not have permission to view this data.';
-    } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-      userFriendlyMessage = 'Network error. Please check your connection and try again.';
-    }
+    // Use enhanced error handler for user-friendly messages
+    const serializedError = enhancedErrorHandler.serializeError(lastError);
+    const errorCategory = enhancedErrorHandler.categorizeError(serializedError);
+    const userFriendlyMessage = enhancedErrorHandler.getUserFriendlyMessage(serializedError, errorCategory);
 
     // Show user-friendly error message
     toast({

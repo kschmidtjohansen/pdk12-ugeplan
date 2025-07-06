@@ -307,6 +307,132 @@ export class EnhancedDataFetching {
     return status;
   }
 
+  async fetchAssignmentsEnhanced() {
+    const cacheKey = this.getCacheKey('assignments', 'enhanced', {});
+    const cached = this.getCache(cacheKey);
+    
+    if (cached) {
+      return { data: cached, error: null, fromCache: true };
+    }
+
+    const result = await this.fetchWithEnhancedErrorHandling(async () => {
+      // Enhanced assignment query with comprehensive data fetching
+      const { data, error } = await supabase
+        .from('assignments')
+        .select(`
+          *,
+          responsible_user:profiles!fk_assignments_responsible_user_id(
+            id,
+            name,
+            email
+          ),
+          assignments_employees!fk_assignments_employees_assignment_id(
+            user_id,
+            profiles!fk_assignments_employees_user_id(
+              id,
+              name,
+              email
+            )
+          )
+        `)
+        .order('assignment_date', { ascending: true })
+        .order('from_time', { ascending: true });
+      
+      if (error) {
+        // Enhanced error context for assignment queries
+        throw Object.assign(error, {
+          context: 'assignment_fetch',
+          table: 'assignments',
+          operation: 'select_with_joins'
+        });
+      }
+      
+      return { data, error: null };
+    }, 'fetchAssignmentsEnhanced', {
+      retries: 4, // More retries for critical assignment data
+      timeout: 15000, // Longer timeout for complex queries
+      skipRetryFor: ['auth', 'rls'] // Don't retry auth/permission errors
+    });
+    
+    if (result.data) {
+      this.setCache(cacheKey, result.data);
+    }
+    
+    return result;
+  }
+
+  async fetchEmployeesEnhanced() {
+    const cacheKey = this.getCacheKey('employees', 'enhanced', {});
+    const cached = this.getCache(cacheKey);
+    
+    if (cached) {
+      return { data: cached, error: null, fromCache: true };
+    }
+
+    const result = await this.fetchWithEnhancedErrorHandling(async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, email, phone, job_title, on_leave, notes, avatar_url, status')
+        .order('name', { ascending: true });
+
+      if (error) {
+        throw Object.assign(error, {
+          context: 'employee_fetch',
+          table: 'profiles',
+          operation: 'select_employees'
+        });
+      }
+      
+      return { data, error: null };
+    }, 'fetchEmployeesEnhanced', {
+      retries: 3,
+      timeout: 10000,
+      skipRetryFor: ['auth', 'rls']
+    });
+    
+    if (result.data) {
+      this.setCache(cacheKey, result.data, 10 * 60 * 1000); // Cache employees longer
+    }
+    
+    return result;
+  }
+
+  async fetchCarsEnhanced() {
+    const cacheKey = this.getCacheKey('cars', 'enhanced', {});
+    const cached = this.getCache(cacheKey);
+    
+    if (cached) {
+      return { data: cached, error: null, fromCache: true };
+    }
+
+    const result = await this.fetchWithEnhancedErrorHandling(async () => {
+      const { data, error } = await supabase
+        .from('cars')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) {
+        throw Object.assign(error, {
+          context: 'car_fetch',
+          table: 'cars',
+          operation: 'select_all'
+        });
+      }
+      
+      return { data, error: null };
+    }, 'fetchCarsEnhanced', {
+      retries: 3,
+      timeout: 8000,
+      skipRetryFor: ['auth', 'rls']
+    });
+    
+    if (result.data) {
+      this.setCache(cacheKey, result.data, 15 * 60 * 1000); // Cache cars longer since they change less
+    }
+    
+    return result;
+  }
+
   async checkDatabaseConnectionEnhanced(): Promise<{ connected: boolean; responseTime?: number; error?: any }> {
     const startTime = Date.now();
     try {

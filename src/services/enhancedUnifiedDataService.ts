@@ -1,5 +1,6 @@
 
-import { unifiedDataService } from './data/unifiedDataService';
+import { enhancedDataFetching } from './enhancedDataFetching';
+import { enhancedErrorHandler } from './enhancedErrorHandler';
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
@@ -31,13 +32,63 @@ class EnhancedUnifiedDataService {
 
   async fetchEmployees(): Promise<DataFetchResult<Employee>> {
     try {
-      const result = await unifiedDataService.fetchEmployees();
+      console.log('[EnhancedUnifiedDataService] Fetching employees with enhanced error handling...');
+      
+      // Use enhanced data fetching with proper error serialization
+      const result = await enhancedDataFetching.fetchEmployeesEnhanced();
+      
+      if (result.error) {
+        throw result.error;
+      }
+
+      if (!result.data) {
+        return {
+          data: [],
+          error: null,
+          fromCache: result.fromCache || false,
+          healthCheck: true
+        };
+      }
+
+      // Transform profiles to Employee format
+      const employees: Employee[] = result.data.map(profile => ({
+        id: profile.id,
+        name: profile.name || 'Unknown',
+        email: profile.email || '',
+        phone: profile.phone || '',
+        jobTitle: profile.job_title || '',
+        role: 'servicemedarbejder', // Default role, will be enriched by role lookup
+        onLeave: profile.on_leave || false,
+        status: profile.status || 'active',
+        notes: profile.notes || '',
+        avatar_url: profile.avatar_url
+      }));
+
+      console.log(`[EnhancedUnifiedDataService] Successfully fetched ${employees.length} employees`);
+
       return {
-        ...result,
+        data: employees,
+        error: null,
+        fromCache: result.fromCache || false,
         healthCheck: true
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[EnhancedUnifiedDataService] Employee fetch error:', error);
+      
+      // Enhanced error handling with proper serialization
+      const serializedError = enhancedErrorHandler.serializeError(error);
+      const category = enhancedErrorHandler.categorizeError(serializedError);
+      const errorMessage = enhancedErrorHandler.getUserFriendlyMessage(serializedError, category);
+      
+      // Log error with enhanced context
+      await enhancedErrorHandler.logError(error, {
+        operation: 'fetchEmployees',
+        additionalData: { 
+          context: 'enhancedUnifiedDataService',
+          category
+        }
+      });
+      
       return {
         data: [],
         error: errorMessage,
@@ -49,13 +100,90 @@ class EnhancedUnifiedDataService {
 
   async fetchAssignments(): Promise<DataFetchResult<Assignment>> {
     try {
-      const result = await unifiedDataService.fetchAssignments();
+      console.log('[EnhancedUnifiedDataService] Fetching assignments with enhanced error handling...');
+      
+      // Use enhanced data fetching with proper error serialization
+      const result = await enhancedDataFetching.fetchAssignmentsEnhanced();
+      
+      if (result.error) {
+        throw result.error;
+      }
+
+      if (!result.data) {
+        return {
+          data: [],
+          error: null,
+          fromCache: result.fromCache || false,
+          healthCheck: true
+        };
+      }
+
+      // Transform raw assignment data to Assignment format
+      const assignments: Assignment[] = result.data.map(assignment => {
+        // Extract employee data from the nested structure
+        const assignedEmployees = (assignment.assignments_employees || [])
+          .map(ae => ({
+            id: ae.profiles?.id || ae.user_id,
+            name: ae.profiles?.name || 'Unknown',
+            email: ae.profiles?.email || 'unknown@example.com'
+          }))
+          .filter(emp => emp.name && emp.name !== 'Unknown');
+        
+        const employeeNames = assignedEmployees.map(emp => emp.name);
+        
+        // Handle responsible user data
+        const responsibleUser = assignment.responsible_user && typeof assignment.responsible_user === 'object' ? {
+          id: assignment.responsible_user.id || '',
+          name: assignment.responsible_user.name || '',
+          email: assignment.responsible_user.email || ''
+        } : null;
+        
+        return {
+          id: assignment.id,
+          title: assignment.title,
+          description: assignment.description || '',
+          date: assignment.assignment_date,
+          fromTime: assignment.from_time,
+          toTime: assignment.to_time,
+          location: assignment.location,
+          employees: employeeNames,
+          assignedEmployees: assignedEmployees,
+          cars: assignment.car_ids || (assignment.car_id ? [assignment.car_id] : []),
+          car: assignment.car_id || (assignment.car_ids && assignment.car_ids.length > 0 ? assignment.car_ids[0] : ''),
+          published: assignment.published || false,
+          responsibleUser: responsibleUser,
+          responsibleUserId: assignment.responsible_user_id,
+          type: assignment.type || 'other',
+          createdAt: assignment.created_at,
+          updatedAt: assignment.updated_at
+        };
+      });
+
+      console.log(`[EnhancedUnifiedDataService] Successfully processed ${assignments.length} assignments`);
+
       return {
-        ...result,
+        data: assignments,
+        error: null,
+        fromCache: result.fromCache || false,
         healthCheck: true
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[EnhancedUnifiedDataService] Assignment fetch error:', error);
+      
+      // Enhanced error handling with proper serialization
+      const serializedError = enhancedErrorHandler.serializeError(error);
+      const category = enhancedErrorHandler.categorizeError(serializedError);
+      const errorMessage = enhancedErrorHandler.getUserFriendlyMessage(serializedError, category);
+      
+      // Log error with enhanced context
+      await enhancedErrorHandler.logError(error, {
+        operation: 'fetchAssignments',
+        additionalData: { 
+          context: 'enhancedUnifiedDataService',
+          category
+        }
+      });
+      
       return {
         data: [],
         error: errorMessage,
@@ -67,13 +195,41 @@ class EnhancedUnifiedDataService {
 
   async fetchCars(): Promise<DataFetchResult<Car>> {
     try {
-      const result = await unifiedDataService.fetchCars();
+      console.log('[EnhancedUnifiedDataService] Fetching cars with enhanced error handling...');
+      
+      // Use enhanced data fetching with proper error serialization
+      const result = await enhancedDataFetching.fetchCarsEnhanced();
+      
+      if (result.error) {
+        throw result.error;
+      }
+
+      const cars = result.data || [];
+      console.log(`[EnhancedUnifiedDataService] Successfully fetched ${cars.length} cars`);
+
       return {
-        ...result,
+        data: cars,
+        error: null,
+        fromCache: result.fromCache || false,
         healthCheck: true
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[EnhancedUnifiedDataService] Car fetch error:', error);
+      
+      // Enhanced error handling with proper serialization
+      const serializedError = enhancedErrorHandler.serializeError(error);
+      const category = enhancedErrorHandler.categorizeError(serializedError);
+      const errorMessage = enhancedErrorHandler.getUserFriendlyMessage(serializedError, category);
+      
+      // Log error with enhanced context
+      await enhancedErrorHandler.logError(error, {
+        operation: 'fetchCars',
+        additionalData: { 
+          context: 'enhancedUnifiedDataService',
+          category
+        }
+      });
+      
       return {
         data: [],
         error: errorMessage,
@@ -84,13 +240,16 @@ class EnhancedUnifiedDataService {
   }
 
   clearCache(): void {
-    unifiedDataService.clearCache();
+    console.log('[EnhancedUnifiedDataService] Clearing enhanced data fetching cache...');
+    enhancedDataFetching.clearCache();
   }
 
   getStatus() {
     return {
-      ...unifiedDataService.getStatus(),
-      healthMonitoring: !!this.healthCheckInterval
+      ...enhancedDataFetching.getCircuitBreakerStatus(),
+      healthMonitoring: !!this.healthCheckInterval,
+      cacheEnabled: true,
+      enhancedErrorHandling: true
     };
   }
 

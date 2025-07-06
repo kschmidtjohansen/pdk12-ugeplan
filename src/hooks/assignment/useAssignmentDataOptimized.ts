@@ -4,6 +4,8 @@ import { Assignment } from '@/types/assignment';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
+import { enhancedDataFetching } from '@/services/enhancedDataFetching';
+import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
 
 export const useAssignmentDataOptimized = () => {
   const { toast } = useToast();
@@ -17,45 +19,25 @@ export const useAssignmentDataOptimized = () => {
       setLoading(true);
       setError(null);
       
-      console.log('[useAssignmentDataOptimized] SINGLE QUERY FIX - Starting comprehensive fetch...');
+      console.log('[useAssignmentDataOptimized] ENHANCED - Starting enhanced fetch...');
       
-      // SINGLE QUERY FIX: Use a single comprehensive query with proper foreign key specification
-      const { data: assignmentsWithEmployees, error: fetchError } = await supabase
-        .from('assignments')
-        .select(`
-          *,
-          responsible_user:profiles!fk_assignments_responsible_user_id(
-            id,
-            name,
-            email
-          ),
-          assignments_employees!fk_assignments_employees_assignment_id(
-            user_id,
-            profiles!fk_assignments_employees_user_id(
-              id,
-              name,
-              email
-            )
-          )
-        `)
-        .order('assignment_date', { ascending: true })
-        .order('from_time', { ascending: true });
+      // Use enhanced data fetching with proper error handling
+      const assignmentResult = await enhancedDataFetching.fetchAssignmentsEnhanced();
       
-      if (fetchError) {
-        console.error('[useAssignmentDataOptimized] SINGLE QUERY FIX - Fetch error:', fetchError);
-        throw fetchError;
+      if (assignmentResult.error || !assignmentResult.data) {
+        throw assignmentResult.error || new Error('No assignment data received');
       }
+
+      const assignmentsWithEmployees = assignmentResult.data;
+      console.log(`[useAssignmentDataOptimized] ENHANCED - Fetched ${assignmentsWithEmployees.length} assignment records`);
       
       if (!assignmentsWithEmployees || assignmentsWithEmployees.length === 0) {
-        console.log('[useAssignmentDataOptimized] SINGLE QUERY FIX - No assignments found');
+        console.log('[useAssignmentDataOptimized] ENHANCED - No assignments found');
         setAssignments([]);
         return;
       }
       
-      console.log(`[useAssignmentDataOptimized] SINGLE QUERY FIX - Raw data fetched:`, assignmentsWithEmployees.length);
-      console.log('[useAssignmentDataOptimized] SINGLE QUERY FIX - Sample raw assignment:', assignmentsWithEmployees[0]);
-      
-      // SINGLE QUERY FIX: Transform the comprehensive data
+      // Enhanced data transformation with better error handling
       const transformedAssignments: Assignment[] = assignmentsWithEmployees.map(assignment => {
         // Extract employee data from the nested structure
         const assignedEmployees = (assignment.assignments_employees || [])
@@ -74,16 +56,6 @@ export const useAssignmentDataOptimized = () => {
           name: assignment.responsible_user.name || '',
           email: assignment.responsible_user.email || ''
         } : null;
-        
-        console.log(`[useAssignmentDataOptimized] SINGLE QUERY FIX - Assignment "${assignment.title}":`, {
-          assignmentId: assignment.id,
-          rawEmployeeData: assignment.assignments_employees,
-          processedEmployees: assignedEmployees,
-          employeeNames: employeeNames,
-          employeeCount: employeeNames.length,
-          responsibleUser: responsibleUser?.name,
-          responsibleUserId: responsibleUser?.id
-        });
         
         return {
           id: assignment.id,
@@ -104,27 +76,37 @@ export const useAssignmentDataOptimized = () => {
         };
       });
       
-      console.log(`[useAssignmentDataOptimized] SINGLE QUERY FIX - Final transformed assignments:`, 
-        transformedAssignments.map(a => ({ 
-          title: a.title, 
-          employeeCount: a.employees?.length || 0,
-          employees: a.employees,
-          assignedEmployeeCount: a.assignedEmployees?.length || 0,
-          assignedEmployeeNames: a.assignedEmployees?.map(e => e.name)
-        })));
-      
+      console.log(`[useAssignmentDataOptimized] ENHANCED - Successfully processed ${transformedAssignments.length} assignments`);
       setAssignments(transformedAssignments);
       
     } catch (err) {
-      console.error('[useAssignmentDataOptimized] PHASE 2 FIX - Error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch assignments';
-      setError(errorMessage);
+      console.error('[useAssignmentDataOptimized] ENHANCED - Error:', err);
       
-      toast({
-        title: t('common.error') || 'Error',
-        description: t('planner.fetchError') || 'Error loading assignments',
-        variant: 'destructive',
+      // Enhanced error handling with proper serialization  
+      const serializedError = enhancedErrorHandler.serializeError(err);
+      const category = enhancedErrorHandler.categorizeError(serializedError);
+      const userFriendlyMessage = enhancedErrorHandler.getUserFriendlyMessage(serializedError, category);
+      
+      setError(userFriendlyMessage);
+      
+      // Log error with enhanced context
+      await enhancedErrorHandler.logError(err, {
+        operation: 'fetchAssignments',
+        additionalData: { 
+          context: 'useAssignmentDataOptimized',
+          component: 'assignment_data_hook',
+          category
+        }
       });
+      
+      // Only show toast for non-auth errors to avoid spam
+      if (category !== 'auth') {
+        toast({
+          title: t('common.error') || 'Error',
+          description: userFriendlyMessage,
+          variant: 'destructive',
+        });
+      }
       
       setAssignments([]);
     } finally {
