@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { EnhancedSecureLoginForm } from '@/components/Auth/EnhancedSecureLoginForm';
-import { DemoUserSetup } from '@/components/Auth/DemoUserSetup';
 import { useTranslation } from '@/context/TranslationContext';
 
 const LoginPage = () => {
@@ -100,8 +99,6 @@ const LoginPage = () => {
         </div>
         
         <EnhancedSecureLoginForm onSuccess={handleLoginSuccess} />
-        
-        <DemoUserSetup />
       </div>
     </div>
   );

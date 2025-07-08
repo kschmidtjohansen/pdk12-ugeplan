@@ -1,30 +1,27 @@
 import { supabase } from '@/integrations/supabase/client';
+import { DemoUserService } from '@/services/demoUserService';
 
-export const createDemoUser = async (): Promise<{ success: boolean; message: string }> => {
+export const createDemoUser = async () => {
   try {
-    console.log('Creating demo user...');
-    
-    const { data, error } = await supabase.functions.invoke('create-demo-user');
-    
+    // Create the demo user using the admin edge function
+    const { data, error } = await supabase.functions.invoke('admin-create-user', {
+      body: {
+        email: DemoUserService.DEMO_USER_EMAIL,
+        password: DemoUserService.DEMO_USER_PASSWORD,
+        name: 'Demo User',
+        role: 'administrator'
+      }
+    });
+
     if (error) {
-      console.error('Error creating demo user:', error);
-      return { 
-        success: false, 
-        message: `Failed to create demo user: ${error.message}` 
-      };
+      console.error('Failed to create demo user:', error);
+      return { success: false, error: error.message };
     }
-    
-    console.log('Demo user creation result:', data);
-    
-    return {
-      success: data.success,
-      message: data.message
-    };
+
+    console.log('Demo user created successfully:', data);
+    return { success: true, data };
   } catch (error) {
-    console.error('Exception creating demo user:', error);
-    return { 
-      success: false, 
-      message: 'An unexpected error occurred while creating the demo user.' 
-    };
+    console.error('Error creating demo user:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
