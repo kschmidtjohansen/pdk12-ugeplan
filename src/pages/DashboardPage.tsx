@@ -7,11 +7,12 @@ import WelcomeHeader from '@/components/Dashboard/WelcomeHeader';
 import QuickAccessGrid from '@/components/Dashboard/QuickAccessGrid';
 import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import MineOpgaver from '@/components/Dashboard/MineOpgaver';
+import { DemoDashboard } from '@/components/Demo/DemoDashboard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2 } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isDemoMode } = useAuth();
   const { t } = useTranslation();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
@@ -45,6 +46,13 @@ const DashboardPage: React.FC = () => {
               </div>
             </AlertDescription>
           </Alert>
+        )}
+
+        {/* Demo Dashboard - Only in demo mode */}
+        {isDemoMode && (
+          <div className="animate-fade-in-up">
+            <DemoDashboard />
+          </div>
         )}
 
         {/* Welcome Header */}
