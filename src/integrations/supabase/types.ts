@@ -421,7 +421,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_roles_with_names: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          updated_at: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_system_log: {

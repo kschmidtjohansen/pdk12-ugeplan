@@ -102,22 +102,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log(`[AuthContext] User role: ${user.role}`);
     }
   }, [isDemoMode, user]);
-  
-  // Initialize demo role from sessionStorage
+  // Initialize demo role from sessionStorage with database role preference
   useEffect(() => {
-    if (isDemoMode) {
-      const savedDemoRole = sessionStorage.getItem('demo-role') as UserRole | null;
-      if (savedDemoRole && ['administrator', 'skadeleder', 'servicemedarbejder'].includes(savedDemoRole)) {
-        setDemoRole(savedDemoRole);
-      } else {
-        setDemoRole('administrator'); // Default to admin for demo
-        sessionStorage.setItem('demo-role', 'administrator');
-      }
-    } else {
+    if (isDemoMode && user) {
+      console.log(`[AuthContext] Initializing demo mode for user: ${user.email}`);
+      console.log(`[AuthContext] User's database role: ${user.role}`);
+      
+      // For demo user, prioritize their actual database role
+      const currentRole = user.role;
+      setDemoRole(currentRole);
+      sessionStorage.setItem('demo-role', currentRole);
+      
+      console.log(`[AuthContext] Demo role set to: ${currentRole}`);
+    } else if (!isDemoMode) {
       setDemoRole(null);
       sessionStorage.removeItem('demo-role');
     }
-  }, [isDemoMode]);
+  }, [isDemoMode, user?.role]);
   
   // Handle demo role changes
   const handleSetDemoRole = (role: UserRole) => {
