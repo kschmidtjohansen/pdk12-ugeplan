@@ -452,6 +452,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      create_logs_partition_for_month: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       delete_expired_approved_vacations: {
         Args: Record<PropertyKey, never>
         Returns: undefined
