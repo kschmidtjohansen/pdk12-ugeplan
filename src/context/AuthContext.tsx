@@ -91,9 +91,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const { toast } = useToast();
   
-  // Demo mode detection
+  // Demo mode detection with enhanced logging
   const demoService = DemoUserService.getInstance();
   const isDemoMode = user ? demoService.isDemoUser(user.email) : false;
+  
+  // Log demo mode status changes
+  useEffect(() => {
+    if (user) {
+      console.log(`[AuthContext] Demo mode status for ${user.email}: ${isDemoMode}`);
+      console.log(`[AuthContext] User role: ${user.role}`);
+    }
+  }, [isDemoMode, user]);
   
   // Initialize demo role from sessionStorage
   useEffect(() => {
@@ -120,35 +128,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // FIXED: Enhanced user data fetching with proper error handling and timeouts
+  // Enhanced user data fetching with demo user support
   const fetchUserData = async (authUser: User): Promise<AppUser | null> => {
     const startTime = Date.now();
-    console.log(`[AuthContext] FIXED - Starting user data fetch for: ${authUser.email}`);
+    console.log(`[AuthContext] Starting user data fetch for: ${authUser.email}`);
     
     try {
-      // Create timeout promise (5 seconds)
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('User data fetch timeout after 5 seconds')), 5000);
-      });
-
       // Create the actual fetch promise
-      const fetchPromise = Promise.all([
+      const [profileResult, roleResult] = await Promise.all([
         supabase.from('profiles').select('name').eq('id', authUser.id).maybeSingle(),
         supabase.from('user_roles').select('role').eq('user_id', authUser.id).maybeSingle()
       ]);
 
-      // Race between fetch and timeout
-      const [profileResult, roleResult] = await Promise.race([fetchPromise, timeoutPromise]);
+      console.log(`[AuthContext] Database queries completed in ${Date.now() - startTime}ms`);
+      console.log(`[AuthContext] Profile result:`, profileResult);
+      console.log(`[AuthContext] Role result:`, roleResult);
 
-      console.log(`[AuthContext] FIXED - Database queries completed in ${Date.now() - startTime}ms`);
-      console.log(`[AuthContext] FIXED - Profile result:`, profileResult);
-      console.log(`[AuthContext] FIXED - Role result:`, roleResult);
+      // Check for database errors
+      if (profileResult.error) {
+        console.error('[AuthContext] Profile fetch error:', profileResult.error);
+      }
+      if (roleResult.error) {
+        console.error('[AuthContext] Role fetch error:', roleResult.error);
+      }
 
-      // Handle profile data
-      const name = profileResult.data?.name || authUser.email || 'User';
+      // Handle profile data - use "Demo User" for demo user, otherwise use profile name or email
+      const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
+      const name = isDemoUser ? 'Demo User' : (profileResult.data?.name || authUser.email || 'User');
       
-      // Handle role data with fallback
-      const role = (roleResult.data?.role as UserRole) || 'servicemedarbejder';
+      // Handle role data - for demo user, ALWAYS use database role if available
+      let role: UserRole = 'servicemedarbejder';
+      if (roleResult.data?.role) {
+        role = roleResult.data.role as UserRole;
+        console.log(`[AuthContext] Using database role: ${role}`);
+      } else if (isDemoUser) {
+        // For demo user, if no role in database, default to administrator
+        role = 'administrator';
+        console.log(`[AuthContext] Demo user detected, defaulting to administrator role`);
+      }
 
       const enhancedUser: AppUser = {
         id: authUser.id,
@@ -157,27 +174,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         role
       };
 
-      console.log(`[AuthContext] FIXED - User data created successfully:`, {
+      console.log(`[AuthContext] User data created successfully:`, {
         name,
         role,
         email: authUser.email,
+        isDemoUser,
         totalTime: Date.now() - startTime
       });
       
       return enhancedUser;
       
     } catch (error) {
-      console.error(`[AuthContext] FIXED - User data fetch failed after ${Date.now() - startTime}ms:`, error);
+      console.error(`[AuthContext] User data fetch failed after ${Date.now() - startTime}ms:`, error);
       
-      // CRITICAL: Always return fallback user data to prevent login loops
+      // For demo user, provide administrator fallback
+      const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
       const fallbackUser: AppUser = {
         id: authUser.id,
-        name: authUser.email || 'User',
+        name: isDemoUser ? 'Demo User' : (authUser.email || 'User'),
         email: authUser.email || '',
-        role: 'servicemedarbejder'
+        role: isDemoUser ? 'administrator' : 'servicemedarbejder'
       };
       
-      console.log(`[AuthContext] FIXED - Using fallback user data:`, fallbackUser);
+      console.log(`[AuthContext] Using fallback user data:`, fallbackUser);
       return fallbackUser;
     }
   };
