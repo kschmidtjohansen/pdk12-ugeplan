@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
+import { DemoUserService } from '@/services/demoUserService';
 
 // Define user roles
 export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder';
@@ -42,6 +43,10 @@ interface AuthContextType {
   validateSkadelederAccess: () => boolean;
   hasRequiredRole: (requiredRoles: UserRole[]) => boolean;
   refreshUserData: () => Promise<void>;
+  // Demo mode properties
+  isDemoMode: boolean;
+  demoRole: UserRole | null;
+  setDemoRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -69,6 +74,10 @@ const AuthContext = createContext<AuthContextType>({
   validateSkadelederAccess: () => false,
   hasRequiredRole: () => false,
   refreshUserData: async () => {},
+  // Demo mode properties
+  isDemoMode: false,
+  demoRole: null,
+  setDemoRole: () => {},
 });
 
 interface AuthProviderProps {
@@ -79,7 +88,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const { toast } = useToast();
+  
+  // Demo mode detection
+  const demoService = DemoUserService.getInstance();
+  const isDemoMode = user ? demoService.isDemoUser(user.email) : false;
+  
+  // Initialize demo role from sessionStorage
+  useEffect(() => {
+    if (isDemoMode) {
+      const savedDemoRole = sessionStorage.getItem('demo-role') as UserRole | null;
+      if (savedDemoRole && ['administrator', 'skadeleder', 'servicemedarbejder'].includes(savedDemoRole)) {
+        setDemoRole(savedDemoRole);
+      } else {
+        setDemoRole('administrator'); // Default to admin for demo
+        sessionStorage.setItem('demo-role', 'administrator');
+      }
+    } else {
+      setDemoRole(null);
+      sessionStorage.removeItem('demo-role');
+    }
+  }, [isDemoMode]);
+  
+  // Handle demo role changes
+  const handleSetDemoRole = (role: UserRole) => {
+    if (isDemoMode) {
+      setDemoRole(role);
+      sessionStorage.setItem('demo-role', role);
+      console.log(`[Demo] Role switched to: ${role}`);
+    }
+  };
 
   // FIXED: Enhanced user data fetching with proper error handling and timeouts
   const fetchUserData = async (authUser: User): Promise<AppUser | null> => {
@@ -401,6 +440,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       console.log('[AuthProvider] FIXED - Logging out...');
+      
+      // Clean up demo data if in demo mode
+      if (isDemoMode) {
+        console.log('[Demo] Cleaning up demo data on logout...');
+        await demoService.cleanupDemoData();
+      }
+      
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
@@ -528,6 +574,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     validateSkadelederAccess,
     hasRequiredRole,
     refreshUserData,
+    // Demo mode properties
+    isDemoMode,
+    demoRole,
+    setDemoRole: handleSetDemoRole,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

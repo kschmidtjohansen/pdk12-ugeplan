@@ -424,6 +424,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_system_log: {
+        Args: { p_event_type: string; p_message: string; p_details?: Json }
+        Returns: string
+      }
+      apply_logs_rls_policies: {
+        Args: { table_name: string }
+        Returns: undefined
+      }
       can_access_assignment: {
         Args: { assignment_id: string }
         Returns: boolean
@@ -455,6 +463,10 @@ export type Database = {
       emergency_log_cleanup: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      ensure_logs_rls_consistency: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       example_function: {
         Args: Record<PropertyKey, never>
@@ -563,6 +575,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      run_logs_rls_maintenance: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       sanitize_text_input: {
         Args: { input_text: string; max_length?: number }
         Returns: string
@@ -570,6 +586,10 @@ export type Database = {
       schedule_maintenance_tasks: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      sync_user_roles_to_jwt: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       test_query_performance: {
         Args: Record<PropertyKey, never>
