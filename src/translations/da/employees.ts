@@ -25,8 +25,11 @@ const employees = {
   availableAfter: 'Ledig efter {time}',
   fullyBooked: 'Fuldt booket',
   
+  // Status
+  status: 'Status',
+  
   // Additional status translations
-  status: {
+  statusOptions: {
     available: 'Tilgængelig',
     unavailable: 'Ikke tilgængelig',
     partiallyAvailable: 'Delvis tilgængelig',

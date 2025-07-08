@@ -140,6 +140,7 @@ const planner = {
   carWithoutTrailer: 'Bil uden trailer',
   
   // Employee-related translations
+  onVacation: 'Fri/Ferie',
   employeeOnVacation: 'På ferie',
   employeeAvailable: 'Tilgængelig',
   employeeUnavailable: 'Ikke tilgængelig',

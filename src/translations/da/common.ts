@@ -27,6 +27,7 @@ export const common = {
   hide: "Skjul",
   show: "Vis",
   select: "Vælg",
+  selected: "Valgte",
   deselect: "Fravælg",
   all: "Alle",
   none: "Ingen",
