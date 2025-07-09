@@ -10,6 +10,7 @@ interface UseCarFormStateProps {
   currentCar: CarData | null;
   setCurrentCar: React.Dispatch<React.SetStateAction<CarData | null>>;
   setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  createCar?: (carData: Partial<CarData>) => Promise<boolean>;
 }
 
 export const useCarFormState = ({ 
@@ -17,7 +18,8 @@ export const useCarFormState = ({
   setCars, 
   currentCar, 
   setCurrentCar, 
-  setDialogOpen 
+  setDialogOpen,
+  createCar
 }: UseCarFormStateProps) => {
   const [formData, setFormData] = useState<CarFormData>({
     name: '',
@@ -74,8 +76,11 @@ export const useCarFormState = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('[useCarFormState] Form submitted with data:', { formData, currentCar });
+    
     try {
       if (currentCar) {
+        console.log('[useCarFormState] Updating existing car:', currentCar.id);
         // Update existing car
         const { error } = await supabase
           .from('cars')
@@ -91,6 +96,7 @@ export const useCarFormState = ({
           })
           .eq('id', currentCar.id);
 
+        console.log('[useCarFormState] Car update response:', { error });
         if (error) throw error;
         
         // Update local state
@@ -104,37 +110,49 @@ export const useCarFormState = ({
           description: t('cars.vehicleUpdatedMsg', { name: formData.name }),
         });
       } else {
-        // Create new car
-        const { data, error } = await supabase
-          .from('cars')
-          .insert([
-            {
-              name: formData.name,
-              car_number: formData.car_number,
-              number_plate: formData.number_plate,
-              fuel_card_code: formData.fuel_card_code,
-              has_trailer_hitch: formData.has_trailer_hitch,
-              is_available: formData.is_available,
-              notes: formData.notes,
-            }
-          ])
-          .select();
+        console.log('[useCarFormState] Creating new car');
+        // Use the createCar function if available, otherwise fallback to direct insert
+        if (createCar) {
+          const success = await createCar(formData);
+          if (!success) {
+            throw new Error('Failed to create car using createCar function');
+          }
+        } else {
+          console.log('[useCarFormState] Using fallback direct insert');
+          // Create new car (fallback)
+          const { data, error } = await supabase
+            .from('cars')
+            .insert([
+              {
+                name: formData.name,
+                car_number: formData.car_number,
+                number_plate: formData.number_plate,
+                fuel_card_code: formData.fuel_card_code,
+                has_trailer_hitch: formData.has_trailer_hitch,
+                is_available: formData.is_available,
+                notes: formData.notes,
+              }
+            ])
+            .select();
 
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          // Add new car to local state
-          setCars([...cars, data[0]]);
+          console.log('[useCarFormState] Car creation response:', { data, error });
+          if (error) throw error;
           
-          toast(t('cars.vehicleAdded'), {
-            description: t('cars.vehicleAddedMsg', { name: formData.name }),
-          });
+          if (data && data.length > 0) {
+            // Add new car to local state
+            setCars([...cars, data[0]]);
+            
+            toast(t('cars.vehicleAdded'), {
+              description: t('cars.vehicleAddedMsg', { name: formData.name }),
+            });
+          }
         }
       }
       
+      console.log('[useCarFormState] Car operation successful, closing dialog');
       setDialogOpen(false);
     } catch (err) {
-      console.error('Error saving car:', err);
+      console.error('[useCarFormState] Error saving car:', err);
       toast(t('common.error'), {
         description: err instanceof Error ? err.message : 'Error saving vehicle',
       });

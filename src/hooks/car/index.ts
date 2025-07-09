@@ -6,7 +6,7 @@ import { useCarFormState } from './useCarFormState';
 import { CarData } from '@/components/Cars/types';
 
 export const useCars = () => {
-  const { cars, setCars, loading, error, fetchCars } = useCarData();
+  const { cars, setCars, loading, error, fetchCars, createCar } = useCarData();
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   
   const {
@@ -39,7 +39,8 @@ export const useCars = () => {
     setCars, 
     currentCar, 
     setCurrentCar, 
-    setDialogOpen 
+    setDialogOpen,
+    createCar
   });
 
   // Enhanced handleEdit to initialize form data
@@ -75,6 +76,7 @@ export const useCars = () => {
     handleCheckboxChange,
     handleSubmit,
     fetchCars,
+    createCar,
     handleToggleAvailability,
     markCarUnavailable,
     markCarAvailableKeepNote,

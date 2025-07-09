@@ -50,16 +50,25 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
 
   const createEmployee = async (formData: any) => {
     try {
+      console.log('[useEmployeeActions] Starting employee creation with form data:', formData);
+      
       if (!formData.email || !formData.password || !formData.name) {
-        throw new Error('Email, password, and name are required');
+        const missingFields = [];
+        if (!formData.email) missingFields.push('email');
+        if (!formData.password) missingFields.push('password');
+        if (!formData.name) missingFields.push('name');
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
       }
 
       console.log('[useEmployeeActions] Creating employee:', {
         email: formData.email,
         name: formData.name,
-        role: formData.role || 'servicemedarbejder'
+        role: formData.role || 'servicemedarbejder',
+        phone: formData.phone,
+        jobTitle: formData.jobTitle
       });
 
+      console.log('[useEmployeeActions] Calling admin-create-user edge function...');
       const { data, error } = await supabase.functions.invoke('admin-create-user', {
         body: {
           email: formData.email,
@@ -69,8 +78,16 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         }
       });
       
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      console.log('[useEmployeeActions] Edge function response:', { data, error });
+      
+      if (error) {
+        console.error('[useEmployeeActions] Edge function error:', error);
+        throw error;
+      }
+      if (data?.error) {
+        console.error('[useEmployeeActions] Edge function returned error:', data.error);
+        throw new Error(data.error);
+      }
       
       // Update profile with additional fields
       if (data?.id) {

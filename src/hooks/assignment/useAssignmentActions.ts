@@ -85,6 +85,29 @@ export const useAssignmentActions = (
       }
       console.log("[useAssignmentActions] Final responsibleUserId to store:", responsibleUserId);
 
+      // Validate required fields
+      if (!assignmentData.title || !assignmentData.location || !assignmentData.date || !assignmentData.fromTime || !assignmentData.toTime) {
+        const missingFields = [];
+        if (!assignmentData.title) missingFields.push('title');
+        if (!assignmentData.location) missingFields.push('location');
+        if (!assignmentData.date) missingFields.push('date');
+        if (!assignmentData.fromTime) missingFields.push('fromTime');
+        if (!assignmentData.toTime) missingFields.push('toTime');
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      }
+
+      console.log("[useAssignmentActions] Inserting assignment with data:", {
+        title: assignmentData.title,
+        description: assignmentData.description,
+        location: assignmentData.location,
+        assignment_date: assignmentData.date,
+        from_time: assignmentData.fromTime,
+        to_time: assignmentData.toTime,
+        car_id: carId,
+        responsible_user_id: responsibleUserId,
+        published: assignmentData.published || false
+      });
+
       // Insert the new assignment
       const { data: newAssignment, error } = await supabase
         .from('assignments')
@@ -103,7 +126,11 @@ export const useAssignmentActions = (
         .select('id')
         .single();
 
-      if (error) throw error;
+      console.log("[useAssignmentActions] Assignment insert result:", { newAssignment, error });
+      if (error) {
+        console.error("[useAssignmentActions] Assignment insert error:", error);
+        throw error;
+      }
       
       // If there are employees, link them to the assignment
       if (assignmentData.employees && assignmentData.employees.length > 0 && newAssignment?.id) {

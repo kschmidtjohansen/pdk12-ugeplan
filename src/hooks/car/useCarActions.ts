@@ -180,7 +180,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
   
   const updateAvailabilityStatus = async (car: CarData, isAvailable: boolean, notes: string | null) => {
     try {
-      console.log("Updating car availability:", {
+      console.log("[useCarActions] Updating car availability:", {
         car_id: car.id,
         is_available: isAvailable,
         notes: notes
@@ -191,15 +191,16 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         .from('cars')
         .update({ 
           is_available: isAvailable,
-          notes: notes 
+          notes: notes,
+          updated_at: new Date().toISOString()
         })
         .eq('id', car.id)
         .select();
       
-      console.log("Supabase response:", { error, data });
+      console.log("[useCarActions] Car update response:", { error, data });
       
       if (error) {
-        console.error("Error updating car:", error);
+        console.error("[useCarActions] Error updating car:", error);
         throw error;
       }
       
