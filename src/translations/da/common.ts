@@ -105,5 +105,22 @@ export const common = {
   language: "Sprog",
   team: "Team",
   areYouSure: "Er du sikker?",
-  deleteWarning: "Din handling kan ikke ændres når du sletter denne."
+  deleteWarning: "Din handling kan ikke ændres når du sletter denne.",
+  
+  // Demo Dashboard
+  demoDashboard: "Demo Dashboard",
+  currentlyInDemoMode: "I øjeblikket i demo-tilstand som",
+  cleanDemoData: "Ryd Demo Data",
+  totalOperations: "Samlede Operationer",
+  createdRecords: "Oprettede Poster",
+  updatedRecords: "Opdaterede Poster",
+  tablesAffected: "Berørte Tabeller",
+  affectedTables: "Berørte Tabeller",
+  demoDataAutoClean: "Alle demo data ryddes automatisk når du logger ud eller skifter sessioner",
+  
+  // Demo cleanup toasts
+  demoDataCleaned: "Demo Data Ryddet",
+  demoDataCleanedDescription: "Alle demo data er blevet fjernet med succes.",
+  cleanupFailed: "Oprydning Mislykkedes",
+  failedToCleanupDemo: "Kunne ikke rydde demo data"
 };

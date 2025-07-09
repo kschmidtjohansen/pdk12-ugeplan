@@ -13,11 +13,13 @@ import {
   BarChart3
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useTranslation } from '@/context/TranslationContext';
 
 export const DemoDashboard: React.FC = () => {
   const { isDemoMode, demoRole } = useAuth();
   const { getDemoStats, triggerManualCleanup } = useDemoTracking();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   if (!isDemoMode) return null;
 
@@ -27,13 +29,13 @@ export const DemoDashboard: React.FC = () => {
     try {
       await triggerManualCleanup();
       toast({
-        title: "Demo Data Cleaned",
-        description: "All demo data has been successfully removed.",
+        title: t('common.demoDataCleaned'),
+        description: t('common.demoDataCleanedDescription'),
       });
     } catch (error) {
       toast({
-        title: "Cleanup Failed",
-        description: error instanceof Error ? error.message : "Failed to cleanup demo data",
+        title: t('common.cleanupFailed'),
+        description: error instanceof Error ? error.message : t('common.failedToCleanupDemo'),
         variant: "destructive",
       });
     }
@@ -43,9 +45,9 @@ export const DemoDashboard: React.FC = () => {
     <div className="space-y-6 p-6 bg-amber-50 border border-amber-200 rounded-lg">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-amber-800">Demo Dashboard</h2>
+          <h2 className="text-xl font-semibold text-amber-800">{t('common.demoDashboard')}</h2>
           <p className="text-sm text-amber-600">
-            Currently in demo mode as <Badge variant="outline">{demoRole}</Badge>
+            {t('common.currentlyInDemoMode')} <span className="font-medium">{demoRole}</span>
           </p>
         </div>
         <Button
@@ -55,7 +57,7 @@ export const DemoDashboard: React.FC = () => {
           className="flex items-center gap-2"
         >
           <Trash2 className="h-4 w-4" />
-          Clean Demo Data
+          {t('common.cleanDemoData')}
         </Button>
       </div>
 
@@ -64,7 +66,7 @@ export const DemoDashboard: React.FC = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Activity className="h-4 w-4" />
-              Total Operations
+              {t('common.totalOperations')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -76,7 +78,7 @@ export const DemoDashboard: React.FC = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Database className="h-4 w-4" />
-              Created Records
+              {t('common.createdRecords')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -88,7 +90,7 @@ export const DemoDashboard: React.FC = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
-              Updated Records
+              {t('common.updatedRecords')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -100,7 +102,7 @@ export const DemoDashboard: React.FC = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
-              Tables Affected
+              {t('common.tablesAffected')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -112,7 +114,7 @@ export const DemoDashboard: React.FC = () => {
       {stats.tablesAffected.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Affected Tables</CardTitle>
+            <CardTitle className="text-sm">{t('common.affectedTables')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -128,7 +130,7 @@ export const DemoDashboard: React.FC = () => {
 
       <div className="text-xs text-amber-600 flex items-center gap-2">
         <Clock className="h-3 w-3" />
-        All demo data will be automatically cleaned when you log out or switch sessions
+        {t('common.demoDataAutoClean')}
       </div>
     </div>
   );
