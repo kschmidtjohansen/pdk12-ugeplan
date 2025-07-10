@@ -104,5 +104,20 @@ export const common = {
   language: "Language",
   team: "Team",
   areYouSure: "Are you sure?",
-  deleteWarning: "Your action cannot be undone when you delete this."
+  deleteWarning: "Your action cannot be undone when you delete this.",
+  
+  // Demo system translations
+  demoDashboard: "Demo Dashboard",
+  currentlyInDemoMode: "Currently in demo mode as:",
+  cleanDemoData: "Clean Demo Data",
+  totalOperations: "Total Operations",
+  createdRecords: "Created Records", 
+  updatedRecords: "Updated Records",
+  tablesAffected: "Tables Affected",
+  affectedTables: "Affected Tables",
+  demoDataAutoClean: "Demo data is automatically cleaned every 15 minutes",
+  demoDataCleaned: "Demo Data Cleaned",
+  demoDataCleanedDescription: "All demo data has been removed",
+  cleanupFailed: "Cleanup Failed",
+  failedToCleanupDemo: "Failed to clean demo data"
 };

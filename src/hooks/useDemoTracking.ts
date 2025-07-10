@@ -50,7 +50,7 @@ export const useDemoTracking = () => {
     trackOperation,
     getDemoStats: () => demoService.getDemoStats(),
     getOperationsForTable: (table: string) => demoService.getOperationsForTable(table),
-    triggerManualCleanup: () => demoService.triggerManualCleanup(),
+    triggerManualCleanup: () => demoService.cleanupAllDemoUserData(),
     isDemoMode
   };
 };

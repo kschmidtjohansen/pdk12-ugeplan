@@ -28,6 +28,7 @@ export class DemoUserService {
   // Demo user configuration
   static readonly DEMO_USER_EMAIL = 'test@polygongroup.com';
   static readonly DEMO_USER_PASSWORD = 'TesterbrugerPlan123';
+  static readonly DEMO_USER_ID = '165cdbc9-6722-4c96-97d2-1a87185c8133';
   
   private constructor() {
     this.initializeSession();
@@ -69,6 +70,14 @@ export class DemoUserService {
     } catch (error) {
       console.warn('Failed to save demo operation history:', error);
     }
+  }
+
+  private clearSessionData(): void {
+    sessionStorage.removeItem('demo-session-id');
+    sessionStorage.removeItem('demo-operations');
+    sessionStorage.removeItem('demo-role');
+    sessionStorage.removeItem('demo-last-activity');
+    sessionStorage.removeItem('demo-last-cleanup');
   }
   
   isDemoUser(email?: string): boolean {
@@ -122,49 +131,84 @@ export class DemoUserService {
     return this.operationHistory.filter(op => op.table === table);
   }
   
-  // Clean up all demo data
-  async cleanupDemoData(): Promise<{ success: boolean; errors: string[] }> {
-    if (!this.demoSessionId) {
-      return { success: true, errors: [] };
-    }
-    
-    console.log('[Demo] Starting cleanup of demo data...');
+  // Clean up all demo data (comprehensive database cleanup)
+  async cleanupAllDemoUserData(): Promise<{ success: boolean; errors: string[]; deletedCounts: Record<string, number> }> {
+    console.log('[Demo] Starting comprehensive cleanup of ALL demo user data...');
     const errors: string[] = [];
-    const operations = [...this.operationHistory].reverse(); // Reverse to handle dependencies
+    const deletedCounts: Record<string, number> = {};
     
-    // Group operations by table for efficient cleanup
-    const operationsByTable = new Map<string, DemoOperation[]>();
-    operations.forEach(op => {
-      if (!operationsByTable.has(op.table)) {
-        operationsByTable.set(op.table, []);
+    try {
+      // Delete all assignments where responsible_user_id = demo user
+      const { count: assignmentsDeleted, error: assignmentsError } = await supabase
+        .from('assignments')
+        .delete()
+        .eq('responsible_user_id', DemoUserService.DEMO_USER_ID);
+        
+      if (assignmentsError) {
+        errors.push(`Failed to delete assignments: ${assignmentsError.message}`);
+      } else {
+        deletedCounts.assignments = assignmentsDeleted || 0;
       }
-      operationsByTable.get(op.table)!.push(op);
-    });
-    
-    // Clean up each table
-    for (const [table, tableOps] of operationsByTable) {
-      try {
-        await this.cleanupTableData(table, tableOps);
-      } catch (error) {
-        const errorMsg = `Failed to cleanup ${table}: ${error instanceof Error ? error.message : 'Unknown error'}`;
-        console.error('[Demo]', errorMsg);
-        errors.push(errorMsg);
+
+      // Delete all assignments_employees where user_id = demo user
+      const { count: assignmentEmployeesDeleted, error: assignmentEmployeesError } = await supabase
+        .from('assignments_employees')
+        .delete()
+        .eq('user_id', DemoUserService.DEMO_USER_ID);
+        
+      if (assignmentEmployeesError) {
+        errors.push(`Failed to delete assignment employees: ${assignmentEmployeesError.message}`);
+      } else {
+        deletedCounts.assignments_employees = assignmentEmployeesDeleted || 0;
       }
+
+      // Delete all notifications where user_id = demo user
+      const { count: notificationsDeleted, error: notificationsError } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', DemoUserService.DEMO_USER_ID);
+        
+      if (notificationsError) {
+        errors.push(`Failed to delete notifications: ${notificationsError.message}`);
+      } else {
+        deletedCounts.notifications = notificationsDeleted || 0;
+      }
+
+      // Delete all vacations where user_id = demo user
+      const { count: vacationsDeleted, error: vacationsError } = await supabase
+        .from('vacations')
+        .delete()
+        .eq('user_id', DemoUserService.DEMO_USER_ID);
+        
+      if (vacationsError) {
+        errors.push(`Failed to delete vacations: ${vacationsError.message}`);
+      } else {
+        deletedCounts.vacations = vacationsDeleted || 0;
+      }
+
+      // Clear operation history and session data
+      this.operationHistory = [];
+      this.saveOperationHistory();
+      this.clearSessionData();
+      
+      const success = errors.length === 0;
+      const totalDeleted = Object.values(deletedCounts).reduce((sum, count) => sum + count, 0);
+      
+      console.log(`[Demo] Comprehensive cleanup completed. Success: ${success}, Total deleted: ${totalDeleted}, Errors: ${errors.length}`);
+      
+      return { success, errors, deletedCounts };
+    } catch (error) {
+      const errorMsg = `Comprehensive cleanup failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      console.error('[Demo]', errorMsg);
+      errors.push(errorMsg);
+      return { success: false, errors, deletedCounts };
     }
-    
-    // Clear operation history
-    this.operationHistory = [];
-    this.saveOperationHistory();
-    
-    // Clear session storage
-    sessionStorage.removeItem('demo-session-id');
-    sessionStorage.removeItem('demo-operations');
-    sessionStorage.removeItem('demo-role');
-    
-    const success = errors.length === 0;
-    console.log(`[Demo] Cleanup completed. Success: ${success}, Errors: ${errors.length}`);
-    
-    return { success, errors };
+  }
+
+  // Legacy cleanup method (for backwards compatibility)
+  async cleanupDemoData(): Promise<{ success: boolean; errors: string[] }> {
+    const result = await this.cleanupAllDemoUserData();
+    return { success: result.success, errors: result.errors };
   }
   
   private async cleanupTableData(table: string, operations: DemoOperation[]): Promise<void> {
