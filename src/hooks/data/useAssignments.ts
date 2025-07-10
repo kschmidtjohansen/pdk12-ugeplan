@@ -30,9 +30,9 @@ export const useAssignments = (): UseAssignmentsResult => {
       let result: Assignment[];
       
       if (user.role === 'administrator' || user.role === 'skadeleder') {
-        result = await AssignmentService.fetchAllPublishedAssignments();
+        result = await AssignmentService.fetchAllPublishedAssignments(user.email);
       } else {
-        result = await AssignmentService.fetchUserAssignments(user.id);
+        result = await AssignmentService.fetchUserAssignments(user.id, user.email);
       }
 
       setAssignments(result);

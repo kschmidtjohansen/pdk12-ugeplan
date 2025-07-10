@@ -25,6 +25,13 @@ const employees = {
   availableAfter: 'Available after {time}',
   fullyBooked: 'Fully Booked',
   
+  // Missing translation keys - ADD THESE
+  addNewEmployee: 'Add New Employee',
+  createAccount: 'Create Account',
+  fullName: 'Full Name',
+  notes: 'Notes',
+  password: 'Password',
+
   // Additional status translations
   status: {
     available: 'Available',
@@ -83,7 +90,16 @@ const employees = {
   emailRequired: 'Email is required',
   emailInvalid: 'Invalid email address',
   phoneRequired: 'Phone number is required',
-  roleRequired: 'Role is required'
+  roleRequired: 'Role is required',
+  
+  // Additional message translations
+  employeeAddedMsg: 'Employee {name} added with role {role}',
+  employeeUpdateMsg: 'Employee {name} was updated',
+  employeeDeletedMsg: 'Employee {name} was deleted',
+  employeeOnLeave: 'Employee set on leave',
+  employeeAvailable: 'Employee marked as available',
+  employeeOnLeaveMsg: '{name} is now on leave',
+  employeeAvailableMsg: '{name} is now available'
 };
 
 export default employees;

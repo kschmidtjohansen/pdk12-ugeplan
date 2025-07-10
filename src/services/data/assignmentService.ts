@@ -1,9 +1,14 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Assignment } from '@/types/assignment';
+import { DemoUserService } from '@/services/demoUserService';
 
 export class AssignmentService {
-  static async fetchAllPublishedAssignments(): Promise<Assignment[]> {
+  private static getDemoUserService() {
+    return DemoUserService.getInstance();
+  }
+
+  static async fetchAllPublishedAssignments(currentUserEmail?: string): Promise<Assignment[]> {
     const { data: assignmentsData, error } = await supabase
       .from('assignments')
       .select(`
@@ -18,10 +23,10 @@ export class AssignmentService {
       throw new Error(`Failed to fetch assignments: ${error.message}`);
     }
 
-    return this.transformAssignments(assignmentsData || []);
+    return this.transformAssignments(assignmentsData || [], currentUserEmail);
   }
 
-  static async fetchUserAssignments(userId: string): Promise<Assignment[]> {
+  static async fetchUserAssignments(userId: string, currentUserEmail?: string): Promise<Assignment[]> {
     const { data: userAssignments, error: userError } = await supabase
       .from('assignments_employees')
       .select('assignment_id')
@@ -52,10 +57,12 @@ export class AssignmentService {
       throw new Error(`Failed to fetch assignments: ${assignmentsError.message}`);
     }
 
-    return this.transformAssignments(assignmentsData || []);
+    return this.transformAssignments(assignmentsData || [], currentUserEmail);
   }
 
-  private static async transformAssignments(assignmentsData: any[]): Promise<Assignment[]> {
+  private static async transformAssignments(assignmentsData: any[], currentUserEmail?: string): Promise<Assignment[]> {
+    const demoService = this.getDemoUserService();
+    const isCurrentUserDemo = currentUserEmail ? demoService.isDemoUser(currentUserEmail) : false;
     const assignmentIds = assignmentsData.map(a => a.id);
     let employeeAssignments: any[] = [];
     let profilesData: any[] = [];
@@ -72,21 +79,51 @@ export class AssignmentService {
         const userIds = [...new Set(employeeAssignments.map(ae => ae.user_id))];
         const { data: profData } = await supabase
           .from('profiles')
-          .select('id, name')
+          .select('id, name, email')
           .in('id', userIds);
         
         profilesData = profData || [];
       }
     }
 
-    return assignmentsData.map(assignment => {
+    // Filter out assignments created by demo user if current user is not demo user
+    let filteredAssignments = assignmentsData;
+    if (!isCurrentUserDemo && assignmentsData.length > 0) {
+      // Get responsible user emails to filter out demo user assignments
+      const responsibleUserIds = [...new Set(assignmentsData
+        .map(a => a.responsible_user_id)
+        .filter(Boolean))];
+      
+      if (responsibleUserIds.length > 0) {
+        const { data: responsibleProfiles } = await supabase
+          .from('profiles')
+          .select('id, email')
+          .in('id', responsibleUserIds);
+        
+        const responsibleProfilesData = responsibleProfiles || [];
+        filteredAssignments = assignmentsData.filter(assignment => {
+          if (!assignment.responsible_user_id) return true;
+          const responsibleProfile = responsibleProfilesData.find(p => p.id === assignment.responsible_user_id);
+          return !responsibleProfile || !demoService.isDemoUser(responsibleProfile.email);
+        });
+      }
+    }
+
+    return filteredAssignments.map(assignment => {
       const assignmentEmployees = employeeAssignments.filter(ae => ae.assignment_id === assignment.id);
-      const employees = assignmentEmployees
+      // Filter employees to exclude demo user for non-demo users
+      let employees = assignmentEmployees
         .map(ae => {
           const profile = profilesData.find(p => p.id === ae.user_id);
-          return profile?.name;
+          return profile;
         })
         .filter(Boolean);
+      
+      if (!isCurrentUserDemo) {
+        employees = employees.filter(profile => !demoService.isDemoUser(profile.email));
+      }
+      
+      const employeeNames = employees.map(profile => profile.name);
 
       return {
         id: assignment.id,
@@ -99,7 +136,7 @@ export class AssignmentService {
         type: 'other' as const,
         published: assignment.published,
         responsibleUserId: assignment.responsible_user_id || '',
-        employees: employees,
+        employees: employeeNames,
         car: assignment.car_id || '',
         cars: assignment.car_ids || [],
         createdAt: assignment.created_at,

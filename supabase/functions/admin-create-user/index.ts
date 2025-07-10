@@ -112,11 +112,11 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { email, password, userData } = await req.json();
+    const { email, password, name, role, userData } = await req.json();
 
-    if (!email || !password) {
+    if (!email || !password || !name) {
       return new Response(
-        JSON.stringify({ error: 'Email and password are required' }),
+        JSON.stringify({ error: 'Email, password, and name are required' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -124,14 +124,17 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] Creating user with email: ${email}`);
+    console.log(`[${requestId}] Creating user with email: ${email}, name: ${name}, role: ${role}`);
 
     // Create the user in auth
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: userData || {}
+      user_metadata: { 
+        name,
+        ...userData
+      }
     });
 
     if (createError) {
@@ -147,8 +150,39 @@ serve(async (req) => {
 
     console.log(`[${requestId}] User created successfully: ${newUser.user?.id}`);
 
+    // Create profile entry
+    if (newUser.user?.id) {
+      const { error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .insert({
+          id: newUser.user.id,
+          name: name,
+          email: email,
+          status: 'active'
+        });
+
+      if (profileError) {
+        console.error(`[${requestId}] Profile creation error:`, profileError);
+      }
+
+      // Create user role entry
+      if (role) {
+        const { error: roleError } = await supabaseAdmin
+          .from('user_roles')
+          .insert({
+            user_id: newUser.user.id,
+            role: role
+          });
+
+        if (roleError) {
+          console.error(`[${requestId}] Role assignment error:`, roleError);
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
+        id: newUser.user?.id,
         user: newUser.user,
         message: 'User created successfully'
       }),

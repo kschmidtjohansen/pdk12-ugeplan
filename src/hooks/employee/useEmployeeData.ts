@@ -4,13 +4,19 @@ import { Employee } from '@/types/employee';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
+import { DemoUserService } from '@/services/demoUserService';
+import { useAuth } from '@/context/AuthContext';
 
 export const useEmployeeData = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const demoService = DemoUserService.getInstance();
+  const isDemoUser = user ? demoService.isDemoUser(user.email) : false;
 
   // FIXED: Now that RLS policy is corrected, we can fetch normally
   const fetchEmployees = useCallback(async () => {
@@ -79,15 +85,27 @@ export const useEmployeeData = () => {
         return employee;
       });
       
-      const administrators = transformedEmployees.filter(emp => emp.role === 'administrator');
-      const skadeledere = transformedEmployees.filter(emp => emp.role === 'skadeleder');
+      // DEMO USER FILTERING: Hide demo user from non-demo users
+      let filteredEmployees = transformedEmployees;
+      if (!isDemoUser) {
+        // If current user is NOT the demo user, filter out the demo user
+        filteredEmployees = transformedEmployees.filter(emp => 
+          !demoService.isDemoUser(emp.email)
+        );
+        console.log(`[useEmployeeData] Filtered out demo user. Showing ${filteredEmployees.length} of ${transformedEmployees.length} employees`);
+      } else {
+        console.log(`[useEmployeeData] Demo user logged in - showing all ${transformedEmployees.length} employees including demo user`);
+      }
       
-      console.log('[useEmployeeData] FIXED - Final distribution:');
+      const administrators = filteredEmployees.filter(emp => emp.role === 'administrator');
+      const skadeledere = filteredEmployees.filter(emp => emp.role === 'skadeleder');
+      
+      console.log('[useEmployeeData] FIXED - Final distribution (after demo filtering):');
       console.log('- Administrators:', administrators.length);
       console.log('- Skadeledere:', skadeledere.length);
-      console.log('- Total employees:', transformedEmployees.length);
+      console.log('- Total employees:', filteredEmployees.length);
       
-      setEmployees(transformedEmployees);
+      setEmployees(filteredEmployees);
       console.log('[useEmployeeData] FIXED - Employee data set successfully');
       
     } catch (err) {

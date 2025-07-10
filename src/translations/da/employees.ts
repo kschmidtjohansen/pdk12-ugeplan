@@ -36,6 +36,13 @@ const employees = {
     unknown: 'Ukendt status'
   },
   
+  // Missing translation keys - ADD THESE
+  addNewEmployee: 'Tilføj ny medarbejder',
+  createAccount: 'Opret konto',
+  fullName: 'Fulde navn',
+  notes: 'Noter',
+  password: 'Adgangskode',
+
   // Additional status translations (keep for backward compatibility)
   statusOptions: {
     available: 'Tilgængelig',
@@ -94,7 +101,16 @@ const employees = {
   emailRequired: 'Email er påkrævet',
   emailInvalid: 'Ugyldig email adresse',
   phoneRequired: 'Telefonnummer er påkrævet',
-  roleRequired: 'Rolle er påkrævet'
+  roleRequired: 'Rolle er påkrævet',
+  
+  // Additional message translations
+  employeeAddedMsg: 'Medarbejder {name} tilføjet med rolle {role}',
+  employeeUpdateMsg: 'Medarbejder {name} blev opdateret',
+  employeeDeletedMsg: 'Medarbejder {name} blev slettet',
+  employeeOnLeave: 'Medarbejder sat på orlov',
+  employeeAvailable: 'Medarbejder markeret som tilgængelig',
+  employeeOnLeaveMsg: '{name} er nu på orlov',
+  employeeAvailableMsg: '{name} er nu tilgængelig'
 };
 
 export default employees;
