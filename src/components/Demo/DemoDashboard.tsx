@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
+import { DemoRoleSwitcher } from './DemoRoleSwitcher';
 
 export const DemoDashboard: React.FC = () => {
   const { isDemoMode, demoRole } = useAuth();
@@ -59,15 +60,18 @@ export const DemoDashboard: React.FC = () => {
             {t('common.currentlyInDemoMode')} <span className="font-medium">{demoRole}</span>
           </p>
         </div>
-        <Button
-          onClick={handleManualCleanup}
-          variant="destructive"
-          size="sm"
-          className="flex items-center gap-2"
-        >
-          <Trash2 className="h-4 w-4" />
-          {t('common.cleanDemoData')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <DemoRoleSwitcher />
+          <Button
+            onClick={handleManualCleanup}
+            variant="destructive"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            {t('common.cleanDemoData')}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { UserCheck } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useAuth } from '@/context/AuthContext';
 interface ResponsibleUserSelectorProps {
   selectedUserId: string;
   onUserSelect: (userId: string) => void;
@@ -13,12 +14,9 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   selectedUserId,
   onUserSelect
 }) => {
-  const {
-    t
-  } = useTranslation();
-  const {
-    employees
-  } = useEmployees();
+  const { t } = useTranslation();
+  const { employees } = useEmployees();
+  const { user, isDemoMode } = useAuth();
   console.log('[ResponsibleUserSelector] ROLE UPDATE - Debug info:');
   console.log('- Total employees loaded:', employees.length);
   console.log('- Selected user ID:', selectedUserId);
@@ -28,11 +26,14 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     id: e.id.substring(0, 8) + '...'
   })));
 
-  // Updated filtering to work with the new 7-user structure
+  // Updated filtering to include demo user when they are creating assignments
   const eligibleUsers = employees.filter(employee => {
     const isEligible = employee.role === 'administrator' || employee.role === 'skadeleder';
-    console.log(`- Employee "${employee.name}" (${employee.role}): eligible = ${isEligible}`);
-    return isEligible;
+    // If current user is demo user, include themselves regardless of role
+    const includeDemoUser = isDemoMode && user && employee.id === user.id;
+    const finalEligible = isEligible || includeDemoUser;
+    console.log(`- Employee "${employee.name}" (${employee.role}): eligible = ${finalEligible} (isEligible: ${isEligible}, includeDemoUser: ${includeDemoUser})`);
+    return finalEligible;
   });
   console.log('- Final eligible users count:', eligibleUsers.length);
   console.log('- Eligible users details:', eligibleUsers.map(u => ({
