@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Users } from 'lucide-react';
 import { getEmployeeAvailabilityStatus, getEmployeeVacationStatus } from '@/utils/employeeAvailability';
 import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUtils';
+import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 
 interface EmployeeSelectorProps {
   employees: Employee[];
@@ -39,8 +40,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
 
-  // Show all employees for all user types
-  const filteredEmployees = employees;
+  // Apply demo user filtering to employees
+  const filteredEmployees = DemoUserFiltering.filterEmployees(employees, user?.email);
 
   // ROBUST date parsing for vacation check
   const dateForComparison = (() => {

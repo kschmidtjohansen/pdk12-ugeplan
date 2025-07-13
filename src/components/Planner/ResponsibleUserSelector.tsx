@@ -6,6 +6,7 @@ import { UserCheck } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/context/AuthContext';
+import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 interface ResponsibleUserSelectorProps {
   selectedUserId: string;
   onUserSelect: (userId: string) => void;
@@ -26,15 +27,16 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     id: e.id.substring(0, 8) + '...'
   })));
 
-  // Updated filtering to include demo user when they are creating assignments
-  const eligibleUsers = employees.filter(employee => {
-    const isEligible = employee.role === 'administrator' || employee.role === 'skadeleder';
-    // If current user is demo user, include themselves regardless of role
-    const includeDemoUser = isDemoMode && user && employee.id === user.id;
-    const finalEligible = isEligible || includeDemoUser;
-    console.log(`- Employee "${employee.name}" (${employee.role}): eligible = ${finalEligible} (isEligible: ${isEligible}, includeDemoUser: ${includeDemoUser})`);
-    return finalEligible;
-  });
+  // Use centralized demo user filtering for responsible users
+  const eligibleUsers = DemoUserFiltering.getEligibleResponsibleUsers(employees, user?.email);
+  
+  // Add current user if they are demo user (for creating assignments)
+  if (isDemoMode && user && !eligibleUsers.find(emp => emp.id === user.id)) {
+    const currentUserEmployee = employees.find(emp => emp.id === user.id);
+    if (currentUserEmployee) {
+      eligibleUsers.push(currentUserEmployee);
+    }
+  }
   console.log('- Final eligible users count:', eligibleUsers.length);
   console.log('- Eligible users details:', eligibleUsers.map(u => ({
     name: u.name,

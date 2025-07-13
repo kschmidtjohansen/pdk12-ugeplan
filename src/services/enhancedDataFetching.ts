@@ -190,8 +190,8 @@ export class EnhancedDataFetching {
     };
   }
 
-  async fetchVacationsEnhanced() {
-    const cacheKey = this.getCacheKey('vacations', 'enhanced', {});
+  async fetchVacationsEnhanced(currentUserEmail?: string) {
+    const cacheKey = this.getCacheKey('vacations', 'enhanced', { currentUserEmail });
     const cached = this.getCache(cacheKey);
     
     if (cached) {
@@ -307,8 +307,8 @@ export class EnhancedDataFetching {
     return status;
   }
 
-  async fetchAssignmentsEnhanced() {
-    const cacheKey = this.getCacheKey('assignments', 'enhanced', {});
+  async fetchAssignmentsEnhanced(currentUserEmail?: string) {
+    const cacheKey = this.getCacheKey('assignments', 'enhanced', { currentUserEmail });
     const cached = this.getCache(cacheKey);
     
     if (cached) {
@@ -361,8 +361,8 @@ export class EnhancedDataFetching {
     return result;
   }
 
-  async fetchEmployeesEnhanced() {
-    const cacheKey = this.getCacheKey('employees', 'enhanced', {});
+  async fetchEmployeesEnhanced(currentUserEmail?: string) {
+    const cacheKey = this.getCacheKey('employees', 'enhanced', { currentUserEmail });
     const cached = this.getCache(cacheKey);
     
     if (cached) {

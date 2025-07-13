@@ -4,6 +4,7 @@ import { enhancedUnifiedDataService } from '@/services/enhancedUnifiedDataServic
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
+import { useAuth } from '@/context/AuthContext';
 
 interface UseEnhancedUnifiedDataResult {
   employees: Employee[];
@@ -21,6 +22,7 @@ interface UseEnhancedUnifiedDataResult {
 }
 
 export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
+  const { user } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [cars, setCars] = useState<Car[]>([]);
@@ -35,8 +37,8 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
       setError(null);
 
       const [employeesResult, assignmentsResult, carsResult] = await Promise.all([
-        enhancedUnifiedDataService.fetchEmployees(),
-        enhancedUnifiedDataService.fetchAssignments(),
+        enhancedUnifiedDataService.fetchEmployees(user?.email),
+        enhancedUnifiedDataService.fetchAssignments(user?.email),
         enhancedUnifiedDataService.fetchCars()
       ]);
 

@@ -6,10 +6,13 @@ import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
+import { useAuth } from '@/context/AuthContext';
+import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 
 export const useAssignmentDataOptimized = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,8 +24,8 @@ export const useAssignmentDataOptimized = () => {
       
       console.log('[useAssignmentDataOptimized] ENHANCED - Starting enhanced fetch...');
       
-      // Use enhanced data fetching with proper error handling
-      const assignmentResult = await enhancedDataFetching.fetchAssignmentsEnhanced();
+      // Use enhanced data fetching with proper error handling and user email for demo filtering
+      const assignmentResult = await enhancedDataFetching.fetchAssignmentsEnhanced(user?.email);
       
       if (assignmentResult.error || !assignmentResult.data) {
         throw assignmentResult.error || new Error('No assignment data received');
@@ -38,7 +41,7 @@ export const useAssignmentDataOptimized = () => {
       }
       
       // Enhanced data transformation with better error handling
-      const transformedAssignments: Assignment[] = assignmentsWithEmployees.map(assignment => {
+      let transformedAssignments: Assignment[] = assignmentsWithEmployees.map(assignment => {
         // Extract employee data from the nested structure
         const assignedEmployees = (assignment.assignments_employees || [])
           .map(ae => ({
@@ -75,8 +78,11 @@ export const useAssignmentDataOptimized = () => {
           type: assignment.type || 'other'
         };
       });
+
+      // Apply demo user filtering
+      transformedAssignments = DemoUserFiltering.filterAssignments(transformedAssignments, user?.email);
       
-      console.log(`[useAssignmentDataOptimized] ENHANCED - Successfully processed ${transformedAssignments.length} assignments`);
+      console.log(`[useAssignmentDataOptimized] ENHANCED - Successfully processed ${transformedAssignments.length} assignments (after demo filtering)`);
       setAssignments(transformedAssignments);
       
     } catch (err) {
@@ -112,28 +118,47 @@ export const useAssignmentDataOptimized = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, t]);
+  }, [toast, t, user?.email]);
 
   // Load assignments on mount
   useEffect(() => {
     fetchAssignments();
   }, [fetchAssignments]);
 
-  // Set up realtime subscription
+  // Set up realtime subscription with demo user filtering awareness
   useEffect(() => {
+    let debounceTimeout: NodeJS.Timeout;
+    
     const channel = supabase
       .channel('assignment_changes_optimized')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, () => {
-        console.log('[useAssignmentDataOptimized] Assignment change detected, refreshing...');
-        fetchAssignments();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, (payload) => {
+        console.log('[useAssignmentDataOptimized] Assignment change detected:', payload.eventType);
+        
+        // Clear cache to ensure fresh data
+        enhancedDataFetching.clearCache('assignments');
+        
+        // Debounce to prevent rapid-fire updates
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+          fetchAssignments();
+        }, 500);
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments_employees' }, () => {
-        console.log('[useAssignmentDataOptimized] Assignment employee change detected, refreshing...');
-        fetchAssignments();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments_employees' }, (payload) => {
+        console.log('[useAssignmentDataOptimized] Assignment employee change detected:', payload.eventType);
+        
+        // Clear cache to ensure fresh data
+        enhancedDataFetching.clearCache('assignments');
+        
+        // Debounce to prevent rapid-fire updates
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+          fetchAssignments();
+        }, 500);
       })
       .subscribe();
       
     return () => {
+      clearTimeout(debounceTimeout);
       supabase.removeChannel(channel);
     };
   }, [fetchAssignments]);

@@ -5,6 +5,7 @@ import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { systemHealthService } from './systemHealthService';
+import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 
 interface DataFetchResult<T> {
   data: T[];
@@ -30,12 +31,12 @@ class EnhancedUnifiedDataService {
     }, 5 * 60 * 1000);
   }
 
-  async fetchEmployees(): Promise<DataFetchResult<Employee>> {
+  async fetchEmployees(currentUserEmail?: string): Promise<DataFetchResult<Employee>> {
     try {
       console.log('[EnhancedUnifiedDataService] Fetching employees with enhanced error handling...');
       
       // Use enhanced data fetching with proper error serialization
-      const result = await enhancedDataFetching.fetchEmployeesEnhanced();
+      const result = await enhancedDataFetching.fetchEmployeesEnhanced(currentUserEmail);
       
       if (result.error) {
         throw result.error;
@@ -51,7 +52,7 @@ class EnhancedUnifiedDataService {
       }
 
       // Transform profiles to Employee format
-      const employees: Employee[] = result.data.map(profile => ({
+      let employees: Employee[] = result.data.map(profile => ({
         id: profile.id,
         name: profile.name || 'Unknown',
         email: profile.email || '',
@@ -64,7 +65,10 @@ class EnhancedUnifiedDataService {
         avatar_url: profile.avatar_url
       }));
 
-      console.log(`[EnhancedUnifiedDataService] Successfully fetched ${employees.length} employees`);
+      // Apply demo user filtering
+      employees = DemoUserFiltering.filterEmployees(employees, currentUserEmail);
+
+      console.log(`[EnhancedUnifiedDataService] Successfully fetched ${employees.length} employees (after demo filtering)`);
 
       return {
         data: employees,
@@ -98,12 +102,12 @@ class EnhancedUnifiedDataService {
     }
   }
 
-  async fetchAssignments(): Promise<DataFetchResult<Assignment>> {
+  async fetchAssignments(currentUserEmail?: string): Promise<DataFetchResult<Assignment>> {
     try {
       console.log('[EnhancedUnifiedDataService] Fetching assignments with enhanced error handling...');
       
       // Use enhanced data fetching with proper error serialization
-      const result = await enhancedDataFetching.fetchAssignmentsEnhanced();
+      const result = await enhancedDataFetching.fetchAssignmentsEnhanced(currentUserEmail);
       
       if (result.error) {
         throw result.error;
@@ -119,7 +123,7 @@ class EnhancedUnifiedDataService {
       }
 
       // Transform raw assignment data to Assignment format
-      const assignments: Assignment[] = result.data.map(assignment => {
+      let assignments: Assignment[] = result.data.map(assignment => {
         // Extract employee data from the nested structure
         const assignedEmployees = (assignment.assignments_employees || [])
           .map(ae => ({
@@ -159,7 +163,10 @@ class EnhancedUnifiedDataService {
         };
       });
 
-      console.log(`[EnhancedUnifiedDataService] Successfully processed ${assignments.length} assignments`);
+      // Apply demo user filtering
+      assignments = DemoUserFiltering.filterAssignments(assignments, currentUserEmail);
+
+      console.log(`[EnhancedUnifiedDataService] Successfully processed ${assignments.length} assignments (after demo filtering)`);
 
       return {
         data: assignments,

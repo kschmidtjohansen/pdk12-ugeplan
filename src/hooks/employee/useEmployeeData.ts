@@ -6,6 +6,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DemoUserService } from '@/services/demoUserService';
 import { useAuth } from '@/context/AuthContext';
+import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 
 export const useEmployeeData = () => {
   const { toast } = useToast();
@@ -85,17 +86,9 @@ export const useEmployeeData = () => {
         return employee;
       });
       
-      // DEMO USER FILTERING: Hide demo user from non-demo users
-      let filteredEmployees = transformedEmployees;
-      if (!isDemoUser) {
-        // If current user is NOT the demo user, filter out the demo user
-        filteredEmployees = transformedEmployees.filter(emp => 
-          !demoService.isDemoUser(emp.email)
-        );
-        console.log(`[useEmployeeData] Filtered out demo user. Showing ${filteredEmployees.length} of ${transformedEmployees.length} employees`);
-      } else {
-        console.log(`[useEmployeeData] Demo user logged in - showing all ${transformedEmployees.length} employees including demo user`);
-      }
+      // DEMO USER FILTERING: Use centralized filtering utility
+      const filteredEmployees = DemoUserFiltering.filterEmployees(transformedEmployees, user?.email);
+      console.log(`[useEmployeeData] Applied demo user filtering. Showing ${filteredEmployees.length} of ${transformedEmployees.length} employees`);
       
       const administrators = filteredEmployees.filter(emp => emp.role === 'administrator');
       const skadeledere = filteredEmployees.filter(emp => emp.role === 'skadeleder');

@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+// NOTICE: This file (usePlannerPage.ts) is 201 lines long and should be refactored into smaller hooks.
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
 import { useAssignmentDataOptimized } from './assignment/useAssignmentDataOptimized';
