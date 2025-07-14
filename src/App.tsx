@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import { SecurityProvider } from "./context/SecurityContext";
 import { AuthProvider } from "./context/AuthContext";
-import { TranslationProvider } from "./context/TranslationContext";
+import { TranslationProvider, useTranslation } from "./context/TranslationContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import Index from "./pages/Index";
 import LoginPage from "./pages/LoginPage";
@@ -37,6 +37,20 @@ const App = () => {
 };
 
 const AppContent = () => {
+  const { isInitialized } = useTranslation();
+  
+  // Don't render routes until translation is initialized
+  if (!isInitialized) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <SecurityProvider>
       <AuthProvider>
