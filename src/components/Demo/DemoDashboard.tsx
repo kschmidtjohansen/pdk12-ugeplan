@@ -146,7 +146,7 @@ export const DemoDashboard: React.FC = () => {
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
             <Timer className="h-4 w-4" />
-            Auto-Cleanup Timer
+            {t('common.autoCleanupTimer')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -156,7 +156,7 @@ export const DemoDashboard: React.FC = () => {
                 {timeRemainingFormatted}
               </div>
               <div className={`text-sm ${showWarning ? 'text-red-600' : 'text-amber-600'}`}>
-                {showWarning ? 'Warning: Cleanup imminent!' : 'Until next cleanup'}
+                {showWarning ? t('common.warningCleanupImminent') : t('common.untilNextCleanup')}
               </div>
             </div>
             <Button
@@ -166,13 +166,13 @@ export const DemoDashboard: React.FC = () => {
               className="flex items-center gap-2"
             >
               <RefreshCw className="h-4 w-4" />
-              Extend 15 min
+              {t('common.extendFifteenMin')}
             </Button>
           </div>
           
           {showWarning && (
             <div className="text-xs text-red-600 font-medium">
-              ⚠️ All demo data will be automatically deleted in 1 minute!
+              ⚠️ {t('common.allDemoDataWillBeDeleted')}
             </div>
           )}
         </CardContent>
@@ -180,7 +180,7 @@ export const DemoDashboard: React.FC = () => {
 
       <div className="text-xs text-amber-600 flex items-center gap-2">
         <Clock className="h-3 w-3" />
-        Demo data is automatically cleaned every 15 minutes and when session ends
+        {t('common.demoDataAutoCleanedEvery')}
       </div>
     </div>
   );

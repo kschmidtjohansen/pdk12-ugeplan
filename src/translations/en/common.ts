@@ -125,5 +125,13 @@ export const common = {
   switchRole: "Switch Role",
   roleChanged: "Role Changed",
   switchingToRole: "Switching to {role}...",
-  unknown: "Unknown"
+  unknown: "Unknown",
+  
+  // Auto-cleanup timer translations
+  autoCleanupTimer: "Auto-Cleanup Timer",
+  untilNextCleanup: "Until next cleanup",
+  extendFifteenMin: "Extend 15 min",
+  warningCleanupImminent: "Warning: Cleanup imminent!",
+  allDemoDataWillBeDeleted: "All demo data will be automatically deleted in 1 minute!",
+  demoDataAutoCleanedEvery: "Demo data is automatically cleaned every 15 minutes and when session ends"
 };

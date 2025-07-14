@@ -128,5 +128,13 @@ export const common = {
   switchRole: "Skift Rolle",
   roleChanged: "Rolle Ændret",
   switchingToRole: "Skifter til {role}...",
-  unknown: "Ukendt"
+  unknown: "Ukendt",
+  
+  // Auto-cleanup timer translations
+  autoCleanupTimer: "Automatisk Oprydningstimer",
+  untilNextCleanup: "Indtil næste oprydning",
+  extendFifteenMin: "Forlæng 15 min",
+  warningCleanupImminent: "Advarsel: Oprydning nær forestående!",
+  allDemoDataWillBeDeleted: "Alle demo data vil automatisk blive slettet om 1 minut!",
+  demoDataAutoCleanedEvery: "Demo data ryddes automatisk hver 15. minut og når session ender"
 };

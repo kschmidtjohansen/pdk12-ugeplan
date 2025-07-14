@@ -137,11 +137,17 @@ export const useAssignmentDataOptimized = () => {
         // Clear cache to ensure fresh data
         enhancedDataFetching.clearCache('assignments');
         
-        // Debounce to prevent rapid-fire updates
-        clearTimeout(debounceTimeout);
-        debounceTimeout = setTimeout(() => {
+        // For demo users, fetch immediately to ensure instant visibility
+        if (user?.email === 'demo@example.com') {
+          console.log('[useAssignmentDataOptimized] Demo user detected - immediate fetch');
           fetchAssignments();
-        }, 500);
+        } else {
+          // Debounce to prevent rapid-fire updates for regular users
+          clearTimeout(debounceTimeout);
+          debounceTimeout = setTimeout(() => {
+            fetchAssignments();
+          }, 500);
+        }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments_employees' }, (payload) => {
         console.log('[useAssignmentDataOptimized] Assignment employee change detected:', payload.eventType);
@@ -149,11 +155,17 @@ export const useAssignmentDataOptimized = () => {
         // Clear cache to ensure fresh data
         enhancedDataFetching.clearCache('assignments');
         
-        // Debounce to prevent rapid-fire updates
-        clearTimeout(debounceTimeout);
-        debounceTimeout = setTimeout(() => {
+        // For demo users, fetch immediately to ensure instant visibility
+        if (user?.email === 'demo@example.com') {
+          console.log('[useAssignmentDataOptimized] Demo user detected - immediate fetch for employee changes');
           fetchAssignments();
-        }, 500);
+        } else {
+          // Debounce to prevent rapid-fire updates for regular users
+          clearTimeout(debounceTimeout);
+          debounceTimeout = setTimeout(() => {
+            fetchAssignments();
+          }, 500);
+        }
       })
       .subscribe();
       
