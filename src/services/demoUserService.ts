@@ -75,6 +75,7 @@ export class DemoUserService {
   private clearSessionData(): void {
     sessionStorage.removeItem('demo-session-id');
     sessionStorage.removeItem('demo-operations');
+    sessionStorage.removeItem('demo-assignments');
     sessionStorage.removeItem('demo-role');
     sessionStorage.removeItem('demo-last-activity');
     sessionStorage.removeItem('demo-last-cleanup');
@@ -111,6 +112,49 @@ export class DemoUserService {
     this.saveOperationHistory();
     
     console.log(`[Demo] Tracked ${operation} operation on ${table}:`, recordId);
+  }
+
+  // Store demo assignment data in session storage
+  storeDemoAssignment(assignment: any): void {
+    const demoAssignments = this.getDemoAssignments();
+    demoAssignments.push({
+      ...assignment,
+      id: assignment.id || `demo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      isDemoData: true,
+      sessionId: this.demoSessionId
+    });
+    sessionStorage.setItem('demo-assignments', JSON.stringify(demoAssignments));
+  }
+
+  // Update demo assignment in session storage
+  updateDemoAssignment(id: string, updates: any): void {
+    const demoAssignments = this.getDemoAssignments();
+    const index = demoAssignments.findIndex(a => a.id === id);
+    if (index !== -1) {
+      demoAssignments[index] = { ...demoAssignments[index], ...updates };
+      sessionStorage.setItem('demo-assignments', JSON.stringify(demoAssignments));
+    }
+  }
+
+  // Delete demo assignment from session storage
+  deleteDemoAssignment(id: string): void {
+    const demoAssignments = this.getDemoAssignments();
+    const filtered = demoAssignments.filter(a => a.id !== id);
+    sessionStorage.setItem('demo-assignments', JSON.stringify(filtered));
+  }
+
+  // Get demo assignments from session storage
+  getDemoAssignments(): any[] {
+    const stored = sessionStorage.getItem('demo-assignments');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (error) {
+        console.warn('Failed to load demo assignments:', error);
+        return [];
+      }
+    }
+    return [];
   }
   
   // Get demo data statistics

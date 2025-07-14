@@ -8,6 +8,7 @@ import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
 import { useAuth } from '@/context/AuthContext';
 import { DemoUserFiltering } from '@/utils/demoUserFiltering';
+import { DemoUserService } from '@/services/demoUserService';
 
 export const useAssignmentDataOptimized = () => {
   const { toast } = useToast();
@@ -16,6 +17,7 @@ export const useAssignmentDataOptimized = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const demoService = DemoUserService.getInstance();
 
   const fetchAssignments = useCallback(async () => {
     try {
@@ -81,6 +83,30 @@ export const useAssignmentDataOptimized = () => {
 
       // Apply demo user filtering
       transformedAssignments = DemoUserFiltering.filterAssignments(transformedAssignments, user?.email);
+      
+      // If this is a demo user, include their session-stored assignments
+      if (demoService.isDemoUser(user?.email)) {
+        const demoAssignments = demoService.getDemoAssignments().map(demoAssignment => ({
+          id: demoAssignment.id,
+          title: demoAssignment.title,
+          description: demoAssignment.description || '',
+          date: demoAssignment.assignment_date,
+          fromTime: demoAssignment.from_time,
+          toTime: demoAssignment.to_time,
+          location: demoAssignment.location,
+          employees: [],
+          assignedEmployees: [],
+          cars: demoAssignment.car_id ? [demoAssignment.car_id] : [],
+          car: demoAssignment.car_id || '',
+          published: demoAssignment.published || false,
+          responsibleUser: null,
+          responsibleUserId: demoAssignment.responsible_user_id,
+          type: demoAssignment.type || 'other'
+        }));
+        
+        transformedAssignments = [...transformedAssignments, ...demoAssignments];
+        console.log(`[useAssignmentDataOptimized] Added ${demoAssignments.length} demo assignments from session storage`);
+      }
       
       console.log(`[useAssignmentDataOptimized] ENHANCED - Successfully processed ${transformedAssignments.length} assignments (after demo filtering)`);
       setAssignments(transformedAssignments);

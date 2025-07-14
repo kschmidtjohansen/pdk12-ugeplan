@@ -2,9 +2,11 @@ import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { isValidUUID, safeUUID } from '@/utils/uuidValidation';
+import { DemoUserService } from '@/services/demoUserService';
 
 // This hook provides actions for managing assignments
 export const useAssignmentActions = (
@@ -13,6 +15,8 @@ export const useAssignmentActions = (
 ) => {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const demoService = DemoUserService.getInstance();
 
   // Helper function to get profile ID by name
   const getProfileIdByName = async (name: string): Promise<string | null> => {
@@ -52,6 +56,39 @@ export const useAssignmentActions = (
     try {
       console.log("[useAssignmentActions] ===== CREATE ASSIGNMENT START =====");
       console.log("[useAssignmentActions] Full assignment data received:", assignmentData);
+      
+      // Check if this is a demo user - if so, handle differently
+      if (demoService.isDemoUser(user?.email)) {
+        console.log("[useAssignmentActions] Demo user detected - using session storage");
+        
+        const demoAssignment = {
+          id: `demo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          title: assignmentData.title,
+          description: assignmentData.description,
+          assignment_date: assignmentData.date,
+          from_time: assignmentData.fromTime,
+          to_time: assignmentData.toTime,
+          location: assignmentData.location,
+          car_id: assignmentData.car,
+          responsible_user_id: assignmentData.responsibleUserId || assignmentData.responsibleUser?.id,
+          published: assignmentData.published || false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          isDemoData: true
+        };
+        
+        demoService.storeDemoAssignment(demoAssignment);
+        demoService.trackOperation('assignments', 'create', demoAssignment.id);
+        
+        toast({
+          title: t('planner.assignmentCreated'),
+          description: t('planner.assignmentCreatedMsg', { title: assignmentData.title }),
+        });
+        
+        refetch();
+        if (setIsDialogOpen) setIsDialogOpen(false);
+        return;
+      }
       console.log("[useAssignmentActions] ResponsibleUser structure:", {
         hasResponsibleUserId: !!assignmentData.responsibleUserId,
         responsibleUserId: assignmentData.responsibleUserId,
@@ -183,17 +220,47 @@ export const useAssignmentActions = (
         variant: "destructive",
       });
     }
-  }, [toast, t, refetch, setIsDialogOpen]);
+  }, [toast, t, refetch, setIsDialogOpen, user?.email, demoService]);
 
   // Update an existing assignment
   const updateAssignment = useCallback(async (id: string, assignmentData: Partial<Assignment>) => {
     try {
+      console.log("[useAssignmentActions] ===== UPDATE ASSIGNMENT START =====");
+      console.log("[useAssignmentActions] Full assignment data received:", assignmentData);
+      
+      // Check if this is a demo user - if so, handle differently
+      if (demoService.isDemoUser(user?.email)) {
+        console.log("[useAssignmentActions] Demo user detected - updating session storage");
+        
+        const updates = {
+          title: assignmentData.title,
+          description: assignmentData.description,
+          assignment_date: assignmentData.date,
+          from_time: assignmentData.fromTime,
+          to_time: assignmentData.toTime,
+          location: assignmentData.location,
+          car_id: assignmentData.car,
+          responsible_user_id: assignmentData.responsibleUserId || assignmentData.responsibleUser?.id,
+          published: assignmentData.published,
+          updated_at: new Date().toISOString()
+        };
+        
+        demoService.updateDemoAssignment(id, updates);
+        demoService.trackOperation('assignments', 'update', id);
+        
+        toast({
+          title: t('planner.assignmentUpdated'),
+          description: t('planner.assignmentUpdatedMsg', { title: assignmentData.title }),
+        });
+        
+        refetch();
+        if (setIsDialogOpen) setIsDialogOpen(false);
+        return true;
+      }
+
       if (!isValidUUID(id)) {
         throw new Error('Invalid assignment ID provided');
       }
-
-      console.log("[useAssignmentActions] ===== UPDATE ASSIGNMENT START =====");
-      console.log("[useAssignmentActions] Full assignment data received:", assignmentData);
       console.log("[useAssignmentActions] ResponsibleUser structure:", {
         hasResponsibleUserId: !!assignmentData.responsibleUserId,
         responsibleUserId: assignmentData.responsibleUserId,
@@ -309,11 +376,27 @@ export const useAssignmentActions = (
       });
       return false;
     }
-  }, [toast, t, refetch, setIsDialogOpen]);
+  }, [toast, t, refetch, setIsDialogOpen, user?.email, demoService]);
   
   // Delete an assignment
   const deleteAssignment = useCallback(async (id: string) => {
     try {
+      // Check if this is a demo user - if so, handle differently
+      if (demoService.isDemoUser(user?.email)) {
+        console.log("[useAssignmentActions] Demo user detected - removing from session storage");
+        
+        demoService.deleteDemoAssignment(id);
+        demoService.trackOperation('assignments', 'delete', id);
+        
+        toast({
+          title: t('planner.assignmentDeleted'),
+          description: t('planner.assignmentDeletedMsg'),
+        });
+        
+        refetch();
+        return true;
+      }
+
       if (!isValidUUID(id)) {
         throw new Error('Invalid assignment ID provided');
       }
@@ -352,11 +435,30 @@ export const useAssignmentActions = (
       });
       return false;
     }
-  }, [toast, t, refetch]);
+  }, [toast, t, refetch, user?.email, demoService]);
 
   // Publish an assignment
   const publishAssignment = useCallback(async (id: string) => {
     try {
+      // Check if this is a demo user - if so, handle differently
+      if (demoService.isDemoUser(user?.email)) {
+        console.log("[useAssignmentActions] Demo user detected - publishing in session storage");
+        
+        demoService.updateDemoAssignment(id, { 
+          published: true, 
+          updated_at: new Date().toISOString() 
+        });
+        demoService.trackOperation('assignments', 'update', id);
+        
+        toast({
+          title: t('planner.assignmentPublished'),
+          description: t('planner.assignmentPublishedMsg'),
+        });
+        
+        refetch();
+        return true;
+      }
+
       if (!isValidUUID(id)) {
         throw new Error('Invalid assignment ID provided');
       }
@@ -384,11 +486,34 @@ export const useAssignmentActions = (
       });
       return false;
     }
-  }, [toast, t, refetch]);
+  }, [toast, t, refetch, user?.email, demoService]);
 
   // Publish all assignments for a specific date
   const publishAssignmentsByDate = useCallback(async (date: string) => {
     try {
+      // Check if this is a demo user - if so, handle differently
+      if (demoService.isDemoUser(user?.email)) {
+        console.log("[useAssignmentActions] Demo user detected - publishing day in session storage");
+        
+        const demoAssignments = demoService.getDemoAssignments();
+        const updatedAssignments = demoAssignments.map(assignment => {
+          if (assignment.assignment_date === date && !assignment.published) {
+            return { ...assignment, published: true, updated_at: new Date().toISOString() };
+          }
+          return assignment;
+        });
+        
+        sessionStorage.setItem('demo-assignments', JSON.stringify(updatedAssignments));
+        
+        toast({
+          title: t('planner.dayPublished'),
+          description: t('planner.dayPublishedMsg', { date }),
+        });
+        
+        refetch();
+        return true;
+      }
+
       const { error } = await supabase
         .from('assignments')
         .update({ published: true, updated_at: new Date().toISOString() })
@@ -413,7 +538,7 @@ export const useAssignmentActions = (
       });
       return false;
     }
-  }, [toast, t, refetch]);
+  }, [toast, t, refetch, user?.email, demoService]);
 
   return {
     createAssignment,
