@@ -12,8 +12,7 @@ export const cleanupFalsePositiveSecurityLogs = async (): Promise<{ success: boo
       .from('logs')
       .delete()
       .eq('event_type', 'suspicious_activity')
-      .like('message', '%mouse movement%')
-      .or('message.like.%rapid clicking%,message.like.%High frequency of activities%')
+      .or('message.like.%mouse movement%,message.like.%rapid clicking%,message.like.%High frequency of activities%')
       .select('id');
 
     if (error) {

@@ -79,10 +79,16 @@ class RealtimeManager {
           subscription.active = true;
           this.connectionStatus = 'connected';
           this.reconnectAttempts = 0;
+          console.log(`[RealtimeManager] Successfully connected ${id}`);
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           subscription.active = false;
           this.connectionStatus = 'disconnected';
+          console.warn(`[RealtimeManager] Connection failed for ${id}, status: ${status}`);
           this.handleConnectionError(id, callback);
+        } else if (status === 'CLOSED') {
+          subscription.active = false;
+          this.connectionStatus = 'disconnected';
+          console.log(`[RealtimeManager] Connection closed for ${id}`);
         }
       });
 
@@ -100,12 +106,18 @@ class RealtimeManager {
       this.reconnectAttempts++;
       console.log(`[RealtimeManager] Attempting reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts} for ${subscriptionId}`);
       
+      // Add jitter to prevent thundering herd
+      const baseDelay = 2000 * this.reconnectAttempts;
+      const jitter = Math.random() * 1000;
+      const delay = baseDelay + jitter;
+      
       setTimeout(() => {
         const subscription = this.subscriptions.get(subscriptionId);
         if (subscription) {
+          console.log(`[RealtimeManager] Executing reconnection for ${subscriptionId}`);
           this.subscribe(subscriptionId, subscription.tables, callback);
         }
-      }, 2000 * this.reconnectAttempts); // Exponential backoff
+      }, delay);
     } else {
       console.warn(`[RealtimeManager] Max reconnection attempts reached for ${subscriptionId}, falling back to polling`);
       this.startPolling(subscriptionId, callback);
