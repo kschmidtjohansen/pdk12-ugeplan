@@ -14,9 +14,9 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t, isInitialized } = useTranslation();
 
-  console.log('[MainLayout] Render - path:', location.pathname, 'isAuthenticated:', isAuthenticated, 'loading:', loading);
+  console.log('[MainLayout] Render - path:', location.pathname, 'isAuthenticated:', isAuthenticated, 'loading:', loading, 'translationInitialized:', isInitialized);
 
   // Don't show layout for login page or password reset page
   if (location.pathname === "/login" || location.pathname === "/password-reset") {
@@ -28,15 +28,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
-  // Show simple loading state
-  if (loading) {
+  // Show loading state if translation is not initialized or auth is loading
+  if (loading || !isInitialized) {
     return (
       <SecurityErrorBoundary>
         <SecurityHeaders />
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
           <div className="text-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground">{t('common.loading')}</p>
+            <p className="text-muted-foreground">Loading...</p>
           </div>
         </div>
       </SecurityErrorBoundary>
