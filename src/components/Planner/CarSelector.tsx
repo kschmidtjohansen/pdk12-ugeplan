@@ -51,11 +51,12 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
     return time.trim();
   };
 
-  // Check if a car is in use with consistent date parsing
+  // Check if a car is in use with working hours logic
   const isCarInUse = (carId: string): {
     isAssigned: boolean;
-    hasEndTimeAtSixteen: boolean;
+    hasEndTimeAtWorkingHours: boolean;
     latestEndTime: string;
+    isFullDay: boolean;
   } => {
     // Convert currentDate to consistent YYYY-MM-DD format
     let targetDateStr: string;
@@ -108,16 +109,25 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       }
     });
 
-    // Check for 16:00 end time
-    const hasEndTimeAtSixteen = carAssignments.some(assignment => {
+    // Determine working hours based on day of week
+    const currentDateObj = new Date(targetDateStr);
+    const dayOfWeek = currentDateObj.getDay(); // 0 = Sunday, 1 = Monday, ..., 5 = Friday, 6 = Saturday
+    const isFriday = dayOfWeek === 5;
+    const workingHoursEnd = isFriday ? "15:30" : "16:00";
+
+    // Check if car is used for full working day
+    const hasEndTimeAtWorkingHours = carAssignments.some(assignment => {
       const normalizedEndTime = normalizeTime(assignment.toTime);
-      return normalizedEndTime === "16:00";
+      return normalizedEndTime === workingHoursEnd;
     });
+
+    const isFullDay = hasEndTimeAtWorkingHours;
 
     return {
       isAssigned: carAssignments.length > 0,
-      hasEndTimeAtSixteen,
-      latestEndTime
+      hasEndTimeAtWorkingHours,
+      latestEndTime,
+      isFullDay
     };
   };
 
@@ -225,7 +235,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                 const isSelected = selectedCarId === car.id;
                 const isUnavailable = !car.is_available;
                 const carUsage = isCarInUse(car.id);
-                const hasRedStyling = carUsage.hasEndTimeAtSixteen;
+                const hasRedStyling = carUsage.isFullDay;
                 
                 return (
                   <div
@@ -262,7 +272,10 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                               : 'bg-yellow-100 text-yellow-800 border-yellow-200'
                           }`}
                         >
-                          {t('cars.inUse', { time: carUsage.latestEndTime })}
+                          {carUsage.isFullDay 
+                            ? (t('cars.inUseFullDay') || 'I brug hele dagen')
+                            : (t('cars.inUse', { time: carUsage.latestEndTime }) || `I brug til ${carUsage.latestEndTime}`)
+                          }
                         </Badge>
                       )}
                     </div>

@@ -119,5 +119,11 @@ export const common = {
   demoDataCleaned: "Demo Data Cleaned",
   demoDataCleanedDescription: "All demo data has been removed",
   cleanupFailed: "Cleanup Failed",
-  failedToCleanupDemo: "Failed to clean demo data"
+  failedToCleanupDemo: "Failed to clean demo data",
+  
+  // Demo role switching
+  switchRole: "Switch Role",
+  roleChanged: "Role Changed",
+  switchingToRole: "Switching to {role}...",
+  unknown: "Unknown"
 };

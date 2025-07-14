@@ -122,10 +122,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   // Handle demo role changes
   const handleSetDemoRole = (role: UserRole) => {
-    if (isDemoMode) {
+    if (isDemoMode && user) {
+      console.log(`[Demo] Role switching from ${user.role} to ${role}`);
       setDemoRole(role);
       sessionStorage.setItem('demo-role', role);
-      console.log(`[Demo] Role switched to: ${role}`);
+      
+      // Update the user object with the new role
+      const updatedUser = { ...user, role };
+      setUser(updatedUser);
+      
+      console.log(`[Demo] Role switched successfully to: ${role}`);
     }
   };
 
@@ -384,10 +390,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
 
-  // Permissions based on current user
-  const isAdmin = user?.role === 'administrator';
-  const isSkadeleder = user?.role === 'skadeleder';
-  const isServicemedarbejder = user?.role === 'servicemedarbejder';
+  // Permissions based on current user (with demo role override)
+  const currentRole = isDemoMode && demoRole ? demoRole : user?.role;
+  const isAdmin = currentRole === 'administrator';
+  const isSkadeleder = currentRole === 'skadeleder';
+  const isServicemedarbejder = currentRole === 'servicemedarbejder';
   const isAuthenticated = !!user;
 
   const canViewFuelCardCode = isAdmin;

@@ -27,6 +27,7 @@ const cars = {
   available: 'Tilgængelig',
   unavailable: 'Ikke tilgængelig',
   inUse: 'I brug til {time}',
+  inUseFullDay: 'I brug hele dagen',
   
   // Vehicle features
   hasTrailerHitch: 'Har anhængertræk',

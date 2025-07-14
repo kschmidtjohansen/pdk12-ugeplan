@@ -13,5 +13,7 @@ export const auth = {
   emailRequired: 'Email er påkrævet',
   invalidCredentials: 'Ugyldig email eller adgangskode',
   accountLocked: 'Kontoen er låst',
-  tooManyAttempts: 'For mange login-forsøg. Prøv venligst igen senere.'
+  tooManyAttempts: 'For mange login-forsøg. Prøv venligst igen senere.',
+  loginAttempts: '{count} forkerte forsøg. {count} forsøg tilbage.',
+  loginSuccess: 'Login lykkedes! Omdirigerer til side...'
 };

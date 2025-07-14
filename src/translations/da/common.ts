@@ -122,5 +122,11 @@ export const common = {
   demoDataCleaned: "Demo Data Ryddet",
   demoDataCleanedDescription: "Alle demo data er blevet fjernet med succes.",
   cleanupFailed: "Oprydning Mislykkedes",
-  failedToCleanupDemo: "Kunne ikke rydde demo data"
+  failedToCleanupDemo: "Kunne ikke rydde demo data",
+  
+  // Demo role switching
+  switchRole: "Skift Rolle",
+  roleChanged: "Rolle Ændret",
+  switchingToRole: "Skifter til {role}...",
+  unknown: "Ukendt"
 };

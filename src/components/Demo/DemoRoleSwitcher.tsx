@@ -4,48 +4,52 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { UserCog, ChevronDown } from 'lucide-react';
 import { useAuth, UserRole } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
+import { useTranslation } from '@/context/TranslationContext';
 
 export const DemoRoleSwitcher: React.FC = () => {
-  const { isDemoMode, demoRole, setDemoRole } = useAuth();
+  const { isDemoMode, demoRole, setDemoRole, user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   if (!isDemoMode) return null;
 
   const roles: { role: UserRole; label: string; description: string }[] = [
     { 
       role: 'administrator', 
-      label: 'Administrator', 
-      description: 'Full access to all features' 
+      label: t('admin.roles.administrator') || 'Administrator', 
+      description: t('admin.roles.administratorDesc') || 'Full access to all features' 
     },
     { 
       role: 'skadeleder', 
-      label: 'Skadeleder', 
-      description: 'Can manage assignments and approve tasks' 
+      label: t('admin.roles.skadeleder') || 'Skadeleder', 
+      description: t('admin.roles.skadelederDesc') || 'Can manage assignments and approve tasks' 
     },
     { 
       role: 'servicemedarbejder', 
-      label: 'Servicemedarbejder', 
-      description: 'Can view assigned tasks and request vacation' 
+      label: t('admin.roles.servicemedarbejder') || 'Servicemedarbejder', 
+      description: t('admin.roles.servicemedarbejderDesc') || 'Can view assigned tasks and request vacation' 
     }
   ];
 
   const handleRoleSwitch = (newRole: UserRole) => {
-    if (newRole === demoRole) return;
+    const currentRole = demoRole || user?.role;
+    if (newRole === currentRole) return;
     
     setDemoRole(newRole);
     
     toast({
-      title: "Demo Role Switched",
-      description: `Switching to ${roles.find(r => r.role === newRole)?.label}. Refreshing page...`,
+      title: t('common.roleChanged') || "Demo Role Switched",
+      description: t('common.switchingToRole', { role: roles.find(r => r.role === newRole)?.label }) || `Switching to ${roles.find(r => r.role === newRole)?.label}...`,
     });
 
-    // Refresh the page and redirect to dashboard
+    // Small delay to show the toast, then redirect to dashboard
     setTimeout(() => {
       window.location.href = '/';
-    }, 1000);
+    }, 800);
   };
 
-  const currentRoleLabel = roles.find(r => r.role === demoRole)?.label || 'Unknown';
+  const currentRole = demoRole || user?.role;
+  const currentRoleLabel = roles.find(r => r.role === currentRole)?.label || t('common.unknown') || 'Unknown';
 
   return (
     <DropdownMenu>
@@ -56,7 +60,7 @@ export const DemoRoleSwitcher: React.FC = () => {
           className="flex items-center gap-2 border-amber-300 hover:border-amber-400 text-amber-700"
         >
           <UserCog className="h-4 w-4" />
-          Switch Role: {currentRoleLabel}
+          {t('common.switchRole') || 'Switch Role'}: {currentRoleLabel}
           <ChevronDown className="h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
@@ -66,7 +70,7 @@ export const DemoRoleSwitcher: React.FC = () => {
             key={roleOption.role}
             onClick={() => handleRoleSwitch(roleOption.role)}
             className={`cursor-pointer p-3 ${
-              demoRole === roleOption.role 
+              currentRole === roleOption.role 
                 ? 'bg-amber-50 text-amber-900 font-medium' 
                 : 'hover:bg-gray-50'
             }`}

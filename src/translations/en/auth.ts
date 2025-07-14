@@ -13,5 +13,7 @@ export const auth = {
   emailRequired: 'Email is required',
   invalidCredentials: 'Invalid email or password',
   accountLocked: 'Account is locked',
-  tooManyAttempts: 'Too many login attempts. Please try again later.'
+  tooManyAttempts: 'Too many login attempts. Please try again later.',
+  loginAttempts: '{count} failed attempts. {count} attempts remaining.',
+  loginSuccess: 'Login successful. Redirecting...'
 };

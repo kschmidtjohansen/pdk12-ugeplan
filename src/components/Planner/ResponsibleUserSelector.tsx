@@ -95,8 +95,8 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   };
   const stats = getDetailedStats();
   return <div className="space-y-2">
-      <Label className="text-sm font-medium text-indigo-700">
-        {t('planner.responsibleUser') || 'Sagsansvarlig'} ⭐
+      <Label className="text-sm font-medium text-foreground">
+        {t('planner.responsibleUser') || 'Sagsansvarlig'}
       </Label>
       
       <DropdownMenu>

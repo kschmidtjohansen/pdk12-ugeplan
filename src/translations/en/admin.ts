@@ -246,6 +246,9 @@ export const admin = {
   roles: {
     administrator: 'Administrator',
     skadeleder: 'Damage Manager',
-    servicemedarbejder: 'Service Employee'
+    servicemedarbejder: 'Service Employee',
+    administratorDesc: 'Full access to all features',
+    skadelederDesc: 'Can manage assignments and approve tasks',
+    servicemedarbejderDesc: 'Can view assigned tasks and request vacation'
   }
 };

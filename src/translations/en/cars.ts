@@ -27,6 +27,7 @@ const cars = {
   available: 'Available',
   unavailable: 'Unavailable',
   inUse: 'In use until {time}',
+  inUseFullDay: 'In use all day',
   
   // Vehicle features
   hasTrailerHitch: 'Has Trailer Hitch',
