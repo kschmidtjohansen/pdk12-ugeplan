@@ -28,6 +28,15 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
   const filteredVacations = React.useMemo(() => {
     if (!vacations || !user) return [];
     
+    console.log('[VacationTabContent] Debug info:', {
+      userId: user.id,
+      isEffectiveAdmin,
+      isEffectiveServicemedarbejder,
+      tabValue,
+      totalVacations: vacations.length,
+      vacationUserIds: vacations.map(v => ({ id: v.id, user_id: v.user_id, status: v.status }))
+    });
+    
     let filtered = [...vacations];
     
     // First, filter out rejected applications that aren't the user's own
@@ -51,14 +60,21 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
 
     // For servicemedarbejder role, only show own vacations + approved vacations from others
     if (isEffectiveServicemedarbejder && !isEffectiveAdmin) {
+      console.log('[VacationTabContent] Applying servicemedarbejder filtering');
       filtered = filtered.filter(v => {
+        const isOwnVacation = v.user_id === user.id;
+        const isApprovedFromOthers = v.status === 'approved' && v.user_id !== user.id;
+        
+        console.log(`[VacationTabContent] Vacation ${v.id}: user_id=${v.user_id}, status=${v.status}, isOwn=${isOwnVacation}, isApprovedFromOthers=${isApprovedFromOthers}`);
+        
         // Always show user's own vacations
-        if (v.user_id === user.id) return true;
+        if (isOwnVacation) return true;
         // Show approved vacations from others for scheduling awareness
-        if (v.status === 'approved') return true;
+        if (isApprovedFromOthers) return true;
         // Hide rejected and pending from others
         return false;
       });
+      console.log(`[VacationTabContent] After servicemedarbejder filtering: ${filtered.length} vacations`);
     }
     
     // Now apply tab filtering
@@ -93,6 +109,21 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
       return dateA - dateB;
     });
   }, [vacations, tabValue, user, isEffectiveAdmin, isEffectiveServicemedarbejder]);
+
+  // Log final filtered results
+  React.useEffect(() => {
+    if (isEffectiveServicemedarbejder && !isEffectiveAdmin) {
+      console.log('[VacationTabContent] Final filtered vacations for servicemedarbejder:', {
+        count: filteredVacations.length,
+        vacations: filteredVacations.map(v => ({ 
+          id: v.id, 
+          user_id: v.user_id, 
+          status: v.status, 
+          isOwn: v.user_id === user?.id 
+        }))
+      });
+    }
+  }, [filteredVacations, isEffectiveServicemedarbejder, isEffectiveAdmin, user?.id]);
 
   return (
     <div className="mt-6">
