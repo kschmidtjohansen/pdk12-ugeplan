@@ -24,6 +24,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isSkadeleder: boolean;
   isServicemedarbejder: boolean;
+  effectiveRole: UserRole | null;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>;
@@ -55,6 +56,7 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   isSkadeleder: false,
   isServicemedarbejder: false,
+  effectiveRole: null,
   login: async () => ({ error: null }),
   logout: async () => {},
   signUp: async () => ({ error: null }),
@@ -602,6 +604,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAdmin,
     isSkadeleder,
     isServicemedarbejder,
+    effectiveRole: currentRole,
     login,
     logout,
     signUp,

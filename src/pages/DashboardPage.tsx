@@ -13,19 +13,19 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2 } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
-  const { user, isDemoMode } = useAuth();
+  const { user, isDemoMode, effectiveRole } = useAuth();
   const { t } = useTranslation();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   const dailyQuote = getDailyQuote();
 
-  console.log(`[DashboardPage] ROLE-BASED - User: ${user?.name} (${user?.role})`);
+  console.log(`[DashboardPage] ROLE-BASED - User: ${user?.name} (${user?.role}) - Effective Role: ${effectiveRole}`);
 
   // Check if user is servicemedarbejder for specialized dashboard
-  const isServicemedarbejder = user?.role === 'servicemedarbejder';
+  const isServicemedarbejder = effectiveRole === 'servicemedarbejder';
   
   // Check if user should see metrics (administrators and skadeledere)
-  const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
+  const shouldShowMetrics = effectiveRole === 'administrator' || effectiveRole === 'skadeleder';
 
   // Show success message briefly
   useEffect(() => {
@@ -72,7 +72,7 @@ const DashboardPage: React.FC = () => {
           /* Administrator/Skadeleder Dashboard - Full view */
           <>
             {/* Quick Access Grid */}
-            <QuickAccessGrid userRole={user?.role} />
+            <QuickAccessGrid userRole={effectiveRole} />
 
             {/* Dashboard Metrics - Only for administrators and skadeledere */}
             {shouldShowMetrics && (
