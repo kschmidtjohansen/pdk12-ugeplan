@@ -21,8 +21,8 @@ export const useDemoAutoCleanup = () => {
       const totalDeleted = Object.values(result.deletedCounts).reduce((sum, count) => sum + count, 0);
       
       toast({
-        title: "Demo Data Auto-Cleaned",
-        description: `Cleaned ${totalDeleted} records. Demo session refreshed.`,
+        title: "Demo Data Automatisk Ryddet",
+        description: `Ryddede ${totalDeleted} poster. Demo session opdateret.`,
       });
       
       // Reset the timer
@@ -33,8 +33,8 @@ export const useDemoAutoCleanup = () => {
     } catch (error) {
       console.error('[Demo Auto-Cleanup] Cleanup failed:', error);
       toast({
-        title: "Auto-Cleanup Failed",
-        description: "Failed to clean demo data. Please try manual cleanup.",
+        title: "Auto-Oprydning Mislykkedes",
+        description: "Kunne ikke rydde demo data. Prøv manuel oprydning.",
         variant: "destructive",
       });
     }
@@ -43,8 +43,8 @@ export const useDemoAutoCleanup = () => {
   const showCleanupWarning = useCallback(() => {
     setShowWarning(true);
     toast({
-      title: "Demo Data Will Be Cleaned",
-      description: "Demo data will be automatically cleaned in 1 minute. All changes will be lost.",
+      title: "Demo Data Vil Blive Ryddet",
+      description: "Demo data ryddes automatisk om 1 minut. Alle ændringer mistes.",
       variant: "default",
     });
   }, [toast]);
@@ -55,8 +55,8 @@ export const useDemoAutoCleanup = () => {
     demoService.updateActivity();
     
     toast({
-      title: "Demo Session Extended",
-      description: "Demo session extended for another 15 minutes.",
+      title: "Demo Session Forlænget",
+      description: "Demo session forlænget med 15 minutter.",
     });
   }, [demoService, toast]);
 

@@ -129,15 +129,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Handle demo role changes
   const handleSetDemoRole = (role: UserRole) => {
     if (isDemoMode && user) {
-      console.log(`[Demo] Role switching from ${user.role} to ${role}`);
+      console.log(`[Demo] Role switching from ${demoRole || user.role} to ${role}`);
       setDemoRole(role);
       sessionStorage.setItem('demo-role', role);
       
-      // Update the user object with the new role
-      const updatedUser = { ...user, role };
-      setUser(updatedUser);
-      
       console.log(`[Demo] Role switched successfully to: ${role}`);
+      
+      toast({
+        title: "Rolle Ændret",
+        description: `Skifter til ${role}...`,
+      });
+      
+      // Small delay to let the user see the toast before redirect
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 500);
     }
   };
 
@@ -461,6 +467,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.error('[AuthProvider] FIXED - Login error:', error);
         return { error: error.message };
       }
+      
+      toast({
+        title: "Login Succesfuld",
+        description: "Du er nu logget ind.",
+      });
       
       console.log('[AuthProvider] FIXED - Login successful, auth state change will handle user data');
       return { error: null };

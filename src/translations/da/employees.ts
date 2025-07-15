@@ -24,9 +24,10 @@ const employees = {
   onVacation: 'På ferie',
   availableAfter: 'Ledig efter {time}',
   fullyBooked: 'Fuldt booket',
+  status: 'Status', // This fixes the "employees.status = Status" issue
   
   // Status
-  status: {
+  statusOptions: {
     available: 'Tilgængelig',
     unavailable: 'Ikke tilgængelig',
     partiallyAvailable: 'Delvis tilgængelig',
@@ -43,16 +44,6 @@ const employees = {
   notes: 'Noter',
   password: 'Adgangskode',
 
-  // Additional status translations (keep for backward compatibility)
-  statusOptions: {
-    available: 'Tilgængelig',
-    unavailable: 'Ikke tilgængelig',
-    partiallyAvailable: 'Delvis tilgængelig',
-    onVacation: 'På ferie',
-    onLeave: 'På orlov',
-    fullyBooked: 'Fuldt booket',
-    unknown: 'Ukendt status'
-  },
   
   // Actions
   add: 'Tilføj medarbejder',
