@@ -51,8 +51,7 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
       
       filtered = filtered.filter(v => {
         const isOwnVacation = v.user_id === user.id;
-        const isApprovedFromOthers = v.status === 'approved' && v.user_id !== user.id;
-        const shouldShow = isOwnVacation || isApprovedFromOthers;
+        const shouldShow = isOwnVacation; // Only show own vacations for servicemedarbejder
         
         console.log(`[VacationTabContent] Vacation ${v.id}:`, {
           user_id: v.user_id,
@@ -60,7 +59,6 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
           status: v.status,
           start_date: v.start_date,
           isOwnVacation,
-          isApprovedFromOthers,
           FINAL_DECISION: shouldShow ? 'SHOW' : 'HIDE'
         });
         
