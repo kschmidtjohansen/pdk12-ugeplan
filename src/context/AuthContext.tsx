@@ -102,31 +102,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log(`[AuthContext] User role: ${user.role}`);
     }
   }, [isDemoMode, user]);
-  // Initialize demo role from sessionStorage with proper persistence
+  // SINGLE SOURCE OF TRUTH: Demo role management (runs AFTER user data is loaded)
   useEffect(() => {
     if (isDemoMode && user) {
-      console.log(`[AuthContext] Initializing demo mode for user: ${user.email}`);
+      console.log(`[AuthContext] Demo role initialization for: ${user.email}`);
       
-      // Always check for manually saved demo role first
+      // ALWAYS prioritize saved demo role over everything else
       const savedDemoRole = sessionStorage.getItem('demo-role') as UserRole | null;
       
       if (savedDemoRole && ['administrator', 'skadeleder', 'servicemedarbejder'].includes(savedDemoRole)) {
-        // PRIORITY: Use the manually selected role
-        console.log(`[AuthContext] PRIORITY: Using saved demo role: ${savedDemoRole}`);
+        console.log(`[AuthContext] Using saved demo role: ${savedDemoRole}`);
         setDemoRole(savedDemoRole);
       } else {
         // Only set default if no saved role exists
-        console.log(`[AuthContext] No saved demo role, using database role as default: ${user.role}`);
-        setDemoRole(user.role);
-        sessionStorage.setItem('demo-role', user.role);
+        console.log(`[AuthContext] No saved demo role, defaulting to administrator`);
+        setDemoRole('administrator');
+        sessionStorage.setItem('demo-role', 'administrator');
       }
     } else if (!isDemoMode) {
+      console.log(`[AuthContext] Clearing demo role (not in demo mode)`);
       setDemoRole(null);
       sessionStorage.removeItem('demo-role');
     }
-  }, [isDemoMode, user?.email]); // Only trigger when demo mode or user email changes, NOT when user.role changes
+  }, [isDemoMode, user?.id]); // Trigger when demo mode or user ID changes (after user data is loaded)
   
-  // Handle demo role changes
+  // Handle demo role changes WITHOUT page reload
   const handleSetDemoRole = (role: UserRole) => {
     if (isDemoMode && user) {
       console.log(`[Demo] Role switching from ${demoRole || user.role} to ${role}`);
@@ -137,13 +137,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       toast({
         title: "Rolle Ændret",
-        description: `Skifter til ${role}...`,
+        description: `Skiftet til ${role}`,
       });
-      
-      // Small delay to let the user see the toast before redirect
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 500);
     }
   };
 
@@ -175,16 +170,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
       const name = isDemoUser ? 'Demo User' : (profileResult.data?.name || authUser.email || 'User');
       
-      // Handle role data - for demo user, check for saved demo role FIRST
+      // Handle role data - SIMPLIFIED: Always use database role here, demo logic handles itself
       let role: UserRole = 'servicemedarbejder';
       
       if (isDemoUser) {
-        // For demo user, prioritize saved demo role over database role
-        const savedDemoRole = sessionStorage.getItem('demo-role') as UserRole | null;
-        if (savedDemoRole && ['administrator', 'skadeleder', 'servicemedarbejder'].includes(savedDemoRole)) {
-          role = savedDemoRole;
-          console.log(`[AuthContext] Demo user: Using saved demo role: ${role}`);
-        } else if (roleResult.data?.role) {
+        // For demo user, use database role or default to administrator
+        if (roleResult.data?.role) {
           role = roleResult.data.role as UserRole;
           console.log(`[AuthContext] Demo user: Using database role: ${role}`);
         } else {
@@ -216,16 +207,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error(`[AuthContext] User data fetch failed after ${Date.now() - startTime}ms:`, error);
       
-      // For demo user, provide fallback that respects saved demo role
+      // For demo user, provide fallback - keep it simple
       const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
-      let fallbackRole: UserRole = 'servicemedarbejder';
-      
-      if (isDemoUser) {
-        const savedDemoRole = sessionStorage.getItem('demo-role') as UserRole | null;
-        fallbackRole = (savedDemoRole && ['administrator', 'skadeleder', 'servicemedarbejder'].includes(savedDemoRole)) 
-          ? savedDemoRole 
-          : 'administrator';
-      }
+      const fallbackRole: UserRole = isDemoUser ? 'administrator' : 'servicemedarbejder';
       
       const fallbackUser: AppUser = {
         id: authUser.id,

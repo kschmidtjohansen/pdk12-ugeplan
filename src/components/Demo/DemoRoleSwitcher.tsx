@@ -5,11 +5,13 @@ import { UserCog, ChevronDown } from 'lucide-react';
 import { useAuth, UserRole } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
+import { useNavigate } from 'react-router-dom';
 
 export const DemoRoleSwitcher: React.FC = () => {
   const { isDemoMode, demoRole, setDemoRole, user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   if (!isDemoMode) return null;
 
@@ -39,13 +41,13 @@ export const DemoRoleSwitcher: React.FC = () => {
     
     toast({
       title: t('common.roleChanged') || "Demo Role Switched",
-      description: t('common.switchingToRole', { role: roles.find(r => r.role === newRole)?.label }) || `Switching to ${roles.find(r => r.role === newRole)?.label}...`,
+      description: t('common.switchingToRole', { role: roles.find(r => r.role === newRole)?.label }) || `Switched to ${roles.find(r => r.role === newRole)?.label}`,
     });
 
-    // Small delay to show the toast, then redirect to dashboard
+    // Use React Router navigation instead of page reload
     setTimeout(() => {
-      window.location.href = '/';
-    }, 800);
+      navigate('/', { replace: true });
+    }, 300);
   };
 
   const currentRole = demoRole || user?.role;
