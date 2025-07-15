@@ -44,9 +44,9 @@ export const DemoRoleSwitcher: React.FC = () => {
       description: t('common.switchingToRole', { role: roles.find(r => r.role === newRole)?.label }) || `Switched to ${roles.find(r => r.role === newRole)?.label}`,
     });
 
-    // Use React Router navigation instead of page reload
+    // Navigate to dashboard instead of home to maintain context
     setTimeout(() => {
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     }, 300);
   };
 
