@@ -108,6 +108,7 @@ export const common = {
   
   // Demo system translations
   demoDashboard: "Demo Dashboard",
+  demoMode: "You are in demo mode",
   currentlyInDemoMode: "Currently in demo mode as:",
   cleanDemoData: "Clean Demo Data",
   totalOperations: "Total Operations",

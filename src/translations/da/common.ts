@@ -109,6 +109,7 @@ export const common = {
   
   // Demo Dashboard
   demoDashboard: "Demo Dashboard",
+  demoMode: "Du er i demo tilstand",
   currentlyInDemoMode: "I øjeblikket i demo-tilstand som",
   cleanDemoData: "Ryd Demo Data",
   totalOperations: "Samlede Operationer",
