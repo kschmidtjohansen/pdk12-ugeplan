@@ -24,6 +24,9 @@ interface AuthContextType {
   isAdmin: boolean;
   isSkadeleder: boolean;
   isServicemedarbejder: boolean;
+  isEffectiveAdmin: boolean;
+  isEffectiveSkadeleder: boolean;
+  isEffectiveServicemedarbejder: boolean;
   effectiveRole: UserRole | null;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
@@ -56,6 +59,9 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   isSkadeleder: false,
   isServicemedarbejder: false,
+  isEffectiveAdmin: false,
+  isEffectiveSkadeleder: false,
+  isEffectiveServicemedarbejder: false,
   effectiveRole: null,
   login: async () => ({ error: null }),
   logout: async () => {},
@@ -414,6 +420,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const isServicemedarbejder = currentRole === 'servicemedarbejder';
   const isAuthenticated = !!user;
 
+  // Effective role permissions (considering demo mode)
+  const isEffectiveAdmin = currentRole === 'administrator';
+  const isEffectiveSkadeleder = currentRole === 'skadeleder';
+  const isEffectiveServicemedarbejder = currentRole === 'servicemedarbejder';
+
   const canViewFuelCardCode = isAdmin;
   const canPublishTasks = isAdmin || isSkadeleder;
   const canApproveVacation = isAdmin;
@@ -604,6 +615,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAdmin,
     isSkadeleder,
     isServicemedarbejder,
+    isEffectiveAdmin,
+    isEffectiveSkadeleder,
+    isEffectiveServicemedarbejder,
     effectiveRole: currentRole,
     login,
     logout,
@@ -636,15 +650,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 export const useAuth = () => useContext(AuthContext);
 
 export const usePermissions = () => {
-  const {
-    isAdmin,
-    isSkadeleder,
+  const { 
+    isAdmin, 
+    isSkadeleder, 
     isServicemedarbejder,
-    canViewFuelCardCode,
-    canPublishTasks,
-    canApproveVacation,
-    canEdit,
-    canCreate,
+    isEffectiveAdmin,
+    isEffectiveSkadeleder,
+    isEffectiveServicemedarbejder,
+    canViewFuelCardCode, 
+    canPublishTasks, 
+    canApproveVacation, 
+    canEdit, 
+    canCreate, 
     canSeeUnpublishedTasks,
     validateAdminAccess,
     validateSkadelederAccess,
@@ -655,6 +672,9 @@ export const usePermissions = () => {
     isAdmin,
     isSkadeleder,
     isServicemedarbejder,
+    isEffectiveAdmin,
+    isEffectiveSkadeleder,
+    isEffectiveServicemedarbejder,
     canViewFuelCardCode,
     canPublishTasks,
     canApproveVacation,

@@ -2,7 +2,7 @@
 import React from 'react';
 import VacationTable from './VacationTable';
 import { Vacation } from '@/types/vacation';
-import { usePermissions } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 
 interface VacationListProps {
@@ -22,7 +22,7 @@ const VacationList: React.FC<VacationListProps> = ({
   onDelete,
   isLoading = false 
 }) => {
-  const { isAdmin } = usePermissions();
+  const { isEffectiveAdmin } = useAuth();
   const { t } = useTranslation();
   
   return (
@@ -30,7 +30,7 @@ const VacationList: React.FC<VacationListProps> = ({
       vacations={vacations}
       onApprove={onApprove}
       onReject={onReject}
-      onEdit={isAdmin ? onEdit : undefined}
+      onEdit={isEffectiveAdmin ? onEdit : undefined}
       isLoading={isLoading}
     />
   );

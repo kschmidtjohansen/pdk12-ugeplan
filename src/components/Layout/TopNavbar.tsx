@@ -17,7 +17,7 @@ import UserMenu from './NavComponents/UserMenu';
 import { getNavigationItems } from './NavigationItems';
 
 const TopNavbar: React.FC = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, isEffectiveAdmin } = useAuth();
   const { t, currentLanguage, setLanguage } = useTranslation();
   const { 
     notifications, 
@@ -82,10 +82,8 @@ const TopNavbar: React.FC = () => {
 
   const navigationItems = getNavigationItems(hasVacationNotifications);
   const filteredNavItems = navigationItems.filter(
-    item => !item.adminOnly || user?.role === 'administrator'
+    item => !item.adminOnly || isEffectiveAdmin
   );
-
-  const isAdmin = user?.role === 'administrator';
 
   if (!isAuthenticated) {
     return null;
@@ -147,7 +145,7 @@ const TopNavbar: React.FC = () => {
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
         user={user}
-        isAdmin={isAdmin}
+        isAdmin={isEffectiveAdmin}
         notifications={notifications.slice(0, 10)}
         unreadCount={unreadCount}
         handleNotificationClick={handleNotificationClick}

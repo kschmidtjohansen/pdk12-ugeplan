@@ -26,7 +26,7 @@ const VacationCard: React.FC<VacationCardProps> = ({
   onDelete
 }) => {
   const { t, currentLanguage } = useTranslation();
-  const { user, isAdmin, isSkadeleder } = useAuth();
+  const { user, isEffectiveAdmin, isEffectiveSkadeleder } = useAuth();
   const { canViewVacation, canEditVacation, canDeleteVacation, canManageVacationStatus } = useVacationSecurity();
 
   // Security check - don't render if user can't view this vacation

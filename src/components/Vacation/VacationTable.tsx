@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
-import { usePermissions } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { Vacation } from '@/types/vacation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -29,10 +29,10 @@ const VacationTable: React.FC<VacationTableProps> = ({
   onEdit,
   isLoading = false 
 }) => {
-  const { isAdmin } = usePermissions();
+  const { isEffectiveAdmin } = useAuth();
   const { t, currentLanguage } = useTranslation();
   
-  const canApprove = isAdmin;
+  const canApprove = isEffectiveAdmin;
 
   const formatDateRange = (startDate: Date, endDate: Date) => {
     const locale = currentLanguage === 'da' ? 'da-DK' : 'en-GB';

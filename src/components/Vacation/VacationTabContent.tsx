@@ -22,7 +22,7 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
   onDelete,
   isLoading = false
 }) => {
-  const { user, isAdmin, isSkadeleder } = useAuth();
+  const { user, isEffectiveAdmin, isEffectiveServicemedarbejder } = useAuth();
   
   // Filter vacations based on the active tab and user roles
   const filteredVacations = React.useMemo(() => {
@@ -43,11 +43,23 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
     filtered = filtered.filter(v => {
       if (v.status === 'pending') {
         // Pending applications are only visible to admins and the applicant
-        if (isAdmin) return true;
+        if (isEffectiveAdmin) return true;
         return v.user_id === user.id;
       }
       return true;
     });
+
+    // For servicemedarbejder role, only show own vacations + approved vacations from others
+    if (isEffectiveServicemedarbejder && !isEffectiveAdmin) {
+      filtered = filtered.filter(v => {
+        // Always show user's own vacations
+        if (v.user_id === user.id) return true;
+        // Show approved vacations from others for scheduling awareness
+        if (v.status === 'approved') return true;
+        // Hide rejected and pending from others
+        return false;
+      });
+    }
     
     // Now apply tab filtering
     switch (tabValue) {
@@ -80,7 +92,7 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
       const dateB = new Date(b.start_date).getTime();
       return dateA - dateB;
     });
-  }, [vacations, tabValue, user, isAdmin, isSkadeleder]);
+  }, [vacations, tabValue, user, isEffectiveAdmin, isEffectiveServicemedarbejder]);
 
   return (
     <div className="mt-6">
