@@ -8,6 +8,7 @@ import QuickAccessGrid from '@/components/Dashboard/QuickAccessGrid';
 import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import MineOpgaver from '@/components/Dashboard/MineOpgaver';
 import { DemoDashboard } from '@/components/Demo/DemoDashboard';
+import ServicemedarbejderDashboard from '@/components/Dashboard/ServicemedarbejderDashboard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2 } from 'lucide-react';
 
@@ -18,8 +19,11 @@ const DashboardPage: React.FC = () => {
 
   const dailyQuote = getDailyQuote();
 
-  console.log(`[DashboardPage] SIMPLIFIED - User: ${user?.name} (${user?.role})`);
+  console.log(`[DashboardPage] ROLE-BASED - User: ${user?.name} (${user?.role})`);
 
+  // Check if user is servicemedarbejder for specialized dashboard
+  const isServicemedarbejder = user?.role === 'servicemedarbejder';
+  
   // Check if user should see metrics (administrators and skadeledere)
   const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
 
@@ -58,20 +62,31 @@ const DashboardPage: React.FC = () => {
         {/* Welcome Header */}
         <WelcomeHeader userName={user?.name} dailyQuote={dailyQuote} />
 
-        {/* Quick Access Grid */}
-        <QuickAccessGrid userRole={user?.role} />
-
-        {/* Dashboard Metrics - Only for administrators and skadeledere */}
-        {shouldShowMetrics && (
+        {/* Role-based Dashboard Content */}
+        {isServicemedarbejder ? (
+          /* Servicemedarbejder Dashboard - Specialized view */
           <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            <DashboardMetrics />
+            <ServicemedarbejderDashboard />
           </div>
-        )}
+        ) : (
+          /* Administrator/Skadeleder Dashboard - Full view */
+          <>
+            {/* Quick Access Grid */}
+            <QuickAccessGrid userRole={user?.role} />
 
-        {/* Main Content - Mine Opgaver for all users */}
-        <div className="animate-fade-in-up" style={{ animationDelay: shouldShowMetrics ? '0.2s' : '0.1s' }}>
-          <MineOpgaver />
-        </div>
+            {/* Dashboard Metrics - Only for administrators and skadeledere */}
+            {shouldShowMetrics && (
+              <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                <DashboardMetrics />
+              </div>
+            )}
+
+            {/* Main Content - Mine Opgaver for all users */}
+            <div className="animate-fade-in-up" style={{ animationDelay: shouldShowMetrics ? '0.2s' : '0.1s' }}>
+              <MineOpgaver />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
