@@ -28,53 +28,71 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
   const filteredVacations = React.useMemo(() => {
     if (!vacations || !user) return [];
     
-    console.log('[VacationTabContent] Debug info:', {
+    console.log('[VacationTabContent] COMPREHENSIVE DEBUG - Starting filter:', {
       userId: user.id,
       isEffectiveAdmin,
       isEffectiveServicemedarbejder,
       tabValue,
       totalVacations: vacations.length,
-      vacationUserIds: vacations.map(v => ({ id: v.id, user_id: v.user_id, status: v.status }))
+      allVacations: vacations.map(v => ({ 
+        id: v.id, 
+        user_id: v.user_id, 
+        status: v.status,
+        start_date: v.start_date,
+        isOwnVacation: v.user_id === user.id
+      }))
     });
     
     let filtered = [...vacations];
     
-    // First, filter out rejected applications that aren't the user's own
-    filtered = filtered.filter(v => {
-      if (v.status === 'rejected') {
-        // Rejected vacations are only visible to the applicant
-        return v.user_id === user.id;
-      }
-      return true;
-    });
-    
-    // Then, filter pending applications based on roles
-    filtered = filtered.filter(v => {
-      if (v.status === 'pending') {
-        // Pending applications are only visible to admins and the applicant
-        if (isEffectiveAdmin) return true;
-        return v.user_id === user.id;
-      }
-      return true;
-    });
-
-    // For servicemedarbejder role, only show own vacations + approved vacations from others
+    // COMPREHENSIVE FILTERING LOGIC
     if (isEffectiveServicemedarbejder && !isEffectiveAdmin) {
-      console.log('[VacationTabContent] Applying servicemedarbejder filtering');
+      console.log('[VacationTabContent] SERVICEMEDARBEJDER ROLE - Applying comprehensive filtering');
+      
       filtered = filtered.filter(v => {
         const isOwnVacation = v.user_id === user.id;
         const isApprovedFromOthers = v.status === 'approved' && v.user_id !== user.id;
+        const shouldShow = isOwnVacation || isApprovedFromOthers;
         
-        console.log(`[VacationTabContent] Vacation ${v.id}: user_id=${v.user_id}, status=${v.status}, isOwn=${isOwnVacation}, isApprovedFromOthers=${isApprovedFromOthers}`);
+        console.log(`[VacationTabContent] Vacation ${v.id}:`, {
+          user_id: v.user_id,
+          current_user_id: user.id,
+          status: v.status,
+          start_date: v.start_date,
+          isOwnVacation,
+          isApprovedFromOthers,
+          FINAL_DECISION: shouldShow ? 'SHOW' : 'HIDE'
+        });
         
-        // Always show user's own vacations
-        if (isOwnVacation) return true;
-        // Show approved vacations from others for scheduling awareness
-        if (isApprovedFromOthers) return true;
-        // Hide rejected and pending from others
+        return shouldShow;
+      });
+      
+      console.log(`[VacationTabContent] SERVICEMEDARBEJDER FILTERING COMPLETE:`, {
+        originalCount: vacations.length,
+        filteredCount: filtered.length,
+        removedCount: vacations.length - filtered.length,
+        finalVacations: filtered.map(v => ({ 
+          id: v.id, 
+          user_id: v.user_id, 
+          status: v.status,
+          isOwn: v.user_id === user.id
+        }))
+      });
+    } else if (!isEffectiveAdmin) {
+      // For regular users (non-admin, non-servicemedarbejder)
+      console.log('[VacationTabContent] REGULAR USER - Applying standard filtering');
+      
+      filtered = filtered.filter(v => {
+        // Show own vacations (all statuses)
+        if (v.user_id === user.id) return true;
+        // Show only approved vacations from others
+        if (v.status === 'approved') return true;
+        // Hide pending and rejected from others
         return false;
       });
-      console.log(`[VacationTabContent] After servicemedarbejder filtering: ${filtered.length} vacations`);
+    } else {
+      // Admins see everything
+      console.log('[VacationTabContent] ADMIN USER - Showing all vacations');
     }
     
     // Now apply tab filtering
