@@ -72,6 +72,7 @@ class RealtimeManager {
       };
 
       // Subscribe with proper status handling
+      this.connectionStatus = 'connecting';
       channel.subscribe((status) => {
         console.log(`[RealtimeManager] Subscription ${id} status:`, status);
         

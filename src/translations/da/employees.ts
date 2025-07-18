@@ -22,7 +22,7 @@ const employees = {
   unavailable: 'Ikke tilgængelig',
   onLeave: 'På orlov',
   onVacation: 'På ferie',
-  availableAfter: 'Ledig efter {time}',
+  availableAfter: 'Tilgængelig efter {time}',
   fullyBooked: 'Fuldt booket',
   status: 'Status', // This fixes the "employees.status = Status" issue
   
