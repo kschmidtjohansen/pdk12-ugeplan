@@ -1,152 +1,136 @@
-# Weekly Planner / Ugeplan
 
-An internal web application for weekly work planning and department management of cars, vacations, and more.  
-En intern webapplikation til ugentlig arbejdsplanlægning og afdelingstyring af biler, ferier og meget mere.
+# PDK12 Ugeplan
 
----
+![GitHub repo size](https://img.shields.io/github/repo-size/kschmidtjohansen/pdk12-ugeplan?style=flat-square)
+![Last commit](https://img.shields.io/github/last-commit/kschmidtjohansen/pdk12-ugeplan?style=flat-square)
+![GitHub issues](https://img.shields.io/github/issues/kschmidtjohansen/pdk12-ugeplan?style=flat-square)
+![GitHub license](https://img.shields.io/github/license/kschmidtjohansen/pdk12-ugeplan?style=flat-square)
 
-## 🚀 Features / Funktioner
-
-- **Weekly Planning Dashboard**  
-  – Plan and assign tasks, meetings and projects for the upcoming week.  
-  - **Ugentligt planlægningsdashboard**  
-    – Planlæg og tildel opgaver, møder og projekter for den kommende uge.
-
-- **Resource Management**  
-  – Track and allocate company cars, equipment, and meeting rooms.  
-  - **Ressourcestyring**  
-    – Overvåg og tildel firmabiler, udstyr og mødelokaler.
-
-- **Leave & Vacation Calendar**  
-  – View and approve team leave requests, vacations, and sick days.  
-  - **Ferie- og fraværskalender**  
-    – Vis og godkend teamets ferie-, fraværs- og sygeanmodninger.
-
-- **Department Overview**  
-  – High-level metrics: utilization rates, upcoming absences, car availability.  
-  - **Afdelingsoversigt**  
-    – Overblik over nøgletal: ressourceudnyttelse, kommende fravær, biltilgængelighed.
-
-- **Role-Based Access Control**  
-  – Admin, manager and staff roles with granular permissions.  
-  - **Rollebaseret adgangsstyring**  
-    – Admin-, leder- og medarbejderroller med præcise rettigheder.
+> 🇩🇰 Scroll ned for dansk version  
+> 🇬🇧 English version below
 
 ---
 
-## 🛠️ Installation / Installation
+## 🇩🇰 Dansk version
 
-1. **Clone the repository**  
-   ```bash
-   git clone https://github.com/kschmidtjohansen/polygon-weekly-compass.git
-   cd polygon-weekly-compass
-````
+### 📌 Om projektet
 
-2. **Install dependencies**
-
-   ```bash
-   npm install        # for backend and frontend
-   ```
-3. **Build & start**
-
-   ```bash
-   npm run build      # Builds frontend assets
-   npm start          # Launches server on http://localhost:3000
-   ```
+**PDK12 Ugeplan** er en digital planlægningsløsning til Polygon Skadeservice. Systemet giver et komplet overblik over ugens opgaver, firmabiler og bemanding — alt sammen i et brugervenligt interface.
 
 ---
 
-## ⚙️ Configuration / Konfiguration
+### ✨ Funktioner
 
-1. **Copy the example environment file**
-
-   ```bash
-   cp .env.example .env
-   ```
-2. **Edit `.env`** and set your values:
-
-   ```dotenv
-   PORT=3000  
-   DB_URL=postgres://user:password@host:port/dbname  
-   JWT_SECRET=your_jwt_secret  
-   ADMIN_EMAIL=admin@example.com  
-   ```
-3. **Optional**: Enable email notifications for leave approvals:
-
-   ```dotenv
-   EMAIL_HOST=smtp.example.com  
-   EMAIL_USER=user@example.com  
-   EMAIL_PASS=supersecret  
-   ```
+- 📅 Ugeplan med farvekodede statusser
+- 🧾 Formular til oprettelse og redigering af sager
+- 🚗 Oversigt over firmabiler og tilhørende ansvarlige
+- 👥 Login med rollebaseret adgang
+- 🔔 Farvekoder for opgavestatus (Planlagt, I gang, Udført osv.)
 
 ---
 
-## ▶️ Usage / Brug
+### 🔐 Roller og adgang
 
-* **Development mode**
-
-  ```bash
-  npm run dev
-  ```
-
-  — Live‐reload server and frontend.
-
-* **Production mode**
-
-  ```bash
-  npm start
-  ```
-
-  — Serves optimized build.
-
-* **Access**
-  Open your browser at `http://localhost:3000` (or configured `PORT`).
+| Rolle         | Funktioner                              |
+|---------------|------------------------------------------|
+| Medarbejder   | Kan se opgaver og biloversigt            |
+| Skadeleder    | Kan oprette og redigere sager            |
+| Administrator | Har adgang til alt, inkl. brugerhåndtering |
 
 ---
 
-## 🔄 Cron & Scheduling / Planlagte opgaver
+### 🚀 Installation
 
-Use a cronjob or scheduler to send weekly summary emails every Monday at 08:00 Copenhagen time:
-
-```cron
-0 8 * * 1 cd /path/to/repo && npm run summary-email >> email.log 2>&1
+```bash
+git clone https://github.com/kschmidtjohansen/pdk12-ugeplan.git
+cd pdk12-ugeplan
+npm install
+npm run dev
 ```
 
 ---
 
-## 🤝 Contributing / Bidrag
+### 📁 Mappestruktur
 
-1. Fork this repo / Fork dette repo
-2. Create a feature branch / Opret en feature-gren
-
-   ```bash
-   git checkout -b feature/my-feature
-   ```
-3. Commit your changes / Commit dine ændringer
-
-   ```bash
-   git commit -m "Add my feature"
-   ```
-4. Push to your fork / Push til din fork
-
-   ```bash
-   git push origin feature/my-feature
-   ```
-5. Open a Pull Request / Opret en Pull Request
+```text
+/components         → UI-komponenter
+/pages              → Sider og ruter
+/lib                → Hjælpefunktioner og API
+/data               → Eksempeldata
+/public/screenshots → Screenshots
+```
 
 ---
 
-## 📝 Changelog / Ændringslog
+### 📋 Ændringslog
 
-See [CHANGELOG.md](./CHANGELOG.md) for details on version history and updates.
-Se [CHANGELOG.md](./CHANGELOG.md) for detaljer om versionshistorik og opdateringer.
+Se [CHANGELOG.md](./CHANGELOG.md)
 
 ---
 
-## 📄 License / Licens
+### 📄 Licens
 
-This project is licensed under the MIT License.
-© 2025 Polygon Group A/S
+Projektet er under privat licens. Kontakt udvikleren for brug og samarbejde.
 
-Dette projekt er licenseret under MIT-licensen.
-© 2025 Polygon Group A/S
+---
+
+## 🇬🇧 English version
+
+### 📌 About the Project
+
+**PDK12 Ugeplan** is a digital planner for Polygon. It provides an overview of weekly tasks, company vehicles, and responsible users — all in an intuitive interface.
+
+---
+
+### ✨ Features
+
+- 📅 Weekly overview with color-coded statuses
+- 🧾 Job creation and task management
+- 🚗 Vehicle and fuel card tracking
+- 👥 Role-based login system
+- 🔔 Color indicators for task status (Planned, In Progress, Done)
+
+---
+
+### 🔐 Roles & Access
+
+| Role         | Permissions                            |
+|--------------|-----------------------------------------|
+| Employee     | View tasks and vehicle list             |
+| Supervisor   | Create and manage tasks                 |
+| Administrator| Full access including user management   |
+
+---
+
+### 🚀 Getting Started
+
+```bash
+git clone https://github.com/kschmidtjohansen/pdk12-ugeplan.git
+cd pdk12-ugeplan
+npm install
+npm run dev
+```
+
+---
+
+### 📁 Folder Structure
+
+```text
+/components         → Reusable components
+/pages              → Route-based page logic
+/lib                → Utilities and API logic
+/data               → Example/mock data
+/public/screenshots → Screenshots for docs
+```
+
+---
+
+### 📋 Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md)
+
+---
+
+### 📄 License
+
+This project is under a custom/private license. Contact the developer for use or contributions.
