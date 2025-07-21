@@ -20,7 +20,6 @@ export type Database = {
           car_id: string | null
           car_ids: string[] | null
           created_at: string
-          department_id: string
           description: string | null
           from_time: string
           id: string
@@ -37,7 +36,6 @@ export type Database = {
           car_id?: string | null
           car_ids?: string[] | null
           created_at?: string
-          department_id: string
           description?: string | null
           from_time: string
           id?: string
@@ -54,7 +52,6 @@ export type Database = {
           car_id?: string | null
           car_ids?: string[] | null
           created_at?: string
-          department_id?: string
           description?: string | null
           from_time?: string
           id?: string
@@ -67,13 +64,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "assignments_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "departments"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "fk_assignments_car_id"
             columns: ["car_id"]
@@ -124,7 +114,6 @@ export type Database = {
         Row: {
           car_number: string
           created_at: string
-          department_id: string
           fuel_card_code: string
           has_trailer_hitch: boolean | null
           id: string
@@ -137,7 +126,6 @@ export type Database = {
         Insert: {
           car_number: string
           created_at?: string
-          department_id: string
           fuel_card_code: string
           has_trailer_hitch?: boolean | null
           id?: string
@@ -150,7 +138,6 @@ export type Database = {
         Update: {
           car_number?: string
           created_at?: string
-          department_id?: string
           fuel_card_code?: string
           has_trailer_hitch?: boolean | null
           id?: string
@@ -158,41 +145,6 @@ export type Database = {
           name?: string
           notes?: string | null
           number_plate?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cars_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "departments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      departments: {
-        Row: {
-          code: string
-          created_at: string
-          id: string
-          is_active: boolean
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          code: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          code?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name?: string
           updated_at?: string
         }
         Relationships: []
@@ -296,7 +248,6 @@ export type Database = {
       notifications: {
         Row: {
           created_at: string
-          department_id: string
           id: string
           link: string | null
           message: string
@@ -308,7 +259,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          department_id: string
           id?: string
           link?: string | null
           message: string
@@ -320,7 +270,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          department_id?: string
           id?: string
           link?: string | null
           message?: string
@@ -330,21 +279,12 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "departments"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
-          department_id: string
           email: string
           id: string
           job_title: string | null
@@ -358,7 +298,6 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
-          department_id: string
           email: string
           id: string
           job_title?: string | null
@@ -372,7 +311,6 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
-          department_id?: string
           email?: string
           id?: string
           job_title?: string | null
@@ -383,15 +321,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["employee_status"]
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "departments"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       system_cleanup_tracking: {
         Row: {
@@ -417,45 +347,9 @@ export type Database = {
         }
         Relationships: []
       }
-      user_departments: {
-        Row: {
-          created_at: string
-          department_id: string
-          id: string
-          is_primary: boolean
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          department_id: string
-          id?: string
-          is_primary?: boolean
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          department_id?: string
-          id?: string
-          is_primary?: boolean
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_departments_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "departments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_roles: {
         Row: {
           created_at: string
-          department_id: string
           id: string
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
@@ -463,7 +357,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          department_id: string
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
@@ -471,26 +364,16 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          department_id?: string
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_roles_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "departments"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       vacations: {
         Row: {
           created_at: string
-          department_id: string
           end_date: string
           end_time: string | null
           id: string
@@ -506,7 +389,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          department_id: string
           end_date: string
           end_time?: string | null
           id?: string
@@ -522,7 +404,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          department_id?: string
           end_date?: string
           end_time?: string | null
           id?: string
@@ -536,15 +417,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "vacations_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "departments"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
@@ -571,10 +444,6 @@ export type Database = {
       }
       can_access_assignment: {
         Args: { assignment_id: string }
-        Returns: boolean
-      }
-      can_access_department: {
-        Args: { dept_id: string; user_uuid?: string }
         Returns: boolean
       }
       can_user_access_assignment: {
@@ -633,19 +502,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
-      get_user_accessible_departments: {
-        Args: { user_uuid?: string }
-        Returns: string[]
-      }
-      get_user_departments: {
-        Args: { user_uuid?: string }
-        Returns: {
-          department_id: string
-          department_name: string
-          department_code: string
-          is_primary: boolean
-        }[]
-      }
       get_user_role: {
         Args: { uid: string }
         Returns: Database["public"]["Enums"]["user_role"]
@@ -653,10 +509,6 @@ export type Database = {
       get_user_role_safe: {
         Args: { user_uuid: string }
         Returns: Database["public"]["Enums"]["user_role"]
-      }
-      has_admin_privileges: {
-        Args: { user_uuid?: string }
-        Returns: boolean
       }
       is_admin_or_skadeleder: {
         Args: Record<PropertyKey, never>
@@ -672,10 +524,6 @@ export type Database = {
       }
       is_strong_password: {
         Args: { password: string }
-        Returns: boolean
-      }
-      is_superadmin: {
-        Args: { user_uuid?: string }
         Returns: boolean
       }
       is_user_assigned_to_assignment: {
@@ -761,10 +609,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
-      user_has_department_access: {
-        Args: { user_uuid: string; dept_id: string }
-        Returns: boolean
-      }
       user_has_role: {
         Args: { check_role: Database["public"]["Enums"]["user_role"] }
         Returns: boolean
@@ -780,10 +624,6 @@ export type Database = {
       validate_email_format_enhanced: {
         Args: { email: string }
         Returns: boolean
-      }
-      validate_user_department_access: {
-        Args: { dept_code: string }
-        Returns: Json
       }
       verify_complete_fix: {
         Args: Record<PropertyKey, never>
@@ -810,11 +650,7 @@ export type Database = {
     Enums: {
       assignment_type: "waterDamage" | "fireDamage" | "mold" | "other"
       employee_status: "active" | "inactive" | "on_leave" | "terminated"
-      user_role:
-        | "administrator"
-        | "skadeleder"
-        | "servicemedarbejder"
-        | "superadmin"
+      user_role: "administrator" | "skadeleder" | "servicemedarbejder"
       vacation_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -945,12 +781,7 @@ export const Constants = {
     Enums: {
       assignment_type: ["waterDamage", "fireDamage", "mold", "other"],
       employee_status: ["active", "inactive", "on_leave", "terminated"],
-      user_role: [
-        "administrator",
-        "skadeleder",
-        "servicemedarbejder",
-        "superadmin",
-      ],
+      user_role: ["administrator", "skadeleder", "servicemedarbejder"],
       vacation_status: ["pending", "approved", "rejected"],
     },
   },

@@ -1,10 +1,11 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Edit, Key, Trash } from 'lucide-react';
+import { Edit, Key, Trash, UserCheck, UserX } from 'lucide-react';
 import {
   Avatar,
   AvatarFallback,
+  AvatarImage,
 } from '@/components/ui/avatar';
 import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
@@ -17,6 +18,8 @@ export interface AdminUser {
   role: UserRole;
   phone?: string;
   jobTitle?: string;
+  banned_until?: string | null;
+  avatar_url?: string;
 }
 
 interface UserTableRowProps {
@@ -24,6 +27,7 @@ interface UserTableRowProps {
   onEditUser: (user: AdminUser) => void;
   onDeleteUser: (user: AdminUser) => void;
   onResetPassword: (user: AdminUser) => void;
+  onToggleUserStatus: (user: AdminUser) => void;
   getRoleLabel: (role: UserRole) => string;
   getInitials: (name: string) => string;
 }
@@ -33,20 +37,30 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
   onEditUser,
   onDeleteUser,
   onResetPassword,
+  onToggleUserStatus,
   getRoleLabel,
   getInitials,
 }) => {
   const { t } = useTranslation();
+
+  // Check if user is inactive (banned_until is set to a future date)
+  const isUserActive = !user.banned_until || new Date(user.banned_until) <= new Date();
 
   return (
     <tr className="border-b border-gray-200 hover:bg-gray-50">
       <td className="py-4 pl-4 pr-3 text-sm sm:pl-6">
         <div className="flex items-center">
           <Avatar className="h-8 w-8 bg-polygon-blue text-white">
+            <AvatarImage src={user.avatar_url || undefined} />
             <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
           </Avatar>
           <div className="ml-4">
-            <div className="font-medium text-gray-900">{user.name}</div>
+            <div className={`font-medium ${isUserActive ? 'text-gray-900' : 'text-gray-500'}`}>
+              {user.name}
+              {!isUserActive && (
+                <span className="ml-2 text-xs text-red-600">({t('admin.userManagement.inactive')})</span>
+              )}
+            </div>
             <div className="text-gray-500">{user.email}</div>
           </div>
         </div>
@@ -56,6 +70,29 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
       </td>
       <td className="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 whitespace-nowrap">
         <div className="flex justify-end gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onToggleUserStatus(user)}
+                  className={`h-8 w-8 ${isUserActive ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}`}
+                >
+                  {isUserActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {isUserActive 
+                    ? t('admin.userManagement.deactivateUser')
+                    : t('admin.userManagement.activateUser')
+                  }
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

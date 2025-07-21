@@ -8,6 +8,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../components/ui/card';
+import { KeyRound } from 'lucide-react';
 
 const PasswordResetPage: React.FC = () => {
   const { t } = useTranslation();
@@ -288,16 +289,42 @@ const PasswordResetPage: React.FC = () => {
   // Show loading state
   if (processingToken) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>{t('login.resetYourPassword')}</CardTitle>
-            <CardDescription>{t('login.passwordReset.description')}</CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gray-50/30">
+        <div className="max-w-7xl mx-auto p-6 space-y-6">
+          {/* Modern Page Header */}
+          <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  {t('login.resetYourPassword')}
+                </h1>
+                <p className="text-sm text-gray-600">
+                  {t('login.passwordReset.description')}
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
+                  <KeyRound className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Loading Content */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+            <div className="p-12">
+              <Card className="border-0 shadow-none max-w-md mx-auto">
+                <CardHeader>
+                  <CardTitle className="text-center">{t('login.resetYourPassword')}</CardTitle>
+                  <CardDescription className="text-center">{t('login.passwordReset.description')}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex justify-center">
+                  <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -305,126 +332,178 @@ const PasswordResetPage: React.FC = () => {
   // If we couldn't find a token, show email-based recovery form
   if (recoveryMode === 'email') {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>{t('login.passwordReset.title')}</CardTitle>
-            <CardDescription>
-              {tokenError ? (
-                <span className="text-red-500">{tokenError}</span>
-              ) : (
-                t('login.passwordReset.description')
-              )}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleEmailBasedReset} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">{t('common.email')}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder={t('login.passwordReset.emailPlaceholder')}
-                  disabled={loading}
-                  required
-                />
+      <div className="min-h-screen bg-gray-50/30">
+        <div className="max-w-7xl mx-auto p-6 space-y-6">
+          {/* Modern Page Header */}
+          <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  {t('login.passwordReset.title')}
+                </h1>
+                <p className="text-sm text-gray-600">
+                  {tokenError ? tokenError : t('login.passwordReset.description')}
+                </p>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    {t('login.passwordReset.buttonLoading')}
-                  </span>
-                ) : (
-                  t('login.passwordReset.sendResetEmail')
-                )}
-              </Button>
-            </form>
-            
-            {import.meta.env.DEV && Object.keys(debugInfo).length > 0 && (
-              <div className="bg-gray-100 p-3 rounded text-xs mt-5 font-mono">
-                <p className="font-bold">Debug Information:</p>
-                <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+              <div className="flex items-center gap-4">
+                <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
+                  <KeyRound className="h-6 w-6 text-primary" />
+                </div>
               </div>
-            )}
-          </CardContent>
-          <CardFooter>
-            <Button variant="link" className="w-full" onClick={() => navigate('/login')} disabled={loading}>
-              {t('login.backToLogin')}
-            </Button>
-          </CardFooter>
-        </Card>
+            </div>
+          </div>
+
+          {/* Email Reset Form */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+            <div className="p-12">
+              <Card className="border-0 shadow-none max-w-md mx-auto">
+                <CardHeader>
+                  <CardTitle className="text-center">{t('login.passwordReset.title')}</CardTitle>
+                  <CardDescription className="text-center">
+                    {tokenError ? (
+                      <span className="text-red-500">{tokenError}</span>
+                    ) : (
+                      t('login.passwordReset.description')
+                    )}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleEmailBasedReset} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">{t('common.email')}</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        placeholder={t('login.passwordReset.emailPlaceholder')}
+                        disabled={loading}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? (
+                        <span className="flex items-center">
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          {t('login.passwordReset.buttonLoading')}
+                        </span>
+                      ) : (
+                        t('login.passwordReset.sendResetEmail')
+                      )}
+                    </Button>
+                  </form>
+                  
+                  {import.meta.env.DEV && Object.keys(debugInfo).length > 0 && (
+                    <div className="bg-gray-100 p-3 rounded text-xs mt-5 font-mono">
+                      <p className="font-bold">Debug Information:</p>
+                      <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+                    </div>
+                  )}
+                </CardContent>
+                <CardFooter>
+                  <Button variant="link" className="w-full" onClick={() => navigate('/login')} disabled={loading}>
+                    {t('login.backToLogin')}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   // Show password reset form for token-based flow
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>{t('login.resetYourPassword')}</CardTitle>
-          <CardDescription>{t('login.resetPasswordDescriptionPage')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleTokenBasedReset} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="password">{t('login.newPassword')}</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                disabled={loading}
-                required
-              />
+    <div className="min-h-screen bg-gray-50/30">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Modern Page Header */}
+        <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold text-gray-900">
+                {t('login.resetYourPassword')}
+              </h1>
+              <p className="text-sm text-gray-600">
+                {t('login.resetPasswordDescriptionPage')}
+              </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">{t('login.confirmPassword')}</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                disabled={loading}
-                required
-              />
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
+                <KeyRound className="h-6 w-6 text-primary" />
+              </div>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  {t('login.buttonLoading')}
-                </span>
-              ) : (
-                t('login.updatePassword')
-              )}
-            </Button>
-          </form>
-          
-          {import.meta.env.DEV && Object.keys(debugInfo).length > 0 && (
-            <div className="bg-gray-100 p-3 rounded text-xs mt-5 font-mono">
-              <p className="font-bold">Debug Information:</p>
-              <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
-            </div>
-          )}
-        </CardContent>
-        <CardFooter>
-          <Button variant="link" className="w-full" onClick={() => navigate('/login')}>
-            {t('login.backToLogin')}
-          </Button>
-        </CardFooter>
-      </Card>
+          </div>
+        </div>
+
+        {/* Password Reset Form */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="p-12">
+            <Card className="border-0 shadow-none max-w-md mx-auto">
+              <CardHeader>
+                <CardTitle className="text-center">{t('login.resetYourPassword')}</CardTitle>
+                <CardDescription className="text-center">{t('login.resetPasswordDescriptionPage')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleTokenBasedReset} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="password">{t('login.newPassword')}</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      disabled={loading}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">{t('login.confirmPassword')}</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={e => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      disabled={loading}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {t('login.buttonLoading')}
+                      </span>
+                    ) : (
+                      t('login.updatePassword')
+                    )}
+                  </Button>
+                </form>
+                
+                {import.meta.env.DEV && Object.keys(debugInfo).length > 0 && (
+                  <div className="bg-gray-100 p-3 rounded text-xs mt-5 font-mono">
+                    <p className="font-bold">Debug Information:</p>
+                    <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter>
+                <Button variant="link" className="w-full" onClick={() => navigate('/login')}>
+                  {t('login.backToLogin')}
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
-import { usePermissions } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import VacationTabs from './VacationTabs';
 
 interface VacationHeaderProps {
@@ -22,7 +22,7 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({
   onOpenAdminDialog
 }) => {
   const { t } = useTranslation();
-  const { isAdmin } = usePermissions();
+  const { isEffectiveAdmin } = useAuth();
   
   return (
     <div className="py-4">
@@ -42,7 +42,7 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({
             {t("vacation.applyForVacation")}
           </Button>
           
-          {isAdmin && (
+          {isEffectiveAdmin && (
             <Button
               onClick={onOpenAdminDialog}
               variant="outline"

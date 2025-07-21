@@ -1,8 +1,7 @@
 
-import React, { createContext, useContext, useEffect, useRef } from 'react';
+import React, { createContext, useContext } from 'react';
 import { NotificationType } from '@/types/notification';
 import { useNotifications as useNotificationsHook } from '@/hooks/useNotifications';
-import { useAuth } from '@/context/AuthContext';
 
 // Key for tracking initial fetch in localStorage
 const NOTIFICATION_FETCHED_KEY = "polygon-notifications-fetched";
@@ -22,7 +21,8 @@ interface NotificationContextType {
   fetchNotifications: () => Promise<void>;
 }
 
-const NotificationContext = createContext<NotificationContextType>({
+// Create a safe default context that won't fail if translation is not ready
+const defaultContext: NotificationContextType = {
   notifications: [],
   unreadCount: 0,
   loading: false,
@@ -32,21 +32,9 @@ const NotificationContext = createContext<NotificationContextType>({
   deleteAllNotifications: async () => {},
   addNotification: async () => null,
   fetchNotifications: async () => {}
-});
-
-// Generate a unique session ID for this browser tab
-const generateSessionId = () => {
-  try {
-    let sessionId = localStorage.getItem(NOTIFICATION_SESSION_KEY);
-    if (!sessionId) {
-      sessionId = `notification-session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-      localStorage.setItem(NOTIFICATION_SESSION_KEY, sessionId);
-    }
-    return sessionId;
-  } catch (err) {
-    return `notification-session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-  }
 };
+
+const NotificationContext = createContext<NotificationContextType>(defaultContext);
 
 // Export the hook for using the notifications context
 export const useNotifications = () => useContext(NotificationContext);
@@ -54,75 +42,20 @@ export const useNotifications = () => useContext(NotificationContext);
 export const NotificationProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  // Use the notification hook to get all notification functionality
-  const {
-    notifications,
-    unreadCount,
-    loading,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification,
-    deleteAllNotifications,
-    addNotification,
-    fetchNotifications
-  } = useNotificationsHook();
+  // Use a try-catch wrapper to prevent provider initialization errors from cascading
+  let notificationHookData;
   
-  const { user } = useAuth();
-  const initialFetchDoneRef = useRef(false);
-  const sessionFetchDoneRef = useRef(false);
-  const sessionId = useRef(generateSessionId());
+  try {
+    // Use the notification hook to get all notification functionality
+    notificationHookData = useNotificationsHook();
+  } catch (error) {
+    // If there's an error during hook initialization, use default values
+    console.warn('[NotificationProvider] Error initializing notification hook, using defaults:', error);
+    notificationHookData = defaultContext;
+  }
   
-  // Debug log when provider updates
-  useEffect(() => {
-    console.log('NotificationProvider state updated:', {
-      userRole: user?.role,
-      notificationCount: notifications.length,
-      unreadCount,
-      loading,
-      initialFetchDone: initialFetchDoneRef.current,
-      sessionFetchDone: sessionFetchDoneRef.current,
-      sessionId: sessionId.current
-    });
-  }, [notifications.length, unreadCount, loading, user?.role]);
-  
-  // Centralize notification fetching - only fetch once per session
-  useEffect(() => {
-    if (user && !sessionFetchDoneRef.current) {
-      console.log(`NotificationProvider: Initial fetch for user ${user.id} (${user.role}) with session ${sessionId.current}`);
-      fetchNotifications();
-      
-      // Mark as fetched for this session
-      sessionFetchDoneRef.current = true;
-      
-      // Also mark as fetched across app reloads
-      if (!initialFetchDoneRef.current) {
-        try {
-          localStorage.setItem(NOTIFICATION_FETCHED_KEY, 'true');
-          initialFetchDoneRef.current = true;
-        } catch (err) {
-          console.error("Error saving notification fetch status to localStorage:", err);
-        }
-      }
-    } else if (!user) {
-      // Reset session flag if user logs out
-      sessionFetchDoneRef.current = false;
-    }
-  }, [user, fetchNotifications]);
-
   return (
-    <NotificationContext.Provider
-      value={{
-        notifications,
-        unreadCount,
-        loading,
-        markAsRead,
-        markAllAsRead,
-        deleteNotification,
-        deleteAllNotifications,
-        addNotification,
-        fetchNotifications
-      }}
-    >
+    <NotificationContext.Provider value={notificationHookData}>
       {children}
     </NotificationContext.Provider>
   );

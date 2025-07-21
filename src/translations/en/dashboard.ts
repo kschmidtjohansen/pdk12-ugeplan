@@ -1,46 +1,136 @@
 
-const dashboard = {
-  welcome: 'Welcome, {name}',
-  today: 'Today is {date}, Week {week}',
-  availableEmployees: 'Available Employees',
-  onLeaveEmployees: 'Employees on Leave',
-  availableCars: 'Available Cars',
-  todayAssignments: "Today's Assignments",
-  scheduledToday: 'Scheduled for today',
-  totalEmployees: '{count} total employees',
-  totalCars: '{count} total cars',
-  todaysDate: '{date}',
-  viewAll: 'View All',
-  myAssignments: 'My Assignments for Week {week}',
-  noAssignments: 'No assignments scheduled for this week',
+export const dashboard = {
+  welcome: "Welcome back",
+  subtitle: "Overview of today's tasks and activities",
+  quickAccess: "Quick access",
+  myTasks: "My Tasks",
+  myAssignments: "My Assignments",
+  noTasks: "No tasks",
+  noTasksDescription: "You have no tasks assigned at the moment.",
+  noAssignments: "No assignments",
+  noAssignmentsDescription: "You have no assignments at the moment.",
+  noAssignmentsScheduled: "No assignments scheduled for this week.",
+  noUpcomingTasks: "No upcoming tasks",
+  viewAllTasks: "View all tasks",
+  weeklyOverview: "Weekly overview",
+  previousWeek: "Previous week",
+  nextWeek: "Next week",
+  currentWeek: "Current week",
+  resetToCurrentWeek: "Reset to current week",
+  connectionIssueDetected: "Connection issues detected",
+  connectionIssueDescription: "There may be connection issues. Try refreshing the page if data doesn't load properly.",
   
-  // Upcoming Vacations widget
-  upcomingVacations: 'Upcoming Vacations',
-  noUpcomingVacations: 'No upcoming vacations',
+  // Personal dashboard translations
+  thisWeek: "This week",
+  today: "Today",
+  completed: "Completed",
+  total: "Total",
+  team: "Team",
+  assignmentsThisWeek: "assignments this week",
+  totalAssignments: "total assignments",
+  yourRole: "your role",
+  tasksToday: "tasks today",
+  completedTasks: "completed tasks",
+  available: "Available",
   
-  // Employee availability dialogs
-  availableEmployeesDesc: 'Employees available and not assigned to tasks',
-  unavailableEmployeesDesc: 'Employees currently on leave or vacation',
+  // Welcome messages
+  welcomeUser: "Hello {name}! 👋",
+  welcomeBack: "Welcome back",
+  loadingDashboard: "Loading dashboard data",
+  initializingSystem: "Initializing system...",
   
-  // Quick access items
-  quickAccess: {
+  // Success messages
+  dataLoadedSuccessfully: "Dashboard Data Loaded Successfully! ✅",
+  dataLoadedDescription: "All data is now loading properly with optimized database access.",
+  databaseFixApplied: "Database Fix Applied! 🔧",
+  databaseFixDescription: "The database has been updated and optimized for better performance.",
+  systemOptimized: "System Optimized! ⚡",
+  systemOptimizedDescription: "All system components are now running optimally.",
+  
+  // Operation states
+  publishing: "Publishing...",
+  deleting: "Deleting...",
+  updating: "Updating...",
+  processing: "Processing...",
+  saving: "Saving...",
+  
+  // Placeholder messages
+  functionalityNotImplemented: "Functionality not yet implemented",
+  featureComingSoon: "This feature is coming soon",
+  developmentInProgress: "Development in progress...",
+  
+  // Week navigation
+  week: "Week",
+  
+  // View all
+  viewAll: "View all",
+  
+  // Quick Access translations - consolidated
+  quickAccessGrid: {
     planner: {
-      title: 'Planner',
-      description: 'View and manage weekly schedules'
+      title: "Planner",
+      description: "Manage and schedule assignments"
     },
     vacation: {
-      title: 'Vacation',
-      description: 'Request and manage time off'
+      title: "Vacation",
+      description: "Manage vacation requests"
     },
     employees: {
-      title: 'Employees',
-      description: 'Manage employee information'
+      title: "Employees",
+      description: "Manage employees and availability"
     },
     cars: {
-      title: 'Cars',
-      description: 'View and manage vehicle fleet'
+      title: "Cars",
+      description: "Manage vehicles and availability"
     }
-  }
+  },
+  
+  // UPDATED Dashboard metrics with new structure
+  metrics: {
+    availableEmployees: "Available Employees",
+    availableCars: "Available Cars",
+    absentEmployees: "Absent Employees", 
+    clickToView: "Click to view details",
+    availableCount: "{count} available",
+    absentCount: "{count} absent",
+    returnsOn: "Returns {date}",
+    partiallyAvailable: "Partially available",
+    fullyAvailable: "Fully available",
+    totalCount: "{count} total",
+    
+    // Detail modal titles
+    availableEmployeesDetails: "Available Employees Details",
+    availableCarsDetails: "Available Cars Details", 
+    absentEmployeesDetails: "Absent Employees Details",
+    
+    // Status descriptions
+    availableEmployeesDesc: "Service employees ready for assignments",
+    availableCarsDesc: "Cars not in use today",
+    absentEmployeesDesc: "Employees on vacation or absent",
+    
+    // Employee statuses
+    fullyBooked: "Fully Booked",
+    onVacation: "On Vacation",
+    onLeave: "On Leave",
+    availableAfter: "Available after {time}",
+    
+    // Car details
+    carNumber: "Car #{number}",
+    hasTrailerHitch: "Has trailer hitch",
+    noTrailerHitch: "No trailer hitch"
+  },
+  
+  charts: {
+    assignmentDistribution: "Assignment distribution"
+  },
+  assignments: {
+    waterDamage: "Water damage",
+    fireDamage: "Fire damage", 
+    mold: "Mold",
+    other: "Other"
+  },
+  
+  // Additional translations
+  noEmployeesFoundForDate: "No employees found for this date",
+  loadingEmployees: "Loading employees"
 };
-
-export default dashboard;

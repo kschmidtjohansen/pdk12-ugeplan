@@ -4,6 +4,7 @@ import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Car } from '@/types/car';
 import { format } from 'date-fns';
+import { useAuth } from '@/context/AuthContext';
 
 export interface AssignmentFormData {
   date: string;
@@ -14,6 +15,7 @@ export interface AssignmentFormData {
   location?: string;
   car?: string;
   employees?: string[];
+  responsibleUserId?: string;
 }
 
 export const useAssignmentFormState = (
@@ -26,9 +28,20 @@ export const useAssignmentFormState = (
   setDialogOpen: (open: boolean) => void,
   selectedDate: string
 ) => {
+  const { user, isDemoMode } = useAuth();
+  
   // Always calculate a fresh today's date when the hook is initialized
   const getTodayDate = () => format(new Date(), 'yyyy-MM-dd');
   const initialDate = selectedDate && selectedDate.trim() !== '' ? selectedDate : getTodayDate();
+  
+  // Default responsible user - for demo mode, always default to current user
+  const getDefaultResponsibleUser = () => {
+    if (isDemoMode && user) {
+      console.log('[useAssignmentFormState] Demo mode: defaulting responsible user to current user:', user.id);
+      return user.id;
+    }
+    return '';
+  };
   
   console.log('[useAssignmentFormState] Initializing with date:', initialDate);
   console.log('[useAssignmentFormState] Today fresh date:', getTodayDate());
@@ -42,7 +55,8 @@ export const useAssignmentFormState = (
     toTime: '16:00',
     location: '',
     car: '',
-    employees: []
+    employees: [],
+    responsibleUserId: getDefaultResponsibleUser()
   });
 
   // Update form date if selectedDate changes
@@ -55,6 +69,17 @@ export const useAssignmentFormState = (
       }));
     }
   }, [selectedDate]);
+
+  // Set default responsible user for demo mode when user is available
+  useEffect(() => {
+    if (isDemoMode && user && !currentAssignment) {
+      console.log('[useAssignmentFormState] Setting default responsible user for demo mode:', user.id);
+      setFormData(prev => ({
+        ...prev,
+        responsibleUserId: user.id
+      }));
+    }
+  }, [isDemoMode, user, currentAssignment]);
 
   // Handle input changes for text fields
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -78,6 +103,14 @@ export const useAssignmentFormState = (
     setFormData(prev => ({
       ...prev,
       car: value
+    }));
+  }, []);
+
+  // Handle responsible user selection
+  const handleResponsibleUserChange = useCallback((value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      responsibleUserId: value
     }));
   }, []);
 
@@ -110,6 +143,7 @@ export const useAssignmentFormState = (
     handleInputChange,
     handleEmployeeChange,
     handleCarChange,
+    handleResponsibleUserChange,
     handleSubmit
   };
 };

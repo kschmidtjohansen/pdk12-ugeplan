@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
+import { Car } from '@/types/car';
 import EmptyState from './EmptyState';
 import { getAllWeekDays, getDateStatus } from '@/utils/dateUtils';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
@@ -12,26 +12,32 @@ import { format } from 'date-fns';
 
 interface AssignmentListProps {
   assignments: Assignment[];
+  operationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
-  onPublishDay?: () => void;
+  onPublishDay?: (date: string) => void;
   onCreateAssignment: (date: string) => void;
+  onCopyAssignment?: (assignment: Assignment) => void;
   selectedWeek?: number;
   selectedYear?: number;
   weekDates?: { start: Date; end: Date; weekNumber: number; year: number };
+  cars?: Car[];
 }
 
 const AssignmentList: React.FC<AssignmentListProps> = ({
   assignments,
+  operationStates,
   onEditAssignment,
   onDeleteAssignment,
   onPublishAssignment,
   onPublishDay,
   onCreateAssignment,
+  onCopyAssignment,
   selectedWeek,
   selectedYear,
-  weekDates
+  weekDates,
+  cars = []
 }) => {
   const { 
     canEdit, 
@@ -40,7 +46,6 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
     canPublishTasks 
   } = usePermissions();
   const { t } = useTranslation();
-  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const { filterByPermissions, groupByDate } = useAssignmentFilters();
 
@@ -54,22 +59,11 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   let allWeekDays: string[] = [];
   
   if (weekDates?.start && weekDates?.end) {
-    console.log(`AssignmentList: Creating week days for week ${selectedWeek}/${selectedYear}`);
-    console.log(`Start: ${format(weekDates.start, 'yyyy-MM-dd')} (${format(weekDates.start, 'EEEE')}) - Day ${weekDates.start.getDay()}`);
-    console.log(`End: ${format(weekDates.end, 'yyyy-MM-dd')} (${format(weekDates.end, 'EEEE')}) - Day ${weekDates.end.getDay()}`);
-    
     allWeekDays = getAllWeekDays({ 
       start: weekDates.start, 
       end: weekDates.end
     });
   }
-  
-  // Debug the week days
-  useEffect(() => {
-    if (allWeekDays.length > 0) {
-      console.log("AssignmentList - Generated week days:", allWeekDays);
-    }
-  }, [allWeekDays]);
 
   // Fill in any missing days from the week
   allWeekDays.forEach(dateKey => {
@@ -99,6 +93,21 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   
   // Sort past dates (descending - newest first)
   pastDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+  // Initialize expansion state with better defaults
+  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() => {
+    const initialState: Record<string, boolean> = {};
+    const today = format(new Date(), 'yyyy-MM-dd');
+    
+    // Set default expansion states
+    allWeekDays.forEach(dateKey => {
+      const status = getDateStatus(dateKey);
+      // Expand today by default, collapse future and past days
+      initialState[dateKey] = status === 'today';
+    });
+    
+    return initialState;
+  });
 
   // Effect to update time at midnight to refresh sorting
   useEffect(() => {
@@ -141,28 +150,34 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
       <CurrentAndFutureDays 
         dates={[...todayDate, ...futureDates]}
         groupedAssignments={groupedAssignments}
+        operationStates={operationStates}
         expandedDays={expandedDays}
         onToggleExpansion={toggleDayExpansion}
         onPublishDay={onPublishDay}
         onEditAssignment={onEditAssignment}
         onDeleteAssignment={onDeleteAssignment}
         onPublishAssignment={onPublishAssignment}
+        onCopyAssignment={onCopyAssignment}
         canEdit={canEdit}
         canPublishTasks={canPublishTasks}
+        cars={cars}
       />
       
       {/* Past dates section */}
       <PastAssignments 
         pastDates={pastDates}
         groupedAssignments={groupedAssignments}
+        operationStates={operationStates}
         expandedDays={expandedDays}
         onToggleExpansion={toggleDayExpansion}
         onPublishDay={onPublishDay}
         onEditAssignment={onEditAssignment}
         onDeleteAssignment={onDeleteAssignment}
         onPublishAssignment={onPublishAssignment}
+        onCopyAssignment={onCopyAssignment}
         canEdit={canEdit}
         canPublishTasks={canPublishTasks}
+        cars={cars}
       />
     </div>
   );

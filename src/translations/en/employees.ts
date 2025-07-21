@@ -1,47 +1,105 @@
 
 const employees = {
   title: 'Employees',
-  description: 'Department employees and their roles',
-  addEmployee: 'Add Employee',
+  description: 'Manage employees and their availability',
+  
+  // Basic employee information
   name: 'Name',
   email: 'Email',
   phone: 'Phone',
-  jobTitle: 'Position',
   role: 'Role',
   actions: 'Actions',
-  contactInfo: 'Contact Information',
-  editEmployee: 'Edit Employee',
-  addNewEmployee: 'Add New Employee',
-  updateInfo: 'Update employee information.',
-  createAccount: 'Add a new employee to the department.',
-  fullName: 'Full Name',
-  employeeUpdated: 'Employee updated',
-  employeeAdded: 'Employee added',
-  employeeDeleted: 'Employee deleted',
-  employeeUpdatedMsg: '{name}\'s information has been updated.',
-  employeeAddedMsg: '{name} has been added to the department.',
-  employeeDeletedMsg: '{name}\'s account has been removed.',
-  deleteConfirm: 'Are you sure?',
-  deleteWarning: 'You are about to delete {name}\'s account. This action cannot be undone.',
+  jobTitle: 'Job Title',
+  
+  // Employee roles - STANDARDIZED: Use admin.roles instead
+  administrator: 'Administrator',
+  skadeleder: 'Damage Manager',
+  servicemedarbejder: 'Service Employee',
+  user: 'User',
+  
+  // Employee status - STANDARDIZED SECTION
+  available: 'Available',
+  unavailable: 'Unavailable',
   onLeave: 'On Leave',
-  markOnLeave: 'Mark as on leave',
-  markAvailable: 'Mark as available',
-  employeeOnLeave: 'Employee marked on leave',
-  employeeAvailable: 'Employee marked available',
-  employeeOnLeaveMsg: '{name} is now marked as on leave.',
-  employeeAvailableMsg: '{name} is now marked as available.',
+  onVacation: 'On Vacation',
+  availableAfter: 'Available after {time}',
+  fullyBooked: 'Fully Booked',
+  
+  // Missing translation keys - ADD THESE
+  addNewEmployee: 'Add New Employee',
+  createAccount: 'Create Account',
+  fullName: 'Full Name',
   notes: 'Notes',
-  notesPlaceholder: 'Add notes about this employee...',
-  viewNotes: 'View notes',
-  viewNotesOnly: 'You can view but not edit notes',
-  employee: 'Employee',
-  markOnLeaveTitle: 'Mark as On Leave',
-  markOnLeaveDescription: 'Enter a reason for {name}\'s absence. This will be visible to administrators and department managers.',
-  markAvailableTitle: 'Mark as Available',
-  markAvailableDescription: 'Do you want to keep or remove the notes for {name}?',
-  keepNote: 'Keep notes',
-  removeNote: 'Remove notes',
-  updateError: 'An error occurred while updating the employee\'s status.'
+  password: 'Password',
+
+  // Additional status translations
+  status: {
+    available: 'Available',
+    unavailable: 'Unavailable',
+    partiallyAvailable: 'Partially available',
+    onVacation: 'On vacation',
+    onLeave: 'On leave',
+    fullyBooked: 'Fully booked',
+    unknown: 'Unknown status'
+  },
+  
+  // Actions
+  add: 'Add Employee',
+  addEmployee: 'Add Employee',
+  edit: 'Edit Employee',
+  delete: 'Delete Employee',
+  markAvailable: 'Mark Available',
+  markOnLeave: 'Mark On Leave',
+  
+  // Form fields
+  firstName: 'First Name',
+  lastName: 'Last Name',
+  emailAddress: 'Email Address',
+  phoneNumber: 'Phone Number',
+  selectRole: 'Select Role',
+  selectEmployees: 'Select Employees',
+  selected: 'selected employees',
+  
+  // Contact information
+  contact: 'Contact Information',
+  
+  // Messages
+  employeeAdded: 'Employee added',
+  employeeUpdated: 'Employee updated',
+  employeeDeleted: 'Employee deleted',
+  statusUpdated: 'Status updated',
+  autoRemovedUnavailable: 'Automatically removed unavailable employees',
+  
+  // Error messages
+  addError: 'Error adding employee',
+  updateError: 'Error updating employee',
+  deleteError: 'Error deleting employee',
+  fetchError: 'Error loading employees',
+  
+  // Confirmation dialogs
+  deleteConfirm: 'Delete Employee',
+  deleteWarning: 'Are you sure you want to delete this employee?',
+  
+  // Empty states
+  noEmployees: 'No employees found',
+  noResponsibleUsersFound: 'No responsible users found',
+  addFirst: 'Add your first employee',
+  
+  // Validation
+  nameRequired: 'Name is required',
+  emailRequired: 'Email is required',
+  emailInvalid: 'Invalid email address',
+  phoneRequired: 'Phone number is required',
+  roleRequired: 'Role is required',
+  
+  // Additional message translations
+  employeeAddedMsg: 'Employee {name} added with role {role}',
+  employeeUpdateMsg: 'Employee {name} was updated',
+  employeeDeletedMsg: 'Employee {name} was deleted',
+  employeeOnLeave: 'Employee set on leave',
+  employeeAvailable: 'Employee marked as available',
+  employeeOnLeaveMsg: '{name} is now on leave',
+  employeeAvailableMsg: '{name} is now available'
 };
 
 export default employees;

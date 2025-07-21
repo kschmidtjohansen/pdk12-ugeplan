@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth, UserRole } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { Menu, X } from 'lucide-react';
@@ -17,7 +17,7 @@ import UserMenu from './NavComponents/UserMenu';
 import { getNavigationItems } from './NavigationItems';
 
 const TopNavbar: React.FC = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, isEffectiveAdmin } = useAuth();
   const { t, currentLanguage, setLanguage } = useTranslation();
   const { 
     notifications, 
@@ -32,12 +32,10 @@ const TopNavbar: React.FC = () => {
   const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // Track if there are vacation-related notifications that need attention
   const [hasVacationNotifications, setHasVacationNotifications] = useState(false);
   
   // Check for vacation-related notifications
   useEffect(() => {
-    // Enhanced check for vacation notifications
     const vacationNotifications = notifications.filter(
       n => !n.read && (
         n.type === 'vacation' || 
@@ -50,28 +48,27 @@ const TopNavbar: React.FC = () => {
     );
     
     const hasVacation = vacationNotifications.length > 0;
-    
-    console.log('TopNavbar: Checking vacation notifications:', { 
-      hasVacation, 
-      count: vacationNotifications.length,
-      notificationIds: vacationNotifications.map(n => n.id).join(',').substring(0, 100), // Limit output length
-      messages: vacationNotifications.map(n => n.message).slice(0, 3) // Only show first 3
-    });
-    
     setHasVacationNotifications(hasVacation);
   }, [notifications]);
 
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: t('common.success'),
-      description: t('login.logoutSuccess')
-    });
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: t('common.success'),
+        description: t('login.logoutSuccess')
+      });
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: t('common.error'),
+        description: 'Logout failed'
+      });
+    }
   };
 
   const handleNotificationClick = (notification: NotificationType) => {
-    console.log('TopNavbar: Notification clicked:', notification);
     markAsRead(notification.id);
     if (notification.link) {
       navigate(notification.link);
@@ -83,38 +80,19 @@ const TopNavbar: React.FC = () => {
     return null;
   }
 
-  // Debug log for navigation items and notification status
-  console.log('TopNavbar rendering with user:', { 
-    userId: user?.id,
-    role: user?.role,
-    isAdmin: user?.role === 'administrator',
-    hasVacationNotifications,
-    unreadCount,
-    notificationCount: notifications.length
-  });
-
-  // Get navigation items and filter based on user role
   const navigationItems = getNavigationItems(hasVacationNotifications);
-  const filteredNavItems = navigationItems.filter(item => {
-    // For admin items, check if user is admin or superadmin
-    if (item.adminOnly) {
-      return user?.role === 'administrator' || (user?.role as UserRole) === 'superadmin';
-    }
-    
-    // Allow all other items
-    return true;
-  });
-
-  const isAdmin = user?.role === 'administrator' || (user?.role as UserRole) === 'superadmin';
+  const filteredNavItems = navigationItems.filter(
+    item => !item.adminOnly || isEffectiveAdmin
+  );
 
   if (!isAuthenticated) {
     return null;
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-10 bg-white shadow-md navbar-height">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-soft navbar-height">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between h-20">
           {/* Logo and desktop navigation */}
           <div className="flex items-center">
             <Logo />
@@ -122,12 +100,12 @@ const TopNavbar: React.FC = () => {
           </div>
           
           {/* User profile and mobile menu button */}
-          <div className="flex items-center">
+          <div className="flex items-center space-x-4">
             {/* Mobile menu button */}
             <div className="flex md:hidden">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-polygon-lightgray focus:outline-none"
+                className="inline-flex items-center justify-center p-2 rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none transition-colors duration-200"
               >
                 {mobileMenuOpen ? (
                   <X className="h-6 w-6" aria-hidden="true" />
@@ -137,10 +115,10 @@ const TopNavbar: React.FC = () => {
               </button>
             </div>
             
-            {/* Notifications - Desktop - Show for all users */}
-            <div className="hidden md:flex md:items-center md:ml-2">
+            {/* Notifications - Desktop */}
+            <div className="hidden md:flex md:items-center">
               <NotificationsDropdown 
-                notifications={notifications.slice(0, 10)} // Limit to 10 notifications for better performance
+                notifications={notifications.slice(0, 10)}
                 unreadCount={unreadCount}
                 markAllAsRead={markAllAsRead}
                 handleNotificationClick={handleNotificationClick}
@@ -149,7 +127,7 @@ const TopNavbar: React.FC = () => {
             </div>
             
             {/* User dropdown */}
-            <div className="hidden md:ml-4 md:flex md:items-center">
+            <div className="hidden md:flex md:items-center">
               <UserMenu 
                 user={user}
                 currentLanguage={currentLanguage}
@@ -167,8 +145,8 @@ const TopNavbar: React.FC = () => {
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
         user={user}
-        isAdmin={isAdmin}
-        notifications={notifications.slice(0, 10)} // Limit to 10 notifications
+        isAdmin={isEffectiveAdmin}
+        notifications={notifications.slice(0, 10)}
         unreadCount={unreadCount}
         handleNotificationClick={handleNotificationClick}
         clearNotification={deleteNotification}

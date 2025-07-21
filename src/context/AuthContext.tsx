@@ -2,9 +2,10 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
+import { DemoUserService } from '@/services/demoUserService';
 
 // Define user roles
-export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'superadmin';
+export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder';
 
 // Export the User type from supabase for components that need it
 export type { User };
@@ -23,7 +24,10 @@ interface AuthContextType {
   isAdmin: boolean;
   isSkadeleder: boolean;
   isServicemedarbejder: boolean;
-  isSuperadmin: boolean;
+  isEffectiveAdmin: boolean;
+  isEffectiveSkadeleder: boolean;
+  isEffectiveServicemedarbejder: boolean;
+  effectiveRole: UserRole | null;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>;
@@ -33,18 +37,20 @@ interface AuthContextType {
   register: (email: string, password: string, name: string) => Promise<{ error: string | null, user: User | null }>;
   updateUserRole: (userId: string, role: UserRole) => Promise<{ error: string | null }>;
   loading: boolean;
-  // Add permissions getters
   canViewFuelCardCode: boolean;
   canPublishTasks: boolean;
   canApproveVacation: boolean;
-  // Existing checks for permissions
   canEdit: boolean;
   canCreate: boolean;
   canSeeUnpublishedTasks: boolean;
-  // New validation methods for security
   validateAdminAccess: () => boolean;
   validateSkadelederAccess: () => boolean;
   hasRequiredRole: (requiredRoles: UserRole[]) => boolean;
+  refreshUserData: () => Promise<void>;
+  // Demo mode properties
+  isDemoMode: boolean;
+  demoRole: UserRole | null;
+  setDemoRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -53,7 +59,10 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   isSkadeleder: false,
   isServicemedarbejder: false,
-  isSuperadmin: false,
+  isEffectiveAdmin: false,
+  isEffectiveSkadeleder: false,
+  isEffectiveServicemedarbejder: false,
+  effectiveRole: null,
   login: async () => ({ error: null }),
   logout: async () => {},
   signUp: async () => ({ error: null }),
@@ -72,196 +81,363 @@ const AuthContext = createContext<AuthContextType>({
   validateAdminAccess: () => false,
   validateSkadelederAccess: () => false,
   hasRequiredRole: () => false,
+  refreshUserData: async () => {},
+  // Demo mode properties
+  isDemoMode: false,
+  demoRole: null,
+  setDemoRole: () => {},
 });
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Login attempts tracking for rate limiting
-const loginAttempts = new Map<string, { count: number, timestamp: number }>();
-
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const { toast } = useToast();
   
-  // Set up authentication state
+  // Demo mode detection with enhanced logging
+  const demoService = DemoUserService.getInstance();
+  const isDemoMode = user ? demoService.isDemoUser(user.email) : false;
+  
+  // Log demo mode status changes
   useEffect(() => {
-    console.log('Auth provider initializing');
-    
-    // Security enhancement: Validate localStorage to detect potential XSS
-    const validateLocalStorage = () => {
-      try {
-        const testKey = '_security_test_' + Math.random().toString(36).substring(2);
-        localStorage.setItem(testKey, '1');
-        localStorage.removeItem(testKey);
-        return true;
-      } catch (e) {
-        console.error('LocalStorage access error:', e);
-        return false;
+    if (user) {
+      console.log(`[AuthContext] Demo mode status for ${user.email}: ${isDemoMode}`);
+      console.log(`[AuthContext] User role: ${user.role}`);
+    }
+  }, [isDemoMode, user]);
+  // SINGLE SOURCE OF TRUTH: Demo role management (runs AFTER user data is loaded)
+  useEffect(() => {
+    if (isDemoMode && user) {
+      console.log(`[AuthContext] Demo role initialization for: ${user.email}`);
+      
+      // ALWAYS prioritize saved demo role over everything else
+      const savedDemoRole = sessionStorage.getItem('demo-role') as UserRole | null;
+      
+      if (savedDemoRole && ['administrator', 'skadeleder', 'servicemedarbejder'].includes(savedDemoRole)) {
+        console.log(`[AuthContext] Using saved demo role: ${savedDemoRole}`);
+        setDemoRole(savedDemoRole);
+      } else {
+        // Only set default if no saved role exists
+        console.log(`[AuthContext] No saved demo role, defaulting to administrator`);
+        setDemoRole('administrator');
+        sessionStorage.setItem('demo-role', 'administrator');
       }
-    };
-    
-    if (!validateLocalStorage()) {
+    } else if (!isDemoMode) {
+      console.log(`[AuthContext] Clearing demo role (not in demo mode)`);
+      setDemoRole(null);
+      sessionStorage.removeItem('demo-role');
+    }
+  }, [isDemoMode, user?.id]); // Trigger when demo mode or user ID changes (after user data is loaded)
+  
+  // Handle demo role changes WITHOUT page reload
+  const handleSetDemoRole = (role: UserRole) => {
+    if (isDemoMode && user) {
+      console.log(`[Demo] Role switching from ${demoRole || user.role} to ${role}`);
+      setDemoRole(role);
+      sessionStorage.setItem('demo-role', role);
+      
+      console.log(`[Demo] Role switched successfully to: ${role}`);
+      
       toast({
-        title: "Security Warning",
-        description: "Browser storage is not accessible. Authentication features may not work.",
-        variant: "destructive",
+        title: "Rolle Ændret",
+        description: `Skiftet til ${role}`,
       });
-      setLoading(false);
+    }
+  };
+
+  // Enhanced user data fetching with demo user support
+  const fetchUserData = async (authUser: User): Promise<AppUser | null> => {
+    const startTime = Date.now();
+    console.log(`[AuthContext] Starting user data fetch for: ${authUser.email}`);
+    
+    try {
+      // Create the actual fetch promise
+      const [profileResult, roleResult] = await Promise.all([
+        supabase.from('profiles').select('name').eq('id', authUser.id).maybeSingle(),
+        supabase.from('user_roles').select('role').eq('user_id', authUser.id).maybeSingle()
+      ]);
+
+      console.log(`[AuthContext] Database queries completed in ${Date.now() - startTime}ms`);
+      console.log(`[AuthContext] Profile result:`, profileResult);
+      console.log(`[AuthContext] Role result:`, roleResult);
+
+      // Check for database errors
+      if (profileResult.error) {
+        console.error('[AuthContext] Profile fetch error:', profileResult.error);
+      }
+      if (roleResult.error) {
+        console.error('[AuthContext] Role fetch error:', roleResult.error);
+      }
+
+      // Handle profile data - use "Demo User" for demo user, otherwise use profile name or email
+      const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
+      const name = isDemoUser ? 'Demo User' : (profileResult.data?.name || authUser.email || 'User');
+      
+      // Handle role data - SIMPLIFIED: Always use database role here, demo logic handles itself
+      let role: UserRole = 'servicemedarbejder';
+      
+      if (isDemoUser) {
+        // For demo user, use database role or default to administrator
+        if (roleResult.data?.role) {
+          role = roleResult.data.role as UserRole;
+          console.log(`[AuthContext] Demo user: Using database role: ${role}`);
+        } else {
+          role = 'administrator';
+          console.log(`[AuthContext] Demo user: No role found, defaulting to administrator`);
+        }
+      } else if (roleResult.data?.role) {
+        role = roleResult.data.role as UserRole;
+        console.log(`[AuthContext] Regular user: Using database role: ${role}`);
+      }
+
+      const enhancedUser: AppUser = {
+        id: authUser.id,
+        name,
+        email: authUser.email || '',
+        role
+      };
+
+      console.log(`[AuthContext] User data created successfully:`, {
+        name,
+        role,
+        email: authUser.email,
+        isDemoUser,
+        totalTime: Date.now() - startTime
+      });
+      
+      return enhancedUser;
+      
+    } catch (error) {
+      console.error(`[AuthContext] User data fetch failed after ${Date.now() - startTime}ms:`, error);
+      
+      // For demo user, provide fallback - keep it simple
+      const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
+      const fallbackRole: UserRole = isDemoUser ? 'administrator' : 'servicemedarbejder';
+      
+      const fallbackUser: AppUser = {
+        id: authUser.id,
+        name: isDemoUser ? 'Demo User' : (authUser.email || 'User'),
+        email: authUser.email || '',
+        role: fallbackRole
+      };
+      
+      console.log(`[AuthContext] Using fallback user data:`, fallbackUser);
+      return fallbackUser;
+    }
+  };
+
+  // Refresh user data function
+  const refreshUserData = async (): Promise<void> => {
+    if (!session?.user) {
+      console.log('[AuthContext] FIXED - No session user for refresh');
       return;
     }
     
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        console.log('Auth state changed:', event, currentSession?.user?.email);
-        setSession(currentSession);
+    console.log('[AuthContext] FIXED - Refreshing user data...');
+    try {
+      const refreshedUser = await fetchUserData(session.user);
+      if (refreshedUser) {
+        setUser(refreshedUser);
+        console.log('[AuthContext] FIXED - User data refreshed successfully');
+      }
+    } catch (error) {
+      console.error('[AuthContext] FIXED - Failed to refresh user data:', error);
+    }
+  };
+
+  // ENHANCED: Improved auth initialization with session cleanup and error recovery
+  useEffect(() => {
+    let mounted = true;
+    let initTimeout: NodeJS.Timeout;
+
+    const initializeAuth = async () => {
+      try {
+        console.log('[AuthContext] ENHANCED - Starting auth initialization...');
         
-        if (currentSession?.user) {
-          // Use setTimeout to avoid potential race conditions with onAuthStateChange
-          setTimeout(async () => {
-            try {
-              // Fetch the user's role
-              const { data: roleData, error: roleError } = await supabase
-                .from('user_roles')
-                .select('role')
-                .eq('user_id', currentSession.user.id)
-                .single();
-              
-              // Fetch the user's profile
-              const { data: profileData, error: profileError } = await supabase
-                .from('profiles')
-                .select('name')
-                .eq('id', currentSession.user.id)
-                .single();
-                
-              if (!roleError && !profileError && roleData && profileData) {
-                const appUser = {
-                  id: currentSession.user.id,
-                  name: profileData.name || currentSession.user.email || '',
-                  email: currentSession.user.email || '',
-                  role: roleData.role as UserRole
-                };
-                console.log('Setting user:', appUser);
-                setUser(appUser);
-              } else {
-                // If we can't get the role, set a default
-                const appUser = {
-                  id: currentSession.user.id,
-                  name: currentSession.user.email || '',
-                  email: currentSession.user.email || '',
-                  role: 'servicemedarbejder' as UserRole
-                };
-                console.log('Setting default user:', appUser);
-                setUser(appUser);
-                console.error('Error fetching user role or profile:', roleError, profileError);
-              }
-              setLoading(false);
-            } catch (error) {
-              console.error('Error setting up user after auth state change:', error);
-              setLoading(false);
+        // Set initialization timeout (8 seconds - reduced for better UX)
+        initTimeout = setTimeout(() => {
+          if (mounted) {
+            console.warn('[AuthContext] ENHANCED - Auth initialization timeout, forcing completion');
+            setLoading(false);
+          }
+        }, 8000);
+
+        // ENHANCED: Check for stale sessions and clean them up
+        try {
+          // First, try to refresh the session to validate it
+          const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+          
+          if (refreshError) {
+            console.log('[AuthContext] ENHANCED - Session refresh failed, clearing stale session:', refreshError.message);
+            // Clear potentially stale session
+            await supabase.auth.signOut();
+            if (mounted) {
+              setSession(null);
+              setUser(null);
             }
-          }, 0);
-        } else {
-          console.log('No session, setting user to null');
-          setUser(null);
-          setLoading(false);
+          } else if (refreshedSession?.user && mounted) {
+            console.log('[AuthContext] ENHANCED - Session refreshed successfully for:', refreshedSession.user.email);
+            setSession(refreshedSession);
+            
+            // Fetch user data with enhanced error handling
+            try {
+              const userData = await fetchUserData(refreshedSession.user);
+              if (userData && mounted) {
+                setUser(userData);
+                console.log('[AuthContext] ENHANCED - User data set successfully');
+              }
+            } catch (userDataError) {
+              console.error('[AuthContext] ENHANCED - User data fetch failed, using fallback');
+              // Create fallback user data to prevent auth loops
+              const fallbackUser: AppUser = {
+                id: refreshedSession.user.id,
+                name: refreshedSession.user.email || 'User',
+                email: refreshedSession.user.email || '',
+                role: 'servicemedarbejder'
+              };
+              if (mounted) {
+                setUser(fallbackUser);
+              }
+            }
+          }
+        } catch (sessionError) {
+          console.log('[AuthContext] ENHANCED - Session validation failed, starting fresh:', sessionError);
+          // Get current session as fallback
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          
+          if (currentSession?.user && mounted) {
+            console.log('[AuthContext] ENHANCED - Using current session for:', currentSession.user.email);
+            setSession(currentSession);
+            
+            try {
+              const userData = await fetchUserData(currentSession.user);
+              if (userData && mounted) {
+                setUser(userData);
+              }
+            } catch (userDataError) {
+              console.error('[AuthContext] ENHANCED - Fallback user data fetch failed');
+            }
+          } else {
+            console.log('[AuthContext] ENHANCED - No valid session found');
+          }
         }
+        
+        clearTimeout(initTimeout);
+      } catch (error) {
+        console.error('[AuthContext] ENHANCED - Auth initialization error:', error);
+        // Force clear everything on critical error
+        if (mounted) {
+          setSession(null);
+          setUser(null);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+          console.log('[AuthContext] ENHANCED - Auth initialization complete');
+        }
+      }
+    };
+
+    // ENHANCED: More robust auth state change handler
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        if (!mounted) return;
+
+        console.log('[AuthContext] ENHANCED - Auth event:', event, 'Session valid:', !!newSession?.user);
+        
+        // Handle different auth events specifically
+        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+          setSession(newSession);
+          setUser(newSession?.user ? null : null); // Will be set below if user exists
+        } else {
+          setSession(newSession);
+        }
+        
+        if (newSession?.user) {
+          console.log('[AuthContext] ENHANCED - Processing auth event with user:', newSession.user.email);
+          
+          // Use requestIdleCallback if available, otherwise setTimeout
+          const deferredFetch = () => {
+            if (!mounted) return;
+            
+            fetchUserData(newSession.user)
+              .then(userData => {
+                if (userData && mounted) {
+                  setUser(userData);
+                  console.log('[AuthContext] ENHANCED - User data updated from auth event');
+                }
+              })
+              .catch(error => {
+                console.error('[AuthContext] ENHANCED - User data fetch failed in auth event:', error);
+                // Set fallback user data to prevent auth loops
+                if (mounted) {
+                  const fallbackUser: AppUser = {
+                    id: newSession.user.id,
+                    name: newSession.user.email || 'User',
+                    email: newSession.user.email || '',
+                    role: 'servicemedarbejder'
+                  };
+                  setUser(fallbackUser);
+                }
+              });
+          };
+
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(deferredFetch);
+          } else {
+            setTimeout(deferredFetch, 0);
+          }
+        } else {
+          console.log('[AuthContext] ENHANCED - No user in auth event, clearing user state');
+          setUser(null);
+        }
+        
+        // Always ensure loading is false after auth events
+        setLoading(false);
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
-      console.log('Initial session check:', existingSession?.user?.email);
-      setSession(existingSession);
-      
-      if (existingSession?.user) {
-        // Use setTimeout to avoid loading race conditions with onAuthStateChange
-        setTimeout(async () => {
-          try {
-            // Fetch the user's role
-            const { data: roleData, error: roleError } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', existingSession.user.id)
-              .single();
-            
-            // Fetch the user's profile
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('name')
-              .eq('id', existingSession.user.id)
-              .single();
-              
-            if (!roleError && !profileError && roleData && profileData) {
-              const appUser = {
-                id: existingSession.user.id,
-                name: profileData.name || existingSession.user.email || '',
-                email: existingSession.user.email || '',
-                role: roleData.role as UserRole
-              };
-              console.log('Setting user from initial session:', appUser);
-              setUser(appUser);
-            } else {
-              // If we can't get the role, set a default
-              const appUser = {
-                id: existingSession.user.id,
-                name: existingSession.user.email || '',
-                email: existingSession.user.email || '',
-                role: 'servicemedarbejder' as UserRole
-              };
-              console.log('Setting default user from initial session:', appUser);
-              setUser(appUser);
-              console.error('Error fetching user role or profile:', roleError, profileError);
-            }
-            setLoading(false);
-          } catch (error) {
-            console.error('Error setting up user from initial session:', error);
-            setLoading(false);
-          }
-        }, 0);
-      } else {
-        console.log('No initial session, setting user to null');
-        setUser(null);
-        setLoading(false);
-      }
-    }).catch(error => {
-      console.error('Error checking session:', error);
-      setLoading(false);
-    });
-    
+    initializeAuth();
+
     return () => {
-      console.log('Auth provider cleanup - unsubscribing');
+      mounted = false;
+      if (initTimeout) {
+        clearTimeout(initTimeout);
+      }
       subscription.unsubscribe();
     };
-  }, [toast]);
+  }, []);
 
-  // Define permissions based on roles
-  const isAdmin = user?.role === 'administrator';
-  const isSkadeleder = user?.role === 'skadeleder';
-  const isServicemedarbejder = user?.role === 'servicemedarbejder';
-  const isSuperadmin = user?.role === 'superadmin';
-  
-  // Define complex permissions
-  // Updated to restrict fuel card access to administrators and superadmin only
-  const canViewFuelCardCode = isAdmin || isSuperadmin;
-  const canPublishTasks = isAdmin || isSkadeleder || isSuperadmin;
-  const canApproveVacation = isAdmin || isSuperadmin; // Only admins and superadmin can approve/reject vacations
-  const canEdit = isAdmin || isSkadeleder || isSuperadmin;
-  const canCreate = isAdmin || isSkadeleder || isSuperadmin;
-  const canSeeUnpublishedTasks = isAdmin || isSkadeleder || isSuperadmin;
-  
+  // Permissions based on current user (with demo role override)
+  const currentRole = isDemoMode && demoRole ? demoRole : user?.role;
+  const isAdmin = currentRole === 'administrator';
+  const isSkadeleder = currentRole === 'skadeleder';
+  const isServicemedarbejder = currentRole === 'servicemedarbejder';
   const isAuthenticated = !!user;
 
-  // New security methods for role validation
+  // Effective role permissions (considering demo mode)
+  const isEffectiveAdmin = currentRole === 'administrator';
+  const isEffectiveSkadeleder = currentRole === 'skadeleder';
+  const isEffectiveServicemedarbejder = currentRole === 'servicemedarbejder';
+
+  const canViewFuelCardCode = isAdmin;
+  const canPublishTasks = isAdmin || isSkadeleder;
+  const canApproveVacation = isAdmin;
+  const canEdit = isAdmin || isSkadeleder;
+  const canCreate = isAdmin || isSkadeleder;
+  const canSeeUnpublishedTasks = isAdmin || isSkadeleder;
+
+  // Validation methods
   const validateAdminAccess = (): boolean => {
-    if (!user || (user.role !== 'administrator' && user.role !== 'superadmin')) {
+    if (!user || user.role !== 'administrator') {
       toast({
         title: "Access Denied",
-        description: "You need administrator or superadmin privileges for this action.",
+        description: "You need administrator privileges for this action.",
         variant: "destructive",
       });
       return false;
@@ -270,10 +446,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const validateSkadelederAccess = (): boolean => {
-    if (!user || (user.role !== 'administrator' && user.role !== 'skadeleder' && user.role !== 'superadmin')) {
+    if (!user || (user.role !== 'administrator' && user.role !== 'skadeleder')) {
       toast({
         title: "Access Denied",
-        description: "You need skadeleder, administrator, or superadmin privileges for this action.",
+        description: "You need skadeleder or administrator privileges for this action.",
         variant: "destructive",
       });
       return false;
@@ -293,92 +469,83 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return true;
   };
 
-  // Authentication functions with rate limiting
+  // FIXED: Enhanced login method with better error handling
   const login = async (email: string, password: string) => {
     try {
-      console.log('Attempting login for:', email);
+      console.log('[AuthProvider] FIXED - Attempting login for:', email);
       
-      // Rate limiting implementation
-      const now = Date.now();
-      const userAttempts = loginAttempts.get(email) || { count: 0, timestamp: now };
-      
-      // Reset count if last attempt was more than 15 minutes ago
-      if (now - userAttempts.timestamp > 15 * 60 * 1000) {
-        userAttempts.count = 0;
-        userAttempts.timestamp = now;
-      }
-      
-      // Check for too many attempts
-      if (userAttempts.count >= 5) {
-        return { error: 'Too many login attempts. Please try again later.' };
-      }
-      
-      // Increment attempt count
-      userAttempts.count++;
-      userAttempts.timestamp = now;
-      loginAttempts.set(email, userAttempts);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email, 
+      const { error } = await supabase.auth.signInWithPassword({ 
+        email: email.trim().toLowerCase(), 
         password 
       });
       
-      console.log('Login response:', data?.user?.email, error?.message);
-      
-      // Reset attempt count on successful login
-      if (!error) {
-        loginAttempts.delete(email);
+      if (error) {
+        console.error('[AuthProvider] FIXED - Login error:', error);
+        return { error: error.message };
       }
       
-      return { error: error ? error.message : null };
+      toast({
+        title: "Login Succesfuld",
+        description: "Du er nu logget ind.",
+      });
+      
+      console.log('[AuthProvider] FIXED - Login successful, auth state change will handle user data');
+      return { error: null };
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('[AuthProvider] FIXED - Login exception:', error);
       return { error: 'An unexpected error occurred during login.' };
     }
   };
 
-  // Enhanced logout function to properly clear all session data
   const logout = async () => {
     try {
-      console.log("Logging out user...");
+      console.log('[AuthProvider] FIXED - Logging out...');
       
-      // Use global scope to sign out from all tabs/windows
-      const { error } = await supabase.auth.signOut({ scope: 'global' });
-      
-      if (error) {
-        console.error('Error during signOut:', error);
-        throw error;
+      // Clean up demo data if in demo mode
+      if (isDemoMode) {
+        console.log('[Demo] Cleaning up demo data on logout...');
+        await demoService.cleanupDemoData();
       }
       
-      // Clear user state
+      await supabase.auth.signOut();
       setUser(null);
       setSession(null);
-      
-      // Clear any local storage items that might persist state
-      try {
-        // Optional: Clear specific items that might contain auth data
-        localStorage.removeItem('supabase.auth.token');
-        // Note: Don't clear everything as it might affect other app functionality
-        // localStorage.clear(); 
-      } catch (e) {
-        console.warn('Unable to clear localStorage items:', e);
-      }
-
-      console.log("Logout successful");
     } catch (error) {
-      console.error('Logout error:', error);
-      // Still clear local state even if there was an API error
+      console.error('[AuthProvider] FIXED - Logout error:', error);
       setUser(null);
       setSession(null);
     }
   };
 
-  // ... keep existing code (signUp and resetPasswordForEmail functions)
+  const signUp = async (email: string, password: string, name: string) => {
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name }
+        }
+      });
+      
+      return { error: error ? error.message : null };
+    } catch (error) {
+      return { error: 'An unexpected error occurred during signup.' };
+    }
+  };
 
-  // Modified register function to avoid affecting the current admin's session
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/password-reset`,
+      });
+      return { error: error ? error.message : null };
+    } catch (error: any) {
+      return { error: 'An unexpected error occurred during password reset.' };
+    }
+  };
+
   const register = async (email: string, password: string, name: string) => {
     try {
-      // Create the user account via the edge function instead of direct signup
       const { data, error } = await supabase.functions.invoke('admin-create-user', {
         body: { 
           email, 
@@ -391,137 +558,110 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       return { error: null, user: data.user };
     } catch (error) {
-      console.error('User registration error:', error);
       return { error: 'An unexpected error occurred during registration.', user: null };
     }
   };
 
-  // ... keep existing code (updateUserRole and other functions)
+  const updateUserRole = async (userId: string, role: UserRole) => {
+    try {
+      if (!validateAdminAccess()) {
+        return { error: 'Unauthorized - requires administrator role' };
+      }
+      
+      const { error: fnError } = await supabase.functions.invoke('admin-user-role', {
+        body: { userId, role },
+      });
+      
+      if (fnError) {
+        throw new Error(fnError.message || 'Failed to update user role');
+      }
+      
+      // Refresh data after successful role update
+      await refreshUserData();
+      
+      return { error: null };
+    } catch (error) {
+      return { 
+        error: error instanceof Error ? error.message : 'An unexpected error occurred during role update.'
+      };
+    }
+  };
 
-  return (
-    <AuthContext.Provider value={{
-      user,
-      isAuthenticated,
-      isAdmin,
-      isSkadeleder,
-      isServicemedarbejder,
-      isSuperadmin,
-      login,
-      logout,
-      signUp: async (email, password, name) => {
-        try {
-          const { error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                name // Store name in user metadata
-              }
-            }
-          });
-          
-          return { error: error ? error.message : null };
-        } catch (error) {
-          console.error('Signup error:', error);
-          return { error: 'An unexpected error occurred during signup.' };
-        }
-      },
-      requestPasswordReset: async (email) => {
-        try {
-          console.log('Requesting password reset for:', email);
-          // Add full URL with origin to ensure proper redirect
-          const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/password-reset`,
-          });
-          console.log('Password reset request result:', error ? `Error: ${error.message}` : 'Success');
-          return { error: error ? error.message : null };
-        } catch (error: any) {
-          console.error('Password reset error:', error);
-          return { error: 'An unexpected error occurred during password reset.' };
-        }
-      },
-      resetPassword: async (email) => {
-        try {
-          console.log('Requesting password reset for:', email);
-          // Add full URL with origin to ensure proper redirect
-          const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/password-reset`,
-          });
-          console.log('Password reset request result:', error ? `Error: ${error.message}` : 'Success');
-          return { error: error ? error.message : null };
-        } catch (error: any) {
-          console.error('Password reset error:', error);
-          return { error: 'An unexpected error occurred during password reset.' };
-        }
-      },
-      adminResetPassword: async (userId, newPassword) => {
-        try {
-          if (!validateAdminAccess()) {
-            return { error: 'Unauthorized - requires administrator role' };
-          }
-          
-          // Call edge function to reset user password
-          const { error: fnError } = await supabase.functions.invoke('admin-reset-password', {
-            body: { userId, newPassword },
-          });
-          
-          if (fnError) throw fnError;
-          
-          return { error: null };
-        } catch (error) {
-          console.error('Admin password reset error:', error);
-          return { error: 'An unexpected error occurred during password reset.' };
-        }
-      },
-      register,
-      updateUserRole: async (userId, role) => {
-        try {
-          if (!validateAdminAccess()) {
-            return { error: 'Unauthorized - requires administrator role' };
-          }
-          
-          // Call the admin-user-role edge function to update the user's role
-          const { error: fnError } = await supabase.functions.invoke('admin-user-role', {
-            body: { userId, role },
-          });
-          
-          if (fnError) throw fnError;
-          
-          return { error: null };
-        } catch (error) {
-          console.error('Update user role error:', error);
-          return { error: 'An unexpected error occurred while updating the user role.' };
-        }
-      },
-      loading,
-      canViewFuelCardCode,
-      canPublishTasks,
-      canApproveVacation,
-      canEdit,
-      canCreate,
-      canSeeUnpublishedTasks,
-      validateAdminAccess,
-      validateSkadelederAccess,
-      hasRequiredRole
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  const adminResetPassword = async (userId: string, newPassword: string) => {
+    try {
+      if (!validateAdminAccess()) {
+        return { error: 'Unauthorized - requires administrator role' };
+      }
+      
+      const { error: fnError } = await supabase.functions.invoke('admin-reset-password', {
+        body: { userId, newPassword },
+      });
+      
+      if (fnError) {
+        throw new Error(fnError.message || 'Failed to reset password');
+      }
+      
+      return { error: null };
+    } catch (error) {
+      return { 
+        error: error instanceof Error ? error.message : 'An unexpected error occurred during password reset.'
+      };
+    }
+  };
 
-export const useAuth = () => useContext(AuthContext);
-
-export const usePermissions = () => {
-  const {
+  const value: AuthContextType = {
+    user,
+    isAuthenticated,
     isAdmin,
     isSkadeleder,
     isServicemedarbejder,
-    isSuperadmin,
+    isEffectiveAdmin,
+    isEffectiveSkadeleder,
+    isEffectiveServicemedarbejder,
+    effectiveRole: currentRole,
+    login,
+    logout,
+    signUp,
+    requestPasswordReset: resetPassword,
+    resetPassword,
+    adminResetPassword,
+    register,
+    updateUserRole,
+    loading,
     canViewFuelCardCode,
     canPublishTasks,
     canApproveVacation,
     canEdit,
     canCreate,
+    canSeeUnpublishedTasks,
+    validateAdminAccess,
+    validateSkadelederAccess,
+    hasRequiredRole,
+    refreshUserData,
+    // Demo mode properties
+    isDemoMode,
+    demoRole,
+    setDemoRole: handleSetDemoRole,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => useContext(AuthContext);
+
+export const usePermissions = () => {
+  const { 
+    isAdmin, 
+    isSkadeleder, 
+    isServicemedarbejder,
+    isEffectiveAdmin,
+    isEffectiveSkadeleder,
+    isEffectiveServicemedarbejder,
+    canViewFuelCardCode, 
+    canPublishTasks, 
+    canApproveVacation, 
+    canEdit, 
+    canCreate, 
     canSeeUnpublishedTasks,
     validateAdminAccess,
     validateSkadelederAccess,
@@ -532,7 +672,9 @@ export const usePermissions = () => {
     isAdmin,
     isSkadeleder,
     isServicemedarbejder,
-    isSuperadmin,
+    isEffectiveAdmin,
+    isEffectiveSkadeleder,
+    isEffectiveServicemedarbejder,
     canViewFuelCardCode,
     canPublishTasks,
     canApproveVacation,

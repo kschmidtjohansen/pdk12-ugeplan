@@ -1,4 +1,3 @@
-
 import { Assignment } from '@/types/assignment';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -19,6 +18,59 @@ export const useAssignmentPublishing = (
 ) => {
   const { toast } = useToast();
   const { t } = useTranslation();
+
+  const publishAllUnpublishedAssignments = async () => {
+    console.log(`[Publishing] Starting to publish all unpublished assignments`);
+    
+    const unpublishedAssignments = assignments.filter(a => !a.published);
+    
+    if (unpublishedAssignments.length === 0) {
+      console.log(`[Publishing] No unpublished assignments found`);
+      toast({
+        title: t("planner.noAssignmentsToPublish"),
+        description: t("planner.noUnpublishedAssignments"),
+      });
+      return false;
+    }
+    
+    console.log(`[Publishing] Publishing ${unpublishedAssignments.length} unpublished assignments`);
+    
+    try {
+      // Get all the assignment IDs
+      const assignmentIds = unpublishedAssignments.map(a => a.id);
+      
+      console.log("[Publishing] Assignment IDs to update:", assignmentIds);
+      
+      // Update all assignments in a single database operation
+      const { error, data } = await supabase
+        .from('assignments')
+        .update({ published: true })
+        .in('id', assignmentIds)
+        .select();
+        
+      if (error) {
+        console.error("[Publishing] Error updating assignments in database:", error);
+        throw error;
+      }
+      
+      console.log("[Publishing] Supabase batch update response:", data);
+      
+      toast({
+        title: t("planner.assignmentsPublished"),
+        description: `Published ${unpublishedAssignments.length} assignments`,
+      });
+      
+      return true;
+    } catch (error) {
+      console.error(`[Publishing] Error publishing all assignments:`, error);
+      toast({
+        title: t("common.error"),
+        description: t("planner.errorPublishingAssignments"),
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
 
   const publishAssignmentsByDate = async (date: string) => {
     console.log(`[Publishing] Starting to publish assignments for date: ${date}`);
@@ -174,6 +226,7 @@ export const useAssignmentPublishing = (
   return {
     publishAssignments,
     publishAssignment,
-    publishAssignmentsByDate
+    publishAssignmentsByDate,
+    publishAllUnpublishedAssignments
   };
 };

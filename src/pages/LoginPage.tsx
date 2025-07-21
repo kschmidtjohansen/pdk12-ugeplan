@@ -1,318 +1,105 @@
-import React, { useState, useEffect } from 'react';
+
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useTranslation } from '../context/TranslationContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/components/ui/use-toast';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import PasswordResetDialog from '@/components/Auth/PasswordResetDialog';
-import { DepartmentSelector } from '@/components/Auth/DepartmentSelector';
-import { useDepartment } from '@/context/DepartmentContext';
-import { AlertCircle } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { EnhancedSecureLoginForm } from '@/components/Auth/EnhancedSecureLoginForm';
+import { useTranslation } from '@/context/TranslationContext';
 
-const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState(''); // No default department
-  const [isLoading, setIsLoading] = useState(false);
-  const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const [failedAttempts, setFailedAttempts] = useState(0);
-  const [lockedUntil, setLockedUntil] = useState<Date | null>(null);
-  const {
-    login,
-    user,
-    isAuthenticated
-  } = useAuth();
-  const { validateDepartmentAccess } = useDepartment();
-  const {
-    t
-  } = useTranslation();
+const LoginPage = () => {
+  const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { t } = useTranslation();
+  const [clientTimeout, setClientTimeout] = useState(false);
 
-  // If user is already logged in, redirect to dashboard
-  useEffect(() => {
-    console.log("Login page - checking authentication status:", {
-      user,
-      isAuthenticated
-    });
-    if (user || isAuthenticated) {
-      console.log("User is authenticated, redirecting to dashboard");
-      navigate('/dashboard', {
-        replace: true
-      });
-    }
-  }, [user, isAuthenticated, navigate]);
+  console.log('[LoginPage] FIXED - Render - isAuthenticated:', isAuthenticated, 'loading:', loading);
 
-  // Add a safety timeout to prevent "logging in" state getting stuck forever
+  // FIXED: Add client-side timeout protection
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout | null = null;
-    if (isLoading) {
-      timeoutId = setTimeout(() => {
-        console.log('Login timeout reached, resetting loading state');
-        setIsLoading(false);
-      }, 10000); // 10 seconds timeout
-    }
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [isLoading]);
+    const timeout = setTimeout(() => {
+      console.warn('[LoginPage] FIXED - Client timeout reached after 15 seconds');
+      setClientTimeout(true);
+    }, 15000);
 
-  // Check if account is locked
-  useEffect(() => {
-    // Try to load failed attempts from session storage
-    try {
-      const storedAttempts = sessionStorage.getItem('login_failed_attempts');
-      const storedLockTime = sessionStorage.getItem('login_locked_until');
-      if (storedAttempts) {
-        setFailedAttempts(parseInt(storedAttempts, 10));
-      }
-      if (storedLockTime) {
-        const lockTime = new Date(storedLockTime);
-        if (lockTime > new Date()) {
-          setLockedUntil(lockTime);
-        } else {
-          // Lock time has passed, reset
-          sessionStorage.removeItem('login_locked_until');
-          setLockedUntil(null);
-        }
-      }
-    } catch (err) {
-      console.error('Error accessing session storage:', err);
-    }
+    return () => clearTimeout(timeout);
   }, []);
 
-  // Check if account is locked and update remaining time
   useEffect(() => {
-    if (!lockedUntil) return;
-    const interval = setInterval(() => {
-      const now = new Date();
-      if (lockedUntil <= now) {
-        setLockedUntil(null);
-        sessionStorage.removeItem('login_locked_until');
-        clearInterval(interval);
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [lockedUntil]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Check if account is locked
-    if (lockedUntil && lockedUntil > new Date()) {
-      toast({
-        title: t('common.error'),
-        description: t('login.tooManyRequests'),
-        variant: "destructive"
-      });
-      return;
+    if (!loading && isAuthenticated) {
+      console.log('[LoginPage] FIXED - User authenticated, redirecting to dashboard');
+      navigate('/dashboard', { replace: true });
     }
-    setIsLoading(true);
-    try {
-      console.log('Attempting login for:', email, 'Department:', selectedDepartment);
-      
-      // First attempt login
-      const {
-        error
-      } = await login(email, password);
-      if (error) {
-        console.error('Login error:', error);
-        let errorMessage = t('login.failed');
+  }, [isAuthenticated, loading, navigate]);
 
-        // More specific error messages based on the error code
-        if (error.includes('Invalid login credentials')) {
-          errorMessage = t('login.invalidCredentials');
-
-          // Increment failed attempts and possibly lock account
-          const newFailedAttempts = failedAttempts + 1;
-          setFailedAttempts(newFailedAttempts);
-          try {
-            sessionStorage.setItem('login_failed_attempts', newFailedAttempts.toString());
-
-            // Lock account after 5 failed attempts
-            if (newFailedAttempts >= 5) {
-              const lockTime = new Date();
-              lockTime.setMinutes(lockTime.getMinutes() + 15); // Lock for 15 minutes
-              setLockedUntil(lockTime);
-              sessionStorage.setItem('login_locked_until', lockTime.toISOString());
-              errorMessage = t('login.tooManyRequests');
-            }
-          } catch (err) {
-            console.error('Error setting session storage:', err);
-          }
-        } else if (error.includes('rate limit') || error.includes('Too many login attempts')) {
-          errorMessage = t('login.tooManyRequests');
-        }
-        toast({
-          title: t('common.error'),
-          description: errorMessage,
-          variant: "destructive"
-        });
-        setIsLoading(false);
-      } else {
-        // Validate department access after successful login
-        const departmentValidation = await validateDepartmentAccess(selectedDepartment);
-        
-        if (!departmentValidation.valid) {
-          // User logged in but doesn't have access to the selected department
-          toast({
-            title: t('departments.accessDenied'),
-            description: t('departments.wrongDepartment'),
-            variant: "destructive"
-          });
-          setIsLoading(false);
-          return;
-        }
-        
-        // Success is handled by the useEffect above through the auth state change
-        toast({
-          title: t('common.success'),
-          description: t('login.success')
-        });
-
-        // Reset failed attempts on successful login
-        try {
-          sessionStorage.removeItem('login_failed_attempts');
-          sessionStorage.removeItem('login_locked_until');
-          setFailedAttempts(0);
-          setLockedUntil(null);
-        } catch (err) {
-          console.error('Error clearing session storage:', err);
-        }
-
-        // Force navigate to dashboard after successful login
-        console.log("Login successful, forcing navigation to dashboard");
-        setTimeout(() => {
-          navigate('/dashboard', {
-            replace: true
-          });
-        }, 500);
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      toast({
-        title: t('common.error'),
-        description: t('login.failed'),
-        variant: "destructive"
-      });
-      setIsLoading(false);
-    }
+  const handleLoginSuccess = () => {
+    console.log('[LoginPage] FIXED - Login success callback triggered');
+    // Don't navigate immediately, let the auth state change handle it
+    // This prevents race conditions
   };
 
-  const getRemainingLockoutTime = (): string => {
-    if (!lockedUntil) return '';
-    const now = new Date();
-    const diffMs = lockedUntil.getTime() - now.getTime();
-    if (diffMs <= 0) return '';
-    const minutes = Math.floor(diffMs / (1000 * 60));
-    const seconds = Math.floor(diffMs % (1000 * 60) / 1000);
-    return `${minutes}m ${seconds}s`;
-  };
+  // Show loading state with timeout protection
+  if (loading && !clientTimeout) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>{t('common.loading')}</p>
+          <p className="text-xs text-gray-400 mt-2">If this takes too long, please refresh the page</p>
+        </div>
+      </div>
+    );
+  }
 
+  // If already authenticated, show redirect message
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p>Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show timeout message with retry option
+  if (clientTimeout && loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <p className="text-red-600">Login is taking longer than expected</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+          >
+            Retry Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login form
   return (
-    <div className="min-h-screen flex items-center justify-center bg-polygon-lightgray p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <img src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" alt="Polygon Logo" className="mx-auto mb-6 h-16" />
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">{t('login.welcomeMessage')}</h1>
-          
-          {/* Department Selection - Always Visible */}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
           <div className="mb-6">
-            <p className="text-gray-600 mb-2">{t('departments.selectDepartment')}:</p>
-            <DepartmentSelector
-              value={selectedDepartment}
-              onChange={setSelectedDepartment}
-              disabled={isLoading || (lockedUntil && lockedUntil > new Date())}
+            <img 
+              src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" 
+              alt="Polygon Logo" 
+              className="h-12 mx-auto mb-4"
             />
           </div>
-
-          {/* Show instruction when no department is selected */}
-          {!selectedDepartment && (
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
-              <p className="text-blue-800 text-sm">
-                {t('departments.selectDepartment')} for at fortsætte
-              </p>
-            </div>
-          )}
+          
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {t('login.welcomeMessage')}
+          </h1>
+          <p className="text-gray-600">
+            {t('login.internalSystem')}
+          </p>
         </div>
         
-        {/* Login Form - Only show when department is selected */}
-        {selectedDepartment && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('login.title')}</CardTitle>
-              <CardDescription>
-                {t('login.description')}
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={handleSubmit}>
-              <CardContent className="space-y-4">
-                {lockedUntil && lockedUntil > new Date() && (
-                  <div className="bg-red-50 p-3 rounded border border-red-200 flex items-start">
-                    <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
-                    <div>
-                      <p className="text-red-800 font-medium">Account temporarily locked</p>
-                      <p className="text-red-700 text-sm">
-                        Too many failed login attempts. Please try again in {getRemainingLockoutTime()}.
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t('common.email')}</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder={t('login.emailPlaceholder')} 
-                    value={email} 
-                    onChange={e => setEmail(e.target.value)} 
-                    required 
-                    className="border-2" 
-                    disabled={isLoading || lockedUntil && lockedUntil > new Date()} 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">{t('common.password')}</Label>
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder={t('login.passwordPlaceholder')} 
-                    value={password} 
-                    onChange={e => setPassword(e.target.value)} 
-                    required 
-                    className="border-2" 
-                    disabled={isLoading || lockedUntil && lockedUntil > new Date()} 
-                  />
-                </div>
-                
-                {failedAttempts >= 3 && failedAttempts < 5 && (
-                  <div className="text-amber-600 text-sm flex items-center">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    Warning: {5 - failedAttempts} attempts remaining before temporary lockout
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  className="w-full bg-polygon-blue hover:bg-polygon-darkblue" 
-                  type="submit" 
-                  disabled={isLoading || lockedUntil && lockedUntil > new Date() || !email || !password}
-                >
-                  {isLoading ? t('login.buttonLoading') : t('login.button')}
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
-        )}
+        <EnhancedSecureLoginForm onSuccess={handleLoginSuccess} />
       </div>
-
-      <PasswordResetDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen} />
     </div>
   );
 };

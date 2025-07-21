@@ -10,6 +10,7 @@ interface TranslationContextType {
   setLanguage: (lang: Language) => void;
   t: (key: string, params?: Record<string, any>) => string;
   languageNames: Record<string, string>;
+  isInitialized: boolean;
 }
 
 const TranslationContext = createContext<TranslationContextType | undefined>(undefined);
@@ -17,6 +18,7 @@ const TranslationContext = createContext<TranslationContextType | undefined>(und
 export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Default language is Danish
   const [currentLanguage, setCurrentLanguage] = useState<Language>('da');
+  const [isInitialized, setIsInitialized] = useState(false);
   
   // Load saved language preference on mount
   useEffect(() => {
@@ -24,6 +26,7 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'da')) {
       setCurrentLanguage(savedLanguage);
     }
+    setIsInitialized(true);
   }, []);
   
   // Save language preference when it changes
@@ -32,7 +35,7 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
     localStorage.setItem('polygonLanguage', lang);
   };
   
-  // Translation function
+  // IMPROVED: Enhanced translation function with better error handling and dev warnings
   const t = (key: string, params?: Record<string, any>) => {
     try {
       // Use the imported translations object
@@ -46,14 +49,17 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (translation && typeof translation === 'object' && part in translation) {
           translation = translation[part];
         } else {
-          console.warn(`Missing translation key: ${key} in ${currentLanguage}`);
-          return key; // Return key if translation not found
+          // IMPROVED: Add development warnings for missing keys
+          if (process.env.NODE_ENV === 'development') {
+            console.warn(`Translation key "${key}" not found for language "${currentLanguage}"`);
+          }
+          return key;
         }
       }
       
       // Return the translation if it's a string
       if (typeof translation === 'string') {
-        // Replace parameters
+        // Replace parameters with improved error handling
         if (params) {
           let result = translation;
           // Iterate over each parameter key and replace it in the string
@@ -61,7 +67,12 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
             if (Object.prototype.hasOwnProperty.call(params, paramKey)) {
               const value = params[paramKey];
               const placeholder = `{${paramKey}}`;
-              result = result.replace(new RegExp(placeholder, 'g'), String(value));
+              // IMPROVED: Better parameter replacement with validation
+              if (typeof value !== 'undefined' && value !== null) {
+                result = result.replace(new RegExp(placeholder, 'g'), String(value));
+              } else if (process.env.NODE_ENV === 'development') {
+                console.warn(`Parameter "${paramKey}" is undefined for translation key "${key}"`);
+              }
             }
           }
           return result;
@@ -69,12 +80,31 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
         return translation;
       }
       
+      // IMPROVED: Better fallback handling
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`Translation key "${key}" exists but is not a string for language "${currentLanguage}"`);
+      }
       return key;
     } catch (error) {
-      console.error(`Error in translation for key: ${key}`, error);
+      // IMPROVED: Better error logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`Error processing translation key "${key}":`, error);
+      }
       return key;
     }
   };
+  
+  // Don't render children until initialized
+  if (!isInitialized) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <TranslationContext.Provider
@@ -82,7 +112,8 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
         currentLanguage,
         setLanguage,
         t,
-        languageNames
+        languageNames,
+        isInitialized
       }}
     >
       {children}

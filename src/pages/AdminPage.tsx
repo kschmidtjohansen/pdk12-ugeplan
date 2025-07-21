@@ -1,125 +1,181 @@
-
 import React from 'react';
-import PageHeader from '../components/Layout/PageHeader';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { usePermissions } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
-import { useNavigate } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Shield, Users, Settings, BarChart3, Activity, Zap, Trash2, Bug, Lock } from 'lucide-react';
 import UserManagement from '@/components/Admin/UserManagement';
-import SystemMetrics from '@/components/Admin/SystemMetrics';
-import { SecurityValidation } from '@/components/Admin/SecurityValidation';
-import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
-import { useEmployees } from '@/hooks/useEmployees';
-import { useCars } from '@/hooks/car';
-import { useVacations } from '@/hooks/useVacations';
-import { format } from 'date-fns';
+import { SystemHealthDashboard } from '@/components/Admin/SystemHealthDashboard';
+import { SecurityLogViewer } from '@/components/Admin/SecurityLogViewer';
+import { ComprehensiveDiagnosticsPanel } from '@/components/Admin/ComprehensiveDiagnosticsPanel';
+import { PerformanceMonitoringPanel } from '@/components/Admin/PerformanceMonitoringPanel';
+import { SystemCleanupPanel } from '@/components/Admin/SystemCleanupPanel';
+import { SecurityAuditPanel } from '@/components/Admin/SecurityAuditPanel';
+import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
+import PasswordResetDebugger from '@/components/Admin/PasswordResetDebugger';
 
 const AdminPage: React.FC = () => {
-  const { isAdmin, isSuperadmin } = usePermissions();
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = React.useState("metrics");
-  const { assignments } = usePlannerAssignments();
-  const { employees } = useEmployees();
-  const { cars } = useCars();
-  const { vacations } = useVacations();
-
-  // Redirect if not an admin or superadmin
-  React.useEffect(() => {
-    if (!isAdmin && !isSuperadmin) {
-      navigate('/dashboard');
-    }
-  }, [isAdmin, isSuperadmin, navigate]);
-
-  // Don't render anything if user doesn't have access
-  if (!isAdmin && !isSuperadmin) {
-    return null;
+  const {
+    user,
+    loading
+  } = useAuth();
+  const {
+    t
+  } = useTranslation();
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>;
   }
+  if (!user || user.role !== 'administrator') {
+    return <div className="container mx-auto px-4 py-8">
+        <Alert variant="destructive">
+          <Shield className="h-4 w-4" />
+          <AlertDescription>
+            {t('accessDenied.message')}
+          </AlertDescription>
+        </Alert>
+      </div>;
+  }
+  return <div className="container mx-auto px-4 py-8">
+      <VacationCleanupHandler />
+      
+      <div className="space-y-6">
+        <div className="flex items-center space-x-2">
+          <Shield className="h-6 w-6 text-primary" />
+          <h1 className="text-3xl font-bold">{t('admin.title')}</h1>
+        </div>
 
-  // Calculate metrics based on real data
-  const usersCount = employees.length;
-  const activeUsersCount = employees.filter(e => !e.onLeave).length;
-  const vehiclesCount = cars.length;
-  
-  // Get today's date in YYYY-MM-DD format
-  const today = format(new Date(), 'yyyy-MM-dd');
-  
-  // Count vehicles in use today based on assignments
-  const inUseVehiclesCount = assignments
-    .filter(a => a.date === today && a.car)
-    .reduce((uniqueCars, assignment) => {
-      const carId = typeof assignment.car === 'string' ? assignment.car : assignment.car?.id;
-      if (carId && !uniqueCars.includes(carId)) {
-        uniqueCars.push(carId);
-      }
-      return uniqueCars;
-    }, [] as string[]).length;
-  
-  // Count pending vacation requests
-  const pendingVacationCount = vacations.filter(v => v.status === 'pending').length;
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-8">
+            <TabsTrigger value="overview" className="flex items-center space-x-2">
+              <BarChart3 className="h-4 w-4" />
+              <span>{t('admin.tabs.overview')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="security-audit" className="flex items-center space-x-2">
+              <Lock className="h-4 w-4" />
+              <span>Security</span>
+            </TabsTrigger>
+            
+            <TabsTrigger value="cleanup" className="flex items-center space-x-2">
+              <Trash2 className="h-4 w-4" />
+              <span>{t('admin.tabs.cleanup')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="diagnostics" className="flex items-center space-x-2">
+              <Activity className="h-4 w-4" />
+              <span>{t('admin.tabs.diagnostics')}</span>
+            </TabsTrigger>
+            
+            <TabsTrigger value="users" className="flex items-center space-x-2">
+              <Users className="h-4 w-4" />
+              <span>{t('admin.tabs.users')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex items-center space-x-2">
+              <Shield className="h-4 w-4" />
+              <span>{t('admin.tabs.security')}</span>
+            </TabsTrigger>
+            
+          </TabsList>
 
-  const handleUsersClick = () => {
-    setActiveTab("users");
-  };
+          <TabsContent value="overview" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('admin.dashboard.title')}</CardTitle>
+                <CardDescription>
+                  {t('admin.dashboard.description')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SystemHealthDashboard />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-  const handleVehiclesClick = () => {
-    navigate('/cars');
-  };
 
-  const handleVacationClick = () => {
-    navigate('/vacation');
-  };
+          <TabsContent value="security-audit" className="space-y-6">
+            <SecurityAuditPanel />
+          </TabsContent>
 
-  const handleTasksClick = () => {
-    navigate('/planner');
-  };
+          <TabsContent value="debug" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Password Reset Debugger</CardTitle>
+                <CardDescription>
+                  Run comprehensive diagnostics to troubleshoot password reset issues
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PasswordResetDebugger />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-  return (
-    <>
-      <PageHeader
-        title={t('admin.title')}
-        description={t('admin.description')}
-      />
+          <TabsContent value="cleanup" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('admin.cleanup.title')}</CardTitle>
+                <CardDescription>
+                  {t('admin.cleanup.description')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SystemCleanupPanel />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-        <TabsList>
-          <TabsTrigger value="metrics">{t('admin.tabs.metrics')}</TabsTrigger>
-          <TabsTrigger value="users">{t('admin.tabs.users')}</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-        </TabsList>
-        <TabsContent value="metrics" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {/* Scheduled tasks metric card */}
-            <div 
-              className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
-              onClick={handleTasksClick}
-            >
-              <h3 className="font-medium text-lg">{t('admin.systemMetrics.scheduledTasks')}</h3>
-              <p className="text-3xl font-bold text-polygon-blue mt-2">{assignments ? assignments.length : 0}</p>
-              <p className="text-sm text-muted-foreground mt-1">{t('admin.systemMetrics.scheduledTasksDesc')}</p>
-            </div>
-          </div>
-          
-          <SystemMetrics 
-            onUsersClick={handleUsersClick}
-            onVehiclesClick={handleVehiclesClick}
-            onVacationClick={handleVacationClick}
-            usersCount={usersCount}
-            vehiclesCount={vehiclesCount}
-            pendingVacationCount={pendingVacationCount}
-            activeUsersCount={activeUsersCount}
-            inUseVehiclesCount={inUseVehiclesCount}
-          />
-        </TabsContent>
-        <TabsContent value="users" className="mt-6">
-          <UserManagement />
-        </TabsContent>
-        <TabsContent value="security" className="mt-6">
-          <SecurityValidation />
-        </TabsContent>
-      </Tabs>
-    </>
-  );
+          <TabsContent value="diagnostics" className="space-y-6">
+            <ComprehensiveDiagnosticsPanel />
+          </TabsContent>
+
+          <TabsContent value="performance" className="space-y-6">
+            <PerformanceMonitoringPanel />
+          </TabsContent>
+
+          <TabsContent value="users" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('admin.userManagement.title')}</CardTitle>
+                <CardDescription>
+                  {t('admin.userManagement.description')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <UserManagement />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="security" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('admin.security.title')}</CardTitle>
+                <CardDescription>
+                  {t('admin.security.description')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SecurityLogViewer />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="system" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('admin.systemHealth.title')}</CardTitle>
+                <CardDescription>
+                  {t('admin.systemHealth.description')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SystemHealthDashboard />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>;
 };
-
 export default AdminPage;

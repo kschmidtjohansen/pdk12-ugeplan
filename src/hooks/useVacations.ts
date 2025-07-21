@@ -1,7 +1,7 @@
-
 import { useVacationData } from './vacation/useVacationData';
 import { useVacationFormState } from './vacation/useVacationFormState';
 import { useVacationActions } from './vacation/useVacationActions';
+import { useVacationSecurity } from './vacation/useVacationSecurity';
 import { useEmployees } from './useEmployees';
 import { Vacation } from '@/types/vacation';
 import { useState } from 'react';
@@ -27,6 +27,13 @@ export const useVacations = () => {
     setAdminDialogOpen,
     dialogOpen,
     setDialogOpen,
+    // New request type and time fields
+    requestType,
+    setRequestType,
+    startTime,
+    setStartTime,
+    endTime,
+    setEndTime,
     resetFormState
   } = useVacationFormState();
   
@@ -45,7 +52,15 @@ export const useVacations = () => {
     deleteVacation
   } = useVacationActions(fetchVacations);
 
-  // Wrapper function to simplify the submit vacation request call
+  // Import security functions
+  const { 
+    canViewVacation, 
+    canEditVacation, 
+    canDeleteVacation, 
+    logVacationSecurityEvent 
+  } = useVacationSecurity();
+
+  // Enhanced wrapper function with security logging
   const submitVacationRequest = async (e: React.FormEvent, isAdminRequest: boolean = false) => {
     e.preventDefault();
     
@@ -53,14 +68,19 @@ export const useVacations = () => {
     const requestStartDate = startDate || date.from;
     const requestEndDate = endDate || date.to;
     
+    // FIXED: Changed from || to && to properly validate both dates are present
     if (!requestStartDate || !requestEndDate) {
       return false;
     }
     
     const result = await submitRequest(
-      e, 
-      { from: requestStartDate, to: requestEndDate }, 
-      reason, 
+      { 
+        dateRange: { from: requestStartDate, to: requestEndDate },
+        requestType,
+        startTime: requestType === 'partial_day' ? startTime : undefined,
+        endTime: requestType === 'partial_day' ? endTime : undefined,
+        reason
+      }, 
       isAdminRequest, 
       selectedEmployeeId, 
       employees
@@ -69,13 +89,25 @@ export const useVacations = () => {
     if (result) {
       // Reset form state on successful submission
       resetFormState();
+      
+      // Log successful form submission
+      await logVacationSecurityEvent('form_submitted', 'new_request', {
+        is_admin_request: isAdminRequest,
+        request_type: requestType
+      });
     }
     
     return result;
   };
   
-  // Handler for editing a vacation
+  // Enhanced handler for editing a vacation with security checks
   const handleEditVacation = (vacation: Vacation) => {
+    // Security check before allowing edit
+    if (!canEditVacation(vacation)) {
+      console.warn('User attempted to edit vacation without permission:', vacation.id);
+      return;
+    }
+
     console.log("Setting up vacation for editing:", vacation);
     setSelectedVacation(vacation);
     
@@ -86,8 +118,8 @@ export const useVacations = () => {
     
     // Then set the new values
     // Convert string dates to Date objects
-    const vacationStartDate = new Date(vacation.startDate);
-    const vacationEndDate = new Date(vacation.endDate);
+    const vacationStartDate = new Date(vacation.start_date);
+    const vacationEndDate = new Date(vacation.end_date);
     
     console.log("Setting dates for editing:", {
       startDate: vacationStartDate.toISOString(),
@@ -102,14 +134,26 @@ export const useVacations = () => {
     
     setStartDate(vacationStartDate);
     setEndDate(vacationEndDate);
-    setReason(vacation.reason);
+    setReason(vacation.reason || '');
+    
+    // Set request type and times if available
+    setRequestType(vacation.request_type || 'full_day');
+    setStartTime(vacation.start_time || '');
+    setEndTime(vacation.end_time || '');
+    
     setEditDialogOpen(true);
   };
   
-  // Submit edit handler - updated with better date handling
+  // Enhanced submit edit handler with security validation
   const submitEditVacation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedVacation) return;
+    
+    // Security check before submitting edit
+    if (!canEditVacation(selectedVacation)) {
+      console.warn('User attempted to submit edit for vacation without permission:', selectedVacation.id);
+      return;
+    }
     
     // Use either the individual dates or the combined date range
     const editStartDate = startDate || date.from;
@@ -127,41 +171,60 @@ export const useVacations = () => {
     const endDateObj = editEndDate instanceof Date ? 
       editEndDate : new Date(editEndDate);
     
-    console.log("Submitting edit with dates:", {
+    console.log("Submitting edit with dates and request type:", {
       startDate: startDateObj instanceof Date ? startDateObj.toISOString() : "undefined",
-      endDate: endDateObj instanceof Date ? endDateObj.toISOString() : "undefined"
+      endDate: endDateObj instanceof Date ? endDateObj.toISOString() : "undefined",
+      requestType,
+      startTime,
+      endTime
     });
     
-    await editVacation(
+    const success = await editVacation(
       selectedVacation,
       startDateObj,
       endDateObj,
-      reason
+      reason,
+      requestType,
+      requestType === 'partial_day' ? startTime : undefined,
+      requestType === 'partial_day' ? endTime : undefined
     );
     
-    setEditDialogOpen(false);
-    resetFormState();
-    setSelectedVacation(null);
+    if (success) {
+      setEditDialogOpen(false);
+      resetFormState();
+      setSelectedVacation(null);
+    }
   };
   
-  // Delete vacation handler
+  // Enhanced delete vacation handler with security checks
   const handleDeleteVacation = (vacation: Vacation) => {
+    // Security check before allowing delete
+    if (!canDeleteVacation(vacation)) {
+      console.warn('User attempted to delete vacation without permission:', vacation.id);
+      return;
+    }
+
     console.log("Setting up vacation for deletion:", vacation.id);
     setSelectedVacation(vacation);
     setDeleteDialogOpen(true);
   };
   
-  // Confirm delete handler - this function calls the deleteVacation function
+  // Enhanced confirm delete handler with security validation
   const confirmDeleteVacation = async () => {
     if (!selectedVacation) {
       console.error("No vacation selected for deletion");
       return;
     }
     
+    // Security check before confirming delete
+    if (!canDeleteVacation(selectedVacation)) {
+      console.warn('User attempted to confirm delete for vacation without permission:', selectedVacation.id);
+      return;
+    }
+    
     console.log("Confirming deletion of vacation:", selectedVacation.id);
     
     try {
-      // Call the deleteVacation function from useVacationActions
       const success = await deleteVacation(selectedVacation);
       
       if (success) {
@@ -171,10 +234,7 @@ export const useVacations = () => {
         setDeleteDialogOpen(false);
         setSelectedVacation(null);
 
-        // Add local state update as a fallback if realtime update fails
-        // This ensures the UI updates immediately after a successful deletion
-        // without waiting for the realtime notification
-        fetchVacations();
+        // The fetchVacations call is already handled in the deleteVacation function
       } else {
         console.error("Failed to delete vacation");
       }
@@ -185,7 +245,7 @@ export const useVacations = () => {
 
   // Handle delete for the current vacation (from the edit dialog)
   const handleDeleteCurrentVacation = () => {
-    if (selectedVacation) {
+    if (selectedVacation && canDeleteVacation(selectedVacation)) {
       setDeleteDialogOpen(true);
       setEditDialogOpen(false);
     }
@@ -206,6 +266,13 @@ export const useVacations = () => {
     setReason,
     note,
     setNote,
+    // Add request type and time fields
+    requestType,
+    setRequestType,
+    startTime,
+    setStartTime,
+    endTime,
+    setEndTime,
     dialogOpen,
     setDialogOpen,
     adminDialogOpen,
@@ -224,6 +291,10 @@ export const useVacations = () => {
     submitEditVacation,
     handleDeleteVacation,
     confirmDeleteVacation,
-    handleDeleteCurrentVacation
+    handleDeleteCurrentVacation,
+    // Export security functions for components that need them
+    canViewVacation,
+    canEditVacation,
+    canDeleteVacation
   };
 };

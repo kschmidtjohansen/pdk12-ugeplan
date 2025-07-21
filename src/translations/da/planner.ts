@@ -1,104 +1,180 @@
 
 const planner = {
-  header: 'Ugeplan',
-  week: 'Uge',
-  createNew: 'Opret ny',
-  editAssignment: 'Rediger opgave',
-  newAssignment: 'Ny opgave',
-  updateDetails: 'Opdater opgavedetaljer',
-  addAssignment: 'Tilføj ny opgave',
-  date: 'Dato',
-  from: 'Fra',
-  to: 'Til',
-  employees: 'Medarbejdere',
-  location: 'Lokation',
-  car: 'Bil',
-  description: 'Beskrivelse',
-  saveChanges: 'Gem ændringer',
-  publishAssignment: 'Publicer opgave',
-  publishDay: 'Publicer dag',
-  publishDayTasks: 'Publicer dag',
-  publishWeek: 'Publicer uge',
-  published: 'Publiceret',
-  unpublished: 'Ikke publiceret',
-  notPublished: 'Ikke publiceret',
-  delete: 'Slet',
-  deleteAssignment: 'Slet opgave',
-  deleteConfirmation: 'Er du sikker på, at du vil slette denne opgave?',
+  title: 'Planner',
+  description: 'Administrer opgaver og planlæg arbejdsdagen',
+  
+  // Assignment list
+  assignments: 'Opgaver',
   noAssignments: 'Ingen opgaver fundet',
-  today: 'I dag',
-  tomorrow: 'I morgen',
-  fetchError: 'Fejl ved hentning af opgaver',
-  createError: 'Fejl ved oprettelse af opgave',
-  updateError: 'Fejl ved opdatering af opgave',
-  deleteError: 'Fejl ved sletning af opgave',
-  publishError: 'Fejl ved publicering af opgave',
-  createdSuccess: 'Opgave oprettet',
-  updatedSuccess: 'Opgave opdateret',
-  deletedSuccess: 'Opgave slettet',
-  publishedSuccess: 'Opgave publiceret',
-  dayPublishedSuccess: 'Alle opgaver for denne dag er publiceret',
-  weekPublishedSuccess: 'Alle opgaver for denne uge er publiceret',
-  unableToPublish: 'Kan ikke publicere opgave uden medarbejdere',
-  unableToPublishDay: 'Kan ikke publicere dag - en eller flere opgaver mangler medarbejdere',
-  confirmPublishDay: 'Er du sikker på, at du vil publicere alle opgaver for denne dag?',
-  confirmPublishWeek: 'Er du sikker på, at du vil publicere alle opgaver for denne uge?',
-  monday: 'Mandag',
-  tuesday: 'Tirsdag',
-  wednesday: 'Onsdag',
-  thursday: 'Torsdag',
-  friday: 'Fredag',
-  saturday: 'Lørdag',
-  sunday: 'Søndag',
-  noAssignmentsToday: 'Ingen opgaver i dag',
   noAssignmentsWeek: 'Ingen opgaver i denne uge',
-  onVacation: 'På ferie',
-  onAnotherAssignment: 'På anden opgave',
-  onAnotherAssignmentUntil: 'På opgave indtil {time}',
-  atLocation: 'På lokation',
-  startTime: 'Starttid',
-  endTime: 'Sluttid',
-  unassigned: 'Ikke tildelt',
-  assignTo: 'Tildel til',
-  unassignedTitle: 'Utildelede opgaver',
-  unassignedDescription: 'Disse opgaver er ikke tildelt nogen medarbejdere',
-  unassignedCount: 'Utildelede opgaver',
-  assignedCount: 'Tildelte opgaver',
-  confirmAssign: 'Bekræft tildeling',
-  goToToday: 'Gå til i dag',
-  dayView: 'Dagsvisning',
-  weekView: 'Ugevisning',
-  createForDate: 'Opret opgave for {date}',
-  allDay: 'Hele dagen',
-  viewAssignment: 'Vis opgave',
-  selectCar: 'Vælg bil',
-  title: 'Sagsnummer',
-  enterLocation: 'Indtast lokation',
-  createAssignment: 'Opret',
-  previousDays: 'Tidligere dage',
-  nothingPlannedToday: 'Intet planlagt for i dag',
-  weekDescription: 'Denne uges opgaver',
-  previousWeek: 'Forrige uge',
-  nextWeek: 'Næste uge',
-  assignmentUpdated: 'Opgave opdateret',
-  assignmentUpdatedMsg: 'Opgaven er blevet opdateret.',
-  assignmentDeleted: 'Opgave slettet',
-  assignmentDeletedMsg: 'Opgaven er blevet slettet.',
-  assignmentCreated: 'Opgave oprettet',
-  assignmentCreatedMsg: 'Opgaven er blevet oprettet.',
-  assignmentPublished: 'Opgave er blevet publiceret',
-  assignmentPublishedMsg: 'Opgaven er blevet publiceret.',
-  assignmentsPublished: 'Opgaver er blevet publiceret',
-  assignmentsPublishedMsg: 'Opgaverne er blevet publiceret.',
+  createNew: 'Opret Ny Opgave',
+  
+  // Assignment details
+  titlePlaceholder: 'Sagsnummer',
+  locationPlaceholder: 'Indtast adresse',
+  fromTime: 'Fra Tid',
+  toTime: 'Til Tid',
+  location: 'Adresse',
+  selectEmployees: 'Vælg Medarbejdere',
+  car: 'Bil',
+  selectCar: 'Vælg Bil',
+  responsibleUser: 'Sagsansvarlig',
+  selectResponsibleUser: 'Vælg Sagsansvarlig',
+  noResponsibleUser: 'Ingen sagsansvarlig',
+  
+  // Actions
+  addAssignment: 'Tilføj Opgave',
+  editAssignment: 'Rediger Opgave',
+  copyAssignment: 'Kopier Opgave',
+  deleteAssignment: 'Slet Opgave',
+  publish: 'Publicer',
+  publishDayTasks: 'Publicer Dagens Opgaver',
+  showOnScreen: 'Vis på Skærm',
+  newAssignment: 'Ny Opgave',
+  
+  // Messages
+  assignmentCreated: 'Opgave Oprettet',
+  assignmentCreatedMsg: 'Opgaven {title} er blevet oprettet',
+  assignmentUpdated: 'Opgave Opdateret',
+  assignmentUpdatedMsg: 'Opgaven {title} er blevet opdateret',
+  assignmentDeleted: 'Opgave Slettet',
+  assignmentDeletedMsg: 'Opgaven er blevet slettet',
+  errorCreatingAssignment: 'Fejl ved oprettelse af opgave',
+  errorUpdatingAssignment: 'Fejl ved opdatering af opgave',
+  errorDeletingAssignment: 'Fejl ved sletning af opgave',
+  
+  // Week view
+  weekView: 'Uge {week}, {year} ({start} - {end})',
+  week: 'Uge',
+  
+  // Status
+  published: 'Publiceret',
+  notPublished: 'Ikke Publiceret',
+  
+  // Confirmation dialogs
+  deleteConfirm: 'Slet Opgave',
+  deleteWarning: 'Er du sikker på, at du vil slette denne opgave?',
+  
+  // Empty states
+  addFirst: 'Tilføj din første opgave',
+  nothingPlannedToday: 'Intet planlagt i dag',
+  
+  // Publishing messages
+  assignmentPublished: 'Opgave Publiceret',
+  assignmentPublishedMsg: 'Opgaven er blevet publiceret med succes',
+  dayPublished: 'Dag Publiceret',
+  dayPublishedMsg: 'Alle opgaver for {date} er blevet publiceret',
+  errorPublishingAssignment: 'Kunne ikke publicere opgave',
+  errorPublishingDay: 'Kunne ikke publicere opgaver for dagen',
+  
+  // Required fields
+  employees: 'Medarbejdere',
+  date: 'Dato',
+  time: 'Tid',
+  
+  // Form labels
+  titleLabel: 'Sagsnummer',
+  enterTitle: 'Sagsnummer',
+  descriptionLabel: 'Beskrivelse',
+  assignmentDescription: 'Opgave beskrivelse',
+  notesPlaceholder: 'Indtast noter',
+  dateLabel: 'Dato',
   assignmentDate: 'Opgave dato',
-  notes: 'Beskrivelse',
-  notesPlaceholder: 'Beskriv opgaven.',
-  copyAssignment: 'Kopier opgave',
-  copyToDate: 'Kopier til dato',
-  copyAssignmentSuccess: 'Opgave kopieret',
-  copyAssignmentMsg: 'Opgaven er blevet kopieret.',
-  selectDateForCopy: 'Vælg dato for kopi',
-  copyAssignmentTitle: 'Kopier opgave til ny dato'
+  timeLabel: 'Tid',
+  startTime: 'Start tid',
+  endTime: 'Slut tid',
+  locationLabel: 'Adresse',
+  enterLocation: 'Indtast adresse',
+  carLabel: 'Bil',
+  employeesLabel: 'Medarbejdere',
+  responsibleUserLabel: 'Sagsansvarlig',
+  
+  // Placeholders
+  timePlaceholder: 'Vælg tidspunkt',
+  datePlaceholder: 'Vælg dato',
+  
+  // Status messages
+  deleteConfirmation: 'Er du sikker på, at du vil slette denne opgave?',
+  
+  // Table headers
+  tableTitle: 'Titel',
+  tableDate: 'Dato',
+  tableTime: 'Tid',
+  tableLocation: 'Adresse',
+  tableActions: 'Handlinger',
+  
+  // Filters and sorting
+  filterPublished: 'Publiceret',
+  filterUnpublished: 'Ikke publiceret',
+  sortByDate: 'Sortér efter dato',
+  sortByTime: 'Sortér efter tid',
+  
+  // Date and time formats
+  dateFormat: 'dd/MM/yyyy',
+  timeFormat: 'HH:mm',
+  
+  // Assignment types
+  typeCleaning: 'Rengøring',
+  typeMaintenance: 'Vedligeholdelse',
+  typeInspection: 'Inspektion',
+  typeOther: 'Andet',
+  
+  // Common terms
+  assignment: 'opgave',
+  createFirst: 'Opret din første opgave',
+  
+  // Unassigned resources
+  unassignedResources: 'Ikke-tildelte Ressourcer',
+  unassignedEmployees: 'Ikke-tildelte Medarbejdere',
+  unassignedCars: 'Ikke-tildelte Biler',
+  employeesOnVacation: 'Medarbejdere på Ferie',
+  availableEmployees: 'Tilgængelige Medarbejdere',
+  availableCars: 'Tilgængelige Biler',
+  
+  // Car-related translations
+  availableCarsTitle: 'Tilgængelige Biler',
+  unavailableCarsTitle: 'Ikke Tilgængelige Biler',
+  noCarsAvailable: 'Ingen biler tilgængelige',
+  noCarsUnavailable: 'Alle biler er tilgængelige',
+  carWithTrailer: 'Bil med trailer',
+  carWithoutTrailer: 'Bil uden trailer',
+  
+  // Employee-related translations
+  onVacation: 'Fri/Ferie',
+  employeeOnVacation: 'På ferie',
+  employeeAvailable: 'Tilgængelig',
+  employeeUnavailable: 'Ikke tilgængelig',
+  noEmployeesSelected: 'Ingen medarbejdere valgt',
+  
+  // Responsible user translations
+  responsibleUserDisplay: 'Ansvarlig: {name}',
+  noResponsibleUserAssigned: 'Ingen ansvarlig tildelt',
+  
+  // Additional translations for unassigned resources
+  showMore: "flere",
+  showLess: "Vis færre",
+  allCarsAssigned: "Alle biler er tildelt",
+  availableResources: "tilgængelige ressourcer",
+  
+  // Assignment status
+  assignmentStatus: 'Status',
+  assignmentPublishedStatus: 'Publiceret',
+  assignmentUnpublishedStatus: 'Ikke publiceret',
+  
+  // Additional translations
+  unknownEmployee: 'Ukendt medarbejder',
+  today: 'I dag',
+  
+  // New translations for unassigned resources
+  noEmployeesAvailable: 'Alle medarbejdere er tildelt eller på ferie',
+  
+  // Collapsible and date navigation
+  collapseResources: 'Skjul ressourcer',
+  expandResources: 'Vis ressourcer',
+  selectDate: 'Vælg dato',
+  previousDay: 'Forrige dag',
+  nextDay: 'Næste dag',
+  previousDays: 'Forrige dage'
 };
 
 export default planner;

@@ -5,14 +5,4 @@ export * from './dates/weekCore';
 export * from './dates/weekNavigation';
 export * from './dates/weekFormatting';
 
-// Import getCurrentWeekInfo explicitly for the getCurrentWeek function
-import { getCurrentWeekInfo } from './dates/weekCore';
-
-// Add the missing getCurrentWeek function
-export const getCurrentWeek = () => {
-  const now = new Date();
-  const { week } = getCurrentWeekInfo();
-  return `Uge ${week}`;
-};
-
 console.log("Legacy date utilities loaded from src/utils/weekDates.ts");

@@ -1,53 +1,60 @@
-
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
+// NOTICE: This file (usePlannerPage.ts) is 201 lines long and should be refactored into smaller hooks.
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
-import { usePlannerAssignments } from './usePlannerAssignments';
+import { useAssignmentDataOptimized } from './assignment/useAssignmentDataOptimized';
+import { useAssignmentActions } from './assignment/useAssignmentActions';
 import { 
   getWeekDates, 
   getCurrentWeekInfo, 
   getPreviousWeekInfo, 
-  getNextWeekInfo
+  getNextWeekInfo,
+  getWeekNumber,
+  getYearForDate
 } from '@/utils/dates';
-import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
-import { getUnpublishedAssignment } from '@/hooks/useAssignmentPublishing';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 
 export const usePlannerPage = () => {
-  // Get current week info (week number and year)
   const currentWeekInfo = getCurrentWeekInfo();
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { user } = useAuth();
   
-  // State to track the selected week number and year
   const [selectedWeek, setSelectedWeek] = useState(currentWeekInfo.week);
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Log when the selected week/year changes
-  useEffect(() => {
-    console.log(`[usePlannerPage] Selected week: ${selectedWeek}, year: ${selectedYear}`);
-  }, [selectedWeek, selectedYear]);
-
+  // SERVICEMEDARBEJDER FIX: All users can now see all assignments due to updated RLS policy
+  const isAdminOrSkadeleder = user?.role === 'administrator' || user?.role === 'skadeleder';
+  const plannerFilter = 'all'; // All users including servicemedarbejder can see all assignments
+  
+  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - User: ${user?.name} (${user?.role}), Filter: ${plannerFilter}`);
+  
+  // CRITICAL FIX: Use the optimized hook that properly fetches responsible user data
   const { 
     assignments, 
-    createAssignment, 
+    loading,
+    error,
+    fetchAssignments
+  } = useAssignmentDataOptimized();
+
+  const {
+    createAssignment,
     updateAssignment,
-    deleteAssignment,
-    publishAssignment,
-    publishAssignmentsByDate,
-    isDialogOpen,
-    setIsDialogOpen,
-    currentAssignment,
-    setCurrentAssignment
-  } = usePlannerAssignments();
+    deleteAssignment: deleteAssignmentAction,
+    publishAssignment: publishAssignmentAction,
+    publishAssignmentsByDate: publishAssignmentsByDateAction
+  } = useAssignmentActions(fetchAssignments, setIsDialogOpen);
 
-  const { filterByWeek } = useAssignmentFilters();
-
-  // Get the current date - always calculate fresh to avoid stale dates
-  const getFreshToday = () => format(new Date(), 'yyyy-MM-dd');
+  const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   
-  // Using state for managing form data and selected day
+  const getFreshToday = useCallback(() => {
+    const now = new Date();
+    return format(now, 'yyyy-MM-dd');
+  }, []);
+  
   const [selectedDay, setSelectedDay] = useState<string>(getFreshToday());
   const [formData, setFormData] = useState<Partial<Assignment>>({
     title: '',
@@ -60,186 +67,135 @@ export const usePlannerPage = () => {
     employees: []
   });
 
-  // Get the date range for the selected week with ISO week calculation
+  React.useEffect(() => {
+    const today = getFreshToday();
+    setFormData(prev => ({ ...prev, date: today }));
+    setSelectedDay(today);
+  }, [getFreshToday]);
+
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // Better log output with more details
-  useEffect(() => {
-    console.log("[usePlannerPage] Week dates:", {
-      weekNumber: selectedWeek,
-      year: selectedYear,
-      start: weekDates.start.toISOString(),
-      end: weekDates.end.toISOString(),
-      startDay: format(weekDates.start, 'EEEE'),
-      startDayNumber: weekDates.start.getDay(),
-      endDay: format(weekDates.end, 'EEEE'),
-      endDayNumber: weekDates.end.getDay()
-    });
+  // SERVICEMEDARBEJDER FIX: Filter assignments by week only - RLS handles access control
+  const weekAssignments = React.useMemo(() => {
+    console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Filtering ${assignments.length} assignments for week ${selectedWeek}/${selectedYear}`);
     
-    // Validate that we have a Monday (1) to Sunday (0) range
-    if (weekDates.start.getDay() !== 1) {
-      console.error(`[usePlannerPage] ERROR: Week start is not Monday! Got day ${weekDates.start.getDay()} (${format(weekDates.start, 'EEEE')})`);
-    }
-    
-    if (weekDates.end.getDay() !== 0) {
-      console.error(`[usePlannerPage] ERROR: Week end is not Sunday! Got day ${weekDates.end.getDay()} (${format(weekDates.end, 'EEEE')})`);
-    }
-  }, [selectedWeek, selectedYear, weekDates]);
-  
-  // Filter assignments for the current week
-  const weekAssignments = filterByWeek(assignments, selectedWeek, selectedYear);
-
-  // Navigate to previous week
-  const handlePreviousWeek = useCallback(() => {
-    const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
-    console.log(`[usePlannerPage] Going to previous week: ${week}, year: ${year}`);
-    setSelectedWeek(week);
-    setSelectedYear(year);
-  }, [selectedWeek, selectedYear]);
-
-  // Navigate to next week
-  const handleNextWeek = useCallback(() => {
-    const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
-    console.log(`[usePlannerPage] Going to next week: ${week}, year: ${year}`);
-    setSelectedWeek(week);
-    setSelectedYear(year);
-  }, [selectedWeek, selectedYear]);
-
-  // Handle assignment creation/editing - always use the current date if no date provided
-  const handleOpenCreateDialog = useCallback((date: string) => {
-    setCurrentAssignment(null);
-    
-    // Ensure we have a valid date - use provided date or today's date
-    // Force a fresh today date calculation to avoid stale dates
-    const freshTodayDate = getFreshToday();
-    const taskDate = date && date.trim() !== '' ? date : freshTodayDate;
-    setSelectedDay(taskDate);
-    
-    console.log("[usePlannerPage] Creating new assignment with date:", taskDate);
-    console.log("[usePlannerPage] Fresh today's date is:", freshTodayDate);
-    
-    // Set form data in one update to avoid race conditions
-    setFormData({
-      title: '',
-      description: '',
-      date: taskDate,
-      fromTime: '08:00',
-      toTime: '16:00',
-      location: '',
-      car: '',
-      employees: []
-    });
-    
-    setIsDialogOpen(true);
-  }, [setCurrentAssignment, setIsDialogOpen]);
-
-  const handleOpenEditDialog = useCallback((assignment: Assignment) => {
-    console.log("[usePlannerPage] Opening edit dialog with assignment:", assignment);
-    setCurrentAssignment(assignment);
-    setSelectedDay(assignment.date);
-    
-    // Set form data at once to avoid multiple renders
-    // Make sure to preserve the car ID and employees properly
-    // Fix: Ensure employees array is properly copied, not referenced
-    setFormData({
-      ...assignment,
-      employees: Array.isArray(assignment.employees) ? [...assignment.employees] : []
-    });
-    
-    setIsDialogOpen(true);
-  }, [setCurrentAssignment, setIsDialogOpen]);
-
-  // New function to handle copying an assignment
-  const handleCopyAssignment = useCallback((assignment: Assignment) => {
-    console.log("[usePlannerPage] Copying assignment:", assignment);
-    
-    // Set the assignment to be copied
-    setCurrentAssignment(null);
-    
-    // Set selected day to the current day (but this will be changed by the user)
-    const freshTodayDate = getFreshToday();
-    setSelectedDay(freshTodayDate);
-    
-    // Pre-fill the form with the assignment data but change the date to today
-    // and mark as unpublished
-    setFormData({
-      ...assignment,
-      id: undefined,  // Remove the ID to force creation of a new assignment
-      date: freshTodayDate,
-      published: false,
-      employees: Array.isArray(assignment.employees) ? [...assignment.employees] : []
-    });
-    
-    // Show a success toast
-    toast({
-      title: t('planner.copyAssignment'),
-      description: t('planner.selectDateForCopy')
-    });
-    
-    // Open the dialog to let the user select a new date
-    setIsDialogOpen(true);
-  }, [setCurrentAssignment, setIsDialogOpen, toast, t]);
-
-  const handleSubmit = useCallback((data: Partial<Assignment>) => {
-    console.log("[usePlannerPage] Submitting assignment data:", data);
-    
-    if (currentAssignment) {
-      // Set the edited assignment as unpublished
-      const unpublishedData = getUnpublishedAssignment(data as Assignment);
-      updateAssignment(currentAssignment.id, unpublishedData);
-    } else {
-      // This handles both new assignments and copied assignments
-      createAssignment({
-        ...data,
-        id: Date.now().toString(),
-        published: false
-      } as Assignment);
-    }
-    setIsDialogOpen(false);
-  }, [currentAssignment, createAssignment, updateAssignment, setIsDialogOpen]);
-
-  // Fixed wrapper function that uses selectedDay internally
-  const handlePublishDay = useCallback(() => {
-    if (selectedDay) {
-      publishAssignmentsByDate(selectedDay);
-    }
-  }, [selectedDay, publishAssignmentsByDate]);
-  
-  // Ensure dialog has the current date when opened
-  useEffect(() => {
-    if (isDialogOpen && !currentAssignment) {
-      const freshDate = getFreshToday();
-      console.log("[usePlannerPage] Dialog opened, ensuring fresh date:", freshDate);
+    let filteredAssignments = assignments.filter(assignment => {
+      const assignmentDate = new Date(assignment.date);
+      const assignmentWeek = getWeekNumber(assignmentDate);
+      const assignmentYear = getYearForDate(assignmentDate);
       
-      // Only update if the current value is not the fresh date
-      if (formData.date !== freshDate && !selectedDay) {
-        setFormData(prev => ({
-          ...prev,
-          date: freshDate
-        }));
-      }
-    }
-  }, [isDialogOpen, currentAssignment, formData.date, selectedDay]);
-  
+      return assignmentWeek === selectedWeek && assignmentYear === selectedYear;
+    });
+
+    // RLS policies now handle access control - servicemedarbejder can see all assignments
+    
+    console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Week filtered results: ${filteredAssignments.length} assignments`);
+    console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - All assignments with details:`, 
+      filteredAssignments.map(a => ({ 
+        title: a.title, 
+        responsibleUser: a.responsibleUser?.name,
+        employees: a.assignedEmployees?.map(e => e.name) || a.employees,
+        cars: a.cars
+      })));
+    
+    return filteredAssignments;
+  }, [assignments, selectedWeek, selectedYear]);
+
   return {
     selectedWeek,
     selectedYear,
     weekDates,
     weekAssignments,
+    assignments,
+    loading,
+    error,
+    operationStates: {}, // Simplified for now
     isDialogOpen,
     setIsDialogOpen,
     currentAssignment,
     selectedDay,
     formData,
     setFormData,
-    handlePreviousWeek,
-    handleNextWeek,
-    handleOpenCreateDialog,
-    handleOpenEditDialog,
-    handleSubmit,
-    handlePublishDay,
-    deleteAssignment,
-    publishAssignment,
-    handleCopyAssignment
+    handlePreviousWeek: () => {
+      const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
+      setSelectedWeek(week);
+      setSelectedYear(year);
+    },
+    handleNextWeek: () => {
+      const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
+      setSelectedWeek(week);
+      setSelectedYear(year);
+    },
+    handleOpenCreateDialog: (date: string) => {
+      setCurrentAssignment(null);
+      const taskDate = date && date.trim() !== '' ? date : getFreshToday();
+      setSelectedDay(taskDate);
+      setFormData({
+        title: '',
+        description: '',
+        date: taskDate,
+        fromTime: '08:00',
+        toTime: '16:00',
+        location: '',
+        car: '',
+        employees: [],
+        published: false
+      });
+      setIsDialogOpen(true);
+    },
+    handleOpenEditDialog: (assignment: Assignment) => {
+      console.log(`[usePlannerPage] Opening edit dialog for assignment:`, assignment.title);
+      
+      setCurrentAssignment(assignment);
+      setSelectedDay(assignment.date);
+      setFormData({
+        ...assignment,
+        employees: assignment.employees ? [...assignment.employees] : [],
+        car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : '',
+        published: assignment.published
+      });
+      setIsDialogOpen(true);
+    },
+    handleSubmit: async (data: Partial<Assignment>) => {
+      try {
+        if (currentAssignment?.id) {
+          const updateData = {
+            ...data,
+            published: currentAssignment.published
+          };
+          await updateAssignment(currentAssignment.id, updateData);
+        } else {
+          await createAssignment(data);
+        }
+      } catch (error) {
+        console.error('[usePlannerPage] Operation failed:', error);
+      }
+    },
+    handlePublishDay: async (date: string) => {
+      await publishAssignmentsByDateAction(date);
+    },
+    handlePublishAllUnpublished: async () => {
+      await publishAssignmentsByDateAction(getFreshToday());
+    },
+    deleteAssignment: async (id: string) => {
+      await deleteAssignmentAction(id);
+    },
+    publishAssignment: async (id: string) => {
+      await publishAssignmentAction(id);
+    },
+    handleCopyAssignment: (assignment: Assignment) => {
+      setCurrentAssignment(null);
+      const freshTodayDate = getFreshToday();
+      setSelectedDay(freshTodayDate);
+      setFormData({
+        ...assignment,
+        id: undefined,
+        date: freshTodayDate,
+        published: false,
+        employees: assignment.employees ? [...assignment.employees] : [],
+        car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : ''
+      });
+      setIsDialogOpen(true);
+    }
   };
 };

@@ -1,73 +1,42 @@
 
 import { Assignment } from '@/types/assignment';
-import { getWeekDates } from '@/utils/dates';
-import { format } from 'date-fns';
+import { AssignmentFilterService } from '@/services/assignmentFilterService';
 
-// Filters and groups assignments
 export const useAssignmentFilters = () => {
-  // Filter assignments based on user permissions
-  const filterByPermissions = (assignments: Assignment[], canSeeUnpublishedTasks: boolean) => {
-    if (canSeeUnpublishedTasks) {
-      // Admin or skadeleder can see all
+  // CRITICAL FIX: Filter assignments by permissions - planner shows ALL, dashboard shows user assignments
+  const filterByPermissions = (assignments: Assignment[], canSeeUnpublished: boolean): Assignment[] => {
+    console.log('[useAssignmentFilters] CRITICAL FIX - Filtering assignments by permissions');
+    console.log(`[useAssignmentFilters] Input: ${assignments.length} assignments, canSeeUnpublished: ${canSeeUnpublished}`);
+    
+    if (canSeeUnpublished) {
+      console.log('[useAssignmentFilters] CRITICAL FIX - User can see unpublished, returning ALL assignments');
       return assignments;
-    } else {
-      // Others can only see published tasks
-      return assignments.filter(a => a.published);
     }
+    
+    // For published assignments only
+    const filtered = assignments.filter(a => a.published);
+    console.log(`[useAssignmentFilters] CRITICAL FIX - Filtered to ${filtered.length} published assignments`);
+    return filtered;
   };
 
-  // Group assignments by date
-  const groupByDate = (assignments: Assignment[]) => {
-    const grouped: Record<string, Assignment[]> = {};
-    
-    assignments.forEach(assignment => {
-      const date = assignment.date;
-      if (!grouped[date]) {
-        grouped[date] = [];
-      }
-      grouped[date].push(assignment);
-    });
-    
+  const groupByDate = (assignments: Assignment[]): Record<string, Assignment[]> => {
+    console.log(`[useAssignmentFilters] CRITICAL FIX - Grouping ${assignments.length} assignments by date`);
+    const grouped = AssignmentFilterService.groupByDate(assignments);
+    console.log(`[useAssignmentFilters] CRITICAL FIX - Grouped into ${Object.keys(grouped).length} date groups`);
     return grouped;
   };
 
-  // Filter assignments by ISO week and year
-  const filterByWeek = (assignments: Assignment[], weekNumber: number, year: number) => {
-    try {
-      console.log(`Filtering assignments for week ${weekNumber}/${year}`);
-      
-      // Get the correct date range for the ISO week (Monday to Sunday)
-      const { start, end } = getWeekDates(weekNumber, year);
-      
-      // Set start time to beginning of day and end time to end of day
-      const weekStart = new Date(start);
-      weekStart.setHours(0, 0, 0, 0);
-      
-      const weekEnd = new Date(end);
-      weekEnd.setHours(23, 59, 59, 999);
-      
-      console.log(`Week boundaries for filtering - Start: ${format(weekStart, 'yyyy-MM-dd')} (${format(weekStart, 'EEEE')}, day ${weekStart.getDay()})`);
-      console.log(`Week boundaries for filtering - End: ${format(weekEnd, 'yyyy-MM-dd')} (${format(weekEnd, 'EEEE')}, day ${weekEnd.getDay()})`);
-      
-      return assignments.filter(assignment => {
-        // Create a date object from the assignment date string
-        const assignmentDate = new Date(assignment.date);
-        // Normalize time to noon to avoid timezone issues
-        assignmentDate.setHours(12, 0, 0, 0);
-        
-        // Compare if assignment date falls within week range
-        const isInWeek = assignmentDate >= weekStart && assignmentDate <= weekEnd;
-        
-        if (isInWeek) {
-          console.log(`Assignment ${assignment.id} (${assignment.date}) is in week ${weekNumber}`);
-        }
-        
-        return isInWeek;
-      });
-    } catch (error) {
-      console.error("Error filtering by week:", error);
-      return [];
-    }
+  const filterByWeek = (assignments: Assignment[], weekNumber: number, year: number): Assignment[] => {
+    console.log(`[useAssignmentFilters] CRITICAL FIX - Filtering ${assignments.length} assignments for week ${weekNumber} of ${year}`);
+    const filtered = AssignmentFilterService.filterByWeek(assignments, weekNumber, year);
+    console.log(`[useAssignmentFilters] CRITICAL FIX - Filtered to ${filtered.length} assignments for the week`);
+    
+    // Log detailed assignment info for debugging
+    filtered.forEach(assignment => {
+      console.log(`[useAssignmentFilters] CRITICAL FIX - Week assignment: ${assignment.id} - ${assignment.title} - Employees: [${assignment.employees?.join(', ')}] - Published: ${assignment.published}`);
+    });
+    
+    return filtered;
   };
 
   return {

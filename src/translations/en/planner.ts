@@ -1,103 +1,179 @@
+
 const planner = {
-  header: 'Week Plan',
-  week: 'Week',
-  createNew: 'Create New',
-  editAssignment: 'Edit Assignment',
-  newAssignment: 'New Assignment',
-  updateDetails: 'Update Assignment Details',
-  addAssignment: 'Add New Assignment',
-  date: 'Date',
-  from: 'From',
-  to: 'To',
-  employees: 'Employees',
-  location: 'Location',
-  car: 'Car',
-  description: 'Description',
-  saveChanges: 'Save Changes',
-  publishAssignment: 'Publish Assignment',
-  publishDay: 'Publish Day',
-  publishDayTasks: 'Publish Day',
-  publishWeek: 'Publish Week',
-  published: 'Published',
-  unpublished: 'Unpublished',
-  notPublished: 'Not Published',
-  delete: 'Delete',
-  deleteAssignment: 'Delete Assignment',
-  deleteConfirmation: 'Are you sure you want to delete this assignment?',
+  title: 'Planner',
+  description: 'Manage assignments and schedule employees',
+  
+  // Assignment list
+  assignments: 'Assignments',
   noAssignments: 'No assignments found',
-  today: 'Today',
-  tomorrow: 'Tomorrow',
-  fetchError: 'Error fetching assignments',
-  createError: 'Error creating assignment',
-  updateError: 'Error updating assignment',
-  deleteError: 'Error deleting assignment',
-  publishError: 'Error publishing assignment',
-  createdSuccess: 'Assignment created',
-  updatedSuccess: 'Assignment updated',
-  deletedSuccess: 'Assignment deleted',
-  publishedSuccess: 'Assignment published',
-  dayPublishedSuccess: 'All assignments for this day are published',
-  weekPublishedSuccess: 'All assignments for this week are published',
-  unableToPublish: 'Cannot publish assignment without employees',
-  unableToPublishDay: 'Cannot publish day - one or more assignments are missing employees',
-  confirmPublishDay: 'Are you sure you want to publish all assignments for this day?',
-  confirmPublishWeek: 'Are you sure you want to publish all assignments for this week?',
-  monday: 'Monday',
-  tuesday: 'Tuesday',
-  wednesday: 'Wednesday',
-  thursday: 'Thursday',
-  friday: 'Friday',
-  saturday: 'Saturday',
-  sunday: 'Sunday',
-  noAssignmentsToday: 'No assignments today',
-  noAssignmentsWeek: 'No assignments this week',
-  onVacation: 'On vacation',
-  onAnotherAssignment: 'On another assignment',
-  onAnotherAssignmentUntil: 'On assignment until {time}',
-  atLocation: 'At location',
-  startTime: 'Start Time',
-  endTime: 'End Time',
-  unassigned: 'Unassigned',
-  assignTo: 'Assign To',
-  unassignedTitle: 'Unassigned Assignments',
-  unassignedDescription: 'These assignments are not assigned to any employees',
-  unassignedCount: 'Unassigned Assignments',
-  assignedCount: 'Assigned Assignments',
-  confirmAssign: 'Confirm Assign',
-  goToToday: 'Go To Today',
-  dayView: 'Day View',
-  weekView: 'Week View',
-  createForDate: 'Create Assignment for {date}',
-  allDay: 'All Day',
-  viewAssignment: 'View Assignment',
+  noAssignmentsWeek: 'No assignments for this week',
+  createNew: 'Create New Assignment',
+  
+  // Assignment details
+  titlePlaceholder: 'Enter title',
+  locationPlaceholder: 'Enter location',
+  fromTime: 'From Time',
+  toTime: 'To Time',
+  location: 'Location',
+  selectEmployees: 'Select Employees',
+  car: 'Car',
   selectCar: 'Select Car',
-  title: 'Case Number',
-  enterLocation: 'Enter Location',
-  createAssignment: 'Create',
-  previousDays: 'Previous Days',
-  nothingPlannedToday: 'Nothing planned for today',
-  weekDescription: "This week's assignments",
-  previousWeek: 'Previous Week',
-  nextWeek: 'Next Week',
-  assignmentUpdated: 'Assignment updated',
-  assignmentUpdatedMsg: 'The assignment has been updated.',
-  assignmentDeleted: 'Assignment deleted',
-  assignmentDeletedMsg: 'The assignment has been deleted.',
-  assignmentCreated: 'Assignment created',
-  assignmentCreatedMsg: 'The assignment has been created.',
-  assignmentPublished: 'Assignment has been published',
-  assignmentPublishedMsg: 'The assignment has been published.',
-  assignmentsPublished: 'Assignments have been published',
-  assignmentsPublishedMsg: 'The assignments have been published.',
+  responsibleUser: 'Responsible User',
+  selectResponsibleUser: 'Select Responsible User',
+  noResponsibleUser: 'No responsible user',
+  
+  // Actions
+  addAssignment: 'Add Assignment',
+  editAssignment: 'Edit Assignment',
+  copyAssignment: 'Copy Assignment',
+  deleteAssignment: 'Delete Assignment',
+  publish: 'Publish',
+  publishDayTasks: 'Publish Day Tasks',
+  showOnScreen: 'Show on Screen',
+  newAssignment: 'New Assignment',
+  
+  // Messages
+  assignmentCreated: 'Assignment Created',
+  assignmentCreatedMsg: 'Assignment {title} has been created',
+  assignmentUpdated: 'Assignment Updated',
+  assignmentUpdatedMsg: 'Assignment {title} has been updated',
+  assignmentDeleted: 'Assignment Deleted',
+  assignmentDeletedMsg: 'Assignment has been deleted',
+  errorCreatingAssignment: 'Error creating assignment',
+  errorUpdatingAssignment: 'Error updating assignment',
+  errorDeletingAssignment: 'Error deleting assignment',
+  
+  // Week view
+  weekView: 'Week {week}, {year} ({start} - {end})',
+  week: 'Week',
+  
+  // Status
+  published: 'Published',
+  notPublished: 'Not Published',
+  
+  // Confirmation dialogs
+  deleteConfirm: 'Delete Assignment',
+  deleteWarning: 'Are you sure you want to delete this assignment?',
+  
+  // Empty states
+  addFirst: 'Add your first assignment',
+  nothingPlannedToday: 'Nothing planned today',
+  
+  // Publishing messages
+  assignmentPublished: 'Assignment Published',
+  assignmentPublishedMsg: 'The assignment has been published successfully',
+  dayPublished: 'Day Published',
+  dayPublishedMsg: 'All assignments for {date} have been published',
+  errorPublishingAssignment: 'Failed to publish assignment',
+  errorPublishingDay: 'Failed to publish assignments for the day',
+  
+  // Required fields
+  employees: 'Employees',
+  date: 'Date',
+  time: 'Time',
+  
+  // Form labels
+  titleLabel: 'Title',
+  enterTitle: 'Enter title',
+  descriptionLabel: 'Description',
+  assignmentDescription: 'Assignment description',
+  notesPlaceholder: 'Enter notes',
+  dateLabel: 'Date',
   assignmentDate: 'Assignment date',
-  notes: 'Description',
-  notesPlaceholder: 'Describe the assignment.',
-  copyAssignment: 'Copy assignment',
-  copyToDate: 'Copy to date',
-  copyAssignmentSuccess: 'Assignment copied',
-  copyAssignmentMsg: 'The assignment has been copied.',
-  selectDateForCopy: 'Select date for copy',
-  copyAssignmentTitle: 'Copy assignment to new date'
+  timeLabel: 'Time',
+  startTime: 'Start time',
+  endTime: 'End time',
+  locationLabel: 'Location',
+  enterLocation: 'Enter location',
+  carLabel: 'Car',
+  employeesLabel: 'Employees',
+  responsibleUserLabel: 'Responsible User',
+  
+  // Placeholders
+  timePlaceholder: 'Select time',
+  datePlaceholder: 'Select date',
+  
+  // Status messages
+  deleteConfirmation: 'Are you sure you want to delete this assignment?',
+  
+  // Table headers
+  tableTitle: 'Title',
+  tableDate: 'Date',
+  tableTime: 'Time',
+  tableLocation: 'Location',
+  tableActions: 'Actions',
+  
+  // Filters and sorting
+  filterPublished: 'Published',
+  filterUnpublished: 'Unpublished',
+  sortByDate: 'Sort by date',
+  sortByTime: 'Sort by time',
+  
+  // Date and time formats
+  dateFormat: 'MM/dd/yyyy',
+  timeFormat: 'HH:mm',
+  
+  // Assignment types
+  typeCleaning: 'Cleaning',
+  typeMaintenance: 'Maintenance',
+  typeInspection: 'Inspection',
+  typeOther: 'Other',
+  
+  // Common terms
+  assignment: 'assignment',
+  createFirst: 'Create your first assignment',
+  
+  // Unassigned resources
+  unassignedResources: 'Unassigned Resources',
+  unassignedEmployees: 'Unassigned Employees',
+  unassignedCars: 'Unassigned Cars',
+  employeesOnVacation: 'Employees on Vacation',
+  availableEmployees: 'Available Employees',
+  availableCars: 'Available Cars',
+  
+  // Car-related translations
+  availableCarsTitle: 'Available Cars',
+  unavailableCarsTitle: 'Unavailable Cars',
+  noCarsAvailable: 'No cars available',
+  noCarsUnavailable: 'All cars are available',
+  carWithTrailer: 'Car with trailer',
+  carWithoutTrailer: 'Car without trailer',
+  
+  // Employee-related translations
+  employeeOnVacation: 'On vacation',
+  employeeAvailable: 'Available',
+  employeeUnavailable: 'Unavailable',
+  noEmployeesSelected: 'No employees selected',
+  
+  // Responsible user translations
+  responsibleUserDisplay: 'Responsible: {name}',
+  noResponsibleUserAssigned: 'No responsible assigned',
+  
+  // Additional translations for unassigned resources
+  showMore: "more",
+  showLess: "Show less",
+  allCarsAssigned: "All cars are assigned",
+  availableResources: "available resources",
+  
+  // Assignment status
+  assignmentStatus: 'Status',
+  assignmentPublishedStatus: 'Published',
+  assignmentUnpublishedStatus: 'Unpublished',
+  
+  // Additional translations
+  unknownEmployee: 'Unknown employee',
+  today: 'Today',
+  
+  // New translations for unassigned resources
+  noEmployeesAvailable: 'All employees are assigned or on vacation',
+  
+  // Collapsible and date navigation
+  collapseResources: 'Hide resources',
+  expandResources: 'Show resources', 
+  selectDate: 'Select date',
+  previousDay: 'Previous day',
+  nextDay: 'Next day',
+  previousDays: 'Previous days'
 };
 
 export default planner;

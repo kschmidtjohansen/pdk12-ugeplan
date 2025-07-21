@@ -1,116 +1,258 @@
 
-import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-interface RoleUpdateRequest {
-  userId: string;
-  role: string;
-}
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://www.pdk12.dk',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+  'Access-Control-Max-Age': '86400',
+}
 
 serve(async (req) => {
-  // Handle CORS preflight request
+  const requestId = crypto.randomUUID().substring(0, 8);
+  
+  console.log(`[${requestId}] REQUEST START - Method: ${req.method}, URL: ${req.url}`);
+  
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log(`[${requestId}] Handling CORS preflight`);
     return new Response('ok', { headers: corsHeaders });
   }
 
-  try {
-    // Get auth credentials from environment variables
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Missing Supabase credentials');
-    }
-
-    // Verify JWT token
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing authorization header');
-    }
-
-    // Create supabase client with service role key
-    const supabase = createClient(
-      supabaseUrl,
-      supabaseServiceKey
-    );
-
-    // Create authenticated client to verify the user's role
-    const authClient = createClient(
-      supabaseUrl,
-      supabaseServiceKey,
-      {
-        global: { headers: { Authorization: authHeader } }
+  if (req.method !== 'POST') {
+    console.log(`[${requestId}] Method not allowed: ${req.method}`);
+    return new Response(
+      JSON.stringify({ error: `Method ${req.method} not allowed` }),
+      { 
+        status: 405, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
+  }
 
-    // Get the current user's role for authorization
-    const { data: { user } } = await authClient.auth.getUser();
-    if (!user) {
-      throw new Error('Not authenticated');
+  try {
+    const authHeader = req.headers.get('Authorization');
+    console.log(`[${requestId}] Auth header present: ${!!authHeader}`);
+    
+    if (!authHeader) {
+      console.error(`[${requestId}] Missing authorization header`);
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    // Check if user is an administrator
-    const { data: roleData } = await authClient
+    // Get environment variables with enhanced validation
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    console.log(`[${requestId}] Environment check:`, {
+      hasUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      urlLength: supabaseUrl?.length || 0,
+      keyLength: supabaseServiceKey?.length || 0
+    });
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error(`[${requestId}] Missing environment variables - URL: ${!!supabaseUrl}, Key: ${!!supabaseServiceKey}`);
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error - missing environment variables' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Create admin Supabase client with enhanced configuration
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      },
+      db: {
+        schema: 'public'
+      }
+    });
+
+    // Verify the current user is authenticated and is admin
+    const token = authHeader.replace('Bearer ', '');
+    console.log(`[${requestId}] Verifying token (length: ${token.length})`);
+    
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error(`[${requestId}] Auth verification error:`, authError?.message || 'No user found');
+      return new Response(
+        JSON.stringify({ error: 'Authentication failed', details: authError?.message }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log(`[${requestId}] User authenticated: ${user.id} (${user.email})`);
+
+    // Enhanced admin role check with better error handling
+    console.log(`[${requestId}] Checking admin role for user: ${user.id}`);
+    
+    const { data: roleData, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
+
+    console.log(`[${requestId}] Role query result:`, { roleData, roleError: roleError?.message });
+
+    if (roleError) {
+      console.error(`[${requestId}] Role query error:`, roleError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to verify user permissions', details: roleError.message }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     if (!roleData || roleData.role !== 'administrator') {
-      throw new Error('Unauthorized - requires administrator role');
+      console.error(`[${requestId}] User not admin. Role: ${roleData?.role || 'none'}, User: ${user.email}`);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Administrator access required',
+          userRole: roleData?.role || 'none',
+          userId: user.id
+        }),
+        { 
+          status: 403, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
+
+    console.log(`[${requestId}] Admin verification successful - Role: ${roleData.role}`);
 
     // Parse request body
-    const { userId, role } = await req.json() as RoleUpdateRequest;
+    const body = await req.json();
+    const { userId, role } = body;
+
+    console.log(`[${requestId}] Request body:`, { userId, role });
 
     if (!userId || !role) {
-      throw new Error('Missing required fields');
+      return new Response(
+        JSON.stringify({ error: 'User ID and role are required' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    // Validate role is one of the expected values
+    // Validate role value
     const validRoles = ['administrator', 'skadeleder', 'servicemedarbejder'];
     if (!validRoles.includes(role)) {
-      throw new Error('Invalid role specified');
+      return new Response(
+        JSON.stringify({ error: 'Invalid role specified', validRoles }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    // Update user role in the database
-    const { error } = await supabase
+    console.log(`[${requestId}] Updating user ${userId} role to: ${role}`);
+
+    // Check if user exists first
+    const { data: targetUser, error: userCheckError } = await supabaseAdmin
+      .from('profiles')
+      .select('id, name, email')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (userCheckError) {
+      console.error(`[${requestId}] Error checking target user:`, userCheckError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to verify target user', details: userCheckError.message }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    if (!targetUser) {
+      console.error(`[${requestId}] Target user not found: ${userId}`);
+      return new Response(
+        JSON.stringify({ error: 'Target user not found' }),
+        { 
+          status: 404, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log(`[${requestId}] Target user found: ${targetUser.name} (${targetUser.email})`);
+
+    // Update user role using upsert to handle both insert and update cases
+    const { error: updateError } = await supabaseAdmin
       .from('user_roles')
-      .update({ role })
-      .eq('user_id', userId);
+      .upsert(
+        { 
+          user_id: userId, 
+          role: role,
+          updated_at: new Date().toISOString() 
+        },
+        { 
+          onConflict: 'user_id'
+        }
+      );
 
-    if (error) {
-      throw error;
+    if (updateError) {
+      console.error(`[${requestId}] Failed to update user role:`, updateError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to update user role', details: updateError.message }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        },
-        status: 200,
-      }
-    );
-  } catch (error) {
-    console.error('User role update error:', error.message);
+    console.log(`[${requestId}] User role updated successfully: ${targetUser.name} -> ${role}`);
+
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'An unexpected error occurred'
+        success: true,
+        message: 'User role updated successfully',
+        user: {
+          id: targetUser.id,
+          name: targetUser.name,
+          email: targetUser.email,
+          newRole: role
+        }
       }),
-      {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        },
-        status: 400,
+      { 
+        status: 200, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
+
+  } catch (error) {
+    console.error(`[${requestId}] Unexpected error:`, error);
+    return new Response(
+      JSON.stringify({ 
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        requestId
+      }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
   }

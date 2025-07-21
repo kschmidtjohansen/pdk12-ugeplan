@@ -5,9 +5,9 @@ export interface Car {
   car_number: string;
   number_plate: string;
   fuel_card_code: string;
-  has_trailer_hitch?: boolean;
   is_available: boolean;
-  notes?: string | null;
+  has_trailer_hitch?: boolean;
+  notes?: string;
   created_at?: string;
   updated_at?: string;
 }

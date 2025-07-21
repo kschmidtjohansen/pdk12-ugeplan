@@ -42,7 +42,7 @@ export const useVacationApprovalActions = (
       // Show success toast
       toast({
         title: t('vacation.requestApproved'),
-        description: t('vacation.requestApprovedMsg', { name: vacation.employeeName }),
+        description: t('vacation.requestApprovedMsg', { name: vacation.user?.name || 'Unknown' }),
       });
       
       // Notify the employee
@@ -51,7 +51,7 @@ export const useVacationApprovalActions = (
         title: t('vacation.vacationApproved'),
         message: t('vacation.yourRequestApproved'),
         link: '/vacation',
-        targetUserId: vacation.employeeId
+        targetUserId: vacation.user_id
       });
       
       return true;
@@ -93,7 +93,7 @@ export const useVacationApprovalActions = (
       // Show success toast
       toast({
         title: t('vacation.requestRejected'),
-        description: t('vacation.requestRejectedMsg', { name: vacation.employeeName }),
+        description: t('vacation.requestRejectedMsg', { name: vacation.user?.name || 'Unknown' }),
       });
       
       // Notify the employee
@@ -102,7 +102,7 @@ export const useVacationApprovalActions = (
         title: t('vacation.vacationStatusChanged'),
         message: t('vacation.yourRequestRejected', { reason: reason }),
         link: '/vacation',
-        targetUserId: vacation.employeeId
+        targetUserId: vacation.user_id
       });
       
       return true;
@@ -125,4 +125,3 @@ export const useVacationApprovalActions = (
     rejectVacation
   };
 };
-

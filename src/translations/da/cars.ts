@@ -2,35 +2,75 @@
 const cars = {
   title: 'Biler',
   description: 'Afdelingens køretøjer og deres detaljer',
-  addVehicle: 'Tilføj Køretøj',
+  pageDescription: 'Administrer afdelingens køretøjer og deres tilgængelighed',
+  addVehicle: 'Tilføj køretøj',
+  addCar: 'Tilføj bil',
+  addNewCar: 'Tilføj ny bil',
+  editCar: 'Rediger bil',
+  editVehicle: 'Rediger køretøj',
+  deleteCar: 'Slet bil',
+  carName: 'Bilnavn',
   vehicleName: 'Køretøjsnavn',
+  carModel: 'Bilmodel',
   carNumber: 'Bilnummer',
+  licensePlate: 'Nummerplade',
   numberPlate: 'Nummerplade',
-  fuelCardCode: 'Tankkort kode',
-  editVehicle: 'Rediger Køretøj',
-  addNewVehicle: 'Tilføj Nyt Køretøj',
-  updateVehicleInfo: 'Opdater køretøjsoplysninger.',
+  fuelCardCode: 'Tankkortskode',
+  addNewVehicle: 'Tilføj nyt køretøj',
+  updateVehicleInfo: 'Opdater køretøjsinformation.',
   addNewVehicleDesc: 'Tilføj et nyt køretøj til afdelingen.',
-  vehicleUpdated: 'Køretøj opdateret',
-  vehicleAdded: 'Køretøj tilføjet',
-  vehicleDeleted: 'Køretøj slettet',
-  vehicleUpdatedMsg: '{name}\'s oplysninger er blevet opdateret.',
-  vehicleAddedMsg: '{name} er blevet tilføjet til afdelingen.',
-  vehicleDeletedMsg: '{name} er blevet fjernet fra afdelingen.',
+  
+  // Car selection and status
+  selectCar: 'Vælg bil',
+  noCar: 'Ingen bil',
+  removeCar: 'Fjern bil',
+  available: 'Tilgængelig',
+  unavailable: 'Ikke tilgængelig',
+  inUse: 'I brug til {time}',
+  inUseFullDay: 'I brug hele dagen',
+  
+  // Vehicle features
   hasTrailerHitch: 'Har anhængertræk',
   isAvailable: 'Er tilgængelig',
+  
+  // Actions
   markAvailable: 'Marker som tilgængelig',
-  markUnavailable: 'Marker som utilgængelig',
+  markUnavailable: 'Marker som ikke tilgængelig',
+  
+  // Status messages
   vehicleAvailable: 'Køretøj tilgængeligt',
-  vehicleUnavailable: 'Køretøj utilgængeligt',
+  vehicleUnavailable: 'Køretøj ikke tilgængeligt',
   vehicleAvailableMsg: '{name} er nu markeret som tilgængelig.',
-  vehicleUnavailableMsg: '{name} er nu markeret som utilgængelig.',
-  unavailabilityReason: 'Angiv venligst en årsag til hvorfor dette køretøj er utilgængeligt',
+  vehicleUnavailableMsg: '{name} er nu markeret som ikke tilgængelig.',
+  
+  // Notes and reasons
+  unavailabilityReason: 'Angiv venligst en grund til, at dette køretøj ikke er tilgængeligt',
   enterNote: 'Indtast note...',
   keepNoteQuestion: 'Vil du beholde eller slette noten for dette køretøj?',
   keepNote: 'Behold note',
   deleteNote: 'Slet note',
-  notes: 'Noter'
+  notes: 'Noter',
+  notesFeatureUnavailable: 'Notefunktionen er endnu ikke fuldt tilgængelig. Tilgængelighedsstatus er blevet opdateret.',
+  
+  // Messages
+  carAdded: 'Bil tilføjet',
+  carUpdated: 'Bil opdateret',
+  carDeleted: 'Bil slettet',
+  vehicleUpdated: 'Køretøj opdateret',
+  vehicleAdded: 'Køretøj tilføjet',
+  vehicleDeleted: 'Køretøj slettet',
+  vehicleUpdatedMsg: '{name}s information er blevet opdateret.',
+  vehicleAddedMsg: '{name} er blevet tilføjet til afdelingen.',
+  vehicleDeletedMsg: '{name} er blevet fjernet fra afdelingen.',
+  vehicleDeletedWithCleanup: '{name} er blevet fjernet fra afdelingen og {count} opgaver er blevet opdateret.',
+  
+  // Error messages
+  errorAddingCar: 'Fejl ved tilføjelse af bil',
+  errorUpdatingCar: 'Fejl ved opdatering af bil',
+  errorDeletingCar: 'Fejl ved sletning af bil',
+  cannotDeleteCarInUse: 'Kan ikke slette køretøj',
+  cannotDeleteCarInUseDesc: 'Dette køretøj kan ikke slettes, fordi det er tildelt en eller flere opgaver. Fjern det fra alle opgaver først eller marker det som ikke tilgængeligt i stedet.',
+  deleteError: 'Kunne ikke slette køretøj. Prøv igen.'
 };
 
 export default cars;

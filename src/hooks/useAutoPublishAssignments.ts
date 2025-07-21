@@ -1,30 +1,18 @@
 
 import { useEffect, useState, useRef } from 'react';
-import { useAssignments } from './useAssignments';
-import { useAssignmentPublishing } from './useAssignmentPublishing';
+import { useOptimizedAssignments } from './useOptimizedAssignments';
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
-import { Assignment } from '@/types/assignment';
 
 export const useAutoPublishAssignments = () => {
-  const { assignments, loading, updateAssignment: originalUpdateAssignment } = useAssignments();
+  // FIXED: Use the correct filter for auto-publish functionality
+  const { assignments, loading, publishAssignmentsByDate } = useOptimizedAssignments('unpublished');
   const { toast } = useToast();
   const { t } = useTranslation();
   const [lastPublishedDate, setLastPublishedDate] = useState<string | null>(null);
   const publishTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const publishingRef = useRef(false);
-  
-  // Create an adapter function that converts the original updateAssignment to the format expected by useAssignmentPublishing
-  const updateAssignmentAdapter = (assignment: Assignment): Promise<boolean> => {
-    return originalUpdateAssignment(assignment.id, assignment);
-  };
-  
-  // Create publishAssignments function from the publishing hook using our adapter
-  const { publishAssignmentsByDate } = useAssignmentPublishing(
-    assignments || [], 
-    updateAssignmentAdapter
-  );
 
   // Function to check if it's time to publish
   const checkAndPublish = async () => {
@@ -42,8 +30,6 @@ export const useAutoPublishAssignments = () => {
       if ((currentHour === 16 && currentMinute === 0) || 
           (currentHour > 16 && lastPublishedDate !== currentDate)) {
         
-        console.log('Auto-publish: It\'s 16:00 or later, checking for unpublished assignments');
-        
         // Mark as currently publishing to prevent duplicate calls
         publishingRef.current = true;
         
@@ -53,8 +39,6 @@ export const useAutoPublishAssignments = () => {
         ) || [];
         
         if (unpublishedAssignments.length > 0) {
-          console.log(`Auto-publish: Found ${unpublishedAssignments.length} unpublished assignments for today`);
-          
           // Publish all unpublished assignments for today
           await publishAssignmentsByDate(currentDate);
           
@@ -68,10 +52,6 @@ export const useAutoPublishAssignments = () => {
               count: unpublishedAssignments.length 
             }),
           });
-          
-          console.log('Auto-publish: Successfully published assignments for today');
-        } else {
-          console.log('Auto-publish: No unpublished assignments found for today');
         }
       }
     } catch (err) {

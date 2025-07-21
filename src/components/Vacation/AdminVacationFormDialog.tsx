@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { 
   Select,
   SelectContent,
@@ -20,6 +22,7 @@ import {
 import { DateRange } from 'react-day-picker';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
+import { VacationRequestType } from '@/types/vacation';
 import VacationDateSelector from './VacationDateSelector';
 import SeparateVacationDateFields from './SeparateVacationDateFields';
 import { Textarea } from '@/components/ui/textarea';
@@ -42,6 +45,13 @@ interface AdminVacationFormDialogProps {
   onStartDateChange: (date: Date | undefined) => void;
   onEndDateChange: (date: Date | undefined) => void;
   useSeparateDateFields?: boolean;
+  // New props for request type and times
+  requestType: VacationRequestType;
+  setRequestType: (type: VacationRequestType) => void;
+  startTime: string;
+  setStartTime: (time: string) => void;
+  endTime: string;
+  setEndTime: (time: string) => void;
 }
 
 const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
@@ -59,7 +69,14 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
   endDate,
   onStartDateChange,
   onEndDateChange,
-  useSeparateDateFields = true
+  useSeparateDateFields = true,
+  // New props for request type and times
+  requestType,
+  setRequestType,
+  startTime,
+  setStartTime,
+  endTime,
+  setEndTime
 }) => {
   const { t } = useTranslation();
   const { employees } = useEmployees();
@@ -79,6 +96,21 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
     }
   }, [employees, user?.id, selectedEmployeeId, setSelectedEmployeeId]);
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate partial day times
+    if (requestType === 'partial_day' && (!startTime || !endTime)) {
+      return;
+    }
+    
+    if (requestType === 'partial_day' && startTime >= endTime) {
+      return;
+    }
+    
+    onSubmit(e);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -89,7 +121,7 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>{t("vacation.selectEmployee")}</Label>
             <Select
@@ -108,6 +140,32 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
               </SelectContent>
             </Select>
           </div>
+
+          {/* Request Type Selection */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">{t('vacation.requestType')}</Label>
+            <RadioGroup 
+              value={requestType} 
+              onValueChange={(value) => setRequestType(value as VacationRequestType)}
+              className="space-y-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="full_day" id="admin_full_day" />
+                <Label htmlFor="admin_full_day" className="cursor-pointer">
+                  {t('vacation.fullDay')}
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="partial_day" id="admin_partial_day" />
+                <Label htmlFor="admin_partial_day" className="cursor-pointer">
+                  {t('vacation.partialDay')}
+                </Label>
+              </div>
+            </RadioGroup>
+            <p className="text-sm text-muted-foreground">
+              {requestType === 'full_day' ? t('vacation.fullDayDescription') : t('vacation.partialDayDescription')}
+            </p>
+          </div>
           
           <div className="space-y-2">
             <Label>{t("vacation.dateRange")}</Label>
@@ -122,6 +180,38 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
               <VacationDateSelector date={date} setDate={setDate} />
             )}
           </div>
+
+          {/* Time Selection for Partial Days */}
+          {requestType === 'partial_day' && (
+            <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+              <Label className="text-sm font-medium">{t('vacation.workingHours')}</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="admin_startTime">{t('vacation.startTime')}</Label>
+                  <Input
+                    id="admin_startTime"
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="admin_endTime">{t('vacation.endTime')}</Label>
+                  <Input
+                    id="admin_endTime"
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              {startTime && endTime && startTime >= endTime && (
+                <p className="text-sm text-destructive">{t('vacation.invalidTimeRange')}</p>
+              )}
+            </div>
+          )}
           
           <div className="space-y-2">
             <Label htmlFor="reason">{t("vacation.reason")}</Label>
@@ -138,7 +228,11 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t("common.cancel")}
             </Button>
-            <Button type="submit" className="bg-polygon-purple hover:bg-polygon-darkpurple">
+            <Button 
+              type="submit" 
+              className="bg-polygon-purple hover:bg-polygon-darkpurple"
+              disabled={requestType === 'partial_day' && (!startTime || !endTime || startTime >= endTime)}
+            >
               {t("vacation.submitRequest")}
             </Button>
           </DialogFooter>

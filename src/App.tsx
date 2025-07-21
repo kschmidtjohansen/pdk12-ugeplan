@@ -1,71 +1,90 @@
 
-import React, { useState, useEffect } from 'react';
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate
-} from "react-router-dom";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from "@/components/ui/sonner"
-
-import { useAuth } from './context/AuthContext';
-import { ThemeProvider } from "./components/theme-provider"
-
-import MainLayout from './components/Layout/MainLayout';
-import LoginPage from './pages/LoginPage';
-import Index from './pages/Index'; 
-import DashboardPage from './pages/DashboardPage';
-import PlannerPage from './pages/PlannerPage';
-import EmployeesPage from './pages/EmployeesPage';
-import CarsPage from './pages/CarsPage';
-import VacationPage from './pages/VacationPage';
-import AdminPage from './pages/AdminPage';
-import AutoPublishContainer from './components/AutoPublish/AutoPublishContainer';
-import PasswordResetPage from './pages/PasswordResetPage';
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "./components/theme-provider";
+import { SecurityProvider } from "./context/SecurityContext";
+import { AuthProvider } from "./context/AuthContext";
+import { TranslationProvider, useTranslation } from "./context/TranslationContext";
+import { NotificationProvider } from "./context/NotificationContext";
+import Index from "./pages/Index";
+import LoginPage from "./pages/LoginPage";
+import DashboardPage from "./pages/DashboardPage";
+import PlannerPage from "./pages/PlannerPage";
+import EmployeesPage from "./pages/EmployeesPage";
+import CarsPage from "./pages/CarsPage";
+import VacationPage from "./pages/VacationPage";
+import AdminPage from "./pages/AdminPage";
+import PasswordResetPage from "./pages/PasswordResetPage";
+import ScreenDisplayPage from "./pages/ScreenDisplayPage";
+import NotFound from "./pages/NotFound";
+import MainLayout from "./components/Layout/MainLayout";
 
 const queryClient = new QueryClient();
 
-function App() {
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      setLoading(false);
-    };
-    checkAuth();
-  }, [user]);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
+const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <Router>
-          <Toaster />
-          <AutoPublishContainer userId={user?.id} />
-          <Routes>
-            <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
-            {/* Password reset routes - both paths are accessible without authentication */}
-            <Route path="/password-reset" element={<PasswordResetPage />} />
-            <Route path="/reset-password" element={<PasswordResetPage />} />
-            {/* Use the Index component for the root path instead of directly rendering DashboardPage */}
-            <Route path="/" element={user ? <Index /> : <Navigate to="/login" />} />
-            <Route path="/dashboard" element={user ? <MainLayout><DashboardPage /></MainLayout> : <Navigate to="/login" />} />
-            <Route path="/planner" element={user ? <MainLayout><PlannerPage /></MainLayout> : <Navigate to="/login" />} />
-            <Route path="/employees" element={user ? <MainLayout><EmployeesPage /></MainLayout> : <Navigate to="/login" />} />
-            <Route path="/cars" element={user ? <MainLayout><CarsPage /></MainLayout> : <Navigate to="/login" />} />
-            <Route path="/vacation" element={user ? <MainLayout><VacationPage /></MainLayout> : <Navigate to="/login" />} />
-            <Route path="/admin" element={(user?.role === 'administrator' || user?.role === 'superadmin') ? <MainLayout><AdminPage /></MainLayout> : user ? <Navigate to="/" /> : <Navigate to="/login" />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </Router>
+      <ThemeProvider defaultTheme="light" storageKey="ui-theme">
+        <TranslationProvider>
+          <AppContent />
+        </TranslationProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
-}
+};
+
+const AppContent = () => {
+  const { isInitialized } = useTranslation();
+  
+  // Don't render routes until translation is initialized
+  if (!isInitialized) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <SecurityProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <TooltipProvider>
+            <BrowserRouter>
+              <Sonner />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                
+                {/* Authentication routes */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/password-reset" element={<PasswordResetPage />} />
+                
+                {/* Protected routes wrapped in MainLayout */}
+                <Route path="/dashboard" element={<MainLayout><DashboardPage /></MainLayout>} />
+                <Route path="/planner" element={<MainLayout><PlannerPage /></MainLayout>} />
+                <Route path="/planner/:assignmentId" element={<MainLayout><PlannerPage /></MainLayout>} />
+                <Route path="/employees" element={<MainLayout><EmployeesPage /></MainLayout>} />
+                <Route path="/cars" element={<MainLayout><CarsPage /></MainLayout>} />
+                <Route path="/vacation" element={<MainLayout><VacationPage /></MainLayout>} />
+                <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />
+                
+                {/* Special routes */}
+                <Route path="/screen-display" element={<ScreenDisplayPage />} />
+                
+                {/* Catch all other routes */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </NotificationProvider>
+      </AuthProvider>
+    </SecurityProvider>
+  );
+};
 
 export default App;

@@ -1,46 +1,78 @@
 
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
-import { LogIn } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { SecurityHeaders } from '@/components/Auth/SecurityHeaders';
+import { SecurityErrorBoundary } from '@/components/Layout/SecurityErrorBoundary';
 import TopNavbar from './TopNavbar';
 
-const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  const { t } = useTranslation();
-  const navigate = useNavigate();
+interface MainLayoutProps {
+  children: React.ReactNode;
+}
+
+const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
+  const { t, isInitialized } = useTranslation();
+
+  console.log('[MainLayout] Render - path:', location.pathname, 'isAuthenticated:', isAuthenticated, 'loading:', loading, 'translationInitialized:', isInitialized);
 
   // Don't show layout for login page or password reset page
   if (location.pathname === "/login" || location.pathname === "/password-reset") {
-    return <>{children}</>;
-  }
-
-  if (!isAuthenticated) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-polygon-lightgray">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">{t('accessDenied.title')}</h1>
-          <p className="mb-4">{t('accessDenied.message')}</p>
-          <Button onClick={() => navigate('/login')}>
-            <LogIn className="mr-2 h-4 w-4" /> {t('common.login')}
-          </Button>
-        </div>
-      </div>
+      <SecurityErrorBoundary>
+        <SecurityHeaders />
+        {children}
+      </SecurityErrorBoundary>
     );
   }
 
+  // Show loading state if translation is not initialized or auth is loading
+  if (loading || !isInitialized) {
+    return (
+      <SecurityErrorBoundary>
+        <SecurityHeaders />
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </SecurityErrorBoundary>
+    );
+  }
+
+  // If not authenticated, show simple redirect message
+  if (!isAuthenticated) {
+    return (
+      <SecurityErrorBoundary>
+        <SecurityHeaders />
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="text-center">
+            <p className="text-muted-foreground">Redirecting to login...</p>
+          </div>
+        </div>
+      </SecurityErrorBoundary>
+    );
+  }
+
+  // Show main layout for authenticated users
   return (
-    <div className="flex flex-col min-h-screen w-full bg-polygon-lightgray">
-      <TopNavbar />
-      
-      {/* Main Content - Adjusted to ensure full width and proper padding for navbar */}
-      <main className="flex-1 page-container w-full max-w-full mt-16 px-4 pt-6">
-        {children}
-      </main>
-    </div>
+    <SecurityErrorBoundary>
+      <SecurityHeaders />
+      <div className="flex flex-col min-h-screen w-full">
+        <TopNavbar />
+        
+        <main className="flex-1 w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 pt-20">
+          <div className="animate-fade-in-up w-full">
+            <SecurityErrorBoundary>
+              {children}
+            </SecurityErrorBoundary>
+          </div>
+        </main>
+      </div>
+    </SecurityErrorBoundary>
   );
 };
 

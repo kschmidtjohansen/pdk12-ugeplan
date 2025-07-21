@@ -1,47 +1,107 @@
 
 const employees = {
   title: 'Medarbejdere',
-  description: 'Afdelingens medarbejdere og deres roller',
-  addEmployee: 'Tilføj Medarbejder',
+  description: 'Administrer medarbejdere og deres tilgængelighed',
+  
+  // Basic employee information
   name: 'Navn',
   email: 'Email',
   phone: 'Telefon',
-  jobTitle: 'Stilling',
   role: 'Rolle',
   actions: 'Handlinger',
-  contactInfo: 'Kontaktoplysninger',
-  editEmployee: 'Rediger Medarbejder',
-  addNewEmployee: 'Tilføj Ny Medarbejder',
-  updateInfo: 'Opdater medarbejderoplysninger.',
-  createAccount: 'Tilføj en ny medarbejder til afdelingen.',
-  fullName: 'Fulde Navn',
-  employeeUpdated: 'Medarbejder opdateret',
-  employeeAdded: 'Medarbejder tilføjet',
-  employeeDeleted: 'Medarbejder slettet',
-  employeeUpdatedMsg: '{name}\'s oplysninger er blevet opdateret.',
-  employeeAddedMsg: '{name} er blevet tilføjet til afdelingen.',
-  employeeDeletedMsg: '{name}\'s konto er blevet fjernet.',
-  deleteConfirm: 'Er du sikker?',
-  deleteWarning: 'Du er ved at slette {name}\'s konto. Denne handling kan ikke fortrydes.',
-  onLeave: 'Fraværende',
-  markOnLeave: 'Marker som på fraværende',
-  markAvailable: 'Marker som tilgængelig',
-  employeeOnLeave: 'Medarbejder markeret fraværende',
-  employeeAvailable: 'Medarbejder markeret tilgængelig',
-  employeeOnLeaveMsg: '{name} er nu markeret som fraværende.',
-  employeeAvailableMsg: '{name} er nu markeret som tilgængelig.',
+  jobTitle: 'Job titel',
+  
+  // Employee roles - STANDARDIZED: Use admin.roles instead
+  administrator: 'Administrator',
+  skadeleder: 'Skadeleder',
+  servicemedarbejder: 'Servicemedarbejder',
+  user: 'Bruger',
+  
+  // Employee status - STANDARDIZED SECTION
+  available: 'Tilgængelig',
+  unavailable: 'Ikke tilgængelig',
+  onLeave: 'På orlov',
+  onVacation: 'På ferie',
+  availableAfter: 'Tilgængelig efter {time}',
+  fullyBooked: 'Fuldt booket',
+  status: 'Status', // This fixes the "employees.status = Status" issue
+  
+  // Status
+  statusOptions: {
+    available: 'Tilgængelig',
+    unavailable: 'Ikke tilgængelig',
+    partiallyAvailable: 'Delvis tilgængelig',
+    onVacation: 'På ferie',
+    onLeave: 'På orlov',
+    fullyBooked: 'Fuldt booket',
+    unknown: 'Ukendt status'
+  },
+  
+  // Missing translation keys - ADD THESE
+  addNewEmployee: 'Tilføj ny medarbejder',
+  createAccount: 'Opret konto',
+  fullName: 'Fulde navn',
   notes: 'Noter',
-  notesPlaceholder: 'Tilføj noter om denne medarbejder...',
-  viewNotes: 'Se noter',
-  viewNotesOnly: 'Du kan se men ikke redigere noter',
-  employee: 'Medarbejder',
-  markOnLeaveTitle: 'Marker som fraværende',
-  markOnLeaveDescription: 'Indtast en grund til {name}\'s fravær. Dette vil være synligt for administratorer og afdelingsledere.',
-  markAvailableTitle: 'Marker som tilgængelig',
-  markAvailableDescription: 'Vil du beholde eller fjerne noterne for {name}?',
-  keepNote: 'Behold noter',
-  removeNote: 'Fjern noter',
-  updateError: 'Der opstod en fejl under opdatering af medarbejderens status.'
+  password: 'Adgangskode',
+
+  
+  // Actions
+  add: 'Tilføj medarbejder',
+  addEmployee: 'Tilføj medarbejder',
+  edit: 'Rediger medarbejder',
+  delete: 'Slet medarbejder',
+  markAvailable: 'Marker som tilgængelig',
+  markOnLeave: 'Marker som på orlov',
+  
+  // Form fields
+  firstName: 'Fornavn',
+  lastName: 'Efternavn',
+  emailAddress: 'Email adresse',
+  phoneNumber: 'Telefonnummer',
+  selectRole: 'Vælg rolle',
+  selectEmployees: 'Vælg medarbejdere',
+  selected: 'valgte medarbejdere',
+  
+  // Contact information
+  contact: 'Kontaktinformationer',
+  
+  // Messages
+  employeeAdded: 'Medarbejder tilføjet',
+  employeeUpdated: 'Medarbejder opdateret',
+  employeeDeleted: 'Medarbejder slettet',
+  statusUpdated: 'Status opdateret',
+  autoRemovedUnavailable: 'Automatisk fjernet utilgængelige medarbejdere',
+  
+  // Error messages
+  addError: 'Fejl ved tilføjelse af medarbejder',
+  updateError: 'Fejl ved opdatering af medarbejder',
+  deleteError: 'Fejl ved sletning af medarbejder',
+  fetchError: 'Fejl ved indlæsning af medarbejdere',
+  
+  // Confirmation dialogs
+  deleteConfirm: 'Slet medarbejder',
+  deleteWarning: 'Er du sikker på, at du vil slette denne medarbejder?',
+  
+  // Empty states
+  noEmployees: 'Ingen medarbejdere fundet',
+  noResponsibleUsersFound: 'Ingen sagsansvarlige fundet',
+  addFirst: 'Tilføj din første medarbejder',
+  
+  // Validation
+  nameRequired: 'Navn er påkrævet',
+  emailRequired: 'Email er påkrævet',
+  emailInvalid: 'Ugyldig email adresse',
+  phoneRequired: 'Telefonnummer er påkrævet',
+  roleRequired: 'Rolle er påkrævet',
+  
+  // Additional message translations
+  employeeAddedMsg: 'Medarbejder {name} tilføjet med rolle {role}',
+  employeeUpdateMsg: 'Medarbejder {name} blev opdateret',
+  employeeDeletedMsg: 'Medarbejder {name} blev slettet',
+  employeeOnLeave: 'Medarbejder sat på orlov',
+  employeeAvailable: 'Medarbejder markeret som tilgængelig',
+  employeeOnLeaveMsg: '{name} er nu på orlov',
+  employeeAvailableMsg: '{name} er nu tilgængelig'
 };
 
 export default employees;

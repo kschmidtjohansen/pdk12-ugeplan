@@ -1,13 +1,12 @@
 
 import { useState, useCallback } from 'react';
 import { NotificationType } from '@/types/notification';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { sortNotifications } from '@/utils/notifications';
-import { AppUser } from '@/context/AuthContext';
 
-export const useNotificationFetching = (user: AppUser | null) => {
+export const useNotificationFetching = (user: any | null) => {
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);

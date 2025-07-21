@@ -1,33 +1,67 @@
-import { useRef } from 'react';
+
+import { useCallback, useRef } from 'react';
+import { NotificationType } from '@/types/notification';
+import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useDepartment } from '@/context/DepartmentContext';
+import { sortNotifications } from '@/utils/notifications';
 
-interface NotificationData {
-  type: string;
-  title: string;
-  message: string;
-  link?: string;
-}
+// Key for localStorage to track notifications created across browser sessions
+const NOTIFICATION_CREATED_KEY = "polygon-notification-created";
 
-export const useNotificationCreate = () => {
-  const { currentDepartment } = useDepartment();
-  // Track created notifications to prevent duplicates
-  const createdNotificationsRef = useRef(new Set<string>());
+// Get previously created notification content hashes
+const getCreatedNotificationHashes = (): Set<string> => {
+  try {
+    const stored = localStorage.getItem(NOTIFICATION_CREATED_KEY);
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch (err) {
+    console.error("Error reading created notification history from localStorage:", err);
+    return new Set();
+  }
+};
 
-  const createNotification = async (
-    userId: string,
-    notification: NotificationData
-  ): Promise<any | null> => {
+// Save a notification content hash to localStorage
+const saveCreatedNotificationHash = (hash: string): void => {
+  try {
+    const hashes = getCreatedNotificationHashes();
+    hashes.add(hash);
+    localStorage.setItem(NOTIFICATION_CREATED_KEY, JSON.stringify(Array.from(hashes)));
+  } catch (err) {
+    console.error("Error saving notification hash to localStorage:", err);
+  }
+};
+
+// Generate a hash for notification content to identify duplicates
+const hashNotification = (notification: Omit<NotificationType, 'id' | 'read' | 'date'> & { targetUserId?: string }): string => {
+  const userId = notification.targetUserId || '';
+  return `${userId}:${notification.type}:${notification.title}:${notification.message || ''}`;
+};
+
+export const useNotificationCreate = (
+  user: any | null,
+  setNotifications: (notifications: NotificationType[] | ((prev: NotificationType[]) => NotificationType[])) => void,
+  setUnreadCount: (count: number | ((prev: number) => number)) => void
+) => {
+  const { toast } = useToast();
+  // Use localStorage-backed tracking to prevent duplicate creations
+  const createdNotificationsRef = useRef<Set<string>>(getCreatedNotificationHashes());
+
+  // Add a new notification
+  const addNotification = useCallback(async (
+    notification: Omit<NotificationType, 'id' | 'read' | 'date'> & { targetUserId?: string }
+  ) => {
+    if (!user) {
+      console.error('Cannot add notification: No authenticated user');
+      return null;
+    }
+    
     try {
-      if (!currentDepartment) {
-        console.error('No current department available for notification');
-        return null;
-      }
-
-      // Create a hash to track similar notifications
-      const notificationHash = `${userId}-${notification.type}-${notification.title}-${notification.message}`;
+      // Use the provided target user ID or the current user's ID
+      const userId = notification.targetUserId || user.id;
       
-      // Check if we already created this notification in this session
+      // Generate a content hash to identify duplicates
+      const notificationHash = hashNotification(notification);
+      
+      // Check if we've already created this notification
       if (createdNotificationsRef.current.has(notificationHash)) {
         console.log('Similar notification already created, skipping:', notification);
         return null;
@@ -43,83 +77,73 @@ export const useNotificationCreate = () => {
             type: notification.type,
             title: notification.title,
             message: notification.message,
-            link: notification.link || '',
-            read: false,
-            department_id: currentDepartment.id,
+            link: notification.link,
+            read: false
           }
         ])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating notification:', error);
-        throw error;
-      }
-
-      // Mark this notification as created
-      createdNotificationsRef.current.add(notificationHash);
+        .select();
       
-      // Clean up old hashes periodically to prevent memory leaks
-      if (createdNotificationsRef.current.size > 1000) {
-        createdNotificationsRef.current.clear();
+      if (error) {
+        // Specific handling for RLS policy violations
+        if (error.message?.includes('violates row-level security policy')) {
+          console.error('Permission denied: You do not have permission to create notifications for this user.');
+          console.log('This is likely due to RLS policies. Please check that you have the correct permissions.');
+          
+          // Only show toast for user-facing operations, not background processes
+          if (!notification.targetUserId || notification.targetUserId === user.id) {
+            toast({
+              title: "Permission denied",
+              description: "You don't have permission to create notifications for this user.",
+              variant: "destructive"
+            });
+          }
+          return null;
+        } else {
+          console.error('Error inserting notification:', error);
+        }
+        return null;
       }
-
-      console.log(`Successfully created notification for user ${userId}:`, data);
-      return data;
-    } catch (error) {
-      console.error('Error in createNotification:', error);
+      
+      console.log('Notification created successfully:', data);
+      
+      // Track that we've created this notification
+      createdNotificationsRef.current.add(notificationHash);
+      saveCreatedNotificationHash(notificationHash);
+      
+      // If notification is for the current user, update local state
+      if (userId === user.id && data && data[0]) {
+        const notificationId = data[0].id;
+        const newNotification: NotificationType = {
+          id: notificationId,
+          type: data[0].type,
+          title: data[0].title,
+          message: data[0].message,
+          link: data[0].link || undefined,
+          read: false,
+          date: new Date(data[0].created_at)
+        };
+        
+        // Add to notifications and resort
+        setNotifications((prev: NotificationType[]) => {
+          const updated = [...prev, newNotification];
+          updated.sort(sortNotifications);
+          return updated;
+        });
+        
+        // Increment unread count
+        setUnreadCount((prev: number) => prev + 1);
+        
+        // Toast will be handled by the realtime subscription
+      }
+      
+      return data?.[0]?.id;
+    } catch (err) {
+      console.error('Error adding notification:', err);
       return null;
     }
-  };
-
-  const createBulkNotifications = async (
-    userIds: string[],
-    notification: NotificationData
-  ): Promise<any[]> => {
-    try {
-      if (!currentDepartment) {
-        console.error('No current department available for bulk notifications');
-        return [];
-      }
-
-      console.log(`Creating bulk notifications for ${userIds.length} users:`, notification);
-      
-      const notificationData = userIds.map(userId => ({
-        user_id: userId,
-        type: notification.type,
-        title: notification.title,
-        message: notification.message,
-        link: notification.link || '',
-        read: false,
-        department_id: currentDepartment.id,
-      }));
-
-      const { data, error } = await supabase
-        .from('notifications')
-        .insert(notificationData)
-        .select();
-
-      if (error) {
-        console.error('Error creating bulk notifications:', error);
-        throw error;
-      }
-
-      console.log(`Successfully created ${data?.length || 0} bulk notifications`);
-      return data || [];
-    } catch (error) {
-      console.error('Error in createBulkNotifications:', error);
-      return [];
-    }
-  };
-
-  // Clear the deduplication cache when needed
-  const clearCache = () => {
-    createdNotificationsRef.current.clear();
-  };
+  }, [user, toast, setNotifications, setUnreadCount]);
 
   return {
-    createNotification,
-    createBulkNotifications,
-    clearCache,
+    addNotification
   };
 };

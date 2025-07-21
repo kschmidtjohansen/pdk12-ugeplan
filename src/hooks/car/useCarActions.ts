@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from '@/components/ui/sonner';
 import { useTranslation } from '@/context/TranslationContext';
@@ -23,9 +22,88 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = async (forceDelete: boolean = false) => {
     if (currentCar) {
       try {
+        let assignmentsAffected = 0;
+
+        if (forceDelete) {
+          // First, clean up assignments that reference this car
+          console.log('Force deleting car - cleaning up assignments first');
+          
+          // Update assignments that have this car as the main car_id
+          const { data: mainCarAssignments, error: mainCarError } = await supabase
+            .from('assignments')
+            .update({ car_id: null })
+            .eq('car_id', currentCar.id)
+            .select('id');
+          
+          if (mainCarError) {
+            console.error('Error updating main car assignments:', mainCarError);
+            throw mainCarError;
+          }
+
+          if (mainCarAssignments) {
+            assignmentsAffected += mainCarAssignments.length;
+          }
+
+          // Update assignments that have this car in the car_ids array
+          const { data: multiCarAssignments, error: multiCarError } = await supabase
+            .from('assignments')
+            .select('id, car_ids')
+            .contains('car_ids', [currentCar.id]);
+          
+          if (multiCarError) {
+            console.error('Error fetching multi-car assignments:', multiCarError);
+            throw multiCarError;
+          }
+
+          if (multiCarAssignments && multiCarAssignments.length > 0) {
+            // Update each assignment to remove this car from car_ids array
+            for (const assignment of multiCarAssignments) {
+              if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
+                const updatedCarIds = assignment.car_ids.filter(id => id !== currentCar.id);
+                
+                const { error: updateError } = await supabase
+                  .from('assignments')
+                  .update({ car_ids: updatedCarIds.length > 0 ? updatedCarIds : null })
+                  .eq('id', assignment.id);
+                
+                if (updateError) {
+                  console.error('Error updating assignment car_ids:', updateError);
+                  throw updateError;
+                }
+                
+                assignmentsAffected++;
+              }
+            }
+          }
+
+          console.log(`Cleaned up ${assignmentsAffected} assignments`);
+        } else {
+          // Check if the car is referenced in any assignments (original logic)
+          const { data: assignments, error: checkError } = await supabase
+            .from('assignments')
+            .select('id')
+            .or(`car_id.eq.${currentCar.id},car_ids.cs.{${currentCar.id}}`)
+            .limit(1);
+          
+          if (checkError) {
+            console.error('Error checking car assignments:', checkError);
+            throw checkError;
+          }
+          
+          // If car is referenced in assignments, prevent deletion
+          if (assignments && assignments.length > 0) {
+            toast(t('cars.cannotDeleteCarInUse'), {
+              description: t('cars.cannotDeleteCarInUseDesc'),
+            });
+            setDeleteDialogOpen(false);
+            return;
+          }
+        }
+        
+        // Now delete the car
         const { error } = await supabase
           .from('cars')
           .delete()
@@ -35,14 +113,30 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         
         setCars(cars.filter(car => car.id !== currentCar.id));
         
+        const successMessage = forceDelete && assignmentsAffected > 0
+          ? t('cars.vehicleDeletedWithCleanup', { 
+              name: currentCar.name, 
+              count: assignmentsAffected 
+            })
+          : t('cars.vehicleDeletedMsg', { name: currentCar.name });
+        
         toast(t('cars.vehicleDeleted'), {
-          description: t('cars.vehicleDeletedMsg', { name: currentCar.name }),
+          description: successMessage,
         });
       } catch (err) {
         console.error('Error deleting car:', err);
-        toast(t('common.error'), {
-          description: err instanceof Error ? err.message : 'Error deleting vehicle',
-        });
+        
+        // Check if it's a foreign key constraint error
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        if (errorMessage.includes('foreign key') || errorMessage.includes('violates')) {
+          toast(t('cars.cannotDeleteCarInUse'), {
+            description: t('cars.cannotDeleteCarInUseDesc'),
+          });
+        } else {
+          toast(t('common.error'), {
+            description: t('cars.deleteError'),
+          });
+        }
       } finally {
         setDeleteDialogOpen(false);
       }
@@ -86,7 +180,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
   
   const updateAvailabilityStatus = async (car: CarData, isAvailable: boolean, notes: string | null) => {
     try {
-      console.log("Updating car availability:", {
+      console.log("[useCarActions] Updating car availability:", {
         car_id: car.id,
         is_available: isAvailable,
         notes: notes
@@ -97,15 +191,16 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         .from('cars')
         .update({ 
           is_available: isAvailable,
-          notes: notes 
+          notes: notes,
+          updated_at: new Date().toISOString()
         })
         .eq('id', car.id)
         .select();
       
-      console.log("Supabase response:", { error, data });
+      console.log("[useCarActions] Car update response:", { error, data });
       
       if (error) {
-        console.error("Error updating car:", error);
+        console.error("[useCarActions] Error updating car:", error);
         throw error;
       }
       

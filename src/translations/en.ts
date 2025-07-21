@@ -1,14 +1,21 @@
 
-import common from './en/common';
+import { common } from './en/common';
 import navigation from './en/navigation';
 import notifications from './en/notifications';
-import index from './en/index';
-import dashboard from './en/dashboard';
+import { dashboard } from './en/dashboard';
 import vacation from './en/vacation';
 import employees from './en/employees';
-import departments from './en/departments';
+import { profile } from './en/profile';
+import login from './en/login';
+import planner from './en/planner';
+import cars from './en/cars';
+import { admin } from './en/admin';
+import { auth } from './en/auth';
+import screenDisplay from './en/screenDisplay';
+import accessDenied from './en/accessDenied';
+import deleteConfirm from './en/deleteConfirm';
 
-const en = {
+const enTranslations = {
   // Common components
   common: {
     ...common,
@@ -16,24 +23,44 @@ const en = {
     no: 'No',
     week: 'Week',
     available: 'Available',
-    unavailable: 'Unavailable'
+    unavailable: 'Unavailable',
+    deleting: 'Deleting...',
+    lightMode: 'Light mode',
+    darkMode: 'Dark mode',
+    toggleTheme: 'Toggle theme',
+    today: 'Today',
+    tomorrow: 'Tomorrow'
   },
   // Navigation items
   navigation: navigation,
   // Notifications
   notifications: notifications,
-  // Index page
-  index: index,
   // Dashboard
   dashboard: dashboard,
   // Vacation
   vacation: vacation,
   // Employees
   employees: employees,
-  // Departments
-  departments: departments,
+  // Profile
+  profile: profile,
+  // Login
+  login: login,
+  // Planner
+  planner: planner,
+  // Cars
+  cars: cars,
+  // Admin
+  admin: admin,
+  // Auth
+  auth: auth,
+  // Screen Display
+  screenDisplay: screenDisplay,
+  // Access denied
+  accessDenied: accessDenied,
+  // Delete confirmations
+  deleteConfirm: deleteConfirm
 };
 
-export type EnTranslations = typeof en;
+export type EnTranslations = typeof enTranslations;
 
-export default en;
+export default enTranslations;

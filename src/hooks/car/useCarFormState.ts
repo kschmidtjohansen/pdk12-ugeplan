@@ -1,10 +1,8 @@
-import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { useState } from 'react';
+import { toast } from '@/components/ui/sonner';
 import { useTranslation } from '@/context/TranslationContext';
-import { useDepartment } from '@/context/DepartmentContext';
 import { CarData, CarFormData } from '@/components/Cars/types';
-import type { Car } from '@/types/car';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseCarFormStateProps {
   cars: CarData[];
@@ -12,6 +10,7 @@ interface UseCarFormStateProps {
   currentCar: CarData | null;
   setCurrentCar: React.Dispatch<React.SetStateAction<CarData | null>>;
   setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  createCar?: (carData: Partial<CarData>) => Promise<boolean>;
 }
 
 export const useCarFormState = ({ 
@@ -19,7 +18,8 @@ export const useCarFormState = ({
   setCars, 
   currentCar, 
   setCurrentCar, 
-  setDialogOpen 
+  setDialogOpen,
+  createCar
 }: UseCarFormStateProps) => {
   const [formData, setFormData] = useState<CarFormData>({
     name: '',
@@ -30,10 +30,7 @@ export const useCarFormState = ({
     is_available: true,
     notes: '',
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   const { t } = useTranslation();
-  const { currentDepartment } = useDepartment();
 
   const handleCreateNew = () => {
     setCurrentCar(null);
@@ -79,20 +76,11 @@ export const useCarFormState = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!currentDepartment) {
-      console.error('No current department available');
-      toast({
-        title: t('common.error'),
-        description: 'No department selected',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsLoading(true);
+    console.log('[useCarFormState] Form submitted with data:', { formData, currentCar });
     
     try {
       if (currentCar) {
+        console.log('[useCarFormState] Updating existing car:', currentCar.id);
         // Update existing car
         const { error } = await supabase
           .from('cars')
@@ -108,6 +96,7 @@ export const useCarFormState = ({
           })
           .eq('id', currentCar.id);
 
+        console.log('[useCarFormState] Car update response:', { error });
         if (error) throw error;
         
         // Update local state
@@ -117,58 +106,62 @@ export const useCarFormState = ({
           )
         );
         
-        toast({
-          title: t('cars.vehicleUpdated'),
+        toast(t('cars.vehicleUpdated'), {
           description: t('cars.vehicleUpdatedMsg', { name: formData.name }),
         });
       } else {
-        // Create new car
-        const { data, error } = await supabase
-          .from('cars')
-          .insert([
-            {
-              name: formData.name,
-              car_number: formData.car_number,
-              number_plate: formData.number_plate,
-              fuel_card_code: formData.fuel_card_code,
-              has_trailer_hitch: formData.has_trailer_hitch,
-              is_available: formData.is_available,
-              notes: formData.notes,
-              department_id: currentDepartment.id,
-            }
-          ])
-          .select();
+        console.log('[useCarFormState] Creating new car');
+        // Use the createCar function if available, otherwise fallback to direct insert
+        if (createCar) {
+          const success = await createCar(formData);
+          if (!success) {
+            throw new Error('Failed to create car using createCar function');
+          }
+        } else {
+          console.log('[useCarFormState] Using fallback direct insert');
+          // Create new car (fallback)
+          const { data, error } = await supabase
+            .from('cars')
+            .insert([
+              {
+                name: formData.name,
+                car_number: formData.car_number,
+                number_plate: formData.number_plate,
+                fuel_card_code: formData.fuel_card_code,
+                has_trailer_hitch: formData.has_trailer_hitch,
+                is_available: formData.is_available,
+                notes: formData.notes,
+              }
+            ])
+            .select();
 
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          // Add new car to local state
-          setCars([...cars, data[0]]);
+          console.log('[useCarFormState] Car creation response:', { data, error });
+          if (error) throw error;
           
-          toast({
-            title: t('cars.vehicleAdded'),
-            description: t('cars.vehicleAddedMsg', { name: formData.name }),
-          });
+          if (data && data.length > 0) {
+            // Add new car to local state
+            setCars([...cars, data[0]]);
+            
+            toast(t('cars.vehicleAdded'), {
+              description: t('cars.vehicleAddedMsg', { name: formData.name }),
+            });
+          }
         }
       }
       
+      console.log('[useCarFormState] Car operation successful, closing dialog');
       setDialogOpen(false);
     } catch (err) {
-      console.error('Error saving car:', err);
-      toast({
-        title: t('common.error'),
+      console.error('[useCarFormState] Error saving car:', err);
+      toast(t('common.error'), {
         description: err instanceof Error ? err.message : 'Error saving vehicle',
-        variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return {
     formData,
     setFormData,
-    isLoading,
     handleCreateNew,
     initFormWithCar,
     handleInputChange,

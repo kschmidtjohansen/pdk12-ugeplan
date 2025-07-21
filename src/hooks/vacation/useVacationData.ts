@@ -1,130 +1,183 @@
 
-import { useState, useEffect } from 'react';
-import { Vacation, VacationStatus } from '@/types/vacation';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { safeProperty } from '@/utils/dbHelpers';
+import { Vacation, VacationRequestType } from '@/types/vacation';
+import { logSecurityEvent, logSystemError } from '@/utils/securityLogger';
+import { useErrorRecovery } from '@/hooks/useErrorRecovery';
+import { enhancedDataFetching } from '@/services/enhancedDataFetching';
+import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
+import { realtimeManager } from '@/services/realtimeManager';
+import { DemoUserService } from '@/services/demoUserService';
+import { useAuth } from '@/context/AuthContext';
 
 export const useVacationData = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [vacations, setVacations] = useState<Vacation[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { executeWithRecovery } = useErrorRecovery();
+  
+  const demoService = DemoUserService.getInstance();
+  const isDemoUser = user ? demoService.isDemoUser(user.email) : false;
 
-  // Fetch vacations from Supabase
-  const fetchVacations = async () => {
+  const fetchVacations = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+
+      console.log('[useVacationData] Starting enhanced vacation fetch...');
+
+      // Use enhanced data fetching with better error handling
+      const vacationResult = await enhancedDataFetching.fetchVacationsEnhanced();
       
-      console.log('Fetching vacations...');
-      
-      // Get all vacations with employee names through an explicit join query
-      const { data, error } = await supabase
-        .from('vacations')
-        .select(`
-          id, 
-          user_id,
-          start_date,
-          end_date,
-          reason,
-          status,
-          notes,
-          created_at,
-          updated_at
-        `);
-      
-      if (error) throw error;
-      
-      if (data) {
-        console.log(`Fetched ${data.length} vacations`);
-        
-        // Get all user profiles in a separate query
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, name');
-          
-        if (profilesError) throw profilesError;
-        
-        // Create a map of user IDs to names
-        const profileMap = new Map();
-        profiles?.forEach(profile => {
-          profileMap.set(profile.id, profile.name);
-        });
-        
-        const formattedVacations: Vacation[] = data.map(item => ({
-          id: item.id,
-          employeeId: item.user_id,
-          employeeName: profileMap.get(item.user_id) || 'Unknown',
-          startDate: new Date(item.start_date),
-          endDate: new Date(item.end_date),
-          reason: item.reason || '',
-          status: item.status as VacationStatus,
-          notes: item.notes || '',
-          createdAt: new Date(item.created_at)
-        }));
-        
-        setVacations(formattedVacations);
+      if (vacationResult.error || !vacationResult.data) {
+        throw vacationResult.error || new Error('No vacation data received');
       }
-    } catch (err) {
-      console.error('Error fetching vacations:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch vacations');
-      toast({
-        title: t('common.error'),
-        description: t('vacation.fetchError'),
-        variant: 'destructive',
+
+      const vacationsData = vacationResult.data;
+      console.log(`[useVacationData] Fetched ${vacationsData.length} vacation records`);
+
+      // Fetch user profiles with enhanced error handling
+      const userIds = [...new Set(vacationsData.map(v => v.user_id).filter(id => typeof id === 'string'))] as string[];
+      
+      const profileResult = await enhancedDataFetching.fetchUserProfilesEnhanced(userIds);
+      
+      if (profileResult.error) {
+        console.warn('[useVacationData] Profile fetch failed, continuing with vacation data only:', profileResult.error);
+        // Log warning but don't fail the entire operation
+        await enhancedErrorHandler.logError(profileResult.error, {
+          operation: 'fetchUserProfilesForVacations',
+          userId: undefined,
+          retryCount: (profileResult as any).retryCount || 0,
+          additionalData: { userIdsCount: userIds.length }
+        });
+      }
+
+      // Transform the data to match our Vacation interface
+      const transformedVacations: Vacation[] = vacationsData.map(vacation => {
+        const userProfile = profileResult.data?.find(p => p.id === vacation.user_id);
+        
+        return {
+          id: vacation.id,
+          user_id: vacation.user_id,
+          start_date: vacation.start_date,
+          end_date: vacation.end_date,
+          request_type: (vacation.request_type as VacationRequestType) || 'full_day',
+          start_time: vacation.start_time || undefined,
+          end_time: vacation.end_time || undefined,
+          is_same_day: vacation.is_same_day ?? true,
+          status: vacation.status,
+          reason: vacation.reason || undefined,
+          notes: vacation.notes || undefined,
+          created_at: vacation.created_at,
+          updated_at: vacation.updated_at,
+          user: userProfile ? {
+            id: userProfile.id,
+            name: userProfile.name || 'Unknown',
+            email: userProfile.email || ''
+          } : undefined
+        };
       });
+
+      // DEMO USER FILTERING: Hide demo user vacations from non-demo users
+      let filteredVacations = transformedVacations;
+      if (!isDemoUser) {
+        filteredVacations = transformedVacations.filter(vacation => 
+          !vacation.user || !demoService.isDemoUser(vacation.user.email)
+        );
+        console.log(`[useVacationData] Filtered out demo user vacations. Showing ${filteredVacations.length} of ${transformedVacations.length} vacation records`);
+      } else {
+        console.log(`[useVacationData] Demo user logged in - showing all ${transformedVacations.length} vacation records including demo user`);
+      }
+
+      setVacations(filteredVacations);
+      console.log(`[useVacationData] Successfully processed ${filteredVacations.length} vacation records`);
+
+    } catch (err) {
+      console.error('[useVacationData] Error in fetchVacations:', err);
+      
+      // Enhanced error handling with proper serialization
+      const serializedError = enhancedErrorHandler.serializeError(err);
+      const category = enhancedErrorHandler.categorizeError(serializedError);
+      const userFriendlyMessage = enhancedErrorHandler.getUserFriendlyMessage(serializedError, category);
+      
+      setError(userFriendlyMessage);
+      
+      // Log error with enhanced context
+      await enhancedErrorHandler.logError(err, {
+        operation: 'fetchVacations',
+        additionalData: { 
+          context: 'useVacationData',
+          component: 'vacation_data_hook',
+          category
+        }
+      });
+      
+      // Only show toast for non-auth errors to avoid spam
+      if (category !== 'auth') {
+        toast({
+          title: t('common.error') || 'Error',
+          description: userFriendlyMessage,
+          variant: 'destructive',
+        });
+      }
+      
+      setVacations([]);
     } finally {
       setLoading(false);
     }
-  };
-  
+  }, [toast, t]);
+
   // Load vacations on component mount
   useEffect(() => {
     fetchVacations();
-  }, []);
-  
-  // Subscribe to vacation changes
+  }, [fetchVacations]);
+
+  // Use centralized realtime manager for vacation subscriptions
   useEffect(() => {
-    console.log('Setting up vacation realtime subscription...');
     
-    const channel = supabase
-      .channel('vacation_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
-          schema: 'public',
-          table: 'vacations'
-        },
-        (payload) => {
-          console.log('Received vacation change event:', payload.eventType, payload);
-          
-          // Use different strategies based on the event type
-          if (payload.eventType === 'DELETE') {
-            console.log('Vacation deleted:', payload.old.id);
-            // Remove the deleted vacation from the local state
-            setVacations(current => 
-              current.filter(v => v.id !== payload.old.id)
-            );
-          } else {
-            // For INSERT and UPDATE, refresh the entire list
-            // This ensures we get the correct employee names
-            fetchVacations();
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('Vacation realtime subscription status:', status);
-      });
+    
+    const subscriptionId = 'vacations_enhanced';
+    
+    const handleRealtimeUpdate = () => {
+      enhancedDataFetching.clearCache('vacations');
+      fetchVacations();
       
-    return () => {
-      console.log('Cleaning up vacation realtime subscription');
-      supabase.removeChannel(channel);
+      // Log realtime data changes for monitoring with enhanced logging
+      logSecurityEvent(
+        'vacation_realtime_change',
+        'Vacation change detected via centralized realtime manager',
+        { 
+          subscription_id: subscriptionId,
+          timestamp: new Date().toISOString(),
+          source: 'realtime_manager'
+        },
+        'info'
+      );
     };
-  }, []);
+
+    const subscription = realtimeManager.subscribe(
+      subscriptionId,
+      ['vacations'],
+      handleRealtimeUpdate
+    );
+
+    if (!subscription) {
+      const pollInterval = setInterval(() => {
+        fetchVacations();
+      }, 30000);
+      
+      return () => clearInterval(pollInterval);
+    }
+
+    return () => {
+      realtimeManager.unsubscribe(subscriptionId);
+    };
+  }, [fetchVacations]);
 
   return {
     vacations,

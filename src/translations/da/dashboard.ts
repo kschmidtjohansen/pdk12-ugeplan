@@ -1,76 +1,136 @@
 
-const dashboard = {
-  welcome: 'Velkommen, {name}',
-  today: 'I dag er det {date}, vi er i uge {week}',
-  quickAccess: {
+export const dashboard = {
+  welcome: "Velkommen tilbage",
+  subtitle: "Oversigt over dagens opgaver og aktiviteter",
+  quickAccess: "Hurtig adgang",
+  myTasks: "Mine Opgaver",
+  myAssignments: "Mine Opgaver",
+  noTasks: "Ingen opgaver",
+  noTasksDescription: "Du har ingen opgaver tildelt i øjeblikket.",
+  noAssignments: "Ingen opgaver",
+  noAssignmentsDescription: "Du har ingen opgaver tildelt i øjeblikket.",
+  noAssignmentsScheduled: "Ingen opgaver planlagt for denne uge.",
+  noUpcomingTasks: "Ingen kommende opgaver",
+  viewAllTasks: "Se alle opgaver",
+  weeklyOverview: "Ugeoversigt",
+  previousWeek: "Forrige uge",
+  nextWeek: "Næste uge",
+  currentWeek: "Nuværende uge",
+  resetToCurrentWeek: "Nulstil til nuværende uge",
+  connectionIssueDetected: "Forbindelsesproblemer registreret",
+  connectionIssueDescription: "Der kan være forbindelsesproblemer. Prøv at opdatere siden, hvis data ikke indlæses korrekt.",
+  
+  // Personal dashboard translations
+  thisWeek: "Denne uge",
+  today: "I dag",
+  completed: "Gennemført",
+  total: "I alt",
+  team: "Team",
+  assignmentsThisWeek: "opgaver denne uge",
+  totalAssignments: "opgaver i alt",
+  yourRole: "din rolle",
+  tasksToday: "opgaver i dag",
+  completedTasks: "afsluttede opgaver",
+  available: "Tilgængelig",
+  
+  // Welcome messages
+  welcomeUser: "Hej {name}! 👋",
+  welcomeBack: "Velkommen tilbage",
+  loadingDashboard: "Indlæser dashboard data",
+  initializingSystem: "Initialiserer system...",
+  
+  // Success messages
+  dataLoadedSuccessfully: "Dashboard Data Indlæst Med Succes! ✅",
+  dataLoadedDescription: "Alle data indlæses nu korrekt med optimeret databaseadgang.",
+  databaseFixApplied: "Database Fix Anvendt! 🔧",
+  databaseFixDescription: "Databasen er blevet opdateret og optimeret for bedre ydeevne.",
+  systemOptimized: "System Optimeret! ⚡",
+  systemOptimizedDescription: "Alle systemkomponenter kører nu optimalt.",
+  
+  // Operation states
+  publishing: "Publicerer...",
+  deleting: "Sletter...",
+  updating: "Opdaterer...",
+  processing: "Behandler...",
+  saving: "Gemmer...",
+  
+  // Placeholder messages
+  functionalityNotImplemented: "Funktionalitet endnu ikke implementeret",
+  featureComingSoon: "Denne funktion kommer snart",
+  developmentInProgress: "Udvikling i gang...",
+  
+  // Week navigation
+  week: "Uge",
+  
+  // View all
+  viewAll: "Se alle",
+  
+  // Quick Access translations - consolidated
+  quickAccessGrid: {
     planner: {
-      title: 'Ugeplan',
-      description: 'Se og administrer ugentlige opgaver'
+      title: "Ugeplan",
+      description: "Se opgaver for ugen"
     },
     vacation: {
-      title: 'Ferie',
-      description: 'Ansøg om eller administrer fridage'
+      title: "Fridage",
+      description: "Se og ønsk fridage"
     },
     employees: {
-      title: 'Medarbejdere',
-      description: 'Administrer afdelingens medarbejdere'
+      title: "Medarbejdere",
+      description: "Administrer medarbejdere og tilgængelighed"
     },
     cars: {
-      title: 'Biler',
-      description: 'Se og administrer afdelingens køretøjer'
+      title: "Biler",
+      description: "Administrer køretøjer og tilgængelighed"
     }
   },
-  weekAssignments: 'Opgaver - Uge {week}',
-  myAssignments: 'Mine Opgaver - Uge {week}',
-  viewAll: 'Se alle',
-  noAssignments: 'Ingen opgaver for denne uge',
-  assignmentTime: '{fromTime} - {toTime}',
-  manageAssignments: 'Administrer Opgaver',
-  assignments: {
-    waterDamage: 'Vandskade inspektion',
-    fireDamage: 'Brandskade restaurering',
-    mold: 'Skimmelsvamp vurdering',
-    other: 'Andre opgaver'
-  },
-  location: 'Lokation',
-  systemMetrics: 'System Metrikker',
+  
+  // UPDATED Dashboard metrics with new structure  
   metrics: {
-    activeAssignments: 'Aktive Opgaver',
-    activeAssignmentsDesc: 'Igangværende publicerede opgaver',
-    upcomingVacations: 'Kommende Ferier',
-    upcomingVacationsDesc: 'Godkendte ferieanmodninger',
-    vehicleStatus: 'Køretøjsstatus',
-    vehicleStatusDesc: 'Tilgængelige / Samlede køretøjer',
-    employeeActivity: 'Medarbejderaktivitet',
-    employeeActivityDesc: 'Gennemsnitlig aktivitetsrate denne måned'
+    availableEmployees: "Ledige medarbejdere",
+    availableCars: "Tilgængelige biler",
+    absentEmployees: "Fraværende",
+    clickToView: "Klik for at se detaljer",
+    availableCount: "{count} ledige",
+    absentCount: "{count} fraværende", 
+    returnsOn: "Tilbage {date}",
+    partiallyAvailable: "Delvis ledig",
+    fullyAvailable: "Fuldt ledig",
+    totalCount: "{count} i alt",
+    
+    // Detail modal titles
+    availableEmployeesDetails: "Ledige medarbejdere detaljer",
+    availableCarsDetails: "Tilgængelige biler detaljer",
+    absentEmployeesDetails: "Fraværende detaljer",
+    
+    // Status descriptions
+    availableEmployeesDesc: "Servicemedarbejdere klar til opgaver",
+    availableCarsDesc: "Biler ikke i brug i dag",
+    absentEmployeesDesc: "Medarbejdere på ferie eller fraværende",
+    
+    // Employee statuses
+    fullyBooked: "Fuldt booket",
+    onVacation: "På ferie",
+    onLeave: "På orlov",
+    availableAfter: "Ledig efter {time}",
+    
+    // Car details
+    carNumber: "Bil #{number}",
+    hasTrailerHitch: "Har anhængertræk",
+    noTrailerHitch: "Ingen anhængertræk"
   },
+  
   charts: {
-    assignmentDistribution: 'Opgavefordeling'
+    assignmentDistribution: "Opgavefordeling"
   },
-  upcomingVacations: 'Kommende/Igangværende Fridage',
-  noUpcomingVacations: 'Ingen kommende/igangværende fridage planlagt',
-  vehicleStatus: 'Køretøjsstatus',
-  available: 'Tilgængelig',
-  inUse: 'I brug',
-  availableEmployees: 'Tilgængelige Servicemedarbejdere',
-  availableEmployeesDesc: 'Medarbejdere som er klar til at blive tildelt opgaver',
-  onLeaveEmployees: 'Fraværende Servicemedarbejdere',
-  unavailableEmployeesDesc: 'Medarbejdere som ikke er tilgængelige for opgaver',
-  noAvailableEmployees: 'Ingen tilgængelige medarbejdere fundet',
-  noUnavailableEmployees: 'Ingen fraværende medarbejdere fundet',
-  onVacation: 'På ferie',
-  onAssignment: 'På opgave',
-  tomorrow: 'I morgen',
-  yesterday: 'I går',
-  totalEmployees: 'Samlede medarbejdere: {count}',
-  totalCars: 'Samlede biler: {count}',
-  availableCars: 'Tilgængelige Biler',
-  todayAssignments: 'Dagens Opgaver',
-  scheduledToday: 'Opgaver planlagt til i dag',
-  upcomingAssignments: 'Kommende Opgaver',
-  noData: 'Ingen data tilgængelig',
-  todaysDate: 'Dagens dato: {date}',
-  viewingDate: 'Viser for: {date}'
+  assignments: {
+    waterDamage: "Vandskade",
+    fireDamage: "Brandskade", 
+    mold: "Skimmel",
+    other: "Andet"
+  },
+  
+  // Additional translations
+  noEmployeesFoundForDate: "Ingen medarbejdere fundet for denne dato",
+  loadingEmployees: "Indlæser medarbejdere"
 };
-
-export default dashboard;

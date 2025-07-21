@@ -38,13 +38,19 @@ const VehicleStatusWidget: React.FC<VehicleStatusWidgetProps> = ({
   const totalVehicles = cars.length;
   const availableVehicles = cars.filter(car => isCarAvailable(car)).length;
 
-  // Use cars data to display actual status
+  // Use cars data to display actual status - sorted by car number
   const carsToDisplay = cars && cars.length > 0 
-    ? cars.map(car => ({
-        ...car,
-        inUse: isCarInUse(car.id),
-        available: isCarAvailable(car)
-      })).slice(0, 3) // Only show top 3 cars for the widget
+    ? cars
+        .sort((a, b) => {
+          const numA = parseInt(a.car_number) || 0;
+          const numB = parseInt(b.car_number) || 0;
+          return numA - numB;
+        })
+        .map(car => ({
+          ...car,
+          inUse: isCarInUse(car.id),
+          available: isCarAvailable(car)
+        })).slice(0, 3) // Only show top 3 cars for the widget
     : [];
   
   return (

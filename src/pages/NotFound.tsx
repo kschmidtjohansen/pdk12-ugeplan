@@ -1,8 +1,15 @@
-import { useLocation } from "react-router-dom";
+
+import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { useTranslation } from '@/context/TranslationContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Home, ArrowLeft, AlertTriangle } from 'lucide-react';
 
 const NotFound = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     console.error(
@@ -11,14 +18,79 @@ const NotFound = () => {
     );
   }, [location.pathname]);
 
+  const handleGoHome = () => {
+    navigate('/dashboard');
+  };
+
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
+    <div className="min-h-screen bg-gray-50/30">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Modern Page Header */}
+        <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold text-gray-900">
+                {t('common.pageNotFound') || 'Page Not Found'}
+              </h1>
+              <p className="text-sm text-gray-600">
+                {t('common.pageNotFoundDescription') || 'The page you are looking for does not exist'}
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-lg bg-red-50">
+                <AlertTriangle className="h-6 w-6 text-red-500" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 404 Content Card */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="p-12">
+            <Card className="border-0 shadow-none max-w-md mx-auto text-center">
+              <CardHeader className="space-y-4">
+                <div className="mx-auto w-24 h-24 bg-red-50 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="h-12 w-12 text-red-500" />
+                </div>
+                <CardTitle className="text-6xl font-bold text-gray-900">404</CardTitle>
+                <div className="space-y-2">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {t('common.pageNotFound') || 'Page Not Found'}
+                  </h2>
+                  <p className="text-gray-600">
+                    {t('common.pageNotFoundDescription') || 'The page you are looking for does not exist or has been moved.'}
+                  </p>
+                  <p className="text-sm text-gray-500 font-mono bg-gray-100 px-3 py-1 rounded">
+                    {location.pathname}
+                  </p>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button 
+                    onClick={handleGoHome}
+                    className="bg-primary hover:bg-primary/90 text-white"
+                  >
+                    <Home className="mr-2 h-4 w-4" />
+                    {t('common.goHome') || 'Go to Dashboard'}
+                  </Button>
+                  <Button 
+                    onClick={handleGoBack}
+                    variant="outline"
+                    className="border-gray-200 hover:bg-gray-50"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    {t('common.goBack') || 'Go Back'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

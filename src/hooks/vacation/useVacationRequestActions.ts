@@ -1,32 +1,34 @@
 
-import { useState } from 'react';
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
-import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from 'react-day-picker';
+import { VacationRequestType } from '@/types/vacation';
 
 export const useVacationRequestActions = (fetchVacations: () => Promise<void>) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
-  const { currentDepartment } = useDepartment();
   const { toast } = useToast();
   const { t, currentLanguage } = useTranslation();
   const { addNotification } = useNotifications();
 
   const submitVacationRequest = async (
-    e: React.FormEvent, 
-    date: DateRange, 
-    reason: string,
-    isAdminRequest: boolean = false, 
-    selectedEmployeeId: string = '', 
+    data: {
+      dateRange: DateRange;
+      requestType: VacationRequestType;
+      startTime?: string;
+      endTime?: string;
+      reason: string;
+    },
+    isAdminRequest: boolean = false,
+    selectedEmployeeId: string = '',
     employees: any[] = []
   ) => {
-    e.preventDefault();
-    if (!date.from || !date.to) {
+    const { dateRange, requestType, startTime, endTime, reason } = data;
+    
+    if (!dateRange.from || !dateRange.to) {
       toast({
         title: t("vacation.missingDates"),
         description: t("vacation.selectBothDates"),
@@ -34,8 +36,25 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
       });
       return false;
     }
+
+    if (requestType === 'partial_day' && (!startTime || !endTime)) {
+      toast({
+        title: t("vacation.timeMissing"),
+        description: t("vacation.timeMissing"),
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (requestType === 'partial_day' && startTime && endTime && startTime >= endTime) {
+      toast({
+        title: t("vacation.invalidTimeRange"),
+        description: t("vacation.invalidTimeRange"),
+        variant: "destructive"
+      });
+      return false;
+    }
     
-    // Make sure we have a user ID
     if (!user?.id) {
       toast({
         title: t("common.error"),
@@ -46,11 +65,9 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
     }
     
     try {
-      // Determine whose vacation is being requested
       let requestEmployeeId = user.id;
       let requestEmployeeName = user.name;
       
-      // If admin is making request for someone else
       if (isAdminRequest && selectedEmployeeId) {
         const selectedEmployee = employees.find(e => e.id === selectedEmployeeId);
         if (selectedEmployee) {
@@ -58,7 +75,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
           requestEmployeeName = selectedEmployee.name;
         } else {
           toast({
-            title: t("vacation.error"),
+            title: t("common.error"),
             description: t("vacation.employeeNotFound"),
             variant: "destructive"
           });
@@ -66,28 +83,37 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
         }
       }
       
+      const startDateFormatted = format(dateRange.from, 'yyyy-MM-dd');
+      const endDateFormatted = format(dateRange.to, 'yyyy-MM-dd');
+      const isSameDay = startDateFormatted === endDateFormatted;
+      
       console.log("Creating vacation record:", {
         user_id: requestEmployeeId,
-        start_date: date.from.toISOString(),
-        end_date: date.to.toISOString(),
+        start_date: startDateFormatted,
+        end_date: endDateFormatted,
+        request_type: requestType,
+        start_time: startTime,
+        end_time: endTime,
+        is_same_day: isSameDay,
         reason: reason,
-        status: 'pending',
-        isAdminRequest
+        status: 'pending'
       });
       
-      // Create the vacation record
+      const vacationData = {
+        user_id: requestEmployeeId,
+        start_date: startDateFormatted,
+        end_date: endDateFormatted,
+        request_type: requestType,
+        start_time: requestType === 'partial_day' ? startTime : null,
+        end_time: requestType === 'partial_day' ? endTime : null,
+        is_same_day: isSameDay,
+        reason: reason,
+        status: 'pending' as const
+      };
+      
       const { data, error } = await supabase
         .from('vacations')
-        .insert([
-          {
-            user_id: requestEmployeeId,
-            start_date: date.from.toISOString(),
-            end_date: date.to.toISOString(),
-            reason: reason,
-            status: 'pending',
-            department_id: currentDepartment.id,
-          }
-        ])
+        .insert([vacationData])
         .select();
       
       if (error) {
@@ -97,33 +123,47 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
       
       console.log("Vacation created successfully:", data);
       
-      // Different toast messages based on whether admin is making request for someone else
+      // Create notification message based on request type
+      const timeInfo = requestType === 'partial_day' && startTime && endTime 
+        ? ` ${t('vacation.timeRange')}: ${startTime} - ${endTime}`
+        : '';
+      
       if (isAdminRequest && user.id !== requestEmployeeId) {
+        const adminMessage = requestType === 'partial_day' 
+          ? t("vacation.partialDayRequest", { 
+              name: requestEmployeeName, 
+              startTime, 
+              endTime 
+            })
+          : t("vacation.adminRequestSent", { name: requestEmployeeName });
+          
         toast({
           title: t("vacation.adminRequestSubmitted"),
-          description: t("vacation.adminRequestSent", { name: requestEmployeeName })
+          description: adminMessage
         });
         
         try {
-          console.log("Adding notification for employee:", requestEmployeeId);
-          
-          // Notify the employee that an admin has made a vacation request for them
+          const employeeMessage = requestType === 'partial_day'
+            ? t("vacation.adminRequestedForYou", {
+                adminName: user.name,
+                from: format(dateRange.from, currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy'),
+                to: format(dateRange.to, currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy')
+              }) + timeInfo
+            : t("vacation.adminRequestedForYou", {
+                adminName: user.name,
+                from: format(dateRange.from, currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy'),
+                to: format(dateRange.to, currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy')
+              });
+              
           await addNotification({
             type: 'vacation',
             title: t("vacation.requestSubmittedForYou"),
-            message: t("vacation.adminRequestedForYou", {
-              adminName: user.name,
-              from: format(date.from, currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy'),
-              to: format(date.to, currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy')
-            }),
+            message: employeeMessage,
             link: '/vacation',
             targetUserId: requestEmployeeId
           });
-          
-          console.log("Notification added for employee");
         } catch (notifErr) {
           console.error("Error adding notification:", notifErr);
-          // Don't throw here - we want the vacation to be successful even if notification fails
         }
       } else {
         toast({
@@ -132,34 +172,32 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
         });
       }
 
-      // Notify all administrators about the new vacation request
-      await notifyAdminsAboutVacationRequest(requestEmployeeName, date.from, date.to);
+      await notifyAdminsAboutVacationRequest(requestEmployeeName, dateRange.from, dateRange.to, requestType, startTime, endTime);
       
-      // Refresh the vacation list
       fetchVacations();
-      
       return true;
     } catch (err) {
       console.error('Error submitting vacation request:', err);
       toast({
         title: t('common.error'),
-        description: err instanceof Error ? err.message : 'Error submitting vacation request',
+        description: err instanceof Error ? err.message : t('vacation.requestError'),
         variant: 'destructive',
       });
       return false;
     }
   };
 
-  // Helper function to notify administrators about new vacation requests
   const notifyAdminsAboutVacationRequest = async (
     employeeName: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
+    requestType: VacationRequestType,
+    startTime?: string,
+    endTime?: string
   ) => {
     try {
       console.log("Fetching administrators to notify about new vacation request");
       
-      // Fetch administrators and skadeledere
       const { data: adminUsers, error: adminError } = await supabase
         .from('user_roles')
         .select('user_id')
@@ -181,23 +219,27 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
       const formattedStartDate = format(startDate, dateFormat);
       const formattedEndDate = format(endDate, dateFormat);
       
-      // Send notification to all admin users
+      const timeInfo = requestType === 'partial_day' && startTime && endTime
+        ? ` (${startTime} - ${endTime})`
+        : '';
+      
       const notifyPromises = adminUsers
-        .filter(admin => admin.user_id !== user?.id) // Don't notify yourself
+        .filter(admin => admin.user_id !== user?.id)
         .map(async (admin) => {
           try {
             console.log(`Sending notification to admin: ${admin.user_id}`);
             
-            const notifyMessage = t("notifications.newVacationRequestActionRequired", {
-              name: employeeName,
-              from: formattedStartDate,
-              to: formattedEndDate
-            });
+            const notifyMessage = requestType === 'partial_day'
+              ? `${employeeName} requesting partial day off from ${startTime} to ${endTime} on ${formattedStartDate}`
+              : t("vacation.newVacationRequestActionRequired", {
+                  name: employeeName,
+                  from: formattedStartDate,
+                  to: formattedEndDate
+                }) + timeInfo;
             
-            // Add notification using the context
             await addNotification({
               type: 'vacation',
-              title: t("notifications.newVacationRequest"),
+              title: t("vacation.newVacationRequest"),
               message: notifyMessage,
               link: '/vacation',
               targetUserId: admin.user_id
@@ -211,18 +253,15 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
           }
         });
       
-      // Wait for all notifications to be sent
       const results = await Promise.allSettled(notifyPromises);
       const successful = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
       console.log(`Successfully sent ${successful} admin notifications out of ${adminUsers.length - 1}`);
     } catch (err) {
       console.error('Error in admin notification process:', err);
-      // Don't throw here - the vacation submission itself was successful
     }
   };
 
   return {
-    submitVacationRequest,
-    isSubmitting
+    submitVacationRequest
   };
 };

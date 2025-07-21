@@ -25,9 +25,9 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
 
   // Get approved vacations that are current or upcoming
   const relevantVacations = vacations.filter(vacation => 
-    vacation.status === 'approved' && new Date(vacation.endDate) >= today
+    vacation.status === 'approved' && new Date(vacation.end_date) >= today
   ).sort((a, b) => 
-    new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
   ).slice(0, 5); // Show max 5 vacations
 
   // Calculate days remaining for current vacations
@@ -50,25 +50,25 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
       </CardHeader>
       <CardContent>
         {relevantVacations.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-2">
+          <p className="text-sm text-muted-foreground text-left py-2">
             {t('dashboard.noUpcomingVacations')}
           </p>
         ) : (
           <div className="space-y-4">
             {relevantVacations.map(vacation => {
-              const isOngoing = hasVacationStarted(vacation.startDate);
+              const isOngoing = hasVacationStarted(new Date(vacation.start_date));
               return (
                 <div key={vacation.id} className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="h-9 w-9 rounded-full bg-polygon-light flex items-center justify-center mr-3">
                       <User className="h-4 w-4 text-polygon-blue" />
                     </div>
-                    <div>
-                      <p className="text-sm font-medium">{vacation.employeeName}</p>
-                      <p className="text-xs text-muted-foreground">
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-left">{vacation.user?.name || 'Unknown'}</p>
+                      <p className="text-xs text-muted-foreground text-left">
                         {formatDateRangeWithWeeks(
-                          new Date(vacation.startDate),
-                          new Date(vacation.endDate),
+                          new Date(vacation.start_date),
+                          new Date(vacation.end_date),
                           currentLanguage,
                           t('common.week')
                         )}
@@ -77,7 +77,7 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
                   </div>
                   {isOngoing && (
                     <Badge variant="outline" className="bg-green-50 whitespace-nowrap">
-                      {calculateDaysRemaining(vacation.endDate)} {t("vacation.days")}
+                      {calculateDaysRemaining(new Date(vacation.end_date))} {t("vacation.days")}
                     </Badge>
                   )}
                 </div>

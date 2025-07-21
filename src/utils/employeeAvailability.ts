@@ -1,0 +1,268 @@
+
+import { Employee } from '@/types/employee';
+import { Assignment, normalizeEmployees } from '@/types/assignment';
+import { Vacation } from '@/types/vacation';
+import { format } from 'date-fns';
+
+export type EmployeeAvailabilityStatus = 'available' | 'partiallyBooked' | 'fullyBooked' | 'onLeave' | 'onVacation' | 'partialVacation';
+
+export interface EmployeeAvailabilityInfo {
+  status: EmployeeAvailabilityStatus;
+  statusText: string;
+  badgeColor: string;
+  availableAt?: string;
+}
+
+export interface EmployeeVacationInfo {
+  isOnVacation: boolean;
+  vacationType: 'none' | 'full_day' | 'partial_day';
+  startTime?: string;
+  endTime?: string;
+  vacation?: Vacation;
+}
+
+// Helper function to check if a time is within working hours
+const isWithinWorkingHours = (time: string, selectedDate: Date): boolean => {
+  const dayOfWeek = selectedDate.getDay(); // 0=Sunday, 1=Monday, ..., 5=Friday
+  const workdayEndTime = getWorkdayEndTime(selectedDate);
+  
+  // Normalize time to HH:MM format
+  const normalizedTime = normalizeTime(time);
+  
+  // Check if it's a working day (Monday-Friday)
+  if (dayOfWeek < 1 || dayOfWeek > 5) {
+    return false;
+  }
+  
+  // Check if time is before workday end
+  return normalizedTime < workdayEndTime;
+};
+
+// Enhanced function to get detailed vacation information
+export const getEmployeeVacationStatus = (employeeId: string, selectedDate: Date, vacations: Vacation[]): EmployeeVacationInfo => {
+  console.log(`[getEmployeeVacationStatus] Checking vacation for employee ${employeeId} on ${format(selectedDate, 'yyyy-MM-dd')}`);
+  
+  const applicableVacation = vacations.find(vacation => {
+    if (vacation.user_id !== employeeId || vacation.status !== 'approved') {
+      return false;
+    }
+    
+    // Ensure we're working with Date objects
+    const startDate = new Date(vacation.start_date);
+    const endDate = new Date(vacation.end_date);
+    
+    // Normalize all dates to avoid time zone issues
+    const normalizedSelectedDate = new Date(selectedDate);
+    normalizedSelectedDate.setHours(0, 0, 0, 0);
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+    
+    return normalizedSelectedDate >= startDate && normalizedSelectedDate <= endDate;
+  });
+
+  if (!applicableVacation) {
+    return {
+      isOnVacation: false,
+      vacationType: 'none'
+    };
+  }
+
+  console.log(`[getEmployeeVacationStatus] Found vacation:`, {
+    id: applicableVacation.id,
+    request_type: applicableVacation.request_type,
+    start_time: applicableVacation.start_time,
+    end_time: applicableVacation.end_time
+  });
+
+  if (applicableVacation.request_type === 'partial_day' && applicableVacation.start_time && applicableVacation.end_time) {
+    return {
+      isOnVacation: true,
+      vacationType: 'partial_day',
+      startTime: applicableVacation.start_time,
+      endTime: applicableVacation.end_time,
+      vacation: applicableVacation
+    };
+  }
+
+  return {
+    isOnVacation: true,
+    vacationType: 'full_day',
+    vacation: applicableVacation
+  };
+};
+
+// Helper function to check if an employee is on vacation for a specific date (legacy compatibility)
+export const isEmployeeOnVacation = (employeeId: string, selectedDate: Date, vacations: Vacation[]): boolean => {
+  const vacationStatus = getEmployeeVacationStatus(employeeId, selectedDate, vacations);
+  return vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day';
+};
+
+// Helper function to normalize time
+const normalizeTime = (time: string): string => {
+  if (!time) return '';
+  
+  // Remove seconds if present (HH:MM:SS -> HH:MM)
+  if (time.length === 8 && time.includes(':')) {
+    time = time.substring(0, 5);
+  }
+  
+  // Ensure we have HH:MM format
+  if (time.length === 5 && time.includes(':')) {
+    return time;
+  }
+  
+  return time.trim();
+};
+
+// Helper function to determine workday end time based on day of week
+const getWorkdayEndTime = (selectedDate: Date): string => {
+  const dayOfWeek = selectedDate.getDay(); // 0=Sunday, 1=Monday, ..., 5=Friday
+  
+  // Friday (5) ends at 15:30, Monday-Thursday (1-4) end at 16:00
+  if (dayOfWeek === 5) {
+    return "15:30";
+  } else if (dayOfWeek >= 1 && dayOfWeek <= 4) {
+    return "16:00";
+  }
+  
+  // Default to 16:00 for other days (though work days are typically Mon-Fri)
+  return "16:00";
+};
+
+export const getEmployeeAvailabilityStatus = (
+  employee: Employee,
+  selectedDate: Date,
+  assignments: Assignment[],
+  vacations: Vacation[],
+  t: (key: string, params?: any) => string
+): EmployeeAvailabilityInfo => {
+  const dateStr = format(selectedDate, 'yyyy-MM-dd');
+  console.log(`[getEmployeeAvailabilityStatus] Checking employee: ${employee.name} (${employee.id}) for date: ${dateStr}`);
+  
+  // PRIORITY 1: Check vacation status with detailed information
+  const vacationStatus = getEmployeeVacationStatus(employee.id, selectedDate, vacations);
+  
+  if (vacationStatus.isOnVacation) {
+    if (vacationStatus.vacationType === 'full_day') {
+      console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on full day vacation on ${dateStr}`);
+      return {
+        status: 'onVacation',
+        statusText: t('employees.status.onVacation'),
+        badgeColor: 'bg-blue-100 text-blue-800 border-blue-200'
+      };
+    } else if (vacationStatus.vacationType === 'partial_day' && vacationStatus.startTime) {
+      const formattedStartTime = normalizeTime(vacationStatus.startTime);
+      console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on partial vacation from ${formattedStartTime} on ${dateStr}`);
+      return {
+        status: 'partialVacation',
+        statusText: t('vacation.offFrom', { time: formattedStartTime }),
+        badgeColor: 'bg-orange-100 text-orange-800 border-orange-200'
+      };
+    }
+  }
+
+  // PRIORITY 2: Check if employee is manually marked as on leave
+  if (employee.onLeave) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is manually marked as on leave`);
+    return {
+      status: 'onLeave',
+      statusText: t('employees.status.onLeave'),
+      badgeColor: 'bg-gray-100 text-gray-800 border-gray-200'
+    };
+  }
+
+  // Get assignments for this employee on the selected date
+  const targetDateStr = format(selectedDate, 'yyyy-MM-dd');
+  console.log(`[getEmployeeAvailabilityStatus] Target date string: ${targetDateStr}`);
+  console.log(`[getEmployeeAvailabilityStatus] Total assignments to check: ${assignments.length}`);
+  
+  // Enhanced assignment filtering with better logging
+  const employeeAssignments = assignments.filter(assignment => {
+    const assignmentDateStr = assignment.date.includes('T') 
+      ? assignment.date.split('T')[0] 
+      : assignment.date;
+    
+    const isOnDate = assignmentDateStr === targetDateStr;
+    
+    let isAssigned = false;
+    const normalizedEmployees = normalizeEmployees(assignment.employees);
+    if (normalizedEmployees && normalizedEmployees.length > 0) {
+      // Check if the employee is in the assignment by name OR by ID
+      isAssigned = normalizedEmployees.includes(employee.name) || normalizedEmployees.includes(employee.id);
+    }
+    
+    const matches = isOnDate && isAssigned;
+    
+    console.log(`[getEmployeeAvailabilityStatus] Assignment check:`, {
+      assignmentId: assignment.id,
+      assignmentDate: assignmentDateStr,
+      assignmentEmployees: normalizedEmployees,
+      isOnDate,
+      isAssigned,
+      matches,
+      title: assignment.title || assignment.location
+    });
+    
+    return matches;
+  });
+
+  console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} has ${employeeAssignments.length} assignments on ${targetDateStr}`);
+
+  if (employeeAssignments.length === 0) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is available (no assignments)`);
+    return {
+      status: 'available',
+      statusText: t('employees.status.available'),
+      badgeColor: 'bg-green-100 text-green-800 border-green-200'
+    };
+  }
+
+  // Get the correct workday end time based on the day of the week
+  const workdayEndTime = getWorkdayEndTime(selectedDate);
+  console.log(`[getEmployeeAvailabilityStatus] Workday end time for ${dateStr}: ${workdayEndTime}`);
+  
+  const hasEndTimeAtWorkdayEnd = employeeAssignments.some(assignment => {
+    const normalizedEndTime = normalizeTime(assignment.toTime);
+    const isAtWorkdayEnd = normalizedEndTime === workdayEndTime;
+    console.log(`[getEmployeeAvailabilityStatus] Assignment ${assignment.title || assignment.location} ends at ${normalizedEndTime}, workday ends at ${workdayEndTime}, matches: ${isAtWorkdayEnd}`);
+    return isAtWorkdayEnd;
+  });
+
+  if (hasEndTimeAtWorkdayEnd) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is fully booked (ends at workday end)`);
+    return {
+      status: 'fullyBooked',
+      statusText: t('employees.status.fullyBooked'),
+      badgeColor: 'bg-red-100 text-red-800 border-red-200'
+    };
+  }
+
+  // Get the latest end time for partially booked status
+  let latestEndTime = "00:00";
+  employeeAssignments.forEach(assignment => {
+    const normalizedTime = normalizeTime(assignment.toTime);
+    if (normalizedTime > latestEndTime) {
+      latestEndTime = normalizedTime;
+    }
+  });
+  
+  // ENHANCED: Check if the latest end time is within working hours
+  if (!isWithinWorkingHours(latestEndTime, selectedDate)) {
+    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} latest assignment ends at ${latestEndTime} which is past working hours, marking as fully booked`);
+    return {
+      status: 'fullyBooked',
+      statusText: t('employees.status.fullyBooked'),
+      badgeColor: 'bg-red-100 text-red-800 border-red-200'
+    };
+  }
+  
+  const formattedTime = latestEndTime.substring(0, 5);
+  console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is partially booked, available after ${formattedTime}`);
+  
+  return {
+    status: 'partiallyBooked',
+    statusText: t('employees.availableAfter', { time: formattedTime }),
+    badgeColor: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    availableAt: latestEndTime
+  };
+};

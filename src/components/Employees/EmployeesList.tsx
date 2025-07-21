@@ -1,189 +1,173 @@
 
 import React from 'react';
-import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Edit, Trash2, AlertCircle, Mail, Phone, UserCheck, UserMinus } from 'lucide-react';
+import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 import { Badge } from '@/components/ui/badge';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Edit, Trash2, UserX, UserCheck, Users, RefreshCw } from 'lucide-react';
+import EmployeeLoadingError from '@/components/ErrorBoundary/EmployeeLoadingError';
 
 interface EmployeesListProps {
   employees: Employee[];
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   onToggleLeave: (employee: Employee) => void;
+  error: string | null;
+  loading: boolean;
+  onRetry: () => void;
 }
 
 const EmployeesList: React.FC<EmployeesListProps> = ({
   employees,
   onEdit,
   onDelete,
-  onToggleLeave
+  onToggleLeave,
+  error,
+  loading,
+  onRetry
 }) => {
+  const { isAdmin } = usePermissions();
   const { t } = useTranslation();
-  const { isAdmin, isSkadeleder } = usePermissions();
 
-  return (
-    <TooltipProvider>
-      <div className="bg-white shadow rounded-md overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t("employees.name")}
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t("employees.contactInfo")}
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t("employees.jobTitle")}
-                </th>
-                {/* Show role column to admin and skadeleder users only */}
-                {(isAdmin || isSkadeleder) && (
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t("employees.role")}
-                  </th>
-                )}
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t("common.status")}
-                </th>
-                {isAdmin && (
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t("common.actions")}
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {employees.map((employee) => (
-                <tr key={employee.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div>
-                        <div className="flex items-center">
-                          <span className="text-sm font-medium text-gray-900">
-                            {employee.name}
-                          </span>
-                          
-                          {/* Display notes tooltip for employees on leave */}
-                          {(isAdmin || isSkadeleder) && employee.notes && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <AlertCircle size={16} className="text-orange-500 ml-2 cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-xs">
-                                <p>{employee.notes}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 flex items-center">
-                      <Mail size={16} className="mr-2 text-gray-500" /> {employee.email}
-                    </div>
-                    <div className="text-sm text-gray-500 flex items-center mt-1">
-                      <Phone size={16} className="mr-2 text-gray-500" /> {employee.phone}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {employee.jobTitle}
-                  </td>
-                  {/* Show role to admin and skadeleder users only */}
-                  {(isAdmin || isSkadeleder) && (
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {t(`admin.roles.${employee.role}`)}
-                    </td>
-                  )}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {employee.onLeave ? (
-                      <Badge variant="outline" className="border-orange-200 bg-orange-100 text-orange-800 hover:bg-orange-100">
-                        {t("employees.onLeave")}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="border-green-200 bg-green-100 text-green-800 hover:bg-green-100">
-                        {t("dashboard.available")}
-                      </Badge>
-                    )}
-                  </td>
-                  {isAdmin && (
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => onEdit(employee)} 
-                              className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800"
-                            >
-                              <span className="sr-only">{t("common.edit")}</span>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="top">
-                            {t("common.edit")}
-                          </TooltipContent>
-                        </Tooltip>
-                        
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => onDelete(employee)} 
-                              className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
-                            >
-                              <span className="sr-only">{t("common.delete")}</span>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="top">
-                            {t("common.delete")}
-                          </TooltipContent>
-                        </Tooltip>
-                        
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="ghost"
-                              size="icon" 
-                              onClick={() => onToggleLeave(employee)} 
-                              className={`h-8 w-8 p-0 ${employee.onLeave ? 'text-green-600 hover:text-green-800' : 'text-amber-600 hover:text-amber-800'}`}
-                            >
-                              <span className="sr-only">
-                                {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
-                              </span>
-                              {employee.onLeave ? (
-                                <UserCheck className="h-4 w-4" />
-                              ) : (
-                                <UserMinus className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="top">
-                            {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+  // Show error state with retry option
+  if (error) {
+    return <EmployeeLoadingError error={error} onRetry={onRetry} loading={loading} />;
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 mb-6">
+          <Users className="h-5 w-5 text-gray-400" />
+          <span className="text-sm text-gray-500">
+            {t('common.loading') || 'Loading employees...'}
+          </span>
         </div>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Card key={i}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-8 w-8" />
+                  <Skeleton className="h-8 w-8" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
-    </TooltipProvider>
+    );
+  }
+
+  // Show empty state
+  if (employees.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-600 mb-2">
+          {t('employees.noEmployees') || 'No employees found'}
+        </h3>
+        <p className="text-gray-500 mb-4">
+          {t('employees.noEmployeesDescription') || 'No employee records were found in the system.'}
+        </p>
+        <Button onClick={onRetry} variant="outline" size="sm">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          {t('common.retry') || 'Retry'}
+        </Button>
+      </div>
+    );
+  }
+
+  // Show employees list
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-6">
+        <Users className="h-5 w-5 text-primary" />
+        <span className="text-sm font-medium">
+          {t('employees.title')} ({employees.length})
+        </span>
+      </div>
+      
+      {employees.map((employee) => (
+        <Card key={employee.id} className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-sm font-medium text-primary">
+                    {employee.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900">{employee.name}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="outline" className="text-xs">
+                      {employee.role}
+                    </Badge>
+                    <Badge 
+                      variant={employee.onLeave ? "destructive" : "secondary"}
+                      className="text-xs"
+                    >
+                      {employee.onLeave 
+                        ? (t('employees.onLeave') || 'On Leave')
+                        : (t('employees.available') || 'Available')
+                      }
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              
+              {isAdmin && (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => onToggleLeave(employee)}
+                    size="sm"
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    title={employee.onLeave 
+                      ? (t('employees.markAvailable') || 'Mark Available')
+                      : (t('employees.markOnLeave') || 'Mark On Leave')
+                    }
+                  >
+                    {employee.onLeave ? <UserCheck className="h-4 w-4" /> : <UserX className="h-4 w-4" />}
+                  </Button>
+                  <Button
+                    onClick={() => onEdit(employee)}
+                    size="sm"
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    title={t('common.edit') || 'Edit'}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    onClick={() => onDelete(employee)}
+                    size="sm"
+                    variant="outline"
+                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                    title={t('common.delete') || 'Delete'}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };
 

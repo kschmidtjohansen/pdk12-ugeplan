@@ -3,7 +3,7 @@ import { useEmployeeData } from './employee/useEmployeeData';
 import { useEmployeeFormState } from './employee/useEmployeeFormState';
 import { useEmployeeActions } from './employee/useEmployeeActions';
 
-// Main hook combining all employee-related functionality
+// Main hook combining all employee-related functionality - now streamlined
 export const useEmployees = () => {
   const { employees, loading, error, fetchEmployees } = useEmployeeData();
   
@@ -21,8 +21,7 @@ export const useEmployees = () => {
     createEmployee: createEmployeeAction,
     updateEmployee: updateEmployeeAction,
     deleteEmployee: deleteEmployeeAction,
-    toggleEmployeeLeave: toggleEmployeeLeaveAction,
-    updateEmployeeLeaveStatusFromVacations
+    toggleEmployeeLeave: toggleEmployeeLeaveAction
   } = useEmployeeActions(fetchEmployees);
 
   // Wrapper functions that use the current state from useEmployeeFormState
@@ -45,10 +44,13 @@ export const useEmployees = () => {
     return await toggleEmployeeLeaveAction(employee, setOnLeave, notes);
   };
 
+  console.log(`[useEmployees] Providing ${employees.length} employees`);
+
   return {
     employees,
     loading,
     error,
+    fetchEmployees,
     currentEmployee,
     formData,
     prepareForCreate,
@@ -59,7 +61,6 @@ export const useEmployees = () => {
     createEmployee,
     updateEmployee,
     deleteEmployee,
-    toggleEmployeeLeave,
-    updateEmployeeLeaveStatusFromVacations
+    toggleEmployeeLeave
   };
 };

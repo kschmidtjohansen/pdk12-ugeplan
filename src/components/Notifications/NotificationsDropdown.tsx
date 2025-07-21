@@ -28,7 +28,15 @@ const NotificationsDropdown: React.FC = () => {
           <span className="sr-only">{t('notifications.notifications')}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent 
+        align="end" 
+        side="bottom"
+        sideOffset={8}
+        alignOffset={0}
+        className="w-80 z-[100] bg-white border shadow-lg"
+        avoidCollisions={true}
+        collisionPadding={20}
+      >
         <div className="p-3 border-b">
           <h3 className="font-medium">{t('notifications.notifications')}</h3>
         </div>

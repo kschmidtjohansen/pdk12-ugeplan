@@ -160,6 +160,16 @@ type Toast = Omit<ToasterToast, "id">;
 function toast({ ...props }: Toast) {
   const id = crypto.randomUUID();
 
+  // DEBUG: Log what we're about to display
+  console.log('[toast] Creating toast with props:', {
+    id,
+    title: props.title,
+    description: props.description,
+    variant: props.variant,
+    titleType: typeof props.title,
+    descriptionType: typeof props.description
+  });
+
   const update = (props: Toast) =>
     dispatch({
       type: actionTypes.UPDATE_TOAST,
