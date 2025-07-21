@@ -20,6 +20,7 @@ import { useVacations } from '@/hooks/useVacations';
 import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import AssignmentDetails from '@/components/Planner/AssignmentDetails';
+import { useDashboardEmployeeStatus } from '@/hooks/useDashboardEmployeeStatus';
 
 const DashboardPage: React.FC = () => {
   const {
@@ -48,27 +49,7 @@ const DashboardPage: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // Update employee leave status based on vacations when dashboard loads
-  useEffect(() => {
-    const updateEmployeeStatuses = async () => {
-      // Import dynamically to avoid circular dependencies
-      const { useEmployeeActions } = await import('@/hooks/employee/useEmployeeActions');
-      const { updateEmployeeLeaveStatusFromVacations } = useEmployeeActions(() => Promise.resolve());
-      await updateEmployeeLeaveStatusFromVacations();
-    };
-    
-    // Update status on load
-    updateEmployeeStatuses();
-    
-    // Also set up an interval to periodically check for employee status changes
-    // This ensures employees are properly marked as available when their vacation ends
-    const intervalId = setInterval(() => {
-      updateEmployeeStatuses();
-    }, 30 * 60 * 1000); // Check every 30 minutes
-    
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, []);
+  useDashboardEmployeeStatus();
 
   // Get the dates for the selected week
   const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
