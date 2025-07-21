@@ -93,38 +93,37 @@ export const DepartmentSelector: React.FC<DepartmentSelectorProps> = ({
   };
 
   return (
-    <div className="space-y-2">
-      <div className="text-sm text-muted-foreground">{t('departments.selectDepartment')}</div>
-      <div className="relative" ref={dropdownRef}>
-        <button
-          type="button"
-          onClick={handleToggle}
-          disabled={disabled}
-          className={`w-full flex items-center justify-between text-left px-3 py-2 text-foreground bg-transparent border-0 cursor-pointer hover:text-primary transition-colors ${
-            disabled ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          <span className="text-base font-medium">
-            {displayText}
-          </span>
-          <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-        </button>
-        
-        {isOpen && !disabled && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-50 max-h-48 overflow-auto">
-            {departments.map((department) => (
-              <button
-                key={department.id}
-                type="button"
-                onClick={() => handleSelect(department.code)}
-                className="w-full text-left px-3 py-2 hover:bg-muted transition-colors text-foreground"
-              >
-                {department.name}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="relative inline-block" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={handleToggle}
+        disabled={disabled}
+        className={`flex items-center gap-1 text-gray-600 hover:text-gray-800 transition-colors cursor-pointer ${
+          disabled ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
+      >
+        <span className="text-base">
+          {displayText}
+        </span>
+        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      
+      {isOpen && !disabled && (
+        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[200px] max-h-48 overflow-auto">
+          {departments.map((department) => (
+            <button
+              key={department.id}
+              type="button"
+              onClick={() => handleSelect(department.code)}
+              className={`w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors text-gray-700 ${
+                value === department.code ? 'bg-blue-50 text-blue-700' : ''
+              }`}
+            >
+              {department.name}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

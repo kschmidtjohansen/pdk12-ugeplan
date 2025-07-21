@@ -220,7 +220,13 @@ const LoginPage: React.FC = () => {
         <div className="text-center mb-8">
           <img src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" alt="Polygon Logo" className="mx-auto mb-6 h-16" />
           <h1 className="text-2xl font-bold text-gray-800">{t('login.welcomeMessage')}</h1>
-          <p className="text-gray-600">{t('login.internalSystem')}</p>
+          <div className="text-gray-600">
+            <DepartmentSelector
+              value={selectedDepartment}
+              onChange={setSelectedDepartment}
+              disabled={isLoading || (lockedUntil && lockedUntil > new Date())}
+            />
+          </div>
         </div>
         
         <Card>
@@ -241,12 +247,6 @@ const LoginPage: React.FC = () => {
                     </p>
                   </div>
                 </div>}
-              
-              <DepartmentSelector
-                value={selectedDepartment}
-                onChange={setSelectedDepartment}
-                disabled={isLoading || (lockedUntil && lockedUntil > new Date())}
-              />
               
               <div className="space-y-2">
                 <Label htmlFor="email">{t('common.email')}</Label>
