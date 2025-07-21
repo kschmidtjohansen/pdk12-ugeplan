@@ -573,6 +573,10 @@ export type Database = {
         Args: { assignment_id: string }
         Returns: boolean
       }
+      can_access_department: {
+        Args: { dept_id: string; user_uuid?: string }
+        Returns: boolean
+      }
       can_user_access_assignment: {
         Args: { assignment_id: string; user_id: string }
         Returns: boolean
@@ -628,6 +632,10 @@ export type Database = {
       get_enhanced_system_metrics: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_user_accessible_departments: {
+        Args: { user_uuid?: string }
+        Returns: string[]
       }
       get_user_departments: {
         Args: { user_uuid?: string }
@@ -764,6 +772,10 @@ export type Database = {
       validate_email_format_enhanced: {
         Args: { email: string }
         Returns: boolean
+      }
+      validate_user_department_access: {
+        Args: { dept_code: string }
+        Returns: Json
       }
       verify_complete_fix: {
         Args: Record<PropertyKey, never>
