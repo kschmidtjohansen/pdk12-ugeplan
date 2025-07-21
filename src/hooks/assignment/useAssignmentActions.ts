@@ -1,8 +1,8 @@
-
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 
@@ -13,6 +13,7 @@ export const useAssignmentActions = (
 ) => {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { currentDepartment } = useDepartment();
 
   // Helper function to get profile ID by name
   const getProfileIdByName = async (name: string): Promise<string | null> => {
@@ -38,6 +39,16 @@ export const useAssignmentActions = (
   // Create a new assignment
   const createAssignment = useCallback(async (assignmentData: Partial<Assignment>) => {
     try {
+      if (!currentDepartment) {
+        console.error('No current department available');
+        toast({
+          title: t('common.error'),
+          description: 'No department selected',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       console.log("Creating assignment with data:", assignmentData);
       
       // Format car information for storage
@@ -63,7 +74,8 @@ export const useAssignmentActions = (
           to_time: assignmentData.toTime,
           car_id: carId,
           published: assignmentData.published || false,
-          created_at: new Date().toISOString()
+          department_id: currentDepartment.id,
+          created_at: new Date().toISOString(),
         })
         .select('id')
         .single();
@@ -121,7 +133,7 @@ export const useAssignmentActions = (
         variant: "destructive",
       });
     }
-  }, [toast, t, refetch, setIsDialogOpen]);
+  }, [toast, t, refetch, setIsDialogOpen, currentDepartment]);
 
   // Update an existing assignment
   const updateAssignment = useCallback(async (id: string, assignmentData: Partial<Assignment>) => {

@@ -48,10 +48,34 @@ export const useNotifications = () => {
     deleteAllNotifications
   } = useNotificationActions(user, notifications, setNotifications, setUnreadCount);
   
-  const { addNotification } = useNotificationCreate(user, setNotifications, setUnreadCount);
+  const { createNotification } = useNotificationCreate();
   
   // Set up realtime notifications
   useNotificationRealtime(user, setNotifications, setUnreadCount);
+  
+  // Create addNotification function that matches expected interface
+  const addNotification = async (notification: any) => {
+    const userId = notification.targetUserId || user?.id;
+    if (createNotification && userId) {
+      try {
+        await createNotification(userId, {
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          link: notification.link
+        });
+        // Refresh notifications after creating one
+        if (user?.id === userId) {
+          fetchNotifications();
+        }
+        return 'success';
+      } catch (error) {
+        console.error('Error adding notification:', error);
+        return null;
+      }
+    }
+    return null;
+  };
   
   // Set up vacation notifications processing
   const { createNotificationsForPendingRequests } = useVacationNotifications(user, addNotification);

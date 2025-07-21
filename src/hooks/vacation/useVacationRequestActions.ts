@@ -1,14 +1,18 @@
 
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from 'react-day-picker';
 
 export const useVacationRequestActions = (fetchVacations: () => Promise<void>) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
+  const { currentDepartment } = useDepartment();
   const { toast } = useToast();
   const { t, currentLanguage } = useTranslation();
   const { addNotification } = useNotifications();
@@ -80,7 +84,8 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
             start_date: date.from.toISOString(),
             end_date: date.to.toISOString(),
             reason: reason,
-            status: 'pending'
+            status: 'pending',
+            department_id: currentDepartment.id,
           }
         ])
         .select();
@@ -217,6 +222,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
   };
 
   return {
-    submitVacationRequest
+    submitVacationRequest,
+    isSubmitting
   };
 };

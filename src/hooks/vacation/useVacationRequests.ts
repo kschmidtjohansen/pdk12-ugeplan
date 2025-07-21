@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { Vacation } from '@/types/vacation';
@@ -12,6 +13,7 @@ import { useNotifications } from '@/context/NotificationContext';
 
 export const useVacationRequests = () => {
   const { user } = useAuth();
+  const { currentDepartment } = useDepartment();
   const { toast } = useToast();
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
@@ -44,6 +46,16 @@ export const useVacationRequests = () => {
     try {
       setIsSubmitting(true);
       
+      if (!user || !currentDepartment) {
+        console.error('No user or department available');
+        toast({
+          title: t('common.error'),
+          description: 'Authentication or department error',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
       // Use the provided employee ID or the current user's ID
       const actualEmployeeId = employeeId || user?.id;
       const actualEmployeeName = employeeName || user?.name;
@@ -64,7 +76,8 @@ export const useVacationRequests = () => {
             start_date: formattedStartDate,
             end_date: formattedEndDate,
             reason: reason,
-            status: 'pending'
+            status: 'pending',
+            department_id: currentDepartment.id,
           }
         ])
         .select();

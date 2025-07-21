@@ -1,9 +1,10 @@
-
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { CarData, CarFormData } from '@/components/Cars/types';
-import { supabase } from '@/integrations/supabase/client';
+import type { Car } from '@/types/car';
 
 interface UseCarFormStateProps {
   cars: CarData[];
@@ -29,8 +30,10 @@ export const useCarFormState = ({
     is_available: true,
     notes: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { currentDepartment } = useDepartment();
 
   const handleCreateNew = () => {
     setCurrentCar(null);
@@ -76,6 +79,18 @@ export const useCarFormState = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!currentDepartment) {
+      console.error('No current department available');
+      toast({
+        title: t('common.error'),
+        description: 'No department selected',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
     try {
       if (currentCar) {
         // Update existing car
@@ -119,6 +134,7 @@ export const useCarFormState = ({
               has_trailer_hitch: formData.has_trailer_hitch,
               is_available: formData.is_available,
               notes: formData.notes,
+              department_id: currentDepartment.id,
             }
           ])
           .select();
@@ -144,12 +160,15 @@ export const useCarFormState = ({
         description: err instanceof Error ? err.message : 'Error saving vehicle',
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return {
     formData,
     setFormData,
+    isLoading,
     handleCreateNew,
     initFormWithCar,
     handleInputChange,
