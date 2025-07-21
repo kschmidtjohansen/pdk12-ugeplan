@@ -11,10 +11,11 @@ import PasswordResetDialog from '@/components/Auth/PasswordResetDialog';
 import { DepartmentSelector } from '@/components/Auth/DepartmentSelector';
 import { useDepartment } from '@/context/DepartmentContext';
 import { AlertCircle } from 'lucide-react';
+
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState('TEST'); // Default to Test department
+  const [selectedDepartment, setSelectedDepartment] = useState(''); // No default department
   const [isLoading, setIsLoading] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
@@ -98,6 +99,7 @@ const LoginPage: React.FC = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, [lockedUntil]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -201,11 +203,7 @@ const LoginPage: React.FC = () => {
       setIsLoading(false);
     }
   };
-  const handleForgotPassword = () => {
-    setResetDialogOpen(true);
-  };
 
-  // Calculate remaining lockout time
   const getRemainingLockoutTime = (): string => {
     if (!lockedUntil) return '';
     const now = new Date();
@@ -215,67 +213,108 @@ const LoginPage: React.FC = () => {
     const seconds = Math.floor(diffMs % (1000 * 60) / 1000);
     return `${minutes}m ${seconds}s`;
   };
-  return <div className="min-h-screen flex items-center justify-center bg-polygon-lightgray p-4">
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-polygon-lightgray p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" alt="Polygon Logo" className="mx-auto mb-6 h-16" />
-          <h1 className="text-2xl font-bold text-gray-800">{t('login.welcomeMessage')}</h1>
-          <div className="text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">{t('login.welcomeMessage')}</h1>
+          
+          {/* Department Selection - Always Visible */}
+          <div className="mb-6">
+            <p className="text-gray-600 mb-2">{t('departments.selectDepartment')}:</p>
             <DepartmentSelector
               value={selectedDepartment}
               onChange={setSelectedDepartment}
               disabled={isLoading || (lockedUntil && lockedUntil > new Date())}
             />
           </div>
+
+          {/* Show instruction when no department is selected */}
+          {!selectedDepartment && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+              <p className="text-blue-800 text-sm">
+                {t('departments.selectDepartment')} for at fortsætte
+              </p>
+            </div>
+          )}
         </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('login.title')}</CardTitle>
-            <CardDescription>
-              {t('login.description')}
-            </CardDescription>
-          </CardHeader>
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
-              {lockedUntil && lockedUntil > new Date() && <div className="bg-red-50 p-3 rounded border border-red-200 flex items-start">
-                  <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
-                  <div>
-                    <p className="text-red-800 font-medium">Account temporarily locked</p>
-                    <p className="text-red-700 text-sm">
-                      Too many failed login attempts. Please try again in {getRemainingLockoutTime()}.
-                    </p>
+        {/* Login Form - Only show when department is selected */}
+        {selectedDepartment && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('login.title')}</CardTitle>
+              <CardDescription>
+                {t('login.description')}
+              </CardDescription>
+            </CardHeader>
+            <form onSubmit={handleSubmit}>
+              <CardContent className="space-y-4">
+                {lockedUntil && lockedUntil > new Date() && (
+                  <div className="bg-red-50 p-3 rounded border border-red-200 flex items-start">
+                    <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
+                    <div>
+                      <p className="text-red-800 font-medium">Account temporarily locked</p>
+                      <p className="text-red-700 text-sm">
+                        Too many failed login attempts. Please try again in {getRemainingLockoutTime()}.
+                      </p>
+                    </div>
                   </div>
-                </div>}
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">{t('common.email')}</Label>
-                <Input id="email" type="email" placeholder={t('login.emailPlaceholder')} value={email} onChange={e => setEmail(e.target.value)} required className="border-2" disabled={isLoading || lockedUntil && lockedUntil > new Date()} />
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="password">{t('common.password')}</Label>
-                  
+                )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email">{t('common.email')}</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder={t('login.emailPlaceholder')} 
+                    value={email} 
+                    onChange={e => setEmail(e.target.value)} 
+                    required 
+                    className="border-2" 
+                    disabled={isLoading || lockedUntil && lockedUntil > new Date()} 
+                  />
                 </div>
-                <Input id="password" type="password" placeholder={t('login.passwordPlaceholder')} value={password} onChange={e => setPassword(e.target.value)} required className="border-2" disabled={isLoading || lockedUntil && lockedUntil > new Date()} />
-              </div>
-              
-              {/* Show warning after 3 failed attempts */}
-              {failedAttempts >= 3 && failedAttempts < 5 && <div className="text-amber-600 text-sm flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  Warning: {5 - failedAttempts} attempts remaining before temporary lockout
-                </div>}
-            </CardContent>
-            <CardFooter>
-              <Button className="w-full bg-polygon-blue hover:bg-polygon-darkblue" type="submit" disabled={isLoading || lockedUntil && lockedUntil > new Date() || !email || !password}>
-                {isLoading ? t('login.buttonLoading') : t('login.button')}
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="password">{t('common.password')}</Label>
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    placeholder={t('login.passwordPlaceholder')} 
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)} 
+                    required 
+                    className="border-2" 
+                    disabled={isLoading || lockedUntil && lockedUntil > new Date()} 
+                  />
+                </div>
+                
+                {failedAttempts >= 3 && failedAttempts < 5 && (
+                  <div className="text-amber-600 text-sm flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    Warning: {5 - failedAttempts} attempts remaining before temporary lockout
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  className="w-full bg-polygon-blue hover:bg-polygon-darkblue" 
+                  type="submit" 
+                  disabled={isLoading || lockedUntil && lockedUntil > new Date() || !email || !password}
+                >
+                  {isLoading ? t('login.buttonLoading') : t('login.button')}
+                </Button>
+              </CardFooter>
+            </form>
+          </Card>
+        )}
       </div>
 
       <PasswordResetDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen} />
-    </div>;
+    </div>
+  );
 };
+
 export default LoginPage;
