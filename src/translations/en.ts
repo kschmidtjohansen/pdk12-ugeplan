@@ -6,6 +6,7 @@ import index from './en/index';
 import dashboard from './en/dashboard';
 import vacation from './en/vacation';
 import employees from './en/employees';
+import departments from './en/departments';
 
 const en = {
   // Common components
@@ -29,6 +30,8 @@ const en = {
   vacation: vacation,
   // Employees
   employees: employees,
+  // Departments
+  departments: departments,
 };
 
 export type EnTranslations = typeof en;

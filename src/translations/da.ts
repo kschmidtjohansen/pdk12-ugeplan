@@ -12,6 +12,7 @@ import dashboard from './da/dashboard';
 import vacation from './da/vacation';
 import cars from './da/cars';
 import deleteConfirm from './da/deleteConfirm';
+import departments from './da/departments';
 
 const da = {
   // Common components
@@ -47,6 +48,8 @@ const da = {
   cars: cars,
   // Delete confirmations
   deleteConfirm: deleteConfirm,
+  // Departments
+  departments: departments,
 };
 
 export type DaTranslations = typeof da;
