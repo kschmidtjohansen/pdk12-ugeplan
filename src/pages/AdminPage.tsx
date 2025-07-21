@@ -15,7 +15,7 @@ import { useVacations } from '@/hooks/useVacations';
 import { format } from 'date-fns';
 
 const AdminPage: React.FC = () => {
-  const { isAdmin } = usePermissions();
+  const { isAdmin, isSuperadmin } = usePermissions();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = React.useState("metrics");
@@ -24,12 +24,12 @@ const AdminPage: React.FC = () => {
   const { cars } = useCars();
   const { vacations } = useVacations();
 
-  // Redirect if not an admin
+  // Redirect if not an admin or superadmin
   React.useEffect(() => {
-    if (!isAdmin) {
+    if (!isAdmin && !isSuperadmin) {
       navigate('/dashboard');
     }
-  }, [isAdmin, navigate]);
+  }, [isAdmin, isSuperadmin, navigate]);
 
   // Calculate metrics based on real data
   const usersCount = employees.length;

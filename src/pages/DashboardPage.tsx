@@ -78,8 +78,8 @@ const DashboardPage: React.FC = () => {
     const assignmentDate = assignment.date;
     const isInCurrentWeek = assignmentDate >= startDateISO && assignmentDate <= endDateISO;
 
-    // For administrators and skadeledere, show all assignments for the week
-    if (user?.role === 'administrator' || user?.role === 'skadeleder') {
+    // For administrators, skadeledere, and superadmin, show all assignments for the week
+    if (user?.role === 'administrator' || user?.role === 'skadeleder' || user?.role === 'superadmin') {
       return isInCurrentWeek;
     } else {
       // For regular users, show only published assignments assigned to them
@@ -119,7 +119,7 @@ const DashboardPage: React.FC = () => {
     }];
 
     // Add role-specific items
-    if (user?.role === 'administrator' || user?.role === 'skadeleder') {
+    if (user?.role === 'administrator' || user?.role === 'skadeleder' || user?.role === 'superadmin') {
       baseItems.push({
         title: t('dashboard.quickAccess.employees.title'),
         icon: <Users className="h-10 w-10" />,
@@ -135,8 +135,8 @@ const DashboardPage: React.FC = () => {
     return baseItems;
   };
 
-  // Show dashboard metrics only for admin or skadeleder
-  const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder';
+  // Show dashboard metrics only for admin, skadeleder, or superadmin
+  const shouldShowMetrics = user?.role === 'administrator' || user?.role === 'skadeleder' || user?.role === 'superadmin';
   
   return <>
       <PageHeader title={t('dashboard.welcome', {

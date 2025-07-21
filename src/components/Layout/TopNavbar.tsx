@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { Menu, X } from 'lucide-react';
@@ -95,11 +95,17 @@ const TopNavbar: React.FC = () => {
 
   // Get navigation items and filter based on user role
   const navigationItems = getNavigationItems(hasVacationNotifications);
-  const filteredNavItems = navigationItems.filter(
-    item => !item.adminOnly || user?.role === 'administrator'
-  );
+  const filteredNavItems = navigationItems.filter(item => {
+    // For admin items, check if user is admin or superadmin
+    if (item.adminOnly) {
+      return user?.role === 'administrator' || (user?.role as UserRole) === 'superadmin';
+    }
+    
+    // Allow all other items
+    return true;
+  });
 
-  const isAdmin = user?.role === 'administrator';
+  const isAdmin = user?.role === 'administrator' || (user?.role as UserRole) === 'superadmin';
 
   if (!isAuthenticated) {
     return null;

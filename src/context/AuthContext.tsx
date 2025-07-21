@@ -4,7 +4,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
 
 // Define user roles
-export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder';
+export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'superadmin';
 
 // Export the User type from supabase for components that need it
 export type { User };
@@ -23,6 +23,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isSkadeleder: boolean;
   isServicemedarbejder: boolean;
+  isSuperadmin: boolean;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>;
@@ -52,6 +53,7 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   isSkadeleder: false,
   isServicemedarbejder: false,
+  isSuperadmin: false,
   login: async () => ({ error: null }),
   logout: async () => {},
   signUp: async () => ({ error: null }),
@@ -241,24 +243,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const isAdmin = user?.role === 'administrator';
   const isSkadeleder = user?.role === 'skadeleder';
   const isServicemedarbejder = user?.role === 'servicemedarbejder';
+  const isSuperadmin = user?.role === 'superadmin';
   
   // Define complex permissions
-  // Updated to restrict fuel card access to administrators only
-  const canViewFuelCardCode = isAdmin;
-  const canPublishTasks = isAdmin || isSkadeleder;
-  const canApproveVacation = isAdmin; // Only admins can approve/reject vacations
-  const canEdit = isAdmin || isSkadeleder;
-  const canCreate = isAdmin || isSkadeleder;
-  const canSeeUnpublishedTasks = isAdmin || isSkadeleder;
+  // Updated to restrict fuel card access to administrators and superadmin only
+  const canViewFuelCardCode = isAdmin || isSuperadmin;
+  const canPublishTasks = isAdmin || isSkadeleder || isSuperadmin;
+  const canApproveVacation = isAdmin || isSuperadmin; // Only admins and superadmin can approve/reject vacations
+  const canEdit = isAdmin || isSkadeleder || isSuperadmin;
+  const canCreate = isAdmin || isSkadeleder || isSuperadmin;
+  const canSeeUnpublishedTasks = isAdmin || isSkadeleder || isSuperadmin;
   
   const isAuthenticated = !!user;
 
   // New security methods for role validation
   const validateAdminAccess = (): boolean => {
-    if (!user || user.role !== 'administrator') {
+    if (!user || (user.role !== 'administrator' && user.role !== 'superadmin')) {
       toast({
         title: "Access Denied",
-        description: "You need administrator privileges for this action.",
+        description: "You need administrator or superadmin privileges for this action.",
         variant: "destructive",
       });
       return false;
@@ -267,10 +270,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const validateSkadelederAccess = (): boolean => {
-    if (!user || (user.role !== 'administrator' && user.role !== 'skadeleder')) {
+    if (!user || (user.role !== 'administrator' && user.role !== 'skadeleder' && user.role !== 'superadmin')) {
       toast({
         title: "Access Denied",
-        description: "You need skadeleder or administrator privileges for this action.",
+        description: "You need skadeleder, administrator, or superadmin privileges for this action.",
         variant: "destructive",
       });
       return false;
@@ -402,6 +405,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       isAdmin,
       isSkadeleder,
       isServicemedarbejder,
+      isSuperadmin,
       login,
       logout,
       signUp: async (email, password, name) => {
@@ -512,6 +516,7 @@ export const usePermissions = () => {
     isAdmin,
     isSkadeleder,
     isServicemedarbejder,
+    isSuperadmin,
     canViewFuelCardCode,
     canPublishTasks,
     canApproveVacation,
@@ -527,6 +532,7 @@ export const usePermissions = () => {
     isAdmin,
     isSkadeleder,
     isServicemedarbejder,
+    isSuperadmin,
     canViewFuelCardCode,
     canPublishTasks,
     canApproveVacation,
