@@ -802,7 +802,11 @@ export type Database = {
     Enums: {
       assignment_type: "waterDamage" | "fireDamage" | "mold" | "other"
       employee_status: "active" | "inactive" | "on_leave" | "terminated"
-      user_role: "administrator" | "skadeleder" | "servicemedarbejder"
+      user_role:
+        | "administrator"
+        | "skadeleder"
+        | "servicemedarbejder"
+        | "superadmin"
       vacation_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -933,7 +937,12 @@ export const Constants = {
     Enums: {
       assignment_type: ["waterDamage", "fireDamage", "mold", "other"],
       employee_status: ["active", "inactive", "on_leave", "terminated"],
-      user_role: ["administrator", "skadeleder", "servicemedarbejder"],
+      user_role: [
+        "administrator",
+        "skadeleder",
+        "servicemedarbejder",
+        "superadmin",
+      ],
       vacation_status: ["pending", "approved", "rejected"],
     },
   },
