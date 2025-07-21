@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useVacations } from '@/hooks/useVacations';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -21,7 +20,7 @@ const DashboardMetrics: React.FC = () => {
   const { employees } = useEmployees();
   const { cars } = useCars();
   const { assignments } = usePlannerAssignments();
-  const { isAdmin, isSkadeleder } = usePermissions();
+  const { isAdmin, isSkadeleder, isSuperadmin } = usePermissions();
   const { t, currentLanguage } = useTranslation();
 
   // Add state for dialogs
@@ -31,8 +30,8 @@ const DashboardMetrics: React.FC = () => {
   // Add a state for unavailable employees view date
   const [unavailableViewDate, setUnavailableViewDate] = useState(new Date());
 
-  // Show metrics only for admin and skadeleder roles
-  const shouldShowMetrics = isAdmin || isSkadeleder;
+  // Show metrics for admin, skadeleder, and superadmin roles
+  const shouldShowMetrics = isAdmin || isSkadeleder || isSuperadmin;
 
   // Filter out admin and skadeleder users from employee counts
   const filteredEmployees = employees.filter(e => 
