@@ -654,6 +654,10 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      has_admin_privileges: {
+        Args: { user_uuid?: string }
+        Returns: boolean
+      }
       is_admin_or_skadeleder: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -668,6 +672,10 @@ export type Database = {
       }
       is_strong_password: {
         Args: { password: string }
+        Returns: boolean
+      }
+      is_superadmin: {
+        Args: { user_uuid?: string }
         Returns: boolean
       }
       is_user_assigned_to_assignment: {
