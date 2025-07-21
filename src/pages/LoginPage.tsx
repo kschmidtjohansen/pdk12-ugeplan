@@ -14,7 +14,7 @@ import { AlertCircle } from 'lucide-react';
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState('AFD12'); // Default to Afdeling 12
+  const [selectedDepartment, setSelectedDepartment] = useState('TEST'); // Default to Test department
   const [isLoading, setIsLoading] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
