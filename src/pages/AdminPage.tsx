@@ -7,6 +7,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useNavigate } from 'react-router-dom';
 import UserManagement from '@/components/Admin/UserManagement';
 import SystemMetrics from '@/components/Admin/SystemMetrics';
+import { SecurityValidation } from '@/components/Admin/SecurityValidation';
 import { usePlannerAssignments } from '@/hooks/usePlannerAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
@@ -79,6 +80,7 @@ const AdminPage: React.FC = () => {
         <TabsList>
           <TabsTrigger value="metrics">{t('admin.tabs.metrics')}</TabsTrigger>
           <TabsTrigger value="users">{t('admin.tabs.users')}</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
         <TabsContent value="metrics" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -106,6 +108,9 @@ const AdminPage: React.FC = () => {
         </TabsContent>
         <TabsContent value="users" className="mt-6">
           <UserManagement />
+        </TabsContent>
+        <TabsContent value="security" className="mt-6">
+          <SecurityValidation />
         </TabsContent>
       </Tabs>
     </>
