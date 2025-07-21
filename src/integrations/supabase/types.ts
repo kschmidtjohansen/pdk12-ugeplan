@@ -7,18 +7,26 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       assignments: {
         Row: {
           assignment_date: string
           car_id: string | null
+          car_ids: string[] | null
           created_at: string
+          department_id: string
           description: string | null
           from_time: string
           id: string
           location: string
           published: boolean | null
+          responsible_user_id: string | null
           title: string
           to_time: string
           type: Database["public"]["Enums"]["assignment_type"] | null
@@ -27,12 +35,15 @@ export type Database = {
         Insert: {
           assignment_date: string
           car_id?: string | null
+          car_ids?: string[] | null
           created_at?: string
+          department_id: string
           description?: string | null
           from_time: string
           id?: string
           location: string
           published?: boolean | null
+          responsible_user_id?: string | null
           title: string
           to_time: string
           type?: Database["public"]["Enums"]["assignment_type"] | null
@@ -41,12 +52,15 @@ export type Database = {
         Update: {
           assignment_date?: string
           car_id?: string | null
+          car_ids?: string[] | null
           created_at?: string
+          department_id?: string
           description?: string | null
           from_time?: string
           id?: string
           location?: string
           published?: boolean | null
+          responsible_user_id?: string | null
           title?: string
           to_time?: string
           type?: Database["public"]["Enums"]["assignment_type"] | null
@@ -54,10 +68,24 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "assignments_car_id_fkey"
+            foreignKeyName: "assignments_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_assignments_car_id"
             columns: ["car_id"]
             isOneToOne: false
             referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_assignments_responsible_user_id"
+            columns: ["responsible_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -77,10 +105,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "assignments_employees_assignment_id_fkey"
+            foreignKeyName: "fk_assignments_employees_assignment_id"
             columns: ["assignment_id"]
             isOneToOne: false
             referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_assignments_employees_user_id"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -89,6 +124,7 @@ export type Database = {
         Row: {
           car_number: string
           created_at: string
+          department_id: string
           fuel_card_code: string
           has_trailer_hitch: boolean | null
           id: string
@@ -101,6 +137,7 @@ export type Database = {
         Insert: {
           car_number: string
           created_at?: string
+          department_id: string
           fuel_card_code: string
           has_trailer_hitch?: boolean | null
           id?: string
@@ -113,6 +150,7 @@ export type Database = {
         Update: {
           car_number?: string
           created_at?: string
+          department_id?: string
           fuel_card_code?: string
           has_trailer_hitch?: boolean | null
           id?: string
@@ -120,6 +158,41 @@ export type Database = {
           name?: string
           notes?: string | null
           number_plate?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cars_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      departments: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
           updated_at?: string
         }
         Relationships: []
@@ -148,9 +221,82 @@ export type Database = {
         }
         Relationships: []
       }
+      logs_partitioned: {
+        Row: {
+          created_at: string
+          details: Json | null
+          event_type: string
+          id: string
+          message: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          event_type: string
+          id?: string
+          message: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          event_type?: string
+          id?: string
+          message?: string
+        }
+        Relationships: []
+      }
+      logs_y2025m07: {
+        Row: {
+          created_at: string
+          details: Json | null
+          event_type: string
+          id: string
+          message: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          event_type: string
+          id?: string
+          message: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          event_type?: string
+          id?: string
+          message?: string
+        }
+        Relationships: []
+      }
+      logs_y2025m08: {
+        Row: {
+          created_at: string
+          details: Json | null
+          event_type: string
+          id: string
+          message: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          event_type: string
+          id?: string
+          message: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          event_type?: string
+          id?: string
+          message?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
+          department_id: string
           id: string
           link: string | null
           message: string
@@ -162,6 +308,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          department_id: string
           id?: string
           link?: string | null
           message: string
@@ -173,6 +320,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          department_id?: string
           id?: string
           link?: string | null
           message?: string
@@ -182,11 +330,21 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notifications_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
+          department_id: string
           email: string
           id: string
           job_title: string | null
@@ -194,10 +352,13 @@ export type Database = {
           notes: string | null
           on_leave: boolean | null
           phone: string | null
+          status: Database["public"]["Enums"]["employee_status"]
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
+          department_id: string
           email: string
           id: string
           job_title?: string | null
@@ -205,10 +366,13 @@ export type Database = {
           notes?: string | null
           on_leave?: boolean | null
           phone?: string | null
+          status?: Database["public"]["Enums"]["employee_status"]
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
+          department_id?: string
           email?: string
           id?: string
           job_title?: string | null
@@ -216,13 +380,82 @@ export type Database = {
           notes?: string | null
           on_leave?: boolean | null
           phone?: string | null
+          status?: Database["public"]["Enums"]["employee_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_cleanup_tracking: {
+        Row: {
+          cleanup_type: string
+          created_at: string
+          id: string
+          last_run_date: string
+          updated_at: string
+        }
+        Insert: {
+          cleanup_type: string
+          created_at?: string
+          id?: string
+          last_run_date: string
+          updated_at?: string
+        }
+        Update: {
+          cleanup_type?: string
+          created_at?: string
+          id?: string
+          last_run_date?: string
           updated_at?: string
         }
         Relationships: []
       }
+      user_departments: {
+        Row: {
+          created_at: string
+          department_id: string
+          id: string
+          is_primary: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          department_id: string
+          id?: string
+          is_primary?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          department_id?: string
+          id?: string
+          is_primary?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_departments_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
+          department_id: string
           id: string
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
@@ -230,6 +463,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          department_id: string
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
@@ -237,65 +471,325 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          department_id?: string
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vacations: {
         Row: {
           created_at: string
+          department_id: string
           end_date: string
+          end_time: string | null
           id: string
+          is_same_day: boolean | null
           notes: string | null
           reason: string | null
+          request_type: string | null
           start_date: string
+          start_time: string | null
           status: Database["public"]["Enums"]["vacation_status"] | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          department_id: string
           end_date: string
+          end_time?: string | null
           id?: string
+          is_same_day?: boolean | null
           notes?: string | null
           reason?: string | null
+          request_type?: string | null
           start_date: string
+          start_time?: string | null
           status?: Database["public"]["Enums"]["vacation_status"] | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          department_id?: string
           end_date?: string
+          end_time?: string | null
           id?: string
+          is_same_day?: boolean | null
           notes?: string | null
           reason?: string | null
+          request_type?: string | null
           start_date?: string
+          start_time?: string | null
           status?: Database["public"]["Enums"]["vacation_status"] | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "vacations_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
-      [_ in never]: never
+      user_roles_with_names: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          updated_at: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      add_system_log: {
+        Args: { p_event_type: string; p_message: string; p_details?: Json }
+        Returns: string
+      }
+      apply_logs_rls_policies: {
+        Args: { table_name: string }
+        Returns: undefined
+      }
+      can_access_assignment: {
+        Args: { assignment_id: string }
+        Returns: boolean
+      }
+      can_user_access_assignment: {
+        Args: { assignment_id: string; user_id: string }
+        Returns: boolean
+      }
+      can_view_assignment_optimized: {
+        Args: { assignment_id: string; user_id: string }
+        Returns: boolean
+      }
+      check_data_access_health: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      check_system_health: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      create_logs_partition_for_month: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      delete_expired_approved_vacations: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       delete_old_rejected_vacations: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      emergency_log_cleanup: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      ensure_logs_rls_consistency: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      example_function: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      final_database_optimization: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      generate_database_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      get_enhanced_system_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_user_departments: {
+        Args: { user_uuid?: string }
+        Returns: {
+          department_id: string
+          department_name: string
+          department_code: string
+          is_primary: boolean
+        }[]
       }
       get_user_role: {
         Args: { uid: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      get_user_role_safe: {
+        Args: { user_uuid: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      is_admin_or_skadeleder: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_strong_password: {
+        Args: { password: string }
+        Returns: boolean
+      }
+      is_user_assigned_to_assignment: {
+        Args: { assignment_id: string; user_id: string }
+        Returns: boolean
+      }
+      is_valid_email: {
+        Args: { email: string }
+        Returns: boolean
+      }
+      log_data_fetch_error_safe: {
+        Args: {
+          operation_type: string
+          error_message: string
+          user_id_param?: string
+          retry_count?: number
+        }
+        Returns: undefined
+      }
+      log_realtime_change_throttled: {
+        Args: { table_name: string; operation: string; record_id: string }
+        Returns: undefined
+      }
+      log_security_event: {
+        Args: {
+          event_type: string
+          event_message: string
+          event_details?: Json
+        }
+        Returns: undefined
+      }
+      log_security_event_optimized: {
+        Args: {
+          event_type: string
+          event_message: string
+          event_details?: Json
+          severity?: string
+        }
+        Returns: undefined
+      }
+      log_security_event_safe: {
+        Args: {
+          event_type: string
+          event_message: string
+          event_details?: Json
+          severity?: string
+        }
+        Returns: undefined
+      }
+      log_vacation_security_event: {
+        Args: { event_type: string; vacation_id: string; details?: Json }
+        Returns: undefined
+      }
+      perform_database_maintenance: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      refresh_materialized_views: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      run_automated_maintenance: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      run_logs_rls_maintenance: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      sanitize_text_input: {
+        Args: { input_text: string; max_length?: number }
+        Returns: string
+      }
+      schedule_maintenance_tasks: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      sync_user_roles_to_jwt: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      test_query_performance: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      user_has_department_access: {
+        Args: { user_uuid: string; dept_id: string }
+        Returns: boolean
+      }
+      user_has_role: {
+        Args: { check_role: Database["public"]["Enums"]["user_role"] }
+        Returns: boolean
+      }
+      validate_data_integrity: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      validate_database_health: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      validate_email_format_enhanced: {
+        Args: { email: string }
+        Returns: boolean
+      }
+      verify_complete_fix: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      verify_data_access_fix: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      verify_policy_fix: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      verify_role_assignments: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_name: string
+          user_email: string
+          assigned_role: Database["public"]["Enums"]["user_role"]
+          is_current_user: boolean
+        }[]
+      }
     }
     Enums: {
       assignment_type: "waterDamage" | "fireDamage" | "mold" | "other"
+      employee_status: "active" | "inactive" | "on_leave" | "terminated"
       user_role: "administrator" | "skadeleder" | "servicemedarbejder"
       vacation_status: "pending" | "approved" | "rejected"
     }
@@ -305,21 +799,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -337,14 +835,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -360,14 +860,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -383,14 +885,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -398,14 +902,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
@@ -414,6 +920,7 @@ export const Constants = {
   public: {
     Enums: {
       assignment_type: ["waterDamage", "fireDamage", "mold", "other"],
+      employee_status: ["active", "inactive", "on_leave", "terminated"],
       user_role: ["administrator", "skadeleder", "servicemedarbejder"],
       vacation_status: ["pending", "approved", "rejected"],
     },
