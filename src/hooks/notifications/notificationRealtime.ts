@@ -1,9 +1,10 @@
 
 import { useEffect, useRef } from 'react';
 import { NotificationType } from '@/types/notification';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { sortNotifications } from '@/utils/notifications';
+import { AppUser } from '@/context/AuthContext';
 
 // Key for localStorage to track notifications shown across browser sessions
 const NOTIFICATION_HISTORY_KEY = "polygon-notification-history";
@@ -59,7 +60,7 @@ const clearActiveChannel = (): void => {
 };
 
 export const useNotificationRealtime = (
-  user: any | null,
+  user: AppUser | null,
   setNotifications: (updater: (prev: NotificationType[]) => NotificationType[]) => void,
   setUnreadCount: (updater: (prev: number) => number) => void
 ) => {

@@ -4,10 +4,18 @@ import { format } from 'date-fns';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { safeProperty } from '@/utils/dbHelpers';
+import { AppUser } from '@/context/AuthContext';
+
+type NotificationInput = {
+  type: string;
+  title: string;
+  message: string;
+  link?: string;
+};
 
 export const useVacationNotifications = (
-  user: any | null,
-  addNotification: (notification: any) => Promise<string | null>
+  user: AppUser | null,
+  addNotification: (notification: NotificationInput) => Promise<string | null>
 ) => {
   const { t, currentLanguage } = useTranslation();
   
