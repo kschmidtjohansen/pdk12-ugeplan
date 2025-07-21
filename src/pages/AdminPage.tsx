@@ -31,6 +31,11 @@ const AdminPage: React.FC = () => {
     }
   }, [isAdmin, isSuperadmin, navigate]);
 
+  // Don't render anything if user doesn't have access
+  if (!isAdmin && !isSuperadmin) {
+    return null;
+  }
+
   // Calculate metrics based on real data
   const usersCount = employees.length;
   const activeUsersCount = employees.filter(e => !e.onLeave).length;
