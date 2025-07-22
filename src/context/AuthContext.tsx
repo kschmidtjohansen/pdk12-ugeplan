@@ -110,6 +110,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log(`[AuthContext] User role: ${user.role}`);
     }
   }, [isDemoMode, user]);
+
   // SINGLE SOURCE OF TRUTH: Demo role management (runs AFTER user data is loaded)
   useEffect(() => {
     if (isDemoMode && user) {
@@ -234,103 +235,85 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Refresh user data function
   const refreshUserData = async (): Promise<void> => {
     if (!session?.user) {
-      console.log('[AuthContext] FIXED - No session user for refresh');
+      console.log('[AuthContext] No session user for refresh');
       return;
     }
     
-    console.log('[AuthContext] FIXED - Refreshing user data...');
+    console.log('[AuthContext] Refreshing user data...');
     try {
       const refreshedUser = await fetchUserData(session.user);
       if (refreshedUser) {
         setUser(refreshedUser);
-        console.log('[AuthContext] FIXED - User data refreshed successfully');
+        console.log('[AuthContext] User data refreshed successfully');
       }
     } catch (error) {
-      console.error('[AuthContext] FIXED - Failed to refresh user data:', error);
+      console.error('[AuthContext] Failed to refresh user data:', error);
     }
   };
 
-  // ENHANCED: Improved auth initialization with session cleanup and error recovery
+  // FIXED: Simplified auth initialization without recursive refresh attempts
   useEffect(() => {
     let mounted = true;
     let initTimeout: NodeJS.Timeout;
 
     const initializeAuth = async () => {
       try {
-        console.log('[AuthContext] ENHANCED - Starting auth initialization...');
+        console.log('[AuthContext] SIMPLIFIED - Starting auth initialization...');
         
-        // Set initialization timeout (8 seconds - reduced for better UX)
+        // Set a shorter timeout for better UX
         initTimeout = setTimeout(() => {
           if (mounted) {
-            console.warn('[AuthContext] ENHANCED - Auth initialization timeout, forcing completion');
+            console.warn('[AuthContext] SIMPLIFIED - Auth initialization timeout, completing');
             setLoading(false);
           }
-        }, 8000);
+        }, 5000); // Reduced to 5 seconds
 
-        // ENHANCED: Check for stale sessions and clean them up
-        try {
-          // First, try to refresh the session to validate it
-          const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+        // Get the current session without complex refresh logic
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('[AuthContext] SIMPLIFIED - Session fetch error:', error);
+          if (mounted) {
+            setSession(null);
+            setUser(null);
+            setLoading(false);
+          }
+          return;
+        }
+
+        if (currentSession?.user && mounted) {
+          console.log('[AuthContext] SIMPLIFIED - Found existing session for:', currentSession.user.email);
+          setSession(currentSession);
           
-          if (refreshError) {
-            console.log('[AuthContext] ENHANCED - Session refresh failed, clearing stale session:', refreshError.message);
-            // Clear potentially stale session
-            await supabase.auth.signOut();
-            if (mounted) {
-              setSession(null);
-              setUser(null);
+          try {
+            const userData = await fetchUserData(currentSession.user);
+            if (userData && mounted) {
+              setUser(userData);
+              console.log('[AuthContext] SIMPLIFIED - User data set successfully');
             }
-          } else if (refreshedSession?.user && mounted) {
-            console.log('[AuthContext] ENHANCED - Session refreshed successfully for:', refreshedSession.user.email);
-            setSession(refreshedSession);
-            
-            // Fetch user data with enhanced error handling
-            try {
-              const userData = await fetchUserData(refreshedSession.user);
-              if (userData && mounted) {
-                setUser(userData);
-                console.log('[AuthContext] ENHANCED - User data set successfully');
-              }
-            } catch (userDataError) {
-              console.error('[AuthContext] ENHANCED - User data fetch failed, using fallback');
-              // Create fallback user data to prevent auth loops
-              const fallbackUser: AppUser = {
-                id: refreshedSession.user.id,
-                name: refreshedSession.user.email || 'User',
-                email: refreshedSession.user.email || '',
-                role: 'servicemedarbejder'
-              };
-              if (mounted) {
-                setUser(fallbackUser);
-              }
+          } catch (userDataError) {
+            console.error('[AuthContext] SIMPLIFIED - User data fetch failed, using fallback');
+            const fallbackUser: AppUser = {
+              id: currentSession.user.id,
+              name: currentSession.user.email || 'User',
+              email: currentSession.user.email || '',
+              role: 'servicemedarbejder'
+            };
+            if (mounted) {
+              setUser(fallbackUser);
             }
           }
-        } catch (sessionError) {
-          console.log('[AuthContext] ENHANCED - Session validation failed, starting fresh:', sessionError);
-          // Get current session as fallback
-          const { data: { session: currentSession } } = await supabase.auth.getSession();
-          
-          if (currentSession?.user && mounted) {
-            console.log('[AuthContext] ENHANCED - Using current session for:', currentSession.user.email);
-            setSession(currentSession);
-            
-            try {
-              const userData = await fetchUserData(currentSession.user);
-              if (userData && mounted) {
-                setUser(userData);
-              }
-            } catch (userDataError) {
-              console.error('[AuthContext] ENHANCED - Fallback user data fetch failed');
-            }
-          } else {
-            console.log('[AuthContext] ENHANCED - No valid session found');
+        } else {
+          console.log('[AuthContext] SIMPLIFIED - No valid session found');
+          if (mounted) {
+            setSession(null);
+            setUser(null);
           }
         }
         
         clearTimeout(initTimeout);
       } catch (error) {
-        console.error('[AuthContext] ENHANCED - Auth initialization error:', error);
-        // Force clear everything on critical error
+        console.error('[AuthContext] SIMPLIFIED - Auth initialization error:', error);
         if (mounted) {
           setSession(null);
           setUser(null);
@@ -338,62 +321,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } finally {
         if (mounted) {
           setLoading(false);
-          console.log('[AuthContext] ENHANCED - Auth initialization complete');
+          console.log('[AuthContext] SIMPLIFIED - Auth initialization complete');
         }
       }
     };
 
-    // ENHANCED: More robust auth state change handler
+    // Simplified auth state change handler
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         if (!mounted) return;
 
-        console.log('[AuthContext] ENHANCED - Auth event:', event, 'Session valid:', !!newSession?.user);
+        console.log('[AuthContext] SIMPLIFIED - Auth event:', event, 'Session valid:', !!newSession?.user);
         
-        // Handle different auth events specifically
-        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-          setSession(newSession);
-          setUser(newSession?.user ? null : null); // Will be set below if user exists
-        } else {
-          setSession(newSession);
-        }
+        setSession(newSession);
         
         if (newSession?.user) {
-          console.log('[AuthContext] ENHANCED - Processing auth event with user:', newSession.user.email);
+          console.log('[AuthContext] SIMPLIFIED - Processing auth event with user:', newSession.user.email);
           
-          // Use requestIdleCallback if available, otherwise setTimeout
-          const deferredFetch = () => {
-            if (!mounted) return;
-            
-            fetchUserData(newSession.user)
-              .then(userData => {
-                if (userData && mounted) {
-                  setUser(userData);
-                  console.log('[AuthContext] ENHANCED - User data updated from auth event');
-                }
-              })
-              .catch(error => {
-                console.error('[AuthContext] ENHANCED - User data fetch failed in auth event:', error);
-                // Set fallback user data to prevent auth loops
-                if (mounted) {
-                  const fallbackUser: AppUser = {
-                    id: newSession.user.id,
-                    name: newSession.user.email || 'User',
-                    email: newSession.user.email || '',
-                    role: 'servicemedarbejder'
-                  };
-                  setUser(fallbackUser);
-                }
-              });
-          };
-
-          if ('requestIdleCallback' in window) {
-            requestIdleCallback(deferredFetch);
-          } else {
-            setTimeout(deferredFetch, 0);
+          try {
+            const userData = await fetchUserData(newSession.user);
+            if (userData && mounted) {
+              setUser(userData);
+              console.log('[AuthContext] SIMPLIFIED - User data updated from auth event');
+            }
+          } catch (error) {
+            console.error('[AuthContext] SIMPLIFIED - User data fetch failed in auth event:', error);
+            if (mounted) {
+              const fallbackUser: AppUser = {
+                id: newSession.user.id,
+                name: newSession.user.email || 'User',
+                email: newSession.user.email || '',
+                role: 'servicemedarbejder'
+              };
+              setUser(fallbackUser);
+            }
           }
         } else {
-          console.log('[AuthContext] ENHANCED - No user in auth event, clearing user state');
+          console.log('[AuthContext] SIMPLIFIED - No user in auth event, clearing user state');
           setUser(null);
         }
         
@@ -469,10 +433,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return true;
   };
 
-  // FIXED: Enhanced login method with better error handling
+  // SIMPLIFIED: Enhanced login method with better error handling
   const login = async (email: string, password: string) => {
     try {
-      console.log('[AuthProvider] FIXED - Attempting login for:', email);
+      console.log('[AuthProvider] SIMPLIFIED - Attempting login for:', email);
       
       const { error } = await supabase.auth.signInWithPassword({ 
         email: email.trim().toLowerCase(), 
@@ -480,7 +444,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       
       if (error) {
-        console.error('[AuthProvider] FIXED - Login error:', error);
+        console.error('[AuthProvider] SIMPLIFIED - Login error:', error);
         return { error: error.message };
       }
       
@@ -489,17 +453,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         description: "Du er nu logget ind.",
       });
       
-      console.log('[AuthProvider] FIXED - Login successful, auth state change will handle user data');
+      console.log('[AuthProvider] SIMPLIFIED - Login successful, auth state change will handle user data');
       return { error: null };
     } catch (error: any) {
-      console.error('[AuthProvider] FIXED - Login exception:', error);
+      console.error('[AuthProvider] SIMPLIFIED - Login exception:', error);
       return { error: 'An unexpected error occurred during login.' };
     }
   };
 
   const logout = async () => {
     try {
-      console.log('[AuthProvider] FIXED - Logging out...');
+      console.log('[AuthProvider] SIMPLIFIED - Logging out...');
       
       // Clean up demo data if in demo mode
       if (isDemoMode) {
@@ -511,7 +475,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setSession(null);
     } catch (error) {
-      console.error('[AuthProvider] FIXED - Logout error:', error);
+      console.error('[AuthProvider] SIMPLIFIED - Logout error:', error);
       setUser(null);
       setSession(null);
     }

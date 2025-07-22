@@ -11,29 +11,28 @@ const LoginPage = () => {
   const { t } = useTranslation();
   const [clientTimeout, setClientTimeout] = useState(false);
 
-  console.log('[LoginPage] FIXED - Render - isAuthenticated:', isAuthenticated, 'loading:', loading);
+  console.log('[LoginPage] SIMPLIFIED - Render - isAuthenticated:', isAuthenticated, 'loading:', loading);
 
-  // FIXED: Add client-side timeout protection
+  // SIMPLIFIED: Shorter timeout for better UX
   useEffect(() => {
     const timeout = setTimeout(() => {
-      console.warn('[LoginPage] FIXED - Client timeout reached after 15 seconds');
+      console.warn('[LoginPage] SIMPLIFIED - Client timeout reached after 5 seconds');
       setClientTimeout(true);
-    }, 15000);
+    }, 5000); // Reduced to 5 seconds
 
     return () => clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      console.log('[LoginPage] FIXED - User authenticated, redirecting to dashboard');
+      console.log('[LoginPage] SIMPLIFIED - User authenticated, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, loading, navigate]);
 
   const handleLoginSuccess = () => {
-    console.log('[LoginPage] FIXED - Login success callback triggered');
-    // Don't navigate immediately, let the auth state change handle it
-    // This prevents race conditions
+    console.log('[LoginPage] SIMPLIFIED - Login success callback triggered');
+    // The auth state change will handle navigation automatically
   };
 
   // Show loading state with timeout protection
@@ -43,7 +42,6 @@ const LoginPage = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p>{t('common.loading')}</p>
-          <p className="text-xs text-gray-400 mt-2">If this takes too long, please refresh the page</p>
         </div>
       </div>
     );
