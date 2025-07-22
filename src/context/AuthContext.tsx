@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
 import { DemoUserService } from '@/services/demoUserService';
+import { circuitBreaker } from '@/services/circuitBreakerService';
 
 // Define user roles
 export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder';
@@ -37,6 +38,7 @@ interface AuthContextType {
   register: (email: string, password: string, name: string) => Promise<{ error: string | null, user: User | null }>;
   updateUserRole: (userId: string, role: UserRole) => Promise<{ error: string | null }>;
   loading: boolean;
+  authReady: boolean;
   canViewFuelCardCode: boolean;
   canPublishTasks: boolean;
   canApproveVacation: boolean;
@@ -72,6 +74,7 @@ const AuthContext = createContext<AuthContextType>({
   register: async () => ({ error: null, user: null }),
   updateUserRole: async () => ({ error: null }),
   loading: true,
+  authReady: false,
   canViewFuelCardCode: false,
   canPublishTasks: false,
   canApproveVacation: false,
@@ -96,84 +99,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [authReady, setAuthReady] = useState<boolean>(false);
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
+  const [isInitializing, setIsInitializing] = useState<boolean>(true);
   const { toast } = useToast();
   
   // Demo mode detection with enhanced logging
   const demoService = DemoUserService.getInstance();
   const isDemoMode = user ? demoService.isDemoUser(user.email) : false;
-  
-  // Log demo mode status changes
-  useEffect(() => {
-    if (user) {
-      console.log(`[AuthContext] Demo mode status for ${user.email}: ${isDemoMode}`);
-      console.log(`[AuthContext] User role: ${user.role}`);
-    }
-  }, [isDemoMode, user]);
 
-  // SINGLE SOURCE OF TRUTH: Demo role management (runs AFTER user data is loaded)
-  useEffect(() => {
-    if (isDemoMode && user) {
-      console.log(`[AuthContext] Demo role initialization for: ${user.email}`);
-      
-      // ALWAYS prioritize saved demo role over everything else
-      const savedDemoRole = sessionStorage.getItem('demo-role') as UserRole | null;
-      
-      if (savedDemoRole && ['administrator', 'skadeleder', 'servicemedarbejder'].includes(savedDemoRole)) {
-        console.log(`[AuthContext] Using saved demo role: ${savedDemoRole}`);
-        setDemoRole(savedDemoRole);
-      } else {
-        // Only set default if no saved role exists
-        console.log(`[AuthContext] No saved demo role, defaulting to administrator`);
-        setDemoRole('administrator');
-        sessionStorage.setItem('demo-role', 'administrator');
-      }
-    } else if (!isDemoMode) {
-      console.log(`[AuthContext] Clearing demo role (not in demo mode)`);
-      setDemoRole(null);
-      sessionStorage.removeItem('demo-role');
-    }
-  }, [isDemoMode, user?.id]); // Trigger when demo mode or user ID changes (after user data is loaded)
-  
-  // Handle demo role changes WITHOUT page reload
-  const handleSetDemoRole = (role: UserRole) => {
-    if (isDemoMode && user) {
-      console.log(`[Demo] Role switching from ${demoRole || user.role} to ${role}`);
-      setDemoRole(role);
-      sessionStorage.setItem('demo-role', role);
-      
-      console.log(`[Demo] Role switched successfully to: ${role}`);
-      
-      toast({
-        title: "Rolle Ændret",
-        description: `Skiftet til ${role}`,
-      });
-    }
-  };
+  // Circuit breaker for auth operations
+  const AUTH_OPERATION_ID = 'auth_initialization';
 
   // Enhanced user data fetching with demo user support
   const fetchUserData = async (authUser: User): Promise<AppUser | null> => {
     const startTime = Date.now();
-    console.log(`[AuthContext] Starting user data fetch for: ${authUser.email}`);
+    console.log(`[AuthContext] COMPREHENSIVE FIX - Starting user data fetch for: ${authUser.email}`);
+    
+    if (!circuitBreaker.canProceed(`user_data_fetch_${authUser.id}`)) {
+      console.warn(`[AuthContext] Circuit breaker open for user data fetch: ${authUser.email}`);
+      return null;
+    }
     
     try {
-      // Create the actual fetch promise
-      const [profileResult, roleResult] = await Promise.all([
+      // Create the actual fetch promise with timeout
+      const fetchPromise = Promise.all([
         supabase.from('profiles').select('name').eq('id', authUser.id).maybeSingle(),
         supabase.from('user_roles').select('role').eq('user_id', authUser.id).maybeSingle()
       ]);
 
-      console.log(`[AuthContext] Database queries completed in ${Date.now() - startTime}ms`);
-      console.log(`[AuthContext] Profile result:`, profileResult);
-      console.log(`[AuthContext] Role result:`, roleResult);
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('User data fetch timeout')), 5000)
+      );
 
-      // Check for database errors
-      if (profileResult.error) {
-        console.error('[AuthContext] Profile fetch error:', profileResult.error);
-      }
-      if (roleResult.error) {
-        console.error('[AuthContext] Role fetch error:', roleResult.error);
-      }
+      const [profileResult, roleResult] = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+      console.log(`[AuthContext] Database queries completed in ${Date.now() - startTime}ms`);
 
       // Handle profile data - use "Demo User" for demo user, otherwise use profile name or email
       const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
@@ -211,10 +173,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         totalTime: Date.now() - startTime
       });
       
+      circuitBreaker.recordSuccess(`user_data_fetch_${authUser.id}`);
       return enhancedUser;
       
     } catch (error) {
       console.error(`[AuthContext] User data fetch failed after ${Date.now() - startTime}ms:`, error);
+      circuitBreaker.recordFailure(`user_data_fetch_${authUser.id}`);
       
       // For demo user, provide fallback - keep it simple
       const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
@@ -229,6 +193,202 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       console.log(`[AuthContext] Using fallback user data:`, fallbackUser);
       return fallbackUser;
+    }
+  };
+
+  // COMPREHENSIVE FIX: Ultra-simplified, single-pass auth initialization
+  useEffect(() => {
+    let mounted = true;
+    let initializationComplete = false;
+
+    console.log('[AuthContext] COMPREHENSIVE FIX - Starting authentication initialization...');
+
+    // Circuit breaker check
+    if (!circuitBreaker.canProceed(AUTH_OPERATION_ID)) {
+      console.warn('[AuthContext] Auth initialization circuit breaker is open');
+      setLoading(false);
+      setAuthReady(true);
+      setIsInitializing(false);
+      return;
+    }
+
+    const initializeAuth = async () => {
+      try {
+        console.log('[AuthContext] COMPREHENSIVE FIX - Setting up auth state listener...');
+        
+        // Set up auth listener FIRST - this handles all future auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, newSession) => {
+            if (!mounted) return;
+
+            console.log('[AuthContext] COMPREHENSIVE FIX - Auth state change:', event, !!newSession?.user);
+            
+            // Update session state immediately
+            setSession(newSession);
+            
+            if (newSession?.user) {
+              // Fetch user data asynchronously but don't block auth state
+              setTimeout(async () => {
+                if (!mounted) return;
+                
+                try {
+                  const userData = await fetchUserData(newSession.user);
+                  if (userData && mounted) {
+                    setUser(userData);
+                  }
+                } catch (error) {
+                  console.warn('[AuthContext] User data fetch in auth change failed:', error);
+                  // Use fallback user data
+                  if (mounted) {
+                    setUser({
+                      id: newSession.user.id,
+                      name: newSession.user.email || 'User',
+                      email: newSession.user.email || '',
+                      role: 'servicemedarbejder'
+                    });
+                  }
+                }
+              }, 0);
+            } else {
+              setUser(null);
+            }
+
+            // Mark auth as ready after first state change
+            if (!initializationComplete) {
+              setLoading(false);
+              setAuthReady(true);
+              setIsInitializing(false);
+              initializationComplete = true;
+            }
+          }
+        );
+
+        // Check for existing session with timeout
+        console.log('[AuthContext] COMPREHENSIVE FIX - Checking for existing session...');
+        
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 3000)
+        );
+
+        try {
+          const { data: { session: currentSession }, error } = await Promise.race([
+            sessionPromise, 
+            timeoutPromise
+          ]) as any;
+
+          if (!mounted) return;
+
+          if (error) {
+            console.error('[AuthContext] COMPREHENSIVE FIX - Session check error:', error);
+            throw error;
+          }
+
+          console.log('[AuthContext] COMPREHENSIVE FIX - Session check result:', !!currentSession?.user);
+          
+          // If we have a session, the auth state change listener will handle it
+          // If we don't, we're done initializing
+          if (!currentSession) {
+            setSession(null);
+            setUser(null);
+            if (!initializationComplete) {
+              setLoading(false);
+              setAuthReady(true);
+              setIsInitializing(false);
+              initializationComplete = true;
+            }
+          }
+          
+          circuitBreaker.recordSuccess(AUTH_OPERATION_ID);
+          
+        } catch (error) {
+          console.error('[AuthContext] COMPREHENSIVE FIX - Session check failed:', error);
+          circuitBreaker.recordFailure(AUTH_OPERATION_ID);
+          
+          // Fail gracefully
+          setSession(null);
+          setUser(null);
+          if (!initializationComplete) {
+            setLoading(false);
+            setAuthReady(true);
+            setIsInitializing(false);
+            initializationComplete = true;
+          }
+        }
+
+        return () => {
+          mounted = false;
+          subscription.unsubscribe();
+        };
+
+      } catch (error) {
+        console.error('[AuthContext] COMPREHENSIVE FIX - Auth initialization failed:', error);
+        circuitBreaker.recordFailure(AUTH_OPERATION_ID);
+        
+        if (mounted) {
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          setAuthReady(true);
+          setIsInitializing(false);
+        }
+      }
+    };
+
+    // Force completion after maximum timeout
+    const forceCompleteTimeout = setTimeout(() => {
+      if (mounted && !initializationComplete) {
+        console.warn('[AuthContext] COMPREHENSIVE FIX - Force completing auth initialization due to timeout');
+        setLoading(false);
+        setAuthReady(true);
+        setIsInitializing(false);
+        initializationComplete = true;
+      }
+    }, 5000);
+
+    const cleanup = initializeAuth();
+    
+    return () => {
+      mounted = false;
+      clearTimeout(forceCompleteTimeout);
+      if (cleanup && typeof cleanup.then === 'function') {
+        cleanup.then(cleanupFn => {
+          if (typeof cleanupFn === 'function') {
+            cleanupFn();
+          }
+        });
+      }
+    };
+  }, []);
+
+  // Demo role management (simplified)
+  useEffect(() => {
+    if (isDemoMode && user) {
+      const savedDemoRole = sessionStorage.getItem('demo-role') as UserRole | null;
+      
+      if (savedDemoRole && ['administrator', 'skadeleder', 'servicemedarbejder'].includes(savedDemoRole)) {
+        setDemoRole(savedDemoRole);
+      } else {
+        setDemoRole('administrator');
+        sessionStorage.setItem('demo-role', 'administrator');
+      }
+    } else if (!isDemoMode) {
+      setDemoRole(null);
+      sessionStorage.removeItem('demo-role');
+    }
+  }, [isDemoMode, user?.id]);
+  
+  // Handle demo role changes
+  const handleSetDemoRole = (role: UserRole) => {
+    if (isDemoMode && user) {
+      console.log(`[Demo] Role switching from ${demoRole || user.role} to ${role}`);
+      setDemoRole(role);
+      sessionStorage.setItem('demo-role', role);
+      
+      toast({
+        title: "Rolle Ændret",
+        description: `Skiftet til ${role}`,
+      });
     }
   };
 
@@ -251,115 +411,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // CRITICAL FIX: Ultra-simplified auth initialization
-  useEffect(() => {
-    let mounted = true;
-    let initTimeout: NodeJS.Timeout;
-
-    console.log('[AuthContext] CRITICAL FIX - Starting auth initialization...');
-
-    // Very aggressive timeout to prevent infinite loading
-    initTimeout = setTimeout(() => {
-      if (mounted) {
-        console.warn('[AuthContext] CRITICAL FIX - Force completing auth initialization');
-        setLoading(false);
-      }
-    }, 2000); // Very short timeout
-
-    // Set up auth listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
-        if (!mounted) return;
-
-        console.log('[AuthContext] CRITICAL FIX - Auth event:', event, !!newSession?.user);
-        
-        clearTimeout(initTimeout);
-        setSession(newSession);
-        setLoading(false);
-        
-        if (newSession?.user) {
-          // Fire and forget user data fetch - don't block authentication
-          fetchUserData(newSession.user)
-            .then(userData => {
-              if (userData && mounted) {
-                setUser(userData);
-              }
-            })
-            .catch(error => {
-              console.warn('[AuthContext] User data fetch failed, using fallback:', error);
-              if (mounted) {
-                setUser({
-                  id: newSession.user.id,
-                  name: newSession.user.email || 'User',
-                  email: newSession.user.email || '',
-                  role: 'servicemedarbejder'
-                });
-              }
-            });
-        } else {
-          setUser(null);
-        }
-      }
-    );
-
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession }, error }) => {
-      if (!mounted) return;
-      
-      if (error) {
-        console.error('[AuthContext] CRITICAL FIX - Session error:', error);
-        setSession(null);
-        setUser(null);
-        setLoading(false);
-        return;
-      }
-
-      if (currentSession?.user) {
-        console.log('[AuthContext] CRITICAL FIX - Found session:', currentSession.user.email);
-        setSession(currentSession);
-        setLoading(false);
-        
-        // Fire and forget user data fetch
-        fetchUserData(currentSession.user)
-          .then(userData => {
-            if (userData && mounted) {
-              setUser(userData);
-            }
-          })
-          .catch(error => {
-            console.warn('[AuthContext] Initial user data fetch failed:', error);
-            if (mounted) {
-              setUser({
-                id: currentSession.user.id,
-                name: currentSession.user.email || 'User',
-                email: currentSession.user.email || '',
-                role: 'servicemedarbejder'
-              });
-            }
-          });
-      } else {
-        console.log('[AuthContext] CRITICAL FIX - No session found');
-        setSession(null);
-        setUser(null);
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      mounted = false;
-      if (initTimeout) {
-        clearTimeout(initTimeout);
-      }
-      subscription.unsubscribe();
-    };
-  }, []);
-
   // Permissions based on current user (with demo role override)
   const currentRole = isDemoMode && demoRole ? demoRole : user?.role;
   const isAdmin = currentRole === 'administrator';
   const isSkadeleder = currentRole === 'skadeleder';
   const isServicemedarbejder = currentRole === 'servicemedarbejder';
-  const isAuthenticated = !!user;
+  const isAuthenticated = !!user && !!session;
 
   // Effective role permissions (considering demo mode)
   const isEffectiveAdmin = currentRole === 'administrator';
@@ -410,10 +467,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return true;
   };
 
-  // SIMPLIFIED: Enhanced login method with better error handling
+  // Enhanced login method with better error handling
   const login = async (email: string, password: string) => {
     try {
-      console.log('[AuthProvider] SIMPLIFIED - Attempting login for:', email);
+      console.log('[AuthProvider] COMPREHENSIVE FIX - Attempting login for:', email);
       
       const { error } = await supabase.auth.signInWithPassword({ 
         email: email.trim().toLowerCase(), 
@@ -421,7 +478,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       
       if (error) {
-        console.error('[AuthProvider] SIMPLIFIED - Login error:', error);
+        console.error('[AuthProvider] COMPREHENSIVE FIX - Login error:', error);
         return { error: error.message };
       }
       
@@ -430,17 +487,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         description: "Du er nu logget ind.",
       });
       
-      console.log('[AuthProvider] SIMPLIFIED - Login successful, auth state change will handle user data');
+      console.log('[AuthProvider] COMPREHENSIVE FIX - Login successful');
       return { error: null };
     } catch (error: any) {
-      console.error('[AuthProvider] SIMPLIFIED - Login exception:', error);
+      console.error('[AuthProvider] COMPREHENSIVE FIX - Login exception:', error);
       return { error: 'An unexpected error occurred during login.' };
     }
   };
 
   const logout = async () => {
     try {
-      console.log('[AuthProvider] SIMPLIFIED - Logging out...');
+      console.log('[AuthProvider] COMPREHENSIVE FIX - Logging out...');
       
       // Clean up demo data if in demo mode
       if (isDemoMode) {
@@ -452,7 +509,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setSession(null);
     } catch (error) {
-      console.error('[AuthProvider] SIMPLIFIED - Logout error:', error);
+      console.error('[AuthProvider] COMPREHENSIVE FIX - Logout error:', error);
       setUser(null);
       setSession(null);
     }
@@ -569,6 +626,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     updateUserRole,
     loading,
+    authReady,
     canViewFuelCardCode,
     canPublishTasks,
     canApproveVacation,

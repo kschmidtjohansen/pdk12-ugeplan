@@ -1,43 +1,34 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { EnhancedSecureLoginForm } from '@/components/Auth/EnhancedSecureLoginForm';
 import { useTranslation } from '@/context/TranslationContext';
 
 const LoginPage = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, authReady } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  console.log('[LoginPage] CRITICAL FIX - Render - isAuthenticated:', isAuthenticated, 'loading:', loading);
+  console.log('[LoginPage] COMPREHENSIVE FIX - Render state:', {
+    isAuthenticated,
+    authReady
+  });
 
-  // Immediate redirect if authenticated, no waiting
+  // Only redirect if auth is ready and user is authenticated
   useEffect(() => {
-    if (isAuthenticated && !loading) {
-      console.log('[LoginPage] CRITICAL FIX - User authenticated, redirecting to dashboard');
+    if (authReady && isAuthenticated) {
+      console.log('[LoginPage] COMPREHENSIVE FIX - User authenticated, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
     }
-  }, [isAuthenticated, loading, navigate]);
+  }, [isAuthenticated, authReady, navigate]);
 
   const handleLoginSuccess = () => {
-    console.log('[LoginPage] CRITICAL FIX - Login success callback triggered');
-    // Navigation will be handled by useEffect above
+    console.log('[LoginPage] COMPREHENSIVE FIX - Login success callback triggered');
+    // Navigation will be handled by the useEffect above
   };
 
-  // If authenticated, redirect immediately
-  if (isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Redirecting to dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show login form immediately if not authenticated
+  // Show login form - don't block it with auth checks
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -59,6 +50,13 @@ const LoginPage = () => {
         </div>
         
         <EnhancedSecureLoginForm onSuccess={handleLoginSuccess} />
+        
+        {/* Debug info in dev mode */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
+            Auth Ready: {authReady ? 'Yes' : 'No'} | Authenticated: {isAuthenticated ? 'Yes' : 'No'}
+          </div>
+        )}
       </div>
     </div>
   );
