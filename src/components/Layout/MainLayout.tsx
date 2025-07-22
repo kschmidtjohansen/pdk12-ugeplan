@@ -16,7 +16,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t, isInitialized } = useTranslation();
-
   console.log('[MainLayout] SESSION EXPIRATION FIX - Render state:', {
     path: location.pathname,
     isAuthenticated,
@@ -32,6 +31,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     }
   }, [authReady, isAuthenticated, navigate]);
 
+
   // Don't show layout for login page or password reset page
   if (location.pathname === "/login" || location.pathname === "/password-reset") {
     return (
@@ -41,6 +41,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </SecurityErrorBoundary>
     );
   }
+
 
   // Show loading state if translation is not initialized or auth is not ready
   if (!isInitialized || !authReady) {
@@ -59,6 +60,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </SecurityErrorBoundary>
     );
   }
+
 
   // SESSION EXPIRATION FIX: Remove infinite redirect state - if auth is ready and not authenticated, the useEffect will handle redirect
   if (!isAuthenticated) {

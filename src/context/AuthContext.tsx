@@ -360,6 +360,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (mounted) {
           setSession(null);
           setUser(null);
+        }
+      } finally {
+        if (mounted) {
           setLoading(false);
           setAuthReady(true);
         }
@@ -497,6 +500,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return true;
   };
 
+
   // Enhanced login method with better error handling
   const login = async (email: string, password: string) => {
     try {
@@ -517,6 +521,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         description: "Du er nu logget ind.",
       });
       
+
       console.log('[AuthProvider] COMPREHENSIVE FIX - Login successful');
       return { error: null };
     } catch (error: any) {
@@ -524,6 +529,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { error: 'An unexpected error occurred during login.' };
     }
   };
+
 
   // Enhanced logout method with session expiration support
   const logout = async () => {
