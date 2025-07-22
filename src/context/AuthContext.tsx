@@ -4,6 +4,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
 import { DemoUserService } from '@/services/demoUserService';
 import { circuitBreaker } from '@/services/circuitBreakerService';
+import { useTranslation } from './TranslationContext';
 
 // Define user roles
 export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder';
@@ -101,8 +102,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [authReady, setAuthReady] = useState<boolean>(false);
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
-  const [isInitializing, setIsInitializing] = useState<boolean>(true);
+  const [sessionExpired, setSessionExpired] = useState<boolean>(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
   
   // Demo mode detection with enhanced logging
   const demoService = DemoUserService.getInstance();
@@ -114,7 +116,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Enhanced user data fetching with demo user support
   const fetchUserData = async (authUser: User): Promise<AppUser | null> => {
     const startTime = Date.now();
-    console.log(`[AuthContext] COMPREHENSIVE FIX - Starting user data fetch for: ${authUser.email}`);
+    console.log(`[AuthContext] SESSION EXPIRATION FIX - Starting user data fetch for: ${authUser.email}`);
     
     if (!circuitBreaker.canProceed(`user_data_fetch_${authUser.id}`)) {
       console.warn(`[AuthContext] Circuit breaker open for user data fetch: ${authUser.email}`);
@@ -196,35 +198,68 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // COMPREHENSIVE FIX: Ultra-simplified, single-pass auth initialization
+  // SESSION EXPIRATION FIX: Enhanced auth initialization with session expiration handling
   useEffect(() => {
     let mounted = true;
     let initializationComplete = false;
 
-    console.log('[AuthContext] COMPREHENSIVE FIX - Starting authentication initialization...');
+    console.log('[AuthContext] SESSION EXPIRATION FIX - Starting authentication initialization...');
 
     // Circuit breaker check
     if (!circuitBreaker.canProceed(AUTH_OPERATION_ID)) {
       console.warn('[AuthContext] Auth initialization circuit breaker is open');
       setLoading(false);
       setAuthReady(true);
-      setIsInitializing(false);
       return;
     }
 
     const initializeAuth = async () => {
       try {
-        console.log('[AuthContext] COMPREHENSIVE FIX - Setting up auth state listener...');
+        console.log('[AuthContext] SESSION EXPIRATION FIX - Setting up auth state listener...');
         
-        // Set up auth listener FIRST - this handles all future auth changes
+        // Set up auth listener FIRST - this handles all future auth changes including session expiration
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, newSession) => {
             if (!mounted) return;
 
-            console.log('[AuthContext] COMPREHENSIVE FIX - Auth state change:', event, !!newSession?.user);
+            console.log('[AuthContext] SESSION EXPIRATION FIX - Auth state change:', event, !!newSession?.user);
+            
+            // Handle session expiration - key fix for the redirect loop
+            if (event === 'SIGNED_OUT' && session && !newSession) {
+              console.log('[AuthContext] SESSION EXPIRATION FIX - Session expired, clearing state and redirecting');
+              setSessionExpired(true);
+              setUser(null);
+              setSession(null);
+              
+              // Show session expired toast
+              toast({
+                title: t('auth.sessionExpiredTitle'),
+                description: t('auth.sessionExpiredDescription'),
+                variant: "destructive",
+              });
+              
+              // Clear any sensitive data
+              sessionStorage.clear();
+              
+              // Force redirect to login after a brief delay
+              setTimeout(() => {
+                window.location.href = '/login';
+              }, 1000);
+              
+              return;
+            }
+            
+            // Handle token refresh events
+            if (event === 'TOKEN_REFRESHED' && newSession) {
+              console.log('[AuthContext] SESSION EXPIRATION FIX - Token refreshed successfully');
+              setSession(newSession);
+              setSessionExpired(false);
+              return;
+            }
             
             // Update session state immediately
             setSession(newSession);
+            setSessionExpired(false);
             
             if (newSession?.user) {
               // Fetch user data asynchronously but don't block auth state
@@ -257,14 +292,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (!initializationComplete) {
               setLoading(false);
               setAuthReady(true);
-              setIsInitializing(false);
               initializationComplete = true;
             }
           }
         );
 
         // Check for existing session with timeout
-        console.log('[AuthContext] COMPREHENSIVE FIX - Checking for existing session...');
+        console.log('[AuthContext] SESSION EXPIRATION FIX - Checking for existing session...');
         
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise((_, reject) => 
@@ -280,11 +314,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (!mounted) return;
 
           if (error) {
-            console.error('[AuthContext] COMPREHENSIVE FIX - Session check error:', error);
+            console.error('[AuthContext] SESSION EXPIRATION FIX - Session check error:', error);
             throw error;
           }
 
-          console.log('[AuthContext] COMPREHENSIVE FIX - Session check result:', !!currentSession?.user);
+          console.log('[AuthContext] SESSION EXPIRATION FIX - Session check result:', !!currentSession?.user);
           
           // If we have a session, the auth state change listener will handle it
           // If we don't, we're done initializing
@@ -294,7 +328,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (!initializationComplete) {
               setLoading(false);
               setAuthReady(true);
-              setIsInitializing(false);
               initializationComplete = true;
             }
           }
@@ -302,7 +335,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           circuitBreaker.recordSuccess(AUTH_OPERATION_ID);
           
         } catch (error) {
-          console.error('[AuthContext] COMPREHENSIVE FIX - Session check failed:', error);
+          console.error('[AuthContext] SESSION EXPIRATION FIX - Session check failed:', error);
           circuitBreaker.recordFailure(AUTH_OPERATION_ID);
           
           // Fail gracefully
@@ -311,7 +344,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (!initializationComplete) {
             setLoading(false);
             setAuthReady(true);
-            setIsInitializing(false);
             initializationComplete = true;
           }
         }
@@ -322,7 +354,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         };
 
       } catch (error) {
-        console.error('[AuthContext] COMPREHENSIVE FIX - Auth initialization failed:', error);
+        console.error('[AuthContext] SESSION EXPIRATION FIX - Auth initialization failed:', error);
         circuitBreaker.recordFailure(AUTH_OPERATION_ID);
         
         if (mounted) {
@@ -330,7 +362,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(null);
           setLoading(false);
           setAuthReady(true);
-          setIsInitializing(false);
         }
       }
     };
@@ -338,10 +369,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Force completion after maximum timeout
     const forceCompleteTimeout = setTimeout(() => {
       if (mounted && !initializationComplete) {
-        console.warn('[AuthContext] COMPREHENSIVE FIX - Force completing auth initialization due to timeout');
+        console.warn('[AuthContext] SESSION EXPIRATION FIX - Force completing auth initialization due to timeout');
         setLoading(false);
         setAuthReady(true);
-        setIsInitializing(false);
         initializationComplete = true;
       }
     }, 5000);
@@ -359,7 +389,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
       }
     };
-  }, []);
+  }, [toast, t]);
 
   // Demo role management (simplified)
   useEffect(() => {
@@ -495,9 +525,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Enhanced logout method with session expiration support
   const logout = async () => {
     try {
-      console.log('[AuthProvider] COMPREHENSIVE FIX - Logging out...');
+      console.log('[AuthProvider] SESSION EXPIRATION FIX - Logging out...');
       
       // Clean up demo data if in demo mode
       if (isDemoMode) {
@@ -508,10 +539,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
+      setSessionExpired(false);
+      
+      // Clear session storage
+      sessionStorage.clear();
+      
     } catch (error) {
-      console.error('[AuthProvider] COMPREHENSIVE FIX - Logout error:', error);
+      console.error('[AuthProvider] SESSION EXPIRATION FIX - Logout error:', error);
       setUser(null);
       setSession(null);
+      setSessionExpired(false);
     }
   };
 
@@ -609,7 +646,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value: AuthContextType = {
     user,
-    isAuthenticated,
+    isAuthenticated: !!user && !!session && !sessionExpired,
     isAdmin,
     isSkadeleder,
     isServicemedarbejder,

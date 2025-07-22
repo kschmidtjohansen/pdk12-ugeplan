@@ -8,7 +8,7 @@ const Index = () => {
   const [redirectAttempts, setRedirectAttempts] = useState(0);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
 
-  console.log('[Index] COMPREHENSIVE FIX - Render state:', {
+  console.log('[Index] SESSION EXPIRATION FIX - Render state:', {
     isAuthenticated,
     loading,
     authReady,
@@ -32,7 +32,7 @@ const Index = () => {
         sessionStorage.setItem('redirect-attempts', attempts.toString());
         
         if (attempts >= maxAttempts) {
-          console.error('[Index] COMPREHENSIVE FIX - Redirect loop detected, showing debug info');
+          console.error('[Index] SESSION EXPIRATION FIX - Redirect loop detected, showing debug info');
           setShowDebugInfo(true);
           return;
         }
@@ -56,9 +56,9 @@ const Index = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Authentication Issue Detected</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Session Issue Detected</h2>
           <p className="text-gray-600 mb-4">
-            We detected a redirect loop. This usually happens when there's an authentication state issue.
+            We detected a possible session issue. This can happen when your session expires unexpectedly.
           </p>
           <div className="bg-gray-50 p-3 rounded mb-4 text-sm text-left">
             <p><strong>Debug Info:</strong></p>
@@ -75,7 +75,7 @@ const Index = () => {
               }}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
             >
-              Force Login Page
+              Go to Login Page
             </button>
             <button 
               onClick={() => {
@@ -84,7 +84,7 @@ const Index = () => {
               }}
               className="w-full bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700 transition-colors"
             >
-              Clear Cache & Reload
+              Clear Data & Reload
             </button>
           </div>
         </div>
@@ -115,11 +115,11 @@ const Index = () => {
 
   // Route based on authentication status
   if (isAuthenticated) {
-    console.log('[Index] COMPREHENSIVE FIX - User authenticated, redirecting to dashboard');
+    console.log('[Index] SESSION EXPIRATION FIX - User authenticated, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
 
-  console.log('[Index] COMPREHENSIVE FIX - User not authenticated, redirecting to login');
+  console.log('[Index] SESSION EXPIRATION FIX - User not authenticated, redirecting to login');
   return <Navigate to="/login" replace />;
 };
 
