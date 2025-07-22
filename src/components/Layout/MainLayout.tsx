@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { SecurityHeaders } from '@/components/Auth/SecurityHeaders';
@@ -12,11 +12,25 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, authReady } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const { t, isInitialized } = useTranslation();
+  console.log('[MainLayout] SESSION EXPIRATION FIX - Render state:', {
+    path: location.pathname,
+    isAuthenticated,
+    authReady,
+    translationInitialized: isInitialized
+  });
 
-  console.log('[MainLayout] Render - path:', location.pathname, 'isAuthenticated:', isAuthenticated, 'loading:', loading, 'translationInitialized:', isInitialized);
+  // SESSION EXPIRATION FIX: Active redirect when not authenticated
+  useEffect(() => {
+    if (authReady && !isAuthenticated) {
+      console.log('[MainLayout] SESSION EXPIRATION FIX - User not authenticated, redirecting to login');
+      navigate('/login', { replace: true });
+    }
+  }, [authReady, isAuthenticated, navigate]);
+
 
   // Don't show layout for login page or password reset page
   if (location.pathname === "/login" || location.pathname === "/password-reset") {
@@ -28,28 +42,34 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
-  // Show loading state if translation is not initialized or auth is loading
-  if (loading || !isInitialized) {
+
+  // Show loading state if translation is not initialized or auth is not ready
+  if (!isInitialized || !authReady) {
     return (
       <SecurityErrorBoundary>
         <SecurityHeaders />
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
           <div className="text-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">Loading application...</p>
+            <div className="text-xs text-gray-400">
+              Translation: {isInitialized ? 'Ready' : 'Loading'} | Auth: {authReady ? 'Ready' : 'Initializing'}
+            </div>
           </div>
         </div>
       </SecurityErrorBoundary>
     );
   }
 
-  // If not authenticated, show simple redirect message
+
+  // SESSION EXPIRATION FIX: Remove infinite redirect state - if auth is ready and not authenticated, the useEffect will handle redirect
   if (!isAuthenticated) {
     return (
       <SecurityErrorBoundary>
         <SecurityHeaders />
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-          <div className="text-center">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
             <p className="text-muted-foreground">Redirecting to login...</p>
           </div>
         </div>
