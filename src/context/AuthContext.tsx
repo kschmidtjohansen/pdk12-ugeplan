@@ -251,122 +251,99 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // FIXED: Simplified auth initialization without recursive refresh attempts
+  // CRITICAL FIX: Ultra-simplified auth initialization
   useEffect(() => {
     let mounted = true;
     let initTimeout: NodeJS.Timeout;
 
-    const initializeAuth = async () => {
-      try {
-        console.log('[AuthContext] SIMPLIFIED - Starting auth initialization...');
-        
-        // Set a shorter timeout for better UX
-        initTimeout = setTimeout(() => {
-          if (mounted) {
-            console.warn('[AuthContext] SIMPLIFIED - Auth initialization timeout, completing');
-            setLoading(false);
-          }
-        }, 5000); // Reduced to 5 seconds
+    console.log('[AuthContext] CRITICAL FIX - Starting auth initialization...');
 
-        // Get the current session without complex refresh logic
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('[AuthContext] SIMPLIFIED - Session fetch error:', error);
-          if (mounted) {
-            setSession(null);
-            setUser(null);
-            setLoading(false);
-          }
-          return;
-        }
-
-        if (currentSession?.user && mounted) {
-          console.log('[AuthContext] SIMPLIFIED - Found existing session for:', currentSession.user.email);
-          setSession(currentSession);
-          
-          try {
-            const userData = await fetchUserData(currentSession.user);
-            if (userData && mounted) {
-              setUser(userData);
-              console.log('[AuthContext] SIMPLIFIED - User data set successfully');
-            }
-          } catch (userDataError) {
-            console.error('[AuthContext] SIMPLIFIED - User data fetch failed, using fallback');
-            const fallbackUser: AppUser = {
-              id: currentSession.user.id,
-              name: currentSession.user.email || 'User',
-              email: currentSession.user.email || '',
-              role: 'servicemedarbejder'
-            };
-            if (mounted) {
-              setUser(fallbackUser);
-            }
-          }
-        } else {
-          console.log('[AuthContext] SIMPLIFIED - No valid session found');
-          if (mounted) {
-            setSession(null);
-            setUser(null);
-          }
-        }
-        
-        clearTimeout(initTimeout);
-      } catch (error) {
-        console.error('[AuthContext] SIMPLIFIED - Auth initialization error:', error);
-        if (mounted) {
-          setSession(null);
-          setUser(null);
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-          console.log('[AuthContext] SIMPLIFIED - Auth initialization complete');
-        }
+    // Very aggressive timeout to prevent infinite loading
+    initTimeout = setTimeout(() => {
+      if (mounted) {
+        console.warn('[AuthContext] CRITICAL FIX - Force completing auth initialization');
+        setLoading(false);
       }
-    };
+    }, 2000); // Very short timeout
 
-    // Simplified auth state change handler
+    // Set up auth listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+      (event, newSession) => {
         if (!mounted) return;
 
-        console.log('[AuthContext] SIMPLIFIED - Auth event:', event, 'Session valid:', !!newSession?.user);
+        console.log('[AuthContext] CRITICAL FIX - Auth event:', event, !!newSession?.user);
         
+        clearTimeout(initTimeout);
         setSession(newSession);
+        setLoading(false);
         
         if (newSession?.user) {
-          console.log('[AuthContext] SIMPLIFIED - Processing auth event with user:', newSession.user.email);
-          
-          try {
-            const userData = await fetchUserData(newSession.user);
-            if (userData && mounted) {
-              setUser(userData);
-              console.log('[AuthContext] SIMPLIFIED - User data updated from auth event');
-            }
-          } catch (error) {
-            console.error('[AuthContext] SIMPLIFIED - User data fetch failed in auth event:', error);
-            if (mounted) {
-              const fallbackUser: AppUser = {
-                id: newSession.user.id,
-                name: newSession.user.email || 'User',
-                email: newSession.user.email || '',
-                role: 'servicemedarbejder'
-              };
-              setUser(fallbackUser);
-            }
-          }
+          // Fire and forget user data fetch - don't block authentication
+          fetchUserData(newSession.user)
+            .then(userData => {
+              if (userData && mounted) {
+                setUser(userData);
+              }
+            })
+            .catch(error => {
+              console.warn('[AuthContext] User data fetch failed, using fallback:', error);
+              if (mounted) {
+                setUser({
+                  id: newSession.user.id,
+                  name: newSession.user.email || 'User',
+                  email: newSession.user.email || '',
+                  role: 'servicemedarbejder'
+                });
+              }
+            });
         } else {
-          console.log('[AuthContext] SIMPLIFIED - No user in auth event, clearing user state');
           setUser(null);
         }
-        
-        // Always ensure loading is false after auth events
-        setLoading(false);
       }
     );
 
-    initializeAuth();
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession }, error }) => {
+      if (!mounted) return;
+      
+      if (error) {
+        console.error('[AuthContext] CRITICAL FIX - Session error:', error);
+        setSession(null);
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      if (currentSession?.user) {
+        console.log('[AuthContext] CRITICAL FIX - Found session:', currentSession.user.email);
+        setSession(currentSession);
+        setLoading(false);
+        
+        // Fire and forget user data fetch
+        fetchUserData(currentSession.user)
+          .then(userData => {
+            if (userData && mounted) {
+              setUser(userData);
+            }
+          })
+          .catch(error => {
+            console.warn('[AuthContext] Initial user data fetch failed:', error);
+            if (mounted) {
+              setUser({
+                id: currentSession.user.id,
+                name: currentSession.user.email || 'User',
+                email: currentSession.user.email || '',
+                role: 'servicemedarbejder'
+              });
+            }
+          });
+      } else {
+        console.log('[AuthContext] CRITICAL FIX - No session found');
+        setSession(null);
+        setUser(null);
+        setLoading(false);
+      }
+    });
 
     return () => {
       mounted = false;
