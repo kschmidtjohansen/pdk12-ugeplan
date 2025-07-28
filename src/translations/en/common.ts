@@ -134,5 +134,6 @@ export const common = {
   extendFifteenMin: "Extend 15 min",
   warningCleanupImminent: "Warning: Cleanup imminent!",
   allDemoDataWillBeDeleted: "All demo data will be automatically deleted in 1 minute!",
-  demoDataAutoCleanedEvery: "Demo data is automatically cleaned every 15 minutes and when session ends"
+  demoDataAutoCleanedEvery: "Demo data is automatically cleaned every 15 minutes and when session ends",
+  showOnScreen: "Show on Screen"
 };

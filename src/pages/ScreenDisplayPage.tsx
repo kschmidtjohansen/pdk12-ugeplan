@@ -17,6 +17,9 @@ const ScreenDisplayPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
   // Use 'published' filter to get only published assignments
   const { assignments, loading } = useAssignmentsConsolidated({ filter: 'all', includeUnpublished: false });
+  
+  console.log('[ScreenDisplay] Hook returned assignments:', assignments.length);
+  console.log('[ScreenDisplay] Sample assignment:', assignments[0]);
   const { cars } = useCars();
   const [currentTime, setCurrentTime] = useState(new Date());
 

@@ -23,11 +23,15 @@ export const useAssignmentsConsolidated = ({
 
   // Map filter types to match useOptimizedAssignments expected types
   const getOptimizedFilter = (filter: 'all' | 'dashboard' | 'planner', includeUnpublished: boolean): AssignmentFilter => {
+    console.log('[useAssignmentsConsolidated] getOptimizedFilter called with:', { filter, includeUnpublished });
+    
     // If includeUnpublished is false, force 'published' filter regardless of filter type
     if (!includeUnpublished) {
+      console.log('[useAssignmentsConsolidated] includeUnpublished is false, returning "published"');
       return 'published';
     }
     
+    console.log('[useAssignmentsConsolidated] includeUnpublished is true, processing filter type:', filter);
     switch (filter) {
       case 'dashboard':
         return 'user';
@@ -38,8 +42,11 @@ export const useAssignmentsConsolidated = ({
     }
   };
 
+  const optimizedFilter = getOptimizedFilter(filter, includeUnpublished);
+  console.log('[useAssignmentsConsolidated] Final optimized filter:', optimizedFilter);
+
   // Use optimized assignment service directly
-  const optimizedHook = useOptimizedAssignments(getOptimizedFilter(filter, includeUnpublished));
+  const optimizedHook = useOptimizedAssignments(optimizedFilter);
 
   // Set operation state for individual operations
   const setOperationState = useCallback((assignmentId: string, state: 'publishing' | 'deleting' | 'updating' | null) => {

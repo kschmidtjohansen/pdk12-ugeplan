@@ -137,5 +137,6 @@ export const common = {
   extendFifteenMin: "Forlæng 15 min",
   warningCleanupImminent: "Advarsel: Oprydning nær forestående!",
   allDemoDataWillBeDeleted: "Alle demo data vil automatisk blive slettet om 1 minut!",
-  demoDataAutoCleanedEvery: "Demo data ryddes automatisk hver 15. minut og når session ender"
+  demoDataAutoCleanedEvery: "Demo data ryddes automatisk hver 15. minut og når session ender",
+  showOnScreen: "Vis på skærm"
 };

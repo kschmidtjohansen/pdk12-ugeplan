@@ -87,25 +87,29 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
     try {
       setError(null);
-      console.log(`[useOptimizedAssignments] Fetching assignments with filter: ${filter} for user: ${user.name} (${user.role})`);
+      console.log(`[useOptimizedAssignments] ⭐ CRITICAL DEBUG: Fetching assignments with filter: ${filter} for user: ${user.name} (${user.role})`);
       
       let result: OptimizedAssignmentData[];
       
       switch (filter) {
         case 'all':
+          console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: all - calling fetchAllAssignments');
           result = await OptimizedAssignmentService.fetchAllAssignments(user.role);
           break;
         case 'published':
-          // For screen display and general published view, fetch ALL published assignments
+          console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: published - calling fetchAllPublishedAssignments');
           result = await OptimizedAssignmentService.fetchAllPublishedAssignments();
           break;
         case 'unpublished':
+          console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: unpublished - calling fetchUnpublishedAssignments');
           result = await OptimizedAssignmentService.fetchUnpublishedAssignments(user.id, user.role);
           break;
         case 'user':
+          console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: user - calling fetchUserAssignments');
           result = await OptimizedAssignmentService.fetchUserAssignments(user.id, user.role);
           break;
         default:
+          console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: default - no assignments');
           result = [];
       }
 
