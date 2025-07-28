@@ -28,7 +28,15 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="ui-theme">
         <TranslationProvider>
-          <AppContent />
+          <SecurityProvider>
+            <AuthProvider>
+              <NotificationProvider>
+                <TooltipProvider>
+                  <AppContent />
+                </TooltipProvider>
+              </NotificationProvider>
+            </AuthProvider>
+          </SecurityProvider>
         </TranslationProvider>
       </ThemeProvider>
     </QueryClientProvider>
@@ -44,48 +52,38 @@ const AppContent = () => {
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
-
           <p className="text-muted-foreground">Loading application...</p>
-
         </div>
       </div>
     );
   }
 
   return (
-    <SecurityProvider>
-      <AuthProvider>
-        <NotificationProvider>
-          <TooltipProvider>
-            <BrowserRouter>
-              <Sonner />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                
-                {/* Authentication routes */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/password-reset" element={<PasswordResetPage />} />
-                
-                {/* Protected routes wrapped in MainLayout */}
-                <Route path="/dashboard" element={<MainLayout><DashboardPage /></MainLayout>} />
-                <Route path="/planner" element={<MainLayout><PlannerPage /></MainLayout>} />
-                <Route path="/planner/:assignmentId" element={<MainLayout><PlannerPage /></MainLayout>} />
-                <Route path="/employees" element={<MainLayout><EmployeesPage /></MainLayout>} />
-                <Route path="/cars" element={<MainLayout><CarsPage /></MainLayout>} />
-                <Route path="/vacation" element={<MainLayout><VacationPage /></MainLayout>} />
-                <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />
-                
-                {/* Special routes */}
-                <Route path="/screen-display" element={<ScreenDisplayPage />} />
-                
-                {/* Catch all other routes */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </NotificationProvider>
-      </AuthProvider>
-    </SecurityProvider>
+    <BrowserRouter>
+      <Sonner />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        
+        {/* Authentication routes */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/password-reset" element={<PasswordResetPage />} />
+        
+        {/* Protected routes wrapped in MainLayout */}
+        <Route path="/dashboard" element={<MainLayout><DashboardPage /></MainLayout>} />
+        <Route path="/planner" element={<MainLayout><PlannerPage /></MainLayout>} />
+        <Route path="/planner/:assignmentId" element={<MainLayout><PlannerPage /></MainLayout>} />
+        <Route path="/employees" element={<MainLayout><EmployeesPage /></MainLayout>} />
+        <Route path="/cars" element={<MainLayout><CarsPage /></MainLayout>} />
+        <Route path="/vacation" element={<MainLayout><VacationPage /></MainLayout>} />
+        <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />
+        
+        {/* Special routes */}
+        <Route path="/screen-display" element={<ScreenDisplayPage />} />
+        
+        {/* Catch all other routes */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   );
 };
 
