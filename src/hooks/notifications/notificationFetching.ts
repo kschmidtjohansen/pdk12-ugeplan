@@ -11,7 +11,16 @@ export const useNotificationFetching = (user: any | null) => {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const { toast } = useToast();
-  const { t } = useTranslation();
+  
+  // Safely get translation context, return null if not available
+  let t: ((key: string) => string) | null = null;
+  try {
+    const translation = useTranslation();
+    t = translation.t;
+  } catch (error) {
+    // Translation provider not ready yet, this is fine
+    t = null;
+  }
 
   // Fetch notifications from Supabase
   const fetchNotifications = useCallback(async () => {
