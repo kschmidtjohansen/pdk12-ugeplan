@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
-import { useAssignmentsConsolidated } from '@/hooks/useAssignmentsConsolidated';
-import { useViewSpecificFilters } from '@/hooks/useViewSpecificFilters';
+import { useScreenDisplayAssignments } from '@/hooks/useScreenDisplayAssignments';
 import { useCars } from '@/hooks/car';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,11 +14,6 @@ import { Link } from 'react-router-dom';
 
 const ScreenDisplayPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
-  // Use 'published' filter to get only published assignments
-  const { assignments, loading } = useAssignmentsConsolidated({ filter: 'all', includeUnpublished: false });
-  
-  console.log('[ScreenDisplay] Hook returned assignments:', assignments.length);
-  console.log('[ScreenDisplay] Sample assignment:', assignments[0]);
   const { cars } = useCars();
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -42,8 +36,15 @@ const ScreenDisplayPage: React.FC = () => {
   };
 
   const [selectedDate, setSelectedDate] = useState(getInitialDate);
+  
+  // Use specialized hook for screen display to fetch assignments by date
+  const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+  const { assignments, loading } = useScreenDisplayAssignments(selectedDateStr);
+  
+  console.log('[ScreenDisplay] Hook returned assignments:', assignments.length);
+  console.log('[ScreenDisplay] Sample assignment:', assignments[0]);
 
-  // Assignments are already filtered to published only by the hook
+  // Assignments are already filtered by date and published status from the hook
   const filteredAssignments = assignments;
 
   // Update current time every minute
@@ -106,24 +107,11 @@ const ScreenDisplayPage: React.FC = () => {
     return carNames;
   };
 
-  const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+  // Assignments are already filtered by date and published status, just sort them
   const todayAssignments = filteredAssignments
-    .filter(a => {
-      const isCorrectDate = a.date === selectedDateStr;
-      const isPublished = a.published;
-      console.log('[ScreenDisplay] Assignment filter check:', {
-        assignmentId: a.id,
-        assignmentDate: a.date,
-        selectedDate: selectedDateStr,
-        isCorrectDate,
-        isPublished,
-        title: a.title
-      });
-      return isCorrectDate && isPublished;
-    })
     .sort((a, b) => a.fromTime.localeCompare(b.fromTime));
 
-  console.log('[ScreenDisplay] Final filtered assignments for', selectedDateStr, ':', todayAssignments.length);
+  console.log('[ScreenDisplay] Final assignments for', selectedDateStr, ':', todayAssignments.length);
 
   const handlePreviousDay = () => {
     const newDate = subDays(selectedDate, 1);

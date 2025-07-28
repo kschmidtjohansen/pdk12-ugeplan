@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useTranslation } from '../context/TranslationContext';
 import { usePlannerPage } from '../hooks/usePlannerPage';
+import { useOptimizedAssignments } from '../hooks/useOptimizedAssignments';
 import { useEmployees } from '../hooks/useEmployees';
 import { useCars } from '../hooks/car';
 import { useVacations } from '../hooks/useVacations';
@@ -32,14 +33,24 @@ const PlannerPage: React.FC = () => {
   const {
     vacations
   } = useVacations();
+  // Use the optimized hook directly for better state management
+  const {
+    assignments,
+    loading,
+    error,
+    operationStates,
+    refetch,
+    updateAssignment,
+    deleteAssignment: deleteAssignmentAction,
+    publishAssignment: publishAssignmentAction,
+    publishAssignmentsByDate
+  } = useOptimizedAssignments('all');
+
   const {
     selectedWeek,
     selectedYear,
     weekDates,
     weekAssignments,
-    loading,
-    error,
-    operationStates,
     isDialogOpen,
     setIsDialogOpen,
     currentAssignment,
@@ -51,10 +62,6 @@ const PlannerPage: React.FC = () => {
     handleOpenCreateDialog,
     handleOpenEditDialog,
     handleSubmit,
-    handlePublishDay,
-    handlePublishAllUnpublished,
-    deleteAssignment,
-    publishAssignment,
     handleCopyAssignment
   } = usePlannerPage();
 
@@ -128,6 +135,19 @@ const PlannerPage: React.FC = () => {
       return;
     }
   });
+
+  // Define handlers that use the optimized hooks
+  const handlePublishDay = useCallback(async (date: string) => {
+    await publishAssignmentsByDate(date);
+  }, [publishAssignmentsByDate]);
+
+  const deleteAssignment = useCallback(async (id: string) => {
+    await deleteAssignmentAction(id);
+  }, [deleteAssignmentAction]);
+
+  const publishAssignment = useCallback(async (id: string) => {
+    await publishAssignmentAction(id);
+  }, [publishAssignmentAction]);
   return <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
         {/* Enhanced Header with Responsive Design */}

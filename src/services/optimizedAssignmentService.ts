@@ -592,4 +592,131 @@ export class OptimizedAssignmentService {
       throw error;
     }
   }
+
+  static async fetchPublishedAssignmentsByDate(date: string): Promise<OptimizedAssignmentData[]> {
+    try {
+      console.log(`[OptimizedAssignmentService] Fetching published assignments for date: ${date}`);
+      
+      const { data, error } = await supabase
+        .from('assignments')
+        .select(`
+          id,
+          title,
+          description,
+          assignment_date,
+          from_time,
+          to_time,
+          location,
+          type,
+          published,
+          responsible_user_id,
+          created_at,
+          updated_at,
+          car_id,
+          car_ids,
+          responsible_user:profiles!assignments_responsible_user_id_fkey(
+            id,
+            name
+          )
+        `)
+        .eq('assignment_date', date)
+        .eq('published', true)
+        .order('from_time', { ascending: true });
+
+      if (error) {
+        console.error('[OptimizedAssignmentService] Database error:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      if (!data) {
+        console.log('[OptimizedAssignmentService] No published assignments found for date');
+        return [];
+      }
+
+      console.log(`[OptimizedAssignmentService] Found ${data.length} published assignments for date ${date}`);
+      
+      // Enrich with employee and car data
+      const enrichedData = await this.enrichAssignmentData(data);
+      console.log('[OptimizedAssignmentService] Sample enriched data for date:', enrichedData[0]);
+
+      return enrichedData;
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error fetching published assignments by date:', error);
+      throw error;
+    }
+  }
+
+  static async updateAssignment(id: string, updates: Partial<{
+    title?: string;
+    description?: string;
+    assignment_date?: string;
+    from_time?: string;
+    to_time?: string;
+    location?: string;
+    published?: boolean;
+    responsible_user_id?: string;
+    car_id?: string;
+    car_ids?: string[];
+  }>): Promise<void> {
+    try {
+      console.log(`[OptimizedAssignmentService] Updating assignment: ${id}`);
+      
+      // Remove type from updates to avoid type conflicts
+      const { type, ...safeUpdates } = updates as any;
+      
+      const { error } = await supabase
+        .from('assignments')
+        .update({
+          ...safeUpdates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) {
+        console.error('[OptimizedAssignmentService] Error updating assignment:', error);
+        throw new Error(`Failed to update assignment: ${error.message}`);
+      }
+
+      // Clear cache to ensure fresh data
+      this.clearCache();
+      console.log(`[OptimizedAssignmentService] Successfully updated assignment: ${id}`);
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error in updateAssignment:', error);
+      throw error;
+    }
+  }
+
+  static async deleteAssignment(id: string): Promise<void> {
+    try {
+      console.log(`[OptimizedAssignmentService] Deleting assignment: ${id}`);
+      
+      // First delete associated employee assignments
+      const { error: empError } = await supabase
+        .from('assignments_employees')
+        .delete()
+        .eq('assignment_id', id);
+        
+      if (empError) {
+        console.error('[OptimizedAssignmentService] Error deleting employee assignments:', empError);
+      }
+      
+      // Then delete the assignment
+      const { error } = await supabase
+        .from('assignments')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('[OptimizedAssignmentService] Error deleting assignment:', error);
+        throw new Error(`Failed to delete assignment: ${error.message}`);
+      }
+
+      // Clear cache to ensure fresh data
+      this.clearCache();
+      console.log(`[OptimizedAssignmentService] Successfully deleted assignment: ${id}`);
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error in deleteAssignment:', error);
+      throw error;
+    }
+  }
 }
