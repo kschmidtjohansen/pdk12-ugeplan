@@ -205,7 +205,7 @@ export class OptimizedAssignmentService {
         updated_at: assignment.updated_at,
         car_id: assignment.car_id,
         car_ids: assignment.car_ids,
-        responsible_user: assignment.responsible_user,
+        responsible_user: null, // Will be fetched separately
         assignment_employees: assignmentEmployees,
         assignment_cars: assignmentCars
       };
@@ -232,11 +232,7 @@ export class OptimizedAssignmentService {
           created_at,
           updated_at,
           car_id,
-          car_ids,
-          responsible_user:profiles!assignments_responsible_user_id_fkey(
-            id,
-            name
-          )
+          car_ids
         `)
         .order('assignment_date', { ascending: true })
         .order('from_time', { ascending: true });
@@ -284,11 +280,7 @@ export class OptimizedAssignmentService {
           created_at,
           updated_at,
           car_id,
-          car_ids,
-          responsible_user:profiles!assignments_responsible_user_id_fkey(
-            id,
-            name
-          )
+          car_ids
         `)
         .eq('published', true)
         .order('assignment_date', { ascending: true })
@@ -337,11 +329,7 @@ export class OptimizedAssignmentService {
           created_at,
           updated_at,
           car_id,
-          car_ids,
-          responsible_user:profiles!assignments_responsible_user_id_fkey(
-            id,
-            name
-          )
+          car_ids
         `)
         .eq('published', true)
         .order('assignment_date', { ascending: true })
@@ -391,11 +379,7 @@ export class OptimizedAssignmentService {
           created_at,
           updated_at,
           car_id,
-          car_ids,
-          responsible_user:profiles!assignments_responsible_user_id_fkey(
-            id,
-            name
-          )
+          car_ids
         `)
         .eq('published', true)
         .order('assignment_date', { ascending: true })
@@ -461,11 +445,7 @@ export class OptimizedAssignmentService {
           created_at,
           updated_at,
           car_id,
-          car_ids,
-          responsible_user:profiles!assignments_responsible_user_id_fkey(
-            id,
-            name
-          )
+          car_ids
         `)
         .eq('published', false)
         .order('assignment_date', { ascending: true })
@@ -514,11 +494,7 @@ export class OptimizedAssignmentService {
           created_at,
           updated_at,
           car_id,
-          car_ids,
-          responsible_user:profiles!assignments_responsible_user_id_fkey(
-            id,
-            name
-          )
+          car_ids
         `)
         .order('assignment_date', { ascending: true })
         .order('from_time', { ascending: true });
@@ -613,11 +589,7 @@ export class OptimizedAssignmentService {
           created_at,
           updated_at,
           car_id,
-          car_ids,
-          responsible_user:profiles!assignments_responsible_user_id_fkey(
-            id,
-            name
-          )
+          car_ids
         `)
         .eq('assignment_date', date)
         .eq('published', true)
