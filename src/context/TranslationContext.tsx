@@ -15,6 +15,8 @@ interface TranslationContextType {
 
 const TranslationContext = createContext<TranslationContextType | undefined>(undefined);
 
+export { TranslationContext };
+
 export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Default language is Danish
   const [currentLanguage, setCurrentLanguage] = useState<Language>('da');
@@ -22,9 +24,13 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
   
   // Load saved language preference on mount
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('polygonLanguage') as Language;
-    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'da')) {
-      setCurrentLanguage(savedLanguage);
+    try {
+      const savedLanguage = localStorage.getItem('polygonLanguage') as Language;
+      if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'da')) {
+        setCurrentLanguage(savedLanguage);
+      }
+    } catch (error) {
+      console.warn('Failed to load language preference:', error);
     }
     setIsInitialized(true);
   }, []);
@@ -38,6 +44,11 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // IMPROVED: Enhanced translation function with better error handling and dev warnings
   const t = (key: string, params?: Record<string, any>) => {
     try {
+      // Provide fallback if not initialized yet
+      if (!isInitialized && process.env.NODE_ENV === 'development') {
+        console.warn(`Translation called before initialization: ${key}`);
+      }
+      
       // Use the imported translations object
       const translationSet = translations[currentLanguage];
       

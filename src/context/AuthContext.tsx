@@ -4,7 +4,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
 import { DemoUserService } from '@/services/demoUserService';
 import { circuitBreaker } from '@/services/circuitBreakerService';
-import { useTranslation } from './TranslationContext';
+import { useTranslation, TranslationContext } from './TranslationContext';
 
 // Define user roles
 export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder';
@@ -104,7 +104,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [sessionExpired, setSessionExpired] = useState<boolean>(false);
   const { toast } = useToast();
-  const { t } = useTranslation();
+  
+  // Safe translation hook with fallback
+  const translationContext = useContext(TranslationContext);
+  const t = (translationContext?.t || ((key: string) => key)) as (key: string, params?: Record<string, any>) => string;
   
   // Demo mode detection with enhanced logging
   const demoService = DemoUserService.getInstance();
@@ -233,8 +236,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               
               // Show session expired toast
               toast({
-                title: t('auth.sessionExpiredTitle'),
-                description: t('auth.sessionExpiredDescription'),
+                title: t('auth.sessionExpiredTitle') || 'Session Expired',
+                description: t('auth.sessionExpiredDescription') || 'Please log in again',
                 variant: "destructive",
               });
               
@@ -419,8 +422,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       sessionStorage.setItem('demo-role', role);
       
       toast({
-        title: "Rolle Ændret",
-        description: `Skiftet til ${role}`,
+        title: t('auth.roleChanged') || "Rolle Ændret",
+        description: t('auth.roleChangedTo', { role }) || `Skiftet til ${role}`,
       });
     }
   };
@@ -467,8 +470,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const validateAdminAccess = (): boolean => {
     if (!user || user.role !== 'administrator') {
       toast({
-        title: "Access Denied",
-        description: "You need administrator privileges for this action.",
+        title: t('auth.accessDenied') || "Access Denied",
+        description: t('auth.adminRequired') || "You need administrator privileges for this action.",
         variant: "destructive",
       });
       return false;
@@ -479,8 +482,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const validateSkadelederAccess = (): boolean => {
     if (!user || (user.role !== 'administrator' && user.role !== 'skadeleder')) {
       toast({
-        title: "Access Denied",
-        description: "You need skadeleder or administrator privileges for this action.",
+        title: t('auth.accessDenied') || "Access Denied",
+        description: t('auth.skadelederRequired') || "You need skadeleder or administrator privileges for this action.",
         variant: "destructive",
       });
       return false;
