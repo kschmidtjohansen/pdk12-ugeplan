@@ -1,13 +1,17 @@
 import { supabase } from '@/integrations/supabase/client';
 import { DemoUserService } from '@/services/demoUserService';
+import { getSecurityEnvironment } from '@/config/security';
 
 export const createDemoUser = async () => {
   try {
+    const { getDemoCredentials } = getSecurityEnvironment();
+    const credentials = getDemoCredentials();
+    
     // Create the demo user using the admin edge function
     const { data, error } = await supabase.functions.invoke('admin-create-user', {
       body: {
         email: DemoUserService.DEMO_USER_EMAIL,
-        password: DemoUserService.DEMO_USER_PASSWORD,
+        password: credentials.password,
         name: 'Demo User',
         role: 'administrator'
       }

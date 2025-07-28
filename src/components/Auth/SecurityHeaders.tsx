@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 // Component to set security headers and CSP policies
 export const SecurityHeaders: React.FC = () => {
   useEffect(() => {
-    // Set Content Security Policy via meta tag if not already set by server
+    // Enhanced Content Security Policy with stricter controls
     const existingCSP = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
     
     if (!existingCSP) {
@@ -14,24 +14,32 @@ export const SecurityHeaders: React.FC = () => {
         "default-src 'self'",
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cyuyrpwtkljfiqwgasmn.supabase.co",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-        "font-src 'self' https://fonts.gstatic.com",
-        "img-src 'self' data: https:",
+        "font-src 'self' https://fonts.gstatic.com data:",
+        "img-src 'self' data: https: blob:",
         "connect-src 'self' https://cyuyrpwtkljfiqwgasmn.supabase.co wss://cyuyrpwtkljfiqwgasmn.supabase.co",
         "frame-ancestors 'none'",
         "base-uri 'self'",
-        "form-action 'self'"
+        "form-action 'self'",
+        "object-src 'none'",
+        "media-src 'self'",
+        "worker-src 'self'",
+        "manifest-src 'self'",
+        "upgrade-insecure-requests"
       ].join('; ');
       
       document.head.appendChild(cspMeta);
     }
 
-    // Set additional security headers via meta tags
+    // Enhanced security headers with additional protections
     const securityHeaders = [
       { name: 'X-Content-Type-Options', content: 'nosniff' },
       { name: 'X-Frame-Options', content: 'DENY' },
       { name: 'X-XSS-Protection', content: '1; mode=block' },
       { name: 'Referrer-Policy', content: 'strict-origin-when-cross-origin' },
-      { name: 'Permissions-Policy', content: 'camera=(), microphone=(), geolocation=()' }
+      { name: 'Permissions-Policy', content: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()' },
+      { name: 'X-DNS-Prefetch-Control', content: 'off' },
+      { name: 'X-Download-Options', content: 'noopen' },
+      { name: 'X-Permitted-Cross-Domain-Policies', content: 'none' }
     ];
 
     securityHeaders.forEach(header => {

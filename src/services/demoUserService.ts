@@ -25,10 +25,12 @@ export class DemoUserService {
   private demoSessionId: string | null = null;
   private operationHistory: DemoOperation[] = [];
   
-  // Demo user configuration
+  // Demo user configuration - credentials moved to secure config
   static readonly DEMO_USER_EMAIL = 'test@polygongroup.com';
-  static readonly DEMO_USER_PASSWORD = 'TesterbrugerPlan123';
   static readonly DEMO_USER_ID = '165cdbc9-6722-4c96-97d2-1a87185c8133';
+  
+  // SECURITY NOTE: Password moved to secure configuration
+  // In production, demo credentials should be environment variables
   
   private constructor() {
     this.initializeSession();

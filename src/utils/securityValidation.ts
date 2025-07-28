@@ -44,12 +44,17 @@ export const validatePasswordStrength = (password: string): {
 export const sanitizeInput = (input: string, maxLength: number = 1000): string => {
   if (!input || typeof input !== 'string') return '';
   
-  // Remove potential XSS patterns
+  // Enhanced XSS protection with more comprehensive patterns
   const sanitized = input
     .replace(/[<>]/g, '') // Remove angle brackets
     .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/vbscript:/gi, '') // Remove vbscript: protocol
     .replace(/on\w+\s*=/gi, '') // Remove event handlers
-    .replace(/data:/gi, '') // Remove data: protocol
+    .replace(/data:/gi, '') // Remove data: protocol (except for safe contexts)
+    .replace(/expression\s*\(/gi, '') // Remove CSS expressions
+    .replace(/url\s*\(/gi, '') // Remove CSS url() functions
+    .replace(/import\s+/gi, '') // Remove import statements
+    .replace(/\x00/g, '') // Remove null bytes
     .trim();
   
   return sanitized.substring(0, maxLength);
