@@ -121,11 +121,18 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           throw new Error(data.error);
         }
         
-        if (data?.user?.id) {
-          console.log('[useEmployeeCreation] Edge function succeeded');
+        // Handle successful 2xx responses
+        if (data && (data.user?.id || data.id)) {
+          console.log('[useEmployeeCreation] Edge function succeeded:', data);
+          result = data;
+          method = 'edge-function';
+        } else if (data?.message && data.message.includes('successfully')) {
+          // Handle cases where function returns success message but different structure
+          console.log('[useEmployeeCreation] Edge function succeeded with message:', data);
           result = data;
           method = 'edge-function';
         } else {
+          console.error('[useEmployeeCreation] Edge function returned unexpected data:', data);
           throw new Error(t('employees.edgeFunctionFailed'));
         }
       } catch (edgeError) {
@@ -145,7 +152,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
       }
 
       // If we got here, one method succeeded
-      if (result?.user?.id || result?.success) {
+      if (result?.user?.id || result?.success || result?.id || (result?.message && result.message.includes('successfully'))) {
         const userId = result.user?.id || result.id;
         
         // Update profile with additional fields if we have a valid ID
