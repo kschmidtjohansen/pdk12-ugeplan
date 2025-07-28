@@ -42,6 +42,8 @@ const employees = {
   inactive: 'Inactive',
   onLeave: 'On Leave',
   available: 'Available',
+  fullyBooked: 'Fully Booked',
+  availableAfter: 'Available after {time}',
   
   // Leave management
   markOnLeave: 'Mark as On Leave',

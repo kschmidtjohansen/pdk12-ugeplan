@@ -42,6 +42,8 @@ const employees = {
   inactive: 'Inaktiv',
   onLeave: 'På orlov',
   available: 'Tilgængelig',
+  fullyBooked: 'Fuldt booket',
+  availableAfter: 'Tilgængelig efter {time}',
   
   // Leave management
   markOnLeave: 'Marker som på orlov',
