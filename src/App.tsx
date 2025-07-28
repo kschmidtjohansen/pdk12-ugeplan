@@ -46,7 +46,16 @@ const App = () => {
 };
 
 const AppContent = () => {
-  const { isInitialized } = useTranslation();
+  // Safely check if translation is initialized
+  let isInitialized = false;
+  try {
+    const { isInitialized: translationReady } = useTranslation();
+    isInitialized = translationReady;
+  } catch (error) {
+    // Translation provider not ready yet
+    console.warn('Translation provider not ready:', error);
+    isInitialized = false;
+  }
   
   // Don't render routes until translation is initialized
   if (!isInitialized) {
