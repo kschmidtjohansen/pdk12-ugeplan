@@ -138,5 +138,12 @@ export const common = {
   warningCleanupImminent: "Advarsel: Oprydning nær forestående!",
   allDemoDataWillBeDeleted: "Alle demo data vil automatisk blive slettet om 1 minut!",
   demoDataAutoCleanedEvery: "Demo data ryddes automatisk hver 15. minut og når session ender",
-  showOnScreen: "Vis på skærm"
+  showOnScreen: "Vis på skærm",
+  
+  // User roles
+  roles: {
+    administrator: "Administrator",
+    skadeleder: "Skadeleder", 
+    servicemedarbejder: "Servicemedarbejder"
+  }
 };

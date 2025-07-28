@@ -135,5 +135,12 @@ export const common = {
   warningCleanupImminent: "Warning: Cleanup imminent!",
   allDemoDataWillBeDeleted: "All demo data will be automatically deleted in 1 minute!",
   demoDataAutoCleanedEvery: "Demo data is automatically cleaned every 15 minutes and when session ends",
-  showOnScreen: "Show on Screen"
+  showOnScreen: "Show on Screen",
+  
+  // User roles
+  roles: {
+    administrator: "Administrator",
+    skadeleder: "Damage Leader", 
+    servicemedarbejder: "Service Employee"
+  }
 };

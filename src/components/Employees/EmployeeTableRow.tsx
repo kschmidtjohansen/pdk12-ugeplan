@@ -12,21 +12,6 @@ import { Vacation } from '@/types/vacation';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-interface USER_ROLES_TYPE {
-  value: string;
-  label: string;
-}
-
-const USER_ROLES: USER_ROLES_TYPE[] = [{
-  value: 'administrator',
-  label: 'Administrator'
-}, {
-  value: 'skadeleder',
-  label: 'Skadeleder'
-}, {
-  value: 'servicemedarbejder',
-  label: 'Servicemedarbejder'
-}];
 
 interface EmployeeTableRowProps {
   employee: Employee;
@@ -49,6 +34,20 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
         return 'success';
       default: 
         return 'default';
+    }
+  };
+
+  // Get role label using translation
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'administrator':
+        return t('common.roles.administrator');
+      case 'skadeleder':
+        return t('common.roles.skadeleder');
+      case 'servicemedarbejder':
+        return t('common.roles.servicemedarbejder');
+      default:
+        return role;
     }
   };
 
@@ -114,7 +113,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
       {(isAdmin) && (
         <TableCell>
           <StatusBadge variant={getRoleVariant(employee.role)}>
-            {USER_ROLES.find(role => role.value === employee.role)?.label}
+            {getRoleLabel(employee.role)}
           </StatusBadge>
         </TableCell>
       )}
