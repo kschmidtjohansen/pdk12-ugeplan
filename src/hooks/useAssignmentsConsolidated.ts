@@ -22,7 +22,12 @@ export const useAssignmentsConsolidated = ({
   const { canPublishTasks } = usePermissions();
 
   // Map filter types to match useOptimizedAssignments expected types
-  const getOptimizedFilter = (filter: 'all' | 'dashboard' | 'planner'): AssignmentFilter => {
+  const getOptimizedFilter = (filter: 'all' | 'dashboard' | 'planner', includeUnpublished: boolean): AssignmentFilter => {
+    // If includeUnpublished is false, force 'published' filter regardless of filter type
+    if (!includeUnpublished) {
+      return 'published';
+    }
+    
     switch (filter) {
       case 'dashboard':
         return 'user';
@@ -34,7 +39,7 @@ export const useAssignmentsConsolidated = ({
   };
 
   // Use optimized assignment service directly
-  const optimizedHook = useOptimizedAssignments(getOptimizedFilter(filter));
+  const optimizedHook = useOptimizedAssignments(getOptimizedFilter(filter, includeUnpublished));
 
   // Set operation state for individual operations
   const setOperationState = useCallback((assignmentId: string, state: 'publishing' | 'deleting' | 'updating' | null) => {

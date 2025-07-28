@@ -15,9 +15,8 @@ import { Link } from 'react-router-dom';
 
 const ScreenDisplayPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
-  // Use 'all' filter and only get published assignments
+  // Use 'published' filter to get only published assignments
   const { assignments, loading } = useAssignmentsConsolidated({ filter: 'all', includeUnpublished: false });
-  const { filterForScreenDisplay } = useViewSpecificFilters();
   const { cars } = useCars();
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -41,8 +40,8 @@ const ScreenDisplayPage: React.FC = () => {
 
   const [selectedDate, setSelectedDate] = useState(getInitialDate);
 
-  // Filter assignments for screen display (only published assignments)
-  const filteredAssignments = filterForScreenDisplay(assignments);
+  // Assignments are already filtered to published only by the hook
+  const filteredAssignments = assignments;
 
   // Update current time every minute
   useEffect(() => {
