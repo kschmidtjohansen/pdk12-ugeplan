@@ -10,6 +10,7 @@ import EmployeeDeleteDialog from '@/components/Employees/EmployeeDeleteDialog';
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useVacations } from '@/hooks/useVacations';
 import { Employee } from '@/types/employee';
 
 const EmployeesPage: React.FC = () => {
@@ -35,6 +36,8 @@ const EmployeesPage: React.FC = () => {
     deleteEmployee,
     toggleEmployeeLeave
   } = useEmployees();
+  
+  const { vacations } = useVacations();
 
   const handleCreateNew = () => {
     prepareForCreate();
@@ -100,6 +103,7 @@ const EmployeesPage: React.FC = () => {
         <div className="bg-white rounded-lg border shadow-sm">
           <EmployeesTable 
             employees={employees}
+            vacations={vacations}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onToggleLeave={handleToggleLeave}

@@ -39,7 +39,7 @@ const getCacheKey = (userId: string, role: string, filter: string): string => {
   return `${userId}-${role}-${filter}`;
 };
 
-const isCacheValid = (cacheKey: string, duration: number = 60000): boolean => {
+const isCacheValid = (cacheKey: string, duration: number = 30000): boolean => {
   const cachedData = cache.get(cacheKey);
   if (!cachedData) return false;
 

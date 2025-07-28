@@ -4,10 +4,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, Car, Calendar, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Car as CarType } from '@/types/car';
 import { Vacation } from '@/types/vacation';
+import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 import { format, parseISO, addDays, subDays } from 'date-fns';
 import { da } from 'date-fns/locale';
 interface UnassignedResourcesSectionProps {
@@ -31,6 +33,8 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     t,
     currentLanguage
   } = useTranslation();
+  
+  const { user } = useAuth();
 
   // State for collapsible functionality
   const [isCollapsed, setIsCollapsed] = useState(() => {
@@ -112,10 +116,14 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     return assigned;
   }, [assignments, targetDate]);
 
-  // Calculate available employees
+  // Calculate available employees with demo user filtering
   const availableEmployees = useMemo(() => {
     if (!employees || !Array.isArray(employees)) return [];
-    return employees.filter(employee => {
+    
+    // First apply demo user filtering
+    const filteredEmployees = DemoUserFiltering.filterEmployees(employees, user?.email);
+    
+    return filteredEmployees.filter(employee => {
       // Skip if on vacation
       if (employeesOnVacation.find(emp => emp.name === employee.name)) return false;
 
@@ -126,7 +134,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       if (employee.onLeave) return false;
       return true;
     });
-  }, [employees, employeesOnVacation, assignedEmployeeNames]);
+  }, [employees, employeesOnVacation, assignedEmployeeNames, user?.email]);
 
   // Calculate available cars
   const availableCars = useMemo(() => {

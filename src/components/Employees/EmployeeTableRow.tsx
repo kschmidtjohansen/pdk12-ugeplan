@@ -8,6 +8,8 @@ import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Employee } from '@/types/employee';
+import { Vacation } from '@/types/vacation';
+import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface USER_ROLES_TYPE {
@@ -28,12 +30,13 @@ const USER_ROLES: USER_ROLES_TYPE[] = [{
 
 interface EmployeeTableRowProps {
   employee: Employee;
+  vacations: Vacation[];
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   onToggleLeave?: (employee: Employee) => void;
 }
 
-const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, onEdit, onDelete, onToggleLeave }) => {
+const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vacations, onEdit, onDelete, onToggleLeave }) => {
   const { isAdmin, isSkadeleder } = usePermissions();
   const { t } = useTranslation();
 
@@ -58,6 +61,15 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, onEd
       .toUpperCase()
       .substring(0, 2);
   };
+
+  // Get employee availability status including vacation status
+  const availabilityInfo = getEmployeeAvailabilityStatus(
+    employee, 
+    new Date(), 
+    [], // No assignments needed for employee page status 
+    vacations, 
+    t
+  );
 
   return (
     <TableRow>
@@ -107,15 +119,9 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, onEd
         </TableCell>
       )}
       <TableCell>
-        {employee.onLeave ? (
-          <StatusBadge variant="error">
-            {t('employees.onLeave')}
-          </StatusBadge>
-        ) : (
-          <StatusBadge variant="success">
-            {t('employees.available')}
-          </StatusBadge>
-        )}
+        <StatusBadge variant={availabilityInfo.status === 'available' ? 'success' : 'error'}>
+          {availabilityInfo.statusText}
+        </StatusBadge>
       </TableCell>
       {isAdmin && (
         <TableCell>

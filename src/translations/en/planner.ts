@@ -62,6 +62,12 @@ const planner = {
   // Publishing messages
   assignmentPublished: 'Assignment Published',
   assignmentPublishedMsg: 'The assignment has been published successfully',
+  assignmentsPublished: 'Assignments Published',
+  assignmentsPublishedMsg: 'The assignments have been published successfully',
+  publishingInProgress: 'Publishing in Progress',
+  noAssignmentsToPublish: 'No Assignments to Publish',
+  noUnpublishedAssignments: 'No unpublished assignments found',
+  errorPublishingAssignments: 'Failed to publish assignments',
   dayPublished: 'Day Published',
   dayPublishedMsg: 'All assignments for {date} have been published',
   errorPublishingAssignment: 'Failed to publish assignment',

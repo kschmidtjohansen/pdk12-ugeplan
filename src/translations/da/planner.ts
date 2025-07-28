@@ -62,6 +62,12 @@ const planner = {
   // Publishing messages
   assignmentPublished: 'Opgave Publiceret',
   assignmentPublishedMsg: 'Opgaven er blevet publiceret med succes',
+  assignmentsPublished: 'Opgaver Publiceret',
+  assignmentsPublishedMsg: 'Opgaverne er blevet publiceret med succes',
+  publishingInProgress: 'Publicerer',
+  noAssignmentsToPublish: 'Ingen Opgaver at Publicere',
+  noUnpublishedAssignments: 'Ingen upublicerede opgaver fundet',
+  errorPublishingAssignments: 'Kunne ikke publicere opgaver',
   dayPublished: 'Dag Publiceret',
   dayPublishedMsg: 'Alle opgaver for {date} er blevet publiceret',
   errorPublishingAssignment: 'Kunne ikke publicere opgave',

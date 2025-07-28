@@ -3,6 +3,7 @@ import React from 'react';
 import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
+import { Vacation } from '@/types/vacation';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, RefreshCw } from 'lucide-react';
@@ -12,6 +13,7 @@ import EmployeeLoadingError from '@/components/ErrorBoundary/EmployeeLoadingErro
 
 interface EmployeesTableProps {
   employees: Employee[];
+  vacations: Vacation[];
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   onToggleLeave: (employee: Employee) => void;
@@ -22,6 +24,7 @@ interface EmployeesTableProps {
 
 const EmployeesTable: React.FC<EmployeesTableProps> = ({
   employees,
+  vacations,
   onEdit,
   onDelete,
   onToggleLeave,
@@ -133,6 +136,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
               <EmployeeTableRow
                 key={employee.id}
                 employee={employee}
+                vacations={vacations}
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onToggleLeave={onToggleLeave}

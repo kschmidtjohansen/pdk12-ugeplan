@@ -1,5 +1,5 @@
 import { Assignment } from '@/types/assignment';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -36,32 +36,37 @@ export const useAssignmentPublishing = (
     
     console.log(`[Publishing] Publishing ${unpublishedAssignments.length} unpublished assignments`);
     
+    // Show immediate feedback
+    toast({
+      title: t("planner.publishingInProgress"),
+      description: `Publishing ${unpublishedAssignments.length} assignments...`,
+    });
+    
     try {
       // Get all the assignment IDs
       const assignmentIds = unpublishedAssignments.map(a => a.id);
       
       console.log("[Publishing] Assignment IDs to update:", assignmentIds);
       
-      // Update all assignments in a single database operation
-      const { error, data } = await supabase
+      // Update all assignments in a single database operation (no select to improve speed)
+      const { error } = await supabase
         .from('assignments')
         .update({ published: true })
-        .in('id', assignmentIds)
-        .select();
+        .in('id', assignmentIds);
         
       if (error) {
         console.error("[Publishing] Error updating assignments in database:", error);
         throw error;
       }
       
-      console.log("[Publishing] Supabase batch update response:", data);
+      console.log("[Publishing] Batch update successful");
       
       toast({
         title: t("planner.assignmentsPublished"),
         description: `Published ${unpublishedAssignments.length} assignments`,
       });
       
-      // Trigger refetch if available
+      // Only refetch if necessary to reduce load
       if (refetch) {
         await refetch();
       }
@@ -96,32 +101,37 @@ export const useAssignmentPublishing = (
     
     console.log(`[Publishing] Publishing ${assignmentsToUpdate.length} assignments for date ${date}`);
     
+    // Show immediate feedback
+    toast({
+      title: t("planner.publishingInProgress"),
+      description: `Publishing ${assignmentsToUpdate.length} assignments...`,
+    });
+    
     try {
       // Get all the assignment IDs
       const assignmentIds = assignmentsToUpdate.map(a => a.id);
       
       console.log("[Publishing] Assignment IDs to update:", assignmentIds);
       
-      // Update all assignments in a single database operation
-      const { error, data } = await supabase
+      // Update all assignments in a single database operation (no select to improve speed)
+      const { error } = await supabase
         .from('assignments')
         .update({ published: true })
-        .in('id', assignmentIds)
-        .select();
+        .in('id', assignmentIds);
         
       if (error) {
         console.error("[Publishing] Error updating assignments in database:", error);
         throw error;
       }
       
-      console.log("[Publishing] Supabase batch update response:", data);
+      console.log("[Publishing] Batch update successful");
       
       toast({
         title: t("planner.assignmentsPublished"),
         description: t("planner.assignmentsPublishedMsg"),
       });
       
-      // Trigger refetch if available
+      // Only refetch if necessary
       if (refetch) {
         await refetch();
       }
