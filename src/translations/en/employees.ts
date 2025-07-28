@@ -17,10 +17,10 @@ const employees = {
   // Status translations
   'status.available': 'Available',
   'status.onVacation': 'On vacation',
-  'status.unavailable': 'Unavailable',
   'status.onLeave': 'On Leave',
   'status.unknown': 'Unknown',
   'status.fullyBooked': 'Fully Booked',
+  'status.unavailable': 'Unavailable',
   
   // Actions
   addEmployee: 'Add Employee',

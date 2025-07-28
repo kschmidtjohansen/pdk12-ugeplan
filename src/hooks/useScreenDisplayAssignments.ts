@@ -65,6 +65,8 @@ export const useScreenDisplayAssignments = (date: string) => {
       console.log(`[useScreenDisplayAssignments] Fetching published assignments for date: ${fetchDate}`);
       
       const result = await OptimizedAssignmentService.fetchPublishedAssignmentsByDate(fetchDate);
+      console.log(`[useScreenDisplayAssignments] Raw database result:`, result);
+      console.log(`[useScreenDisplayAssignments] Result length: ${result.length}`);
       
       // Convert OptimizedAssignmentData to Assignment format
       const convertedAssignments = result.map(convertToAssignment);

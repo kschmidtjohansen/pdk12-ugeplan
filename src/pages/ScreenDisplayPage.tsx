@@ -39,7 +39,10 @@ const ScreenDisplayPage: React.FC = () => {
   
   // Use specialized hook for screen display to fetch assignments by date
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
-  const { assignments, loading } = useScreenDisplayAssignments(selectedDateStr);
+  const { assignments, loading, refetch } = useScreenDisplayAssignments(selectedDateStr);
+  
+  console.log('[ScreenDisplay] Current date:', selectedDateStr);
+  console.log('[ScreenDisplay] Loading state:', loading);
   
   console.log('[ScreenDisplay] Hook returned assignments:', assignments.length);
   console.log('[ScreenDisplay] Sample assignment:', assignments[0]);
