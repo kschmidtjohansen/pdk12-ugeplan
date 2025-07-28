@@ -14,7 +14,8 @@ export const getUnpublishedAssignment = (assignment: Assignment) => {
 // Hook for publishing assignments
 export const useAssignmentPublishing = (
   assignments: Assignment[], 
-  updateAssignment: (assignment: Assignment) => Promise<boolean>
+  updateAssignment: (assignment: Assignment) => Promise<boolean>,
+  refetch?: () => Promise<void>
 ) => {
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -59,6 +60,11 @@ export const useAssignmentPublishing = (
         title: t("planner.assignmentsPublished"),
         description: `Published ${unpublishedAssignments.length} assignments`,
       });
+      
+      // Trigger refetch if available
+      if (refetch) {
+        await refetch();
+      }
       
       return true;
     } catch (error) {
@@ -115,6 +121,11 @@ export const useAssignmentPublishing = (
         description: t("planner.assignmentsPublishedMsg"),
       });
       
+      // Trigger refetch if available
+      if (refetch) {
+        await refetch();
+      }
+      
       return true;
     } catch (error) {
       console.error(`[Publishing] Error publishing assignments for date ${date}:`, error);
@@ -160,6 +171,11 @@ export const useAssignmentPublishing = (
         title: t("planner.assignmentsPublished"),
         description: t("planner.assignmentsPublishedMsg"),
       });
+      
+      // Trigger refetch if available
+      if (refetch) {
+        await refetch();
+      }
       
       return true;
     } catch (error) {
@@ -210,6 +226,11 @@ export const useAssignmentPublishing = (
         title: t("planner.assignmentPublished"),
         description: t("planner.assignmentPublishedMsg"),
       });
+      
+      // Trigger refetch if available
+      if (refetch) {
+        await refetch();
+      }
       
       return true;
     } catch (error) {

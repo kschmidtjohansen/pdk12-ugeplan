@@ -23,7 +23,6 @@ const employees = {
   onLeave: 'På orlov',
   onVacation: 'På ferie',
   availableAfter: 'Tilgængelig efter {time}',
-  fullyBooked: 'Fuldt booket',
   status: 'Status', // This fixes the "employees.status = Status" issue
   
   // Status
@@ -36,6 +35,9 @@ const employees = {
     fullyBooked: 'Fuldt booket',
     unknown: 'Ukendt status'
   },
+  
+  // Add the fullyBooked key at the top level for the fix
+  fullyBooked: 'Fuldt booket',
   
   // Missing translation keys - ADD THESE
   addNewEmployee: 'Tilføj ny medarbejder',

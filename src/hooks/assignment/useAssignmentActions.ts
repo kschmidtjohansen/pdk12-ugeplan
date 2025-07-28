@@ -364,7 +364,8 @@ export const useAssignmentActions = (
         description: t('planner.assignmentUpdatedMsg', { title: assignmentData.title }),
       });
       
-      refetch();
+      // Wait for refetch to complete before closing dialog
+      await refetch();
       if (setIsDialogOpen) setIsDialogOpen(false);
       return true;
     } catch (error: any) {
@@ -475,7 +476,8 @@ export const useAssignmentActions = (
         description: t('planner.assignmentPublishedMsg'),
       });
       
-      refetch();
+      // Wait for refetch to complete before finishing
+      await refetch();
       return true;
     } catch (error: any) {
       console.error('Error publishing assignment:', error);
@@ -527,7 +529,8 @@ export const useAssignmentActions = (
         description: t('planner.dayPublishedMsg', { date }),
       });
       
-      refetch();
+      // Wait for refetch to complete before finishing
+      await refetch();
       return true;
     } catch (error: any) {
       console.error('Error publishing assignments by date:', error);

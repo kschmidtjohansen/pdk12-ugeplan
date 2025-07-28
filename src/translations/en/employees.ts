@@ -23,7 +23,7 @@ const employees = {
   onLeave: 'On Leave',
   onVacation: 'On Vacation',
   availableAfter: 'Available after {time}',
-  fullyBooked: 'Fully Booked',
+  // Status will be defined below
   
   // Missing translation keys - ADD THESE
   addNewEmployee: 'Add New Employee',
@@ -42,6 +42,9 @@ const employees = {
     fullyBooked: 'Fully booked',
     unknown: 'Unknown status'
   },
+  
+  // Add the fullyBooked key at the top level for the fix
+  fullyBooked: 'Fully Booked',
   
   // Actions
   add: 'Add Employee',
