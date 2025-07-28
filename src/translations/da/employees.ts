@@ -18,6 +18,8 @@ const employees = {
   'status.available': 'Tilgængelig',
   'status.onVacation': 'På ferie',
   'status.unavailable': 'Ikke tilgængelig',
+  'status.onLeave': 'På orlov',
+  'status.unknown': 'Ukendt',
   
   // Actions
   addEmployee: 'Tilføj Medarbejder',

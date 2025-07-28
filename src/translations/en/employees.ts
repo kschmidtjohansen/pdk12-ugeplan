@@ -18,6 +18,8 @@ const employees = {
   'status.available': 'Available',
   'status.onVacation': 'On vacation',
   'status.unavailable': 'Unavailable',
+  'status.onLeave': 'On Leave',
+  'status.unknown': 'Unknown',
   
   // Actions
   addEmployee: 'Add Employee',
