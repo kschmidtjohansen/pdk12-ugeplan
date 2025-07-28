@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { OptimizedAssignmentService, OptimizedAssignmentData } from '@/services/optimizedAssignmentService';
 import { Assignment, normalizeEmployees } from '@/types/assignment';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 
 export type FilterType = 'all' | 'published' | 'unpublished' | 'user';

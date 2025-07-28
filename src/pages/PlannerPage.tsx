@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { useTranslation } from '../context/TranslationContext';
-import { usePlannerPage } from '../hooks/usePlannerPage';
 import { useOptimizedAssignments } from '../hooks/useOptimizedAssignments';
+import { Assignment } from '../types/assignment';
 import { useEmployees } from '../hooks/useEmployees';
 import { useCars } from '../hooks/car';
 import { useVacations } from '../hooks/useVacations';
@@ -40,60 +40,135 @@ const PlannerPage: React.FC = () => {
     error,
     operationStates,
     refetch,
+    createAssignment,
     updateAssignment,
     deleteAssignment: deleteAssignmentAction,
     publishAssignment: publishAssignmentAction,
     publishAssignmentsByDate
   } = useOptimizedAssignments('all');
 
-  const {
-    selectedWeek,
-    selectedYear,
-    weekDates,
-    weekAssignments,
-    isDialogOpen,
-    setIsDialogOpen,
-    currentAssignment,
-    selectedDay,
-    formData,
-    setFormData,
-    handlePreviousWeek,
-    handleNextWeek,
-    handleOpenCreateDialog,
-    handleOpenEditDialog,
-    handleSubmit,
-    handleCopyAssignment
-  } = usePlannerPage();
-
-  // PHASE 3 DEBUG: Add comprehensive planner debugging
-  console.log(`[PlannerPage] PHASE 3 DEBUG - Planner access for user:`, {
-    userName: user?.name,
-    userRole: user?.role,
-    isServicemedarbejder: user?.role === 'servicemedarbejder',
-    totalWeekAssignments: weekAssignments?.length || 0,
-    selectedWeek,
-    selectedYear
+  // Simplified planner state management without conflicting hooks
+  const [selectedWeek, setSelectedWeek] = React.useState(() => {
+    const today = new Date();
+    const onejan = new Date(today.getFullYear(), 0, 1);
+    return Math.ceil(((today.getTime() - onejan.getTime()) / 86400000 + onejan.getDay() + 1) / 7);
   });
-  console.log(`[PlannerPage] PHASE 3 DEBUG - Weekly assignments breakdown:`, {
-    totalAssignments: weekAssignments?.length || 0,
-    publishedAssignments: weekAssignments?.filter(a => a.published).length || 0,
-    unpublishedAssignments: weekAssignments?.filter(a => !a.published).length || 0,
-    assignmentsWithCurrentUser: weekAssignments?.filter(a => a.employees?.includes(user?.name || '')).length || 0,
-    assignmentsWithoutCurrentUser: weekAssignments?.filter(a => !a.employees?.includes(user?.name || '')).length || 0
+  const [selectedYear, setSelectedYear] = React.useState(new Date().getFullYear());
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [currentAssignment, setCurrentAssignment] = React.useState<Assignment | null>(null);
+  const [selectedDay, setSelectedDay] = React.useState(new Date().toISOString().split('T')[0]);
+  const [formData, setFormData] = React.useState<Partial<Assignment>>({
+    title: '',
+    description: '',
+    date: new Date().toISOString().split('T')[0],
+    fromTime: '08:00',
+    toTime: '16:00',
+    location: '',
+    car: '',
+    employees: []
   });
 
-  // PHASE 3 DEBUG: Log specific assignment details
-  weekAssignments?.forEach((assignment, index) => {
-    console.log(`[PlannerPage] PHASE 3 DEBUG - Assignment ${index + 1}:`, {
-      title: assignment.title,
-      published: assignment.published,
-      employees: assignment.employees,
-      cars: assignment.cars,
-      responsibleUser: assignment.responsibleUser,
-      currentUserAssigned: assignment.employees?.includes(user?.name || ''),
-      shouldBeVisibleToServicemedarbejder: assignment.published
+  // Week utilities
+  const getWeekDates = (week: number, year: number) => {
+    const simple = new Date(year, 0, 1 + (week - 1) * 7);
+    const dow = simple.getDay();
+    const weekStart = new Date(simple);
+    if (dow <= 4) weekStart.setDate(simple.getDate() - simple.getDay() + 1);
+    else weekStart.setDate(simple.getDate() + 8 - simple.getDay());
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    return { start: weekStart, end: weekEnd, weekNumber: week, year };
+  };
+
+  const weekDates = getWeekDates(selectedWeek, selectedYear);
+  
+  // Filter assignments by week
+  const weekAssignments = React.useMemo(() => {
+    if (!assignments || assignments.length === 0) return [];
+    
+    return assignments.filter(assignment => {
+      const assignmentDate = new Date(assignment.date);
+      const assignmentWeek = Math.ceil(((assignmentDate.getTime() - new Date(selectedYear, 0, 1).getTime()) / 86400000 + new Date(selectedYear, 0, 1).getDay() + 1) / 7);
+      return assignmentWeek === selectedWeek && assignmentDate.getFullYear() === selectedYear;
     });
-  });
+  }, [assignments, selectedWeek, selectedYear]);
+
+  // Handlers
+  const handlePreviousWeek = () => {
+    if (selectedWeek === 1) {
+      setSelectedWeek(52);
+      setSelectedYear(selectedYear - 1);
+    } else {
+      setSelectedWeek(selectedWeek - 1);
+    }
+  };
+
+  const handleNextWeek = () => {
+    if (selectedWeek === 52) {
+      setSelectedWeek(1);
+      setSelectedYear(selectedYear + 1);
+    } else {
+      setSelectedWeek(selectedWeek + 1);
+    }
+  };
+
+  const handleOpenCreateDialog = (date: string) => {
+    setCurrentAssignment(null);
+    setSelectedDay(date);
+    setFormData({
+      title: '',
+      description: '',
+      date,
+      fromTime: '08:00',
+      toTime: '16:00',
+      location: '',
+      car: '',
+      employees: [],
+      published: false
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleOpenEditDialog = (assignment: Assignment) => {
+    setCurrentAssignment(assignment);
+    setSelectedDay(assignment.date);
+    setFormData({
+      ...assignment,
+      employees: assignment.employees ? [...assignment.employees] : [],
+      car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : '',
+      published: assignment.published
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmit = async (data: Partial<Assignment>) => {
+    try {
+      if (currentAssignment?.id) {
+        await updateAssignment(currentAssignment.id, data);
+      } else {
+        await createAssignment(data);
+      }
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('[PlannerPage] Operation failed:', error);
+    }
+  };
+
+  const handleCopyAssignment = (assignment: Assignment) => {
+    setCurrentAssignment(null);
+    const today = new Date().toISOString().split('T')[0];
+    setSelectedDay(today);
+    setFormData({
+      ...assignment,
+      id: undefined,
+      date: today,
+      published: false,
+      employees: assignment.employees ? [...assignment.employees] : [],
+      car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : ''
+    });
+    setIsDialogOpen(true);
+  };
+
   const sortedWeekAssignments = React.useMemo(() => {
     if (!weekAssignments) return [];
     return [...weekAssignments].sort((a, b) => {
@@ -176,9 +251,6 @@ const PlannerPage: React.FC = () => {
                     end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
                   })}
                   </p>
-                  
-                  {/* PHASE 3 DEBUG: Add debug info in header for servicemedarbejder */}
-                  {user?.role === 'servicemedarbejder'}
                 </div>
               </div>
 
