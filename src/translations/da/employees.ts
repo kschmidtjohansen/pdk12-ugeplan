@@ -44,8 +44,8 @@ const employees = {
   active: 'Aktiv',
   inactive: 'Inaktiv',
   onLeave: 'På orlov',
-  status.available: 'Tilgængelig',
-  status.onVacation: 'På ferie',
+  available: 'Tilgængelig',
+  onVacation: 'På ferie',
   fullyBooked: 'Fuldt booket',
   availableAfter: 'Tilgængelig efter {time}',
   
