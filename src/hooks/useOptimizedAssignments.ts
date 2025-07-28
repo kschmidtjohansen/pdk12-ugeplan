@@ -74,40 +74,6 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   const [error, setError] = useState<Error | null>(null);
   const [operationStates, setOperationStates] = useState<Record<string, 'idle' | 'loading' | 'success' | 'error'>>({});
 
-  // Early return if authentication not ready
-  if (!authReady) {
-    return {
-      assignments: [],
-      loading: true,
-      error: null,
-      operationStates,
-      refetch: async () => {},
-      createAssignment: async () => {},
-      updateAssignment: async () => {},
-      deleteAssignment: async () => {},
-      publishAssignment: async () => {},
-      publishAssignmentsByDate: async () => {},
-      setAssignments: () => {}
-    };
-  }
-
-  // If not authenticated, return empty state
-  if (!isAuthenticated || !user) {
-    return {
-      assignments: [],
-      loading: false,
-      error: new Error('User not authenticated'),
-      operationStates,
-      refetch: async () => {},
-      createAssignment: async () => {},
-      updateAssignment: async () => {},
-      deleteAssignment: async () => {},
-      publishAssignment: async () => {},
-      publishAssignmentsByDate: async () => {},
-      setAssignments: () => {}
-    };
-  }
-
   const setOperationState = useCallback((id: string, state: 'idle' | 'loading' | 'success' | 'error') => {
     setOperationStates(prev => ({ ...prev, [id]: state }));
   }, []);
