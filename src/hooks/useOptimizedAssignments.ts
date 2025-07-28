@@ -66,7 +66,7 @@ const convertToAssignment = (data: OptimizedAssignmentData): Assignment => {
 };
 
 export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimizedAssignmentsResult => {
-  const { user } = useAuth();
+  const { user, isAuthenticated, authReady } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -74,13 +74,47 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   const [error, setError] = useState<Error | null>(null);
   const [operationStates, setOperationStates] = useState<Record<string, 'idle' | 'loading' | 'success' | 'error'>>({});
 
+  // Early return if authentication not ready
+  if (!authReady) {
+    return {
+      assignments: [],
+      loading: true,
+      error: null,
+      operationStates,
+      refetch: async () => {},
+      createAssignment: async () => {},
+      updateAssignment: async () => {},
+      deleteAssignment: async () => {},
+      publishAssignment: async () => {},
+      publishAssignmentsByDate: async () => {},
+      setAssignments: () => {}
+    };
+  }
+
+  // If not authenticated, return empty state
+  if (!isAuthenticated || !user) {
+    return {
+      assignments: [],
+      loading: false,
+      error: new Error('User not authenticated'),
+      operationStates,
+      refetch: async () => {},
+      createAssignment: async () => {},
+      updateAssignment: async () => {},
+      deleteAssignment: async () => {},
+      publishAssignment: async () => {},
+      publishAssignmentsByDate: async () => {},
+      setAssignments: () => {}
+    };
+  }
+
   const setOperationState = useCallback((id: string, state: 'idle' | 'loading' | 'success' | 'error') => {
     setOperationStates(prev => ({ ...prev, [id]: state }));
   }, []);
 
   const fetchAssignments = useCallback(async () => {
-    if (!user?.id) {
-      console.log('[useOptimizedAssignments] No user ID available, skipping fetch');
+    if (!user?.id || !user?.role) {
+      console.log('[useOptimizedAssignments] User not authenticated or role not available, skipping fetch');
       setAssignments([]);
       setLoading(false);
       return;
@@ -88,7 +122,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
     try {
       setError(null);
-      console.log(`[useOptimizedAssignments] ⭐ CRITICAL DEBUG: Fetching assignments with filter: ${filter} for user: ${user.name} (${user.role})`);
+      console.log(`[useOptimizedAssignments] ⭐ CRITICAL DEBUG: Fetching assignments with filter: ${filter} for user: ${user.email} (${user.role})`);
       
       let result: OptimizedAssignmentData[];
       
@@ -118,7 +152,9 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       const convertedAssignments = result.map(convertToAssignment);
 
       console.log(`[useOptimizedAssignments] Successfully fetched ${convertedAssignments.length} assignments`);
-      console.log(`[useOptimizedAssignments] Sample assignment data:`, convertedAssignments[0]);
+      if (convertedAssignments.length > 0) {
+        console.log(`[useOptimizedAssignments] Sample assignment data:`, convertedAssignments[0]);
+      }
       setAssignments(convertedAssignments);
     } catch (err) {
       console.error('[useOptimizedAssignments] Error fetching assignments:', err);
@@ -127,7 +163,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     } finally {
       setLoading(false);
     }
-  }, [user?.id, user?.role, user?.name, filter]);
+  }, [user?.id, user?.role, user?.email, filter]);
 
   const refetch = useCallback(async () => {
     setLoading(true);
@@ -297,8 +333,10 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   }, [toast, t, refetch, setAssignments]);
 
   useEffect(() => {
-    fetchAssignments();
-  }, [fetchAssignments]);
+    if (authReady && isAuthenticated && user?.id && user?.role) {
+      fetchAssignments();
+    }
+  }, [fetchAssignments, authReady, isAuthenticated, user?.id, user?.role]);
 
   return {
     assignments,
