@@ -101,7 +101,23 @@ const employees = {
   employeeOnLeave: 'Medarbejder sat på orlov',
   employeeAvailable: 'Medarbejder markeret som tilgængelig',
   employeeOnLeaveMsg: '{name} er nu på orlov',
-  employeeAvailableMsg: '{name} er nu tilgængelig'
+  employeeAvailableMsg: '{name} er nu tilgængelig',
+  
+  // Error message translations
+  edgeFunctionFailed: 'Edge funktion fejlede',
+  allMethodsFailed: 'Alle brugeroprettelsesmetoder fejlede',
+  directCreationFailed: 'Direkte oprettelse fejlede',
+  unexpectedError: 'Uventet fejl opstod',
+  methodUsed: 'Metode brugt',
+  userCreationFailed: 'Brugeroprettelse fejlede',
+  userAlreadyExists: 'Bruger findes allerede med denne email',
+  invalidEmail: 'Ugyldig email adresse',
+  passwordRequirements: 'Adgangskode opfylder ikke kravene',
+  networkError: 'Netværksforbindelsesfejl',
+  rateLimitError: 'Rate limit overskredet, prøv igen senere',
+  validEmailRequired: 'Gyldig email adresse er påkrævet',
+  passwordRequired: 'Adgangskode er påkrævet',
+  createError: 'Fejl ved oprettelse af medarbejder'
 };
 
 export default employees;

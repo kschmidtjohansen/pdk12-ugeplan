@@ -102,8 +102,9 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           body: {
             email: formData.email,
             password: formData.password,
+            name: formData.name,
+            role: formData.role || 'servicemedarbejder',
             userData: {
-              name: formData.name,
               phone: formData.phone,
               job_title: formData.jobTitle
             }

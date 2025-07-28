@@ -99,7 +99,23 @@ const employees = {
   employeeOnLeave: 'Employee set on leave',
   employeeAvailable: 'Employee marked as available',
   employeeOnLeaveMsg: '{name} is now on leave',
-  employeeAvailableMsg: '{name} is now available'
+  employeeAvailableMsg: '{name} is now available',
+  
+  // Error message translations
+  edgeFunctionFailed: 'Edge function failed',
+  allMethodsFailed: 'All user creation methods failed',
+  directCreationFailed: 'Direct creation failed',
+  unexpectedError: 'Unexpected error occurred',
+  methodUsed: 'Method used',
+  userCreationFailed: 'User creation failed',
+  userAlreadyExists: 'User already exists with this email',
+  invalidEmail: 'Invalid email address',
+  passwordRequirements: 'Password does not meet requirements',
+  networkError: 'Network connection error',
+  rateLimitError: 'Rate limit exceeded, please try again later',
+  validEmailRequired: 'Valid email address is required',
+  passwordRequired: 'Password is required',
+  createError: 'Error creating employee'
 };
 
 export default employees;
