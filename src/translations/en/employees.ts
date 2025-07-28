@@ -20,6 +20,7 @@ const employees = {
   'status.unavailable': 'Unavailable',
   'status.onLeave': 'On Leave',
   'status.unknown': 'Unknown',
+  'status.fullyBooked': 'Fully Booked',
   
   // Actions
   addEmployee: 'Add Employee',

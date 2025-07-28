@@ -232,7 +232,7 @@ export const getEmployeeAvailabilityStatus = (
     console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is fully booked (ends at workday end)`);
     return {
       status: 'fullyBooked',
-      statusText: t('employees.fullyBooked'),
+      statusText: t('employees.status.fullyBooked'),
       badgeColor: 'bg-red-100 text-red-800 border-red-200'
     };
   }
@@ -251,7 +251,7 @@ export const getEmployeeAvailabilityStatus = (
     console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} latest assignment ends at ${latestEndTime} which is past working hours, marking as fully booked`);
     return {
       status: 'fullyBooked',
-      statusText: t('employees.fullyBooked'),
+      statusText: t('employees.status.fullyBooked'),
       badgeColor: 'bg-red-100 text-red-800 border-red-200'
     };
   }

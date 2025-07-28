@@ -20,6 +20,7 @@ const employees = {
   'status.unavailable': 'Ikke tilgængelig',
   'status.onLeave': 'På orlov',
   'status.unknown': 'Ukendt',
+  'status.fullyBooked': 'Fuldt booket',
   
   // Actions
   addEmployee: 'Tilføj Medarbejder',
