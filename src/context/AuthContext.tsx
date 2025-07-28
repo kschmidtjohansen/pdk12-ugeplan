@@ -4,7 +4,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
 import { DemoUserService } from '@/services/demoUserService';
 import { circuitBreaker } from '@/services/circuitBreakerService';
-import { useTranslation, TranslationContext } from './TranslationContext';
+import { TranslationContext } from './TranslationContext';
 
 // Define user roles
 export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder';
