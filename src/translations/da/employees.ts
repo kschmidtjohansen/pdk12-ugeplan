@@ -69,6 +69,37 @@ const employees = {
   
   // Additional status translations
   terminated: 'Opsagt',
+  
+  // Form dialog
+  addNewEmployee: 'Tilføj Ny Medarbejder',
+  updateInfo: 'Opdater Information',
+  createAccount: 'Opret Konto',
+  fullName: 'Fulde Navn',
+  passwordRequirements: 'Adgangskode skal være mindst 6 tegn',
+  unexpectedError: 'Uventet fejl opstod',
+  creatingUserDescription: 'Opretter brugerkonto...',
+  userCreatedSuccessfully: 'Bruger oprettet med succes',
+  userCreatedFallback: 'Bruger oprettet, men email blev ikke sendt',
+  userCreationFailed: 'Brugeroprettelse mislykkedes',
+  notesPlaceholder: 'Tilføj noter om medarbejderen...',
+  viewNotesOnly: 'Se noter (kun læsning)',
+  
+  // Delete dialog
+  deleteConfirm: 'Bekræft Sletning',
+  deleteWarning: 'Er du sikker på, at du vil slette {name}? Denne handling kan ikke fortrydes.',
+  
+  // Leave management
+  markAvailableTitle: 'Marker Som Tilgængelig',
+  markAvailableDescription: 'Ønsker du at markere {name} som tilgængelig? Hvad skal der ske med den eksisterende note?',
+  removeNote: 'Fjern Note',
+  keepNote: 'Behold Note',
+  markOnLeaveTitle: 'Marker Som På Orlov',
+  markOnLeaveDescription: 'Marker {name} som på orlov. Tilføj venligst en note med årsagen.',
+  
+  // Roles
+  administrator: 'Administrator',
+  skadeleder: 'Skadeleder',
+  servicemedarbejder: 'Servicemedarbejder',
 };
 
 export default employees;

@@ -69,6 +69,37 @@ const employees = {
   
   // Additional status translations
   terminated: 'Terminated',
+  
+  // Form dialog
+  addNewEmployee: 'Add New Employee',
+  updateInfo: 'Update Information',
+  createAccount: 'Create Account',
+  fullName: 'Full Name',
+  passwordRequirements: 'Password must be at least 6 characters',
+  unexpectedError: 'An unexpected error occurred',
+  creatingUserDescription: 'Creating user account...',
+  userCreatedSuccessfully: 'User created successfully',
+  userCreatedFallback: 'User created but email was not sent',
+  userCreationFailed: 'User creation failed',
+  notesPlaceholder: 'Add notes about the employee...',
+  viewNotesOnly: 'View notes (read-only)',
+  
+  // Delete dialog
+  deleteConfirm: 'Confirm Delete',
+  deleteWarning: 'Are you sure you want to delete {name}? This action cannot be undone.',
+  
+  // Leave management
+  markAvailableTitle: 'Mark as Available',
+  markAvailableDescription: 'Do you want to mark {name} as available? What should happen to the existing note?',
+  removeNote: 'Remove Note',
+  keepNote: 'Keep Note',
+  markOnLeaveTitle: 'Mark as On Leave',
+  markOnLeaveDescription: 'Mark {name} as on leave. Please add a note with the reason.',
+  
+  // Roles
+  administrator: 'Administrator',
+  skadeleder: 'Damage Leader',
+  servicemedarbejder: 'Service Employee',
 };
 
 export default employees;
