@@ -44,15 +44,16 @@ const employees = {
   active: 'Aktiv',
   inactive: 'Inaktiv',
   onLeave: 'På orlov',
-  available: 'Tilgængelig',
+  status.available: 'Tilgængelig',
+  status.onVacation: 'På ferie',
   fullyBooked: 'Fuldt booket',
   availableAfter: 'Tilgængelig efter {time}',
   
   // Leave management
-  markOnLeave: 'Marker som på orlov',
+  markOnLeave: 'Marker som på utilgængelig',
   markAvailable: 'Marker som tilgængelig',
-  leaveMarked: 'Orlovsstatus Opdateret',
-  leaveMarkedMsg: 'Medarbejderens orlovsstatus er blevet opdateret',
+  leaveMarked: 'Status Opdateret',
+  leaveMarkedMsg: 'Medarbejderens status er blevet opdateret',
   
   // Validation
   nameRequired: 'Navn er påkrævet',
@@ -93,8 +94,8 @@ const employees = {
   markAvailableDescription: 'Ønsker du at markere {name} som tilgængelig? Hvad skal der ske med den eksisterende note?',
   removeNote: 'Fjern Note',
   keepNote: 'Behold Note',
-  markOnLeaveTitle: 'Marker Som På Orlov',
-  markOnLeaveDescription: 'Marker {name} som på orlov. Tilføj venligst en note med årsagen.',
+  markOnLeaveTitle: 'Marker Som fraværende',
+  markOnLeaveDescription: 'Marker {name} som fraværende. Tilføj venligst en note med årsagen.',
   
   // Roles
   administrator: 'Administrator',
