@@ -55,25 +55,59 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     defaultValues: formData
   });
 
-  // Handle form submission with comprehensive debugging
+  // Handle form submission with comprehensive debugging and validation
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate required fields
-    if (!formData.title || !formData.location || !formData.date) {
-      console.error('[AssignmentForm] Validation failed - missing required fields');
-      console.error('Title:', formData.title);
-      console.error('Location:', formData.location);
-      console.error('Date:', formData.date);
+    console.log('[AssignmentForm] === FORM SUBMISSION DEBUG ===');
+    console.log('[AssignmentForm] Form data at submission:', formData);
+
+    // Enhanced validation with specific error messages
+    const validationErrors: string[] = [];
+    
+    if (!formData.title?.trim()) {
+      validationErrors.push('Title is required');
+    }
+    
+    if (!formData.location?.trim()) {
+      validationErrors.push('Location is required');
+    }
+    
+    if (!formData.date) {
+      validationErrors.push('Date is required');
+    }
+    
+    if (!formData.fromTime) {
+      validationErrors.push('Start time is required');
+    }
+    
+    if (!formData.toTime) {
+      validationErrors.push('End time is required');
+    }
+    
+    // Validate time logic
+    if (formData.fromTime && formData.toTime && formData.fromTime >= formData.toTime) {
+      validationErrors.push('Start time must be before end time');
+    }
+    
+    if (validationErrors.length > 0) {
+      console.error('[AssignmentForm] Validation failed:', validationErrors);
+      // TODO: Show validation errors to user via toast
       return;
     }
+
     setIsSubmitting(true);
     try {
-      console.log('[AssignmentForm] Calling onSubmit with data:', formData);
+      console.log('[AssignmentForm] Validation passed, calling onSubmit with data:', formData);
       await onSubmit(formData);
       console.log('[AssignmentForm] onSubmit completed successfully');
     } catch (error) {
       console.error('[AssignmentForm] Error in form submission:', error);
+      console.error('[AssignmentForm] Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        type: typeof error,
+        error
+      });
     } finally {
       setIsSubmitting(false);
     }

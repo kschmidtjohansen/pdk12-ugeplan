@@ -149,7 +149,26 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   const updateAssignment = useCallback(async (id: string, data: Partial<Assignment>) => {
     setOperationState(id, 'loading');
     try {
-      console.log('[useOptimizedAssignments] Updating assignment:', id);
+      console.log('[useOptimizedAssignments] === UPDATE ASSIGNMENT DEBUG ===');
+      console.log('[useOptimizedAssignments] Assignment ID:', id);
+      console.log('[useOptimizedAssignments] Input data:', data);
+      
+      // Enhanced data validation with detailed logging
+      if (!data.title?.trim()) {
+        throw new Error('Title is required and cannot be empty');
+      }
+      if (!data.location?.trim()) {
+        throw new Error('Location is required and cannot be empty');
+      }
+      if (!data.date) {
+        throw new Error('Date is required');
+      }
+      if (!data.fromTime) {
+        throw new Error('Start time is required');
+      }
+      if (!data.toTime) {
+        throw new Error('End time is required');
+      }
       
       // Optimistically update the UI
       setAssignments(prev => prev.map(assignment => 
@@ -158,17 +177,19 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       
       // Convert Assignment data to OptimizedAssignmentData format for service
       const serviceData = {
-        title: data.title,
-        description: data.description,
+        title: data.title?.trim(),
+        description: data.description?.trim() || null,
         assignment_date: data.date,
         from_time: data.fromTime,
         to_time: data.toTime,
-        location: data.location,
-        published: data.published,
-        responsible_user_id: data.responsibleUserId,
-        car_id: typeof data.car === 'string' ? data.car : undefined,
-        car_ids: data.cars
+        location: data.location?.trim(),
+        published: data.published || false,
+        responsible_user_id: data.responsibleUserId || null,
+        car_id: (typeof data.car === 'string' && data.car) ? data.car : null,
+        car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : null
       };
+      
+      console.log('[useOptimizedAssignments] Service data:', serviceData);
       
       await OptimizedAssignmentService.updateAssignment(id, serviceData);
       
@@ -178,19 +199,21 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       });
       
       setOperationState(id, 'success');
+      console.log('[useOptimizedAssignments] Update completed successfully');
       
-      // Refetch to get updated data
-      await refetch();
     } catch (error) {
-      console.error('[useOptimizedAssignments] Update failed:', error);
+      console.error('[useOptimizedAssignments] === UPDATE ERROR ===');
+      console.error('[useOptimizedAssignments] Error details:', error);
+      console.error('[useOptimizedAssignments] Error message:', error instanceof Error ? error.message : 'Unknown error');
       setOperationState(id, 'error');
       
       // Revert optimistic update on error
       await refetch();
       
+      const errorMessage = error instanceof Error ? error.message : t('planner.errorUpdatingAssignment');
       toast({
         title: t('common.error'),
-        description: error instanceof Error ? error.message : t('planner.errorUpdatingAssignment'),
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -198,7 +221,12 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
   const deleteAssignment = useCallback(async (id: string) => {
     setOperationState(id, 'loading');
+    
+    // Store original assignment in case we need to revert
+    const originalAssignment = assignments.find(a => a.id === id);
+    
     try {
+      console.log('[useOptimizedAssignments] === DELETE ASSIGNMENT DEBUG ===');
       console.log('[useOptimizedAssignments] Deleting assignment:', id);
       
       // Optimistically remove from UI
@@ -212,15 +240,22 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       });
       
       setOperationState(id, 'success');
+      console.log('[useOptimizedAssignments] Delete completed successfully - no refetch needed');
       
-      // Refetch to ensure consistency
-      await refetch();
+      // Clear cache to ensure fresh data on next fetch (without forcing refetch)
+      OptimizedAssignmentService.clearCache();
+      
     } catch (error) {
+      console.error('[useOptimizedAssignments] === DELETE ERROR ===');
       console.error('[useOptimizedAssignments] Delete failed:', error);
       setOperationState(id, 'error');
       
-      // Revert optimistic update on error
-      await refetch();
+      // Revert optimistic update by adding the assignment back
+      if (originalAssignment) {
+        setAssignments(prev => [...prev, originalAssignment].sort((a, b) => 
+          new Date(a.date).getTime() - new Date(b.date).getTime()
+        ));
+      }
       
       toast({
         title: t('common.error'),
@@ -228,7 +263,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         variant: "destructive"
       });
     }
-  }, [toast, t, setOperationState, refetch, setAssignments]);
+  }, [toast, t, setOperationState, setAssignments, assignments]);
 
   const publishAssignment = useCallback(async (id: string) => {
     setOperationState(id, 'loading');
