@@ -139,12 +139,107 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   }, [fetchAssignments]);
 
   const createAssignment = useCallback(async (data: Partial<Assignment>) => {
-    console.log('[useOptimizedAssignments] Create assignment not yet implemented', data);
-    toast({
-      title: t('common.info'),
-      description: t('dashboard.functionalityNotImplemented')
-    });
-  }, [toast, t]);
+    const operationId = `create-${Date.now()}`;
+    
+    try {
+      setOperationStates(prev => ({ ...prev, [operationId]: 'loading' }));
+      
+      // Validate required fields
+      if (!data.title?.trim()) {
+        throw new Error(t('planner.validation.titleRequired'));
+      }
+      if (!data.date) {
+        throw new Error(t('planner.validation.dateRequired'));
+      }
+      if (!data.fromTime) {
+        throw new Error(t('planner.validation.fromTimeRequired'));
+      }
+      if (!data.toTime) {
+        throw new Error(t('planner.validation.toTimeRequired'));
+      }
+      if (!data.location?.trim()) {
+        throw new Error(t('planner.validation.locationRequired'));
+      }
+
+      // Convert Assignment data to service format
+      const serviceData = {
+        title: data.title.trim(),
+        description: data.description?.trim() || null,
+        assignment_date: data.date,
+        from_time: data.fromTime,
+        to_time: data.toTime,
+        location: data.location.trim(),
+        type: data.type || null,
+        published: data.published || false,
+        responsible_user_id: data.responsibleUserId || null,
+        car_id: (typeof data.car === 'string') ? data.car : null,
+        car_ids: data.cars || null,
+        employees: data.employees || []
+      };
+
+      console.log('[useOptimizedAssignments] Creating assignment with data:', serviceData);
+
+      // Create optimistic assignment for immediate UI update
+      const optimisticAssignment: Assignment = {
+        id: `temp-${Date.now()}`,
+        title: serviceData.title,
+        description: serviceData.description,
+        date: serviceData.assignment_date,
+        fromTime: serviceData.from_time,
+        toTime: serviceData.to_time,
+        location: serviceData.location,
+        type: serviceData.type,
+        published: serviceData.published,
+        responsibleUserId: serviceData.responsible_user_id,
+        employees: serviceData.employees,
+        car: serviceData.car_id,
+        cars: serviceData.car_ids,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      // Add optimistic assignment to state
+      setAssignments(prev => [optimisticAssignment, ...prev]);
+
+      // Call service to create assignment
+      const createdAssignment = await OptimizedAssignmentService.createAssignment(serviceData);
+      
+      // Replace optimistic assignment with real one
+      setAssignments(prev => 
+        prev.map(assignment => 
+          assignment.id === optimisticAssignment.id 
+            ? convertToAssignment(createdAssignment)
+            : assignment
+        )
+      );
+
+      setOperationStates(prev => ({ ...prev, [operationId]: 'success' }));
+      
+      toast({
+        title: t('common.success'),
+        description: t('planner.messages.assignmentCreated'),
+      });
+
+    } catch (error) {
+      console.error('[useOptimizedAssignments] Create assignment error:', error);
+      
+      // Remove optimistic assignment on error
+      setAssignments(prev => 
+        prev.filter(assignment => !assignment.id.startsWith('temp-'))
+      );
+      
+      setOperationStates(prev => ({ ...prev, [operationId]: 'error' }));
+      
+      const errorMessage = error instanceof Error ? error.message : t('common.error');
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description: errorMessage,
+      });
+      
+      throw error;
+    }
+  }, [toast, t, setAssignments, setOperationStates]);
 
   const updateAssignment = useCallback(async (id: string, data: Partial<Assignment>) => {
     setOperationState(id, 'loading');

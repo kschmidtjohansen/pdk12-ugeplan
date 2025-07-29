@@ -86,7 +86,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   
   const getDisplayText = () => {
     if (selectedEmployees.length === 0) {
-      return t('employees.selectEmployees');
+      return t('planner.selectEmployees');
     }
     if (selectedEmployees.length === 1) {
       return selectedEmployees[0];

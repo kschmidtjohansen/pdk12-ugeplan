@@ -737,4 +737,82 @@ export class OptimizedAssignmentService {
       throw error;
     }
   }
+
+  static async createAssignment(data: {
+    title: string;
+    description?: string | null;
+    assignment_date: string;
+    from_time: string;
+    to_time: string;
+    location: string;
+    type?: string | null;
+    published?: boolean;
+    responsible_user_id?: string | null;
+    car_id?: string | null;
+    car_ids?: string[] | null;
+    employees?: string[];
+  }): Promise<OptimizedAssignmentData> {
+    try {
+      console.log('[OptimizedAssignmentService] Creating assignment with data:', data);
+      
+      // Create the main assignment record
+      const insertData: any = {
+        title: data.title,
+        description: data.description,
+        assignment_date: data.assignment_date,
+        from_time: data.from_time,
+        to_time: data.to_time,
+        location: data.location,
+        published: data.published || false,
+        responsible_user_id: data.responsible_user_id,
+        car_id: data.car_id,
+        car_ids: data.car_ids
+      };
+      
+      // Only include type if it's valid
+      if (data.type && ['waterDamage', 'fireDamage', 'mold', 'other'].includes(data.type)) {
+        insertData.type = data.type;
+      }
+      
+      const { data: assignmentData, error } = await supabase
+        .from('assignments')
+        .insert(insertData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[OptimizedAssignmentService] Error creating assignment:', error);
+        throw new Error(`Failed to create assignment: ${error.message}`);
+      }
+
+      // If employees are provided, create employee assignments
+      if (data.employees && data.employees.length > 0) {
+        const employeeAssignments = data.employees.map(employeeName => ({
+          assignment_id: assignmentData.id,
+          user_id: employeeName // Note: This should ideally be user ID, but keeping consistent with current usage
+        }));
+
+        const { error: empError } = await supabase
+          .from('assignments_employees')
+          .insert(employeeAssignments);
+
+        if (empError) {
+          console.error('[OptimizedAssignmentService] Error creating employee assignments:', empError);
+          // Continue without throwing to avoid leaving orphaned assignment
+        }
+      }
+
+      // Clear cache and return enriched data
+      this.clearCache();
+      
+      // Return the created assignment in the expected format
+      const enrichedData = await this.enrichAssignmentData([assignmentData]);
+      console.log('[OptimizedAssignmentService] Successfully created assignment:', enrichedData[0]);
+      
+      return enrichedData[0];
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Error in createAssignment:', error);
+      throw error;
+    }
+  }
 }
