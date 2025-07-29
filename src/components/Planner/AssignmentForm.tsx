@@ -39,9 +39,16 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   selectedDay,
   onPublishDay
 }) => {
-  const { t } = useTranslation();
-  const { canEdit, canPublishTasks } = usePermissions();
-  const { toast } = useToast();
+  const {
+    t
+  } = useTranslation();
+  const {
+    canEdit,
+    canPublishTasks
+  } = usePermissions();
+  const {
+    toast
+  } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     handleSubmit,
@@ -55,38 +62,31 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   // Handle form submission with comprehensive debugging and validation
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     console.log('[AssignmentForm] === FORM SUBMISSION DEBUG ===');
     console.log('[AssignmentForm] Form data at submission:', formData);
 
     // Enhanced validation with translated error messages
     const validationErrors: string[] = [];
-    
     if (!formData.title?.trim()) {
       validationErrors.push(t('planner.validation.titleRequired'));
     }
-    
     if (!formData.location?.trim()) {
       validationErrors.push(t('planner.validation.locationRequired'));
     }
-    
     if (!formData.date) {
       validationErrors.push(t('planner.validation.dateRequired'));
     }
-    
     if (!formData.fromTime) {
       validationErrors.push(t('planner.validation.fromTimeRequired'));
     }
-    
     if (!formData.toTime) {
       validationErrors.push(t('planner.validation.toTimeRequired'));
     }
-    
+
     // Validate time logic
     if (formData.fromTime && formData.toTime && formData.fromTime >= formData.toTime) {
       validationErrors.push(t('planner.validation.timeOrderRequired'));
     }
-    
     if (validationErrors.length > 0) {
       console.error('[AssignmentForm] Validation failed:', validationErrors);
       // Show validation errors to user via toast
@@ -99,7 +99,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       });
       return;
     }
-
     setIsSubmitting(true);
     try {
       console.log('[AssignmentForm] Validation passed, calling onSubmit with data:', formData);
@@ -169,8 +168,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       // Find the user in employees to get their name
       const user = employees.find(emp => emp.id === userId);
       const userName = user ? user.name : '';
-      console.log('[AssignmentForm] Found user for ID:', { userId, userName, user: user?.name });
-      
+      console.log('[AssignmentForm] Found user for ID:', {
+        userId,
+        userName,
+        user: user?.name
+      });
       const updatedData = {
         ...formData,
         responsibleUser: {
@@ -299,41 +301,14 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           {isSubmitting ? t('planner.operations.saving') : currentAssignment ? t('common.update') : t('common.create')}
         </Button>
 
-        {currentAssignment && canEdit && (
-          <Button 
-            type="button" 
-            variant="destructive" 
-            onClick={handleDeleteClick}
-            className="flex-none"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            {t('common.delete')}
-          </Button>
-        )}
+        {currentAssignment && canEdit}
 
-        {canPublishAssignment && (
-          <Button 
-            type="button" 
-            variant="secondary" 
-            onClick={handlePublishClick}
-            className="flex-none"
-          >
+        {canPublishAssignment && <Button type="button" variant="secondary" onClick={handlePublishClick} className="flex-none">
             <Send className="mr-2 h-4 w-4" />
             {t('planner.publish')}
-          </Button>
-        )}
+          </Button>}
 
-        {canPublishTasks && selectedDay && (
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={handlePublishDayClick}
-            className="flex-none"
-          >
-            <Send className="mr-2 h-4 w-4" />
-            {t('planner.publishDayTasks')}
-          </Button>
-        )}
+        {canPublishTasks && selectedDay}
       </div>
     </form>;
 };
