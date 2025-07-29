@@ -10,20 +10,22 @@ const employees = {
   selected: 'valgte',
   jobTitle: 'Stilling',
   role: 'Rolle',
-  status: 'Status',
+  statusLabel: 'Status',
   notes: 'Noter',
   contact: 'Kontakt',
   avatar: 'Profilbillede',
   
   // Status translations
-  'status.available': 'Tilgængelig',
-  'status.onVacation': 'På ferie',
-  'status.unavailable': 'Ikke tilgængelig',
-  'status.onLeave': 'På orlov',
-  'status.unknown': 'Ukendt',
-  'status.fullyBooked': 'Fuldt booket',
-  'status.partiallyBooked': 'Delvis booket',
-  'status.partialVacation': 'Delvis ferie',
+  status: {
+    available: 'Tilgængelig',
+    onVacation: 'På ferie',
+    unavailable: 'Ikke tilgængelig',
+    onLeave: 'På orlov',
+    unknown: 'Ukendt',
+    fullyBooked: 'Fuldt booket',
+    partiallyBooked: 'Delvis booket',
+    partialVacation: 'Delvis ferie',
+  },
   
   // Actions
   addEmployee: 'Tilføj Medarbejder',
@@ -46,10 +48,6 @@ const employees = {
   // Status
   active: 'Aktiv',
   inactive: 'Inaktiv',
-  onLeave: 'På orlov',
-  available: 'Tilgængelig',
-  onVacation: 'På ferie',
-  fullyBooked: 'Fuldt booket',
   availableAfter: 'Tilgængelig efter {time}',
   
   // Leave management

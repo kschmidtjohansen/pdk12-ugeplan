@@ -9,20 +9,22 @@ const employees = {
   phone: 'Phone',
   jobTitle: 'Job Title',
   role: 'Role',
-  status: 'Status',
+  statusLabel: 'Status',
   notes: 'Notes',
   contact: 'Contact',
   avatar: 'Avatar',
   
   // Status translations
-  'status.available': 'Available',
-  'status.onVacation': 'On vacation',
-  'status.onLeave': 'On Leave',
-  'status.unknown': 'Unknown',
-  'status.fullyBooked': 'Fully Booked',
-  'status.unavailable': 'Unavailable',
-  'status.partiallyBooked': 'Partially booked',
-  'status.partialVacation': 'Partial vacation',
+  status: {
+    available: 'Available',
+    onVacation: 'On vacation',
+    onLeave: 'On Leave',
+    unknown: 'Unknown',
+    fullyBooked: 'Fully Booked',
+    unavailable: 'Unavailable',
+    partiallyBooked: 'Partially booked',
+    partialVacation: 'Partial vacation',
+  },
   
   // Actions
   addEmployee: 'Add Employee',
@@ -45,9 +47,6 @@ const employees = {
   // Status
   active: 'Active',
   inactive: 'Inactive',
-  onLeave: 'On Leave',
-  available: 'Available',
-  fullyBooked: 'Fully Booked',
   availableAfter: 'Available after {time}',
   
   // Leave management
