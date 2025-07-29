@@ -571,8 +571,15 @@ export class OptimizedAssignmentService {
 
   static async fetchPublishedAssignmentsByDate(date: string): Promise<OptimizedAssignmentData[]> {
     try {
-      console.log(`[OptimizedAssignmentService] Fetching published assignments for date: ${date}`);
+      console.log(`[OptimizedAssignmentService] 🚀 STARTING fetch for date: ${date}`);
+      console.log(`[OptimizedAssignmentService] 📋 Query parameters:`, {
+        date,
+        published: true,
+        table: 'assignments'
+      });
       
+      // Add timing for database query
+      const queryStart = Date.now();
       const { data, error } = await supabase
         .from('assignments')
         .select(`
@@ -594,26 +601,65 @@ export class OptimizedAssignmentService {
         .eq('assignment_date', date)
         .eq('published', true)
         .order('from_time', { ascending: true });
+      
+      const queryEnd = Date.now();
+      console.log(`[OptimizedAssignmentService] ⏱️ Database query took: ${queryEnd - queryStart}ms`);
 
       if (error) {
-        console.error('[OptimizedAssignmentService] Database error:', error);
+        console.error('[OptimizedAssignmentService] 💥 DATABASE ERROR:', {
+          error,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          date
+        });
         throw new Error(`Database error: ${error.message}`);
       }
 
-      if (!data) {
-        console.log('[OptimizedAssignmentService] No published assignments found for date');
+      console.log(`[OptimizedAssignmentService] 📊 RAW QUERY RESULT:`, {
+        data,
+        dataLength: data?.length || 0,
+        dataType: typeof data,
+        isArray: Array.isArray(data),
+        firstItem: data?.[0] || null
+      });
+
+      if (!data || data.length === 0) {
+        console.log(`[OptimizedAssignmentService] ⚠️ No published assignments found for date: ${date}`);
+        console.log(`[OptimizedAssignmentService] 🔍 Debug info:`, {
+          dataIsNull: data === null,
+          dataIsUndefined: data === undefined,
+          dataLength: data?.length,
+          queryDate: date
+        });
         return [];
       }
 
-      console.log(`[OptimizedAssignmentService] Found ${data.length} published assignments for date ${date}`);
+      console.log(`[OptimizedAssignmentService] ✅ Found ${data.length} published assignments for date ${date}`);
+      console.log(`[OptimizedAssignmentService] 📝 Assignment titles:`, data.map(a => a.title));
       
       // Enrich with employee and car data
+      const enrichStart = Date.now();
       const enrichedData = await this.enrichAssignmentData(data);
-      console.log('[OptimizedAssignmentService] Sample enriched data for date:', enrichedData[0]);
+      const enrichEnd = Date.now();
+      
+      console.log(`[OptimizedAssignmentService] ⏱️ Data enrichment took: ${enrichEnd - enrichStart}ms`);
+      console.log(`[OptimizedAssignmentService] 🎯 ENRICHED DATA RESULT:`, {
+        originalCount: data.length,
+        enrichedCount: enrichedData.length,
+        sampleEnriched: enrichedData[0] || null,
+        allEnrichedTitles: enrichedData.map(a => a.title)
+      });
 
       return enrichedData;
     } catch (error) {
-      console.error('[OptimizedAssignmentService] Error fetching published assignments by date:', error);
+      console.error('[OptimizedAssignmentService] 💥 CRITICAL ERROR in fetchPublishedAssignmentsByDate:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        date
+      });
       throw error;
     }
   }

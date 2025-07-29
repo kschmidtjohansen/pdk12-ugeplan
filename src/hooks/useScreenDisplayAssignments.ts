@@ -49,8 +49,11 @@ export const useScreenDisplayAssignments = (date: string) => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>({});
 
   const fetchAssignmentsByDate = useCallback(async (fetchDate: string) => {
+    console.log(`[useScreenDisplayAssignments] Starting fetch for date: ${fetchDate}`);
+    
     if (!fetchDate) {
       console.log('[useScreenDisplayAssignments] No date provided, skipping fetch');
       setAssignments([]);
@@ -62,25 +65,85 @@ export const useScreenDisplayAssignments = (date: string) => {
       setLoading(true);
       setError(null);
       
-      console.log(`[useScreenDisplayAssignments] Fetching published assignments for date: ${fetchDate}`);
+      console.log(`[useScreenDisplayAssignments] 🔍 FETCHING published assignments for date: ${fetchDate}`);
+      console.log(`[useScreenDisplayAssignments] 📅 Date format check: ${fetchDate} (length: ${fetchDate.length})`);
       
+      // Add network timing debug
+      const startTime = Date.now();
       const result = await OptimizedAssignmentService.fetchPublishedAssignmentsByDate(fetchDate);
-      console.log(`[useScreenDisplayAssignments] Raw database result:`, result);
-      console.log(`[useScreenDisplayAssignments] Result length: ${result.length}`);
+      const endTime = Date.now();
       
-      // Convert OptimizedAssignmentData to Assignment format
-      const convertedAssignments = result.map(convertToAssignment);
+      console.log(`[useScreenDisplayAssignments] 📊 NETWORK TIMING: ${endTime - startTime}ms`);
+      console.log(`[useScreenDisplayAssignments] 📦 RAW DATABASE RESULT:`, {
+        data: result,
+        length: result?.length || 0,
+        type: typeof result,
+        isArray: Array.isArray(result)
+      });
+      
+      // Enhanced conversion with error tracking
+      let convertedAssignments: Assignment[] = [];
+      const conversionErrors: any[] = [];
+      
+      if (result && Array.isArray(result)) {
+        console.log(`[useScreenDisplayAssignments] 🔄 Converting ${result.length} assignments...`);
+        
+        result.forEach((item, index) => {
+          try {
+            const converted = convertToAssignment(item);
+            convertedAssignments.push(converted);
+            console.log(`[useScreenDisplayAssignments] ✅ Converted assignment ${index + 1}:`, {
+              id: converted.id,
+              title: converted.title,
+              date: converted.date,
+              employees: converted.employees,
+              cars: converted.cars
+            });
+          } catch (conversionError) {
+            console.error(`[useScreenDisplayAssignments] ❌ Conversion error for item ${index}:`, conversionError, item);
+            conversionErrors.push({ index, error: conversionError, item });
+          }
+        });
+      } else {
+        console.warn(`[useScreenDisplayAssignments] ⚠️ Invalid result format:`, { result, type: typeof result });
+      }
 
-      console.log(`[useScreenDisplayAssignments] Successfully fetched ${convertedAssignments.length} assignments for date ${fetchDate}`);
-      console.log(`[useScreenDisplayAssignments] Sample assignment data:`, convertedAssignments[0]);
+      const debugData = {
+        fetchDate,
+        rawResultLength: result?.length || 0,
+        convertedLength: convertedAssignments.length,
+        conversionErrors: conversionErrors.length,
+        networkTime: endTime - startTime,
+        timestamp: new Date().toISOString()
+      };
+      
+      setDebugInfo(debugData);
+      
+      console.log(`[useScreenDisplayAssignments] 🎯 FINAL RESULT:`, {
+        ...debugData,
+        sampleAssignment: convertedAssignments[0] || null,
+        allAssignmentTitles: convertedAssignments.map(a => a.title)
+      });
       
       setAssignments(convertedAssignments);
+      
+      // Force a re-render check
+      setTimeout(() => {
+        console.log(`[useScreenDisplayAssignments] 🔄 POST-SET STATE CHECK: assignments.length = ${convertedAssignments.length}`);
+      }, 100);
+      
     } catch (err) {
-      console.error('[useScreenDisplayAssignments] Error fetching assignments:', err);
+      console.error('[useScreenDisplayAssignments] 💥 CRITICAL ERROR fetching assignments:', {
+        error: err,
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined,
+        fetchDate
+      });
       setError(err instanceof Error ? err : new Error('Failed to fetch assignments'));
       setAssignments([]);
     } finally {
       setLoading(false);
+      console.log(`[useScreenDisplayAssignments] ✋ Loading complete for date: ${fetchDate}`);
     }
   }, []);
 
@@ -98,6 +161,7 @@ export const useScreenDisplayAssignments = (date: string) => {
     assignments,
     loading,
     error,
-    refetch
+    refetch,
+    debugInfo
   };
 };

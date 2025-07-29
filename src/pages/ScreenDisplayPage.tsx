@@ -11,6 +11,7 @@ import { format, addDays, subDays, parseISO } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Assignment } from '@/types/assignment';
 import { Link } from 'react-router-dom';
+import { ScreenDisplayErrorBoundary } from '@/components/ScreenDisplay/ScreenDisplayErrorBoundary';
 
 const ScreenDisplayPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
@@ -39,13 +40,15 @@ const ScreenDisplayPage: React.FC = () => {
   
   // Use specialized hook for screen display to fetch assignments by date
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
-  const { assignments, loading, refetch } = useScreenDisplayAssignments(selectedDateStr);
+  const { assignments, loading, error, refetch, debugInfo } = useScreenDisplayAssignments(selectedDateStr);
   
-  console.log('[ScreenDisplay] Current date:', selectedDateStr);
-  console.log('[ScreenDisplay] Loading state:', loading);
-  
-  console.log('[ScreenDisplay] Hook returned assignments:', assignments.length);
-  console.log('[ScreenDisplay] Sample assignment:', assignments[0]);
+  console.log('[ScreenDisplay] 📅 Current date:', selectedDateStr);
+  console.log('[ScreenDisplay] ⏳ Loading state:', loading);
+  console.log('[ScreenDisplay] ❌ Error state:', error);
+  console.log('[ScreenDisplay] 🔍 Debug info:', debugInfo);
+  console.log('[ScreenDisplay] 📦 Hook returned assignments:', assignments.length);
+  console.log('[ScreenDisplay] 🎯 Sample assignment:', assignments[0]);
+  console.log('[ScreenDisplay] 📋 All assignment titles:', assignments.map(a => a.title));
 
   // Assignments are already filtered by date and published status from the hook
   const filteredAssignments = assignments;
@@ -180,6 +183,30 @@ const ScreenDisplayPage: React.FC = () => {
     }
   };
 
+  // Show error state if there's an error
+  if (error) {
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+        <Card className="border-2 border-destructive/20 bg-destructive/5 max-w-lg">
+          <CardContent className="p-6 text-center">
+            <div className="p-4 rounded-full bg-destructive/10 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <Calendar className="h-8 w-8 text-destructive" />
+            </div>
+            <h2 className="text-xl font-semibold text-destructive mb-2">Data Fetch Error</h2>
+            <p className="text-muted-foreground mb-4">{error.message}</p>
+            <div className="space-y-2 text-xs text-left bg-muted p-3 rounded">
+              <div><strong>Date:</strong> {selectedDateStr}</div>
+              <div><strong>Debug Info:</strong> {JSON.stringify(debugInfo, null, 2)}</div>
+            </div>
+            <Button onClick={refetch} className="mt-4">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // Show loading state while assignments are being fetched
   if (loading) {
     return (
@@ -187,13 +214,18 @@ const ScreenDisplayPage: React.FC = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-lg text-muted-foreground">{t('common.loading')}...</p>
+          <div className="mt-4 text-xs text-muted-foreground">
+            <div>Fetching data for: {selectedDateStr}</div>
+            {debugInfo.networkTime && <div>Network time: {debugInfo.networkTime}ms</div>}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
+    <ScreenDisplayErrorBoundary date={selectedDateStr} onRetry={refetch}>
+      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
       <div className="w-full px-6 py-4 space-y-6">
         {/* Enhanced Header with Glassmorphism */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 text-white shadow-2xl">
@@ -363,6 +395,7 @@ const ScreenDisplayPage: React.FC = () => {
         )}
       </div>
     </div>
+    </ScreenDisplayErrorBoundary>
   );
 };
 
