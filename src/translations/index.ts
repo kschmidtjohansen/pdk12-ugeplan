@@ -8,7 +8,7 @@ export const languageNames = {
   'da': 'Dansk'
 };
 
-// Export all translations
+// Export all translations - Force cache refresh
 const translations = {
   en,
   da,

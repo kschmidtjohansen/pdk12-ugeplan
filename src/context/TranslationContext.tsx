@@ -49,6 +49,12 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
         console.warn(`Translation called before initialization: ${key}`);
       }
       
+      // Debug: Log translation lookup for employee status keys
+      if (key.includes('employees.status') && process.env.NODE_ENV === 'development') {
+        console.log(`[Translation Debug] Looking up key: ${key} for language: ${currentLanguage}`);
+        console.log(`[Translation Debug] Available translations:`, translations[currentLanguage]);
+      }
+      
       // Use the imported translations object
       const translationSet = translations[currentLanguage];
       
