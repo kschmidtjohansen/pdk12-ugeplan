@@ -787,9 +787,10 @@ export class OptimizedAssignmentService {
 
       // If employees are provided, create employee assignments
       if (data.employees && data.employees.length > 0) {
-        const employeeAssignments = data.employees.map(employeeName => ({
+        console.log('[OptimizedAssignmentService] Creating employee assignments for employees:', data.employees);
+        const employeeAssignments = data.employees.map(employeeId => ({
           assignment_id: assignmentData.id,
-          user_id: employeeName // Note: This should ideally be user ID, but keeping consistent with current usage
+          user_id: employeeId // Now using actual employee IDs (UUIDs)
         }));
 
         const { error: empError } = await supabase
@@ -798,7 +799,7 @@ export class OptimizedAssignmentService {
 
         if (empError) {
           console.error('[OptimizedAssignmentService] Error creating employee assignments:', empError);
-          // Continue without throwing to avoid leaving orphaned assignment
+          throw new Error(`Failed to create employee assignments: ${empError.message}`);
         }
       }
 

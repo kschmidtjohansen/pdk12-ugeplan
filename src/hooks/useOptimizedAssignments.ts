@@ -24,8 +24,8 @@ interface UseOptimizedAssignmentsResult {
 
 // Helper function to convert OptimizedAssignmentData to Assignment
 const convertToAssignment = (data: OptimizedAssignmentData): Assignment => {
-  // Convert assignment_employees to employee names array
-  const employees = data.assignment_employees?.map(emp => emp.profiles.name).filter(Boolean) || [];
+  // Convert assignment_employees to employee IDs array
+  const employees = data.assignment_employees?.map(emp => emp.user_id).filter(Boolean) || [];
   
   // Handle car data - support both legacy car_id and new car_ids array
   let cars: string[] = [];
@@ -174,7 +174,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         responsible_user_id: data.responsibleUserId || null,
         car_id: (typeof data.car === 'string') ? data.car : null,
         car_ids: data.cars || null,
-        employees: data.employees || []
+        employees: data.employees || [] // These are now employee IDs instead of names
       };
 
       console.log('[useOptimizedAssignments] Creating assignment with data:', serviceData);

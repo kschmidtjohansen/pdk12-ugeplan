@@ -35,7 +35,7 @@ interface AssignmentFormFieldsProps {
   setSelectedCarId: (value: string) => void;
   selectedResponsibleUserId: string;
   setSelectedResponsibleUserId: (value: string) => void;
-  selectedEmployees: string[];
+  selectedEmployees: string[]; // Now stores employee IDs instead of names
   setSelectedEmployees: (employees: string[]) => void;
   cars: Car[];
   employees: Employee[];
@@ -135,21 +135,21 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     setSelectedCarId(normalizedCarId);
   };
 
-  // FIXED: Enhanced employee selection with validation
-  const handleEmployeeToggle = (employeeName: string) => {
-    console.log('[AssignmentFormFields] Employee toggled:', employeeName);
+  // FIXED: Enhanced employee selection with validation - now uses employee IDs
+  const handleEmployeeToggle = (employeeId: string) => {
+    console.log('[AssignmentFormFields] Employee toggled:', employeeId);
     console.log('[AssignmentFormFields] Current employees:', selectedEmployees);
     
-    if (!employeeName || employeeName.trim() === '') {
-      console.warn('[AssignmentFormFields] Invalid employee name provided');
+    if (!employeeId || employeeId.trim() === '') {
+      console.warn('[AssignmentFormFields] Invalid employee ID provided');
       return;
     }
     
     let newEmployees;
-    if (selectedEmployees.includes(employeeName)) {
-      newEmployees = selectedEmployees.filter(name => name !== employeeName);
+    if (selectedEmployees.includes(employeeId)) {
+      newEmployees = selectedEmployees.filter(id => id !== employeeId);
     } else {
-      newEmployees = [...selectedEmployees, employeeName];
+      newEmployees = [...selectedEmployees, employeeId];
     }
     
     console.log('[AssignmentFormFields] New employees:', newEmployees);

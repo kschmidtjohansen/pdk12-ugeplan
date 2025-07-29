@@ -20,7 +20,7 @@ import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 
 interface EmployeeSelectorProps {
   employees: Employee[];
-  selectedEmployees: string[];
+  selectedEmployees: string[]; // Now stores employee IDs instead of names
   onToggle: (employeeId: string) => void;
   vacations: Vacation[];
   currentDate: string;
@@ -66,20 +66,22 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   useEffect(() => {
     const employeesToRemove: string[] = [];
     
-    selectedEmployees.forEach(employeeName => {
-      const employee = employees.find(emp => emp.name === employeeName);
+    selectedEmployees.forEach(employeeId => {
+      const employee = employees.find(emp => emp.id === employeeId);
       if (employee && shouldRemoveEmployeeFromAssignment(employee, currentDate, vacations)) {
-        employeesToRemove.push(employeeName);
+        employeesToRemove.push(employeeId);
       }
     });
 
     if (employeesToRemove.length > 0) {
       console.log('[EmployeeSelector] Auto-removing unavailable employees:', employeesToRemove);
-      setAutoRemovedEmployees(employeesToRemove);
+      setAutoRemovedEmployees(employeesToRemove.map(id => 
+        employees.find(emp => emp.id === id)?.name || id
+      ));
       
       // Remove the unavailable employees
-      employeesToRemove.forEach(employeeName => {
-        onToggle(employeeName);
+      employeesToRemove.forEach(employeeId => {
+        onToggle(employeeId);
       });
     }
   }, [employees, vacations, currentDate, selectedEmployees, onToggle]);
@@ -89,7 +91,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       return t('planner.selectEmployees');
     }
     if (selectedEmployees.length === 1) {
-      return selectedEmployees[0];
+      const employee = employees.find(emp => emp.id === selectedEmployees[0]);
+      return employee?.name || selectedEmployees[0];
     }
     // Updated to use the new translation key
     return `${selectedEmployees.length} ${t('employees.selected')}`;
@@ -130,7 +133,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-50 bg-white border shadow-md">
           {filteredEmployees.map(employee => {
-            const isSelected = selectedEmployees.includes(employee.name);
+            const isSelected = selectedEmployees.includes(employee.id);
             
             // Get detailed vacation status
             const vacationStatus = getEmployeeVacationStatus(employee.id, dateForComparison, vacations);
@@ -158,13 +161,13 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 onSelect={(e) => {
                   e.preventDefault();
                   if (!isDisabled) {
-                    onToggle(employee.name);
+                    onToggle(employee.id);
                   }
                 }}
               >
                 <Checkbox
                   checked={isSelected}
-                  onChange={() => !isDisabled && onToggle(employee.name)}
+                  onChange={() => !isDisabled && onToggle(employee.id)}
                   disabled={isDisabled}
                   className="mr-2"
                 />
