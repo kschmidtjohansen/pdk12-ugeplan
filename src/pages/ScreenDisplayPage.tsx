@@ -6,7 +6,7 @@ import { useCars } from '@/hooks/car';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, Home, Calendar, Clock, MapPin, Users, Car } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, Calendar, Clock, MapPin, Users, Car, Bug, RefreshCw, Eye } from 'lucide-react';
 import { format, addDays, subDays, parseISO } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Assignment } from '@/types/assignment';
@@ -17,6 +17,8 @@ const ScreenDisplayPage: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
   const { cars } = useCars();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
+  const [testingDirectCall, setTestingDirectCall] = useState(false);
 
   // Parse date from URL parameters or default to today
   const getInitialDate = () => {
@@ -49,6 +51,23 @@ const ScreenDisplayPage: React.FC = () => {
   console.log('[ScreenDisplay] 📦 Hook returned assignments:', assignments.length);
   console.log('[ScreenDisplay] 🎯 Sample assignment:', assignments[0]);
   console.log('[ScreenDisplay] 📋 All assignment titles:', assignments.map(a => a.title));
+
+  // Direct service test function
+  const testDirectServiceCall = async () => {
+    setTestingDirectCall(true);
+    try {
+      const { OptimizedAssignmentService } = await import('@/services/optimizedAssignmentService');
+      console.log('[DIRECT TEST] Starting direct service call...');
+      const result = await OptimizedAssignmentService.fetchPublishedAssignmentsByDate(selectedDateStr);
+      console.log('[DIRECT TEST] Direct service result:', result);
+      alert(`Direct service call returned ${result?.length || 0} assignments`);
+    } catch (error) {
+      console.error('[DIRECT TEST] Direct service call failed:', error);
+      alert(`Direct service call failed: ${error.message}`);
+    } finally {
+      setTestingDirectCall(false);
+    }
+  };
 
   // Assignments are already filtered by date and published status from the hook
   const filteredAssignments = assignments;
@@ -252,6 +271,15 @@ const ScreenDisplayPage: React.FC = () => {
             
             <div className="flex items-center gap-2">
               <Button 
+                onClick={() => setShowDebugPanel(!showDebugPanel)} 
+                variant="outline" 
+                size="sm" 
+                className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+                title="Toggle Debug Panel"
+              >
+                <Bug className="h-4 w-4" />
+              </Button>
+              <Button 
                 onClick={handlePreviousDay} 
                 variant="outline" 
                 size="sm" 
@@ -278,6 +306,90 @@ const ScreenDisplayPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Visual Debug Panel */}
+        {showDebugPanel && (
+          <Card className="border-2 border-yellow-500/50 bg-yellow-50/50">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Bug className="h-5 w-5 text-yellow-600" />
+                <h3 className="font-bold text-yellow-800">Live Debug Panel</h3>
+                <Badge variant="outline" className="text-yellow-700 border-yellow-500">
+                  {new Date().toLocaleTimeString()}
+                </Badge>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-800">Basic Info</h4>
+                  <div className="bg-white p-3 rounded border">
+                    <div><strong>Date:</strong> {selectedDateStr}</div>
+                    <div><strong>Loading:</strong> {loading ? '🔄 YES' : '✅ NO'}</div>
+                    <div><strong>Error:</strong> {error ? '❌ YES' : '✅ NO'}</div>
+                    <div><strong>Hook Result Count:</strong> {assignments.length}</div>
+                    <div><strong>Final Display Count:</strong> {todayAssignments.length}</div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-800">Network & Timing</h4>
+                  <div className="bg-white p-3 rounded border">
+                    <div><strong>Network Time:</strong> {debugInfo.networkTime || 'N/A'}ms</div>
+                    <div><strong>Raw Result Length:</strong> {debugInfo.rawResultLength || 'N/A'}</div>
+                    <div><strong>Converted Length:</strong> {debugInfo.convertedLength || 'N/A'}</div>
+                    <div><strong>Conversion Errors:</strong> {debugInfo.conversionErrors || 0}</div>
+                    <div><strong>Last Fetch:</strong> {debugInfo.timestamp ? new Date(debugInfo.timestamp).toLocaleTimeString() : 'N/A'}</div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-800">Data Sample</h4>
+                  <div className="bg-white p-3 rounded border text-xs">
+                    {assignments.length > 0 ? (
+                      <div>
+                        <div><strong>First Assignment:</strong></div>
+                        <div>ID: {assignments[0].id}</div>
+                        <div>Title: {assignments[0].title}</div>
+                        <div>Date: {assignments[0].date}</div>
+                        <div>Published: {assignments[0].published ? 'YES' : 'NO'}</div>
+                      </div>
+                    ) : (
+                      <div className="text-red-600">No assignments to display</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-4 flex gap-2">
+                <Button 
+                  onClick={refetch} 
+                  variant="outline" 
+                  size="sm"
+                  disabled={loading}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  Force Refetch
+                </Button>
+                <Button 
+                  onClick={testDirectServiceCall} 
+                  variant="outline" 
+                  size="sm"
+                  disabled={testingDirectCall}
+                >
+                  <Eye className={`h-4 w-4 mr-2 ${testingDirectCall ? 'animate-pulse' : ''}`} />
+                  Test Direct Service Call
+                </Button>
+              </div>
+              
+              {error && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded">
+                  <h5 className="font-semibold text-red-800 mb-2">Error Details:</h5>
+                  <pre className="text-xs text-red-700 whitespace-pre-wrap">{error.message}</pre>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Enhanced Assignments Display */}
         {todayAssignments.length === 0 ? (
