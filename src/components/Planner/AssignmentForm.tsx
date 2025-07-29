@@ -182,7 +182,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       setFormData({
         ...formData,
         responsibleUser: null,
-        responsibleUserId: '' // FIX: Also clear the responsibleUserId field
+        responsibleUserId: null // FIX: Use null instead of empty string
       });
     }
   };
@@ -208,8 +208,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       currentCar: formData.car
     });
 
-    // Normalize the car value - empty string for no car, or the car ID
-    const normalizedCar = carId === '' || !carId ? '' : carId;
+    // Normalize the car value - null for no car, or the car ID
+    const normalizedCar = carId === '' || !carId ? null : carId;
     const updatedData = {
       ...formData,
       car: normalizedCar

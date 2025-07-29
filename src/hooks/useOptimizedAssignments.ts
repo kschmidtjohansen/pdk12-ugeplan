@@ -4,6 +4,7 @@ import { OptimizedAssignmentService, OptimizedAssignmentData } from '@/services/
 import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
+import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
 
 export type FilterType = 'all' | 'published' | 'unpublished' | 'user';
 export type AssignmentFilter = FilterType; // Export for compatibility
@@ -167,7 +168,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         throw new Error(t('planner.validation.locationRequired'));
       }
 
-      // Convert Assignment data to service format
+      // Convert Assignment data to service format with UUID sanitization
       const serviceData = {
         title: data.title.trim(),
         description: data.description?.trim() || null,
@@ -177,8 +178,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         location: data.location.trim(),
         type: data.type || null,
         published: data.published || false,
-        responsible_user_id: data.responsibleUserId || null,
-        car_id: (typeof data.car === 'string') ? data.car : null,
+        responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
+        car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : null),
         car_ids: data.cars || null,
         employees: data.employees || [] // These are now employee IDs instead of names
       };
@@ -276,7 +277,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         assignment.id === id ? { ...assignment, ...data } : assignment
       ));
       
-      // Convert Assignment data to OptimizedAssignmentData format for service
+      // Convert Assignment data to OptimizedAssignmentData format for service with UUID sanitization
       const serviceData = {
         title: data.title?.trim(),
         description: data.description?.trim() || null,
@@ -285,9 +286,10 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         to_time: data.toTime,
         location: data.location?.trim(),
         published: data.published || false,
-        responsible_user_id: data.responsibleUserId || null,
-        car_id: (typeof data.car === 'string' && data.car) ? data.car : null,
-        car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : null
+        responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
+        car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : null),
+        car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : null,
+        employees: data.employees || [] // Include employee IDs for updates
       };
       
       console.log('[useOptimizedAssignments] Service data:', serviceData);

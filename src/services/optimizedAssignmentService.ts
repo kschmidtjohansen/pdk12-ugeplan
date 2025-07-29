@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Assignment } from '@/types/assignment';
+import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
 
 export interface OptimizedAssignmentData {
   id: string;
@@ -675,12 +676,21 @@ export class OptimizedAssignmentService {
     responsible_user_id?: string;
     car_id?: string;
     car_ids?: string[];
+    employees?: string[];
   }>): Promise<void> {
     try {
       console.log(`[OptimizedAssignmentService] Updating assignment: ${id}`);
       
-      // Remove type from updates to avoid type conflicts
-      const { type, ...safeUpdates } = updates as any;
+      // Remove type and employees from assignment updates (employees are handled separately)
+      const { type, employees, ...safeUpdates } = updates as any;
+      
+      // Sanitize UUID fields in updates
+      if (safeUpdates.responsible_user_id !== undefined) {
+        safeUpdates.responsible_user_id = sanitizeUUIDForDB(safeUpdates.responsible_user_id);
+      }
+      if (safeUpdates.car_id !== undefined) {
+        safeUpdates.car_id = sanitizeUUIDForDB(safeUpdates.car_id);
+      }
       
       const { error } = await supabase
         .from('assignments')
@@ -693,6 +703,39 @@ export class OptimizedAssignmentService {
       if (error) {
         console.error('[OptimizedAssignmentService] Error updating assignment:', error);
         throw new Error(`Failed to update assignment: ${error.message}`);
+      }
+
+      // Handle employee updates if provided
+      if (employees !== undefined) {
+        console.log('[OptimizedAssignmentService] Updating employee assignments:', employees);
+        
+        // First, delete existing employee assignments
+        const { error: deleteError } = await supabase
+          .from('assignments_employees')
+          .delete()
+          .eq('assignment_id', id);
+          
+        if (deleteError) {
+          console.error('[OptimizedAssignmentService] Error deleting existing employee assignments:', deleteError);
+          throw new Error(`Failed to update employee assignments: ${deleteError.message}`);
+        }
+        
+        // Then, insert new employee assignments if any
+        if (employees.length > 0) {
+          const employeeAssignments = employees.map(employeeId => ({
+            assignment_id: id,
+            user_id: employeeId
+          }));
+
+          const { error: insertError } = await supabase
+            .from('assignments_employees')
+            .insert(employeeAssignments);
+
+          if (insertError) {
+            console.error('[OptimizedAssignmentService] Error inserting new employee assignments:', insertError);
+            throw new Error(`Failed to update employee assignments: ${insertError.message}`);
+          }
+        }
       }
 
       // Clear cache to ensure fresh data
@@ -755,7 +798,7 @@ export class OptimizedAssignmentService {
     try {
       console.log('[OptimizedAssignmentService] Creating assignment with data:', data);
       
-      // Create the main assignment record
+      // Create the main assignment record with UUID sanitization
       const insertData: any = {
         title: data.title,
         description: data.description,
@@ -764,8 +807,8 @@ export class OptimizedAssignmentService {
         to_time: data.to_time,
         location: data.location,
         published: data.published || false,
-        responsible_user_id: data.responsible_user_id,
-        car_id: data.car_id,
+        responsible_user_id: sanitizeUUIDForDB(data.responsible_user_id),
+        car_id: sanitizeUUIDForDB(data.car_id),
         car_ids: data.car_ids
       };
       

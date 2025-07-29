@@ -41,3 +41,13 @@ export const safeUUID = (uuid: string | null | undefined): string | null => {
   }
   return isValidUUID(uuid) ? uuid : null;
 };
+
+/**
+ * Sanitize UUID field for database operations - converts empty strings to null
+ */
+export const sanitizeUUIDForDB = (uuid: string | null | undefined): string | null => {
+  if (!uuid || uuid.trim() === '' || uuid === 'undefined' || uuid === 'null') {
+    return null;
+  }
+  return isValidUUID(uuid) ? uuid : null;
+};
