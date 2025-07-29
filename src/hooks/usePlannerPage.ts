@@ -2,8 +2,7 @@ import React, { useState, useCallback } from 'react';
 // NOTICE: This file (usePlannerPage.ts) is 201 lines long and should be refactored into smaller hooks.
 import { format } from 'date-fns';
 import { Assignment } from '../types/assignment';
-import { useAssignmentDataOptimized } from './assignment/useAssignmentDataOptimized';
-import { useAssignmentActions } from './assignment/useAssignmentActions';
+import { useOptimizedAssignments } from './useOptimizedAssignments';
 import { 
   getWeekDates, 
   getCurrentWeekInfo, 
@@ -32,21 +31,18 @@ export const usePlannerPage = () => {
   
   console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - User: ${user?.name} (${user?.role}), Filter: ${plannerFilter}`);
   
-  // CRITICAL FIX: Use the optimized hook that properly fetches responsible user data
+  // Use the unified optimized assignments hook for all operations
   const { 
     assignments, 
     loading,
     error,
-    fetchAssignments
-  } = useAssignmentDataOptimized();
-
-  const {
+    operationStates,
     createAssignment,
     updateAssignment,
-    deleteAssignment: deleteAssignmentAction,
-    publishAssignment: publishAssignmentAction,
-    publishAssignmentsByDate: publishAssignmentsByDateAction
-  } = useAssignmentActions(fetchAssignments, setIsDialogOpen);
+    deleteAssignment,
+    publishAssignment,
+    publishAssignmentsByDate
+  } = useOptimizedAssignments('all');
 
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   
@@ -109,7 +105,7 @@ export const usePlannerPage = () => {
     assignments,
     loading,
     error,
-    operationStates: {}, // Simplified for now
+    operationStates,
     isDialogOpen,
     setIsDialogOpen,
     currentAssignment,
@@ -172,16 +168,16 @@ export const usePlannerPage = () => {
       }
     },
     handlePublishDay: async (date: string) => {
-      await publishAssignmentsByDateAction(date);
+      await publishAssignmentsByDate(date);
     },
     handlePublishAllUnpublished: async () => {
-      await publishAssignmentsByDateAction(getFreshToday());
+      await publishAssignmentsByDate(getFreshToday());
     },
     deleteAssignment: async (id: string) => {
-      await deleteAssignmentAction(id);
+      await deleteAssignment(id);
     },
     publishAssignment: async (id: string) => {
-      await publishAssignmentAction(id);
+      await publishAssignment(id);
     },
     handleCopyAssignment: (assignment: Assignment) => {
       setCurrentAssignment(null);
