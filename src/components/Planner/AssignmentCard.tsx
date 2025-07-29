@@ -134,13 +134,13 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const getOperationText = (state: 'publishing' | 'deleting' | 'updating') => {
     switch (state) {
       case 'publishing':
-        return (t('common.publishing') || 'Publicerer') + '...';
+        return t('planner.operations.publishing') + '...';
       case 'deleting':
-        return (t('common.deleting') || 'Sletter') + '...';
+        return t('planner.operations.deleting') + '...';
       case 'updating':
-        return (t('common.updating') || 'Opdaterer') + '...';
+        return t('planner.operations.updating') + '...';
       default:
-        return (t('common.processing') || 'Behandler') + '...';
+        return t('planner.operations.processing') + '...';
     }
   };
 
@@ -150,7 +150,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <div className="flex items-center gap-2 flex-1">
           <div className="flex flex-col flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-medium text-lg">{assignment.title || (t('planner.titleLabel') || 'Titel')}</h3>
+              <h3 className="font-medium text-lg">{assignment.title || t('planner.titleLabel')}</h3>
               {operationState && (
                 <span className="text-xs text-blue-600 font-medium animate-pulse">
                   {getOperationText(operationState)}
@@ -165,7 +165,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
               <div className="flex items-center gap-1 mt-1">
                 <UserCheck className="h-4 w-4 text-blue-600" />
                 <span className="text-sm text-gray-800 font-medium">
-                  {t('planner.responsibleUser') || 'Sagsansvarlig'}: {responsibleUserInfo.name}
+                  {t('planner.responsibleUser')}: {responsibleUserInfo.name}
                 </span>
               </div>
             )}

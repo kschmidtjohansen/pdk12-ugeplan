@@ -47,7 +47,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   // Enhanced user display for the new structure
   const getSelectedUserDisplay = () => {
     if (!selectedUserId || selectedUserId === '') {
-      return t('planner.selectResponsibleUser') || 'Vælg sagsansvarlig';
+      return t('planner.selectResponsibleUser');
     }
     const user = eligibleUsers.find(user => user.id === selectedUserId);
     if (user) {
@@ -61,7 +61,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
         console.warn(`[ResponsibleUserSelector] Fallback: Found user ${fallbackUser.name} but role is ${fallbackUser.role}`);
         return `${fallbackUser.name} (${fallbackUser.role})`;
       }
-      return t('planner.selectResponsibleUser') || 'Vælg sagsansvarlig';
+      return t('planner.selectResponsibleUser');
     }
   };
   const handleUserSelect = (userId: string) => {
@@ -96,7 +96,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   const stats = getDetailedStats();
   return <div className="space-y-2">
       <Label className="text-sm font-medium text-foreground">
-        {t('planner.responsibleUser') || 'Sagsansvarlig'}
+        {t('planner.responsibleUser')}
       </Label>
       
       <DropdownMenu>
@@ -114,14 +114,14 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
             <div className="flex items-center justify-between w-full space-x-2">
               <div className="flex items-center gap-2">
                 <UserCheck className="h-4 w-4 text-gray-400" />
-                <span>{t('planner.noResponsibleUser') || 'Ingen sagsansvarlig'}</span>
+                <span>{t('planner.noResponsibleUser')}</span>
               </div>
             </div>
           </DropdownMenuItem>
           
           {eligibleUsers.length === 0 ? <DropdownMenuItem disabled className="p-2">
               <div className="text-gray-500 text-sm">
-                <div>{t('employees.noResponsibleUsersFound') || 'Ingen sagsansvarlige fundet'}</div>
+                <div>{t('employees.noResponsibleUsersFound')}</div>
                 {process.env.NODE_ENV === 'development' && <div className="mt-1 text-xs">
                     Debug: {employees.length} total users loaded
                     <br />Expected 7 eligible users (3 admin + 4 skadeledere)

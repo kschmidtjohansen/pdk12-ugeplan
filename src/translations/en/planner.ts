@@ -179,7 +179,29 @@ const planner = {
   selectDate: 'Select date',
   previousDay: 'Previous day',
   nextDay: 'Next day',
-  previousDays: 'Previous days'
+  previousDays: 'Previous days',
+  
+  // Validation messages
+  validation: {
+    titleRequired: 'Title is required',
+    locationRequired: 'Location is required',
+    dateRequired: 'Date is required',
+    fromTimeRequired: 'Start time is required',
+    toTimeRequired: 'End time is required',
+    timeOrderRequired: 'Start time must be before end time'
+  },
+  
+  // Operation status messages
+  operations: {
+    creating: 'Creating',
+    updating: 'Updating',
+    deleting: 'Deleting',
+    publishing: 'Publishing',
+    saving: 'Saving',
+    processing: 'Processing',
+    success: 'Success',
+    failed: 'Failed'
+  }
 };
 
 export default planner;

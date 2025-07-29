@@ -100,6 +100,9 @@ const employees = {
   administrator: 'Administrator',
   skadeleder: 'Damage Leader',
   servicemedarbejder: 'Service Employee',
+  
+  // Responsible users
+  noResponsibleUsersFound: 'No responsible users found',
 };
 
 export default employees;

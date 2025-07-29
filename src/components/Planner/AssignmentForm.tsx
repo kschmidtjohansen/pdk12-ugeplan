@@ -7,6 +7,7 @@ import { Vacation } from '@/types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { Send, Trash2, Edit3 } from 'lucide-react';
 import { format } from 'date-fns';
 import AssignmentFormFields from './AssignmentFormFields';
@@ -38,13 +39,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   selectedDay,
   onPublishDay
 }) => {
-  const {
-    t
-  } = useTranslation();
-  const {
-    canEdit,
-    canPublishTasks
-  } = usePermissions();
+  const { t } = useTranslation();
+  const { canEdit, canPublishTasks } = usePermissions();
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     handleSubmit,
@@ -62,37 +59,44 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     console.log('[AssignmentForm] === FORM SUBMISSION DEBUG ===');
     console.log('[AssignmentForm] Form data at submission:', formData);
 
-    // Enhanced validation with specific error messages
+    // Enhanced validation with translated error messages
     const validationErrors: string[] = [];
     
     if (!formData.title?.trim()) {
-      validationErrors.push('Title is required');
+      validationErrors.push(t('planner.validation.titleRequired'));
     }
     
     if (!formData.location?.trim()) {
-      validationErrors.push('Location is required');
+      validationErrors.push(t('planner.validation.locationRequired'));
     }
     
     if (!formData.date) {
-      validationErrors.push('Date is required');
+      validationErrors.push(t('planner.validation.dateRequired'));
     }
     
     if (!formData.fromTime) {
-      validationErrors.push('Start time is required');
+      validationErrors.push(t('planner.validation.fromTimeRequired'));
     }
     
     if (!formData.toTime) {
-      validationErrors.push('End time is required');
+      validationErrors.push(t('planner.validation.toTimeRequired'));
     }
     
     // Validate time logic
     if (formData.fromTime && formData.toTime && formData.fromTime >= formData.toTime) {
-      validationErrors.push('Start time must be before end time');
+      validationErrors.push(t('planner.validation.timeOrderRequired'));
     }
     
     if (validationErrors.length > 0) {
       console.error('[AssignmentForm] Validation failed:', validationErrors);
-      // TODO: Show validation errors to user via toast
+      // Show validation errors to user via toast
+      validationErrors.forEach(error => {
+        toast({
+          title: t('common.error'),
+          description: error,
+          variant: 'destructive'
+        });
+      });
       return;
     }
 
@@ -292,14 +296,44 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
         <Button type="submit" disabled={isSubmitting} className="flex-1">
           <Edit3 className="mr-2 h-4 w-4" />
-          {isSubmitting ? t('common.saving') : currentAssignment ? t('common.update') : t('common.create')}
+          {isSubmitting ? t('planner.operations.saving') : currentAssignment ? t('common.update') : t('common.create')}
         </Button>
 
-        {currentAssignment && canEdit}
+        {currentAssignment && canEdit && (
+          <Button 
+            type="button" 
+            variant="destructive" 
+            onClick={handleDeleteClick}
+            className="flex-none"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            {t('common.delete')}
+          </Button>
+        )}
 
-        {canPublishAssignment}
+        {canPublishAssignment && (
+          <Button 
+            type="button" 
+            variant="secondary" 
+            onClick={handlePublishClick}
+            className="flex-none"
+          >
+            <Send className="mr-2 h-4 w-4" />
+            {t('planner.publish')}
+          </Button>
+        )}
 
-        {canPublishTasks && selectedDay}
+        {canPublishTasks && selectedDay && (
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handlePublishDayClick}
+            className="flex-none"
+          >
+            <Send className="mr-2 h-4 w-4" />
+            {t('planner.publishDayTasks')}
+          </Button>
+        )}
       </div>
     </form>;
 };

@@ -102,6 +102,9 @@ const employees = {
   administrator: 'Administrator',
   skadeleder: 'Skadeleder',
   servicemedarbejder: 'Servicemedarbejder',
+  
+  // Responsible users
+  noResponsibleUsersFound: 'Ingen sagsansvarlige fundet',
 };
 
 export default employees;

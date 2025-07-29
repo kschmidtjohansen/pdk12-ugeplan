@@ -180,7 +180,29 @@ const planner = {
   selectDate: 'Vælg dato',
   previousDay: 'Forrige dag',
   nextDay: 'Næste dag',
-  previousDays: 'Forrige dage'
+  previousDays: 'Forrige dage',
+  
+  // Validation messages
+  validation: {
+    titleRequired: 'Sagsnummer er påkrævet',
+    locationRequired: 'Adresse er påkrævet',
+    dateRequired: 'Dato er påkrævet',
+    fromTimeRequired: 'Start tid er påkrævet',
+    toTimeRequired: 'Slut tid er påkrævet',
+    timeOrderRequired: 'Start tid skal være før slut tid'
+  },
+  
+  // Operation status messages
+  operations: {
+    creating: 'Opretter',
+    updating: 'Opdaterer',
+    deleting: 'Sletter',
+    publishing: 'Publicerer',
+    saving: 'Gemmer',
+    processing: 'Behandler',
+    success: 'Succes',
+    failed: 'Fejlede'
+  }
 };
 
 export default planner;
