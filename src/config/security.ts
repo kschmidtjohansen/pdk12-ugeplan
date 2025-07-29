@@ -65,19 +65,23 @@ export const getSecurityEnvironment = () => {
     isProduction,
     isSecureContext: window.location.protocol === 'https:' || window.location.hostname === 'localhost',
     
-    // Demo credentials (should be moved to environment variables in production)
+    // Demo credentials - securely managed via environment variables
     getDemoCredentials: () => {
-      if (isDevelopment) {
+      // Always prefer environment variables for security
+      const demoEmail = process.env.VITE_DEMO_EMAIL || 'test@polygongroup.com';
+      const demoPassword = process.env.VITE_DEMO_PASSWORD;
+      
+      // Fallback for development only (remove in production)
+      if (isDevelopment && !demoPassword) {
         return {
-          email: 'test@polygongroup.com',
-          password: 'TesterbrugerPlan123' // TODO: Move to environment variable
+          email: demoEmail,
+          password: 'TesterbrugerPlan123' // Development fallback only
         };
       }
       
-      // In production, credentials should come from secure environment
       return {
-        email: process.env.VITE_DEMO_EMAIL || 'test@polygongroup.com',
-        password: process.env.VITE_DEMO_PASSWORD // Should be set in production environment
+        email: demoEmail,
+        password: demoPassword
       };
     }
   };
