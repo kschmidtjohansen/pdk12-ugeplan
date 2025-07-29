@@ -193,8 +193,16 @@ const PlannerPage: React.FC = () => {
   }, [publishAssignmentAction]);
 
   const handleShowOnScreen = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const screenUrl = `/screen-display?date=${today}`;
+    // Find the first day with assignments in the selected week, or use week start date
+    let dateToShow = weekDates.start.toISOString().split('T')[0];
+    
+    if (weekAssignments.length > 0) {
+      // Use the first assignment's date in the week
+      const sortedDates = [...new Set(weekAssignments.map(a => a.date))].sort();
+      dateToShow = sortedDates[0];
+    }
+    
+    const screenUrl = `/screen-display?date=${dateToShow}`;
     window.open(screenUrl, '_blank', 'fullscreen=yes');
   };
 
