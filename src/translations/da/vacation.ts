@@ -48,6 +48,7 @@ const vacation = {
   requestApprovedMsg: "{name}s ferieanmodning er blevet godkendt",
   requestRejected: "Anmodning afvist",
   requestRejectedMsg: "{name}s ferieanmodning er blevet afvist",
+  offFrom: "Fri fra {time}",
   vacationApproved: "Ferie godkendt",
   vacationStatusChanged: "Feriestatus ændret",
   yourRequestApproved: "Din ferieanmodning er blevet godkendt",
@@ -130,7 +131,6 @@ const vacation = {
   partialDayRejected: "Din anmodning om delvis fridag fra {startTime} til {endTime} er blevet afvist",
   availableHours: "Tilgængelig {startTime} - {endTime}",
   offHours: "Fri {startTime} - {endTime}",
-  offFrom: "Fri fra {time}",
   returnsOn: "Ferie/fri til:",
 };
 

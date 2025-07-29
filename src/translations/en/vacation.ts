@@ -41,6 +41,7 @@ const vacation = {
   requestApprovedMsg: "Vacation request for {name} has been approved",
   requestRejected: "Request Rejected",
   requestRejectedMsg: "Vacation request for {name} has been rejected",
+  offFrom: "Off from {time}",
   vacationStatusChanged: "Vacation Status Changed",
   vacationApproved: "Vacation Approved",
   yourRequestApproved: "Your vacation request has been approved",
@@ -108,7 +109,6 @@ const vacation = {
   partialDayRejected: "Your partial day request from {startTime} to {endTime} has been rejected",
   availableHours: "Available {startTime} - {endTime}",
   offHours: "Off {startTime} - {endTime}",
-  offFrom: "Off from {time}",
   returnsOn: "Returns on:",
   
   // Nested status keys for better organization
