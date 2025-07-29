@@ -53,7 +53,7 @@ export const useEmployeeStatus = ({
     case 'fullyBooked':
       return {
         status: 'fullyBooked',
-        label: t('employees.status.unavailable'),
+        label: t('employees.status.fullyBooked'),
         color: 'bg-red-100 text-red-800 border-red-200',
         hasEndTimeAtSixteen: availabilityInfo.availableAt === "16:00"
       };
@@ -74,7 +74,7 @@ export const useEmployeeStatus = ({
     case 'onLeave':
       return {
         status: 'leave',
-        label: t('employees.status.unavailable'),
+        label: t('employees.status.onLeave'),
         color: 'bg-gray-100 text-gray-800 border-gray-200',
         hasEndTimeAtSixteen: false
       };

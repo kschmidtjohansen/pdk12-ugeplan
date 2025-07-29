@@ -22,6 +22,8 @@ const employees = {
   'status.onLeave': 'På orlov',
   'status.unknown': 'Ukendt',
   'status.fullyBooked': 'Fuldt booket',
+  'status.partiallyBooked': 'Delvis booket',
+  'status.partialVacation': 'Delvis ferie',
   
   // Actions
   addEmployee: 'Tilføj Medarbejder',

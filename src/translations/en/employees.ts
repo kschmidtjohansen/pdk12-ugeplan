@@ -21,6 +21,8 @@ const employees = {
   'status.unknown': 'Unknown',
   'status.fullyBooked': 'Fully Booked',
   'status.unavailable': 'Unavailable',
+  'status.partiallyBooked': 'Partially booked',
+  'status.partialVacation': 'Partial vacation',
   
   // Actions
   addEmployee: 'Add Employee',
