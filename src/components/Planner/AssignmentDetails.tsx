@@ -3,8 +3,9 @@ import { Badge } from '@/components/ui/badge';
 import { Clock, UserCheck, Users, Car } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
-import { Assignment } from '../../types/assignment';
+import { Assignment, getEmployeeNamesFromIds } from '../../types/assignment';
 import { Car as CarType } from '../../types/car';
+import { useEmployees } from '../../hooks/useEmployees';
 interface AssignmentDetailsProps {
   assignment: Assignment;
   cars: CarType[];
@@ -17,6 +18,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
 }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { employees } = useEmployees();
 
   // Enhanced car name resolution with comprehensive fallbacks
   const getCarNames = (assignment: Assignment): string[] => {
@@ -67,9 +69,9 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       };
     }
 
-    // Fallback to legacy employee names array
+    // Fallback to legacy employee IDs array - convert to names
     if (assignment.employees && Array.isArray(assignment.employees) && assignment.employees.length > 0) {
-      const names = assignment.employees.filter(employee => employee && typeof employee === 'string').map(employee => employee.trim()).filter(employee => employee.length > 0);
+      const names = getEmployeeNamesFromIds(assignment.employees, employees);
       
       return {
         names,
