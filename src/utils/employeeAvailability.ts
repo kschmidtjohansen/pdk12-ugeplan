@@ -1,4 +1,3 @@
-
 import { Employee } from '@/types/employee';
 import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { Vacation } from '@/types/vacation';
