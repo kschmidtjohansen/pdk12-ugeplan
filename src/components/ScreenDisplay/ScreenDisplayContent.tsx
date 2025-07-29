@@ -3,10 +3,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, MapPin, Users, Car } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
-import { ScreenDisplayAssignment } from '@/services/screenDisplayService';
+import { Assignment } from '@/types/assignment';
 import { format } from 'date-fns';
+
 interface ScreenDisplayContentProps {
-  assignments: ScreenDisplayAssignment[];
+  assignments: Assignment[];
   selectedDate: Date;
 }
 export const ScreenDisplayContent: React.FC<ScreenDisplayContentProps> = ({
@@ -19,7 +20,7 @@ export const ScreenDisplayContent: React.FC<ScreenDisplayContentProps> = ({
   const formatTime = (time: string): string => {
     return time.substring(0, 5);
   };
-  const getTimeStatus = (assignment: ScreenDisplayAssignment) => {
+  const getTimeStatus = (assignment: Assignment) => {
     const now = new Date();
     const currentTimeStr = format(now, 'HH:mm');
     const isToday = format(now, 'yyyy-MM-dd') === assignment.date;
@@ -106,7 +107,7 @@ export const ScreenDisplayContent: React.FC<ScreenDisplayContentProps> = ({
               </div>
 
               {/* Employees */}
-              {assignment.employees.length > 0 && <div className="flex items-start gap-2 text-sm">
+              {assignment.employees && assignment.employees.length > 0 && <div className="flex items-start gap-2 text-sm">
                   <Users className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                   <div className="space-y-1 flex-1">
                     {assignment.employees.map((employee, empIndex) => <div key={empIndex} className="text-muted-foreground">
@@ -116,7 +117,7 @@ export const ScreenDisplayContent: React.FC<ScreenDisplayContentProps> = ({
                 </div>}
 
               {/* Cars */}
-              {assignment.cars.length > 0 && <div className="flex items-start gap-2 text-sm">
+              {assignment.cars && assignment.cars.length > 0 && <div className="flex items-start gap-2 text-sm">
                   <Car className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                   <div className="space-y-1 flex-1">
                     {assignment.cars.map((car, carIndex) => <div key={carIndex} className="text-muted-foreground">
