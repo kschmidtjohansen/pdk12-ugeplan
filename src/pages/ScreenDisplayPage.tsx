@@ -24,10 +24,9 @@ const ScreenDisplayPage: React.FC = () => {
     return new Date();
   };
 
-  // Check if we should show all assignments (no date filter)
+  // Default to today's date if no date parameter is provided
   const shouldShowAllAssignments = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    return !urlParams.has('date');
+    return false; // Always filter by date, default to today
   };
 
   const [selectedDate, setSelectedDate] = useState(getInitialDate);
