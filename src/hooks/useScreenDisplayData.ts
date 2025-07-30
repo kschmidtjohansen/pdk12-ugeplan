@@ -16,19 +16,18 @@ export const useScreenDisplayData = (date: string): UseScreenDisplayDataResult =
   const [error, setError] = useState<Error | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!date) {
-      console.log('[useScreenDisplayData] No date provided, clearing assignments');
-      setAssignments([]);
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
       
-      console.log('[useScreenDisplayData] 🚀 FETCHING published assignments for date:', date);
-      const data = await OptimizedAssignmentService.fetchPublishedAssignmentsByDate(date);
+      let data;
+      if (!date) {
+        console.log('[useScreenDisplayData] 🚀 FETCHING ALL published assignments (no date filter)');
+        data = await OptimizedAssignmentService.fetchAllPublishedAssignments();
+      } else {
+        console.log('[useScreenDisplayData] 🚀 FETCHING published assignments for date:', date);
+        data = await OptimizedAssignmentService.fetchPublishedAssignmentsByDate(date);
+      }
       
       console.log('[useScreenDisplayData] 📋 RAW DATA from OptimizedAssignmentService:', {
         count: data.length,

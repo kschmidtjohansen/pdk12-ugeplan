@@ -193,7 +193,7 @@ const PlannerPage: React.FC = () => {
   }, [publishAssignmentAction]);
 
   const handleShowOnScreen = () => {
-    console.log('[PlannerPage] 🖥️ Show on Screen clicked!');
+    console.log('[PlannerPage] 🖥️ Show on Screen clicked - Opening ALL published assignments!');
     console.log('[PlannerPage] Week assignments:', {
       total: weekAssignments.length,
       published: weekAssignments.filter(a => a.published).length,
@@ -201,23 +201,9 @@ const PlannerPage: React.FC = () => {
       dates: [...new Set(weekAssignments.map(a => a.date))].sort()
     });
     
-    // Find the first day with PUBLISHED assignments in the selected week, or use week start date
-    let dateToShow = weekDates.start.toISOString().split('T')[0];
-    
-    // Filter to only published assignments for screen display
-    const publishedAssignments = weekAssignments.filter(a => a.published);
-    
-    if (publishedAssignments.length > 0) {
-      // Use the first published assignment's date in the week
-      const publishedDates = [...new Set(publishedAssignments.map(a => a.date))].sort();
-      dateToShow = publishedDates[0];
-      console.log('[PlannerPage] 📅 Using first published assignment date:', dateToShow);
-    } else {
-      console.log('[PlannerPage] ⚠️ No published assignments found, using week start date:', dateToShow);
-    }
-    
-    const screenUrl = `/screen-display?date=${dateToShow}`;
-    console.log('[PlannerPage] 🚀 Opening screen display:', screenUrl);
+    // Open screen display WITHOUT date filter to show ALL published assignments
+    const screenUrl = `/screen-display`;
+    console.log('[PlannerPage] 🚀 Opening screen display without date filter:', screenUrl);
     window.open(screenUrl, '_blank', 'fullscreen=yes');
   };
 

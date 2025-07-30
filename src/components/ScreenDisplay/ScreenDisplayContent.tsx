@@ -107,11 +107,11 @@ export const ScreenDisplayContent: React.FC<ScreenDisplayContentProps> = ({
               </div>
 
               {/* Employees */}
-              {assignment.employees && assignment.employees.length > 0 && <div className="flex items-start gap-2 text-sm">
+              {assignment.assignedEmployees && assignment.assignedEmployees.length > 0 && <div className="flex items-start gap-2 text-sm">
                   <Users className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                   <div className="space-y-1 flex-1">
-                    {assignment.employees.map((employee, empIndex) => <div key={empIndex} className="text-muted-foreground">
-                        {employee}
+                    {assignment.assignedEmployees.map((employee, empIndex) => <div key={empIndex} className="text-muted-foreground">
+                        {employee.name}
                       </div>)}
                   </div>
                 </div>}

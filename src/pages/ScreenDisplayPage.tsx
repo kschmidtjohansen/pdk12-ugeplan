@@ -24,10 +24,17 @@ const ScreenDisplayPage: React.FC = () => {
     return new Date();
   };
 
+  // Check if we should show all assignments (no date filter)
+  const shouldShowAllAssignments = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return !urlParams.has('date');
+  };
+
   const [selectedDate, setSelectedDate] = useState(getInitialDate);
+  const [showAllAssignments] = useState(shouldShowAllAssignments);
   
-  // Get formatted date string for API call
-  const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+  // Get formatted date string for API call - pass empty string if showing all
+  const selectedDateStr = showAllAssignments ? '' : format(selectedDate, 'yyyy-MM-dd');
   
   // Fetch assignments using the new simplified hook
   const { assignments, loading, error, refetch } = useScreenDisplayData(selectedDateStr);
@@ -115,12 +122,21 @@ const ScreenDisplayPage: React.FC = () => {
     <ScreenDisplayErrorBoundary date={selectedDateStr} onRetry={refetch}>
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
         <div className="w-full px-6 py-4 space-y-6">
-          <ScreenDisplayHeader
-            selectedDate={selectedDate}
-            onPreviousDay={handlePreviousDay}
-            onNextDay={handleNextDay}
-            onToday={handleToday}
-          />
+          {!showAllAssignments && (
+            <ScreenDisplayHeader
+              selectedDate={selectedDate}
+              onPreviousDay={handlePreviousDay}
+              onNextDay={handleNextDay}
+              onToday={handleToday}
+            />
+          )}
+          
+          {showAllAssignments && (
+            <div className="text-center py-4">
+              <h1 className="text-2xl font-bold text-foreground">All Published Assignments</h1>
+              <p className="text-muted-foreground">Showing all published assignments across all dates</p>
+            </div>
+          )}
           
           <ScreenDisplayContent
             assignments={assignments}
