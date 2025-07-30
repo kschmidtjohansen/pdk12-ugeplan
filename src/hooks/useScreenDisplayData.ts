@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { OptimizedAssignmentService } from '@/services/optimizedAssignmentService';
 import { Assignment } from '@/types/assignment';
+import { convertOptimizedAssignmentToAssignment } from '@/utils/assignmentDataConverter';
 
 interface UseScreenDisplayDataResult {
   assignments: Assignment[];
@@ -8,48 +9,6 @@ interface UseScreenDisplayDataResult {
   error: Error | null;
   refetch: () => Promise<void>;
 }
-
-// Helper function to convert OptimizedAssignmentData to Assignment format
-const convertToAssignment = (data: any): Assignment => {
-  console.log('[convertToAssignment] Converting data:', {
-    id: data.id,
-    title: data.title,
-    assignment_employees: data.assignment_employees,
-    assignment_cars: data.assignment_cars,
-    responsible_user: data.responsible_user
-  });
-
-  const assignment: Assignment = {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    date: data.assignment_date,
-    fromTime: data.from_time,
-    toTime: data.to_time,
-    location: data.location,
-    type: data.type,
-    published: data.published,
-    responsibleUserId: data.responsible_user_id,
-    // Fix: employees should be array of IDs, not names
-    employees: data.assignment_employees?.map((emp: any) => emp.user_id) || [],
-    assignedEmployees: data.assignment_employees?.map((emp: any) => ({
-      id: emp.user_id,
-      name: emp.profiles.name,
-      email: emp.profiles.email || ''
-    })) || [],
-    // Fix: cars should match planner format - array of names for display
-    cars: data.assignment_cars?.map((car: any) => car.name) || [],
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
-    responsibleUser: data.responsible_user ? {
-      id: data.responsible_user.id,
-      name: data.responsible_user.name
-    } : undefined
-  };
-
-  console.log('[convertToAssignment] Converted assignment:', assignment);
-  return assignment;
-};
 
 export const useScreenDisplayData = (date: string): UseScreenDisplayDataResult => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -77,8 +36,8 @@ export const useScreenDisplayData = (date: string): UseScreenDisplayDataResult =
         allTitles: data.map(a => a.title)
       });
       
-      // Convert to Assignment format
-      const convertedAssignments = data.map(convertToAssignment);
+      // Convert to Assignment format using shared converter
+      const convertedAssignments = data.map(convertOptimizedAssignmentToAssignment);
       console.log('[useScreenDisplayData] ✅ FINAL CONVERTED assignments:', {
         count: convertedAssignments.length,
         assignments: convertedAssignments
