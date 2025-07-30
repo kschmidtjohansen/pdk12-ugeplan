@@ -193,17 +193,8 @@ const PlannerPage: React.FC = () => {
   }, [publishAssignmentAction]);
 
   const handleShowOnScreen = () => {
-    console.log('[PlannerPage] 🖥️ Show on Screen clicked - Opening ALL published assignments!');
-    console.log('[PlannerPage] Week assignments:', {
-      total: weekAssignments.length,
-      published: weekAssignments.filter(a => a.published).length,
-      unpublished: weekAssignments.filter(a => !a.published).length,
-      dates: [...new Set(weekAssignments.map(a => a.date))].sort()
-    });
-    
-    // Open screen display WITHOUT date filter to show ALL published assignments
-    const screenUrl = `/screen-display`;
-    console.log('[PlannerPage] 🚀 Opening screen display without date filter:', screenUrl);
+    const today = new Date().toISOString().split('T')[0];
+    const screenUrl = `/screen-display?date=${today}`;
     window.open(screenUrl, '_blank', 'fullscreen=yes');
   };
 
