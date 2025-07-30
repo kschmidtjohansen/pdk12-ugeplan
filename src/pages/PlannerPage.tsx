@@ -194,7 +194,7 @@ const PlannerPage: React.FC = () => {
 
   const handleShowOnScreen = () => {
     const today = new Date().toISOString().split('T')[0];
-    const screenUrl = `/screen-display?date=${today}`;
+    const screenUrl = `/screen-display?date=${today}&t=${Date.now()}`;
     window.open(screenUrl, '_blank', 'fullscreen=yes');
   };
 

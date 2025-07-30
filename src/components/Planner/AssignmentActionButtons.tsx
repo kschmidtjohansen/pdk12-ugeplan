@@ -59,7 +59,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
     if (isLoading) return;
     try {
       console.log('[AssignmentActionButtons] Opening screen display for date:', assignment.date);
-      const screenUrl = `/screen-display?date=${assignment.date}`;
+      const screenUrl = `/screen-display?date=${assignment.date}&t=${Date.now()}`;
       window.open(screenUrl, '_blank', 'fullscreen=yes');
     } catch (error) {
       console.error('[AssignmentActionButtons] Error opening screen display:', error);

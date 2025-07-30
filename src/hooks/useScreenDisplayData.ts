@@ -20,11 +20,19 @@ export const useScreenDisplayData = (date: string): UseScreenDisplayDataResult =
       setLoading(true);
       setError(null);
       
+      const isNewWindow = window.opener !== null;
       console.log('[useScreenDisplayData] 🚀 FETCH START:', {
         date,
         isEmpty: !date,
+        isNewWindow,
         timestamp: new Date().toISOString()
       });
+      
+      // Force cache clearing for new window loads with date parameter
+      if (date && isNewWindow) {
+        console.log('[useScreenDisplayData] 🔄 NEW WINDOW DETECTED - Clearing cache for fresh data');
+        OptimizedAssignmentService.clearCache();
+      }
       
       let data;
       if (!date) {
@@ -37,6 +45,7 @@ export const useScreenDisplayData = (date: string): UseScreenDisplayDataResult =
       
       console.log('[useScreenDisplayData] 📋 RAW DATA from OptimizedAssignmentService:', {
         date,
+        isNewWindow,
         count: data.length,
         sampleData: data[0] || null,
         allTitles: data.map(a => a.title),
@@ -47,6 +56,7 @@ export const useScreenDisplayData = (date: string): UseScreenDisplayDataResult =
       const convertedAssignments = data.map(convertOptimizedAssignmentToAssignment);
       console.log('[useScreenDisplayData] ✅ FINAL CONVERTED assignments:', {
         date,
+        isNewWindow,
         count: convertedAssignments.length,
         assignments: convertedAssignments.map(a => ({ 
           id: a.id, 
@@ -61,6 +71,7 @@ export const useScreenDisplayData = (date: string): UseScreenDisplayDataResult =
     } catch (err) {
       console.error('[useScreenDisplayData] 💥 ERROR:', {
         date,
+        isNewWindow: window.opener !== null,
         error: err,
         message: err instanceof Error ? err.message : 'Unknown error'
       });
