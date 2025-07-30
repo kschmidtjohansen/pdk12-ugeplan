@@ -48,8 +48,8 @@ const planner = {
   week: 'Uge',
   
   // Status
-  published: 'Publiceret',
-  notPublished: 'Ikke Publiceret',
+  published: 'Aftalt',
+  notPublished: 'Ikke Aftalt',
   
   // Confirmation dialogs
   deleteConfirm: 'Slet Opgave',
@@ -110,8 +110,8 @@ const planner = {
   tableActions: 'Handlinger',
   
   // Filters and sorting
-  filterPublished: 'Publiceret',
-  filterUnpublished: 'Ikke publiceret',
+  filterPublished: 'Aftalt',
+  filterUnpublished: 'Ikke aftalt',
   sortByDate: 'Sortér efter dato',
   sortByTime: 'Sortér efter tid',
   
@@ -164,8 +164,8 @@ const planner = {
   
   // Assignment status
   assignmentStatus: 'Status',
-  assignmentPublishedStatus: 'Publiceret',
-  assignmentUnpublishedStatus: 'Ikke publiceret',
+  assignmentPublishedStatus: 'Aftalt',
+  assignmentUnpublishedStatus: 'Ikke aftalt',
   
   // Additional translations
   unknownEmployee: 'Ukendt medarbejder',
