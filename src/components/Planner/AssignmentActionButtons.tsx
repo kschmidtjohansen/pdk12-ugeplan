@@ -58,9 +58,23 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
   const handleShowOnScreen = () => {
     if (isLoading) return;
     try {
-      console.log('[AssignmentActionButtons] Opening screen display for date:', assignment.date);
-      const screenUrl = `/screen-display?date=${assignment.date}&t=${Date.now()}`;
-      window.open(screenUrl, '_blank', 'fullscreen=yes');
+      const timestamp = Date.now();
+      const url = `/screen-display?date=${assignment.date}&t=${timestamp}&source=button`;
+      
+      console.log('[AssignmentActionButtons] 🚀 Opening screen display:', {
+        assignment: assignment.title,
+        date: assignment.date,
+        url,
+        timestamp
+      });
+      
+      // Open window with specific features for better control
+      const newWindow = window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+      
+      // Focus the new window
+      if (newWindow) {
+        newWindow.focus();
+      }
     } catch (error) {
       console.error('[AssignmentActionButtons] Error opening screen display:', error);
     }

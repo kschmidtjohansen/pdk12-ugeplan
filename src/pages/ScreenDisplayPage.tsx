@@ -12,11 +12,15 @@ const ScreenDisplayPage: React.FC = () => {
   const getInitialDate = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const dateParam = urlParams.get('date');
+    const sourceParam = urlParams.get('source');
+    const isNewWindow = window.opener !== null;
     
     console.log('[ScreenDisplayPage] 🔍 URL PARSING:', {
       fullUrl: window.location.href,
       search: window.location.search,
       dateParam,
+      sourceParam,
+      isNewWindow,
       timestamp: new Date().toISOString()
     });
     
@@ -26,7 +30,9 @@ const ScreenDisplayPage: React.FC = () => {
         console.log('[ScreenDisplayPage] ✅ PARSED DATE:', {
           input: dateParam,
           output: parsedDate,
-          formatted: format(parsedDate, 'yyyy-MM-dd')
+          formatted: format(parsedDate, 'yyyy-MM-dd'),
+          sourceParam,
+          isNewWindow
         });
         return parsedDate;
       } catch (error) {
@@ -37,7 +43,8 @@ const ScreenDisplayPage: React.FC = () => {
     const today = new Date();
     console.log('[ScreenDisplayPage] 📅 USING DEFAULT (TODAY):', {
       date: today,
-      formatted: format(today, 'yyyy-MM-dd')
+      formatted: format(today, 'yyyy-MM-dd'),
+      isNewWindow
     });
     return today;
   };
@@ -71,7 +78,7 @@ const ScreenDisplayPage: React.FC = () => {
     return () => clearInterval(timer);
   }, [refetch]);
 
-  // Listen for URL parameter changes and handle initial load
+  // Listen for URL parameter changes and handle initial load with proper new window handling
   useEffect(() => {
     const handleUrlChange = () => {
       console.log('[ScreenDisplayPage] 🔄 URL CHANGED, refreshing date');
@@ -79,11 +86,23 @@ const ScreenDisplayPage: React.FC = () => {
       setSelectedDate(newDate);
     };
 
-    // Handle initial URL parsing on component mount
-    const initialDate = getInitialDate();
-    if (initialDate.getTime() !== selectedDate.getTime()) {
-      console.log('[ScreenDisplayPage] 🔄 INITIAL DATE UPDATE needed');
+    // Handle initial URL parsing on component mount with new window detection
+    const isNewWindow = window.opener !== null;
+    const urlParams = new URLSearchParams(window.location.search);
+    const sourceParam = urlParams.get('source');
+    
+    if (isNewWindow && sourceParam === 'button') {
+      console.log('[ScreenDisplayPage] 🆕 NEW WINDOW FROM BUTTON - Ensuring proper initialization');
+      // For new windows opened from button, ensure we have the correct date
+      const initialDate = getInitialDate();
       setSelectedDate(initialDate);
+    } else {
+      // Normal initialization
+      const initialDate = getInitialDate();
+      if (initialDate.getTime() !== selectedDate.getTime()) {
+        console.log('[ScreenDisplayPage] 🔄 INITIAL DATE UPDATE needed');
+        setSelectedDate(initialDate);
+      }
     }
 
     window.addEventListener('popstate', handleUrlChange);
