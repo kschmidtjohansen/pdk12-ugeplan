@@ -13,15 +13,33 @@ const ScreenDisplayPage: React.FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const dateParam = urlParams.get('date');
     
+    console.log('[ScreenDisplayPage] 🔍 URL PARSING:', {
+      fullUrl: window.location.href,
+      search: window.location.search,
+      dateParam,
+      timestamp: new Date().toISOString()
+    });
+    
     if (dateParam) {
       try {
-        return parseISO(dateParam);
+        const parsedDate = parseISO(dateParam);
+        console.log('[ScreenDisplayPage] ✅ PARSED DATE:', {
+          input: dateParam,
+          output: parsedDate,
+          formatted: format(parsedDate, 'yyyy-MM-dd')
+        });
+        return parsedDate;
       } catch (error) {
-        console.error('Error parsing date from URL:', dateParam, error);
+        console.error('[ScreenDisplayPage] ❌ Error parsing date from URL:', dateParam, error);
       }
     }
     
-    return new Date();
+    const today = new Date();
+    console.log('[ScreenDisplayPage] 📅 USING DEFAULT (TODAY):', {
+      date: today,
+      formatted: format(today, 'yyyy-MM-dd')
+    });
+    return today;
   };
 
   // Default to today's date if no date parameter is provided
@@ -35,6 +53,13 @@ const ScreenDisplayPage: React.FC = () => {
   // Get formatted date string for API call - pass empty string if showing all
   const selectedDateStr = showAllAssignments ? '' : format(selectedDate, 'yyyy-MM-dd');
   
+  console.log('[ScreenDisplayPage] 🚀 DATA FETCHING:', {
+    selectedDate,
+    selectedDateStr,
+    showAllAssignments,
+    timestamp: new Date().toISOString()
+  });
+  
   // Fetch assignments using the new simplified hook
   const { assignments, loading, error, refetch } = useScreenDisplayData(selectedDateStr);
 
@@ -46,16 +71,35 @@ const ScreenDisplayPage: React.FC = () => {
     return () => clearInterval(timer);
   }, [refetch]);
 
-  // Listen for URL parameter changes
+  // Listen for URL parameter changes and handle initial load
   useEffect(() => {
     const handleUrlChange = () => {
+      console.log('[ScreenDisplayPage] 🔄 URL CHANGED, refreshing date');
       const newDate = getInitialDate();
       setSelectedDate(newDate);
     };
 
+    // Handle initial URL parsing on component mount
+    const initialDate = getInitialDate();
+    if (initialDate.getTime() !== selectedDate.getTime()) {
+      console.log('[ScreenDisplayPage] 🔄 INITIAL DATE UPDATE needed');
+      setSelectedDate(initialDate);
+    }
+
     window.addEventListener('popstate', handleUrlChange);
     return () => window.removeEventListener('popstate', handleUrlChange);
   }, []);
+
+  // Add effect to monitor data loading results
+  useEffect(() => {
+    console.log('[ScreenDisplayPage] 📊 DATA STATE CHANGED:', {
+      loading,
+      error: error?.message,
+      assignmentsCount: assignments?.length,
+      selectedDateStr,
+      timestamp: new Date().toISOString()
+    });
+  }, [loading, error, assignments, selectedDateStr]);
 
   const updateUrlDate = (date: Date) => {
     const newUrl = new URL(window.location.href);

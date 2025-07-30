@@ -20,6 +20,12 @@ export const useScreenDisplayData = (date: string): UseScreenDisplayDataResult =
       setLoading(true);
       setError(null);
       
+      console.log('[useScreenDisplayData] 🚀 FETCH START:', {
+        date,
+        isEmpty: !date,
+        timestamp: new Date().toISOString()
+      });
+      
       let data;
       if (!date) {
         console.log('[useScreenDisplayData] 🚀 FETCHING ALL published assignments (no date filter)');
@@ -30,22 +36,34 @@ export const useScreenDisplayData = (date: string): UseScreenDisplayDataResult =
       }
       
       console.log('[useScreenDisplayData] 📋 RAW DATA from OptimizedAssignmentService:', {
+        date,
         count: data.length,
         sampleData: data[0] || null,
-        allTitles: data.map(a => a.title)
+        allTitles: data.map(a => a.title),
+        allDates: data.map(a => a.date)
       });
       
       // Convert to Assignment format using shared converter
       const convertedAssignments = data.map(convertOptimizedAssignmentToAssignment);
       console.log('[useScreenDisplayData] ✅ FINAL CONVERTED assignments:', {
+        date,
         count: convertedAssignments.length,
-        assignments: convertedAssignments
+        assignments: convertedAssignments.map(a => ({ 
+          id: a.id, 
+          title: a.title, 
+          date: a.date,
+          employees: a.assignedEmployees?.map(e => e.name) || []
+        }))
       });
       
       setAssignments(convertedAssignments);
       
     } catch (err) {
-      console.error('[useScreenDisplayData] 💥 ERROR:', err);
+      console.error('[useScreenDisplayData] 💥 ERROR:', {
+        date,
+        error: err,
+        message: err instanceof Error ? err.message : 'Unknown error'
+      });
       setError(err instanceof Error ? err : new Error('Failed to fetch assignments'));
       setAssignments([]);
     } finally {
@@ -59,10 +77,11 @@ export const useScreenDisplayData = (date: string): UseScreenDisplayDataResult =
   }, [fetchData]);
 
   const refetch = useCallback(async () => {
+    console.log('[useScreenDisplayData] 🔄 REFETCH triggered, clearing cache for date:', date);
     // Clear cache to ensure fresh data
     OptimizedAssignmentService.clearCache();
     await fetchData();
-  }, [fetchData]);
+  }, [fetchData, date]);
 
   return {
     assignments,
