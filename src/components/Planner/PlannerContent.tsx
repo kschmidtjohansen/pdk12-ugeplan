@@ -71,14 +71,17 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     });
   }, [weekDates]);
 
-  // State to track which days are expanded
-  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
+  // State to track which days are expanded - only today should be expanded by default
+  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    return { [today]: true };
+  });
 
   // Toggle expansion of a day section
   const handleToggleExpansion = (date: string) => {
     setExpandedDays(prev => ({
       ...prev,
-      [date]: !(prev[date] ?? true)
+      [date]: !(prev[date] ?? false)
     }));
   };
 

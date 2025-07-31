@@ -272,10 +272,29 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         throw new Error('End time is required');
       }
       
-      // Optimistically update the UI
-      setAssignments(prev => prev.map(assignment => 
-        assignment.id === id ? { ...assignment, ...data } : assignment
-      ));
+      // Find original assignment for proper optimistic update
+      const originalAssignment = assignments.find(a => a.id === id);
+      
+      // Optimistically update the UI with proper employee data merging
+      setAssignments(prev => prev.map(assignment => {
+        if (assignment.id === id) {
+          const updatedAssignment = { ...assignment, ...data };
+          
+          // Ensure employee data is properly updated
+          if (data.employees) {
+            updatedAssignment.employees = data.employees;
+            // If we have the original employee data, preserve full employee objects
+            if (originalAssignment?.assignedEmployees) {
+              updatedAssignment.assignedEmployees = originalAssignment.assignedEmployees.filter(emp => 
+                data.employees?.includes(emp.id)
+              );
+            }
+          }
+          
+          return updatedAssignment;
+        }
+        return assignment;
+      }));
       
       // Convert Assignment data to OptimizedAssignmentData format for service with UUID sanitization
       const serviceData = {
