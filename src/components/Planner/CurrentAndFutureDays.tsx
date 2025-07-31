@@ -44,7 +44,7 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
           key={dateKey}
           dateKey={dateKey}
           dayAssignments={groupedAssignments[dateKey] || []}
-          isExpanded={expandedDays[dateKey] !== false}
+          isExpanded={expandedDays[dateKey] === true}
           onToggleExpansion={onToggleExpansion}
           onPublishDay={onPublishDay}
           onEditAssignment={onEditAssignment}
