@@ -356,8 +356,9 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         location: data.location?.trim(),
         published: data.published || false,
         responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
-        car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : null),
-        car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : null,
+        car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
+        car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : 
+                 (data.car ? [typeof data.car === 'string' ? data.car : (data.car as any)?.id] : null),
         employees: data.employees || [] // Include employee IDs for updates
       };
       

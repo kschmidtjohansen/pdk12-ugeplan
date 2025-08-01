@@ -688,8 +688,37 @@ export class OptimizedAssignmentService {
       if (safeUpdates.responsible_user_id !== undefined) {
         safeUpdates.responsible_user_id = sanitizeUUIDForDB(safeUpdates.responsible_user_id);
       }
+      
+      // CAR DATA CONSISTENCY FIX: Ensure both car_id and car_ids are synchronized
       if (safeUpdates.car_id !== undefined) {
-        safeUpdates.car_id = sanitizeUUIDForDB(safeUpdates.car_id);
+        const carId = sanitizeUUIDForDB(safeUpdates.car_id);
+        safeUpdates.car_id = carId;
+        // Sync car_ids array with car_id
+        if (carId) {
+          safeUpdates.car_ids = [carId];
+        } else {
+          safeUpdates.car_ids = null;
+        }
+        console.log('[OptimizedAssignmentService] Car data synchronized:', {
+          car_id: safeUpdates.car_id,
+          car_ids: safeUpdates.car_ids
+        });
+      }
+      
+      // Handle car_ids array updates and keep car_id in sync
+      if (safeUpdates.car_ids !== undefined) {
+        if (Array.isArray(safeUpdates.car_ids) && safeUpdates.car_ids.length > 0) {
+          // Set car_id to the first car in the array
+          safeUpdates.car_id = sanitizeUUIDForDB(safeUpdates.car_ids[0]);
+        } else {
+          // No cars selected
+          safeUpdates.car_id = null;
+          safeUpdates.car_ids = null;
+        }
+        console.log('[OptimizedAssignmentService] Car array data synchronized:', {
+          car_id: safeUpdates.car_id,
+          car_ids: safeUpdates.car_ids
+        });
       }
       
       const { error } = await supabase
@@ -809,7 +838,7 @@ export class OptimizedAssignmentService {
         published: data.published || false,
         responsible_user_id: sanitizeUUIDForDB(data.responsible_user_id),
         car_id: sanitizeUUIDForDB(data.car_id),
-        car_ids: data.car_ids
+        car_ids: data.car_ids || (data.car_id ? [data.car_id] : null)
       };
       
       // Only include type if it's valid
