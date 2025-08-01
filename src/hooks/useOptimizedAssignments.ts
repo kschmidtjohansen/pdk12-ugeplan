@@ -5,6 +5,7 @@ import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
+import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 
 export type FilterType = 'all' | 'published' | 'unpublished' | 'user';
 export type AssignmentFilter = FilterType; // Export for compatibility
@@ -76,6 +77,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   const { user, isAuthenticated, authReady } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { employees: allEmployees } = useEmployeeData();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -275,20 +277,68 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       // Find original assignment for proper optimistic update
       const originalAssignment = assignments.find(a => a.id === id);
       
-      // Optimistically update the UI with proper employee data merging
+      console.log('[useOptimizedAssignments] Available employees for lookup:', allEmployees.length);
+      
+      // Optimistically update the UI with proper employee and car data reconstruction
       setAssignments(prev => prev.map(assignment => {
         if (assignment.id === id) {
           const updatedAssignment = { ...assignment, ...data };
           
-          // Ensure employee data is properly updated
-          if (data.employees) {
+          // EMPLOYEE UPDATE FIX: Properly reconstruct assignedEmployees when employee IDs change
+          if (data.employees !== undefined) {
+            console.log('[useOptimizedAssignments] EMPLOYEE UPDATE - New employee IDs:', data.employees);
             updatedAssignment.employees = data.employees;
-            // If we have the original employee data, preserve full employee objects
-            if (originalAssignment?.assignedEmployees) {
-              updatedAssignment.assignedEmployees = originalAssignment.assignedEmployees.filter(emp => 
-                data.employees?.includes(emp.id)
-              );
+            
+            // Reconstruct assignedEmployees from employee IDs using all available employees
+            updatedAssignment.assignedEmployees = data.employees.map(employeeId => {
+              const employee = allEmployees.find(emp => emp.id === employeeId);
+              if (employee) {
+                return {
+                  id: employee.id,
+                  name: employee.name,
+                  email: employee.email
+                };
+              }
+              // Fallback if employee not found in current list
+              const existingEmployee = originalAssignment?.assignedEmployees?.find(emp => emp.id === employeeId);
+              return existingEmployee || {
+                id: employeeId,
+                name: `Employee ${employeeId}`,
+                email: ''
+              };
+            }).filter(Boolean);
+            
+            console.log('[useOptimizedAssignments] EMPLOYEE UPDATE - Reconstructed assignedEmployees:', updatedAssignment.assignedEmployees);
+          }
+          
+          // CAR UPDATE FIX: Properly handle car updates 
+          if (data.car !== undefined) {
+            console.log('[useOptimizedAssignments] CAR UPDATE - New car:', data.car);
+            // Extract string ID from car data (handle both string and object)
+            const carId = typeof data.car === 'string' ? data.car : (data.car as any)?.id || '';
+            updatedAssignment.car = carId;
+            // If car is set, ensure it's also in the cars array
+            if (carId) {
+              updatedAssignment.cars = [carId];
+            } else {
+              updatedAssignment.cars = [];
             }
+            console.log('[useOptimizedAssignments] CAR UPDATE - Updated car data:', {
+              car: updatedAssignment.car,
+              cars: updatedAssignment.cars
+            });
+          }
+          
+          // Handle multiple cars update
+          if (data.cars !== undefined) {
+            console.log('[useOptimizedAssignments] CARS UPDATE - New cars array:', data.cars);
+            updatedAssignment.cars = data.cars;
+            // Set the first car as the primary car
+            updatedAssignment.car = data.cars.length > 0 ? data.cars[0] : '';
+            console.log('[useOptimizedAssignments] CARS UPDATE - Updated car data:', {
+              car: updatedAssignment.car,
+              cars: updatedAssignment.cars
+            });
           }
           
           return updatedAssignment;
@@ -315,13 +365,17 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       
       await OptimizedAssignmentService.updateAssignment(id, serviceData);
       
+      // Refresh assignments to ensure UI is synchronized with server data
+      console.log('[useOptimizedAssignments] Refreshing assignments after update to ensure data consistency');
+      await refetch();
+      
       toast({
         title: t('planner.assignmentUpdated'),
         description: t('planner.assignmentUpdatedMsg', { title: data.title })
       });
       
       setOperationState(id, 'success');
-      console.log('[useOptimizedAssignments] Update completed successfully');
+      console.log('[useOptimizedAssignments] Update completed successfully with data refresh');
       
     } catch (error) {
       console.error('[useOptimizedAssignments] === UPDATE ERROR ===');
@@ -339,7 +393,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         variant: "destructive"
       });
     }
-  }, [toast, t, setOperationState, refetch, setAssignments]);
+  }, [toast, t, setOperationState, refetch, setAssignments, allEmployees, assignments]);
 
   const deleteAssignment = useCallback(async (id: string) => {
     setOperationState(id, 'loading');
