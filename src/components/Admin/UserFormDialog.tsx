@@ -81,8 +81,9 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           body: { 
             email: formData.email, 
             password: password,
+            name: formData.name,
+            role: formData.role,
             userData: {
-              name: formData.name,
               phone: formData.phone,
               job_title: formData.jobTitle
             }
