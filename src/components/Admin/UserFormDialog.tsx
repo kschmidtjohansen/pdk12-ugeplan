@@ -77,6 +77,9 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         
         console.log('[UserFormDialog] Calling admin-create-user function');
         
+        // Sanitize phone input - convert empty string to null
+        const sanitizedPhone = formData.phone?.trim() === '' ? null : formData.phone?.trim();
+        
         const { data, error } = await supabase.functions.invoke('admin-create-user', {
           body: { 
             email: formData.email, 
@@ -84,7 +87,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
             name: formData.name,
             role: formData.role,
             userData: {
-              phone: formData.phone,
+              phone: sanitizedPhone,
               job_title: formData.jobTitle
             }
           }

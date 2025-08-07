@@ -152,12 +152,17 @@ serve(async (req) => {
 
     // Create profile entry
     if (newUser.user?.id) {
+      // Sanitize phone input from userData
+      const sanitizedPhone = userData?.phone?.trim() === '' ? null : userData?.phone?.trim() || null;
+      
       const { error: profileError } = await supabaseAdmin
         .from('profiles')
         .insert({
           id: newUser.user.id,
           name: name,
           email: email,
+          phone: sanitizedPhone,
+          job_title: userData?.job_title || null,
           status: 'active'
         });
 
