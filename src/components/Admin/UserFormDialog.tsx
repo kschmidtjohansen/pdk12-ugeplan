@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
+import { validateAndSanitizePhone, getPhoneValidationError } from '@/utils/phoneValidation';
 
 interface AdminUser {
   id: string;
@@ -55,6 +56,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -63,9 +65,18 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMessage('');
+    setPhoneError('');
     
     try {
       console.log('[UserFormDialog] Starting form submission');
+      
+      // Validate phone number first
+      const phoneValidation = validateAndSanitizePhone(formData.phone);
+      if (!phoneValidation.valid) {
+        setPhoneError(phoneValidation.error || 'Invalid phone number');
+        setIsSubmitting(false);
+        return;
+      }
       
       if (!currentUser) {
         // Creating a new user - validate password
@@ -77,8 +88,8 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         
         console.log('[UserFormDialog] Calling admin-create-user function');
         
-        // Sanitize phone input - convert empty string to null
-        const sanitizedPhone = formData.phone?.trim() === '' ? null : formData.phone?.trim();
+        // Use validated and sanitized phone
+        const sanitizedPhone = phoneValidation.sanitized;
         
         const { data, error } = await supabase.functions.invoke('admin-create-user', {
           body: { 
@@ -132,7 +143,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
-            phone: formData.phone || null,
+            phone: sanitizedPhone,
             job_title: formData.jobTitle || null,
           })
           .eq('id', data.user.id);
@@ -160,12 +171,14 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       }
       
       // Map common errors to user-friendly messages
-      if (errorMsg.includes('User already registered')) {
+      if (errorMsg.includes('User already registered') || errorMsg.includes('email address has already been registered')) {
         errorMsg = 'A user with this email already exists';
       } else if (errorMsg.includes('Invalid email')) {
         errorMsg = 'Please enter a valid email address';
       } else if (errorMsg.includes('Password')) {
         errorMsg = 'Password does not meet requirements';
+      } else if (errorMsg.includes('phone') || errorMsg.includes('check_phone_format')) {
+        errorMsg = 'Phone number format is invalid. Please use a valid phone number.';
       } else if (errorMsg.includes('rate limit')) {
         errorMsg = 'Too many requests. Please wait a moment and try again.';
       } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
@@ -210,6 +223,15 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
             </Alert>
           )}
           
+          {phoneError && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                {phoneError}
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
               {t('admin.userManagement.fullName')}
@@ -248,8 +270,12 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
               id="phone"
               name="phone"
               value={formData.phone}
-              onChange={handleInputChange}
+              onChange={(e) => {
+                handleInputChange(e);
+                setPhoneError(''); // Clear error on change
+              }}
               className="col-span-3"
+              placeholder="e.g., +45 12 34 56 78"
             />
           </div>
           

@@ -3,6 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Employee } from '@/types/employee';
+import { validateAndSanitizePhone } from '@/utils/phoneValidation';
 
 export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   const { toast } = useToast();
@@ -60,6 +61,12 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
       }
 
+      // Validate phone number
+      const phoneValidation = validateAndSanitizePhone(formData.phone);
+      if (!phoneValidation.valid) {
+        throw new Error(phoneValidation.error || 'Invalid phone number format');
+      }
+
       console.log('[useEmployeeActions] Creating employee:', {
         email: formData.email,
         name: formData.name,
@@ -74,7 +81,11 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
           email: formData.email,
           password: formData.password,
           name: formData.name,
-          role: formData.role || 'servicemedarbejder'
+          role: formData.role || 'servicemedarbejder',
+          userData: {
+            phone: phoneValidation.sanitized,
+            job_title: formData.jobTitle
+          }
         }
       });
       
@@ -89,12 +100,12 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         throw new Error(data.error);
       }
       
-      // Update profile with additional fields
+      // Update profile with additional fields (if needed)
       if (data?.id) {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
-            phone: formData.phone || null,
+            phone: phoneValidation.sanitized,
             job_title: formData.jobTitle || null,
             on_leave: formData.onLeave || false,
             notes: formData.notes || null,
@@ -136,13 +147,19 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         roleChange: employee.role !== formData.role
       });
       
+      // Validate phone number
+      const phoneValidation = validateAndSanitizePhone(formData.phone);
+      if (!phoneValidation.valid) {
+        throw new Error(phoneValidation.error || 'Invalid phone number format');
+      }
+      
       // Update profile
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
           name: formData.name,
           email: formData.email,
-          phone: formData.phone || null,
+          phone: phoneValidation.sanitized,
           job_title: formData.jobTitle || null,
           on_leave: formData.onLeave || false,
           notes: formData.notes || null,

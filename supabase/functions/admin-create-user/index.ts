@@ -152,13 +152,29 @@ serve(async (req) => {
 
     // Create profile entry
     if (newUser.user?.id) {
-      // Sanitize phone input from userData - handle null, empty, and invalid values
+      // Enhanced phone validation using the same logic as frontend
       let sanitizedPhone = null;
       if (userData?.phone && typeof userData.phone === 'string') {
-        const trimmedPhone = userData.phone.trim();
-        // Only keep phone if it's not empty and not just a dash or other invalid single characters
-        if (trimmedPhone && trimmedPhone !== '' && trimmedPhone !== '-' && trimmedPhone.length >= 3) {
-          sanitizedPhone = trimmedPhone;
+        const trimmed = userData.phone.trim();
+        
+        // Skip empty or very short values
+        if (!trimmed || trimmed.length < 3) {
+          sanitizedPhone = null;
+        } else {
+          // Validate against database constraint pattern: ^\+?[0-9\s\-\(\)]{8,}$
+          const phonePattern = /^\+?[0-9\s\-\(\)]{8,}$/;
+          if (phonePattern.test(trimmed)) {
+            sanitizedPhone = trimmed;
+          } else {
+            console.error(`[admin-create-user] Invalid phone format: "${trimmed}"`);
+            // Return error instead of proceeding with invalid phone
+            return new Response(
+              JSON.stringify({ 
+                error: 'Phone number format is invalid. Use only numbers, spaces, dashes, parentheses, and optional + prefix (minimum 8 characters)' 
+              }),
+              { status: 400, headers: corsHeaders }
+            );
+          }
         }
       }
       
@@ -175,6 +191,19 @@ serve(async (req) => {
 
       if (profileError) {
         console.error(`[${requestId}] Profile creation error:`, profileError);
+        
+        // Check if it's a phone format constraint violation
+        if (profileError.message?.includes('check_phone_format') || profileError.code === '23514') {
+          return new Response(
+            JSON.stringify({ 
+              error: 'Phone number format is invalid. Please use a valid phone number format.' 
+            }),
+            { status: 400, headers: corsHeaders }
+          );
+        }
+        
+        // For other profile errors, don't fail completely - the user was created
+        console.log(`[${requestId}] User created but profile update failed, continuing...`);
       }
 
       // Create user role entry
@@ -188,6 +217,25 @@ serve(async (req) => {
 
         if (roleError) {
           console.error(`[${requestId}] Role assignment error:`, roleError);
+          
+          // Check for duplicate role assignment (user might already have a role)
+          if (roleError.code === '23505') {
+            console.log(`[${requestId}] User already has role assignment, updating instead...`);
+            // Try to update the existing role
+            const { error: updateRoleError } = await supabaseAdmin
+              .from('user_roles')
+              .update({ role })
+              .eq('user_id', newUser.user.id);
+              
+            if (updateRoleError) {
+              console.error(`[${requestId}] Role update also failed:`, updateRoleError);
+            } else {
+              console.log(`[${requestId}] Role updated successfully`);
+            }
+          } else {
+            // Don't fail completely for other role assignment errors
+            console.log(`[${requestId}] User and profile created but role assignment failed`);
+          }
         }
       }
     }

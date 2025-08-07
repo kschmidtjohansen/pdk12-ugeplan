@@ -25,6 +25,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, Wifi, WifiOff } from 'lucide-react';
+import { validateAndSanitizePhone, getPhoneValidationError } from '@/utils/phoneValidation';
 
 interface EmployeeFormDialogProps {
   currentEmployee: Employee | null;
@@ -51,6 +52,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const [creationMethod, setCreationMethod] = useState<'attempting' | 'edge-function' | 'direct-database' | 'failed'>('attempting');
 
   // Handle checkbox change if no specific handler is provided
@@ -64,9 +66,18 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMessage('');
+    setPhoneError('');
     setCreationMethod('attempting');
     
     try {
+      // Validate phone number first
+      const phoneValidation = validateAndSanitizePhone(formData.phone);
+      if (!phoneValidation.valid) {
+        setPhoneError(phoneValidation.error || 'Invalid phone number');
+        setIsSubmitting(false);
+        return;
+      }
+      
       // For new employees, validate password
       if (!currentEmployee) {
         if (!isPasswordValid) {
@@ -175,6 +186,15 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
             </Alert>
           )}
           
+          {phoneError && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                {phoneError}
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <div className="grid gap-2">
             <Label htmlFor="name">{t("employees.fullName")}</Label>
             <Input
@@ -222,9 +242,12 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
               id="phone"
               name="phone"
               value={formData.phone}
-              onChange={handleInputChange}
-              required
+              onChange={(e) => {
+                handleInputChange(e);
+                setPhoneError(''); // Clear error on change
+              }}
               disabled={isSubmitting}
+              placeholder="e.g., +45 12 34 56 78"
             />
           </div>
           
