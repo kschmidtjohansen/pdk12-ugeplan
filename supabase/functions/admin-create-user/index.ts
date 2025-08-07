@@ -152,8 +152,15 @@ serve(async (req) => {
 
     // Create profile entry
     if (newUser.user?.id) {
-      // Sanitize phone input from userData
-      const sanitizedPhone = userData?.phone?.trim() === '' ? null : userData?.phone?.trim() || null;
+      // Sanitize phone input from userData - handle null, empty, and invalid values
+      let sanitizedPhone = null;
+      if (userData?.phone && typeof userData.phone === 'string') {
+        const trimmedPhone = userData.phone.trim();
+        // Only keep phone if it's not empty and not just a dash or other invalid single characters
+        if (trimmedPhone && trimmedPhone !== '' && trimmedPhone !== '-' && trimmedPhone.length >= 3) {
+          sanitizedPhone = trimmedPhone;
+        }
+      }
       
       const { error: profileError } = await supabaseAdmin
         .from('profiles')
