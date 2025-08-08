@@ -58,7 +58,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
                   <TableHead>{t('employees.contact') || 'Contact'}</TableHead>
                   <TableHead>{t('employees.jobTitle') || 'Job Title'}</TableHead>
                   {(isAdmin) && <TableHead>{t('employees.role') || 'Role'}</TableHead>}
-                  <TableHead>{t('employees.status') || 'Status'}</TableHead>
+                  <TableHead>{t('employees.statusLabel') || 'Status'}</TableHead>
                   {isAdmin && <TableHead>{t('common.actions') || 'Actions'}</TableHead>}
               </TableRow>
             </TableHeader>
@@ -127,7 +127,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
               <TableHead>{t('employees.contact') || 'Contact'}</TableHead>
               <TableHead>{t('employees.jobTitle') || 'Job Title'}</TableHead>
               {(isAdmin) && <TableHead>{t('employees.role') || 'Role'}</TableHead>}
-              <TableHead>{t('employees.status') || 'Status'}</TableHead>
+              <TableHead>{t('employees.statusLabel') || 'Status'}</TableHead>
               {isAdmin && <TableHead>{t('common.actions') || 'Actions'}</TableHead>}
             </TableRow>
           </TableHeader>
