@@ -100,7 +100,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         onClick={handleEditClick}
         disabled={isLoading}
         className="h-7 w-7 p-0" 
-        title={isUpdating ? 'Updating...' : t('planner.editAssignment')}
+        title={isUpdating ? t('planner.operations.updating') : t('planner.editAssignment')}
       >
         {isUpdating ? (
           <Loader2 className="h-3 w-3 animate-spin" />
@@ -127,7 +127,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
           onClick={handlePublishClick}
           disabled={isLoading}
           className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 disabled:opacity-50" 
-          title={isPublishing ? 'Publishing...' : t('planner.publish')}
+          title={isPublishing ? t('planner.operations.publishing') : t('planner.publish')}
         >
           {isPublishing ? (
             <Loader2 className="h-3 w-3 animate-spin" />
@@ -156,7 +156,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         onClick={handleDeleteClick}
         disabled={isLoading}
         className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50" 
-        title={isDeleting ? 'Deleting...' : t('planner.deleteAssignment')}
+        title={isDeleting ? t('planner.operations.deleting') : t('planner.deleteAssignment')}
       >
         {isDeleting ? (
           <Loader2 className="h-3 w-3 animate-spin" />
