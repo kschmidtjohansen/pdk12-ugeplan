@@ -20,7 +20,7 @@ const employees = {
     available: 'Tilgængelig',
     onVacation: 'På ferie',
     unavailable: 'Ikke tilgængelig',
-    onLeave: 'På orlov',
+    onLeave: 'Fraværende',
     unknown: 'Ukendt',
     fullyBooked: 'Fuldt booket',
     partiallyBooked: 'Delvis booket',
@@ -51,7 +51,7 @@ const employees = {
   availableAfter: 'Tilgængelig efter {time}',
   
   // Leave management
-  markOnLeave: 'Marker som på utilgængelig',
+  markOnLeave: 'Marker som fraværende',
   markAvailable: 'Marker som tilgængelig',
   leaveMarked: 'Status Opdateret',
   leaveMarkedMsg: 'Medarbejderens status er blevet opdateret',
@@ -95,7 +95,7 @@ const employees = {
   markAvailableDescription: 'Ønsker du at markere {name} som tilgængelig? Hvad skal der ske med den eksisterende note?',
   removeNote: 'Fjern Note',
   keepNote: 'Behold Note',
-  markOnLeaveTitle: 'Marker Som fraværende',
+  markOnLeaveTitle: 'Marker Som Fraværende',
   markOnLeaveDescription: 'Marker {name} som fraværende. Tilføj venligst en note med årsagen.',
   
   // Roles

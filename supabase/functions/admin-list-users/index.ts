@@ -161,8 +161,9 @@ serve(async (req) => {
 
     console.log(`[${requestId}] Access granted for role: ${roleData.role} (${user.email}), fetching users...`);
 
-    // Get profiles with role information using better join
-    const { data: profilesWithRoles, error: fetchError } = await supabaseAdmin
+    // FIXED: Get profiles and roles separately to avoid JOIN issues
+    console.log(`[${requestId}] Fetching profiles...`);
+    const { data: profiles, error: profilesError } = await supabaseAdmin
       .from('profiles')
       .select(`
         id,
@@ -173,16 +174,17 @@ serve(async (req) => {
         on_leave,
         notes,
         created_at,
-        updated_at,
-        user_roles!inner (
-          role
-        )
+        updated_at
       `);
-    
-    if (fetchError) {
-      console.error(`[${requestId}] Failed to fetch profiles:`, fetchError);
+
+    if (profilesError) {
+      console.error(`[${requestId}] Failed to fetch profiles:`, profilesError);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch users: ' + fetchError.message }),
+        JSON.stringify({ 
+          error: 'Failed to fetch profiles: ' + profilesError.message,
+          requestId,
+          details: profilesError
+        }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -190,18 +192,53 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] Profiles fetched: ${profilesWithRoles?.length || 0}`);
+    // Fetch user roles separately
+    console.log(`[${requestId}] Fetching user roles...`);
+    const { data: userRoles, error: rolesError } = await supabaseAdmin
+      .from('user_roles')
+      .select('user_id, role');
+    
+    if (rolesError) {
+      console.error(`[${requestId}] Failed to fetch user roles:`, rolesError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to fetch user roles: ' + rolesError.message,
+          requestId,
+          details: rolesError
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
-    if (!profilesWithRoles || profilesWithRoles.length === 0) {
+    console.log(`[${requestId}] Fetched ${profiles?.length || 0} profiles and ${userRoles?.length || 0} role assignments`);
+
+    if (!profiles || profiles.length === 0) {
       console.log(`[${requestId}] No profiles found`);
       return new Response(
-        JSON.stringify({ users: [], total: 0 }),
+        JSON.stringify({ 
+          users: [],
+          total: 0,
+          debug: {
+            requestId,
+            message: "No profiles found in database",
+            timestamp: new Date().toISOString()
+          }
+        }),
         { 
           status: 200, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
+
+    // Create role lookup map for better performance
+    const roleMap = new Map();
+    userRoles?.forEach(role => {
+      roleMap.set(role.user_id, role.role);
+    });
 
     // Get auth users data for additional info
     const { data: authUsers, error: authError2 } = await supabaseAdmin.auth.admin.listUsers();
@@ -214,19 +251,12 @@ serve(async (req) => {
 
     console.log(`[${requestId}] Auth users fetched: ${authUsers?.users?.length || 0}`);
 
-    // FIXED: Better role mapping from the database response
-    const combinedUsers = profilesWithRoles.map(profile => {
+    // FIXED: Combine profiles with roles using the role map
+    const combinedUsers = profiles.map(profile => {
       const authUser = authUsers?.users?.find(au => au.id === profile.id);
       
-      // FIXED: Proper role extraction from the user_roles relation
-      let userRole = 'servicemedarbejder';
-      if (profile.user_roles) {
-        if (Array.isArray(profile.user_roles)) {
-          userRole = profile.user_roles[0]?.role || 'servicemedarbejder';
-        } else {
-          userRole = profile.user_roles.role || 'servicemedarbejder';
-        }
-      }
+      // Get role from the role map, default to servicemedarbejder
+      const userRole = roleMap.get(profile.id) || 'servicemedarbejder';
       
       return {
         id: profile.id,
@@ -263,7 +293,7 @@ serve(async (req) => {
         debug: {
           requestId,
           method: req.method,
-          profileCount: profilesWithRoles.length,
+          profileCount: profiles.length,
           authUserCount: authUsers?.users?.length || 0,
           roleDistribution: roleStats,
           eligibleUsers: eligibleCount,
