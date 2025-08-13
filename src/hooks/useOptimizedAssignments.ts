@@ -225,8 +225,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       setOperationStates(prev => ({ ...prev, [operationId]: 'success' }));
       
       toast({
-        title: t('common.success'),
-        description: t('planner.messages.assignmentCreated'),
+        title: t('planner.assignmentCreated'),
+        description: t('planner.assignmentCreatedMsg', { title: serviceData.title }),
       });
 
     } catch (error) {

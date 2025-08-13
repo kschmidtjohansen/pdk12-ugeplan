@@ -20,12 +20,12 @@ export function Toaster() {
             <div className="grid gap-2">
               {title && (
                 <ToastTitle className="font-semibold text-sm">
-                  {typeof title === 'string' ? title : String(title)}
+                  {title}
                 </ToastTitle>
               )}
               {description && (
                 <ToastDescription className="text-sm leading-relaxed">
-                  {typeof description === 'string' ? description : String(description)}
+                  {description}
                 </ToastDescription>
               )}
             </div>
