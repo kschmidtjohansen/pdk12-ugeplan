@@ -3,8 +3,11 @@ import { toast } from '@/components/ui/sonner';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData } from '@/components/Cars/types';
 import { supabase } from '@/integrations/supabase/client';
+import { CarSecurityService } from '@/services/carSecurityService';
+import { usePermissions } from '@/context/AuthContext';
 
 export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.SetStateAction<CarData[]>>) => {
+  const { canViewFuelCardCode } = usePermissions();
   const [currentCar, setCurrentCar] = useState<CarData | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [unavailableDialogOpen, setUnavailableDialogOpen] = useState<boolean>(false);

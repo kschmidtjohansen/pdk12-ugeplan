@@ -4,9 +4,11 @@ import { useCarData } from './useCarData';
 import { useCarActions } from './useCarActions';
 import { useCarFormState } from './useCarFormState';
 import { CarData } from '@/components/Cars/types';
+import { usePermissions } from '@/context/AuthContext';
 
 export const useCars = () => {
-  const { cars, setCars, loading, error, fetchCars, createCar } = useCarData();
+  const { canViewFuelCardCode } = usePermissions();
+  const { cars, setCars, loading, error, fetchCars, createCar } = useCarData(canViewFuelCardCode);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   
   const {

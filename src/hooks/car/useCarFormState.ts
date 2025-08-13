@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { toast } from '@/components/ui/sonner';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData, CarFormData } from '@/components/Cars/types';
-import { supabase } from '@/integrations/supabase/client';
+import { CarSecurityService } from '@/services/carSecurityService';
+import { usePermissions } from '@/context/AuthContext';
 
 interface UseCarFormStateProps {
   cars: CarData[];
@@ -21,6 +22,7 @@ export const useCarFormState = ({
   setDialogOpen,
   createCar
 }: UseCarFormStateProps) => {
+  const { canViewFuelCardCode } = usePermissions();
   const [formData, setFormData] = useState<CarFormData>({
     name: '',
     car_number: '',
@@ -81,29 +83,17 @@ export const useCarFormState = ({
     try {
       if (currentCar) {
         console.log('[useCarFormState] Updating existing car:', currentCar.id);
-        // Update existing car
-        const { error } = await supabase
-          .from('cars')
-          .update({
-            name: formData.name,
-            car_number: formData.car_number,
-            number_plate: formData.number_plate,
-            fuel_card_code: formData.fuel_card_code,
-            has_trailer_hitch: formData.has_trailer_hitch,
-            is_available: formData.is_available,
-            notes: formData.notes,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', currentCar.id);
-
-        console.log('[useCarFormState] Car update response:', { error });
-        if (error) throw error;
+        // Update existing car using security service
+        const updatedCar = await CarSecurityService.updateCar(
+          currentCar.id, 
+          formData, 
+          canViewFuelCardCode
+        );
         
-        // Update local state
+        // Update local state (filter fuel card if user doesn't have permission)
+        const filteredUpdatedCar = canViewFuelCardCode ? updatedCar : { ...updatedCar, fuel_card_code: '' };
         setCars(
-          cars.map((c) =>
-            c.id === currentCar.id ? { ...c, ...formData, updated_at: new Date().toISOString() } : c
-          )
+          cars.map((c) => c.id === currentCar.id ? filteredUpdatedCar : c)
         );
         
         toast(t('cars.vehicleUpdated'), {
@@ -118,34 +108,17 @@ export const useCarFormState = ({
             throw new Error('Failed to create car using createCar function');
           }
         } else {
-          console.log('[useCarFormState] Using fallback direct insert');
-          // Create new car (fallback)
-          const { data, error } = await supabase
-            .from('cars')
-            .insert([
-              {
-                name: formData.name,
-                car_number: formData.car_number,
-                number_plate: formData.number_plate,
-                fuel_card_code: formData.fuel_card_code,
-                has_trailer_hitch: formData.has_trailer_hitch,
-                is_available: formData.is_available,
-                notes: formData.notes,
-              }
-            ])
-            .select();
-
-          console.log('[useCarFormState] Car creation response:', { data, error });
-          if (error) throw error;
+          console.log('[useCarFormState] Using fallback security service');
+          // Create new car using security service (fallback)
+          const newCar = await CarSecurityService.createCar(formData, canViewFuelCardCode);
           
-          if (data && data.length > 0) {
-            // Add new car to local state
-            setCars([...cars, data[0]]);
-            
-            toast(t('cars.vehicleAdded'), {
-              description: t('cars.vehicleAddedMsg', { name: formData.name }),
-            });
-          }
+          // Add new car to local state (filter fuel card if user doesn't have permission)
+          const filteredNewCar = canViewFuelCardCode ? newCar : { ...newCar, fuel_card_code: '' };
+          setCars([...cars, filteredNewCar]);
+          
+          toast(t('cars.vehicleAdded'), {
+            description: t('cars.vehicleAddedMsg', { name: formData.name }),
+          });
         }
       }
       

@@ -3,7 +3,7 @@ export const SecurityConfig = {
   // Content Security Policy configuration
   CSP: {
     defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cyuyrpwtkljfiqwgasmn.supabase.co"],
+    scriptSrc: ["'self'", "https://cyuyrpwtkljfiqwgasmn.supabase.co"], // SECURITY FIX: Removed unsafe-inline and unsafe-eval
     styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
     fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
     imgSrc: ["'self'", "data:", "https:", "blob:"],
@@ -65,23 +65,19 @@ export const getSecurityEnvironment = () => {
     isProduction,
     isSecureContext: window.location.protocol === 'https:' || window.location.hostname === 'localhost',
     
-    // Demo credentials - securely managed via environment variables
+    // Demo credentials - securely managed via environment variables only
     getDemoCredentials: () => {
-      // Always prefer environment variables for security
+      // SECURITY FIX: Only use environment variables, no hardcoded passwords
       const demoEmail = process.env.VITE_DEMO_EMAIL || 'test@polygongroup.com';
       const demoPassword = process.env.VITE_DEMO_PASSWORD;
       
-      // Fallback for development only (remove in production)
-      if (isDevelopment && !demoPassword) {
-        return {
-          email: demoEmail,
-          password: 'TesterbrugerPlan123' // Development fallback only
-        };
+      if (!demoPassword) {
+        console.warn('Demo password not configured via environment variables');
       }
       
       return {
         email: demoEmail,
-        password: demoPassword
+        password: demoPassword || '' // Never return hardcoded password
       };
     }
   };

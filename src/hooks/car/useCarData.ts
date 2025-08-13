@@ -3,29 +3,24 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData } from '@/components/Cars/types';
-import { supabase } from '@/integrations/supabase/client';
+import { CarSecurityService } from '@/services/carSecurityService';
 
-export const useCarData = () => {
+export const useCarData = (canViewFuelCardCode: boolean = false) => {
   const [cars, setCars] = useState<CarData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { t } = useTranslation();
 
-  // Fetch cars from Supabase
+  // Fetch cars from Supabase with security filtering
   const fetchCars = async () => {
     try {
-      console.log('[useCarData] Fetching cars...');
+      console.log('[useCarData] Fetching cars with security filtering...');
       setLoading(true);
-      const { data, error } = await supabase
-        .from('cars')
-        .select('*')
-        .order('car_number', { ascending: true });
+      const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
       
-      console.log('[useCarData] Fetch cars response:', { data, error });
-      if (error) throw error;
-      setCars(data || []);
       console.log('[useCarData] Successfully fetched', data?.length || 0, 'cars');
+      setCars(data || []);
     } catch (err) {
       console.error('[useCarData] Error fetching cars:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch cars');
@@ -39,52 +34,23 @@ export const useCarData = () => {
     }
   };
 
-  // Create a new car
+  // Create a new car with security validation
   const createCar = async (carData: Partial<CarData>) => {
     try {
       console.log('[useCarData] Creating car with data:', carData);
       
-      // Validate required fields
-      if (!carData.name || !carData.car_number || !carData.number_plate || !carData.fuel_card_code) {
-        const missingFields = [];
-        if (!carData.name) missingFields.push('name');
-        if (!carData.car_number) missingFields.push('car_number');
-        if (!carData.number_plate) missingFields.push('number_plate');
-        if (!carData.fuel_card_code) missingFields.push('fuel_card_code');
-        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
-      }
-
-      const { data, error } = await supabase
-        .from('cars')
-        .insert({
-          name: carData.name,
-          car_number: carData.car_number,
-          number_plate: carData.number_plate,
-          fuel_card_code: carData.fuel_card_code,
-          has_trailer_hitch: carData.has_trailer_hitch || false,
-          is_available: carData.is_available !== undefined ? carData.is_available : true,
-          notes: carData.notes || null
-        })
-        .select()
-        .single();
+      const data = await CarSecurityService.createCar(carData, canViewFuelCardCode);
       
-      console.log('[useCarData] Create car response:', { data, error });
-      if (error) {
-        console.error('[useCarData] Car creation error:', error);
-        throw error;
-      }
+      // Add the new car to local state (with proper fuel card filtering)
+      const filteredData = canViewFuelCardCode ? data : { ...data, fuel_card_code: '' };
+      setCars(prevCars => [...prevCars, filteredData]);
       
-      // Add the new car to local state
-      if (data) {
-        setCars(prevCars => [...prevCars, data]);
-        toast({
-          title: t('cars.vehicleAdded'),
-          description: t('cars.vehicleAddedMsg', { name: carData.name })
-        });
-        return true;
-      }
+      toast({
+        title: t('cars.vehicleAdded'),
+        description: t('cars.vehicleAddedMsg', { name: carData.name })
+      });
       
-      return false;
+      return true;
     } catch (err) {
       console.error('[useCarData] Error creating car:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to create car';
@@ -103,12 +69,7 @@ export const useCarData = () => {
     
     const loadCars = async () => {
       try {
-        const { data, error } = await supabase
-          .from('cars')
-          .select('*')
-          .order('car_number', { ascending: true });
-        
-        if (error) throw error;
+        const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
         
         if (isMounted) {
           setCars(data || []);
@@ -133,7 +94,7 @@ export const useCarData = () => {
     return () => {
       isMounted = false;
     };
-  }, [t, toast]);
+  }, [t, toast, canViewFuelCardCode]);
 
   return {
     cars,
