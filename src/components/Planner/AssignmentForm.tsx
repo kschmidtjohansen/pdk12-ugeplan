@@ -157,6 +157,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     id: string;
     name: string;
   } | null): string => {
+    // Prefer explicit responsibleUserId if present
+    // Fallback to object-based user id
+    if (formData.responsibleUserId) return formData.responsibleUserId as string;
     if (user && typeof user === 'object' && 'id' in user) return user.id;
     return '';
   };

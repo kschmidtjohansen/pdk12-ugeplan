@@ -153,14 +153,23 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           // Don't fail the entire operation for profile updates
         }
         
-      } else {
+        // Success: notify, close, and stop here (avoid double-invocation)
+        toast({
+          title: t('common.success'),
+          description: t('admin.userManagement.createSuccess')
+        });
+        onClose();
+        setIsSubmitting(false);
+        return;
         // This will be handled by the parent component's handleSubmit
         // which calls updateUserWithFallback
         console.log('[UserFormDialog] Updating existing user via parent handler');
       }
       
-      // Call parent submit handler
-      await handleSubmit(e);
+      // Call parent submit handler only for updates
+      if (currentUser) {
+        await handleSubmit(e);
+      }
       
     } catch (error) {
       console.error('[UserFormDialog] Error saving user:', error);

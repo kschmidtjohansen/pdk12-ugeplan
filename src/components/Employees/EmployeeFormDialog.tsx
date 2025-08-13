@@ -48,7 +48,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
-  const [password, setPassword] = useState('');
+  
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -86,16 +86,8 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           return;
         }
         
-        // Add password to form data for creation
-        const enhancedFormData = {
-          ...formData,
-          password: password
-        };
-        
-        console.log('[EmployeeFormDialog] Creating employee with enhanced form data');
-        
-        // The actual creation will be handled by the parent component
-        // but we'll track the method being used
+        console.log('[EmployeeFormDialog] Creating employee');
+        // The actual creation will be handled by the parent component using formData (including password)
         await handleSubmit(e);
       } else {
         // For existing employees, just update
@@ -225,8 +217,9 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
               <Label htmlFor="password">{t("common.password")}</Label>
               <PasswordInput
                 id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
                 required
                 disabled={isSubmitting}
                 autoComplete="new-password"

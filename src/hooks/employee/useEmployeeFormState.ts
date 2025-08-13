@@ -6,6 +6,7 @@ import { UserRole } from '@/context/AuthContext';
 export interface EmployeeFormData {
   name: string;
   email: string;
+  password: string;
   phone: string;
   jobTitle: string;
   role: UserRole;
@@ -18,6 +19,7 @@ export const useEmployeeFormState = () => {
   const [formData, setFormData] = useState<EmployeeFormData>({
     name: '',
     email: '',
+    password: '',
     phone: '',
     jobTitle: '',
     role: 'servicemedarbejder',
@@ -29,6 +31,7 @@ export const useEmployeeFormState = () => {
     setFormData({
       name: '',
       email: '',
+      password: '',
       phone: '',
       jobTitle: '',
       role: 'servicemedarbejder',
@@ -48,6 +51,7 @@ export const useEmployeeFormState = () => {
     setFormData({
       name: employee.name,
       email: employee.email,
+      password: '',
       phone: employee.phone,
       jobTitle: employee.jobTitle,
       role: employee.role,
