@@ -131,14 +131,37 @@ export const useDiagnostics = () => {
 
       // Test 6: Real-time Connectivity
       try {
-        const channel = supabase.channel('diagnostic-test');
-        const isConnected = channel.socket.isConnected();
+        const channel = supabase.channel(`diagnostic-test-${Date.now()}`);
+        const connected = await new Promise<boolean>((resolve) => {
+          let resolved = false;
+          const timeout = setTimeout(() => {
+            if (!resolved) {
+              resolved = true;
+              resolve(false);
+            }
+          }, 1500);
+          channel.subscribe((status) => {
+            if (status === 'SUBSCRIBED' && !resolved) {
+              resolved = true;
+              clearTimeout(timeout);
+              resolve(true);
+              supabase.removeChannel(channel);
+            }
+            if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') && !resolved) {
+              resolved = true;
+              clearTimeout(timeout);
+              resolve(false);
+              supabase.removeChannel(channel);
+            }
+          });
+        });
         results.push({
           category: 'Realtime',
-          status: isConnected ? 'pass' : 'warning',
-          message: isConnected ? 'Real-time connection active' : 'Real-time connection inactive'
+          status: connected ? 'pass' : 'warning',
+          message: connected ? 'Real-time connection active' : 'Real-time connection inactive (no subscriptions)'
         });
-        supabase.removeChannel(channel);
+        try { supabase.removeChannel(channel); } catch (_) {}
+
       } catch (err) {
         results.push({
           category: 'Realtime',

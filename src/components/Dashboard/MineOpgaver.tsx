@@ -63,14 +63,24 @@ const MineOpgaver: React.FC = () => {
       return isUserInvolved && isInCurrentWeek; // FIXED: Removed published filter so servicemedarbejder can see all assignments they're involved in
     });
 
-    return userTasks.sort((a, b) => {
-      const dateA = parseISO(a.date);
-      const dateB = parseISO(b.date);
-      if (dateA.getTime() !== dateB.getTime()) {
-        return dateA.getTime() - dateB.getTime();
-      }
+    const now = new Date();
+    const todayStr = format(now, 'yyyy-MM-dd');
+    const startOfToday = new Date(`${todayStr}T00:00:00`);
+    const endOfToday = new Date(`${todayStr}T23:59:59`);
+
+    const weight = (d: Date) => (d >= startOfToday && d <= endOfToday) ? 0 : (d > endOfToday ? 1 : 2);
+
+    const sorted = userTasks.sort((a, b) => {
+      const da = parseISO(a.date);
+      const db = parseISO(b.date);
+      const wa = weight(da);
+      const wb = weight(db);
+      if (wa !== wb) return wa - wb;
+      if (da.getTime() !== db.getTime()) return da.getTime() - db.getTime();
       return a.fromTime.localeCompare(b.fromTime);
-    }).slice(0, 5); // Show max 5 upcoming tasks
+    });
+
+    return sorted.slice(0, 5); // Show max 5 tasks with today first, past at bottom
   }, [assignments, user]);
 
   // Helper function to get car names from assignment
