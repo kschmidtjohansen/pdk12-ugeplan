@@ -90,6 +90,13 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
   // Enhanced user creation with multiple fallback methods
   const createEmployee = async (formData: any) => {
     try {
+      console.log('[useEmployeeCreation] Form data received:', {
+        name: formData.name,
+        email: formData.email,
+        is_temporary: formData.is_temporary,
+        hasPassword: !!formData.password
+      });
+      
       // Enhanced validation
       if (!formData.name) {
         throw new Error(t('employees.nameRequired'));
@@ -97,14 +104,17 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
       
       // For non-temporary users, validate email and password
       if (!formData.is_temporary) {
+        console.log('[useEmployeeCreation] Validating regular employee - email and password required');
         if (!formData.email || !formData.password) {
-          throw new Error(t('employees.emailRequired') + ', ' + t('employees.passwordRequired'));
+          throw new Error(`Missing required fields: ${!formData.email ? 'Email' : ''} ${!formData.password ? 'password' : ''}`);
         }
         
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(formData.email)) {
           throw new Error(t('employees.validEmailRequired'));
         }
+      } else {
+        console.log('[useEmployeeCreation] Creating temporary user - skipping email/password validation');
       }
 
 

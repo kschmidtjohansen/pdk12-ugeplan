@@ -80,19 +80,21 @@ export const useEmployeeFormState = () => {
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 30); // 30 days from now
     
-    setFormData({
+    const vikarFormData = {
       name: '',
       email: '',
       password: '',
       phone: '',
       jobTitle: '',
-      role: 'vikar',
+      role: 'vikar' as UserRole,
       onLeave: false,
       notes: '',
       is_temporary: true,
       expires_at: expirationDate.toISOString().split('T')[0]
-    });
-    return formData;
+    };
+    
+    setFormData(vikarFormData);
+    return vikarFormData;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
