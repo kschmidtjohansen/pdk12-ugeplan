@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
@@ -10,7 +9,6 @@ import { Users, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EmployeeTableRow from './EmployeeTableRow';
 import EmployeeLoadingError from '@/components/ErrorBoundary/EmployeeLoadingError';
-
 interface EmployeesTableProps {
   employees: Employee[];
   vacations: Vacation[];
@@ -21,7 +19,6 @@ interface EmployeesTableProps {
   loading: boolean;
   onRetry: () => void;
 }
-
 const EmployeesTable: React.FC<EmployeesTableProps> = ({
   employees,
   vacations,
@@ -32,8 +29,12 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   loading,
   onRetry
 }) => {
-  const { isAdmin } = usePermissions();
-  const { t } = useTranslation();
+  const {
+    isAdmin
+  } = usePermissions();
+  const {
+    t
+  } = useTranslation();
 
   // Show error state with retry option
   if (error) {
@@ -42,8 +43,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
 
   // Show loading state
   if (loading) {
-    return (
-      <div className="space-y-4">
+    return <div className="space-y-4">
         <div className="flex items-center gap-2 mb-4">
           <Users className="h-5 w-5 text-gray-400" />
           <span className="text-sm text-gray-500">
@@ -57,14 +57,15 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
                   <TableHead>{t('employees.name') || 'Name'}</TableHead>
                   <TableHead>{t('employees.contact') || 'Contact'}</TableHead>
                   <TableHead>{t('employees.jobTitle') || 'Job Title'}</TableHead>
-                  {(isAdmin) && <TableHead>{t('employees.role') || 'Role'}</TableHead>}
+                  {isAdmin && <TableHead>{t('employees.role') || 'Role'}</TableHead>}
                   <TableHead>{t('employees.statusLabel') || 'Status'}</TableHead>
                   {isAdmin && <TableHead>{t('common.actions') || 'Actions'}</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <TableRow key={i}>
+              {Array.from({
+              length: 6
+            }).map((_, i) => <TableRow key={i}>
                   <td className="p-4">
                     <div className="flex items-center gap-3">
                       <Skeleton className="h-8 w-8 rounded-full" />
@@ -81,19 +82,16 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
                   <td className="p-4"><Skeleton className="h-6 w-20" /></td>
                   <td className="p-4"><Skeleton className="h-6 w-16" /></td>
                   {isAdmin && <td className="p-4"><Skeleton className="h-8 w-24" /></td>}
-                </TableRow>
-              ))}
+                </TableRow>)}
             </TableBody>
           </Table>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Show empty state
   if (employees.length === 0) {
-    return (
-      <div className="text-center py-8">
+    return <div className="text-center py-8">
         <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-600 mb-2">
           {t('employees.noEmployees') || 'No employees found'}
@@ -105,18 +103,14 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
           <RefreshCw className="h-4 w-4 mr-2" />
           {t('common.retry') || 'Retry'}
         </Button>
-      </div>
-    );
+      </div>;
   }
 
   // Show employees table
-  return (
-    <div className="space-y-4">
+  return <div className="space-y-4">
       <div className="flex items-center gap-2 mb-4">
         <Users className="h-5 w-5 text-primary" />
-        <span className="text-sm font-medium">
-          {employees.length} {t('employees.title') || 'employees'}
-        </span>
+        
       </div>
       
       <div className="border rounded-md">
@@ -126,27 +120,16 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
               <TableHead>{t('employees.name') || 'Name'}</TableHead>
               <TableHead>{t('employees.contact') || 'Contact'}</TableHead>
               <TableHead>{t('employees.jobTitle') || 'Job Title'}</TableHead>
-              {(isAdmin) && <TableHead>{t('employees.role') || 'Role'}</TableHead>}
+              {isAdmin && <TableHead>{t('employees.role') || 'Role'}</TableHead>}
               <TableHead>{t('employees.statusLabel') || 'Status'}</TableHead>
               {isAdmin && <TableHead>{t('common.actions') || 'Actions'}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {employees.map((employee) => (
-              <EmployeeTableRow
-                key={employee.id}
-                employee={employee}
-                vacations={vacations}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onToggleLeave={onToggleLeave}
-              />
-            ))}
+            {employees.map(employee => <EmployeeTableRow key={employee.id} employee={employee} vacations={vacations} onEdit={onEdit} onDelete={onDelete} onToggleLeave={onToggleLeave} />)}
           </TableBody>
         </Table>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default EmployeesTable;
