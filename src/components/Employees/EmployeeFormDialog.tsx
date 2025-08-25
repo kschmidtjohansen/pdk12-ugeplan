@@ -254,7 +254,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                   </SelectContent>
                 </Select>
                 {formData.is_temporary && <p className="text-xs text-muted-foreground">
-                    Vikarer får automatisk tildelt "Vikar" rollen
+                    {t('employees.vikarAutoRole')}
                   </p>}
               </div>
               

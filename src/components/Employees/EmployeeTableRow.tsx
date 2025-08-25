@@ -41,11 +41,13 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
   const getRoleLabel = (role: string) => {
     switch (role) {
       case 'administrator':
-        return t('common.roles.administrator');
+        return t('employees.administrator');
       case 'skadeleder':
-        return t('common.roles.skadeleder');
+        return t('employees.skadeleder');
       case 'servicemedarbejder':
-        return t('common.roles.servicemedarbejder');
+        return t('employees.servicemedarbejder');
+      case 'vikar':
+        return t('employees.vikar');
       default:
         return role;
     }

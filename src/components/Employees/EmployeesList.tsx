@@ -114,7 +114,7 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                   <h3 className="font-medium text-gray-900">{employee.name}</h3>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="outline" className="text-xs">
-                      {employee.role}
+                      {t(`employees.${employee.role}`)}
                     </Badge>
                     <Badge 
                       variant={employee.onLeave ? "destructive" : "secondary"}

@@ -130,6 +130,7 @@ const employees = {
   invalidEmail: 'Ugyldig email format',
   networkError: 'Netværksfejl',
   rateLimitError: 'For mange forsøg',
+  vikarAutoRole: 'Vikarer får automatisk tildelt "Vikar" rollen',
 };
 
 export default employees;

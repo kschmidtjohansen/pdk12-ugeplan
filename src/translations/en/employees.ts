@@ -128,6 +128,7 @@ const employees = {
   invalidEmail: 'Invalid email format',
   networkError: 'Network error',
   rateLimitError: 'Too many attempts',
+  vikarAutoRole: 'Substitutes are automatically assigned the "Substitute" role',
 };
 
 export default employees;
