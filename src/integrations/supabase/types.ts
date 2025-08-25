@@ -286,7 +286,9 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           email: string
+          expires_at: string | null
           id: string
+          is_temporary: boolean | null
           job_title: string | null
           name: string
           notes: string | null
@@ -299,7 +301,9 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email: string
+          expires_at?: string | null
           id: string
+          is_temporary?: boolean | null
           job_title?: string | null
           name: string
           notes?: string | null
@@ -312,7 +316,9 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string
+          expires_at?: string | null
           id?: string
+          is_temporary?: boolean | null
           job_title?: string | null
           name?: string
           notes?: string | null
@@ -455,6 +461,10 @@ export type Database = {
       check_system_health: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      cleanup_expired_temporary_users: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       create_logs_partition_for_month: {
         Args: Record<PropertyKey, never>
@@ -681,7 +691,7 @@ export type Database = {
     Enums: {
       assignment_type: "waterDamage" | "fireDamage" | "mold" | "other"
       employee_status: "active" | "inactive" | "on_leave" | "terminated"
-      user_role: "administrator" | "skadeleder" | "servicemedarbejder"
+      user_role: "administrator" | "skadeleder" | "servicemedarbejder" | "vikar"
       vacation_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -812,7 +822,7 @@ export const Constants = {
     Enums: {
       assignment_type: ["waterDamage", "fireDamage", "mold", "other"],
       employee_status: ["active", "inactive", "on_leave", "terminated"],
-      user_role: ["administrator", "skadeleder", "servicemedarbejder"],
+      user_role: ["administrator", "skadeleder", "servicemedarbejder", "vikar"],
       vacation_status: ["pending", "approved", "rejected"],
     },
   },

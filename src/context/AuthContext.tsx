@@ -7,7 +7,7 @@ import { circuitBreaker } from '@/services/circuitBreakerService';
 import { TranslationContext } from './TranslationContext';
 
 // Define user roles
-export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder';
+export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'vikar';
 
 // Export the User type from supabase for components that need it
 export type { User };

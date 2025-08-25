@@ -101,9 +101,21 @@ const employees = {
   administrator: 'Administrator',
   skadeleder: 'Damage Leader',
   servicemedarbejder: 'Service Employee',
+  vikar: 'Substitute',
   
   // Responsible users
   noResponsibleUsersFound: 'No responsible users found',
+  
+  // Temporary users
+  temporaryUser: 'Temporary User',
+  isTemporary: 'Is Substitute',
+  expiresAt: 'Expires',
+  expirationDate: 'Expiration Date',
+  temporaryUserNote: 'Substitutes expire automatically and are deleted after the expiration date',
+  emailOptional: 'Email (optional for substitutes)',
+  phoneOptional: 'Phone (optional for substitutes)',
+  vikarExpiresOn: 'Substitute expires on {date}',
+  vikarExpired: 'Substitute expired',
 };
 
 export default employees;

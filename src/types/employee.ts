@@ -7,9 +7,11 @@ export interface Employee {
   email: string;
   phone?: string;
   jobTitle?: string;
-  role: 'administrator' | 'skadeleder' | 'servicemedarbejder';
+  role: 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'vikar';
   onLeave?: boolean; // Keep for backward compatibility
   status: EmployeeStatus; // New status field
   notes?: string;
   avatar_url?: string;
+  is_temporary?: boolean;
+  expires_at?: string;
 }

@@ -103,9 +103,21 @@ const employees = {
   administrator: 'Administrator',
   skadeleder: 'Skadeleder',
   servicemedarbejder: 'Servicemedarbejder',
+  vikar: 'Vikar',
   
   // Responsible users
   noResponsibleUsersFound: 'Ingen sagsansvarlige fundet',
+  
+  // Temporary users
+  temporaryUser: 'Midlertidig Bruger',
+  isTemporary: 'Er Vikar',
+  expiresAt: 'Udløber',
+  expirationDate: 'Udløbsdato',
+  temporaryUserNote: 'Vikarer udløber automatisk og slettes efter udløbsdatoen',
+  emailOptional: 'Email (valgfri for vikarer)',
+  phoneOptional: 'Telefon (valgfri for vikarer)',
+  vikarExpiresOn: 'Vikar udløber den {date}',
+  vikarExpired: 'Vikar udløbet',
 };
 
 export default employees;

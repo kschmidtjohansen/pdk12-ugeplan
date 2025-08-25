@@ -12,6 +12,8 @@ export interface EmployeeFormData {
   role: UserRole;
   onLeave: boolean;
   notes: string;
+  is_temporary: boolean;
+  expires_at: string;
 }
 
 export const useEmployeeFormState = () => {
@@ -24,7 +26,9 @@ export const useEmployeeFormState = () => {
     jobTitle: '',
     role: 'servicemedarbejder',
     onLeave: false,
-    notes: ''
+    notes: '',
+    is_temporary: false,
+    expires_at: ''
   });
 
   const resetFormData = () => {
@@ -36,7 +40,9 @@ export const useEmployeeFormState = () => {
       jobTitle: '',
       role: 'servicemedarbejder',
       onLeave: false,
-      notes: ''
+      notes: '',
+      is_temporary: false,
+      expires_at: ''
     });
   };
 
@@ -52,11 +58,13 @@ export const useEmployeeFormState = () => {
       name: employee.name,
       email: employee.email,
       password: '',
-      phone: employee.phone,
-      jobTitle: employee.jobTitle,
+      phone: employee.phone || '',
+      jobTitle: employee.jobTitle || '',
       role: employee.role,
       onLeave: employee.onLeave || false,
-      notes: employee.notes || ''
+      notes: employee.notes || '',
+      is_temporary: employee.is_temporary || false,
+      expires_at: employee.expires_at ? new Date(employee.expires_at).toISOString().split('T')[0] : ''
     });
     return formData;
   };

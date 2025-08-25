@@ -24,7 +24,7 @@ import { Employee } from '@/types/employee';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Wifi, WifiOff } from 'lucide-react';
+import { AlertTriangle, Wifi, WifiOff, Calendar } from 'lucide-react';
 import { validateAndSanitizePhone, getPhoneValidationError } from '@/utils/phoneValidation';
 
 interface EmployeeFormDialogProps {
@@ -70,12 +70,14 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
     setCreationMethod('attempting');
     
     try {
-      // Validate phone number first
-      const phoneValidation = validateAndSanitizePhone(formData.phone);
-      if (!phoneValidation.valid) {
-        setPhoneError(phoneValidation.error || 'Invalid phone number');
-        setIsSubmitting(false);
-        return;
+      // Phone validation - only required for non-temporary users
+      if (!formData.is_temporary && formData.phone) {
+        const phoneValidation = validateAndSanitizePhone(formData.phone);
+        if (!phoneValidation.valid) {
+          setPhoneError(phoneValidation.error || 'Invalid phone number');
+          setIsSubmitting(false);
+          return;
+        }
       }
       
       // For new employees, validate password
@@ -200,15 +202,18 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="email">{t("employees.email")}</Label>
+            <Label htmlFor="email">
+              {formData.is_temporary ? t('employees.emailOptional') : t("employees.email")}
+            </Label>
             <Input
               id="email"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleInputChange}
-              required
+              required={!formData.is_temporary}
               disabled={isSubmitting || !!currentEmployee}
+              placeholder={formData.is_temporary ? "vikar@firma.dk (valgfri)" : "medarbejder@firma.dk"}
             />
           </div>
           
@@ -230,7 +235,9 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           )}
           
           <div className="grid gap-2">
-            <Label htmlFor="phone">{t("employees.phone")}</Label>
+            <Label htmlFor="phone">
+              {formData.is_temporary ? t('employees.phoneOptional') : t("employees.phone")}
+            </Label>
             <Input
               id="phone"
               name="phone"
@@ -239,8 +246,9 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                 handleInputChange(e);
                 setPhoneError(''); // Clear error on change
               }}
+              required={!formData.is_temporary}
               disabled={isSubmitting}
-              placeholder="e.g., +45 12 34 56 78"
+              placeholder={formData.is_temporary ? "12 34 56 78 (valgfri)" : "e.g., +45 12 34 56 78"}
             />
           </div>
           
@@ -258,34 +266,98 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           
           {isAdmin && (
             <>
+              {/* Temporary user checkbox */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="is_temporary"
+                    checked={formData.is_temporary}
+                    onCheckedChange={(checked) => {
+                      onCheckboxChange('is_temporary', checked as boolean);
+                      // Auto-set expiration date to 30 days from now for new temporary users
+                      if (checked && !formData.expires_at) {
+                        const expirationDate = new Date();
+                        expirationDate.setDate(expirationDate.getDate() + 30);
+                        handleInputChange({
+                          target: {
+                            name: 'expires_at',
+                            value: expirationDate.toISOString().split('T')[0]
+                          }
+                        } as any);
+                      }
+                      // Auto-set role to vikar for temporary users
+                      if (checked) {
+                        handleSelectChange('vikar');
+                      }
+                    }}
+                    disabled={isSubmitting}
+                  />
+                  <Label htmlFor="is_temporary" className="text-sm font-medium">
+                    {t('employees.isTemporary')}
+                  </Label>
+                </div>
+                
+                {formData.is_temporary && (
+                  <div className="bg-muted p-3 rounded-md">
+                    <div className="flex items-start space-x-2">
+                      <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                      <div className="space-y-2 flex-1">
+                        <Label htmlFor="expires_at">{t('employees.expirationDate')}</Label>
+                        <Input
+                          id="expires_at"
+                          name="expires_at"
+                          type="date"
+                          value={formData.expires_at}
+                          onChange={handleInputChange}
+                          required={formData.is_temporary}
+                          min={new Date().toISOString().split('T')[0]}
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {t('employees.temporaryUserNote')}
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <div className="grid gap-2">
                 <Label htmlFor="role">{t("employees.role")}</Label>
                 <Select
                   name="role"
-                  value={formData.role}
-                  onValueChange={handleSelectChange}
-                  disabled={isSubmitting}
+                  value={formData.is_temporary ? 'vikar' : formData.role}
+                  onValueChange={formData.is_temporary ? undefined : handleSelectChange}
+                  disabled={isSubmitting || formData.is_temporary}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={t("admin.userManagement.selectRole")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="administrator">{t("admin.roles.administrator")}</SelectItem>
-                    <SelectItem value="skadeleder">{t("admin.roles.skadeleder")}</SelectItem>
-                    <SelectItem value="servicemedarbejder">{t("admin.roles.servicemedarbejder")}</SelectItem>
+                    <SelectItem value="administrator">{t("employees.administrator")}</SelectItem>
+                    <SelectItem value="skadeleder">{t("employees.skadeleder")}</SelectItem>
+                    <SelectItem value="servicemedarbejder">{t("employees.servicemedarbejder")}</SelectItem>
+                    <SelectItem value="vikar">{t("employees.vikar")}</SelectItem>
                   </SelectContent>
                 </Select>
+                {formData.is_temporary && (
+                  <p className="text-xs text-muted-foreground">
+                    Vikarer får automatisk tildelt "Vikar" rollen
+                  </p>
+                )}
               </div>
               
-              <div className="flex items-center space-x-2 mt-4">
-                <Checkbox 
-                  id="onLeave"
-                  checked={formData.onLeave}
-                  onCheckedChange={(checked) => onCheckboxChange('onLeave', checked === true)}
-                  disabled={isSubmitting}
-                />
-                <Label htmlFor="onLeave">{t('employees.onLeave')}</Label>
-              </div>
+              {!formData.is_temporary && (
+                <div className="flex items-center space-x-2 mt-4">
+                  <Checkbox 
+                    id="onLeave"
+                    checked={formData.onLeave}
+                    onCheckedChange={(checked) => onCheckboxChange('onLeave', checked === true)}
+                    disabled={isSubmitting}
+                  />
+                  <Label htmlFor="onLeave">{t('employees.onLeave')}</Label>
+                </div>
+              )}
             </>
           )}
           

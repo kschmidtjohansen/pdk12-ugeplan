@@ -46,7 +46,9 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           phone: userData.phone || null,
           job_title: userData.jobTitle || null,
           on_leave: userData.onLeave || false,
-          notes: userData.notes || null
+          notes: userData.notes || null,
+          is_temporary: userData.is_temporary || false,
+          expires_at: userData.is_temporary && userData.expires_at ? userData.expires_at : null
         });
 
       if (profileError) {
@@ -59,7 +61,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         .from('user_roles')
         .insert({
           user_id: authUser.user.id,
-          role: userData.role || 'servicemedarbejder'
+          role: userData.is_temporary ? 'vikar' : (userData.role || 'servicemedarbejder')
         });
 
       if (roleError) {
@@ -94,19 +96,28 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
       let result = null;
       let method = 'unknown';
 
+      // Generate email for temporary users if not provided
+      let finalEmail = formData.email;
+      if (formData.is_temporary && (!finalEmail || !finalEmail.trim())) {
+        const timestamp = Date.now();
+        finalEmail = `vikar-${timestamp}@temp.local`;
+      }
+
       // Method 1: Try edge function first
       try {
         console.log('[useEmployeeCreation] Attempting edge function creation');
         
         const { data, error } = await supabase.functions.invoke('admin-create-user', {
           body: {
-            email: formData.email,
+            email: finalEmail,
             password: formData.password,
             name: formData.name,
-            role: formData.role || 'servicemedarbejder',
+            role: formData.is_temporary ? 'vikar' : (formData.role || 'servicemedarbejder'),
             userData: {
               phone: formData.phone,
-              job_title: formData.jobTitle
+              job_title: formData.jobTitle,
+              is_temporary: formData.is_temporary || false,
+              expires_at: formData.is_temporary && formData.expires_at ? formData.expires_at : null
             }
           }
         });
@@ -140,7 +151,8 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         
         // Method 2: Direct database creation
         try {
-          result = await createUserDirectly(formData);
+          const directFormData = { ...formData, email: finalEmail };
+          result = await createUserDirectly(directFormData);
           method = 'direct-database';
         } catch (directError) {
           console.error('[useEmployeeCreation] Direct creation also failed:', directError);
@@ -166,6 +178,8 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
               job_title: formData.jobTitle || null,
               on_leave: formData.onLeave || false,
               notes: formData.notes || null,
+              is_temporary: formData.is_temporary || false,
+              expires_at: formData.is_temporary && formData.expires_at ? formData.expires_at : null,
               updated_at: new Date().toISOString()
             })
             .eq('id', userId);
@@ -175,10 +189,11 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           }
 
           // Update role if specified and different from default
-          if (formData.role && formData.role !== 'servicemedarbejder') {
+          const targetRole = formData.is_temporary ? 'vikar' : formData.role;
+          if (targetRole && targetRole !== 'servicemedarbejder') {
             const { error: roleError } = await supabase
               .from('user_roles')
-              .update({ role: formData.role })
+              .update({ role: targetRole })
               .eq('user_id', userId);
               
             if (roleError) {
