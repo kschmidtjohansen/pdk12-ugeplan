@@ -93,7 +93,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       
       toast({
         title: t('employees.employeeUpdated'),
-        description: t('employees.employeeUpdateMsg', { name: formData.name })
+        description: t('employees.employeeUpdatedMsg', { name: formData.name })
       });
       
       await refreshEmployees();
