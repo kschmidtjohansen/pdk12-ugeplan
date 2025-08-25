@@ -151,43 +151,38 @@ serve(async (req) => {
       finalEmail = email;
     }
     
-    if (!isTemporary) {
-      // Create the user in auth for regular users
-      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email: finalEmail,
-        password,
-        email_confirm: true,
-        user_metadata: { 
-          name,
-          ...userData
-        }
-      });
-
-      if (createError) {
-        console.error(`[${requestId}] Failed to create user:`, createError);
-        return new Response(
-          JSON.stringify({ error: createError.message }),
-          { 
-            status: 400, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
+    // Create the user in auth for both regular and temporary users
+    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: finalEmail,
+      password: isTemporary ? crypto.randomUUID() : password, // Random password for temporary users
+      email_confirm: true,
+      user_metadata: { 
+        name,
+        phone: userData?.phone,
+        job_title: userData?.job_title,
+        is_temporary: isTemporary
       }
+    });
 
-      if (!newUser.user?.id) {
-        console.error(`[${requestId}] No user ID returned from auth creation`);
-        return new Response(
-          JSON.stringify({ error: 'Failed to create user - no ID returned' }),
-          { 
-            status: 400, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
-      
-      userId = newUser.user.id;
-      console.log(`[${requestId}] User created successfully: ${userId}`);
+    if (createError) {
+      console.error(`[${requestId}] User creation error:`, createError);
+      return new Response(
+        JSON.stringify({ error: `User creation failed: ${createError.message}` }),
+        { status: 400, headers: corsHeaders }
+      );
     }
+
+    if (!newUser.user?.id) {
+      console.error(`[${requestId}] No user ID returned from auth creation`);
+      return new Response(
+        JSON.stringify({ error: 'User creation failed: No user ID returned' }),
+        { status: 500, headers: corsHeaders }
+      );
+    }
+
+    // Use the auth-generated user ID for consistency
+    userId = newUser.user.id;
+    console.log(`[${requestId}] User created:`, { userId, email: finalEmail, temporary: isTemporary });
 
     // Create profile entry
     if (userId) {
