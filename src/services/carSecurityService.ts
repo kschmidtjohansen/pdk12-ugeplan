@@ -3,42 +3,52 @@ import { CarData } from '@/components/Cars/types';
 
 export class CarSecurityService {
   /**
-   * Fetches car data with proper field filtering based on user permissions
-   * Security is now enforced at database level using can_view_fuel_codes() function
+   * Fetches car data with enhanced security and proper access logging
+   * Uses new secure database function with automatic fuel card code protection
    */
   static async fetchCars(canViewFuelCardCode: boolean): Promise<CarData[]> {
     try {
-      // First check if user can view fuel codes at database level
-      const { data: canViewFuel } = await supabase.rpc('can_view_fuel_codes');
+      // Use the new secure function that handles authentication and logging
+      const { data, error } = await supabase.rpc('get_cars_with_security');
       
-      const query = supabase.from('cars').select('*').order('car_number', { ascending: true });
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      
-      // Filter fuel card codes based on database-level permissions
-      if (!canViewFuel && data) {
-        return data.map(car => ({
-          ...car,
-          fuel_card_code: '' // Hide fuel card code for non-admin users
-        }));
+      if (error) {
+        // If access is denied due to authentication, provide clear error
+        if (error.message?.includes('Authentication required')) {
+          throw new Error('You must be logged in to access vehicle data');
+        }
+        throw error;
       }
       
       return data || [];
     } catch (error) {
       console.error('[CarSecurityService] Error fetching cars:', error);
+      
+      // Log security event for failed access attempts
+      try {
+        await supabase.rpc('log_security_event_safe', {
+          event_type: 'car_access_failure',
+          event_message: `Failed to fetch cars: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          event_details: {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date().toISOString()
+          },
+          severity: 'warning'
+        });
+      } catch (logError) {
+        console.warn('[CarSecurityService] Failed to log security event:', logError);
+      }
+      
       throw error;
     }
   }
 
   /**
-   * Creates a new car with proper validation of required fields based on permissions
-   * Security validation using database-level permission check
+   * Creates a new car with enhanced security validation and logging
+   * Uses database-level permission checking and security logging
    */
   static async createCar(carData: Partial<CarData>, canViewFuelCardCode: boolean): Promise<CarData> {
     try {
-      // Check database-level permissions
+      // Check database-level permissions first
       const { data: canViewFuel } = await supabase.rpc('can_view_fuel_codes');
       
       // Validate required fields
@@ -63,6 +73,9 @@ export class CarSecurityService {
       // Only include fuel_card_code if user has database permission
       if (canViewFuel && carData.fuel_card_code) {
         insertData.fuel_card_code = carData.fuel_card_code;
+      } else if (!canViewFuel) {
+        // For non-admin users, set a placeholder that will be masked
+        insertData.fuel_card_code = 'PENDING_ADMIN_APPROVAL';
       }
 
       const { data, error } = await supabase
@@ -71,7 +84,31 @@ export class CarSecurityService {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Log failed car creation attempt
+        await supabase.rpc('log_security_event_safe', {
+          event_type: 'car_creation_failure',
+          event_message: `Failed to create car: ${error.message}`,
+          event_details: {
+            car_data: { name: carData.name, car_number: carData.car_number },
+            error: error.message
+          },
+          severity: 'warning'
+        });
+        throw error;
+      }
+
+      // Log successful car creation
+      await supabase.rpc('log_security_event_safe', {
+        event_type: 'car_creation_success',
+        event_message: `Successfully created car: ${data.name}`,
+        event_details: {
+          car_id: data.id,
+          car_name: data.name,
+          created_by_admin: canViewFuel
+        },
+        severity: 'info'
+      });
       
       return data;
     } catch (error) {
@@ -81,8 +118,8 @@ export class CarSecurityService {
   }
 
   /**
-   * Updates a car with proper field filtering based on permissions
-   * Security validation using database-level permission check
+   * Updates a car with enhanced security validation and logging
+   * Uses database-level permission checking and security logging
    */
   static async updateCar(
     carId: string, 
@@ -115,7 +152,31 @@ export class CarSecurityService {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Log failed car update attempt
+        await supabase.rpc('log_security_event_safe', {
+          event_type: 'car_update_failure',
+          event_message: `Failed to update car ${carId}: ${error.message}`,
+          event_details: {
+            car_id: carId,
+            error: error.message
+          },
+          severity: 'warning'
+        });
+        throw error;
+      }
+
+      // Log successful car update
+      await supabase.rpc('log_security_event_safe', {
+        event_type: 'car_update_success',
+        event_message: `Successfully updated car: ${data.name}`,
+        event_details: {
+          car_id: data.id,
+          car_name: data.name,
+          updated_by_admin: canViewFuel
+        },
+        severity: 'info'
+      });
       
       return data;
     } catch (error) {

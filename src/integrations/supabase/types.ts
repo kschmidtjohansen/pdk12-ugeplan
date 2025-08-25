@@ -513,6 +513,21 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_cars_with_security: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          car_number: string
+          created_at: string
+          fuel_card_code: string
+          has_trailer_hitch: boolean
+          id: string
+          is_available: boolean
+          name: string
+          notes: string
+          number_plate: string
+          updated_at: string
+        }[]
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
@@ -582,6 +597,10 @@ export type Database = {
           retry_count?: number
           user_id_param?: string
         }
+        Returns: undefined
+      }
+      log_profile_access_attempt: {
+        Args: { access_type: string; profile_id: string }
         Returns: undefined
       }
       log_realtime_change_throttled: {

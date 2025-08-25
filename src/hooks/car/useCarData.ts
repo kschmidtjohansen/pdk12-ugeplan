@@ -12,38 +12,51 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
   const { toast } = useToast();
   const { t } = useTranslation();
 
-  // Fetch cars from Supabase with security filtering
+  // Fetch cars from Supabase with enhanced security
   const fetchCars = async () => {
     try {
-      console.log('[useCarData] Fetching cars with security filtering...');
+      console.log('[useCarData] Fetching cars with enhanced security...');
       setLoading(true);
+      setError(null);
+      
       const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
       
       console.log('[useCarData] Successfully fetched', data?.length || 0, 'cars');
       setCars(data || []);
     } catch (err) {
       console.error('[useCarData] Error fetching cars:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch cars');
-      toast({
-        title: t('common.error'),
-        description: t('cars.fetchError'),
-        variant: 'destructive',
-      });
+      
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch cars';
+      setError(errorMessage);
+      
+      // Handle authentication errors specifically
+      if (errorMessage.includes('logged in') || errorMessage.includes('Authentication required')) {
+        toast({
+          title: t('auth.authenticationRequired'),
+          description: t('auth.authenticationRequiredDescription'),
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: t('common.error'),
+          description: t('cars.fetchError'),
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Create a new car with security validation
+  // Create a new car with enhanced security validation
   const createCar = async (carData: Partial<CarData>) => {
     try {
       console.log('[useCarData] Creating car with data:', carData);
       
       const data = await CarSecurityService.createCar(carData, canViewFuelCardCode);
       
-      // Add the new car to local state (with proper fuel card filtering)
-      const filteredData = canViewFuelCardCode ? data : { ...data, fuel_card_code: '' };
-      setCars(prevCars => [...prevCars, filteredData]);
+      // Add the new car to local state (fuel card filtering is handled by the database function)
+      setCars(prevCars => [...prevCars, data]);
       
       toast({
         title: t('cars.vehicleAdded'),
@@ -54,36 +67,63 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
     } catch (err) {
       console.error('[useCarData] Error creating car:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to create car';
-      toast({
-        title: t('common.error'),
-        description: errorMessage,
-        variant: 'destructive',
-      });
+      
+      // Handle authentication errors specifically
+      if (errorMessage.includes('logged in') || errorMessage.includes('Authentication required')) {
+        toast({
+          title: t('auth.authenticationRequired'),
+          description: t('auth.authenticationRequiredDescription'),
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: t('common.error'),
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
       return false;
     }
   };
 
-  // Load cars on component mount
+  // Load cars on component mount with enhanced error handling
   useEffect(() => {
     let isMounted = true;
     
     const loadCars = async () => {
       try {
+        setLoading(true);
+        setError(null);
+        
         const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
         
         if (isMounted) {
           setCars(data || []);
-          setLoading(false);
         }
       } catch (err) {
         console.error('Error fetching cars:', err);
+        
         if (isMounted) {
-          setError(err instanceof Error ? err.message : 'Failed to fetch cars');
-          toast({
-            title: t('common.error'),
-            description: t('common.error'),
-            variant: 'destructive',
-          });
+          const errorMessage = err instanceof Error ? err.message : 'Failed to fetch cars';
+          setError(errorMessage);
+          
+          // Handle authentication errors specifically
+          if (errorMessage.includes('logged in') || errorMessage.includes('Authentication required')) {
+            toast({
+              title: t('auth.authenticationRequired'),
+              description: t('auth.authenticationRequiredDescription'),
+              variant: 'destructive',
+            });
+          } else {
+            toast({
+              title: t('common.error'),
+              description: t('cars.fetchError'),
+              variant: 'destructive',
+            });
+          }
+        }
+      } finally {
+        if (isMounted) {
           setLoading(false);
         }
       }
