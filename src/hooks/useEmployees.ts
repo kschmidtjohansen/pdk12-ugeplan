@@ -51,6 +51,7 @@ export const useEmployees = () => {
     fetchEmployees,
     currentEmployee: formState.currentEmployee,
     formData: formState.formData,
+    creationType: formState.creationType,
     prepareForCreate: formState.prepareForCreate,
     prepareForEdit: formState.prepareForEdit,
     prepareForCreateVikar: formState.prepareForCreateVikar,

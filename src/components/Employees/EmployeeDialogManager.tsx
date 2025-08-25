@@ -17,6 +17,7 @@ interface EmployeeDialogManagerProps {
   currentEmployee: Employee | null;
   formData: EmployeeFormData;
   employeeNote: string;
+  creationType?: 'employee' | 'vikar' | 'edit';
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (value: string) => void;
   handleCheckboxChange?: (field: string, checked: boolean) => void;
@@ -40,6 +41,7 @@ const EmployeeDialogManager: React.FC<EmployeeDialogManagerProps> = ({
   currentEmployee,
   formData,
   employeeNote,
+  creationType = 'edit',
   handleInputChange,
   handleSelectChange,
   handleCheckboxChange,
@@ -61,6 +63,7 @@ const EmployeeDialogManager: React.FC<EmployeeDialogManagerProps> = ({
         <EmployeeFormDialog
           currentEmployee={currentEmployee}
           formData={formData}
+          creationType={creationType}
           handleInputChange={handleInputChange}
           handleSelectChange={handleSelectChange}
           handleCheckboxChange={handleCheckboxChange}

@@ -16,8 +16,11 @@ export interface EmployeeFormData {
   expires_at: string;
 }
 
+export type CreationType = 'employee' | 'vikar' | 'edit';
+
 export const useEmployeeFormState = () => {
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
+  const [creationType, setCreationType] = useState<CreationType>('employee');
   const [formData, setFormData] = useState<EmployeeFormData>({
     name: '',
     email: '',
@@ -48,12 +51,14 @@ export const useEmployeeFormState = () => {
 
   const prepareForCreate = () => {
     setCurrentEmployee(null);
+    setCreationType('employee');
     resetFormData();
     return formData;
   };
 
   const prepareForEdit = (employee: Employee) => {
     setCurrentEmployee(employee);
+    setCreationType('edit');
     setFormData({
       name: employee.name,
       email: employee.email,
@@ -71,6 +76,7 @@ export const useEmployeeFormState = () => {
 
   const prepareForCreateVikar = () => {
     setCurrentEmployee(null);
+    setCreationType('vikar');
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 30); // 30 days from now
     
@@ -114,6 +120,7 @@ export const useEmployeeFormState = () => {
   return {
     currentEmployee,
     formData,
+    creationType,
     prepareForCreate,
     prepareForEdit,
     prepareForCreateVikar,

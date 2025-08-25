@@ -28,6 +28,7 @@ const EmployeesPage: React.FC = () => {
     fetchEmployees,
     currentEmployee,
     formData,
+    creationType,
     prepareForCreate,
     prepareForEdit,
     prepareForCreateVikar,
@@ -132,6 +133,7 @@ const EmployeesPage: React.FC = () => {
           <EmployeeFormDialog 
             currentEmployee={currentEmployee}
             formData={formData}
+            creationType={creationType}
             handleInputChange={handleInputChange}
             handleSelectChange={handleSelectChange}
             handleCheckboxChange={handleCheckboxChange}

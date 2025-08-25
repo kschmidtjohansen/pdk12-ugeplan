@@ -16,6 +16,7 @@ import { validateAndSanitizePhone, getPhoneValidationError } from '@/utils/phone
 interface EmployeeFormDialogProps {
   currentEmployee: Employee | null;
   formData: any;
+  creationType: 'employee' | 'vikar' | 'edit';
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (value: string) => void;
   handleCheckboxChange?: (field: string, checked: boolean) => void;
@@ -25,6 +26,7 @@ interface EmployeeFormDialogProps {
 const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
   currentEmployee,
   formData,
+  creationType,
   handleInputChange,
   handleSelectChange,
   handleCheckboxChange,
@@ -138,10 +140,12 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
   return <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
         <DialogTitle>
-          {currentEmployee ? t("employees.editEmployee") : t("employees.addNewEmployee")}
+          {creationType === 'edit' ? t("employees.editEmployee") : 
+           creationType === 'vikar' ? t("employees.addVikar") : 
+           t("employees.addNewEmployee")}
         </DialogTitle>
         <DialogDescription>
-          {currentEmployee ? t("employees.updateInfo") : t("employees.createAccount")}
+          {creationType === 'edit' ? t("employees.updateInfo") : t("employees.createAccount")}
         </DialogDescription>
       </DialogHeader>
       
@@ -196,8 +200,8 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           </div>
           
           {isAdmin && <>
-              {/* Temporary user checkbox */}
-              <div className="space-y-4">
+              {/* Temporary user checkbox - only show when editing or creating vikar */}
+              {creationType !== 'employee' && <div className="space-y-4">
                 <div className="flex items-center space-x-2">
                   <Checkbox id="is_temporary" checked={formData.is_temporary} onCheckedChange={checked => {
                 onCheckboxChange('is_temporary', checked as boolean);
@@ -234,7 +238,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                       {t('employees.temporaryUserNote')}
                     </p>
                   </div>}
-              </div>
+              </div>}
 
               <div className="grid gap-2">
                 <Label htmlFor="role">{t("employees.role")}</Label>
