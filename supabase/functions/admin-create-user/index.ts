@@ -186,7 +186,9 @@ serve(async (req) => {
           email: email,
           phone: sanitizedPhone,
           job_title: userData?.job_title || null,
-          status: 'active'
+          status: 'active',
+          is_temporary: userData?.is_temporary || false,
+          expires_at: userData?.is_temporary && userData?.expires_at ? userData.expires_at : null
         });
 
       if (profileError) {
