@@ -6,26 +6,35 @@ import { EnhancedSecureLoginForm } from '@/components/Auth/EnhancedSecureLoginFo
 import { useTranslation } from '@/context/TranslationContext';
 
 const LoginPage = () => {
-  const { isAuthenticated, authReady } = useAuth();
+  const { isAuthenticated, authReady, session, userDataLoaded } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  console.log('[LoginPage] COMPREHENSIVE FIX - Render state:', {
+  console.log('[LoginPage] REDIRECTION FIX - Render state:', {
     isAuthenticated,
-    authReady
+    authReady,
+    session: !!session,
+    userDataLoaded
   });
 
   // Only redirect if auth is ready and user is authenticated
   useEffect(() => {
-    if (authReady && isAuthenticated) {
-      console.log('[LoginPage] COMPREHENSIVE FIX - User authenticated, redirecting to dashboard');
+    console.log('[LoginPage] REDIRECTION FIX - Auth state:', {
+      isAuthenticated,
+      authReady,
+      session: !!session,
+      userDataLoaded
+    });
+    
+    if (authReady && isAuthenticated && session) {
+      console.log('[LoginPage] REDIRECTION FIX - User authenticated, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
     }
-  }, [isAuthenticated, authReady, navigate]);
+  }, [isAuthenticated, authReady, session, userDataLoaded, navigate]);
 
   const handleLoginSuccess = () => {
-    console.log('[LoginPage] COMPREHENSIVE FIX - Login success callback triggered');
-    // Navigation will be handled by the useEffect above
+    console.log('[LoginPage] REDIRECTION FIX - Login success callback triggered');
+    // Navigation will be handled by the useEffect above when session is available
   };
 
   // Show login form - don't block it with auth checks
@@ -54,7 +63,10 @@ const LoginPage = () => {
         {/* Debug info in dev mode */}
         {process.env.NODE_ENV === 'development' && (
           <div className="mt-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
-            Auth Ready: {authReady ? 'Yes' : 'No'} | Authenticated: {isAuthenticated ? 'Yes' : 'No'}
+            Auth Ready: {authReady ? 'Yes' : 'No'} | 
+            Authenticated: {isAuthenticated ? 'Yes' : 'No'} | 
+            Session: {session ? 'Yes' : 'No'} | 
+            User Data: {userDataLoaded ? 'Loaded' : 'Loading'}
           </div>
         )}
       </div>

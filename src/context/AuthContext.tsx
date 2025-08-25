@@ -22,7 +22,9 @@ export interface AppUser {
 
 interface AuthContextType {
   user: AppUser | null;
+  session: Session | null;
   isAuthenticated: boolean;
+  userDataLoaded: boolean;
   isAdmin: boolean;
   isSkadeleder: boolean;
   isServicemedarbejder: boolean;
@@ -58,7 +60,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  session: null,
   isAuthenticated: false,
+  userDataLoaded: false,
   isAdmin: false,
   isSkadeleder: false,
   isServicemedarbejder: false,
@@ -101,6 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [authReady, setAuthReady] = useState<boolean>(false);
+  const [userDataLoaded, setUserDataLoaded] = useState<boolean>(false);
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [sessionExpired, setSessionExpired] = useState<boolean>(false);
   const { toast } = useToast();
@@ -274,30 +279,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setSessionExpired(false);
             
             if (newSession?.user) {
-              // Fetch user data asynchronously but don't block auth state
-              setTimeout(async () => {
+              // Provide immediate fallback user data so authentication works instantly
+              const fallbackUser: AppUser = {
+                id: newSession.user.id,
+                name: newSession.user.email || 'User',
+                email: newSession.user.email || '',
+                role: 'servicemedarbejder'
+              };
+              setUser(fallbackUser);
+              setUserDataLoaded(false);
+              
+              // Fetch full user data asynchronously - this doesn't block authentication
+              (async () => {
                 if (!mounted) return;
                 
                 try {
                   const userData = await fetchUserData(newSession.user);
                   if (userData && mounted) {
+                    console.log('[AuthContext] REDIRECTION FIX - Full user data loaded:', userData);
                     setUser(userData);
+                    setUserDataLoaded(true);
                   }
                 } catch (error) {
                   console.warn('[AuthContext] User data fetch in auth change failed:', error);
-                  // Use fallback user data
+                  // Keep the fallback user data
                   if (mounted) {
-                    setUser({
-                      id: newSession.user.id,
-                      name: newSession.user.email || 'User',
-                      email: newSession.user.email || '',
-                      role: 'servicemedarbejder'
-                    });
+                    setUserDataLoaded(true);
                   }
                 }
-              }, 0);
+              })();
             } else {
               setUser(null);
+              setUserDataLoaded(false);
             }
 
             // Mark auth as ready after first state change
@@ -456,12 +469,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // AUTHENTICATION FIX: isAuthenticated based on session only, not user data
+  const isAuthenticated = !!session;
+  
   // Permissions based on current user (with demo role override)
   const currentRole = isDemoMode && demoRole ? demoRole : user?.role;
   const isAdmin = currentRole === 'administrator';
-  const isSkadeleder = currentRole === 'skadeleder';
+  const isSkadeleder = currentRole === 'skadeleder';  
   const isServicemedarbejder = currentRole === 'servicemedarbejder';
-  const isAuthenticated = !!user && !!session;
 
   // Effective role permissions (considering demo mode)
   const isEffectiveAdmin = currentRole === 'administrator';
@@ -664,7 +679,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value: AuthContextType = {
     user,
-    isAuthenticated: !!user && !!session && !sessionExpired,
+    session,
+    isAuthenticated,
+    userDataLoaded,
     isAdmin,
     isSkadeleder,
     isServicemedarbejder,
