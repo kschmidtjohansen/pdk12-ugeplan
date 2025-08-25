@@ -582,6 +582,21 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_car_with_conditional_access: {
+        Args: { car_row: Database["public"]["Tables"]["cars"]["Row"] }
+        Returns: {
+          car_number: string
+          created_at: string
+          fuel_card_code: string
+          has_trailer_hitch: boolean
+          id: string
+          is_available: boolean
+          name: string
+          notes: string
+          number_plate: string
+          updated_at: string
+        }[]
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
