@@ -237,7 +237,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         
         toast({
           title: t('employees.employeeCreated'),
-          description: `${t('employees.employeeCreatedMsg', { name: formData.name })} (${t('employees.methodUsed')}: ${method})`
+          description: t('employees.employeeCreatedMsg', { name: formData.name })
         });
         
         await refreshEmployees();
