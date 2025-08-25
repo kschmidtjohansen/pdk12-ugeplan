@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
@@ -12,18 +11,20 @@ import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useVacations } from '@/hooks/useVacations';
 import { Employee } from '@/types/employee';
-
 const EmployeesPage: React.FC = () => {
-  const { isAdmin } = usePermissions();
-  const { t } = useTranslation();
+  const {
+    isAdmin
+  } = usePermissions();
+  const {
+    t
+  } = useTranslation();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
-
-  const { 
+  const {
     employees,
     regularEmployees,
     vikarer,
-    loading, 
+    loading,
     error,
     fetchEmployees,
     currentEmployee,
@@ -39,36 +40,31 @@ const EmployeesPage: React.FC = () => {
     deleteEmployee,
     toggleEmployeeLeave
   } = useEmployees();
-  
-  const { vacations } = useVacations();
-
+  const {
+    vacations
+  } = useVacations();
   const handleCreateNew = () => {
     prepareForCreate();
     setFormDialogOpen(true);
   };
-
   const handleCreateVikar = () => {
     prepareForCreateVikar();
     setFormDialogOpen(true);
   };
-
   const handleEdit = (employee: Employee) => {
     prepareForEdit(employee);
     setFormDialogOpen(true);
   };
-
   const handleDelete = (employee: Employee) => {
     prepareForEdit(employee);
     setDeleteDialogOpen(true);
   };
-
   const confirmDelete = async () => {
     if (currentEmployee) {
       await deleteEmployee(currentEmployee.id);
       setDeleteDialogOpen(false);
     }
   };
-
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const success = currentEmployee ? await updateEmployee() : await createEmployee();
@@ -76,18 +72,14 @@ const EmployeesPage: React.FC = () => {
       setFormDialogOpen(false);
     }
   };
-
   const handleToggleLeave = (employee: Employee) => {
     if (!isAdmin) return;
     toggleEmployeeLeave(employee, !employee.onLeave);
   };
-
   const handleRetry = () => {
     fetchEmployees();
   };
-
-  return (
-    <div className="min-h-screen w-full bg-background">
+  return <div className="min-h-screen w-full bg-background">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Simple Header */}
         <div className="flex items-center justify-between">
@@ -99,57 +91,30 @@ const EmployeesPage: React.FC = () => {
               {t("employees.description")}
             </p>
           </div>
-          {isAdmin && (
-            <div className="flex gap-2">
+          {isAdmin && <div className="flex gap-2">
               <Button onClick={handleCreateNew}>
                 <Plus className="h-4 w-4 mr-2" />
                 {t("employees.addEmployee")}
               </Button>
-              <Button onClick={handleCreateVikar} variant="outline">
-                <UserPlus className="h-4 w-4 mr-2" />
-                {t("employees.addVikar")}
-              </Button>
-            </div>
-          )}
+              
+            </div>}
         </div>
 
         {/* Employees Table */}
         <div className="bg-white rounded-lg border shadow-sm">
-          <EmployeesTable 
-            employees={employees}
-            vacations={vacations}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onToggleLeave={handleToggleLeave}
-            error={error}
-            loading={loading}
-            onRetry={handleRetry}
-          />
+          <EmployeesTable employees={employees} vacations={vacations} onEdit={handleEdit} onDelete={handleDelete} onToggleLeave={handleToggleLeave} error={error} loading={loading} onRetry={handleRetry} />
         </div>
 
         {/* Form Dialog */}
         <Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>
-          <EmployeeFormDialog 
-            currentEmployee={currentEmployee}
-            formData={formData}
-            handleInputChange={handleInputChange}
-            handleSelectChange={handleSelectChange}
-            handleCheckboxChange={handleCheckboxChange}
-            handleSubmit={handleFormSubmit}
-            onClose={() => setFormDialogOpen(false)}
-          />
+          <EmployeeFormDialog currentEmployee={currentEmployee} formData={formData} handleInputChange={handleInputChange} handleSelectChange={handleSelectChange} handleCheckboxChange={handleCheckboxChange} handleSubmit={handleFormSubmit} onClose={() => setFormDialogOpen(false)} />
         </Dialog>
 
         {/* Delete Dialog */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <EmployeeDeleteDialog
-            employee={currentEmployee}
-            onConfirmDelete={confirmDelete}
-          />
+          <EmployeeDeleteDialog employee={currentEmployee} onConfirmDelete={confirmDelete} />
         </AlertDialog>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default EmployeesPage;
