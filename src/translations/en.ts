@@ -14,6 +14,7 @@ import { auth } from './en/auth';
 import screenDisplay from './en/screenDisplay';
 import accessDenied from './en/accessDenied';
 import deleteConfirm from './en/deleteConfirm';
+import vagtplan from './en/vagtplan';
 
 const enTranslations = {
   // Common components
@@ -58,7 +59,9 @@ const enTranslations = {
   // Access denied
   accessDenied: accessDenied,
   // Delete confirmations
-  deleteConfirm: deleteConfirm
+  deleteConfirm: deleteConfirm,
+  // Vagtplan
+  vagtplan: vagtplan
 };
 
 export type EnTranslations = typeof enTranslations;

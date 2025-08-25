@@ -14,6 +14,7 @@ import { auth } from './da/auth';
 import screenDisplay from './da/screenDisplay';
 import accessDenied from './da/accessDenied';
 import deleteConfirm from './da/deleteConfirm';
+import vagtplan from './da/vagtplan';
 
 const daTranslations = {
   // Common components
@@ -58,7 +59,9 @@ const daTranslations = {
   // Access denied
   accessDenied: accessDenied,
   // Delete confirmations
-  deleteConfirm: deleteConfirm
+  deleteConfirm: deleteConfirm,
+  // Vagtplan
+  vagtplan: vagtplan
 };
 
 export type DaTranslations = typeof daTranslations;
