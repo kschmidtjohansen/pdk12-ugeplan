@@ -140,15 +140,21 @@ serve(async (req) => {
     console.log(`[${requestId}] Creating user - temporary: ${isTemporary}, email: ${email || 'none'}, name: ${name}, role: ${role}`);
 
     let userId: string;
+    let finalEmail: string;
     
     if (isTemporary) {
-      // For temporary users, generate UUID without creating Auth user
+      // For temporary users, generate UUID and temporary email
       userId = crypto.randomUUID();
-      console.log(`[${requestId}] Generated UUID for temporary user: ${userId}`);
+      finalEmail = email || `vikar-${Date.now()}-${userId.substring(0, 8)}@temp.local`;
+      console.log(`[${requestId}] Generated UUID for temporary user: ${userId}, temp email: ${finalEmail}`);
     } else {
+      finalEmail = email;
+    }
+    
+    if (!isTemporary) {
       // Create the user in auth for regular users
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email,
+        email: finalEmail,
         password,
         email_confirm: true,
         user_metadata: { 
@@ -216,7 +222,7 @@ serve(async (req) => {
         .insert({
           id: userId,
           name: name,
-          email: email || null,
+          email: finalEmail,
           phone: sanitizedPhone,
           job_title: userData?.job_title || null,
           status: 'active',

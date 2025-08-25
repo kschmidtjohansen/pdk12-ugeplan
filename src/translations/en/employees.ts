@@ -117,6 +117,17 @@ const employees = {
   phoneOptional: 'Phone (optional for substitutes)',
   vikarExpiresOn: 'Substitute expires on {date}',
   vikarExpired: 'Substitute expired',
+  
+  // Creation method and error messages
+  methodUsed: 'Method used',
+  allMethodsFailed: 'All creation methods failed',
+  directCreationFailed: 'Direct creation failed',
+  edgeFunctionFailed: 'Edge function failed',
+  createError: 'Creation error',
+  userAlreadyExists: 'User already exists',
+  invalidEmail: 'Invalid email format',
+  networkError: 'Network error',
+  rateLimitError: 'Too many attempts',
 };
 
 export default employees;

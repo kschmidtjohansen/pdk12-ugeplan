@@ -119,6 +119,17 @@ const employees = {
   phoneOptional: 'Telefon (valgfri for vikarer)',
   vikarExpiresOn: 'Vikar udløber den {date}',
   vikarExpired: 'Vikar udløbet',
+  
+  // Creation method and error messages
+  methodUsed: 'Metode anvendt',
+  allMethodsFailed: 'Alle oprettelsesmetoder fejlede',
+  directCreationFailed: 'Direkte oprettelse fejlede',
+  edgeFunctionFailed: 'Edge function fejlede',
+  createError: 'Fejl ved oprettelse',
+  userAlreadyExists: 'Bruger eksisterer allerede',
+  invalidEmail: 'Ugyldig email format',
+  networkError: 'Netværksfejl',
+  rateLimitError: 'For mange forsøg',
 };
 
 export default employees;
