@@ -7,15 +7,7 @@ import { useEmployeeActions } from './employee/useEmployeeActions';
 export const useEmployees = () => {
   const { employees, loading, error, fetchEmployees } = useEmployeeData();
   
-  const {
-    currentEmployee,
-    formData,
-    prepareForCreate,
-    prepareForEdit,
-    handleInputChange,
-    handleSelectChange,
-    handleCheckboxChange
-  } = useEmployeeFormState();
+  const formState = useEmployeeFormState();
   
   const {
     createEmployee: createEmployeeAction,
@@ -26,12 +18,12 @@ export const useEmployees = () => {
 
   // Wrapper functions that use the current state from useEmployeeFormState
   const createEmployee = async () => {
-    return await createEmployeeAction(formData);
+    return await createEmployeeAction(formState.formData);
   };
 
   const updateEmployee = async () => {
-    if (currentEmployee) {
-      return await updateEmployeeAction(currentEmployee, formData);
+    if (formState.currentEmployee) {
+      return await updateEmployeeAction(formState.currentEmployee, formState.formData);
     }
     return false;
   };
@@ -44,20 +36,27 @@ export const useEmployees = () => {
     return await toggleEmployeeLeaveAction(employee, setOnLeave, notes);
   };
 
-  console.log(`[useEmployees] Providing ${employees.length} employees`);
+  // Separate regular employees from vikarer
+  const regularEmployees = employees.filter(emp => emp.role !== 'vikar');
+  const vikarer = employees.filter(emp => emp.role === 'vikar');
+
+  console.log(`[useEmployees] Providing ${employees.length} employees (${regularEmployees.length} regular, ${vikarer.length} vikarer)`);
 
   return {
     employees,
+    regularEmployees,
+    vikarer,
     loading,
     error,
     fetchEmployees,
-    currentEmployee,
-    formData,
-    prepareForCreate,
-    prepareForEdit,
-    handleInputChange,
-    handleSelectChange,
-    handleCheckboxChange,
+    currentEmployee: formState.currentEmployee,
+    formData: formState.formData,
+    prepareForCreate: formState.prepareForCreate,
+    prepareForEdit: formState.prepareForEdit,
+    prepareForCreateVikar: formState.prepareForCreateVikar,
+    handleInputChange: formState.handleInputChange,
+    handleSelectChange: formState.handleSelectChange,
+    handleCheckboxChange: formState.handleCheckboxChange,
     createEmployee,
     updateEmployee,
     deleteEmployee,

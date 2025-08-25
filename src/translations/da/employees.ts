@@ -30,6 +30,7 @@ const employees = {
   
   // Actions
   addEmployee: 'Tilføj Medarbejder',
+  addVikar: 'Tilføj Vikar',
   editEmployee: 'Rediger Medarbejder',
   deleteEmployee: 'Slet Medarbejder',
   save: 'Gem Medarbejder',

@@ -69,6 +69,26 @@ export const useEmployeeFormState = () => {
     return formData;
   };
 
+  const prepareForCreateVikar = () => {
+    setCurrentEmployee(null);
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + 30); // 30 days from now
+    
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      phone: '',
+      jobTitle: '',
+      role: 'vikar',
+      onLeave: false,
+      notes: '',
+      is_temporary: true,
+      expires_at: expirationDate.toISOString().split('T')[0]
+    });
+    return formData;
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -96,6 +116,7 @@ export const useEmployeeFormState = () => {
     formData,
     prepareForCreate,
     prepareForEdit,
+    prepareForCreateVikar,
     handleInputChange,
     handleSelectChange,
     handleCheckboxChange

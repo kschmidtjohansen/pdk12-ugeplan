@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Users, UserPlus } from 'lucide-react';
 import EmployeesTable from '@/components/Employees/EmployeesTable';
 import EmployeeFormDialog from '@/components/Employees/EmployeeFormDialog';
 import EmployeeDeleteDialog from '@/components/Employees/EmployeeDeleteDialog';
@@ -20,7 +20,9 @@ const EmployeesPage: React.FC = () => {
   const [formDialogOpen, setFormDialogOpen] = useState(false);
 
   const { 
-    employees, 
+    employees,
+    regularEmployees,
+    vikarer,
     loading, 
     error,
     fetchEmployees,
@@ -28,6 +30,7 @@ const EmployeesPage: React.FC = () => {
     formData,
     prepareForCreate,
     prepareForEdit,
+    prepareForCreateVikar,
     handleInputChange,
     handleSelectChange,
     handleCheckboxChange,
@@ -41,6 +44,11 @@ const EmployeesPage: React.FC = () => {
 
   const handleCreateNew = () => {
     prepareForCreate();
+    setFormDialogOpen(true);
+  };
+
+  const handleCreateVikar = () => {
+    prepareForCreateVikar();
     setFormDialogOpen(true);
   };
 
@@ -85,17 +93,23 @@ const EmployeesPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {t("employees.title")} ({employees.length})
+              {regularEmployees.length} {t("employees.title")} - {vikarer.length} Vikarer
             </h1>
             <p className="text-gray-600">
               {t("employees.description")}
             </p>
           </div>
           {isAdmin && (
-            <Button onClick={handleCreateNew}>
-              <Plus className="h-4 w-4 mr-2" />
-              {t("employees.addEmployee")}
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={handleCreateNew}>
+                <Plus className="h-4 w-4 mr-2" />
+                {t("employees.addEmployee")}
+              </Button>
+              <Button onClick={handleCreateVikar} variant="outline">
+                <UserPlus className="h-4 w-4 mr-2" />
+                {t("employees.addVikar")}
+              </Button>
+            </div>
           )}
         </div>
 

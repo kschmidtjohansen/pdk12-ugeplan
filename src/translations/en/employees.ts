@@ -28,6 +28,7 @@ const employees = {
   
   // Actions
   addEmployee: 'Add Employee',
+  addVikar: 'Add Substitute',
   editEmployee: 'Edit Employee',
   deleteEmployee: 'Delete Employee',
   save: 'Save Employee',
