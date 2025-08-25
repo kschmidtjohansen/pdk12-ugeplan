@@ -13,7 +13,7 @@ const VagtplanPage: React.FC = () => {
 
   const handleFullscreen = () => {
     // Open the OneDrive file in a new tab for fullscreen viewing
-    const oneDriveUrl = process.env.REACT_APP_ONEDRIVE_EMBED_URL || '#';
+    const oneDriveUrl = import.meta.env.VITE_ONEDRIVE_EMBED_URL || '#';
     window.open(oneDriveUrl, '_blank');
   };
 

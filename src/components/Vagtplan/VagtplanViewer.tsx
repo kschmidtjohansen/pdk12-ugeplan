@@ -10,8 +10,8 @@ const VagtplanViewer: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  // Placeholder OneDrive embed URL - user needs to provide this
-  const oneDriveEmbedUrl = process.env.REACT_APP_ONEDRIVE_EMBED_URL || '';
+  // Get OneDrive embed URL from environment
+  const oneDriveEmbedUrl = import.meta.env.VITE_ONEDRIVE_EMBED_URL || '';
 
   const handleIframeLoad = () => {
     setIsLoading(false);
