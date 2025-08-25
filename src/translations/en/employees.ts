@@ -13,6 +13,7 @@ const employees = {
   notes: 'Notes',
   contact: 'Contact',
   avatar: 'Avatar',
+  onLeave: 'On Leave',
   
   // Status translations
   status: {
