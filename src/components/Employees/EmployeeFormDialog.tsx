@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +44,13 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
   const [phoneError, setPhoneError] = useState('');
   const [creationMethod, setCreationMethod] = useState<'attempting' | 'edge-function' | 'direct-database' | 'failed'>('attempting');
 
+  // Auto-set password validation to true for temporary users
+  useEffect(() => {
+    if (formData.is_temporary) {
+      setIsPasswordValid(true);
+    }
+  }, [formData.is_temporary]);
+
   // Handle checkbox change if no specific handler is provided
   const onCheckboxChange = (field: string, checked: boolean) => {
     if (handleCheckboxChange) {
@@ -67,8 +74,8 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
         }
       }
 
-      // For new employees, validate password
-      if (!currentEmployee) {
+      // For new employees, validate password (skip for temporary users)
+      if (!currentEmployee && !formData.is_temporary) {
         if (!isPasswordValid) {
           setErrorMessage(t('employees.passwordRequirements'));
           setIsSubmitting(false);
@@ -168,7 +175,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
             <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} required={!formData.is_temporary} disabled={isSubmitting || !!currentEmployee} placeholder={formData.is_temporary ? "vikar@firma.dk (valgfri)" : "medarbejder@firma.dk"} />
           </div>
           
-          {!currentEmployee && <div className="grid gap-2">
+          {!currentEmployee && !formData.is_temporary && <div className="grid gap-2">
               <Label htmlFor="password">{t("common.password")}</Label>
               <PasswordInput id="password" name="password" value={formData.password} onChange={handleInputChange} required disabled={isSubmitting} autoComplete="new-password" showStrengthIndicator={true} onValidationChange={setIsPasswordValid} />
             </div>}
@@ -265,7 +272,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             {t("common.cancel")}
           </Button>
-          <Button type="submit" disabled={isSubmitting || !currentEmployee && !isPasswordValid}>
+          <Button type="submit" disabled={isSubmitting || (!currentEmployee && !formData.is_temporary && !isPasswordValid)}>
             {isSubmitting ? t('common.loading') : currentEmployee ? t("common.save") : t("common.add")}
           </Button>
         </DialogFooter>
