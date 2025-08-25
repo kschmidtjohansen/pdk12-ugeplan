@@ -19,6 +19,15 @@ const VagtplanViewer: React.FC = () => {
   // Check user permissions
   const accessCheck = useVagtplanAccess();
 
+  // Debug logging
+  console.log('🎭 VagtplanViewer render:', {
+    accessCheck,
+    oneDriveEmbedUrl: oneDriveEmbedUrl ? 'configured' : 'missing',
+    isLoading,
+    hasError,
+    showFallback
+  });
+
   useEffect(() => {
     // Auto-show fallback after 10 seconds if still loading
     const fallbackTimer = setTimeout(() => {
