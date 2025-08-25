@@ -14,6 +14,7 @@ const employees = {
   notes: 'Noter',
   contact: 'Kontakt',
   avatar: 'Profilbillede',
+  onLeave: 'Fraværende',
   
   // Status translations
   status: {
