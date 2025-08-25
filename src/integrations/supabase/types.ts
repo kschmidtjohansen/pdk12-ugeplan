@@ -79,13 +79,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_assignments_car_id"
-            columns: ["car_id"]
-            isOneToOne: false
-            referencedRelation: "cars_public_safe"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fk_assignments_responsible_user_id"
             columns: ["responsible_user_id"]
             isOneToOne: false
@@ -485,42 +478,6 @@ export type Database = {
         }
         Relationships: []
       }
-      cars_public_safe: {
-        Row: {
-          car_number: string | null
-          created_at: string | null
-          has_trailer_hitch: boolean | null
-          id: string | null
-          is_available: boolean | null
-          name: string | null
-          notes: string | null
-          number_plate: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          car_number?: string | null
-          created_at?: string | null
-          has_trailer_hitch?: boolean | null
-          id?: string | null
-          is_available?: boolean | null
-          name?: string | null
-          notes?: string | null
-          number_plate?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          car_number?: string | null
-          created_at?: string | null
-          has_trailer_hitch?: boolean | null
-          id?: string | null
-          is_available?: boolean | null
-          name?: string | null
-          notes?: string | null
-          number_plate?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       profiles_public: {
         Row: {
           avatar_url: string | null
@@ -579,6 +536,10 @@ export type Database = {
       }
       can_view_assignment_optimized: {
         Args: { assignment_id: string; user_id: string }
+        Returns: boolean
+      }
+      can_view_fuel_codes: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       check_data_access_health: {
