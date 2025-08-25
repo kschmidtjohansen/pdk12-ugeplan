@@ -80,8 +80,8 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
         }
       }
       
-      // For new employees, validate password
-      if (!currentEmployee) {
+      // For new employees, validate password (except temporary users)
+      if (!currentEmployee && !formData.is_temporary) {
         if (!isPasswordValid) {
           setErrorMessage(t('employees.passwordRequirements'));
           setIsSubmitting(false);
@@ -217,7 +217,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
             />
           </div>
           
-          {!currentEmployee && (
+          {!currentEmployee && !formData.is_temporary && (
             <div className="grid gap-2">
               <Label htmlFor="password">{t("common.password")}</Label>
               <PasswordInput
@@ -387,7 +387,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           </Button>
           <Button 
             type="submit" 
-            disabled={isSubmitting || (!currentEmployee && !isPasswordValid)}
+            disabled={isSubmitting || (!currentEmployee && !formData.is_temporary && !isPasswordValid)}
           >
             {isSubmitting 
               ? t('common.loading') 

@@ -113,10 +113,23 @@ serve(async (req) => {
 
     // Parse request body
     const { email, password, name, role, userData } = await req.json();
+    
+    const isTemporary = userData?.is_temporary || false;
 
-    if (!email || !password || !name) {
+    // Validate required fields based on user type
+    if (!name) {
       return new Response(
-        JSON.stringify({ error: 'Email, password, and name are required' }),
+        JSON.stringify({ error: 'Name is required' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    if (!isTemporary && (!email || !password)) {
+      return new Response(
+        JSON.stringify({ error: 'Email and password are required for non-temporary users' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -124,34 +137,54 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] Creating user with email: ${email}, name: ${name}, role: ${role}`);
+    console.log(`[${requestId}] Creating user - temporary: ${isTemporary}, email: ${email || 'none'}, name: ${name}, role: ${role}`);
 
-    // Create the user in auth
-    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { 
-        name,
-        ...userData
+    let userId: string;
+    
+    if (isTemporary) {
+      // For temporary users, generate UUID without creating Auth user
+      userId = crypto.randomUUID();
+      console.log(`[${requestId}] Generated UUID for temporary user: ${userId}`);
+    } else {
+      // Create the user in auth for regular users
+      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { 
+          name,
+          ...userData
+        }
+      });
+
+      if (createError) {
+        console.error(`[${requestId}] Failed to create user:`, createError);
+        return new Response(
+          JSON.stringify({ error: createError.message }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
       }
-    });
 
-    if (createError) {
-      console.error(`[${requestId}] Failed to create user:`, createError);
-      return new Response(
-        JSON.stringify({ error: createError.message }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      if (!newUser.user?.id) {
+        console.error(`[${requestId}] No user ID returned from auth creation`);
+        return new Response(
+          JSON.stringify({ error: 'Failed to create user - no ID returned' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+      
+      userId = newUser.user.id;
+      console.log(`[${requestId}] User created successfully: ${userId}`);
     }
-
-    console.log(`[${requestId}] User created successfully: ${newUser.user?.id}`);
 
     // Create profile entry
-    if (newUser.user?.id) {
+    if (userId) {
       // Enhanced phone validation using the same logic as frontend
       let sanitizedPhone = null;
       if (userData?.phone && typeof userData.phone === 'string') {
@@ -181,9 +214,9 @@ serve(async (req) => {
       const { error: profileError } = await supabaseAdmin
         .from('profiles')
         .insert({
-          id: newUser.user.id,
+          id: userId,
           name: name,
-          email: email,
+          email: email || null,
           phone: sanitizedPhone,
           job_title: userData?.job_title || null,
           status: 'active',
@@ -213,7 +246,7 @@ serve(async (req) => {
         const { error: roleError } = await supabaseAdmin
           .from('user_roles')
           .insert({
-            user_id: newUser.user.id,
+            user_id: userId,
             role: role
           });
 
@@ -227,7 +260,7 @@ serve(async (req) => {
             const { error: updateRoleError } = await supabaseAdmin
               .from('user_roles')
               .update({ role })
-              .eq('user_id', newUser.user.id);
+              .eq('user_id', userId);
               
             if (updateRoleError) {
               console.error(`[${requestId}] Role update also failed:`, updateRoleError);
@@ -244,9 +277,10 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        id: newUser.user?.id,
-        user: newUser.user,
-        message: 'User created successfully'
+        id: userId,
+        user: { id: userId },
+        message: 'User created successfully',
+        temporary: isTemporary
       }),
       { 
         status: 200, 

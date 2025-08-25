@@ -13,36 +13,45 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
     console.log('[useEmployeeCreation] Attempting direct database user creation');
     
     try {
-      // First, try to create the auth user directly (this requires proper permissions)
-      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-        email: userData.email,
-        password: userData.password,
-        email_confirm: true,
-        user_metadata: {
-          name: userData.name,
-          phone: userData.phone,
-          job_title: userData.jobTitle
+      let userId: string;
+      
+      // For temporary users, skip Auth creation and generate UUID
+      if (userData.is_temporary) {
+        console.log('[useEmployeeCreation] Creating temporary user without Auth');
+        userId = crypto.randomUUID();
+      } else {
+        // For regular users, create auth user
+        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+          email: userData.email,
+          password: userData.password,
+          email_confirm: true,
+          user_metadata: {
+            name: userData.name,
+            phone: userData.phone,
+            job_title: userData.jobTitle
+          }
+        });
+
+        if (authError) {
+          console.error('[useEmployeeCreation] Auth user creation failed:', authError);
+          throw new Error(`${t('employees.edgeFunctionFailed')}: ${authError.message}`);
         }
-      });
 
-      if (authError) {
-        console.error('[useEmployeeCreation] Auth user creation failed:', authError);
-        throw new Error(`${t('employees.edgeFunctionFailed')}: ${authError.message}`);
+        if (!authUser.user?.id) {
+          throw new Error(t('employees.unexpectedError'));
+        }
+
+        userId = authUser.user.id;
+        console.log('[useEmployeeCreation] Auth user created:', userId);
       }
-
-      if (!authUser.user?.id) {
-        throw new Error(t('employees.unexpectedError'));
-      }
-
-      console.log('[useEmployeeCreation] Auth user created:', authUser.user.id);
 
       // Create profile entry
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
-          id: authUser.user.id,
+          id: userId,
           name: userData.name,
-          email: userData.email,
+          email: userData.email || null,
           phone: userData.phone || null,
           job_title: userData.jobTitle || null,
           on_leave: userData.onLeave || false,
@@ -53,24 +62,24 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
 
       if (profileError) {
         console.error('[useEmployeeCreation] Profile creation failed:', profileError);
-        // Don't throw here, profile might already exist
+        throw new Error(`Profile creation failed: ${profileError.message}`);
       }
 
       // Set user role
       const { error: roleError } = await supabase
         .from('user_roles')
         .insert({
-          user_id: authUser.user.id,
+          user_id: userId,
           role: userData.is_temporary ? 'vikar' : (userData.role || 'servicemedarbejder')
         });
 
       if (roleError) {
         console.error('[useEmployeeCreation] Role assignment failed:', roleError);
-        // Don't throw here, role might already exist
+        throw new Error(`Role assignment failed: ${roleError.message}`);
       }
 
       console.log('[useEmployeeCreation] Direct user creation completed successfully');
-      return { success: true, user: authUser.user };
+      return { success: true, user: { id: userId } };
 
     } catch (err) {
       console.error('[useEmployeeCreation] Direct creation failed:', err);
@@ -82,14 +91,22 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
   const createEmployee = async (formData: any) => {
     try {
       // Enhanced validation
-      if (!formData.email || !formData.password || !formData.name) {
-        throw new Error(t('employees.emailRequired') + ', ' + t('employees.passwordRequired') + ', ' + t('employees.nameRequired'));
+      if (!formData.name) {
+        throw new Error(t('employees.nameRequired'));
+      }
+      
+      // For non-temporary users, validate email and password
+      if (!formData.is_temporary) {
+        if (!formData.email || !formData.password) {
+          throw new Error(t('employees.emailRequired') + ', ' + t('employees.passwordRequired'));
+        }
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+          throw new Error(t('employees.validEmailRequired'));
+        }
       }
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        throw new Error(t('employees.validEmailRequired'));
-      }
 
       console.log('[useEmployeeCreation] Starting user creation process');
 
@@ -107,19 +124,25 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
       try {
         console.log('[useEmployeeCreation] Attempting edge function creation');
         
-        const { data, error } = await supabase.functions.invoke('admin-create-user', {
-          body: {
-            email: finalEmail,
-            password: formData.password,
-            name: formData.name,
-            role: formData.is_temporary ? 'vikar' : (formData.role || 'servicemedarbejder'),
-            userData: {
-              phone: formData.phone,
-              job_title: formData.jobTitle,
-              is_temporary: formData.is_temporary || false,
-              expires_at: formData.is_temporary && formData.expires_at ? formData.expires_at : null
-            }
+        const requestBody: any = {
+          name: formData.name,
+          role: formData.is_temporary ? 'vikar' : (formData.role || 'servicemedarbejder'),
+          userData: {
+            phone: formData.phone,
+            job_title: formData.jobTitle,
+            is_temporary: formData.is_temporary || false,
+            expires_at: formData.is_temporary && formData.expires_at ? formData.expires_at : null
           }
+        };
+        
+        // Only add email and password for non-temporary users
+        if (!formData.is_temporary) {
+          requestBody.email = finalEmail;
+          requestBody.password = formData.password;
+        }
+        
+        const { data, error } = await supabase.functions.invoke('admin-create-user', {
+          body: requestBody
         });
         
         if (error) {
