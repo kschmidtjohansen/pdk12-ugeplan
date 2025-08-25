@@ -17,7 +17,6 @@ import PlannerPage from "./pages/PlannerPage";
 import EmployeesPage from "./pages/EmployeesPage";
 import CarsPage from "./pages/CarsPage";
 import VacationPage from "./pages/VacationPage";
-import VagtplanPage from "./pages/VagtplanPage";
 import AdminPage from "./pages/AdminPage";
 import PasswordResetPage from "./pages/PasswordResetPage";
 import ScreenDisplayPage from "./pages/ScreenDisplayPage";
@@ -88,7 +87,6 @@ const AppContent = () => {
         <Route path="/employees" element={<MainLayout><EmployeesPage /></MainLayout>} />
         <Route path="/cars" element={<MainLayout><CarsPage /></MainLayout>} />
         <Route path="/vacation" element={<MainLayout><VacationPage /></MainLayout>} />
-        <Route path="/vagtplan" element={<MainLayout><VagtplanPage /></MainLayout>} />
         <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />
         
         {/* Special routes */}

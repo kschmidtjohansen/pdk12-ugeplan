@@ -5,7 +5,6 @@ const navigation = {
   employees: "Employees",
   vacation: "Vacation",
   cars: "Cars",
-  vagtplan: "Duty Plan",
   admin: "Admin",
   logout: "Log out",
   notifications: "Notifications",
