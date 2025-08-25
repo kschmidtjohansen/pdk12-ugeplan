@@ -72,24 +72,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_assignments_car_id"
-            columns: ["car_id"]
-            isOneToOne: false
-            referencedRelation: "cars_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fk_assignments_responsible_user_id"
             columns: ["responsible_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_assignments_responsible_user_id"
-            columns: ["responsible_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -120,13 +106,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_assignments_employees_user_id"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -442,80 +421,7 @@ export type Database = {
       }
     }
     Views: {
-      cars_public: {
-        Row: {
-          car_number: string | null
-          created_at: string | null
-          has_trailer_hitch: boolean | null
-          id: string | null
-          is_available: boolean | null
-          name: string | null
-          notes: string | null
-          number_plate: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          car_number?: string | null
-          created_at?: string | null
-          has_trailer_hitch?: boolean | null
-          id?: string | null
-          is_available?: boolean | null
-          name?: string | null
-          notes?: string | null
-          number_plate?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          car_number?: string | null
-          created_at?: string | null
-          has_trailer_hitch?: boolean | null
-          id?: string | null
-          is_available?: boolean | null
-          name?: string | null
-          notes?: string | null
-          number_plate?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      profiles_public: {
-        Row: {
-          avatar_url: string | null
-          created_at: string | null
-          id: string | null
-          name: string | null
-          status: Database["public"]["Enums"]["employee_status"] | null
-          updated_at: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string | null
-          id?: string | null
-          name?: string | null
-          status?: Database["public"]["Enums"]["employee_status"] | null
-          updated_at?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string | null
-          id?: string | null
-          name?: string | null
-          status?: Database["public"]["Enums"]["employee_status"] | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      user_roles_with_names: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          role: Database["public"]["Enums"]["user_role"] | null
-          updated_at: string | null
-          user_id: string | null
-          user_name: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       add_system_log: {
@@ -605,6 +511,19 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_profile_with_role: {
+        Args: { profile_id: string }
+        Returns: {
+          avatar_url: string
+          email: string
+          id: string
+          job_title: string
+          name: string
+          phone: string
+          role: Database["public"]["Enums"]["user_role"]
+          status: Database["public"]["Enums"]["employee_status"]
+        }[]
+      }
       get_user_role: {
         Args: { uid: string }
         Returns: Database["public"]["Enums"]["user_role"]
@@ -636,6 +555,15 @@ export type Database = {
       is_valid_email: {
         Args: { email: string }
         Returns: boolean
+      }
+      log_data_access_attempt: {
+        Args: {
+          access_type: string
+          record_id?: string
+          success?: boolean
+          table_name: string
+        }
+        Returns: undefined
       }
       log_data_fetch_error_safe: {
         Args: {
