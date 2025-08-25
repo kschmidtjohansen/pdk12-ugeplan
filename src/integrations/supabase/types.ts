@@ -79,6 +79,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fk_assignments_car_id"
+            columns: ["car_id"]
+            isOneToOne: false
+            referencedRelation: "cars_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fk_assignments_responsible_user_id"
             columns: ["responsible_user_id"]
             isOneToOne: false
@@ -443,6 +450,42 @@ export type Database = {
     }
     Views: {
       cars_public: {
+        Row: {
+          car_number: string | null
+          created_at: string | null
+          has_trailer_hitch: boolean | null
+          id: string | null
+          is_available: boolean | null
+          name: string | null
+          notes: string | null
+          number_plate: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          car_number?: string | null
+          created_at?: string | null
+          has_trailer_hitch?: boolean | null
+          id?: string | null
+          is_available?: boolean | null
+          name?: string | null
+          notes?: string | null
+          number_plate?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          car_number?: string | null
+          created_at?: string | null
+          has_trailer_hitch?: boolean | null
+          id?: string | null
+          is_available?: boolean | null
+          name?: string | null
+          notes?: string | null
+          number_plate?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      cars_public_safe: {
         Row: {
           car_number: string | null
           created_at: string | null
