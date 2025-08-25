@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -519,7 +519,7 @@ export type Database = {
     }
     Functions: {
       add_system_log: {
-        Args: { p_event_type: string; p_message: string; p_details?: Json }
+        Args: { p_details?: Json; p_event_type: string; p_message: string }
         Returns: string
       }
       apply_logs_rls_policies: {
@@ -620,45 +620,45 @@ export type Database = {
       }
       log_data_fetch_error_safe: {
         Args: {
-          operation_type: string
           error_message: string
-          user_id_param?: string
+          operation_type: string
           retry_count?: number
+          user_id_param?: string
         }
         Returns: undefined
       }
       log_realtime_change_throttled: {
-        Args: { table_name: string; operation: string; record_id: string }
+        Args: { operation: string; record_id: string; table_name: string }
         Returns: undefined
       }
       log_security_event: {
         Args: {
-          event_type: string
-          event_message: string
           event_details?: Json
+          event_message: string
+          event_type: string
         }
         Returns: undefined
       }
       log_security_event_optimized: {
         Args: {
-          event_type: string
-          event_message: string
           event_details?: Json
+          event_message: string
+          event_type: string
           severity?: string
         }
         Returns: undefined
       }
       log_security_event_safe: {
         Args: {
-          event_type: string
-          event_message: string
           event_details?: Json
+          event_message: string
+          event_type: string
           severity?: string
         }
         Returns: undefined
       }
       log_vacation_security_event: {
-        Args: { event_type: string; vacation_id: string; details?: Json }
+        Args: { details?: Json; event_type: string; vacation_id: string }
         Returns: undefined
       }
       perform_database_maintenance: {
@@ -724,10 +724,10 @@ export type Database = {
       verify_role_assignments: {
         Args: Record<PropertyKey, never>
         Returns: {
-          user_name: string
-          user_email: string
           assigned_role: Database["public"]["Enums"]["user_role"]
           is_current_user: boolean
+          user_email: string
+          user_name: string
         }[]
       }
     }
