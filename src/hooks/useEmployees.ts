@@ -2,6 +2,7 @@
 import { useEmployeeData } from './employee/useEmployeeData';
 import { useEmployeeFormState } from './employee/useEmployeeFormState';
 import { useEmployeeActions } from './employee/useEmployeeActions';
+import { useEmployeeCreation } from './employee/useEmployeeCreation';
 
 // Main hook combining all employee-related functionality - now streamlined
 export const useEmployees = () => {
@@ -10,15 +11,16 @@ export const useEmployees = () => {
   const formState = useEmployeeFormState();
   
   const {
-    createEmployee: createEmployeeAction,
     updateEmployee: updateEmployeeAction,
     deleteEmployee: deleteEmployeeAction,
     toggleEmployeeLeave: toggleEmployeeLeaveAction
   } = useEmployeeActions(fetchEmployees);
 
+  const { createEmployee: createEmployeeFromCreationHook } = useEmployeeCreation(fetchEmployees);
+
   // Wrapper functions that use the current state from useEmployeeFormState
   const createEmployee = async () => {
-    return await createEmployeeAction(formState.formData);
+    return await createEmployeeFromCreationHook(formState.formData);
   };
 
   const updateEmployee = async () => {

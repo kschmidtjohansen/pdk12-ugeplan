@@ -49,96 +49,6 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
     }
   };
 
-  const createEmployee = async (formData: any) => {
-    try {
-      console.log('[useEmployeeActions] Starting employee creation with form data:', formData);
-      
-      if (!formData.email || !formData.password || !formData.name) {
-        const missingFields = [];
-        if (!formData.email) missingFields.push('email');
-        if (!formData.password) missingFields.push('password');
-        if (!formData.name) missingFields.push('name');
-        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
-      }
-
-      // Validate phone number
-      const phoneValidation = validateAndSanitizePhone(formData.phone);
-      if (!phoneValidation.valid) {
-        throw new Error(phoneValidation.error || 'Invalid phone number format');
-      }
-
-      console.log('[useEmployeeActions] Creating employee:', {
-        email: formData.email,
-        name: formData.name,
-        role: formData.role || 'servicemedarbejder',
-        phone: formData.phone,
-        jobTitle: formData.jobTitle
-      });
-
-      console.log('[useEmployeeActions] Calling admin-create-user edge function...');
-      const { data, error } = await supabase.functions.invoke('admin-create-user', {
-        body: {
-          email: formData.email,
-          password: formData.password,
-          name: formData.name,
-          role: formData.role || 'servicemedarbejder',
-          userData: {
-            phone: phoneValidation.sanitized,
-            job_title: formData.jobTitle
-          }
-        }
-      });
-      
-      console.log('[useEmployeeActions] Edge function response:', { data, error });
-      
-      if (error) {
-        console.error('[useEmployeeActions] Edge function error:', error);
-        throw error;
-      }
-      if (data?.error) {
-        console.error('[useEmployeeActions] Edge function returned error:', data.error);
-        throw new Error(data.error);
-      }
-      
-      // Update profile with additional fields (if needed)
-      if (data?.id) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            phone: phoneValidation.sanitized,
-            job_title: formData.jobTitle || null,
-            on_leave: formData.onLeave || false,
-            notes: formData.notes || null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', data.id);
-        
-        if (profileError) {
-          console.warn('[useEmployeeActions] Profile update warning:', profileError);
-        }
-      }
-      
-      toast({
-        title: t('employees.employeeAdded'),
-        description: t('employees.employeeAddedMsg', { 
-          name: formData.name, 
-          role: formData.role || 'servicemedarbejder'
-        })
-      });
-      
-      await refreshEmployees();
-      return true;
-    } catch (err) {
-      console.error('[useEmployeeActions] Creation error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create employee';
-      toast({
-        title: t('common.error'),
-        description: errorMessage,
-        variant: 'destructive',
-      });
-      return false;
-    }
-  };
 
   const updateEmployee = async (employee: Employee, formData: any) => {
     try {
@@ -234,7 +144,6 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   };
 
   return {
-    createEmployee,
     updateEmployee,
     deleteEmployee,
     toggleEmployeeLeave
