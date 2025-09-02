@@ -1,12 +1,13 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentDataOptimized';
 import { useCars } from '@/hooks/car';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, UserCheck, Calendar, Users, Car, Navigation } from 'lucide-react';
+import { Clock, MapPin, User, Calendar, Users, Car, Navigation, Timer, ArrowRight } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { getCurrentWeekInfo, getWeekDates } from '@/utils/dates';
@@ -151,14 +152,21 @@ const MineOpgaver: React.FC = () => {
 
   if (loading) {
     return (
-      <Card className="h-full">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            {t('dashboard.myTasks') || 'Mine Opgaver'}
-          </CardTitle>
+      <Card className="w-full glass-effect shadow-xl border-0 bg-card/60 backdrop-blur-sm">
+        <CardHeader className="space-y-3 pb-6 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent rounded-t-2xl"></div>
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="p-3 rounded-2xl bg-primary/15 backdrop-blur-sm border border-primary/20 shadow-lg shadow-primary/20">
+              <Calendar className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl font-bold text-gradient">
+                {t('dashboard.myTasks.title')}
+              </CardTitle>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="flex items-center justify-center py-12">
+        <CardContent className="flex items-center justify-center py-16">
           <Spinner size="sm" />
         </CardContent>
       </Card>
@@ -167,15 +175,22 @@ const MineOpgaver: React.FC = () => {
 
   if (error) {
     return (
-      <Card className="h-full">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            {t('dashboard.myTasks') || 'Mine Opgaver'}
-          </CardTitle>
+      <Card className="w-full glass-effect shadow-xl border-0 bg-card/60 backdrop-blur-sm">
+        <CardHeader className="space-y-3 pb-6 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent rounded-t-2xl"></div>
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="p-3 rounded-2xl bg-primary/15 backdrop-blur-sm border border-primary/20 shadow-lg shadow-primary/20">
+              <Calendar className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl font-bold text-gradient">
+                {t('dashboard.myTasks.title')}
+              </CardTitle>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="flex items-center justify-center py-12">
-          <p className="text-sm text-muted-foreground">
+        <CardContent className="flex items-center justify-center py-16">
+          <p className="text-base text-muted-foreground">
             {t('common.error') || 'Fejl ved indlæsning'}
           </p>
         </CardContent>
@@ -185,15 +200,25 @@ const MineOpgaver: React.FC = () => {
 
   if (userAssignments.length === 0) {
     return (
-      <Card className="h-full">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            {t('dashboard.myTasks') || 'Mine Opgaver'}
-          </CardTitle>
+      <Card className="w-full glass-effect shadow-xl border-0 bg-card/60 backdrop-blur-sm">
+        <CardHeader className="space-y-3 pb-6 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent rounded-t-2xl"></div>
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="p-3 rounded-2xl bg-primary/15 backdrop-blur-sm border border-primary/20 shadow-lg shadow-primary/20">
+              <Calendar className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl font-bold text-gradient">
+                {t('dashboard.myTasks.title')}
+              </CardTitle>
+              <CardDescription className="text-muted-foreground mt-1 text-base">
+                {t('dashboard.myTasks.description')}
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="flex items-center justify-center py-12">
-          <p className="text-sm text-muted-foreground text-center">
+        <CardContent className="flex items-center justify-center py-16">
+          <p className="text-base text-muted-foreground text-center">
             {t('dashboard.noUpcomingTasks') || 'Ingen kommende opgaver'}
           </p>
         </CardContent>
@@ -202,115 +227,152 @@ const MineOpgaver: React.FC = () => {
   }
 
   return (
-    <Card className="h-full">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            {t('dashboard.myTasks') || 'Mine Opgaver'}
-            <span className="text-sm font-normal text-muted-foreground">
-              - Uge {getCurrentWeekInfo().week}
-            </span>
-            <Badge variant="secondary" className="ml-auto">
+    <Card className="w-full glass-effect shadow-xl border-0 bg-card/60 backdrop-blur-sm hover-lift">
+      <CardHeader className="space-y-3 pb-6 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent rounded-t-2xl"></div>
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="p-3 rounded-2xl bg-primary/15 backdrop-blur-sm border border-primary/20 shadow-lg shadow-primary/20">
+            <Calendar className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <CardTitle className="text-2xl font-bold text-gradient">
+              {t('dashboard.myTasks.title') || 'Mine Opgaver'}
+            </CardTitle>
+            <CardDescription className="text-muted-foreground mt-1 text-base">
+              {t('dashboard.myTasks.description') || 'Dine opgaver for ugen'}
+            </CardDescription>
+          </div>
+          <div className="ml-auto flex items-center gap-3">
+            <div className="px-4 py-2 rounded-xl bg-primary/10 backdrop-blur-sm border border-primary/20">
+              <span className="text-sm font-semibold text-primary">
+                Uge {getCurrentWeekInfo().week}
+              </span>
+            </div>
+            <Badge variant="secondary" className="px-3 py-1.5 text-sm font-semibold bg-accent/20 border border-accent/30">
               {userAssignments.length}
             </Badge>
-          </CardTitle>
-        </CardHeader>
-      <CardContent className="space-y-4">
-        {userAssignments.map((assignment) => (
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4 pb-6">
+        {userAssignments.map((assignment, index) => (
           <div
             key={assignment.id}
-            className="flex flex-col space-y-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+            className="p-5 rounded-2xl border border-border/30 bg-gradient-to-r from-background/80 to-background/60 backdrop-blur-sm hover:from-primary/5 hover:to-primary/10 hover:border-primary/30 transition-all duration-300 group hover-lift animate-fade-in-up"
+            style={{ animationDelay: `${index * 100}ms` }}
           >
-            {/* Title and Date */}
-            <div className="flex items-start justify-between">
-              <h4 className="font-medium text-sm leading-tight">
-                {assignment.title}
-              </h4>
-              <Badge 
-                variant="outline" 
-                className={`text-xs ${
-                  isToday(parseISO(assignment.date)) 
-                    ? 'bg-primary/10 text-primary border-primary/20' 
-                    : 'bg-muted'
-                }`}
-              >
-                {formatAssignmentDate(assignment.date)}
-              </Badge>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h4 className="font-bold text-lg text-foreground mb-2 group-hover:text-primary transition-colors duration-300">
+                  {assignment.title}
+                </h4>
+                <div className="flex items-center gap-2 text-sm text-primary font-semibold bg-primary/10 px-3 py-1.5 rounded-full backdrop-blur-sm border border-primary/20">
+                  <Clock className="h-4 w-4" />
+                  {formatAssignmentDate(assignment.date)}
+                </div>
+              </div>
             </div>
 
             {/* Location */}
             {assignment.location && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <MapPin className="h-3 w-3" />
-                <span className="truncate flex-1">{assignment.location}</span>
-                <button
-                  onClick={() => handleNavigate(assignment.location)}
-                  className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent/50 transition-colors group"
-                  title={t('dashboard.navigateToLocation') || 'Navigate to location'}
-                  aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
-                >
-                  <Navigation className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                </button>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-3 flex-1 p-3 rounded-xl bg-background/60 border border-border/30 backdrop-blur-sm">
+                  <MapPin className="h-5 w-5 text-primary flex-shrink-0" />
+                  <span className="truncate flex-1 font-medium text-foreground">{assignment.location}</span>
+                  <button
+                    onClick={() => handleNavigate(assignment.location)}
+                    className="flex items-center justify-center h-10 w-10 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/20 hover:border-primary/40 transition-all duration-300 group hover:scale-110 shadow-lg shadow-primary/10"
+                    title={t('dashboard.navigateToLocation') || 'Navigate to location'}
+                    aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
+                  >
+                    <Navigation className="h-5 w-5 text-primary group-hover:text-primary transition-colors" />
+                  </button>
+                </div>
               </div>
             )}
 
             {/* Time */}
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              <span>{assignment.fromTime?.substring(0, 5)} - {assignment.toTime?.substring(0, 5)}</span>
-            </div>
+            {assignment.fromTime && assignment.toTime && (
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-accent/30 border border-accent/50">
+                  <Timer className="h-4 w-4 text-accent-foreground" />
+                  <span className="text-sm font-semibold text-accent-foreground">
+                    {assignment.fromTime?.substring(0, 5)} - {assignment.toTime?.substring(0, 5)}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Cars */}
             {(() => {
               const carNames = getCarNames(assignment);
               return carNames.length > 0 ? (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Car className="h-3 w-3" />
-                  <span>{carNames.join(', ')}</span>
+                <div className="flex items-start gap-3 mb-4">
+                  <Car className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+                  <div className="flex flex-wrap gap-2">
+                    {carNames.map((carName, carIndex) => (
+                      <span
+                        key={carIndex}
+                        className="px-3 py-2 bg-gradient-to-r from-blue-500/10 to-blue-600/10 text-blue-700 text-sm font-semibold rounded-xl border border-blue-200/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300"
+                      >
+                        {carName}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               ) : null;
             })()}
 
-            {/* Show all team members for assignments user can access */}
-            {(assignment.assignedEmployees?.length || assignment.employees?.length) && (() => {
+            {/* Team members */}
+            {(() => {
               let teamMembers = [];
               
               if (assignment.assignedEmployees?.length) {
-                // Show all team members
                 teamMembers = assignment.assignedEmployees.map(emp => emp.name);
               } else if (assignment.employees?.length) {
-                // Show all team members from legacy format
                 teamMembers = assignment.employees;
               }
               
               return teamMembers.length > 0 ? (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Users className="h-3 w-3" />
-                  <span>{teamMembers.join(', ')}</span>
+                <div className="flex items-start gap-3 mb-4">
+                  <Users className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+                  <div className="flex flex-wrap gap-2">
+                    {teamMembers.map((memberName, empIndex) => (
+                      <span
+                        key={empIndex}
+                        className="px-3 py-2 bg-gradient-to-r from-green-500/10 to-green-600/10 text-green-700 text-sm font-semibold rounded-xl border border-green-200/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300"
+                      >
+                        {memberName}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               ) : null;
             })()}
 
-            {/* Show Sagsansvarlig if present */}
+            {/* Responsible user */}
             {assignment.responsibleUser?.name && (
-              <div className="flex items-center gap-1 text-xs text-indigo-600">
-                <UserCheck className="h-3 w-3" />
-                <span className="font-medium">
-                  {t('planner.responsibleUser') || 'Sagsansvarlig'}: {assignment.responsibleUser.name}
-                </span>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-purple-500/10 border border-purple-200/50">
+                  <User className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm font-semibold text-purple-700">
+                    {t('planner.responsible') || 'Sagsansvarlig'}: {assignment.responsibleUser.name}
+                  </span>
+                </div>
               </div>
             )}
           </div>
         ))}
 
         {/* View all link */}
-        <div className="pt-2 border-t">
-          <button 
-            className="text-xs text-primary hover:underline w-full text-center"
-            onClick={() => window.location.href = '/planner'}
+        <div className="pt-6 border-t border-border/30">
+          <Link 
+            to="/planner" 
+            className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 text-primary hover:text-primary/90 font-semibold text-base rounded-2xl border border-primary/20 hover:border-primary/40 transition-all duration-300 hover-lift backdrop-blur-sm shadow-lg shadow-primary/10 group"
           >
-            {t('dashboard.viewAllTasks') || 'Se alle opgaver'} →
-          </button>
+            {t('dashboard.viewAllTasks') || 'Se alle opgaver'}
+            <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+          </Link>
         </div>
       </CardContent>
     </Card>

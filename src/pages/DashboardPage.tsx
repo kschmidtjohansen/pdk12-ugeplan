@@ -35,8 +35,13 @@ const DashboardPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-gray-50 to-background relative overflow-hidden">
+      {/* Modern background elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl transform translate-x-48 -translate-y-48"></div>
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/10 rounded-full blur-2xl transform -translate-x-32 translate-y-32"></div>
+      
+      <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8 space-y-8">
         {/* Success Message */}
         {showSuccessMessage && (
           <Alert className="border-green-200 bg-green-50 animate-fade-in-up">
