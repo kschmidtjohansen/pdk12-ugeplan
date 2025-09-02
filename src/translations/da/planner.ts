@@ -185,7 +185,7 @@ const planner = {
   
   // Validation messages
   validation: {
-    titleRequired: 'Sagsnummer er påkrævet',
+    caseNumberRequired: 'Sagsnummer er påkrævet',
     locationRequired: 'Adresse er påkrævet',
     dateRequired: 'Dato er påkrævet',
     fromTimeRequired: 'Start tid er påkrævet',

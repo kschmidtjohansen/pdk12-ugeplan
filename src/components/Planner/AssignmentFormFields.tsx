@@ -20,8 +20,6 @@ import ResponsibleUserSelector from './ResponsibleUserSelector';
 import EmployeeSelector from './EmployeeSelector';
 
 interface AssignmentFormFieldsProps {
-  title: string;
-  setTitle: (value: string) => void;
   caseNumber: string;
   setCaseNumber: (value: string) => void;
   location: string;
@@ -48,8 +46,6 @@ interface AssignmentFormFieldsProps {
 }
 
 const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
-  title,
-  setTitle,
   caseNumber,
   setCaseNumber,
   location,
@@ -177,20 +173,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       </div>
 
-      {/* Title Field - Updated to use assignmentTitle translation */}
-      <div className="space-y-2">
-        <Label htmlFor="title">{t('planner.assignmentTitle')}</Label>
-        <Input
-          id="title"
-          value={title}
-          onChange={(e) => {
-            console.log('[AssignmentFormFields] Title changed:', e.target.value);
-            setTitle(e.target.value);
-          }}
-          placeholder={t('planner.assignmentTitle')}
-          required
-        />
-      </div>
 
       {/* Location Field - Updated to use enterLocation translation */}
       <div className="space-y-2">

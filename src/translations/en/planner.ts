@@ -183,8 +183,8 @@ const planner = {
   previousDays: 'Previous days',
   
   // Validation messages
-  validation: {
-    titleRequired: 'Title is required',
+    validation: {
+      caseNumberRequired: 'Case number is required',
     locationRequired: 'Location is required',
     dateRequired: 'Date is required',
     fromTimeRequired: 'Start time is required',

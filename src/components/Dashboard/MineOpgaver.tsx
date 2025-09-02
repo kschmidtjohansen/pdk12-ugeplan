@@ -238,13 +238,8 @@ const MineOpgaver: React.FC = () => {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <h4 className="font-medium text-sm leading-tight">
-                  {assignment.title}
+                  {assignment.case_number || assignment.title}
                 </h4>
-                {assignment.case_number && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {assignment.case_number}
-                  </p>
-                )}
               </div>
               <div className="flex items-center gap-2">
                 {assignment.case_number && (

@@ -47,7 +47,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // State management for all form fields
-  const [title, setTitle] = useState(formData?.title || '');
   const [caseNumber, setCaseNumber] = useState(formData?.case_number || '');
   const [location, setLocation] = useState(formData?.location || '');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
@@ -65,7 +64,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   // Update state when formData changes
   useEffect(() => {
     if (formData) {
-      setTitle(formData.title || '');
       setCaseNumber(formData.case_number || '');
       setLocation(formData.location || '');
       setSelectedDate(formData.date ? new Date(formData.date + 'T00:00:00') : undefined);
@@ -83,8 +81,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     
     // Enhanced validation
     const validationErrors: string[] = [];
-    if (!title.trim()) {
-      validationErrors.push(t('planner.validation.titleRequired'));
+    if (!caseNumber.trim()) {
+      validationErrors.push(t('planner.validation.caseNumberRequired'));
     }
     if (!location.trim()) {
       validationErrors.push(t('planner.validation.locationRequired'));
@@ -115,7 +113,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
     try {
       const submissionData = {
-        title: title.trim(),
+        title: caseNumber.trim(), // Use case number as title
         case_number: caseNumber.trim() || undefined,
         location: location.trim(),
         date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
@@ -161,8 +159,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     <form onSubmit={handleFormSubmit} className="space-y-6">
       <div className="space-y-6">
         <AssignmentFormFields
-          title={title}
-          setTitle={setTitle}
           caseNumber={caseNumber}
           setCaseNumber={setCaseNumber}
           location={location}
