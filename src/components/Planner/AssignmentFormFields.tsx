@@ -21,6 +21,8 @@ import EmployeeSelector from './EmployeeSelector';
 interface AssignmentFormFieldsProps {
   title: string;
   setTitle: (value: string) => void;
+  caseNumber: string;
+  setCaseNumber: (value: string) => void;
   location: string;
   setLocation: (value: string) => void;
   selectedDate?: Date;
@@ -47,6 +49,8 @@ interface AssignmentFormFieldsProps {
 const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   title,
   setTitle,
+  caseNumber,
+  setCaseNumber,
   location,
   setLocation,
   selectedDate,

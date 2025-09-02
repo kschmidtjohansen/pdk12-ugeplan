@@ -17,13 +17,16 @@ export type Database = {
       assignments: {
         Row: {
           assignment_date: string
+          attachment_files: Json | null
           car_id: string | null
           car_ids: string[] | null
+          case_number: string | null
           created_at: string
           description: string | null
           from_time: string
           id: string
           location: string
+          onedrive_folder_id: string | null
           published: boolean | null
           responsible_user_id: string | null
           title: string
@@ -33,13 +36,16 @@ export type Database = {
         }
         Insert: {
           assignment_date: string
+          attachment_files?: Json | null
           car_id?: string | null
           car_ids?: string[] | null
+          case_number?: string | null
           created_at?: string
           description?: string | null
           from_time: string
           id?: string
           location: string
+          onedrive_folder_id?: string | null
           published?: boolean | null
           responsible_user_id?: string | null
           title: string
@@ -49,13 +55,16 @@ export type Database = {
         }
         Update: {
           assignment_date?: string
+          attachment_files?: Json | null
           car_id?: string | null
           car_ids?: string[] | null
+          case_number?: string | null
           created_at?: string
           description?: string | null
           from_time?: string
           id?: string
           location?: string
+          onedrive_folder_id?: string | null
           published?: boolean | null
           responsible_user_id?: string | null
           title?: string
@@ -146,6 +155,36 @@ export type Database = {
           notes?: string | null
           number_plate?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      case_onedrive_mappings: {
+        Row: {
+          case_number: string
+          created_at: string | null
+          created_by: string | null
+          folder_id: string
+          folder_url: string
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          case_number: string
+          created_at?: string | null
+          created_by?: string | null
+          folder_id: string
+          folder_url: string
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          case_number?: string
+          created_at?: string | null
+          created_by?: string | null
+          folder_id?: string
+          folder_url?: string
+          id?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -278,6 +317,36 @@ export type Database = {
           type?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      onedrive_settings: {
+        Row: {
+          base_sharepoint_url: string
+          created_at: string
+          folder_naming_pattern: string
+          id: string
+          is_active: boolean
+          main_folder_path: string
+          updated_at: string
+        }
+        Insert: {
+          base_sharepoint_url: string
+          created_at?: string
+          folder_naming_pattern?: string
+          id?: string
+          is_active?: boolean
+          main_folder_path?: string
+          updated_at?: string
+        }
+        Update: {
+          base_sharepoint_url?: string
+          created_at?: string
+          folder_naming_pattern?: string
+          id?: string
+          is_active?: boolean
+          main_folder_path?: string
+          updated_at?: string
         }
         Relationships: []
       }
