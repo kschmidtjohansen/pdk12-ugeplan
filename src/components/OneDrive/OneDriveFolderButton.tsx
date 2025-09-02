@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { FolderOpen, Loader2, AlertCircle } from 'lucide-react';
 import { OneDriveUrlService } from '@/services/OneDriveUrlService';
 import { useToast } from '@/hooks/use-toast';
+import { OneDriveMobileNavigationModal } from './OneDriveMobileNavigationModal';
 
 interface OneDriveFolderButtonProps {
   caseNumber?: string;
@@ -21,6 +22,8 @@ export const OneDriveFolderButton: React.FC<OneDriveFolderButtonProps> = ({
   showText = false
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showMobileModal, setShowMobileModal] = useState(false);
+  const [modalData, setModalData] = useState<{ caseNumber: string; url: string } | null>(null);
   const { toast } = useToast();
 
   const handleOpenFolder = async () => {
@@ -60,7 +63,17 @@ export const OneDriveFolderButton: React.FC<OneDriveFolderButtonProps> = ({
       }
 
       // Handle mobile vs desktop differently
-      if (result.isMobile) {
+      if (result.isMobile && result.showModal) {
+        // Show navigation modal for mobile users
+        setModalData({ caseNumber, url: result.url! });
+        setShowMobileModal(true);
+        
+        toast({
+          title: "OneDrive app åbnet",
+          description: "Se vejledning for at finde mappen",
+          duration: 3000
+        });
+      } else if (result.isMobile) {
         toast({
           title: "Link kopieret",
           description: "OneDrive link er kopieret til clipboard. Åbn OneDrive appen og naviger til mappen manuelt.",
@@ -126,6 +139,7 @@ export const OneDriveFolderButton: React.FC<OneDriveFolderButtonProps> = ({
   }
 
   return (
+    <>
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -151,5 +165,19 @@ export const OneDriveFolderButton: React.FC<OneDriveFolderButtonProps> = ({
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
+    
+    {/* Mobile Navigation Modal */}
+    {modalData && (
+      <OneDriveMobileNavigationModal
+        isOpen={showMobileModal}
+        onClose={() => {
+          setShowMobileModal(false);
+          setModalData(null);
+        }}
+        caseNumber={modalData.caseNumber}
+        sharePointUrl={modalData.url}
+      />
+    )}
+  </>
   );
 };

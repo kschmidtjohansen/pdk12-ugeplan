@@ -162,7 +162,7 @@ export class OneDriveUrlService {
     }));
   }
 
-  static async openFolder(caseNumber: string): Promise<{ success: boolean; folderExists: boolean; isMobile?: boolean; url?: string }> {
+  static async openFolder(caseNumber: string): Promise<{ success: boolean; folderExists: boolean; isMobile?: boolean; url?: string; showModal?: boolean }> {
     const result = await this.generateFolderUrl(caseNumber);
     if (!result.url) return { success: false, folderExists: false };
 
@@ -175,20 +175,33 @@ export class OneDriveUrlService {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobile) {
-      // On mobile, copy URL to clipboard for manual navigation
+      // Hybrid approach: Try to open OneDrive app first, then show modal with navigation help
       try {
+        // Try to open OneDrive app (this opens the app but not the specific folder)
+        const oneDriveAppUrl = 'ms-onedrive://';
+        window.location.href = oneDriveAppUrl;
+        
+        // Copy URL to clipboard for backup
         await navigator.clipboard.writeText(result.url);
-        return { success: true, folderExists: true, isMobile: true, url: result.url };
+        
+        // Return success with modal flag to show navigation instructions
+        return { 
+          success: true, 
+          folderExists: result.folderExists, 
+          isMobile: true, 
+          url: result.url,
+          showModal: true 
+        };
       } catch (error) {
-        console.error('[OneDriveUrlService] Failed to copy to clipboard:', error);
+        console.error('[OneDriveUrlService] Mobile hybrid approach failed:', error);
         // Fallback: open in browser
         window.open(result.url, '_blank', 'noopener,noreferrer');
-        return { success: true, folderExists: true, isMobile: true, url: result.url };
+        return { success: true, folderExists: result.folderExists, isMobile: true, url: result.url };
       }
     } else {
       // Desktop - open in new tab
       window.open(result.url, '_blank', 'noopener,noreferrer');
-      return { success: true, folderExists: true, isMobile: false };
+      return { success: true, folderExists: result.folderExists, isMobile: false };
     }
   }
 
