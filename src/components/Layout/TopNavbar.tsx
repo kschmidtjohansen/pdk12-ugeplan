@@ -90,8 +90,8 @@ const TopNavbar: React.FC = () => {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-soft navbar-height">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="fixed top-0 left-0 right-0 z-50 glass-effect-strong border-b border-border/30 shadow-lg">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="flex justify-between h-20">
           {/* Logo and desktop navigation */}
           <div className="flex items-center">

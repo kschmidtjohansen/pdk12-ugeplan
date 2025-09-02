@@ -6,33 +6,30 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden shadow-md hover:shadow-lg",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-md hover:bg-primary/90 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
-        destructive:
-          "bg-destructive text-destructive-foreground shadow-md hover:bg-destructive/90 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
-        outline:
-          "border-2 border-border bg-background/80 backdrop-blur-sm hover:bg-accent hover:text-accent-foreground hover:border-primary/50 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
-        secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
-        ghost: "hover:bg-accent hover:text-accent-foreground hover:scale-[1.02] active:scale-[0.98]",
-        link: "text-primary underline-offset-4 hover:underline hover:text-primary/80",
-        gradient: "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity",
-        glass: "bg-white/10 backdrop-blur-md border border-white/20 text-foreground shadow-lg hover:bg-white/20 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]",
-        success: "bg-success text-success-foreground shadow-md hover:bg-success/90 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
-        warning: "bg-warning text-warning-foreground shadow-md hover:bg-warning/90 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
-        info: "bg-info text-info-foreground shadow-md hover:bg-info/90 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl",
+        outline: "border-2 border-border bg-background/90 backdrop-blur-sm hover:bg-accent hover:text-accent-foreground hover:border-primary/60 hover:scale-[1.02] active:scale-[0.98]",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:scale-[1.02] active:scale-[0.98]",
+        ghost: "hover:bg-accent hover:text-accent-foreground hover:scale-[1.02] active:scale-[0.98] shadow-none",
+        link: "text-primary underline-offset-4 hover:underline hover:text-primary/80 shadow-none",
+        gradient: "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity",
+        glass: "glass-effect text-foreground hover:glass-effect-strong hover:scale-[1.02] active:scale-[0.98]",
+        success: "bg-success text-success-foreground hover:bg-success/90 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl",
+        warning: "bg-warning text-warning-foreground hover:bg-warning/90 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl",
+        info: "bg-info text-info-foreground hover:bg-info/90 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl",
       },
       size: {
-        default: "h-11 px-6 py-2.5",
-        sm: "h-9 rounded-lg px-4 text-xs",
-        lg: "h-12 rounded-xl px-8 text-base",
-        xl: "h-14 rounded-2xl px-10 text-lg",
-        icon: "h-11 w-11",
-        "icon-sm": "h-9 w-9 rounded-lg",
-        "icon-lg": "h-12 w-12 rounded-xl",
+        default: "h-12 px-6 py-3",
+        sm: "h-10 rounded-xl px-4 text-xs",
+        lg: "h-14 rounded-2xl px-8 text-base",
+        xl: "h-16 rounded-3xl px-10 text-lg",
+        icon: "h-12 w-12",
+        "icon-sm": "h-10 w-10 rounded-xl",
+        "icon-lg": "h-14 w-14 rounded-2xl",
       },
     },
     defaultVariants: {
