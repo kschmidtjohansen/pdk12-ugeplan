@@ -175,13 +175,9 @@ export class OneDriveUrlService {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobile) {
-      // Hybrid approach: Try to open OneDrive app first, then show modal with navigation help
+      // Enhanced mobile approach: Copy URL to clipboard and show helpful modal
       try {
-        // Try to open OneDrive app (this opens the app but not the specific folder)
-        const oneDriveAppUrl = 'ms-onedrive://';
-        window.location.href = oneDriveAppUrl;
-        
-        // Copy URL to clipboard for backup
+        // Copy SharePoint URL to clipboard immediately
         await navigator.clipboard.writeText(result.url);
         
         // Return success with modal flag to show navigation instructions
@@ -193,10 +189,15 @@ export class OneDriveUrlService {
           showModal: true 
         };
       } catch (error) {
-        console.error('[OneDriveUrlService] Mobile hybrid approach failed:', error);
-        // Fallback: open in browser
-        window.open(result.url, '_blank', 'noopener,noreferrer');
-        return { success: true, folderExists: result.folderExists, isMobile: true, url: result.url };
+        console.error('[OneDriveUrlService] Failed to copy to clipboard:', error);
+        // Still show modal even if clipboard fails
+        return { 
+          success: true, 
+          folderExists: result.folderExists, 
+          isMobile: true, 
+          url: result.url,
+          showModal: true 
+        };
       }
     } else {
       // Desktop - open in new tab

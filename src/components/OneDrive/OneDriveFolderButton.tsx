@@ -69,9 +69,9 @@ export const OneDriveFolderButton: React.FC<OneDriveFolderButtonProps> = ({
         setShowMobileModal(true);
         
         toast({
-          title: "OneDrive app åbnet",
-          description: "Se vejledning for at finde mappen",
-          duration: 3000
+          title: "Link kopieret!",
+          description: "Følg vejledningen for at finde mappen i OneDrive",
+          duration: 4000
         });
       } else if (result.isMobile) {
         toast({

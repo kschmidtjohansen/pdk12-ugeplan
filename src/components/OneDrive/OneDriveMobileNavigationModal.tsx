@@ -44,6 +44,25 @@ export function OneDriveMobileNavigationModal({
     }
   };
 
+  const handleOpenOneDriveApp = () => {
+    // Attempt to open OneDrive app (opens app but not specific folder)
+    try {
+      window.location.href = 'ms-onedrive://';
+      toast({
+        title: "OneDrive app åbnet",
+        description: "Følg vejledningen nedenfor for at finde mappen",
+        duration: 4000
+      });
+    } catch (error) {
+      console.error('Failed to open OneDrive app:', error);
+      toast({
+        title: "Kunne ikke åbne app",
+        description: "Prøv at åbne OneDrive appen manuelt",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleOpenInBrowser = () => {
     window.open(sharePointUrl, '_blank', 'noopener,noreferrer');
   };
@@ -62,35 +81,59 @@ export function OneDriveMobileNavigationModal({
         </DialogHeader>
         
         <div className="space-y-4">
+          <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4">
+            <h4 className="font-medium text-sm mb-2 text-blue-900">📋 Link er kopieret til clipboard!</h4>
+            <p className="text-sm text-blue-700">SharePoint linket er automatisk kopieret. Du kan nu følge trinene nedenfor.</p>
+          </div>
+
           <div className="rounded-lg border bg-muted/50 p-4">
-            <h4 className="font-medium text-sm mb-2">Sådan finder du mappen:</h4>
-            <ol className="text-sm space-y-1 text-muted-foreground">
-              <li>1. Åbn OneDrive appen på din telefon</li>
-              <li>2. Gå til "Delt med mig" eller "Shared libraries"</li>
-              <li>3. Find og åbn SharePoint biblioteket</li>
-              <li>4. Naviger til mappen for sagsnummer: <span className="font-medium text-foreground">{caseNumber}</span></li>
+            <h4 className="font-medium text-sm mb-2">📱 Sådan finder du mappen:</h4>
+            <ol className="text-sm space-y-2 text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <span className="font-medium text-primary">1.</span>
+                <span>Åbn OneDrive appen (brug knappen nedenfor eller åbn manuelt)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-medium text-primary">2.</span>
+                <span>Gå til <strong>"Delt med mig"</strong> eller <strong>"Shared libraries"</strong></span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-medium text-primary">3.</span>
+                <span>Find og åbn SharePoint biblioteket for jeres firma</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-medium text-primary">4.</span>
+                <span>Naviger til mappen: <span className="font-medium text-foreground bg-muted px-1 rounded">{caseNumber}</span></span>
+              </li>
             </ol>
           </div>
 
           {folderPath && (
             <div className="rounded-lg border bg-muted/50 p-4">
-              <h4 className="font-medium text-sm mb-2">Mappe sti:</h4>
-              <p className="text-sm text-muted-foreground font-mono">{folderPath}</p>
+              <h4 className="font-medium text-sm mb-2">📁 Mappe sti:</h4>
+              <p className="text-sm text-muted-foreground font-mono break-all">{folderPath}</p>
             </div>
           )}
 
           <div className="flex flex-col gap-2">
-            <Button onClick={handleCopyUrl} variant="outline" className="w-full">
-              <Copy className="w-4 h-4 mr-2" />
-              Kopier SharePoint Link
+            <Button onClick={handleOpenOneDriveApp} className="w-full">
+              <FolderOpen className="w-4 h-4 mr-2" />
+              Åbn OneDrive App
             </Button>
             
-            <Button onClick={handleOpenInBrowser} variant="outline" className="w-full">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Åbn i Browser
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={handleCopyUrl} variant="outline" className="flex-1">
+                <Copy className="w-4 h-4 mr-2" />
+                Kopier Link Igen
+              </Button>
+              
+              <Button onClick={handleOpenInBrowser} variant="outline" className="flex-1">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Åbn i Browser
+              </Button>
+            </div>
             
-            <Button onClick={onClose} className="w-full">
+            <Button onClick={onClose} variant="secondary" className="w-full">
               Forstået
             </Button>
           </div>
