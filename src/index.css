@@ -490,7 +490,7 @@
 }
 
 .modern-card-elevated {
-  @apply modern-card hover:translate-y-[-2px] shadow-xl hover:shadow-3xl;
+  @apply modern-card hover:translate-y-[-2px] shadow-xl hover:shadow-2xl;
   background: linear-gradient(135deg, 
     hsl(var(--card)) 0%, 
     hsl(var(--card) / 0.98) 100%);
