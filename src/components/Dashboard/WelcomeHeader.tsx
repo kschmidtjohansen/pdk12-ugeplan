@@ -31,39 +31,37 @@ const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, dailyQuote }) =
   const headerDate = getHeaderDateDisplay();
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/95 to-primary/85 p-8 text-white shadow-2xl animate-fade-in-up hover-lift">
-      {/* Glass effect overlays */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-white/5 to-transparent"></div>
-      <div className="absolute top-0 right-0 w-[32rem] h-[32rem] bg-white/8 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-white/8 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-white/10 rounded-3xl"></div>
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 text-white shadow-2xl animate-fade-in-up">
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent py-0"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
       
       <div className="relative z-10 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center justify-center w-16 h-16 rounded-3xl bg-white/25 backdrop-blur-sm border border-white/40 shadow-lg">
-            <Clock className="h-8 w-8 text-white drop-shadow-sm" />
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30">
+            <Clock className="h-6 w-6 text-white" />
           </div>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-balance drop-shadow-sm">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight">
                 {t('dashboard.welcomeUser', { name: userName || t('common.user') })}
               </h1>
             </div>
-            <p className="text-white/90 text-xl font-medium max-w-3xl leading-relaxed drop-shadow-sm">
+            <p className="text-blue-100 text-lg font-medium max-w-2xl">
               {dailyQuote}
             </p>
           </div>
         </div>
-        <div className="hidden lg:block">
-          <div className="text-right space-y-3">
-            <div className="px-6 py-4 rounded-2xl bg-white/25 backdrop-blur-sm border border-white/40 shadow-lg hover-glow">
-              <p className="text-white/90 uppercase tracking-wider font-semibold text-lg">
+        <div className="hidden md:block">
+          <div className="text-right space-y-2">
+            <div className="px-4 py-2 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30">
+              <p className="text-blue-100 uppercase tracking-wider font-semibold text-base">
                 {headerDate.dayName}
               </p>
-              <p className="uppercase tracking-wider font-bold text-3xl text-white drop-shadow-sm">
+              <p className="uppercase tracking-wider font-semibold text-2xl text-white">
                 {t('dashboard.week')} {headerDate.weekNumber}
               </p>
-              <p className="font-semibold text-lg text-white/90 mt-1">
+              <p className="font-bold text-base text-blue-100">
                 {headerDate.dateString}
               </p>
             </div>

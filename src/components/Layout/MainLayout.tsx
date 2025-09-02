@@ -81,10 +81,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <SecurityErrorBoundary>
       <SecurityHeaders />
-      <div className="flex flex-col min-h-screen w-full page-layout">
+      <div className="flex flex-col min-h-screen w-full">
         <TopNavbar />
         
-        <main className="flex-1 w-full pt-20 relative z-10">
+        <main className="flex-1 w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 pt-20">
           <div className="animate-fade-in-up w-full">
             <SecurityErrorBoundary>
               {children}
