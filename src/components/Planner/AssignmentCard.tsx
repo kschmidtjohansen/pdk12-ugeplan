@@ -1,17 +1,14 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Assignment } from '../../types/assignment';
 import { Car } from '../../types/car';
 import AssignmentStatusBadge from './AssignmentStatusBadge';
 import AssignmentActionButtons from './AssignmentActionButtons';
 import AssignmentDetails from './AssignmentDetails';
-import { AssignmentViewDialog } from './AssignmentViewDialog';
-import { OneDriveFolderButton } from '@/components/OneDrive/OneDriveFolderButton';
 import { useTranslation } from '@/context/TranslationContext';
-import { UserCheck, Eye } from 'lucide-react';
+import { UserCheck } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
-import { Button } from '@/components/ui/button';
 
 interface AssignmentCardProps {
   assignment: Assignment;
@@ -36,7 +33,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 }) => {
   const { t } = useTranslation();
   const { employees } = useEmployees();
-  const [showViewDialog, setShowViewDialog] = useState(false);
 
   console.log(`[AssignmentCard] COMPREHENSIVE FIX - Assignment: ${assignment.title || assignment.location}`);
   console.log(`[AssignmentCard] COMPREHENSIVE FIX - Employee data:`, {
@@ -154,7 +150,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <div className="flex items-center gap-2 flex-1">
           <div className="flex flex-col flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-medium text-lg">{assignment.case_number || t('planner.titleLabel')}</h3>
+              <h3 className="font-medium text-lg">{assignment.title || t('planner.titleLabel')}</h3>
               {operationState && (
                 <span className="text-xs text-blue-600 font-medium animate-pulse">
                   {getOperationText(operationState)}
@@ -187,23 +183,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         
         <div className="flex items-center gap-2 flex-shrink-0">
           <AssignmentStatusBadge isPublished={isPublished} />
-          
-          {/* OneDrive Button */}
-          {assignment.case_number && (
-            <OneDriveFolderButton caseNumber={assignment.case_number} />
-          )}
-          
-          {/* View Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowViewDialog(true)}
-            className="h-8 w-8 p-0"
-            title="Se detaljer"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          
           <AssignmentActionButtons
           assignment={assignment}
           onEdit={handleEditClick}
@@ -222,16 +201,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       )}
       
       <AssignmentDetails assignment={assignment} cars={cars} showFullTeamDetails={true} />
-      
-      {/* Assignment View Dialog */}
-      <AssignmentViewDialog
-        assignment={assignment}
-        cars={cars}
-        isOpen={showViewDialog}
-        onClose={() => setShowViewDialog(false)}
-        onEdit={canEdit ? onEdit : undefined}
-        canEdit={canEdit}
-      />
     </Card>
   );
 };

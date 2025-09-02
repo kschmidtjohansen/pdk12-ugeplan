@@ -17,7 +17,6 @@ export interface OptimizedAssignmentData {
   updated_at: string;
   car_id: string | null;
   car_ids: string[] | null;
-  case_number: string | null;
   responsible_user: {
     id: string;
     name: string;
@@ -207,7 +206,6 @@ export class OptimizedAssignmentService {
         updated_at: assignment.updated_at,
         car_id: assignment.car_id,
         car_ids: assignment.car_ids,
-        case_number: assignment.case_number,
         responsible_user: null, // Will be fetched separately
         assignment_employees: assignmentEmployees,
         assignment_cars: assignmentCars
@@ -235,8 +233,7 @@ export class OptimizedAssignmentService {
           created_at,
           updated_at,
           car_id,
-          car_ids,
-          case_number
+          car_ids
         `)
         .order('assignment_date', { ascending: true })
         .order('from_time', { ascending: true });
@@ -284,8 +281,7 @@ export class OptimizedAssignmentService {
           created_at,
           updated_at,
           car_id,
-          car_ids,
-          case_number
+          car_ids
         `)
         .eq('published', true)
         .order('assignment_date', { ascending: true })
@@ -334,8 +330,7 @@ export class OptimizedAssignmentService {
           created_at,
           updated_at,
           car_id,
-          car_ids,
-          case_number
+          car_ids
         `)
         .eq('published', true)
         .order('assignment_date', { ascending: true })
@@ -385,8 +380,7 @@ export class OptimizedAssignmentService {
           created_at,
           updated_at,
           car_id,
-          car_ids,
-          case_number
+          car_ids
         `)
         .eq('published', true)
         .order('assignment_date', { ascending: true })
@@ -452,8 +446,7 @@ export class OptimizedAssignmentService {
           created_at,
           updated_at,
           car_id,
-          car_ids,
-          case_number
+          car_ids
         `)
         .eq('published', false)
         .order('assignment_date', { ascending: true })
@@ -502,8 +495,7 @@ export class OptimizedAssignmentService {
           created_at,
           updated_at,
           car_id,
-          car_ids,
-          case_number
+          car_ids
         `)
         .order('assignment_date', { ascending: true })
         .order('from_time', { ascending: true });
@@ -605,8 +597,7 @@ export class OptimizedAssignmentService {
           created_at,
           updated_at,
           car_id,
-          car_ids,
-          case_number
+          car_ids
         `)
         .eq('assignment_date', date)
         .eq('published', true)
@@ -685,7 +676,6 @@ export class OptimizedAssignmentService {
     responsible_user_id?: string;
     car_id?: string;
     car_ids?: string[];
-    case_number?: string;
     employees?: string[];
   }>): Promise<void> {
     try {
@@ -832,7 +822,6 @@ export class OptimizedAssignmentService {
     responsible_user_id?: string | null;
     car_id?: string | null;
     car_ids?: string[] | null;
-    case_number?: string | null;
     employees?: string[];
   }): Promise<OptimizedAssignmentData> {
     try {
@@ -849,8 +838,7 @@ export class OptimizedAssignmentService {
         published: data.published || false,
         responsible_user_id: sanitizeUUIDForDB(data.responsible_user_id),
         car_id: sanitizeUUIDForDB(data.car_id),
-        car_ids: data.car_ids || (data.car_id ? [data.car_id] : null),
-        case_number: data.case_number?.trim() || null
+        car_ids: data.car_ids || (data.car_id ? [data.car_id] : null)
       };
       
       // Only include type if it's valid

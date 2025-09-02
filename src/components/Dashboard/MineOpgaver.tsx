@@ -1,28 +1,22 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentDataOptimized';
 import { useCars } from '@/hooks/car';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Clock, MapPin, UserCheck, Calendar, Users, Car, Navigation, Eye } from 'lucide-react';
+import { Clock, MapPin, UserCheck, Calendar, Users, Car, Navigation } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { getCurrentWeekInfo, getWeekDates } from '@/utils/dates';
 import { da } from 'date-fns/locale';
-import { AssignmentViewDialog } from '@/components/Planner/AssignmentViewDialog';
-import { OneDriveFolderButton } from '@/components/OneDrive/OneDriveFolderButton';
-import { Assignment } from '@/types/assignment';
 
 const MineOpgaver: React.FC = () => {
   const { user } = useAuth();
   const { t, currentLanguage } = useTranslation();
   const { assignments, loading, error } = useAssignmentDataOptimized();
   const { cars } = useCars();
-  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
-  const [showViewDialog, setShowViewDialog] = useState(false);
 
   // Filter assignments for current week only
   const userAssignments = React.useMemo(() => {
@@ -132,12 +126,6 @@ const MineOpgaver: React.FC = () => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  // Helper function to handle assignment view
-  const handleViewAssignment = (assignment: Assignment) => {
-    setSelectedAssignment(assignment);
-    setShowViewDialog(true);
-  };
-
   // PHASE 3 FIX: Enhanced date formatting
   const formatAssignmentDate = (dateStr: string) => {
     const date = parseISO(dateStr);
@@ -231,59 +219,23 @@ const MineOpgaver: React.FC = () => {
         {userAssignments.map((assignment) => (
           <div
             key={assignment.id}
-            className="flex flex-col space-y-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
-            onClick={() => handleViewAssignment(assignment)}
+            className="flex flex-col space-y-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
           >
-            {/* Title, Date and Actions */}
+            {/* Title and Date */}
             <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h4 className="font-medium text-sm leading-tight">
-                  {assignment.case_number || assignment.title}
-                </h4>
-              </div>
-              <div className="flex items-center gap-2">
-                {assignment.case_number && (
-                  <OneDriveFolderButton 
-                    caseNumber={assignment.case_number} 
-                    size="sm"
-                  />
-                )}
-                {assignment.location && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleNavigate(assignment.location);
-                    }}
-                    className="flex items-center justify-center h-6 w-6 rounded-md hover:bg-accent/50 transition-colors group p-0"
-                    title={t('dashboard.navigateToLocation') || 'Navigate to location'}
-                    aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
-                  >
-                    <Navigation className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </button>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleViewAssignment(assignment);
-                  }}
-                  title="Se detaljer"
-                >
-                  <Eye className="h-3 w-3" />
-                </Button>
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs ${
-                    isToday(parseISO(assignment.date)) 
-                      ? 'bg-primary/10 text-primary border-primary/20' 
-                      : 'bg-muted'
-                  }`}
-                >
-                  {formatAssignmentDate(assignment.date)}
-                </Badge>
-              </div>
+              <h4 className="font-medium text-sm leading-tight">
+                {assignment.title}
+              </h4>
+              <Badge 
+                variant="outline" 
+                className={`text-xs ${
+                  isToday(parseISO(assignment.date)) 
+                    ? 'bg-primary/10 text-primary border-primary/20' 
+                    : 'bg-muted'
+                }`}
+              >
+                {formatAssignmentDate(assignment.date)}
+              </Badge>
             </div>
 
             {/* Location */}
@@ -291,6 +243,14 @@ const MineOpgaver: React.FC = () => {
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="h-3 w-3" />
                 <span className="truncate flex-1">{assignment.location}</span>
+                <button
+                  onClick={() => handleNavigate(assignment.location)}
+                  className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent/50 transition-colors group"
+                  title={t('dashboard.navigateToLocation') || 'Navigate to location'}
+                  aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
+                >
+                  <Navigation className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                </button>
               </div>
             )}
 
@@ -352,17 +312,6 @@ const MineOpgaver: React.FC = () => {
             {t('dashboard.viewAllTasks') || 'Se alle opgaver'} →
           </button>
         </div>
-        
-        {/* Assignment View Dialog */}
-        <AssignmentViewDialog
-          assignment={selectedAssignment}
-          cars={cars}
-          isOpen={showViewDialog}
-          onClose={() => {
-            setShowViewDialog(false);
-            setSelectedAssignment(null);
-          }}
-        />
       </CardContent>
     </Card>
   );

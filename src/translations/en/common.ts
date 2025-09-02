@@ -137,10 +137,6 @@ export const common = {
   demoDataAutoCleanedEvery: "Demo data is automatically cleaned every 15 minutes and when session ends",
   showOnScreen: "Show on Screen",
   
-  // OneDrive translations
-  oneDriveFolderNotFound: "OneDrive folder not found",
-  oneDriveFolderNotFoundDescription: "No OneDrive folder was found. Contact a case manager if this is an error, otherwise the case is closed.",
-  
   // User roles
   roles: {
     administrator: "Administrator",

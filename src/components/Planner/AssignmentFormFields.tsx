@@ -2,7 +2,6 @@ import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Input } from '@/components/ui/input';
-import { CaseNumberInput } from '@/components/ui/case-number-input';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -20,8 +19,8 @@ import ResponsibleUserSelector from './ResponsibleUserSelector';
 import EmployeeSelector from './EmployeeSelector';
 
 interface AssignmentFormFieldsProps {
-  caseNumber: string;
-  setCaseNumber: (value: string) => void;
+  title: string;
+  setTitle: (value: string) => void;
   location: string;
   setLocation: (value: string) => void;
   selectedDate?: Date;
@@ -46,8 +45,8 @@ interface AssignmentFormFieldsProps {
 }
 
 const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
-  caseNumber,
-  setCaseNumber,
+  title,
+  setTitle,
   location,
   setLocation,
   selectedDate,
@@ -159,20 +158,20 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Case Number Field */}
+      {/* Title Field - Updated to use enterTitle translation */}
       <div className="space-y-2">
-        <CaseNumberInput
-          value={caseNumber}
-          onChange={(value) => {
-            console.log('[AssignmentFormFields] Case number changed:', value);
-            setCaseNumber(value);
+        <Label htmlFor="title">{t('planner.enterTitle')}</Label>
+        <Input
+          id="title"
+          value={title}
+          onChange={(e) => {
+            console.log('[AssignmentFormFields] Title changed:', e.target.value);
+            setTitle(e.target.value);
           }}
-          label={t('planner.titleLabel')}
           placeholder={t('planner.enterTitle')}
           required
         />
       </div>
-
 
       {/* Location Field - Updated to use enterLocation translation */}
       <div className="space-y-2">

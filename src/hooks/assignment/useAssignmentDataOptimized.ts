@@ -77,8 +77,7 @@ export const useAssignmentDataOptimized = () => {
           published: assignment.published || false,
           responsibleUser: responsibleUser,
           responsibleUserId: assignment.responsible_user_id,
-          type: assignment.type || 'other',
-          case_number: assignment.case_number // OneDrive integration field
+          type: assignment.type || 'other'
         };
       });
 
@@ -102,8 +101,7 @@ export const useAssignmentDataOptimized = () => {
           published: demoAssignment.published || false,
           responsibleUser: null,
           responsibleUserId: demoAssignment.responsible_user_id,
-          type: demoAssignment.type || 'other',
-          case_number: demoAssignment.case_number // OneDrive integration field
+          type: demoAssignment.type || 'other'
         }));
         
         transformedAssignments = [...transformedAssignments, ...demoAssignments];

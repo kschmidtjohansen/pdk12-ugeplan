@@ -4,7 +4,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Users, Settings, BarChart3, Activity, Zap, Trash2, Bug, Lock, FolderOpen } from 'lucide-react';
+import { Shield, Users, Settings, BarChart3, Activity, Zap, Trash2, Bug, Lock } from 'lucide-react';
 import UserManagement from '@/components/Admin/UserManagement';
 import { SystemHealthDashboard } from '@/components/Admin/SystemHealthDashboard';
 import { SecurityLogViewer } from '@/components/Admin/SecurityLogViewer';
@@ -12,7 +12,6 @@ import { ComprehensiveDiagnosticsPanel } from '@/components/Admin/ComprehensiveD
 import { PerformanceMonitoringPanel } from '@/components/Admin/PerformanceMonitoringPanel';
 import { SystemCleanupPanel } from '@/components/Admin/SystemCleanupPanel';
 import { SecurityAuditPanel } from '@/components/Admin/SecurityAuditPanel';
-import { OneDriveAdminPanel } from '@/components/Admin/OneDriveAdminPanel';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
 import PasswordResetDebugger from '@/components/Admin/PasswordResetDebugger';
 
@@ -49,14 +48,10 @@ const AdminPage: React.FC = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <BarChart3 className="h-4 w-4" />
               <span>{t('admin.tabs.overview')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="onedrive" className="flex items-center space-x-2">
-              <FolderOpen className="h-4 w-4" />
-              <span>OneDrive</span>
             </TabsTrigger>
             <TabsTrigger value="security-audit" className="flex items-center space-x-2">
               <Lock className="h-4 w-4" />
@@ -95,10 +90,6 @@ const AdminPage: React.FC = () => {
                 <SystemHealthDashboard />
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="onedrive" className="space-y-6">
-            <OneDriveAdminPanel />
           </TabsContent>
 
 

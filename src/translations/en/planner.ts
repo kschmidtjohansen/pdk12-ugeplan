@@ -79,9 +79,8 @@ const planner = {
   time: 'Time',
   
   // Form labels
-  titleLabel: 'Case Number',
-  enterTitle: 'Assignment Title',
-  assignmentTitle: 'Assignment Title',
+  titleLabel: 'Title',
+  enterTitle: 'Enter title',
   descriptionLabel: 'Description',
   assignmentDescription: 'Assignment description',
   notesPlaceholder: 'Enter notes',
@@ -183,8 +182,8 @@ const planner = {
   previousDays: 'Previous days',
   
   // Validation messages
-    validation: {
-      caseNumberRequired: 'Case number is required',
+  validation: {
+    titleRequired: 'Title is required',
     locationRequired: 'Location is required',
     dateRequired: 'Date is required',
     fromTimeRequired: 'Start time is required',

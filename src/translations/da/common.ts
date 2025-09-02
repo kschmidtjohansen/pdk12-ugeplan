@@ -140,10 +140,6 @@ export const common = {
   demoDataAutoCleanedEvery: "Demo data ryddes automatisk hver 15. minut og når session ender",
   showOnScreen: "Vis på skærm",
   
-  // OneDrive translations
-  oneDriveFolderNotFound: "OneDrive mappe ikke fundet",
-  oneDriveFolderNotFoundDescription: "Der blev ikke fundet en OneDrive mappe. Kontakt en skadeleder hvis dette er en fejl, ellers er sagen afsluttet.",
-  
   // User roles
   roles: {
     administrator: "Administrator",

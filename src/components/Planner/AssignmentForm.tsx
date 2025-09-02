@@ -11,7 +11,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Send, Trash2, Edit3 } from 'lucide-react';
 import { format } from 'date-fns';
 import AssignmentFormFields from './AssignmentFormFields';
-
 interface AssignmentFormProps {
   currentAssignment: Assignment | null;
   formData: Partial<Assignment>;
@@ -26,7 +25,6 @@ interface AssignmentFormProps {
   selectedDay: string;
   onPublishDay: (date: string) => void;
 }
-
 const AssignmentForm: React.FC<AssignmentFormProps> = ({
   currentAssignment,
   formData,
@@ -41,198 +39,280 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   selectedDay,
   onPublishDay
 }) => {
-  const { t } = useTranslation();
-  const { canEdit, canPublishTasks } = usePermissions();
-  const { toast } = useToast();
+  const {
+    t
+  } = useTranslation();
+  const {
+    canEdit,
+    canPublishTasks
+  } = usePermissions();
+  const {
+    toast
+  } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // State management for all form fields
-  const [caseNumber, setCaseNumber] = useState(formData?.case_number || '');
-  const [location, setLocation] = useState(formData?.location || '');
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    formData?.date ? new Date(formData.date + 'T00:00:00') : undefined
-  );
-  const [fromTime, setFromTime] = useState(formData?.fromTime || '08:00');
-  const [toTime, setToTime] = useState(formData?.toTime || '16:00');
-  const [description, setDescription] = useState(formData?.description || '');
-  const [selectedCarId, setSelectedCarId] = useState(formData?.car as string || '');
-  const [selectedResponsibleUserId, setSelectedResponsibleUserId] = useState(formData?.responsibleUserId || '');
-  const [selectedEmployees, setSelectedEmployees] = useState<string[]>(
-    normalizeEmployees(formData?.employees) || []
-  );
-
-  // Update state when formData changes
-  useEffect(() => {
-    if (formData) {
-      setCaseNumber(formData.case_number || '');
-      setLocation(formData.location || '');
-      setSelectedDate(formData.date ? new Date(formData.date + 'T00:00:00') : undefined);
-      setFromTime(formData.fromTime || '08:00');
-      setToTime(formData.toTime || '16:00');
-      setDescription(formData.description || '');
-      setSelectedCarId(formData.car as string || '');
-      setSelectedResponsibleUserId(formData.responsibleUserId || '');
-      setSelectedEmployees(normalizeEmployees(formData.employees) || []);
+  const {
+    handleSubmit,
+    formState: {
+      errors
     }
-  }, [formData]);
+  } = useForm<Partial<Assignment>>({
+    defaultValues: formData
+  });
 
+  // Handle form submission with comprehensive debugging and validation
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Enhanced validation
+    console.log('[AssignmentForm] === FORM SUBMISSION DEBUG ===');
+    console.log('[AssignmentForm] Form data at submission:', formData);
+
+    // Enhanced validation with translated error messages
     const validationErrors: string[] = [];
-    if (!caseNumber.trim()) {
-      validationErrors.push(t('planner.validation.caseNumberRequired'));
+    if (!formData.title?.trim()) {
+      validationErrors.push(t('planner.validation.titleRequired'));
     }
-    if (!location.trim()) {
+    if (!formData.location?.trim()) {
       validationErrors.push(t('planner.validation.locationRequired'));
     }
-    if (!selectedDate) {
+    if (!formData.date) {
       validationErrors.push(t('planner.validation.dateRequired'));
     }
-    if (!fromTime) {
+    if (!formData.fromTime) {
       validationErrors.push(t('planner.validation.fromTimeRequired'));
     }
-    if (!toTime) {
+    if (!formData.toTime) {
       validationErrors.push(t('planner.validation.toTimeRequired'));
     }
-    if (fromTime && toTime && fromTime >= toTime) {
+
+    // Validate time logic
+    if (formData.fromTime && formData.toTime && formData.fromTime >= formData.toTime) {
       validationErrors.push(t('planner.validation.timeOrderRequired'));
     }
-
     if (validationErrors.length > 0) {
-      toast({
-        title: t('common.validationError'),
-        description: validationErrors.join(', '),
-        variant: "destructive"
+      console.error('[AssignmentForm] Validation failed:', validationErrors);
+      // Show validation errors to user via toast
+      validationErrors.forEach(error => {
+        toast({
+          title: t('common.error'),
+          description: error,
+          variant: 'destructive'
+        });
       });
       return;
     }
-
     setIsSubmitting(true);
-
     try {
-      const submissionData = {
-        title: caseNumber.trim(), // Use case number as title
-        case_number: caseNumber.trim() || undefined,
-        location: location.trim(),
-        date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
-        fromTime,
-        toTime,
-        description: description.trim(),
-        car: selectedCarId || undefined,
-        responsibleUserId: selectedResponsibleUserId || undefined,
-        employees: selectedEmployees.length > 0 ? selectedEmployees : undefined,
-        published: formData?.published || false
-      };
-
-      await onSubmit(submissionData);
+      console.log('[AssignmentForm] Validation passed, calling onSubmit with data:', formData);
+      await onSubmit(formData);
+      console.log('[AssignmentForm] onSubmit completed successfully');
     } catch (error) {
-      console.error('[AssignmentForm] Submission error:', error);
-      toast({
-        title: t('common.error'),
-        description: currentAssignment ? t('planner.errorUpdatingAssignment') : t('planner.errorCreatingAssignment'),
-        variant: "destructive"
+      console.error('[AssignmentForm] Error in form submission:', error);
+      console.error('[AssignmentForm] Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        type: typeof error,
+        error
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const handleDeleteClick = async () => {
+  const handleDeleteClick = () => {
+    console.log('[AssignmentForm] Delete clicked for assignment:', currentAssignment?.id);
     if (currentAssignment?.id) {
-      await onDelete(currentAssignment.id);
+      onDelete(currentAssignment.id);
+    }
+  };
+  const handlePublishClick = () => {
+    console.log('[AssignmentForm] ===== PUBLISH BUTTON CLICKED =====');
+    console.log('[AssignmentForm] Publishing assignment:', currentAssignment?.id);
+    console.log('[AssignmentForm] Current published status:', currentAssignment?.published);
+    console.log('[AssignmentForm] Can publish tasks:', canPublishTasks);
+    if (currentAssignment?.id) {
+      console.log('[AssignmentForm] Calling onPublish function...');
+      onPublish(currentAssignment.id);
+    } else {
+      console.error('[AssignmentForm] No assignment ID found for publishing');
+    }
+    console.log('[AssignmentForm] ===== PUBLISH BUTTON END =====');
+  };
+  const handlePublishDayClick = () => {
+    console.log('[AssignmentForm] Publish day clicked for date:', selectedDay);
+    if (selectedDay) {
+      onPublishDay(selectedDay);
     }
   };
 
-  const handlePublishClick = async () => {
-    if (currentAssignment?.id) {
-      await onPublish(currentAssignment.id);
+  // Helper function to get car ID as string
+  const getCarId = (car: string | {
+    id: string;
+    name: string;
+  } | null): string => {
+    console.log('[AssignmentForm] Getting car ID from:', car, 'type:', typeof car);
+    if (typeof car === 'string') return car;
+    if (car && typeof car === 'object' && 'id' in car) return car.id;
+    return '';
+  };
+
+  // Helper function to get responsible user ID as string
+  const getResponsibleUserId = (user: {
+    id: string;
+    name: string;
+  } | null): string => {
+    // Prefer explicit responsibleUserId if present
+    // Fallback to object-based user id
+    if (formData.responsibleUserId) return formData.responsibleUserId as string;
+    if (user && typeof user === 'object' && 'id' in user) return user.id;
+    return '';
+  };
+
+  // Helper function to set responsible user as object
+  const setResponsibleUserById = (userId: string) => {
+    console.log('[AssignmentForm] Setting responsible user ID:', userId);
+    if (userId) {
+      // Find the user in employees to get their name
+      const user = employees.find(emp => emp.id === userId);
+      const userName = user ? user.name : '';
+      console.log('[AssignmentForm] Found user for ID:', {
+        userId,
+        userName,
+        user: user?.name
+      });
+      const updatedData = {
+        ...formData,
+        responsibleUser: {
+          id: userId,
+          name: userName
+        },
+        responsibleUserId: userId // FIX: Also set the responsibleUserId field
+      };
+      console.log('[AssignmentForm] Updated form data with responsible user:', updatedData);
+      setFormData(updatedData);
+    } else {
+      console.log('[AssignmentForm] Clearing responsible user');
+      setFormData({
+        ...formData,
+        responsibleUser: null,
+        responsibleUserId: null // FIX: Use null instead of empty string
+      });
     }
   };
 
+  // Helper function to handle employees as array of strings
+  const handleEmployeesChange = (employees: string[]) => {
+    console.log('[AssignmentForm] Employees changed to:', employees);
+    const updatedData = {
+      ...formData,
+      employees
+    };
+    console.log('[AssignmentForm] Updated form data with employees:', updatedData);
+    setFormData(updatedData);
+  };
+
+  // Enhanced helper function to handle car selection with proper debugging
+  const handleCarChange = (carId: string) => {
+    console.log('[AssignmentForm] ===== CAR CHANGE =====');
+    console.log('[AssignmentForm] Car change handler called:', {
+      carId,
+      carType: typeof carId,
+      isEmpty: carId === '' || !carId,
+      currentCar: formData.car
+    });
+
+    // Normalize the car value - null for no car, or the car ID
+    const normalizedCar = carId === '' || !carId ? null : carId;
+    const updatedData = {
+      ...formData,
+      car: normalizedCar
+    };
+    console.log('[AssignmentForm] Updated form data with car:', {
+      updatedData,
+      carValue: updatedData.car,
+      carType: typeof updatedData.car,
+      isEmpty: updatedData.car === '' || !updatedData.car
+    });
+    setFormData(updatedData);
+    console.log('[AssignmentForm] ===== CAR CHANGE END =====');
+  };
+
+  // FIXED: Timezone-safe date handling to prevent date shifts
   const handleDateChange = (date: Date | undefined) => {
-    setSelectedDate(date);
+    if (date) {
+      // Use date-fns format to ensure timezone-safe conversion
+      const dateString = format(date, 'yyyy-MM-dd');
+      console.log('[AssignmentForm] FIXED Date updated (timezone-safe):', dateString);
+      console.log('[AssignmentForm] Original date object:', date);
+      console.log('[AssignmentForm] Local date components:', {
+        year: date.getFullYear(),
+        month: date.getMonth() + 1,
+        day: date.getDate()
+      });
+      setFormData({
+        ...formData,
+        date: dateString
+      });
+    } else {
+      setFormData({
+        ...formData,
+        date: ''
+      });
+    }
   };
 
-  return (
-    <form onSubmit={handleFormSubmit} className="space-y-6">
-      <div className="space-y-6">
-        <AssignmentFormFields
-          caseNumber={caseNumber}
-          setCaseNumber={setCaseNumber}
-          location={location}
-          setLocation={setLocation}
-          selectedDate={selectedDate}
-          setSelectedDate={handleDateChange}
-          fromTime={fromTime}
-          setFromTime={setFromTime}
-          toTime={toTime}
-          setToTime={setToTime}
-          description={description}
-          setDescription={setDescription}
-          selectedCarId={selectedCarId}
-          setSelectedCarId={setSelectedCarId}
-          selectedResponsibleUserId={selectedResponsibleUserId}
-          setSelectedResponsibleUserId={setSelectedResponsibleUserId}
-          selectedEmployees={selectedEmployees}
-          setSelectedEmployees={setSelectedEmployees}
-          cars={cars}
-          employees={employees}
-          vacations={vacations}
-          assignmentId={currentAssignment?.id}
-          assignments={assignments}
-        />
+  // Check if we can publish this assignment
+  const canPublishAssignment = currentAssignment && canPublishTasks && !currentAssignment.published;
+  return <form onSubmit={handleFormSubmit} className="space-y-6">
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">
+          {currentAssignment ? t('planner.editAssignment') : t('planner.createNew')}
+        </h2>
+        
+        <AssignmentFormFields title={formData.title || ''} setTitle={value => {
+        console.log('[AssignmentForm] Title updated:', value);
+        setFormData({
+          ...formData,
+          title: value
+        });
+      }} location={formData.location || ''} setLocation={value => {
+        console.log('[AssignmentForm] Location updated:', value);
+        setFormData({
+          ...formData,
+          location: value
+        });
+      }} selectedDate={formData.date ? new Date(formData.date) : undefined} setSelectedDate={handleDateChange} fromTime={formData.fromTime || '08:00'} setFromTime={value => {
+        console.log('[AssignmentForm] From time updated:', value);
+        setFormData({
+          ...formData,
+          fromTime: value
+        });
+      }} toTime={formData.toTime || '16:00'} setToTime={value => {
+        console.log('[AssignmentForm] To time updated:', value);
+        setFormData({
+          ...formData,
+          toTime: value
+        });
+      }} description={formData.description || ''} setDescription={value => {
+        console.log('[AssignmentForm] Description updated:', value);
+        setFormData({
+          ...formData,
+          description: value
+        });
+      }} selectedCarId={getCarId(formData.car)} setSelectedCarId={handleCarChange} selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)} setSelectedResponsibleUserId={setResponsibleUserById} selectedEmployees={normalizeEmployees(formData.employees)} setSelectedEmployees={handleEmployeesChange} cars={cars} employees={employees} vacations={vacations} assignmentId={currentAssignment?.id} assignments={assignments} />
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex items-center justify-between pt-6 border-t">
-        <div className="flex items-center space-x-2">
-          {currentAssignment && canEdit && (
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDeleteClick}
-              size="sm"
-              className="flex items-center space-x-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span>{t('planner.deleteAssignment')}</span>
-            </Button>
-          )}
-        </div>
+      <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+        <Button type="submit" disabled={isSubmitting} className="flex-1">
+          <Edit3 className="mr-2 h-4 w-4" />
+          {isSubmitting ? t('planner.operations.saving') : currentAssignment ? t('common.update') : t('common.create')}
+        </Button>
 
-        <div className="flex items-center space-x-2">
-          {currentAssignment && !currentAssignment.published && canPublishTasks && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handlePublishClick}
-              size="sm"
-              className="flex items-center space-x-2"
-            >
-              <Send className="h-4 w-4" />
-              <span>{t('planner.publish')}</span>
-            </Button>
-          )}
+        {currentAssignment && canEdit}
 
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="flex items-center space-x-2"
-          >
-            <Edit3 className="h-4 w-4" />
-            <span>
-              {currentAssignment 
-                ? (isSubmitting ? t('planner.operations.updating') + '...' : t('planner.editAssignment'))
-                : (isSubmitting ? t('planner.operations.creating') + '...' : t('planner.addAssignment'))
-              }
-            </span>
-          </Button>
-        </div>
+        {canPublishAssignment && <Button type="button" variant="secondary" onClick={handlePublishClick} className="flex-none">
+            <Send className="mr-2 h-4 w-4" />
+            {t('planner.publish')}
+          </Button>}
+
+        {canPublishTasks && selectedDay}
       </div>
-    </form>
-  );
+    </form>;
 };
-
 export default AssignmentForm;

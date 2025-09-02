@@ -80,8 +80,7 @@ const planner = {
   
   // Form labels
   titleLabel: 'Sagsnummer',
-  enterTitle: 'Opgave titel',
-  assignmentTitle: 'Opgave titel',
+  enterTitle: 'Sagsnummer',
   descriptionLabel: 'Beskrivelse',
   assignmentDescription: 'Opgave beskrivelse',
   notesPlaceholder: 'Indtast noter',
@@ -185,7 +184,7 @@ const planner = {
   
   // Validation messages
   validation: {
-    caseNumberRequired: 'Sagsnummer er påkrævet',
+    titleRequired: 'Sagsnummer er påkrævet',
     locationRequired: 'Adresse er påkrævet',
     dateRequired: 'Dato er påkrævet',
     fromTimeRequired: 'Start tid er påkrævet',
