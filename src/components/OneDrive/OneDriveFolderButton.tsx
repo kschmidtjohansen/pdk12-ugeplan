@@ -77,10 +77,10 @@ export const OneDriveFolderButton: React.FC<OneDriveFolderButtonProps> = ({
 
   const getButtonSize = () => {
     switch (size) {
-      case 'sm': return 'h-6 w-6';
+      case 'sm': return 'h-7 w-7';
       case 'md': return 'h-10 w-10';
       case 'lg': return 'h-12 w-12';
-      default: return 'h-6 w-6';
+      default: return 'h-7 w-7';
     }
   };
 
@@ -123,7 +123,7 @@ export const OneDriveFolderButton: React.FC<OneDriveFolderButtonProps> = ({
           <Button
             variant={variant}
             size="sm"
-            className={`${!showText ? getButtonSize() : ''} ${className} transition-colors hover:bg-blue-50 hover:border-blue-300`}
+            className={`${!showText ? getButtonSize() : ''} ${className} transition-colors bg-blue-50 border-blue-200 hover:bg-blue-100 hover:border-blue-400 p-0`}
             onClick={handleOpenFolder}
             disabled={isLoading}
           >
