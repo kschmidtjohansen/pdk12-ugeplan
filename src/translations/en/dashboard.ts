@@ -132,5 +132,9 @@ export const dashboard = {
   
   // Additional translations
   noEmployeesFoundForDate: "No employees found for this date",
-  loadingEmployees: "Loading employees"
+  loadingEmployees: "Loading employees",
+  
+  // Navigation translations
+  navigateToLocation: "Navigate to location",
+  openInMaps: "Open in Google Maps"
 };

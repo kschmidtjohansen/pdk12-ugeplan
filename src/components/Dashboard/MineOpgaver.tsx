@@ -6,7 +6,7 @@ import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentData
 import { useCars } from '@/hooks/car';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, UserCheck, Calendar, Users, Car } from 'lucide-react';
+import { Clock, MapPin, UserCheck, Calendar, Users, Car, Navigation } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { getCurrentWeekInfo, getWeekDates } from '@/utils/dates';
@@ -112,6 +112,18 @@ const MineOpgaver: React.FC = () => {
       }
     }
     return carNames;
+  };
+
+  // Helper function to generate Google Maps navigation URL
+  const generateNavigationUrl = (location: string) => {
+    const encodedLocation = encodeURIComponent(location);
+    return `https://www.google.com/maps/dir/Current+Location/${encodedLocation}`;
+  };
+
+  // Helper function to handle navigation
+  const handleNavigate = (location: string) => {
+    const url = generateNavigationUrl(location);
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   // PHASE 3 FIX: Enhanced date formatting
@@ -230,7 +242,15 @@ const MineOpgaver: React.FC = () => {
             {assignment.location && (
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="h-3 w-3" />
-                <span className="truncate">{assignment.location}</span>
+                <span className="truncate flex-1">{assignment.location}</span>
+                <button
+                  onClick={() => handleNavigate(assignment.location)}
+                  className="flex items-center justify-center h-6 w-6 rounded-md hover:bg-accent/50 transition-colors group"
+                  title={t('dashboard.navigateToLocation') || 'Navigate to location'}
+                  aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
+                >
+                  <Navigation className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                </button>
               </div>
             )}
 

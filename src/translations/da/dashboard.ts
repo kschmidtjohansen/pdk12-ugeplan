@@ -132,5 +132,9 @@ export const dashboard = {
   
   // Additional translations
   noEmployeesFoundForDate: "Ingen medarbejdere fundet for denne dato",
-  loadingEmployees: "Indlæser medarbejdere"
+  loadingEmployees: "Indlæser medarbejdere",
+  
+  // Navigation translations
+  navigateToLocation: "Naviger til lokation",
+  openInMaps: "Åbn i Google Maps"
 };
