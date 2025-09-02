@@ -25,7 +25,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
   handleLogout
 }) => {
   const { t } = useTranslation();
-  const { isDemoMode, demoRole, setDemoRole } = useAuth();
+  const { isDemoMode, demoRole, setDemoRole, userDataLoaded } = useAuth();
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [profilePictureDialogOpen, setProfilePictureDialogOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -68,7 +68,9 @@ const UserMenu: React.FC<UserMenuProps> = ({
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
             <Avatar className="h-9 w-9 profile-avatar">
               <AvatarImage src={avatarUrl || undefined} />
-              <AvatarFallback>{user?.name ? getInitials(user.name) : 'U'}</AvatarFallback>
+              <AvatarFallback>
+                {!userDataLoaded ? '...' : (user?.name ? getInitials(user.name) : 'U')}
+              </AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
@@ -76,10 +78,12 @@ const UserMenu: React.FC<UserMenuProps> = ({
           <DropdownMenuLabel>
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
-                {user?.name}
+                {!userDataLoaded ? 'Loading...' : user?.name}
                 {isDemoMode && <span className="ml-2 px-2 py-0.5 text-xs bg-amber-100 text-amber-800 rounded-full">DEMO</span>}
               </p>
-              <p className="text-xs leading-none text-muted-foreground capitalize">{user?.role}</p>
+              <p className="text-xs leading-none text-muted-foreground capitalize">
+                {!userDataLoaded ? 'Loading...' : user?.role}
+              </p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />

@@ -17,7 +17,7 @@ import UserMenu from './NavComponents/UserMenu';
 import { getNavigationItems } from './NavigationItems';
 
 const TopNavbar: React.FC = () => {
-  const { isAuthenticated, user, logout, isEffectiveAdmin } = useAuth();
+  const { isAuthenticated, user, logout, isEffectiveAdmin, userDataLoaded } = useAuth();
   const { t, currentLanguage, setLanguage } = useTranslation();
   const { 
     notifications, 

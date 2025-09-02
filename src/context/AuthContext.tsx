@@ -323,43 +323,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setSessionExpired(false);
             
             if (newSession?.user) {
-              // BRIAN REUS FIX: Better immediate fallback with proper name handling
-              const fallbackUser: AppUser = {
-                id: newSession.user.id,
-                name: newSession.user.email || 'Loading...',
-                email: newSession.user.email || '',
-                role: 'servicemedarbejder'
-              };
-              console.log(`[AuthContext] BRIAN REUS DEBUG - Setting immediate fallback user:`, fallbackUser);
-              setUser(fallbackUser);
+              // KASPER FIX: Don't set user immediately, wait for complete data
+              console.log(`[AuthContext] KASPER FIX - Starting user data fetch for:`, newSession.user.email);
+              setUser(null);
               setUserDataLoaded(false);
               
-              // BRIAN REUS FIX: Enhanced async user data fetch with better error handling
+              // KASPER FIX: Fetch complete user data BEFORE setting user state
               (async () => {
                 if (!mounted) return;
                 
                 try {
-                  console.log(`[AuthContext] BRIAN REUS DEBUG - Starting async user data fetch for:`, newSession.user.email);
+                  console.log(`[AuthContext] KASPER FIX - Fetching complete user data for:`, newSession.user.email);
                   const userData = await fetchUserData(newSession.user);
                   if (userData && mounted) {
-                    console.log('[AuthContext] BRIAN REUS DEBUG - Full user data loaded successfully:', userData);
+                    console.log('[AuthContext] KASPER FIX - Complete user data loaded, setting user:', userData);
                     setUser(userData);
                     setUserDataLoaded(true);
                   } else {
-                    console.warn(`[AuthContext] BRIAN REUS DEBUG - No user data returned, keeping fallback`);
+                    console.warn(`[AuthContext] KASPER FIX - No user data returned, using fallback`);
                     if (mounted) {
+                      // Only use fallback if we can't get real data
+                      const fallbackUser: AppUser = {
+                        id: newSession.user.id,
+                        name: newSession.user.email || 'System User',
+                        email: newSession.user.email || '',
+                        role: 'servicemedarbejder'
+                      };
+                      setUser(fallbackUser);
                       setUserDataLoaded(true);
                     }
                   }
                 } catch (error) {
-                  console.error('[AuthContext] BRIAN REUS DEBUG - User data fetch in auth change failed:', error);
-                  // Keep the fallback user data but ensure it has a proper name
+                  console.error('[AuthContext] KASPER FIX - User data fetch failed:', error);
                   if (mounted) {
-                    const updatedFallbackUser: AppUser = {
-                      ...fallbackUser,
-                      name: fallbackUser.email || 'System User'
+                    // Only set fallback user if fetch completely failed
+                    const fallbackUser: AppUser = {
+                      id: newSession.user.id,
+                      name: newSession.user.email || 'System User',
+                      email: newSession.user.email || '',
+                      role: 'servicemedarbejder'
                     };
-                    setUser(updatedFallbackUser);
+                    console.log('[AuthContext] KASPER FIX - Using fallback user due to error:', fallbackUser);
+                    setUser(fallbackUser);
                     setUserDataLoaded(true);
                   }
                 }
