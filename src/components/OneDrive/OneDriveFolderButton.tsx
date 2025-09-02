@@ -77,10 +77,10 @@ export const OneDriveFolderButton: React.FC<OneDriveFolderButtonProps> = ({
 
   const getButtonSize = () => {
     switch (size) {
-      case 'sm': return 'h-8 w-8';
+      case 'sm': return 'h-6 w-6';
       case 'md': return 'h-10 w-10';
       case 'lg': return 'h-12 w-12';
-      default: return 'h-8 w-8';
+      default: return 'h-6 w-6';
     }
   };
 

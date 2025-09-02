@@ -175,22 +175,21 @@ export class OneDriveUrlService {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobile) {
-      // Try to open in SharePoint mobile app first, fallback to browser
-      const sharePointAppUrl = result.url.replace('https://', 'ms-sharepoint://');
+      // Try to open in OneDrive mobile app first, fallback to browser
+      const oneDriveAppUrl = result.url.replace('https://', 'ms-onedrive://');
       
-      // Create a temporary link to try mobile app
-      const tempLink = document.createElement('a');
-      tempLink.href = sharePointAppUrl;
-      tempLink.style.display = 'none';
-      document.body.appendChild(tempLink);
-      
-      // Try mobile app, fallback to browser after 1 second
-      tempLink.click();
-      
-      setTimeout(() => {
+      try {
+        // Try mobile app opening
+        window.location.href = oneDriveAppUrl;
+        
+        // Fallback to browser if app doesn't open within 2 seconds
+        setTimeout(() => {
+          window.open(result.url!, '_blank', 'noopener,noreferrer');
+        }, 2000);
+      } catch (error) {
+        // If mobile app attempt fails, open in browser
         window.open(result.url!, '_blank', 'noopener,noreferrer');
-        document.body.removeChild(tempLink);
-      }, 1000);
+      }
     } else {
       // Desktop - open in new tab
       window.open(result.url, '_blank', 'noopener,noreferrer');
