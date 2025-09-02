@@ -60,7 +60,6 @@ export class OneDriveUrlService {
         .single();
 
       let folderName: string;
-      let fullUrl: string;
 
       if (customMapping) {
         // Use custom folder mapping
@@ -72,7 +71,7 @@ export class OneDriveUrlService {
           folderName = customMapping.custom_folder_name;
         }
       } else {
-        // Use default pattern
+        // Use default pattern or try to find folder with case number pattern
         folderName = settings.folder_naming_pattern.replace('{case_number}', formattedCaseNumber);
       }
       
@@ -89,6 +88,66 @@ export class OneDriveUrlService {
       console.error('[OneDriveUrlService] Error generating URL:', error);
       return null;
     }
+  }
+
+  /**
+   * Extract case number from folder name using pattern matching
+   * Handles patterns like "12-012859 - Bøgevang 25, 7100 Vejle"
+   */
+  static extractCaseNumber(folderName: string): string | null {
+    // Pattern to match case numbers like 12-012859 at the start of folder names
+    const caseNumberRegex = /^(12-\d{6})/;
+    const match = folderName.match(caseNumberRegex);
+    return match ? match[1] : null;
+  }
+
+  /**
+   * Discover folders from OneDrive that match the case number pattern
+   * This would typically integrate with Microsoft Graph API or SharePoint API
+   * For now, returns a mock structure for demonstration
+   */
+  static async discoverFolders(): Promise<{caseNumber: string, folderName: string, folderUrl: string}[]> {
+    // In a real implementation, this would call Microsoft Graph API or SharePoint API
+    // to list folders and find ones matching the pattern "12-XXXXXX - Address, Postcode City"
+    
+    console.log('[OneDriveUrlService] Discovering folders - this would call Microsoft Graph API');
+    
+    // Mock discovered folders for demonstration
+    // In production, replace with actual API calls
+    const mockDiscoveredFolders = [
+      {
+        caseNumber: '12-012859',
+        folderName: '12-012859 - Bøgevang 25, 7100 Vejle',
+        folderUrl: 'https://yourcompany.sharepoint.com/sites/YourSite/Shared Documents/12 Sager/12-012859 - Bøgevang 25, 7100 Vejle'
+      },
+      {
+        caseNumber: '12-024578',
+        folderName: '12-024578 - Hovedgaden 15, 8000 Aarhus',
+        folderUrl: 'https://yourcompany.sharepoint.com/sites/YourSite/Shared Documents/12 Sager/12-024578 - Hovedgaden 15, 8000 Aarhus'
+      }
+    ];
+
+    return mockDiscoveredFolders;
+  }
+
+  /**
+   * Auto-map discovered folders to existing assignments
+   */
+  static async suggestMappings(): Promise<{caseNumber: string, folderName: string, folderUrl: string, hasAssignment: boolean}[]> {
+    const discoveredFolders = await this.discoverFolders();
+    
+    // Check which case numbers have existing assignments
+    const { data: assignments } = await supabase
+      .from('assignments')
+      .select('case_number')
+      .not('case_number', 'is', null);
+
+    const existingCaseNumbers = new Set(assignments?.map(a => a.case_number) || []);
+
+    return discoveredFolders.map(folder => ({
+      ...folder,
+      hasAssignment: existingCaseNumbers.has(folder.caseNumber)
+    }));
   }
 
   static async openFolder(caseNumber: string): Promise<void> {

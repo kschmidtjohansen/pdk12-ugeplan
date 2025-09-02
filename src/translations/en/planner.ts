@@ -79,8 +79,9 @@ const planner = {
   time: 'Time',
   
   // Form labels
-  titleLabel: 'Title',
-  enterTitle: 'Enter title',
+  titleLabel: 'Case Number',
+  enterTitle: 'Assignment Title',
+  assignmentTitle: 'Assignment Title',
   descriptionLabel: 'Description',
   assignmentDescription: 'Assignment description',
   notesPlaceholder: 'Enter notes',

@@ -22,8 +22,11 @@ import {
   X,
   AlertCircle,
   ExternalLink,
-  Loader2
+  Loader2,
+  RefreshCw,
+  Download
 } from 'lucide-react';
+import { OneDriveUrlService } from '@/services/OneDriveUrlService';
 
 interface CaseFolderMapping {
   id: string;
@@ -46,6 +49,7 @@ export const CaseFolderManagement: React.FC<CaseFolderManagementProps> = ({ clas
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingMapping, setEditingMapping] = useState<CaseFolderMapping | null>(null);
   const [saving, setSaving] = useState(false);
+  const [discovering, setDiscovering] = useState(false);
   
   const [formData, setFormData] = useState({
     case_number: '',
@@ -215,6 +219,65 @@ export const CaseFolderManagement: React.FC<CaseFolderManagementProps> = ({ clas
     }
   };
 
+  const handleDiscoverFolders = async () => {
+    setDiscovering(true);
+    
+    try {
+      const suggestions = await OneDriveUrlService.suggestMappings();
+      
+      if (suggestions.length === 0) {
+        toast({
+          title: "Ingen mapper fundet",
+          description: "Der blev ikke fundet nogen OneDrive mapper med sagsnummer-mønster",
+        });
+        return;
+      }
+
+      // Create mappings for folders that have corresponding assignments
+      const mappingsToCreate = suggestions.filter(s => s.hasAssignment);
+      
+      if (mappingsToCreate.length === 0) {
+        toast({
+          title: "Ingen matchende opgaver",
+          description: `Fandt ${suggestions.length} mapper, men ingen har tilsvarende opgaver i systemet`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Batch create mappings
+      const { error } = await supabase
+        .from('case_folder_mappings')
+        .upsert(
+          mappingsToCreate.map(mapping => ({
+            case_number: mapping.caseNumber,
+            custom_folder_name: mapping.folderName,
+            folder_url: mapping.folderUrl,
+            notes: 'Automatisk opdaget fra OneDrive'
+          })),
+          { onConflict: 'case_number' }
+        );
+
+      if (error) throw error;
+
+      toast({
+        title: "Mapper opdaget",
+        description: `Oprettede ${mappingsToCreate.length} nye mappeoversigter fra OneDrive`,
+      });
+
+      loadMappings();
+    } catch (error) {
+      console.error('Error discovering folders:', error);
+      toast({
+        title: "Fejl ved opdagelse",
+        description: "Kunne ikke opdage OneDrive mapper. Kontroller forbindelsen.",
+        variant: "destructive"
+      });
+    } finally {
+      setDiscovering(false);
+    }
+  };
+
   const filteredMappings = mappings.filter(mapping =>
     mapping.case_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
     mapping.custom_folder_name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -249,13 +312,24 @@ export const CaseFolderManagement: React.FC<CaseFolderManagementProps> = ({ clas
               Administrer tilpassede mappestier for specifikke sagsnumre
             </CardDescription>
           </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={openAddDialog} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Ny Oversigt
-              </Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={handleDiscoverFolders} 
+              disabled={discovering}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              {discovering ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              Opdage Mapper
+            </Button>
+            
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={openAddDialog} className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Ny Oversigt
+                </Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle>
@@ -324,7 +398,8 @@ export const CaseFolderManagement: React.FC<CaseFolderManagementProps> = ({ clas
                 </div>
               </div>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
       </CardHeader>
       

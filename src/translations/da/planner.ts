@@ -80,7 +80,8 @@ const planner = {
   
   // Form labels
   titleLabel: 'Sagsnummer',
-  enterTitle: 'Sagsnummer',
+  enterTitle: 'Opgave titel',
+  assignmentTitle: 'Opgave titel',
   descriptionLabel: 'Beskrivelse',
   assignmentDescription: 'Opgave beskrivelse',
   notesPlaceholder: 'Indtast noter',

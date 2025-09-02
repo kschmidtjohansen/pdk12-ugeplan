@@ -177,9 +177,9 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       </div>
 
-      {/* Title Field - Updated to use enterTitle translation */}
+      {/* Title Field - Updated to use assignmentTitle translation */}
       <div className="space-y-2">
-        <Label htmlFor="title">{t('planner.enterTitle')}</Label>
+        <Label htmlFor="title">{t('planner.assignmentTitle')}</Label>
         <Input
           id="title"
           value={title}
@@ -187,7 +187,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             console.log('[AssignmentFormFields] Title changed:', e.target.value);
             setTitle(e.target.value);
           }}
-          placeholder={t('planner.enterTitle')}
+          placeholder={t('planner.assignmentTitle')}
           required
         />
       </div>

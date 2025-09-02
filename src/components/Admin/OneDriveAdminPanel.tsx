@@ -11,6 +11,7 @@ import { OneDriveUrlService } from '@/services/OneDriveUrlService';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { CaseFolderManagement } from './CaseFolderManagement';
+import { CaseNumberMigration } from './CaseNumberMigration';
 import { 
   FolderOpen, 
   CheckCircle, 
@@ -201,6 +202,9 @@ export const OneDriveAdminPanel: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Case Number Migration */}
+      <CaseNumberMigration />
+      
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
