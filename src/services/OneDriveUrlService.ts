@@ -42,11 +42,11 @@ export class OneDriveUrlService {
     }
   }
 
-  static async generateFolderUrl(caseNumber: string): Promise<string | null> {
-    if (!caseNumber) return null;
+  static async generateFolderUrl(caseNumber: string): Promise<{ url: string | null; folderExists: boolean }> {
+    if (!caseNumber) return { url: null, folderExists: false };
 
     const settings = await this.getSettings();
-    if (!settings) return null;
+    if (!settings) return { url: null, folderExists: false };
 
     try {
       // Clean and format case number
@@ -60,19 +60,31 @@ export class OneDriveUrlService {
         .single();
 
       let folderName: string;
+      let folderExists = false;
 
       if (customMapping) {
         // Use custom folder mapping
         if (customMapping.folder_url) {
-          // If we have a direct URL, use it
-          return customMapping.folder_url;
+          // If we have a direct URL, assume it exists
+          return { url: customMapping.folder_url, folderExists: true };
         } else {
           // Use custom folder name
           folderName = customMapping.custom_folder_name;
+          folderExists = true; // Custom mapping exists, so folder should exist
         }
       } else {
-        // Use default pattern or try to find folder with case number pattern
-        folderName = settings.folder_naming_pattern.replace('{case_number}', formattedCaseNumber);
+        // Try to discover folder automatically
+        const discoveredFolders = await this.discoverFolders();
+        const matchingFolder = discoveredFolders.find(folder => folder.caseNumber === formattedCaseNumber);
+        
+        if (matchingFolder) {
+          folderName = matchingFolder.folderName;
+          folderExists = true;
+        } else {
+          // Use default pattern but mark as potentially not existing
+          folderName = settings.folder_naming_pattern.replace('{case_number}', formattedCaseNumber);
+          folderExists = false; // Folder may not exist
+        }
       }
       
       // Construct full SharePoint URL
@@ -83,10 +95,10 @@ export class OneDriveUrlService {
       const encodedFolderName = encodeURIComponent(folderName);
       const sharePointUrl = `${baseUrl}${folderPath}/${encodedFolderName}`;
       
-      return sharePointUrl;
+      return { url: sharePointUrl, folderExists };
     } catch (error) {
       console.error('[OneDriveUrlService] Error generating URL:', error);
-      return null;
+      return { url: null, folderExists: false };
     }
   }
 
@@ -150,16 +162,21 @@ export class OneDriveUrlService {
     }));
   }
 
-  static async openFolder(caseNumber: string): Promise<void> {
-    const url = await this.generateFolderUrl(caseNumber);
-    if (!url) return;
+  static async openFolder(caseNumber: string): Promise<{ success: boolean; folderExists: boolean }> {
+    const result = await this.generateFolderUrl(caseNumber);
+    if (!result.url) return { success: false, folderExists: false };
+
+    // Return folder existence status so the calling component can handle appropriately
+    if (!result.folderExists) {
+      return { success: false, folderExists: false };
+    }
 
     // Detect mobile device
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobile) {
       // Try to open in SharePoint mobile app first, fallback to browser
-      const sharePointAppUrl = url.replace('https://', 'ms-sharepoint://');
+      const sharePointAppUrl = result.url.replace('https://', 'ms-sharepoint://');
       
       // Create a temporary link to try mobile app
       const tempLink = document.createElement('a');
@@ -171,13 +188,15 @@ export class OneDriveUrlService {
       tempLink.click();
       
       setTimeout(() => {
-        window.open(url, '_blank', 'noopener,noreferrer');
+        window.open(result.url!, '_blank', 'noopener,noreferrer');
         document.body.removeChild(tempLink);
       }, 1000);
     } else {
       // Desktop - open in new tab
-      window.open(url, '_blank', 'noopener,noreferrer');
+      window.open(result.url, '_blank', 'noopener,noreferrer');
     }
+
+    return { success: true, folderExists: true };
   }
 
   static async isConfigured(): Promise<boolean> {

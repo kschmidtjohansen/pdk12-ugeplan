@@ -47,8 +47,18 @@ export const OneDriveFolderButton: React.FC<OneDriveFolderButtonProps> = ({
         return;
       }
 
-      await OneDriveUrlService.openFolder(caseNumber);
+      const result = await OneDriveUrlService.openFolder(caseNumber);
       
+      if (!result.success || !result.folderExists) {
+        // Folder doesn't exist - show specific message
+        toast({
+          title: "OneDrive mappe ikke fundet",
+          description: "Der blev ikke fundet en OneDrive mappe. Kontakt en skadeleder hvis dette er en fejl, ellers er sagen afsluttet.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       toast({
         title: "Åbner OneDrive mappe",
         description: `Åbner mappe for sagsnummer: ${caseNumber}`,

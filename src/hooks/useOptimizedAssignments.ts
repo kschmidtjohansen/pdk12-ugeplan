@@ -67,6 +67,7 @@ const convertToAssignment = (data: OptimizedAssignmentData): Assignment => {
     assignedEmployees: assignedEmployees,
     car: firstCar,
     cars: cars,
+    case_number: data.case_number,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
     responsibleUser: data.responsible_user
@@ -183,6 +184,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
         car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : null),
         car_ids: data.cars || null,
+        case_number: data.case_number?.trim() || null,
         employees: data.employees || [] // These are now employee IDs instead of names
       };
 
@@ -359,6 +361,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
         car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : 
                  (data.car ? [typeof data.car === 'string' ? data.car : (data.car as any)?.id] : null),
+        case_number: data.case_number?.trim() || null,
         employees: data.employees || [] // Include employee IDs for updates
       };
       
