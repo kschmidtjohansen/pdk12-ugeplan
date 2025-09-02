@@ -217,7 +217,9 @@ const planner = {
     tooManyFiles: 'Maximum {max} files allowed',
     attachments: 'Attachments',
     addFiles: 'Add Files',
-    noFiles: 'No files attached'
+    noFiles: 'No files attached',
+    file: 'file',
+    files: 'files'
   }
 };
 

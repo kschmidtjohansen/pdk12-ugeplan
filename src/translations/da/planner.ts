@@ -218,7 +218,9 @@ const planner = {
     tooManyFiles: 'Maksimalt {max} filer tilladt',
     attachments: 'Vedhæftninger',
     addFiles: 'Tilføj Filer',
-    noFiles: 'Ingen filer vedhæftet'
+    noFiles: 'Ingen filer vedhæftet',
+    file: 'fil',
+    files: 'filer'
   }
 };
 

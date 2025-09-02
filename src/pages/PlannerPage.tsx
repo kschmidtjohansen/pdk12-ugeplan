@@ -34,20 +34,6 @@ const PlannerPage: React.FC = () => {
     vacations
   } = useVacations();
   
-  // Handle URL parameters for opening specific assignments
-  React.useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const assignmentId = urlParams.get('assignment');
-    
-    if (assignmentId && assignments.length > 0) {
-      const assignment = assignments.find(a => a.id === assignmentId);
-      if (assignment) {
-        handleOpenEditDialog(assignment);
-        // Clean up URL
-        window.history.replaceState({}, '', '/planner');
-      }
-    }
-  }, [assignments]);
   // Use the optimized hook directly for better state management
   const {
     assignments,
@@ -82,6 +68,34 @@ const PlannerPage: React.FC = () => {
     car: '',
     employees: []
   });
+
+  // Handler functions (defined before useEffect to avoid reference issues)
+  const handleOpenEditDialog = (assignment: Assignment) => {
+    setCurrentAssignment(assignment);
+    setSelectedDay(assignment.date);
+    setFormData({
+      ...assignment,
+      employees: assignment.employees ? [...assignment.employees] : [],
+      car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : '',
+      published: assignment.published
+    });
+    setIsDialogOpen(true);
+  };
+
+  // Handle URL parameters for opening specific assignments
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const assignmentId = urlParams.get('assignment');
+    
+    if (assignmentId && assignments.length > 0) {
+      const assignment = assignments.find(a => a.id === assignmentId);
+      if (assignment) {
+        handleOpenEditDialog(assignment);
+        // Clean up URL
+        window.history.replaceState({}, '', '/planner');
+      }
+    }
+  }, [assignments]);
 
   // Week utilities
   const getWeekDates = (week: number, year: number) => {
@@ -140,18 +154,6 @@ const PlannerPage: React.FC = () => {
       car: '',
       employees: [],
       published: false
-    });
-    setIsDialogOpen(true);
-  };
-
-  const handleOpenEditDialog = (assignment: Assignment) => {
-    setCurrentAssignment(assignment);
-    setSelectedDay(assignment.date);
-    setFormData({
-      ...assignment,
-      employees: assignment.employees ? [...assignment.employees] : [],
-      car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : '',
-      published: assignment.published
     });
     setIsDialogOpen(true);
   };
