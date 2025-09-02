@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { OneDriveUrlService } from '@/services/OneDriveUrlService';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { CaseFolderManagement } from './CaseFolderManagement';
 import { 
   FolderOpen, 
   CheckCircle, 
@@ -374,6 +375,9 @@ export const OneDriveAdminPanel: React.FC = () => {
           </Alert>
         </CardContent>
       </Card>
+
+      {/* Case Folder Management */}
+      <CaseFolderManagement />
     </div>
   );
 };

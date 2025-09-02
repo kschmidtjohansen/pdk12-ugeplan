@@ -158,6 +158,39 @@ export type Database = {
         }
         Relationships: []
       }
+      case_folder_mappings: {
+        Row: {
+          case_number: string
+          created_at: string
+          created_by: string | null
+          custom_folder_name: string
+          folder_url: string | null
+          id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          case_number: string
+          created_at?: string
+          created_by?: string | null
+          custom_folder_name: string
+          folder_url?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          case_number?: string
+          created_at?: string
+          created_by?: string | null
+          custom_folder_name?: string
+          folder_url?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       case_onedrive_mappings: {
         Row: {
           case_number: string

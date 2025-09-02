@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Input } from '@/components/ui/input';
+import { CaseNumberInput } from '@/components/ui/case-number-input';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -162,6 +163,20 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Case Number Field */}
+      <div className="space-y-2">
+        <CaseNumberInput
+          value={caseNumber}
+          onChange={(value) => {
+            console.log('[AssignmentFormFields] Case number changed:', value);
+            setCaseNumber(value);
+          }}
+          label={t('planner.titleLabel')}
+          placeholder={t('planner.enterTitle')}
+          required
+        />
+      </div>
+
       {/* Title Field - Updated to use enterTitle translation */}
       <div className="space-y-2">
         <Label htmlFor="title">{t('planner.enterTitle')}</Label>

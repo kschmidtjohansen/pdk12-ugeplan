@@ -52,8 +52,29 @@ export class OneDriveUrlService {
       // Clean and format case number
       const formattedCaseNumber = caseNumber.trim();
       
-      // Replace pattern in folder naming
-      const folderName = settings.folder_naming_pattern.replace('{case_number}', formattedCaseNumber);
+      // First check for custom folder mapping
+      const { data: customMapping } = await supabase
+        .from('case_folder_mappings')
+        .select('custom_folder_name, folder_url')
+        .eq('case_number', formattedCaseNumber)
+        .single();
+
+      let folderName: string;
+      let fullUrl: string;
+
+      if (customMapping) {
+        // Use custom folder mapping
+        if (customMapping.folder_url) {
+          // If we have a direct URL, use it
+          return customMapping.folder_url;
+        } else {
+          // Use custom folder name
+          folderName = customMapping.custom_folder_name;
+        }
+      } else {
+        // Use default pattern
+        folderName = settings.folder_naming_pattern.replace('{case_number}', formattedCaseNumber);
+      }
       
       // Construct full SharePoint URL
       const baseUrl = settings.base_sharepoint_url.replace(/\/$/, ''); // Remove trailing slash
