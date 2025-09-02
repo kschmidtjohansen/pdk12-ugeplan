@@ -245,7 +245,7 @@ const MineOpgaver: React.FC = () => {
                 <span className="truncate flex-1">{assignment.location}</span>
                 <button
                   onClick={() => handleNavigate(assignment.location)}
-                  className="flex items-center justify-center h-6 w-6 rounded-md hover:bg-accent/50 transition-colors group"
+                  className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent/50 transition-colors group"
                   title={t('dashboard.navigateToLocation') || 'Navigate to location'}
                   aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
                 >
