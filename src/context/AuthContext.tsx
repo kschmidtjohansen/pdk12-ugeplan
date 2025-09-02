@@ -48,6 +48,9 @@ interface AuthContextType {
   canEdit: boolean;
   canCreate: boolean;
   canSeeUnpublishedTasks: boolean;
+  canUploadFiles: boolean;
+  canViewAssignments: boolean;
+  canEditAssignments: boolean;
   validateAdminAccess: () => boolean;
   validateSkadelederAccess: () => boolean;
   hasRequiredRole: (requiredRoles: UserRole[]) => boolean;
@@ -86,6 +89,9 @@ const AuthContext = createContext<AuthContextType>({
   canEdit: false,
   canCreate: false,
   canSeeUnpublishedTasks: false,
+  canUploadFiles: false,
+  canViewAssignments: false,
+  canEditAssignments: false,
   validateAdminAccess: () => false,
   validateSkadelederAccess: () => false,
   hasRequiredRole: () => false,
@@ -582,6 +588,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const canEdit = isAdmin || isSkadeleder;
   const canCreate = isAdmin || isSkadeleder;
   const canSeeUnpublishedTasks = isAdmin || isSkadeleder;
+  
+  // New enhanced permissions
+  const canUploadFiles = isAdmin || isSkadeleder || isServicemedarbejder;
+  const canViewAssignments = true; // All authenticated users can view assignments
+  const canEditAssignments = isAdmin || isSkadeleder;
 
   // Validation methods
   const validateAdminAccess = (): boolean => {
@@ -798,6 +809,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     canEdit,
     canCreate,
     canSeeUnpublishedTasks,
+    canUploadFiles,
+    canViewAssignments,
+    canEditAssignments,
     validateAdminAccess,
     validateSkadelederAccess,
     hasRequiredRole,

@@ -33,6 +33,9 @@ export interface Assignment {
     name: string;
     role?: string;
   };
+  // OneDrive integration fields
+  caseNumber?: string;
+  onedriveFolderId?: string;
 }
 
 // Helper function to convert various employee formats to string[] of IDs

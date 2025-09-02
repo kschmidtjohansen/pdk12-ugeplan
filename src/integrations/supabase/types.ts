@@ -20,11 +20,13 @@ export type Database = {
           attachment_files: Json | null
           car_id: string | null
           car_ids: string[] | null
+          case_number: string | null
           created_at: string
           description: string | null
           from_time: string
           id: string
           location: string
+          onedrive_folder_id: string | null
           published: boolean | null
           responsible_user_id: string | null
           title: string
@@ -37,11 +39,13 @@ export type Database = {
           attachment_files?: Json | null
           car_id?: string | null
           car_ids?: string[] | null
+          case_number?: string | null
           created_at?: string
           description?: string | null
           from_time: string
           id?: string
           location: string
+          onedrive_folder_id?: string | null
           published?: boolean | null
           responsible_user_id?: string | null
           title: string
@@ -54,11 +58,13 @@ export type Database = {
           attachment_files?: Json | null
           car_id?: string | null
           car_ids?: string[] | null
+          case_number?: string | null
           created_at?: string
           description?: string | null
           from_time?: string
           id?: string
           location?: string
+          onedrive_folder_id?: string | null
           published?: boolean | null
           responsible_user_id?: string | null
           title?: string
@@ -149,6 +155,36 @@ export type Database = {
           notes?: string | null
           number_plate?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      case_onedrive_mappings: {
+        Row: {
+          case_number: string
+          created_at: string | null
+          created_by: string | null
+          folder_id: string
+          folder_url: string
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          case_number: string
+          created_at?: string | null
+          created_by?: string | null
+          folder_id: string
+          folder_url: string
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          case_number?: string
+          created_at?: string | null
+          created_by?: string | null
+          folder_id?: string
+          folder_url?: string
+          id?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

@@ -18,6 +18,8 @@ interface PlannerDialogContainerProps {
   employees: Employee[];
   vacations: Vacation[];
   selectedDay: string;
+  viewMode?: boolean;
+  onFileUpload?: (files: File[]) => Promise<void>;
 }
 
 const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
@@ -31,7 +33,9 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   cars,
   employees,
   vacations,
-  selectedDay
+  selectedDay,
+  viewMode = false,
+  onFileUpload
 }) => {
   return (
     <AssignmentDialogManager
@@ -49,6 +53,8 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
       vacations={vacations}
       selectedDay={selectedDay}
       onPublishDay={() => {}} // Not used in this context
+      viewMode={viewMode}
+      onFileUpload={onFileUpload}
     />
   );
 };
