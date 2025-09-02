@@ -14,7 +14,7 @@ export class AssignmentService {
       .select(`
         id, title, description, assignment_date, from_time, to_time,
         location, car_id, car_ids, published, responsible_user_id,
-        created_at, updated_at
+        attachment_files, created_at, updated_at
       `)
       .eq('published', true)
       .order('assignment_date', { ascending: true });
@@ -47,7 +47,7 @@ export class AssignmentService {
       .select(`
         id, title, description, assignment_date, from_time, to_time,
         location, car_id, car_ids, published, responsible_user_id,
-        created_at, updated_at
+        attachment_files, created_at, updated_at
       `)
       .in('id', assignmentIds)
       .eq('published', true)
@@ -139,6 +139,7 @@ export class AssignmentService {
         employees: employeeNames,
         car: assignment.car_id || '',
         cars: assignment.car_ids || [],
+        attachments: assignment.attachment_files || [],
         createdAt: assignment.created_at,
         updatedAt: assignment.updated_at,
         responsibleUser: null

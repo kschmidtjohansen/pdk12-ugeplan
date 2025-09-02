@@ -201,6 +201,23 @@ const planner = {
     processing: 'Processing',
     success: 'Success',
     failed: 'Failed'
+  },
+
+  // File management translations
+  files: {
+    dragDrop: 'Drag and drop files here, or click to browse',
+    dropHere: 'Drop files here',
+    browse: 'Browse Files',
+    camera: 'Take Photo',
+    supportedTypes: 'Supported: Images (JPG, PNG, WebP), PDF, Word documents',
+    maxSize: 'Maximum file size: 10MB',
+    attachedFiles: 'Attached Files',
+    uploadError: 'Failed to upload {filename}',
+    deleteError: 'Failed to delete {filename}',
+    tooManyFiles: 'Maximum {max} files allowed',
+    attachments: 'Attachments',
+    addFiles: 'Add Files',
+    noFiles: 'No files attached'
   }
 };
 

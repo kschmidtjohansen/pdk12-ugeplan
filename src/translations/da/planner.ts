@@ -202,6 +202,23 @@ const planner = {
     processing: 'Behandler',
     success: 'Succes',
     failed: 'Fejlede'
+  },
+
+  // File management translations
+  files: {
+    dragDrop: 'Træk og slip filer her, eller klik for at vælge',
+    dropHere: 'Slip filer her',
+    browse: 'Vælg Filer',
+    camera: 'Tag Billede',
+    supportedTypes: 'Understøttet: Billeder (JPG, PNG, WebP), PDF, Word dokumenter',
+    maxSize: 'Maksimal filstørrelse: 10MB',
+    attachedFiles: 'Vedhæftede Filer',
+    uploadError: 'Kunne ikke uploade {filename}',
+    deleteError: 'Kunne ikke slette {filename}',
+    tooManyFiles: 'Maksimalt {max} filer tilladt',
+    attachments: 'Vedhæftninger',
+    addFiles: 'Tilføj Filer',
+    noFiles: 'Ingen filer vedhæftet'
   }
 };
 

@@ -1,4 +1,15 @@
 
+export interface FileAttachment {
+  id: string;
+  filename: string;
+  originalName: string;
+  fileType: string;
+  size: number;
+  uploadedAt: string;
+  uploadedBy: string;
+  url?: string;
+}
+
 export interface Assignment {
   id: string;
   title: string;
@@ -14,6 +25,7 @@ export interface Assignment {
   assignedEmployees?: Array<{ id: string; name: string; email: string }>; // PHASE 3 FIX: Full employee data
   car?: string | { id: string; name: string };
   cars?: string[];
+  attachments?: FileAttachment[];
   createdAt?: string;
   updatedAt?: string;
   responsibleUser?: {
