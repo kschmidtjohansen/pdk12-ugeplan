@@ -162,7 +162,7 @@ export class OneDriveUrlService {
     }));
   }
 
-  static async openFolder(caseNumber: string): Promise<{ success: boolean; folderExists: boolean }> {
+  static async openFolder(caseNumber: string): Promise<{ success: boolean; folderExists: boolean; isMobile?: boolean; url?: string }> {
     const result = await this.generateFolderUrl(caseNumber);
     if (!result.url) return { success: false, folderExists: false };
 
@@ -175,27 +175,21 @@ export class OneDriveUrlService {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobile) {
-      // Try to open in OneDrive mobile app first, fallback to browser
-      const oneDriveAppUrl = result.url.replace('https://', 'ms-onedrive://');
-      
+      // On mobile, copy URL to clipboard for manual navigation
       try {
-        // Try mobile app opening
-        window.location.href = oneDriveAppUrl;
-        
-        // Fallback to browser if app doesn't open within 2 seconds
-        setTimeout(() => {
-          window.open(result.url!, '_blank', 'noopener,noreferrer');
-        }, 2000);
+        await navigator.clipboard.writeText(result.url);
+        return { success: true, folderExists: true, isMobile: true, url: result.url };
       } catch (error) {
-        // If mobile app attempt fails, open in browser
-        window.open(result.url!, '_blank', 'noopener,noreferrer');
+        console.error('[OneDriveUrlService] Failed to copy to clipboard:', error);
+        // Fallback: open in browser
+        window.open(result.url, '_blank', 'noopener,noreferrer');
+        return { success: true, folderExists: true, isMobile: true, url: result.url };
       }
     } else {
       // Desktop - open in new tab
       window.open(result.url, '_blank', 'noopener,noreferrer');
+      return { success: true, folderExists: true, isMobile: false };
     }
-
-    return { success: true, folderExists: true };
   }
 
   static async isConfigured(): Promise<boolean> {

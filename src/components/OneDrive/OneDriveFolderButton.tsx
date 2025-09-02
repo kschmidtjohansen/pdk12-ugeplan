@@ -59,10 +59,19 @@ export const OneDriveFolderButton: React.FC<OneDriveFolderButtonProps> = ({
         return;
       }
 
-      toast({
-        title: "Åbner OneDrive mappe",
-        description: `Åbner mappe for sagsnummer: ${caseNumber}`,
-      });
+      // Handle mobile vs desktop differently
+      if (result.isMobile) {
+        toast({
+          title: "Link kopieret",
+          description: "OneDrive link er kopieret til clipboard. Åbn OneDrive appen og naviger til mappen manuelt.",
+          duration: 5000
+        });
+      } else {
+        toast({
+          title: "Åbner OneDrive mappe",
+          description: `Åbner mappe for sagsnummer: ${caseNumber}`,
+        });
+      }
     } catch (error) {
       console.error('[OneDriveFolderButton] Error opening folder:', error);
       toast({
