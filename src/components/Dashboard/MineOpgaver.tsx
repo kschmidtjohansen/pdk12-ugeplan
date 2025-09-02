@@ -248,6 +248,19 @@ const MineOpgaver: React.FC = () => {
                     size="sm"
                   />
                 )}
+                {assignment.location && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNavigate(assignment.location);
+                    }}
+                    className="flex items-center justify-center h-6 w-6 rounded-md hover:bg-accent/50 transition-colors group p-0"
+                    title={t('dashboard.navigateToLocation') || 'Navigate to location'}
+                    aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
+                  >
+                    <Navigation className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </button>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -278,17 +291,6 @@ const MineOpgaver: React.FC = () => {
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="h-3 w-3" />
                 <span className="truncate flex-1">{assignment.location}</span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleNavigate(assignment.location);
-                  }}
-                  className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent/50 transition-colors group"
-                  title={t('dashboard.navigateToLocation') || 'Navigate to location'}
-                  aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
-                >
-                  <Navigation className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                </button>
               </div>
             )}
 
