@@ -19,7 +19,8 @@ import { Monitor } from 'lucide-react';
 interface PlannerContentProps {
   weekAssignments: Assignment[];
   operationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
-  onEditAssignment: (assignment: Assignment) => void;
+  onEditAssignment?: (assignment: Assignment) => void;
+  onViewAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment: (assignmentId: string) => void;
   onPublishDay: (date: string) => void;
@@ -35,6 +36,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   weekAssignments = [],
   operationStates = {},
   onEditAssignment,
+  onViewAssignment,
   onDeleteAssignment,
   onPublishAssignment,
   onPublishDay,
@@ -155,6 +157,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         onToggleExpansion={handleToggleExpansion}
         onPublishDay={onPublishDay}
         onEditAssignment={onEditAssignment}
+        onViewAssignment={onViewAssignment}
         onDeleteAssignment={onDeleteAssignment}
         onPublishAssignment={onPublishAssignment}
         onCopyAssignment={onCopyAssignment}
@@ -171,6 +174,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         onToggleExpansion={handleToggleExpansion}
         onPublishDay={onPublishDay}
         onEditAssignment={onEditAssignment}
+        onViewAssignment={onViewAssignment}
         onDeleteAssignment={onDeleteAssignment}
         onPublishAssignment={onPublishAssignment}
         onCopyAssignment={onCopyAssignment}

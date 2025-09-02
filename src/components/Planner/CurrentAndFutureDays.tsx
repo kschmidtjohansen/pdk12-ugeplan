@@ -11,7 +11,8 @@ interface CurrentAndFutureDaysProps {
   expandedDays: Record<string, boolean>;
   onToggleExpansion: (date: string) => void;
   onPublishDay?: (date: string) => void;
-  onEditAssignment: (assignment: Assignment) => void;
+  onEditAssignment?: (assignment: Assignment) => void;
+  onViewAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
   onCopyAssignment?: (assignment: Assignment) => void;
@@ -28,12 +29,13 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
   onToggleExpansion,
   onPublishDay,
   onEditAssignment,
+  onViewAssignment,
   onDeleteAssignment,
   onPublishAssignment,
   onCopyAssignment,
   canEdit,
   canPublishTasks,
-  cars = []
+  cars
 }) => {
   if (dates.length === 0) return null;
   
@@ -48,6 +50,7 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
           onToggleExpansion={onToggleExpansion}
           onPublishDay={onPublishDay}
           onEditAssignment={onEditAssignment}
+          onViewAssignment={onViewAssignment}
           onDeleteAssignment={onDeleteAssignment}
           onPublishAssignment={onPublishAssignment}
           onCopyAssignment={onCopyAssignment}

@@ -10,19 +10,18 @@ import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
 import { Clock, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { usePermissions } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/spinner';
+import { FileAttachment } from '../types/assignment';
+import { AssignmentFileService } from '../services/assignmentFileService';
 const PlannerPage: React.FC = () => {
   const {
     t,
     currentLanguage
   } = useTranslation();
   const {
-    canCreate,
-    canPublishTasks
-  } = usePermissions();
-  const {
-    user
+    user,
+    canEditAssignments,
+    canUploadFiles
   } = useAuth();
   const {
     employees
@@ -48,7 +47,7 @@ const PlannerPage: React.FC = () => {
     publishAssignmentsByDate
   } = useOptimizedAssignments('all');
 
-  // Simplified planner state management without conflicting hooks
+  // Enhanced planner state management with view/edit modes
   const [selectedWeek, setSelectedWeek] = React.useState(() => {
     const today = new Date();
     const onejan = new Date(today.getFullYear(), 0, 1);
@@ -58,6 +57,7 @@ const PlannerPage: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [currentAssignment, setCurrentAssignment] = React.useState<Assignment | null>(null);
   const [selectedDay, setSelectedDay] = React.useState(new Date().toISOString().split('T')[0]);
+  const [viewMode, setViewMode] = React.useState(false); // New state for view vs edit mode
   const [formData, setFormData] = React.useState<Partial<Assignment>>({
     title: '',
     description: '',
@@ -66,20 +66,82 @@ const PlannerPage: React.FC = () => {
     toTime: '16:00',
     location: '',
     car: '',
-    employees: []
+    employees: [],
+    caseNumber: '', // Add case number support
+    attachments: []
   });
 
-  // Handler functions (defined before useEffect to avoid reference issues)
+  // Handler functions with enhanced view/edit mode support
+  const handleOpenViewDialog = (assignment: Assignment) => {
+    console.log('[PlannerPage] Opening assignment in view mode:', assignment.title);
+    setCurrentAssignment(assignment);
+    setSelectedDay(assignment.date);
+    setViewMode(true);
+    setIsDialogOpen(true);
+  };
+
   const handleOpenEditDialog = (assignment: Assignment) => {
+    console.log('[PlannerPage] Opening assignment in edit mode:', assignment.title);
     setCurrentAssignment(assignment);
     setSelectedDay(assignment.date);
     setFormData({
       ...assignment,
       employees: assignment.employees ? [...assignment.employees] : [],
       car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : '',
-      published: assignment.published
+      published: assignment.published,
+      caseNumber: assignment.caseNumber || '',
+      attachments: assignment.attachments || []
     });
+    setViewMode(false);
     setIsDialogOpen(true);
+  };
+
+  const handleOpenCreateDialog = (date: string) => {
+    console.log('[PlannerPage] Opening create dialog for date:', date);
+    setCurrentAssignment(null);
+    const taskDate = date && date.trim() !== '' ? date : new Date().toISOString().split('T')[0];
+    setSelectedDay(taskDate);
+    setFormData({
+      title: '',
+      description: '',
+      date: taskDate,
+      fromTime: '08:00',
+      toTime: '16:00',
+      location: '',
+      car: '',
+      employees: [],
+      published: false,
+      caseNumber: '',
+      attachments: []
+    });
+    setViewMode(false);
+    setIsDialogOpen(true);
+  };
+
+  // File upload handler
+  const handleFileUpload = async (files: File[]): Promise<void> => {
+    if (!currentAssignment || !user) return;
+
+    try {
+      const uploadedFiles: FileAttachment[] = [];
+      
+      for (const file of files) {
+        const attachment = await AssignmentFileService.uploadFile(file, currentAssignment.id, user.id);
+        uploadedFiles.push(attachment);
+      }
+
+      // Update assignment with new attachments
+      const updatedAttachments = [...(currentAssignment.attachments || []), ...uploadedFiles];
+      await AssignmentFileService.updateAssignmentFiles(currentAssignment.id, updatedAttachments);
+
+      // Update local state
+      setCurrentAssignment(prev => prev ? { ...prev, attachments: updatedAttachments } : null);
+      
+      console.log('[PlannerPage] Files uploaded successfully:', uploadedFiles.length);
+    } catch (error) {
+      console.error('[PlannerPage] File upload failed:', error);
+      throw error;
+    }
   };
 
   // Handle URL parameters for opening specific assignments
@@ -90,7 +152,8 @@ const PlannerPage: React.FC = () => {
     if (assignmentId && assignments.length > 0) {
       const assignment = assignments.find(a => a.id === assignmentId);
       if (assignment) {
-        handleOpenEditDialog(assignment);
+        // Open assignments from URL in view mode by default
+        handleOpenViewDialog(assignment);
         // Clean up URL
         window.history.replaceState({}, '', '/planner');
       }
@@ -139,23 +202,6 @@ const PlannerPage: React.FC = () => {
     } else {
       setSelectedWeek(selectedWeek + 1);
     }
-  };
-
-  const handleOpenCreateDialog = (date: string) => {
-    setCurrentAssignment(null);
-    setSelectedDay(date);
-    setFormData({
-      title: '',
-      description: '',
-      date,
-      fromTime: '08:00',
-      toTime: '16:00',
-      location: '',
-      car: '',
-      employees: [],
-      published: false
-    });
-    setIsDialogOpen(true);
   };
 
   const handleSubmit = async (data: Partial<Assignment>) => {
@@ -291,7 +337,7 @@ const PlannerPage: React.FC = () => {
                 </div>
 
                 {/* Create Assignment Button */}
-                {canCreate && <Button onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} size="sm" className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm">
+                {canEditAssignments && <Button onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} size="sm" className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm">
                     <Plus className="h-4 w-4" />
                     {t('planner.newAssignment')}
                   </Button>}
@@ -301,10 +347,38 @@ const PlannerPage: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <PlannerContent weekAssignments={sortedWeekAssignments} operationStates={convertedOperationStates} onEditAssignment={handleOpenEditDialog} onDeleteAssignment={deleteAssignment} onPublishAssignment={publishAssignment} onPublishDay={handlePublishDay} onCreateAssignment={handleOpenCreateDialog} onCopyAssignment={handleCopyAssignment} selectedWeek={selectedWeek} selectedYear={selectedYear} weekDates={weekDates} handleShowOnScreen={handleShowOnScreen} />
+        <PlannerContent 
+          weekAssignments={sortedWeekAssignments} 
+          operationStates={convertedOperationStates} 
+          onEditAssignment={canEditAssignments ? handleOpenEditDialog : undefined}
+          onViewAssignment={handleOpenViewDialog}
+          onDeleteAssignment={deleteAssignment} 
+          onPublishAssignment={publishAssignment} 
+          onPublishDay={handlePublishDay} 
+          onCreateAssignment={handleOpenCreateDialog} 
+          onCopyAssignment={handleCopyAssignment} 
+          selectedWeek={selectedWeek} 
+          selectedYear={selectedYear} 
+          weekDates={weekDates} 
+          handleShowOnScreen={handleShowOnScreen} 
+        />
 
         {/* Assignment Dialog */}
-        <PlannerDialogContainer isDialogOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onSubmit={handleSubmit} currentAssignment={currentAssignment} selectedDay={selectedDay} formData={formData} setFormData={setFormData} employees={employees} cars={cars} vacations={vacations} assignments={sortedWeekAssignments} />
+        <PlannerDialogContainer 
+          isDialogOpen={isDialogOpen} 
+          onClose={() => setIsDialogOpen(false)} 
+          onSubmit={handleSubmit} 
+          currentAssignment={currentAssignment} 
+          selectedDay={selectedDay} 
+          formData={formData} 
+          setFormData={setFormData} 
+          employees={employees} 
+          cars={cars} 
+          vacations={vacations} 
+          assignments={sortedWeekAssignments}
+          viewMode={viewMode}
+          onFileUpload={handleFileUpload}
+        />
       </div>
     </div>;
 };

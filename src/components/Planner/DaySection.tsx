@@ -15,7 +15,8 @@ interface DaySectionProps {
   isExpanded: boolean;
   onToggleExpansion: (date: string) => void;
   onPublishDay?: (date: string) => void;
-  onEditAssignment: (assignment: Assignment) => void;
+  onEditAssignment?: (assignment: Assignment) => void;
+  onViewAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
   onCopyAssignment?: (assignment: Assignment) => void;
@@ -32,6 +33,7 @@ const DaySection: React.FC<DaySectionProps> = ({
   onToggleExpansion,
   onPublishDay,
   onEditAssignment,
+  onViewAssignment,
   onDeleteAssignment,
   onPublishAssignment,
   onCopyAssignment,
@@ -105,17 +107,17 @@ const DaySection: React.FC<DaySectionProps> = ({
         <div className="w-full grid grid-cols-1 gap-4 animate-in slide-in-from-top-2 duration-200">
           {Array.isArray(dayAssignments) && dayAssignments.length > 0 ? (
             dayAssignments.map((assignment) => (
-              <AssignmentCard
-                key={assignment.id}
-                assignment={assignment}
-                cars={cars}
-                canEdit={canEdit}
-                onEdit={() => onEditAssignment(assignment)}
-                onDelete={() => onDeleteAssignment(assignment.id)}
-                onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
-                onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
-                operationState={operationStates[assignment.id]}
-              />
+                <AssignmentCard
+                  key={assignment.id}
+                  assignment={assignment}
+                  cars={cars}
+                  canEdit={canEdit}
+                  onEdit={onEditAssignment ? () => onEditAssignment(assignment) : () => onViewAssignment(assignment)}
+                  onDelete={() => onDeleteAssignment(assignment.id)}
+                  onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
+                  onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
+                  operationState={operationStates[assignment.id]}
+                />
             ))
           ) : (
             <div className="p-4 border border-dashed rounded-md text-center text-gray-500">

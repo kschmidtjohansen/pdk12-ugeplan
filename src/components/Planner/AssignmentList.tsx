@@ -14,6 +14,7 @@ interface AssignmentListProps {
   assignments: Assignment[];
   operationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
   onEditAssignment: (assignment: Assignment) => void;
+  onViewAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
   onPublishDay?: (date: string) => void;
@@ -29,6 +30,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   assignments,
   operationStates,
   onEditAssignment,
+  onViewAssignment,
   onDeleteAssignment,
   onPublishAssignment,
   onPublishDay,
@@ -155,6 +157,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
         onToggleExpansion={toggleDayExpansion}
         onPublishDay={onPublishDay}
         onEditAssignment={onEditAssignment}
+        onViewAssignment={onViewAssignment}
         onDeleteAssignment={onDeleteAssignment}
         onPublishAssignment={onPublishAssignment}
         onCopyAssignment={onCopyAssignment}
@@ -172,6 +175,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
         onToggleExpansion={toggleDayExpansion}
         onPublishDay={onPublishDay}
         onEditAssignment={onEditAssignment}
+        onViewAssignment={onViewAssignment}
         onDeleteAssignment={onDeleteAssignment}
         onPublishAssignment={onPublishAssignment}
         onCopyAssignment={onCopyAssignment}
