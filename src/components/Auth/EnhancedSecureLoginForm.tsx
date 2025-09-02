@@ -75,14 +75,16 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
         setAttempts(0);
         setError('');
 
-        // FIXED: Show success message only once
+        // Show success message
         toast({
           title: t('login.success'),
-          description: "Welcome back!"
+          description: "Login successful! Redirecting..."
         });
 
-        // Call success callback immediately
-        onSuccess?.();
+        // Call success callback after a brief delay to allow auth state to update
+        setTimeout(() => {
+          onSuccess?.();
+        }, 500);
       }
     } catch (error) {
       clearTimeout(loginTimeoutId);

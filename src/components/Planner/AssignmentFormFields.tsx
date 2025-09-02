@@ -11,14 +11,12 @@ import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Textarea } from '@/components/ui/textarea';
 import { Car } from '@/types/car';
-import { Assignment, FileAttachment } from '@/types/assignment';
+import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { CarSelector } from './CarSelector';
 import ResponsibleUserSelector from './ResponsibleUserSelector';
 import EmployeeSelector from './EmployeeSelector';
-import DragDropFileUpload from '@/components/FileUpload/DragDropFileUpload';
-import { CaseNumberInput } from '@/components/ui/case-number-input';
 
 interface AssignmentFormFieldsProps {
   title: string;
@@ -39,11 +37,6 @@ interface AssignmentFormFieldsProps {
   setSelectedResponsibleUserId: (value: string) => void;
   selectedEmployees: string[]; // Now stores employee IDs instead of names
   setSelectedEmployees: (employees: string[]) => void;
-  attachments: FileAttachment[];
-  setAttachments: (attachments: FileAttachment[]) => void;
-  userId: string;
-  caseNumber?: string;
-  setCaseNumber?: (value: string) => void;
   cars: Car[];
   employees: Employee[];
   vacations: Vacation[];
@@ -70,16 +63,11 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   setSelectedResponsibleUserId,
   selectedEmployees,
   setSelectedEmployees,
-  attachments,
-  setAttachments,
-  userId,
   cars,
   employees,
   vacations,
   assignmentId,
-  assignments = [],
-  caseNumber = '',
-  setCaseNumber
+  assignments = []
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
@@ -293,25 +281,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         currentAssignmentId={assignmentId}
       />
 
-      {/* Case Number Field */}
-      <div className="space-y-2">
-        <Label htmlFor="caseNumber">Case Number</Label>
-        {setCaseNumber ? (
-          <CaseNumberInput
-            value={caseNumber}
-            onChange={setCaseNumber}
-          />
-        ) : (
-          <Input
-            id="caseNumber"
-            value={caseNumber}
-            readOnly
-            placeholder="No case number"
-            className="bg-muted"
-          />
-        )}
-      </div>
-
       {/* Description Field */}
       <div className="space-y-2">
         <Label htmlFor="description">{t('planner.assignmentDescription')}</Label>
@@ -324,23 +293,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
           }}
           placeholder={t('planner.notesPlaceholder')}
           rows={3}
-        />
-      </div>
-
-      {/* File Upload Section */}
-      <div className="space-y-2">
-        <Label>{t('planner.files.attachments')}</Label>
-        <DragDropFileUpload
-          onFilesUploaded={(newFiles) => {
-            setAttachments([...attachments, ...newFiles]);
-          }}
-          onFileDelete={(fileId) => {
-            setAttachments(attachments.filter(f => f.id !== fileId));
-          }}
-          assignmentId={assignmentId || 'temp'}
-          userId={userId}
-          existingFiles={attachments}
-          maxFiles={10}
         />
       </div>
     </div>

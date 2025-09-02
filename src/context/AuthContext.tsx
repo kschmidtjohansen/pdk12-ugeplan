@@ -48,9 +48,6 @@ interface AuthContextType {
   canEdit: boolean;
   canCreate: boolean;
   canSeeUnpublishedTasks: boolean;
-  canUploadFiles: boolean;
-  canViewAssignments: boolean;
-  canEditAssignments: boolean;
   validateAdminAccess: () => boolean;
   validateSkadelederAccess: () => boolean;
   hasRequiredRole: (requiredRoles: UserRole[]) => boolean;
@@ -89,9 +86,6 @@ const AuthContext = createContext<AuthContextType>({
   canEdit: false,
   canCreate: false,
   canSeeUnpublishedTasks: false,
-  canUploadFiles: false,
-  canViewAssignments: false,
-  canEditAssignments: false,
   validateAdminAccess: () => false,
   validateSkadelederAccess: () => false,
   hasRequiredRole: () => false,
@@ -337,10 +331,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               return;
             }
             
-            // Handle successful sign in - FIXED: Don't show login toast here to prevent double toasts
+            // Handle successful sign in - but don't show login toast here (handled in login form)
             if (event === 'SIGNED_IN' && newSession) {
               console.log('[AuthContext] SESSION EXPIRATION FIX - User signed in successfully');
-              // FIXED: No toast here - handled in login form only
+              // Don't show login success toast here - it's handled in the login form
               setSession(newSession);
               setSessionExpired(false);
               return;
@@ -588,11 +582,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const canEdit = isAdmin || isSkadeleder;
   const canCreate = isAdmin || isSkadeleder;
   const canSeeUnpublishedTasks = isAdmin || isSkadeleder;
-  
-  // New enhanced permissions
-  const canUploadFiles = isAdmin || isSkadeleder || isServicemedarbejder;
-  const canViewAssignments = true; // All authenticated users can view assignments
-  const canEditAssignments = isAdmin || isSkadeleder;
 
   // Validation methods
   const validateAdminAccess = (): boolean => {
@@ -809,9 +798,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     canEdit,
     canCreate,
     canSeeUnpublishedTasks,
-    canUploadFiles,
-    canViewAssignments,
-    canEditAssignments,
     validateAdminAccess,
     validateSkadelederAccess,
     hasRequiredRole,

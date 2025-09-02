@@ -12,8 +12,7 @@ interface PastAssignmentsProps {
   expandedDays: Record<string, boolean>;
   onToggleExpansion: (date: string) => void;
   onPublishDay?: (date: string) => void;
-  onEditAssignment?: (assignment: Assignment) => void;
-  onViewAssignment: (assignment: Assignment) => void;
+  onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
   onCopyAssignment?: (assignment: Assignment) => void;
@@ -30,13 +29,12 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
   onToggleExpansion,
   onPublishDay,
   onEditAssignment,
-  onViewAssignment,
   onDeleteAssignment,
   onPublishAssignment,
   onCopyAssignment,
   canEdit,
   canPublishTasks,
-  cars
+  cars = []
 }) => {
   const { t } = useTranslation();
   
@@ -57,7 +55,6 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
             onToggleExpansion={onToggleExpansion}
             onPublishDay={onPublishDay}
             onEditAssignment={onEditAssignment}
-            onViewAssignment={onViewAssignment}
             onDeleteAssignment={onDeleteAssignment}
             onPublishAssignment={onPublishAssignment}
             onCopyAssignment={onCopyAssignment}

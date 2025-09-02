@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Assignment, normalizeEmployees, FileAttachment } from '@/types/assignment';
+import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
-import { usePermissions, useAuth } from '@/context/AuthContext';
+import { usePermissions } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Send, Trash2, Edit3 } from 'lucide-react';
@@ -39,14 +39,17 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   selectedDay,
   onPublishDay
 }) => {
-  const { t } = useTranslation();
-  const { canEdit, canPublishTasks } = usePermissions();
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const {
+    t
+  } = useTranslation();
+  const {
+    canEdit,
+    canPublishTasks
+  } = usePermissions();
+  const {
+    toast
+  } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [attachments, setAttachments] = useState<FileAttachment[]>(
-    currentAssignment?.attachments || []
-  );
   const {
     handleSubmit,
     formState: {
@@ -98,13 +101,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     }
     setIsSubmitting(true);
     try {
-      // Include attachments in the form data
-      const submissionData = {
-        ...formData,
-        attachments
-      };
-      console.log('[AssignmentForm] Validation passed, calling onSubmit with data:', submissionData);
-      await onSubmit(submissionData);
+      console.log('[AssignmentForm] Validation passed, calling onSubmit with data:', formData);
+      await onSubmit(formData);
       console.log('[AssignmentForm] onSubmit completed successfully');
     } catch (error) {
       console.error('[AssignmentForm] Error in form submission:', error);
@@ -267,54 +265,37 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           {currentAssignment ? t('planner.editAssignment') : t('planner.createNew')}
         </h2>
         
-        <AssignmentFormFields 
-          title={formData.title || ''} 
-          setTitle={value => {
-            console.log('[AssignmentForm] Title updated:', value);
-            setFormData({ ...formData, title: value });
-          }} 
-          location={formData.location || ''} 
-          setLocation={value => {
-            console.log('[AssignmentForm] Location updated:', value);
-            setFormData({ ...formData, location: value });
-          }} 
-          selectedDate={formData.date ? new Date(formData.date) : undefined} 
-          setSelectedDate={handleDateChange} 
-          fromTime={formData.fromTime || '08:00'} 
-          setFromTime={value => {
-            console.log('[AssignmentForm] From time updated:', value);
-            setFormData({ ...formData, fromTime: value });
-          }} 
-          toTime={formData.toTime || '16:00'} 
-          setToTime={value => {
-            console.log('[AssignmentForm] To time updated:', value);
-            setFormData({ ...formData, toTime: value });
-          }} 
-          description={formData.description || ''} 
-          setDescription={value => {
-            console.log('[AssignmentForm] Description updated:', value);
-            setFormData({ ...formData, description: value });
-          }} 
-          selectedCarId={getCarId(formData.car)} 
-          setSelectedCarId={handleCarChange} 
-          selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)} 
-          setSelectedResponsibleUserId={setResponsibleUserById} 
-          selectedEmployees={normalizeEmployees(formData.employees)} 
-          setSelectedEmployees={handleEmployeesChange} 
-          attachments={attachments}
-          setAttachments={setAttachments}
-          userId={user?.id || ''}
-          cars={cars} 
-          employees={employees} 
-          vacations={vacations} 
-          assignmentId={currentAssignment?.id} 
-          assignments={assignments}
-          caseNumber={formData.caseNumber || ''}
-          setCaseNumber={value => {
-            console.log('[AssignmentForm] Case number updated:', value);
-            setFormData({ ...formData, caseNumber: value });
-          }}
-        />
+        <AssignmentFormFields title={formData.title || ''} setTitle={value => {
+        console.log('[AssignmentForm] Title updated:', value);
+        setFormData({
+          ...formData,
+          title: value
+        });
+      }} location={formData.location || ''} setLocation={value => {
+        console.log('[AssignmentForm] Location updated:', value);
+        setFormData({
+          ...formData,
+          location: value
+        });
+      }} selectedDate={formData.date ? new Date(formData.date) : undefined} setSelectedDate={handleDateChange} fromTime={formData.fromTime || '08:00'} setFromTime={value => {
+        console.log('[AssignmentForm] From time updated:', value);
+        setFormData({
+          ...formData,
+          fromTime: value
+        });
+      }} toTime={formData.toTime || '16:00'} setToTime={value => {
+        console.log('[AssignmentForm] To time updated:', value);
+        setFormData({
+          ...formData,
+          toTime: value
+        });
+      }} description={formData.description || ''} setDescription={value => {
+        console.log('[AssignmentForm] Description updated:', value);
+        setFormData({
+          ...formData,
+          description: value
+        });
+      }} selectedCarId={getCarId(formData.car)} setSelectedCarId={handleCarChange} selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)} setSelectedResponsibleUserId={setResponsibleUserById} selectedEmployees={normalizeEmployees(formData.employees)} setSelectedEmployees={handleEmployeesChange} cars={cars} employees={employees} vacations={vacations} assignmentId={currentAssignment?.id} assignments={assignments} />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">

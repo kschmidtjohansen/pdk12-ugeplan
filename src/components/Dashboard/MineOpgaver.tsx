@@ -11,7 +11,6 @@ import { Spinner } from '@/components/ui/spinner';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { getCurrentWeekInfo, getWeekDates } from '@/utils/dates';
 import { da } from 'date-fns/locale';
-import { Assignment } from '@/types/assignment';
 
 const MineOpgaver: React.FC = () => {
   const { user } = useAuth();
@@ -127,13 +126,6 @@ const MineOpgaver: React.FC = () => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  // Handle assignment click to open dialog
-  const handleAssignmentClick = (assignment: Assignment) => {
-    // Navigate to planner page with assignment selected
-    const url = `/planner?assignment=${assignment.id}`;
-    window.location.href = url;
-  };
-
   // PHASE 3 FIX: Enhanced date formatting
   const formatAssignmentDate = (dateStr: string) => {
     const date = parseISO(dateStr);
@@ -227,8 +219,7 @@ const MineOpgaver: React.FC = () => {
         {userAssignments.map((assignment) => (
           <div
             key={assignment.id}
-            className="flex flex-col space-y-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
-            onClick={() => handleAssignmentClick(assignment)}
+            className="flex flex-col space-y-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
           >
             {/* Title and Date */}
             <div className="flex items-start justify-between">
@@ -253,10 +244,7 @@ const MineOpgaver: React.FC = () => {
                 <MapPin className="h-3 w-3" />
                 <span className="truncate flex-1">{assignment.location}</span>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleNavigate(assignment.location);
-                  }}
+                  onClick={() => handleNavigate(assignment.location)}
                   className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent/50 transition-colors group"
                   title={t('dashboard.navigateToLocation') || 'Navigate to location'}
                   aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
@@ -309,15 +297,6 @@ const MineOpgaver: React.FC = () => {
                 <UserCheck className="h-3 w-3" />
                 <span className="font-medium">
                   {t('planner.responsibleUser') || 'Sagsansvarlig'}: {assignment.responsibleUser.name}
-                </span>
-              </div>
-            )}
-
-            {/* File attachment indicator */}
-            {assignment.attachments && assignment.attachments.length > 0 && (
-              <div className="flex items-center gap-1 text-xs text-gray-600">
-                <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
-                  📎 {assignment.attachments.length} {assignment.attachments.length === 1 ? 'file' : 'files'}
                 </span>
               </div>
             )}
