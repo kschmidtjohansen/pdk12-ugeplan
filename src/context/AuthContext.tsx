@@ -121,11 +121,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Circuit breaker for auth operations
   const AUTH_OPERATION_ID = 'auth_initialization';
 
-  // BRIAN REUS FIX: Enhanced user data fetching with comprehensive debugging
+  // KASPER SESSION FIX: Enhanced user data fetching with comprehensive debugging
   const fetchUserData = async (authUser: User): Promise<AppUser | null> => {
     const startTime = Date.now();
-    console.log(`[AuthContext] BRIAN REUS DEBUG - Starting user data fetch for: ${authUser.email}`);
-    console.log(`[AuthContext] BRIAN REUS DEBUG - Auth user ID: ${authUser.id}`);
+    console.log(`[AuthContext] KASPER SESSION FIX - Starting user data fetch for: ${authUser.email}`);
+    console.log(`[AuthContext] KASPER SESSION FIX - Auth user ID: ${authUser.id}`);
+    console.log(`[AuthContext] KASPER SESSION FIX - Expected name: Kasper Schmidt Johansen`);
     
     if (!circuitBreaker.canProceed(`user_data_fetch_${authUser.id}`)) {
       console.warn(`[AuthContext] Circuit breaker open for user data fetch: ${authUser.email}`);
@@ -133,8 +134,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     
     try {
-      // BRIAN REUS FIX: More detailed logging for database queries
-      console.log(`[AuthContext] BRIAN REUS DEBUG - Fetching profile and role data from database...`);
+      // KASPER SESSION FIX: More detailed logging for database queries
+      console.log(`[AuthContext] KASPER SESSION FIX - Fetching profile and role data from database...`);
+      console.log(`[AuthContext] KASPER SESSION FIX - Auth user object:`, authUser);
       
       const fetchPromise = Promise.all([
         supabase.from('profiles').select('id, name, email').eq('id', authUser.id).maybeSingle(),
@@ -148,20 +150,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const [profileResult, roleResult] = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
-      console.log(`[AuthContext] BRIAN REUS DEBUG - Database queries completed in ${Date.now() - startTime}ms`);
-      console.log(`[AuthContext] BRIAN REUS DEBUG - Profile result:`, profileResult);
-      console.log(`[AuthContext] BRIAN REUS DEBUG - Role result:`, roleResult);
-      console.log(`[AuthContext] BRIAN REUS DEBUG - Profile data name:`, profileResult?.data?.name);
-      console.log(`[AuthContext] BRIAN REUS DEBUG - Role data role:`, roleResult?.data?.role);
+      console.log(`[AuthContext] KASPER SESSION FIX - Database queries completed in ${Date.now() - startTime}ms`);
+      console.log(`[AuthContext] KASPER SESSION FIX - Profile result:`, profileResult);
+      console.log(`[AuthContext] KASPER SESSION FIX - Role result:`, roleResult);
+      console.log(`[AuthContext] KASPER SESSION FIX - Profile data:`, profileResult?.data);
+      console.log(`[AuthContext] KASPER SESSION FIX - Profile name:`, profileResult?.data?.name);
+      console.log(`[AuthContext] KASPER SESSION FIX - Role data:`, roleResult?.data);
+      console.log(`[AuthContext] KASPER SESSION FIX - Role:`, roleResult?.data?.role);
+      console.log(`[AuthContext] KASPER SESSION FIX - Profile error:`, profileResult?.error);
+      console.log(`[AuthContext] KASPER SESSION FIX - Role error:`, roleResult?.error);
 
-      // BRIAN REUS FIX: Better error handling for database errors
+      // KASPER SESSION FIX: Better error handling for database errors
       if (profileResult.error) {
-        console.error(`[AuthContext] BRIAN REUS DEBUG - Profile fetch error:`, profileResult.error);
+        console.error(`[AuthContext] KASPER SESSION FIX - Profile fetch error:`, profileResult.error);
+        console.error(`[AuthContext] KASPER SESSION FIX - Profile error details:`, {
+          message: profileResult.error.message,
+          details: profileResult.error.details,
+          hint: profileResult.error.hint,
+          code: profileResult.error.code
+        });
         throw new Error(`Profile fetch failed: ${profileResult.error.message}`);
       }
       
       if (roleResult.error) {
-        console.error(`[AuthContext] BRIAN REUS DEBUG - Role fetch error:`, roleResult.error);
+        console.error(`[AuthContext] KASPER SESSION FIX - Role fetch error:`, roleResult.error);
+        console.error(`[AuthContext] KASPER SESSION FIX - Role error details:`, {
+          message: roleResult.error.message,
+          details: roleResult.error.details,
+          hint: roleResult.error.hint,
+          code: roleResult.error.code
+        });
         throw new Error(`Role fetch failed: ${roleResult.error.message}`);
       }
 
@@ -208,13 +226,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         role
       };
 
-      console.log(`[AuthContext] BRIAN REUS DEBUG - Final user object created:`, {
+      console.log(`[AuthContext] KASPER SESSION FIX - Final user object created:`, {
         id: enhancedUser.id,
         name: enhancedUser.name,
         email: enhancedUser.email,
         role: enhancedUser.role,
         isDemoUser,
-        totalTime: Date.now() - startTime
+        totalTime: Date.now() - startTime,
+        expectedName: 'Kasper Schmidt Johansen',
+        nameMatches: enhancedUser.name === 'Kasper Schmidt Johansen',
+        expectedRole: 'administrator',
+        roleMatches: enhancedUser.role === 'administrator'
       });
       
       circuitBreaker.recordSuccess(`user_data_fetch_${authUser.id}`);
@@ -337,6 +359,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   const userData = await fetchUserData(newSession.user);
                   if (userData && mounted) {
                     console.log('[AuthContext] KASPER FIX - Complete user data loaded, setting user:', userData);
+                    console.log('[AuthContext] KASPER FIX - About to set user state with:', {
+                      name: userData.name,
+                      email: userData.email,
+                      role: userData.role,
+                      isKasper: userData.email === 'kasper.johansen@polygongroup.com',
+                      isAdmin: userData.role === 'administrator'
+                    });
                     setUser(userData);
                     setUserDataLoaded(true);
                   } else {
