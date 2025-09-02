@@ -18,6 +18,7 @@ import { CarSelector } from './CarSelector';
 import ResponsibleUserSelector from './ResponsibleUserSelector';
 import EmployeeSelector from './EmployeeSelector';
 import DragDropFileUpload from '@/components/FileUpload/DragDropFileUpload';
+import { CaseNumberInput } from '@/components/ui/case-number-input';
 
 interface AssignmentFormFieldsProps {
   title: string;
@@ -41,6 +42,8 @@ interface AssignmentFormFieldsProps {
   attachments: FileAttachment[];
   setAttachments: (attachments: FileAttachment[]) => void;
   userId: string;
+  caseNumber?: string;
+  setCaseNumber?: (value: string) => void;
   cars: Car[];
   employees: Employee[];
   vacations: Vacation[];
@@ -74,7 +77,9 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   employees,
   vacations,
   assignmentId,
-  assignments = []
+  assignments = [],
+  caseNumber = '',
+  setCaseNumber
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
@@ -287,6 +292,25 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         assignments={assignments}
         currentAssignmentId={assignmentId}
       />
+
+      {/* Case Number Field */}
+      <div className="space-y-2">
+        <Label htmlFor="caseNumber">Case Number</Label>
+        {setCaseNumber ? (
+          <CaseNumberInput
+            value={caseNumber}
+            onChange={setCaseNumber}
+          />
+        ) : (
+          <Input
+            id="caseNumber"
+            value={caseNumber}
+            readOnly
+            placeholder="No case number"
+            className="bg-muted"
+          />
+        )}
+      </div>
 
       {/* Description Field */}
       <div className="space-y-2">

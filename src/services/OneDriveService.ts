@@ -269,17 +269,72 @@ export class OneDriveService {
     return /^[A-Z0-9\-_]{3,20}$/i.test(caseNumber.trim());
   }
 
-  // Get OneDrive service status
-  getServiceStatus(): {
-    configured: boolean;
-    authenticated: boolean;
-    clientId: string | null;
-  } {
-    return {
-      configured: this.config?.clientId !== 'YOUR_AZURE_CLIENT_ID' && !!this.config?.clientId,
-      authenticated: this.isAuthenticated(),
-      clientId: this.config?.clientId || null
-    };
+  // Open OneDrive folder
+  static async openFolder(folderId: string): Promise<void> {
+    const service = oneDriveService;
+    if (!service.isAuthenticated()) {
+      throw new Error('Not authenticated to OneDrive');
+    }
+
+    try {
+      const folderUrl = await service.getCaseFolderUrl(folderId);
+      if (folderUrl) {
+        window.open(folderUrl, '_blank');
+      } else {
+        throw new Error('Could not retrieve folder URL');
+      }
+    } catch (error) {
+      console.error('Failed to open OneDrive folder:', error);
+      throw error;
+    }
+  }
+
+  // Create a case folder in OneDrive
+  static async createCaseFolder(caseNumber: string): Promise<{ id: string; webUrl: string }> {
+    const service = oneDriveService;
+    if (!service.isAuthenticated()) {
+      throw new Error('Not authenticated to OneDrive');
+    }
+
+    try {
+      const folderId = await service.createCaseFolder(caseNumber);
+      if (!folderId) {
+        throw new Error('Failed to create folder');
+      }
+
+      const folderUrl = await service.getCaseFolderUrl(caseNumber);
+      
+      return {
+        id: folderId,
+        webUrl: folderUrl || ''
+      };
+    } catch (error) {
+      console.error('Failed to create case folder:', error);
+      throw error;
+    }
+  }
+
+  // Store case mapping in Supabase
+  static async storeCaseMapping(caseNumber: string, folderId: string, folderUrl: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('case_onedrive_mappings')
+        .upsert({
+          case_number: caseNumber,
+          folder_id: folderId,
+          folder_url: folderUrl
+        }, {
+          onConflict: 'case_number'
+        });
+
+      if (error) {
+        console.error('Failed to store case mapping:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Failed to store case mapping:', error);
+      throw error;
+    }
   }
 }
 

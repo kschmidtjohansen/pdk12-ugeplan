@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { oneDriveService } from '@/services/OneDriveService';
 import { toast } from '@/hooks/use-toast';
+import OneDriveFolderLink from './OneDriveFolderLink';
 
 interface AssignmentViewDialogProps {
   isOpen: boolean;
@@ -168,6 +169,17 @@ const AssignmentViewDialog: React.FC<AssignmentViewDialogProps> = ({
                 </div>
               </div>
 
+            {assignment.caseNumber && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <FileText className="h-4 w-4" />
+                <span>Case: {assignment.caseNumber}</span>
+                <OneDriveFolderLink 
+                  caseNumber={assignment.caseNumber}
+                  folderId={assignment.onedriveFolderId}
+                />
+              </div>
+            )}
+
               {assignment.description && (
                 <div>
                   <h4 className="font-medium mb-2">Description</h4>
@@ -176,6 +188,13 @@ const AssignmentViewDialog: React.FC<AssignmentViewDialogProps> = ({
                   </p>
                 </div>
               )}
+
+            {assignment.location && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4" />
+                <span>{assignment.location}</span>
+              </div>
+            )}
 
               {assignment.caseNumber && (
                 <div>

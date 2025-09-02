@@ -308,7 +308,12 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           employees={employees} 
           vacations={vacations} 
           assignmentId={currentAssignment?.id} 
-          assignments={assignments} 
+          assignments={assignments}
+          caseNumber={formData.caseNumber || ''}
+          setCaseNumber={value => {
+            console.log('[AssignmentForm] Case number updated:', value);
+            setFormData({ ...formData, caseNumber: value });
+          }}
         />
       </div>
 
