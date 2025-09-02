@@ -145,7 +145,10 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   };
 
   return (
-    <Card className={`w-full p-4 bg-white hover:border-polygon-purple transition-colors ${isLoading ? 'opacity-75' : ''}`}>
+    <Card 
+      className={`w-full p-4 bg-white hover:border-polygon-purple transition-colors cursor-pointer ${isLoading ? 'opacity-75' : ''}`}
+      onClick={() => handleEditClick(assignment)}
+    >
       <div className="flex justify-between items-start gap-2 mb-2">
         <div className="flex items-center gap-2 flex-1">
           <div className="flex flex-col flex-1">
@@ -169,6 +172,15 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
                 </span>
               </div>
             )}
+            
+            {/* File attachment indicator */}
+            {assignment.attachments && assignment.attachments.length > 0 && (
+              <div className="flex items-center gap-1 mt-1">
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  📎 {assignment.attachments.length} {assignment.attachments.length === 1 ? t('planner.files.file') : t('planner.files.files')}
+                </span>
+              </div>
+            )}
             {/* Enhanced debug info for development with role structure context */}
             {process.env.NODE_ENV === 'development' && assignment.responsibleUserId && !responsibleUserInfo && (
               <div className="flex items-center gap-1 mt-1">
@@ -183,16 +195,18 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         
         <div className="flex items-center gap-2 flex-shrink-0">
           <AssignmentStatusBadge isPublished={isPublished} />
-          <AssignmentActionButtons
-          assignment={assignment}
-          onEdit={handleEditClick}
-          onDelete={onDelete}
-          onPublish={async (assignmentId: string) => {
-            await handlePublishClick();
-          }}
-          onCopy={handleCopyClick}
-            operationState={operationState}
-          />
+          <div onClick={(e) => e.stopPropagation()}>
+            <AssignmentActionButtons
+              assignment={assignment}
+              onEdit={handleEditClick}
+              onDelete={onDelete}
+              onPublish={async (assignmentId: string) => {
+                await handlePublishClick();
+              }}
+              onCopy={handleCopyClick}
+              operationState={operationState}
+            />
+          </div>
         </div>
       </div>
       

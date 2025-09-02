@@ -33,6 +33,21 @@ const PlannerPage: React.FC = () => {
   const {
     vacations
   } = useVacations();
+  
+  // Handle URL parameters for opening specific assignments
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const assignmentId = urlParams.get('assignment');
+    
+    if (assignmentId && assignments.length > 0) {
+      const assignment = assignments.find(a => a.id === assignmentId);
+      if (assignment) {
+        handleOpenEditDialog(assignment);
+        // Clean up URL
+        window.history.replaceState({}, '', '/planner');
+      }
+    }
+  }, [assignments]);
   // Use the optimized hook directly for better state management
   const {
     assignments,

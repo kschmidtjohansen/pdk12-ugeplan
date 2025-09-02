@@ -331,10 +331,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               return;
             }
             
-            // Handle successful sign in - but don't show login toast here (handled in login form)
+            // Handle successful sign in - FIXED: Don't show login toast here to prevent double toasts
             if (event === 'SIGNED_IN' && newSession) {
               console.log('[AuthContext] SESSION EXPIRATION FIX - User signed in successfully');
-              // Don't show login success toast here - it's handled in the login form
+              // FIXED: No toast here - handled in login form only
               setSession(newSession);
               setSessionExpired(false);
               return;
