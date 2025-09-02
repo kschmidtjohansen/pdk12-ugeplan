@@ -17,6 +17,7 @@ export type Database = {
       assignments: {
         Row: {
           assignment_date: string
+          attachment_files: Json | null
           car_id: string | null
           car_ids: string[] | null
           created_at: string
@@ -33,6 +34,7 @@ export type Database = {
         }
         Insert: {
           assignment_date: string
+          attachment_files?: Json | null
           car_id?: string | null
           car_ids?: string[] | null
           created_at?: string
@@ -49,6 +51,7 @@ export type Database = {
         }
         Update: {
           assignment_date?: string
+          attachment_files?: Json | null
           car_id?: string | null
           car_ids?: string[] | null
           created_at?: string
