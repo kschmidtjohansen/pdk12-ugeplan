@@ -94,29 +94,65 @@ export class OptimizedAssignmentService {
       // Get unique user IDs
       const userIds = [...new Set(assignmentEmployeeData.map(emp => emp.user_id))];
       
-      // Fetch profiles separately with error handling
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .in('id', userIds);
+      // Fetch profiles separately with enhanced error handling and retry logic
+      let profilesData: any[] = [];
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name, email')
+          .in('id', userIds);
 
-      if (profilesError) {
-        console.warn('[OptimizedAssignmentService] Profiles fetch error:', profilesError);
-        // Return with fallback names even if profiles fetch fails
-        return assignmentEmployeeData.map(emp => ({
-          assignment_id: emp.assignment_id,
-          user_id: emp.user_id,
-          profiles: { id: emp.user_id, name: `User ${emp.user_id.substring(0, 8)}` }
-        }));
+        if (!profilesError && profiles) {
+          profilesData = profiles;
+          break;
+        }
+        
+        console.warn(`[OptimizedAssignmentService] Profiles fetch error (attempt ${retryCount + 1}):`, profilesError);
+        retryCount++;
+        
+        // If this is the last retry, log the critical error
+        if (retryCount >= maxRetries) {
+          console.error('[OptimizedAssignmentService] CRITICAL: Failed to fetch profiles after all retries. Employee names will not be available.');
+          
+          // Instead of returning fallback "User xxx" names, return empty profiles
+          // This allows the UI components to handle the missing data gracefully
+          return assignmentEmployeeData.map(emp => ({
+            assignment_id: emp.assignment_id,
+            user_id: emp.user_id,
+            profiles: { id: emp.user_id, name: '', email: '' }
+          }));
+        }
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
       }
 
-      // Combine the data with proper fallbacks
-      return assignmentEmployeeData.map(emp => ({
-        assignment_id: emp.assignment_id,
-        user_id: emp.user_id,
-        profiles: profilesData?.find(profile => profile.id === emp.user_id) || 
-                 { id: emp.user_id, name: `User ${emp.user_id.substring(0, 8)}` }
-      }));
+      // Combine the data with proper profile matching
+      return assignmentEmployeeData.map(emp => {
+        const profile = profilesData.find(profile => profile.id === emp.user_id);
+        
+        if (!profile) {
+          console.warn(`[OptimizedAssignmentService] Profile not found for user ID: ${emp.user_id}`);
+          return {
+            assignment_id: emp.assignment_id,
+            user_id: emp.user_id,
+            profiles: { id: emp.user_id, name: '', email: '' }
+          };
+        }
+        
+        return {
+          assignment_id: emp.assignment_id,
+          user_id: emp.user_id,
+          profiles: { 
+            id: profile.id, 
+            name: profile.name || '', 
+            email: profile.email || '' 
+          }
+        };
+      });
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error fetching assignment employees:', error);
       return [];

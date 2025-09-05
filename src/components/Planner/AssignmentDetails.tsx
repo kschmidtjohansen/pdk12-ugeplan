@@ -59,9 +59,22 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
     names: string[];
     hasFullData: boolean;
   } => {
-    // Enhanced employee data - show all team members
+    console.log('[AssignmentDetails] Processing employee data for assignment:', assignment.title);
+    console.log('[AssignmentDetails] Employee data available:', {
+      hasAssignedEmployees: !!assignment.assignedEmployees?.length,
+      assignedEmployees: assignment.assignedEmployees?.map(e => ({ id: e.id, name: e.name })),
+      hasLegacyEmployees: !!assignment.employees?.length,
+      legacyEmployees: assignment.employees
+    });
+    
+    // PRIORITY 1: Use assignedEmployees with full employee data (preferred)
     if (assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
-      const names = assignment.assignedEmployees.map(emp => emp.name).filter(name => name && name.trim());
+      const names = assignment.assignedEmployees
+        .map(emp => emp.name)
+        .filter(name => name && name.trim() && name !== '')
+        .filter(name => !name.startsWith('User ')); // Filter out any remaining fallback names
+      
+      console.log('[AssignmentDetails] Using assignedEmployees data:', names);
       
       return {
         names,
@@ -69,16 +82,38 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       };
     }
 
-    // Fallback to legacy employee IDs array - convert to names
+    // PRIORITY 2: Fallback to legacy employee IDs array - convert to names using employees hook
     if (assignment.employees && Array.isArray(assignment.employees) && assignment.employees.length > 0) {
-      const names = getEmployeeNamesFromIds(assignment.employees, employees);
+      console.log('[AssignmentDetails] Falling back to legacy employees array, converting IDs to names');
       
-      return {
-        names,
-        hasFullData: false
-      };
+      // Check if employees array contains names or IDs
+      const firstEmployee = assignment.employees[0];
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(firstEmployee);
+      
+      if (isUUID) {
+        // Convert UUIDs to names
+        const names = getEmployeeNamesFromIds(assignment.employees, employees);
+        console.log('[AssignmentDetails] Converted UUIDs to names:', names);
+        
+        return {
+          names: names.filter(name => name && !name.startsWith('User ')),
+          hasFullData: false
+        };
+      } else {
+        // Already names, filter out any fallback names
+        const names = assignment.employees.filter(name => 
+          name && typeof name === 'string' && !name.startsWith('User ')
+        );
+        console.log('[AssignmentDetails] Using legacy employee names directly:', names);
+        
+        return {
+          names,
+          hasFullData: false
+        };
+      }
     }
     
+    console.log('[AssignmentDetails] No employee data available');
     return {
       names: [],
       hasFullData: false

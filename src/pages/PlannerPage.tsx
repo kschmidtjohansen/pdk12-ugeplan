@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { useTranslation } from '../context/TranslationContext';
-import { useOptimizedAssignments } from '../hooks/useOptimizedAssignments';
+import { useAssignmentDataOptimized } from '../hooks/assignment/useAssignmentDataOptimized';
+import { useAssignmentActions } from '../hooks/assignment/useAssignmentActions';
 import { Assignment } from '../types/assignment';
 import { useEmployees } from '../hooks/useEmployees';
 import { useCars } from '../hooks/car';
@@ -33,19 +34,23 @@ const PlannerPage: React.FC = () => {
   const {
     vacations
   } = useVacations();
-  // Use the optimized hook directly for better state management
+  
+  // Use enhanced data fetching for better employee name handling
   const {
     assignments,
     loading,
     error,
-    operationStates,
-    refetch,
+    fetchAssignments
+  } = useAssignmentDataOptimized();
+  
+  // Use assignment actions for operations
+  const {
     createAssignment,
     updateAssignment,
     deleteAssignment: deleteAssignmentAction,
     publishAssignment: publishAssignmentAction,
     publishAssignmentsByDate
-  } = useOptimizedAssignments('all');
+  } = useAssignmentActions(fetchAssignments);
 
   // Simplified planner state management without conflicting hooks
   const [selectedWeek, setSelectedWeek] = React.useState(() => {
@@ -215,16 +220,9 @@ const PlannerPage: React.FC = () => {
       </div>;
   }
 
-  // Convert operation states to match expected format
-  const convertedOperationStates: Record<string, 'publishing' | 'deleting' | 'updating'> = {};
-  Object.entries(operationStates).forEach(([key, value]) => {
-    if (value === 'loading') {
-      convertedOperationStates[key] = 'publishing'; // Map loading to publishing as default
-    } else if (value === 'success' || value === 'error' || value === 'idle') {
-      // Skip these states as they don't map to the expected operation types
-      return;
-    }
-  });
+  // No operation states needed with the enhanced data fetching
+  const emptyOperationStates: Record<string, 'publishing' | 'deleting' | 'updating'> = {};
+
   return <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
         {/* Enhanced Header with Responsive Design */}
@@ -284,7 +282,7 @@ const PlannerPage: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <PlannerContent weekAssignments={sortedWeekAssignments} operationStates={convertedOperationStates} onEditAssignment={handleOpenEditDialog} onDeleteAssignment={deleteAssignment} onPublishAssignment={publishAssignment} onPublishDay={handlePublishDay} onCreateAssignment={handleOpenCreateDialog} onCopyAssignment={handleCopyAssignment} selectedWeek={selectedWeek} selectedYear={selectedYear} weekDates={weekDates} handleShowOnScreen={handleShowOnScreen} />
+        <PlannerContent weekAssignments={sortedWeekAssignments} operationStates={emptyOperationStates} onEditAssignment={handleOpenEditDialog} onDeleteAssignment={deleteAssignment} onPublishAssignment={publishAssignment} onPublishDay={handlePublishDay} onCreateAssignment={handleOpenCreateDialog} onCopyAssignment={handleCopyAssignment} selectedWeek={selectedWeek} selectedYear={selectedYear} weekDates={weekDates} handleShowOnScreen={handleShowOnScreen} />
 
         {/* Assignment Dialog */}
         <PlannerDialogContainer isDialogOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onSubmit={handleSubmit} currentAssignment={currentAssignment} selectedDay={selectedDay} formData={formData} setFormData={setFormData} employees={employees} cars={cars} vacations={vacations} assignments={sortedWeekAssignments} />
