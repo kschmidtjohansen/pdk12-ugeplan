@@ -408,7 +408,11 @@ export const useAssignmentActions = (
           description: t('planner.assignmentDeletedMsg'),
         });
         
-        refetch();
+        // For demo mode, clear cache and ensure immediate UI update
+        console.log('[useAssignmentActions] Demo mode delete: clearing cache and refetching');
+        enhancedDataFetching.clearCache('assignments');
+        await refetch();
+        console.log('[useAssignmentActions] Demo mode delete: refetch completed');
         return true;
       }
 
@@ -439,7 +443,11 @@ export const useAssignmentActions = (
         description: t('planner.assignmentDeletedMsg'),
       });
       
-      refetch();
+      // Clear cache and refetch to ensure immediate UI update
+      console.log('[useAssignmentActions] Clearing cache and refetching after assignment deletion');
+      enhancedDataFetching.clearCache('assignments');
+      await refetch();
+      console.log('[useAssignmentActions] Delete refetch completed');
       return true;
     } catch (error: any) {
       console.error('Error deleting assignment:', error);
