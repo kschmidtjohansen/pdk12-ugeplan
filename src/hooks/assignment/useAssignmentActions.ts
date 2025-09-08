@@ -7,6 +7,7 @@ import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { isValidUUID, safeUUID } from '@/utils/uuidValidation';
 import { DemoUserService } from '@/services/demoUserService';
+import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 
 // This hook provides actions for managing assignments
 export const useAssignmentActions = (
@@ -85,8 +86,11 @@ export const useAssignmentActions = (
           description: t('planner.assignmentCreatedMsg', { title: assignmentData.title }),
         });
         
-        // Ensure refetch completes for demo mode too
+        // For demo mode, clear cache and ensure immediate UI update
+        console.log('[useAssignmentActions] Demo mode: clearing cache and refetching');
+        enhancedDataFetching.clearCache('assignments');
         await refetch();
+        console.log('[useAssignmentActions] Demo mode: refetch completed, closing dialog');
         if (setIsDialogOpen) setIsDialogOpen(false);
         return;
       }
@@ -212,8 +216,11 @@ export const useAssignmentActions = (
         description: t('planner.assignmentCreatedMsg', { title: assignmentData.title }),
       });
       
-      // Ensure refetch completes before closing dialog
+      // Clear cache and refetch to ensure immediate UI update
+      console.log('[useAssignmentActions] Clearing cache and refetching after assignment creation');
+      enhancedDataFetching.clearCache('assignments');
       await refetch();
+      console.log('[useAssignmentActions] Refetch completed, closing dialog');
       if (setIsDialogOpen) setIsDialogOpen(false);
     } catch (error: any) {
       console.error('Error creating assignment:', error);
@@ -256,7 +263,9 @@ export const useAssignmentActions = (
           description: t('planner.assignmentUpdatedMsg', { title: assignmentData.title }),
         });
         
-        // Ensure refetch completes for demo mode too
+        // For demo mode, clear cache and ensure immediate UI update
+        console.log('[useAssignmentActions] Demo mode update: clearing cache and refetching');
+        enhancedDataFetching.clearCache('assignments');
         await refetch();
         if (setIsDialogOpen) setIsDialogOpen(false);
         return true;

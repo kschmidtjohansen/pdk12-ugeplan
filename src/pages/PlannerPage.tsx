@@ -185,7 +185,7 @@ const PlannerPage: React.FC = () => {
           published: false
         });
       }
-      setIsDialogOpen(false);
+      // Let useAssignmentActions handle dialog closing after refetch completes
     } catch (error) {
       console.error('[PlannerPage] Operation failed:', error);
     }
