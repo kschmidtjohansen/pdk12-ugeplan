@@ -24,6 +24,7 @@ interface AssignmentFormProps {
   vacations: Vacation[];
   selectedDay: string;
   onPublishDay: (date: string) => void;
+  onEmployeeToggle: (employeeId: string) => void;
 }
 const AssignmentForm: React.FC<AssignmentFormProps> = ({
   currentAssignment,
@@ -37,7 +38,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   employees,
   vacations,
   selectedDay,
-  onPublishDay
+  onPublishDay,
+  onEmployeeToggle
 }) => {
   const {
     t
@@ -295,7 +297,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           ...formData,
           description: value
         });
-      }} selectedCarId={getCarId(formData.car)} setSelectedCarId={handleCarChange} selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)} setSelectedResponsibleUserId={setResponsibleUserById} selectedEmployees={normalizeEmployees(formData.employees)} setSelectedEmployees={handleEmployeesChange} cars={cars} employees={employees} vacations={vacations} assignmentId={currentAssignment?.id} assignments={assignments} />
+      }} selectedCarId={getCarId(formData.car)} setSelectedCarId={handleCarChange} selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)} setSelectedResponsibleUserId={setResponsibleUserById} selectedEmployees={normalizeEmployees(formData.employees)} onEmployeeToggle={onEmployeeToggle} cars={cars} employees={employees} vacations={vacations} assignmentId={currentAssignment?.id} assignments={assignments} />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">

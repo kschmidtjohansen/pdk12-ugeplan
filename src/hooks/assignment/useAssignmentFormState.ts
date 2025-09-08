@@ -90,13 +90,36 @@ export const useAssignmentFormState = (
     }));
   }, []);
 
-  // Handle employee selection
-  const handleEmployeeChange = useCallback((value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      employees: [value]
-    }));
-  }, []);
+  // Handle employee toggle (add/remove from array)
+  const handleEmployeeToggle = useCallback((employeeId: string) => {
+    console.log('[useAssignmentFormState] Employee toggled:', employeeId);
+    console.log('[useAssignmentFormState] Current employees:', formData.employees);
+    
+    if (!employeeId || employeeId.trim() === '') {
+      console.warn('[useAssignmentFormState] Invalid employee ID provided');
+      return;
+    }
+
+    setFormData(prev => {
+      const currentEmployees = prev.employees || [];
+      let newEmployees;
+      
+      if (currentEmployees.includes(employeeId)) {
+        newEmployees = currentEmployees.filter(id => id !== employeeId);
+        console.log('[useAssignmentFormState] Removing employee:', employeeId);
+      } else {
+        newEmployees = [...currentEmployees, employeeId];
+        console.log('[useAssignmentFormState] Adding employee:', employeeId);
+      }
+      
+      console.log('[useAssignmentFormState] New employees array:', newEmployees);
+      
+      return {
+        ...prev,
+        employees: newEmployees
+      };
+    });
+  }, [formData.employees]);
 
   // Handle car selection
   const handleCarChange = useCallback((value: string) => {
@@ -141,7 +164,7 @@ export const useAssignmentFormState = (
     formData,
     setFormData,
     handleInputChange,
-    handleEmployeeChange,
+    handleEmployeeToggle,
     handleCarChange,
     handleResponsibleUserChange,
     handleSubmit

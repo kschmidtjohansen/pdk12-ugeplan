@@ -197,6 +197,37 @@ const PlannerPage: React.FC = () => {
     await publishAssignmentAction(id);
   }, [publishAssignmentAction]);
 
+  // Handle employee toggle (add/remove from array)
+  const handleEmployeeToggle = useCallback((employeeId: string) => {
+    console.log('[PlannerPage] Employee toggled:', employeeId);
+    console.log('[PlannerPage] Current employees:', formData.employees);
+    
+    if (!employeeId || employeeId.trim() === '') {
+      console.warn('[PlannerPage] Invalid employee ID provided');
+      return;
+    }
+
+    setFormData(prev => {
+      const currentEmployees = prev.employees || [];
+      let newEmployees;
+      
+      if (currentEmployees.includes(employeeId)) {
+        newEmployees = currentEmployees.filter(id => id !== employeeId);
+        console.log('[PlannerPage] Removing employee:', employeeId);
+      } else {
+        newEmployees = [...currentEmployees, employeeId];
+        console.log('[PlannerPage] Adding employee:', employeeId);
+      }
+      
+      console.log('[PlannerPage] New employees array:', newEmployees);
+      
+      return {
+        ...prev,
+        employees: newEmployees
+      };
+    });
+  }, [formData.employees, setFormData]);
+
   const handleShowOnScreen = () => {
     const today = new Date().toISOString().split('T')[0];
     const screenUrl = `/screen-display?date=${today}&t=${Date.now()}&source=button`;
@@ -285,7 +316,7 @@ const PlannerPage: React.FC = () => {
         <PlannerContent weekAssignments={sortedWeekAssignments} operationStates={emptyOperationStates} onEditAssignment={handleOpenEditDialog} onDeleteAssignment={deleteAssignment} onPublishAssignment={publishAssignment} onPublishDay={handlePublishDay} onCreateAssignment={handleOpenCreateDialog} onCopyAssignment={handleCopyAssignment} selectedWeek={selectedWeek} selectedYear={selectedYear} weekDates={weekDates} handleShowOnScreen={handleShowOnScreen} />
 
         {/* Assignment Dialog */}
-        <PlannerDialogContainer isDialogOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onSubmit={handleSubmit} currentAssignment={currentAssignment} selectedDay={selectedDay} formData={formData} setFormData={setFormData} employees={employees} cars={cars} vacations={vacations} assignments={sortedWeekAssignments} />
+        <PlannerDialogContainer isDialogOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onSubmit={handleSubmit} currentAssignment={currentAssignment} selectedDay={selectedDay} formData={formData} setFormData={setFormData} employees={employees} cars={cars} vacations={vacations} assignments={sortedWeekAssignments} onEmployeeToggle={handleEmployeeToggle} />
       </div>
     </div>;
 };

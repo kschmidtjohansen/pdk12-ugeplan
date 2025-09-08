@@ -18,6 +18,7 @@ interface PlannerDialogContainerProps {
   employees: Employee[];
   vacations: Vacation[];
   selectedDay: string;
+  onEmployeeToggle: (employeeId: string) => void;
 }
 
 const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
@@ -31,7 +32,8 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   cars,
   employees,
   vacations,
-  selectedDay
+  selectedDay,
+  onEmployeeToggle
 }) => {
   return (
     <AssignmentDialogManager
@@ -49,6 +51,7 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
       vacations={vacations}
       selectedDay={selectedDay}
       onPublishDay={() => {}} // Not used in this context
+      onEmployeeToggle={onEmployeeToggle}
     />
   );
 };

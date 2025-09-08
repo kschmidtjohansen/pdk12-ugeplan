@@ -22,6 +22,7 @@ interface AssignmentDialogManagerProps {
   vacations: Vacation[];
   selectedDay: string;
   onPublishDay: (date: string) => void;
+  onEmployeeToggle: (employeeId: string) => void;
 }
 
 const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
@@ -38,7 +39,8 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   employees,
   vacations,
   selectedDay,
-  onPublishDay
+  onPublishDay,
+  onEmployeeToggle
 }) => {
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -56,6 +58,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
           vacations={vacations}
           selectedDay={selectedDay}
           onPublishDay={onPublishDay}
+          onEmployeeToggle={onEmployeeToggle}
         />
       </DialogContent>
     </Dialog>

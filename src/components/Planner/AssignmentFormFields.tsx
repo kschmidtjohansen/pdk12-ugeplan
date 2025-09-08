@@ -36,7 +36,7 @@ interface AssignmentFormFieldsProps {
   selectedResponsibleUserId: string;
   setSelectedResponsibleUserId: (value: string) => void;
   selectedEmployees: string[]; // Now stores employee IDs instead of names
-  setSelectedEmployees: (employees: string[]) => void;
+  onEmployeeToggle: (employeeId: string) => void;
   cars: Car[];
   employees: Employee[];
   vacations: Vacation[];
@@ -62,7 +62,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   selectedResponsibleUserId,
   setSelectedResponsibleUserId,
   selectedEmployees,
-  setSelectedEmployees,
+  onEmployeeToggle,
   cars,
   employees,
   vacations,
@@ -145,15 +145,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       return;
     }
     
-    let newEmployees;
-    if (selectedEmployees.includes(employeeId)) {
-      newEmployees = selectedEmployees.filter(id => id !== employeeId);
-    } else {
-      newEmployees = [...selectedEmployees, employeeId];
-    }
-    
-    console.log('[AssignmentFormFields] New employees:', newEmployees);
-    setSelectedEmployees(newEmployees);
+    console.log('[AssignmentFormFields] Calling onEmployeeToggle with:', employeeId);
+    onEmployeeToggle(employeeId);
   };
 
   return (
@@ -254,7 +247,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       <EmployeeSelector
         employees={employees}
         selectedEmployees={selectedEmployees}
-        onToggle={handleEmployeeToggle}
+        onToggle={onEmployeeToggle}
         vacations={vacations}
         currentDate={currentDateStr}
         assignments={assignments}
