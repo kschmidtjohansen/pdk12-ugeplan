@@ -85,7 +85,8 @@ export const useAssignmentActions = (
           description: t('planner.assignmentCreatedMsg', { title: assignmentData.title }),
         });
         
-        refetch();
+        // Ensure refetch completes for demo mode too
+        await refetch();
         if (setIsDialogOpen) setIsDialogOpen(false);
         return;
       }
@@ -172,24 +173,25 @@ export const useAssignmentActions = (
       // If there are employees, link them to the assignment
       if (assignmentData.employees && assignmentData.employees.length > 0 && newAssignment?.id) {
         console.log("Assignment created, now linking employees:", assignmentData.employees);
-        // Get profile IDs for each employee name
+        // Employee data is now employee IDs (UUIDs) instead of names
         const employeeInserts = [];
         
-        for (const employeeName of assignmentData.employees) {
+        for (const employeeId of assignmentData.employees) {
           // Skip any non-string values that might have gotten in the array
-          if (typeof employeeName !== 'string') {
-            console.warn("Skipping invalid employee data:", employeeName);
+          if (typeof employeeId !== 'string') {
+            console.warn("Skipping invalid employee data:", employeeId);
             continue;
           }
           
-          const profileId = await getProfileIdByName(employeeName);
-          if (profileId) {
+          // Validate that this is a proper UUID
+          const validEmployeeId = safeUUID(employeeId);
+          if (validEmployeeId) {
             employeeInserts.push({
               assignment_id: newAssignment.id,
-              user_id: profileId
+              user_id: validEmployeeId
             });
           } else {
-            console.warn(`Could not find valid profile ID for employee: ${employeeName}`);
+            console.warn(`Invalid employee ID provided: ${employeeId}`);
           }
         }
         
@@ -210,7 +212,8 @@ export const useAssignmentActions = (
         description: t('planner.assignmentCreatedMsg', { title: assignmentData.title }),
       });
       
-      refetch();
+      // Ensure refetch completes before closing dialog
+      await refetch();
       if (setIsDialogOpen) setIsDialogOpen(false);
     } catch (error: any) {
       console.error('Error creating assignment:', error);
@@ -253,7 +256,8 @@ export const useAssignmentActions = (
           description: t('planner.assignmentUpdatedMsg', { title: assignmentData.title }),
         });
         
-        refetch();
+        // Ensure refetch completes for demo mode too
+        await refetch();
         if (setIsDialogOpen) setIsDialogOpen(false);
         return true;
       }
@@ -326,24 +330,25 @@ export const useAssignmentActions = (
       // If there are employees, link them to the assignment
       if (assignmentData.employees && assignmentData.employees.length > 0) {
         console.log("Assignment updated, now linking employees:", assignmentData.employees);
-        // Get profile IDs for each employee name
+        // Employee data is now employee IDs (UUIDs) instead of names
         const employeeInserts = [];
         
-        for (const employeeName of assignmentData.employees) {
+        for (const employeeId of assignmentData.employees) {
           // Skip any non-string values that might have gotten in the array
-          if (typeof employeeName !== 'string') {
-            console.warn("Skipping invalid employee data:", employeeName);
+          if (typeof employeeId !== 'string') {
+            console.warn("Skipping invalid employee data:", employeeId);
             continue;
           }
           
-          const profileId = await getProfileIdByName(employeeName);
-          if (profileId) {
+          // Validate that this is a proper UUID
+          const validEmployeeId = safeUUID(employeeId);
+          if (validEmployeeId) {
             employeeInserts.push({
               assignment_id: id,
-              user_id: profileId
+              user_id: validEmployeeId
             });
           } else {
-            console.warn(`Could not find valid profile ID for employee: ${employeeName}`);
+            console.warn(`Invalid employee ID provided: ${employeeId}`);
           }
         }
         

@@ -147,11 +147,43 @@ const PlannerPage: React.FC = () => {
   };
 
   const handleSubmit = async (data: Partial<Assignment>) => {
+    console.log('[PlannerPage] Form submission started with data:', data);
     try {
       if (currentAssignment?.id) {
-        await updateAssignment(currentAssignment.id, data);
+        console.log('[PlannerPage] Updating existing assignment:', currentAssignment.id);
+        const success = await updateAssignment(currentAssignment.id, data);
+        if (success) {
+          console.log('[PlannerPage] Assignment updated successfully');
+          setCurrentAssignment(null);
+          // Reset form data for next use
+          setFormData({
+            title: '',
+            description: '',
+            date: new Date().toISOString().split('T')[0],
+            fromTime: '08:00',
+            toTime: '16:00',
+            location: '',
+            car: '',
+            employees: [],
+            published: false
+          });
+        }
       } else {
+        console.log('[PlannerPage] Creating new assignment');
         await createAssignment(data);
+        console.log('[PlannerPage] Assignment created successfully');
+        // Reset form data for next use
+        setFormData({
+          title: '',
+          description: '',
+          date: new Date().toISOString().split('T')[0],
+          fromTime: '08:00',
+          toTime: '16:00',
+          location: '',
+          car: '',
+          employees: [],
+          published: false
+        });
       }
       setIsDialogOpen(false);
     } catch (error) {

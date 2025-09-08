@@ -137,6 +137,23 @@ export const useAssignmentFormState = (
     }));
   }, []);
 
+  // Reset form after successful submission
+  const resetForm = useCallback(() => {
+    console.log('[useAssignmentFormState] Resetting form data');
+    const todayDate = format(new Date(), 'yyyy-MM-dd');
+    setFormData({
+      date: todayDate,
+      title: '',
+      description: '',
+      fromTime: '08:00',
+      toTime: '16:00',
+      location: '',
+      car: '',
+      employees: [],
+      responsibleUserId: getDefaultResponsibleUser()
+    });
+  }, [isDemoMode, user]);
+
   // Handle form submission
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -167,6 +184,7 @@ export const useAssignmentFormState = (
     handleEmployeeToggle,
     handleCarChange,
     handleResponsibleUserChange,
-    handleSubmit
+    handleSubmit,
+    resetForm
   };
 };
