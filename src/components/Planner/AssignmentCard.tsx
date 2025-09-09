@@ -116,8 +116,8 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     }
   };
 
-  const handlePublishClick = async () => {
-    console.log('[AssignmentCard] Publish clicked for assignment:', assignment.id);
+  const handlePublishClick = async (assignmentId: string) => {
+    console.log('[AssignmentCard] Publish clicked for assignment:', assignmentId);
     
     if (onPublish) {
       try {
@@ -188,7 +188,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           onEdit={handleEditClick}
           onDelete={onDelete}
           onPublish={async (assignmentId: string) => {
-            await handlePublishClick();
+            await handlePublishClick(assignmentId);
           }}
           onCopy={handleCopyClick}
             operationState={operationState}
