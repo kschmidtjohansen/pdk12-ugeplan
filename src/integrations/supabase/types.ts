@@ -81,13 +81,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_assignments_car_id"
-            columns: ["car_id"]
-            isOneToOne: false
-            referencedRelation: "cars_secure_view"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fk_assignments_responsible_user_id"
             columns: ["responsible_user_id"]
             isOneToOne: false
@@ -536,45 +529,7 @@ export type Database = {
       }
     }
     Views: {
-      cars_secure_view: {
-        Row: {
-          car_number: string | null
-          created_at: string | null
-          fuel_card_code: string | null
-          has_trailer_hitch: boolean | null
-          id: string | null
-          is_available: boolean | null
-          name: string | null
-          notes: string | null
-          number_plate: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          car_number?: string | null
-          created_at?: string | null
-          fuel_card_code?: never
-          has_trailer_hitch?: boolean | null
-          id?: string | null
-          is_available?: boolean | null
-          name?: string | null
-          notes?: string | null
-          number_plate?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          car_number?: string | null
-          created_at?: string | null
-          fuel_card_code?: never
-          has_trailer_hitch?: boolean | null
-          id?: string | null
-          is_available?: boolean | null
-          name?: string | null
-          notes?: string | null
-          number_plate?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       add_system_log: {
