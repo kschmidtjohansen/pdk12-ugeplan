@@ -268,6 +268,21 @@ const PlannerPage: React.FC = () => {
     window.open(screenUrl, '_blank', 'fullscreen=yes');
   };
 
+  // Convert operationStates format to match PlannerContent expectations
+  const convertedOperationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null> = React.useMemo(() => {
+    const converted: Record<string, 'publishing' | 'deleting' | 'updating' | null> = {};
+    Object.entries(operationStates).forEach(([key, value]) => {
+      if (value === 'loading') {
+        // Map 'loading' to appropriate operation type based on context
+        // For simplicity, default to 'updating' since we can't determine the exact operation
+        converted[key] = 'updating';
+      } else {
+        converted[key] = null;
+      }
+    });
+    return converted;
+  }, [operationStates]);
+
   if (loading) {
     return <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -284,21 +299,6 @@ const PlannerPage: React.FC = () => {
         </div>
       </div>;
   }
-
-  // Convert operationStates format to match PlannerContent expectations
-  const convertedOperationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null> = React.useMemo(() => {
-    const converted: Record<string, 'publishing' | 'deleting' | 'updating' | null> = {};
-    Object.entries(operationStates).forEach(([key, value]) => {
-      if (value === 'loading') {
-        // Map 'loading' to appropriate operation type based on context
-        // For simplicity, default to 'updating' since we can't determine the exact operation
-        converted[key] = 'updating';
-      } else {
-        converted[key] = null;
-      }
-    });
-    return converted;
-  }, [operationStates]);
 
   return <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
