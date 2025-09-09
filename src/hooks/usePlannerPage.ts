@@ -97,6 +97,32 @@ export const usePlannerPage = () => {
     return filteredAssignments;
   }, [assignments, selectedWeek, selectedYear]);
 
+  // FIXED: Add proper employee toggle handler
+  const handleEmployeeToggle = useCallback((employeeId: string) => {
+    console.log('[usePlannerPage] Employee toggled:', employeeId);
+    console.log('[usePlannerPage] Current employees:', formData.employees);
+    
+    setFormData(prevFormData => {
+      const currentEmployees = prevFormData.employees || [];
+      const isSelected = currentEmployees.includes(employeeId);
+      
+      let updatedEmployees: string[];
+      if (isSelected) {
+        updatedEmployees = currentEmployees.filter(id => id !== employeeId);
+        console.log('[usePlannerPage] Removing employee:', employeeId);
+      } else {
+        updatedEmployees = [...currentEmployees, employeeId];
+        console.log('[usePlannerPage] Adding employee:', employeeId);
+      }
+      
+      console.log('[usePlannerPage] Updated employees:', updatedEmployees);
+      return {
+        ...prevFormData,
+        employees: updatedEmployees
+      };
+    });
+  }, [formData.employees]);
+
   return {
     selectedWeek,
     selectedYear,
@@ -112,6 +138,7 @@ export const usePlannerPage = () => {
     selectedDay,
     formData,
     setFormData,
+    handleEmployeeToggle,
     handlePreviousWeek: () => {
       const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
       setSelectedWeek(week);
@@ -154,17 +181,35 @@ export const usePlannerPage = () => {
     },
     handleSubmit: async (data: Partial<Assignment>) => {
       try {
+        console.log('[usePlannerPage] === SUBMIT HANDLER START ===');
+        console.log('[usePlannerPage] Submitting data:', data);
+        console.log('[usePlannerPage] Current assignment:', currentAssignment?.id);
+        
+        let success = false;
         if (currentAssignment?.id) {
           const updateData = {
             ...data,
             published: currentAssignment.published
           };
+          console.log('[usePlannerPage] Updating assignment with data:', updateData);
           await updateAssignment(currentAssignment.id, updateData);
+          success = true;
         } else {
+          console.log('[usePlannerPage] Creating new assignment with data:', data);
           await createAssignment(data);
+          success = true;
         }
+        
+        // FIXED: Close dialog only after successful operation
+        if (success) {
+          console.log('[usePlannerPage] Operation successful, closing dialog');
+          setIsDialogOpen(false);
+        }
+        
+        console.log('[usePlannerPage] === SUBMIT HANDLER END ===');
       } catch (error) {
         console.error('[usePlannerPage] Operation failed:', error);
+        // Keep dialog open on error so user can retry
       }
     },
     handlePublishDay: async (date: string) => {

@@ -167,6 +167,8 @@ const PlannerPage: React.FC = () => {
             employees: [],
             published: false
           });
+          // FIXED: Close dialog after successful update
+          setIsDialogOpen(false);
         }
       } else {
         console.log('[PlannerPage] Creating new assignment');
@@ -184,10 +186,17 @@ const PlannerPage: React.FC = () => {
           employees: [],
           published: false
         });
+        // FIXED: Close dialog after successful creation
+        setIsDialogOpen(false);
       }
-      // Let useAssignmentActions handle dialog closing after refetch completes
+      
+      // FIXED: Refresh assignment data to ensure UI updates
+      console.log('[PlannerPage] Refreshing assignments to ensure UI updates');
+      await fetchAssignments();
+      
     } catch (error) {
       console.error('[PlannerPage] Operation failed:', error);
+      // Keep dialog open on error so user can retry
     }
   };
 
@@ -229,10 +238,9 @@ const PlannerPage: React.FC = () => {
     await publishAssignmentAction(id);
   }, [publishAssignmentAction]);
 
-  // Handle employee toggle (add/remove from array)
+  // Handle employee toggle (add/remove from array) - FIXED: Remove dependency on formData.employees
   const handleEmployeeToggle = useCallback((employeeId: string) => {
     console.log('[PlannerPage] Employee toggled:', employeeId);
-    console.log('[PlannerPage] Current employees:', formData.employees);
     
     if (!employeeId || employeeId.trim() === '') {
       console.warn('[PlannerPage] Invalid employee ID provided');
@@ -241,6 +249,8 @@ const PlannerPage: React.FC = () => {
 
     setFormData(prev => {
       const currentEmployees = prev.employees || [];
+      console.log('[PlannerPage] Current employees before toggle:', currentEmployees);
+      
       let newEmployees;
       
       if (currentEmployees.includes(employeeId)) {
@@ -258,7 +268,7 @@ const PlannerPage: React.FC = () => {
         employees: newEmployees
       };
     });
-  }, [formData.employees, setFormData]);
+  }, []); // FIXED: Remove formData.employees dependency to prevent stale closures
 
   const handleShowOnScreen = () => {
     const today = new Date().toISOString().split('T')[0];
