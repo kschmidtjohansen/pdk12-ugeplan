@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { useTranslation } from '../context/TranslationContext';
-import { useAssignmentDataOptimized } from '../hooks/assignment/useAssignmentDataOptimized';
-import { useAssignmentActions } from '../hooks/assignment/useAssignmentActions';
+import { useOptimizedAssignments } from '../hooks/useOptimizedAssignments';
 import { Assignment } from '../types/assignment';
 import { useEmployees } from '../hooks/useEmployees';
 import { useCars } from '../hooks/car';
@@ -35,22 +34,19 @@ const PlannerPage: React.FC = () => {
     vacations
   } = useVacations();
   
-  // Use enhanced data fetching for better employee name handling
+  // Use optimized assignments hook for unified data management
   const {
     assignments,
     loading,
     error,
-    fetchAssignments
-  } = useAssignmentDataOptimized();
-  
-  // Use assignment actions for operations
-  const {
+    operationStates,
+    refetch,
     createAssignment,
     updateAssignment,
-    deleteAssignment: deleteAssignmentAction,
-    publishAssignment: publishAssignmentAction,
+    deleteAssignment,
+    publishAssignment,
     publishAssignmentsByDate
-  } = useAssignmentActions(fetchAssignments);
+  } = useOptimizedAssignments('all');
 
   // Simplified planner state management without conflicting hooks
   const [selectedWeek, setSelectedWeek] = React.useState(() => {
@@ -151,25 +147,23 @@ const PlannerPage: React.FC = () => {
     try {
       if (currentAssignment?.id) {
         console.log('[PlannerPage] Updating existing assignment:', currentAssignment.id);
-        const success = await updateAssignment(currentAssignment.id, data);
-        if (success) {
-          console.log('[PlannerPage] Assignment updated successfully');
-          setCurrentAssignment(null);
-          // Reset form data for next use
-          setFormData({
-            title: '',
-            description: '',
-            date: new Date().toISOString().split('T')[0],
-            fromTime: '08:00',
-            toTime: '16:00',
-            location: '',
-            car: '',
-            employees: [],
-            published: false
-          });
-          // FIXED: Close dialog after successful update
-          setIsDialogOpen(false);
-        }
+        await updateAssignment(currentAssignment.id, data);
+        console.log('[PlannerPage] Assignment updated successfully');
+        setCurrentAssignment(null);
+        // Reset form data for next use
+        setFormData({
+          title: '',
+          description: '',
+          date: new Date().toISOString().split('T')[0],
+          fromTime: '08:00',
+          toTime: '16:00',
+          location: '',
+          car: '',
+          employees: [],
+          published: false
+        });
+        // Close dialog after successful update
+        setIsDialogOpen(false);
       } else {
         console.log('[PlannerPage] Creating new assignment');
         await createAssignment(data);
@@ -186,13 +180,11 @@ const PlannerPage: React.FC = () => {
           employees: [],
           published: false
         });
-        // FIXED: Close dialog after successful creation
+        // Close dialog after successful creation
         setIsDialogOpen(false);
       }
       
-      // FIXED: Refresh assignment data to ensure UI updates
-      console.log('[PlannerPage] Refreshing assignments to ensure UI updates');
-      await fetchAssignments();
+      // Note: refetch is handled automatically by useOptimizedAssignments
       
     } catch (error) {
       console.error('[PlannerPage] Operation failed:', error);
@@ -230,13 +222,13 @@ const PlannerPage: React.FC = () => {
     await publishAssignmentsByDate(date);
   }, [publishAssignmentsByDate]);
 
-  const deleteAssignment = useCallback(async (id: string) => {
-    await deleteAssignmentAction(id);
-  }, [deleteAssignmentAction]);
+  const handleDeleteAssignment = useCallback(async (id: string) => {
+    await deleteAssignment(id);
+  }, [deleteAssignment]);
 
-  const publishAssignment = useCallback(async (id: string) => {
-    await publishAssignmentAction(id);
-  }, [publishAssignmentAction]);
+  const handlePublishAssignment = useCallback(async (id: string) => {
+    await publishAssignment(id);
+  }, [publishAssignment]);
 
   // Handle employee toggle (add/remove from array) - FIXED: Remove dependency on formData.employees
   const handleEmployeeToggle = useCallback((employeeId: string) => {
@@ -293,8 +285,20 @@ const PlannerPage: React.FC = () => {
       </div>;
   }
 
-  // No operation states needed with the enhanced data fetching
-  const emptyOperationStates: Record<string, 'publishing' | 'deleting' | 'updating'> = {};
+  // Convert operationStates format to match PlannerContent expectations
+  const convertedOperationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null> = React.useMemo(() => {
+    const converted: Record<string, 'publishing' | 'deleting' | 'updating' | null> = {};
+    Object.entries(operationStates).forEach(([key, value]) => {
+      if (value === 'loading') {
+        // Map 'loading' to appropriate operation type based on context
+        // For simplicity, default to 'updating' since we can't determine the exact operation
+        converted[key] = 'updating';
+      } else {
+        converted[key] = null;
+      }
+    });
+    return converted;
+  }, [operationStates]);
 
   return <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
@@ -355,7 +359,7 @@ const PlannerPage: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <PlannerContent weekAssignments={sortedWeekAssignments} operationStates={emptyOperationStates} onEditAssignment={handleOpenEditDialog} onDeleteAssignment={deleteAssignment} onPublishAssignment={publishAssignment} onPublishDay={handlePublishDay} onCreateAssignment={handleOpenCreateDialog} onCopyAssignment={handleCopyAssignment} selectedWeek={selectedWeek} selectedYear={selectedYear} weekDates={weekDates} handleShowOnScreen={handleShowOnScreen} />
+        <PlannerContent weekAssignments={sortedWeekAssignments} operationStates={convertedOperationStates} onEditAssignment={handleOpenEditDialog} onDeleteAssignment={handleDeleteAssignment} onPublishAssignment={handlePublishAssignment} onPublishDay={handlePublishDay} onCreateAssignment={handleOpenCreateDialog} onCopyAssignment={handleCopyAssignment} selectedWeek={selectedWeek} selectedYear={selectedYear} weekDates={weekDates} handleShowOnScreen={handleShowOnScreen} />
 
         {/* Assignment Dialog */}
         <PlannerDialogContainer isDialogOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onSubmit={handleSubmit} currentAssignment={currentAssignment} selectedDay={selectedDay} formData={formData} setFormData={setFormData} employees={employees} cars={cars} vacations={vacations} assignments={sortedWeekAssignments} onEmployeeToggle={handleEmployeeToggle} />
