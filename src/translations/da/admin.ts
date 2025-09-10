@@ -251,8 +251,10 @@ export const admin = {
     administrator: 'Administrator',
     skadeleder: 'Skadeleder',
     servicemedarbejder: 'Servicemedarbejder',
+    vikar: 'Vikar',
     administratorDesc: 'Fuld adgang til alle funktioner',
     skadelederDesc: 'Kan administrere opgaver og godkende opgaver',
-    servicemedarbejderDesc: 'Kan se tildelte opgaver og anmode om ferie'
+    servicemedarbejderDesc: 'Kan se tildelte opgaver og anmode om ferie',
+    vikarDesc: 'Vikarer med midlertidig adgang'
   }
 };
