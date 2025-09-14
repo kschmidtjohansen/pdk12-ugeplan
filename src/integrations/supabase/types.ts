@@ -544,6 +544,10 @@ export type Database = {
         Args: { assignment_id: string }
         Returns: boolean
       }
+      can_access_case_data: {
+        Args: { case_number_param: string }
+        Returns: boolean
+      }
       can_user_access_assignment: {
         Args: { assignment_id: string; user_id: string }
         Returns: boolean
@@ -760,6 +764,10 @@ export type Database = {
         Returns: string
       }
       schedule_maintenance_tasks: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      security_health_check: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }

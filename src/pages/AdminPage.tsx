@@ -11,7 +11,7 @@ import { SecurityLogViewer } from '@/components/Admin/SecurityLogViewer';
 import { ComprehensiveDiagnosticsPanel } from '@/components/Admin/ComprehensiveDiagnosticsPanel';
 import { PerformanceMonitoringPanel } from '@/components/Admin/PerformanceMonitoringPanel';
 import { SystemCleanupPanel } from '@/components/Admin/SystemCleanupPanel';
-import { SecurityAuditPanel } from '@/components/Admin/SecurityAuditPanel';
+import { SecurityDashboard } from '@/components/Admin/SecurityDashboard';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
 import PasswordResetDebugger from '@/components/Admin/PasswordResetDebugger';
 
@@ -94,7 +94,7 @@ const AdminPage: React.FC = () => {
 
 
           <TabsContent value="security-audit" className="space-y-6">
-            <SecurityAuditPanel />
+            <SecurityDashboard />
           </TabsContent>
 
           <TabsContent value="debug" className="space-y-6">
