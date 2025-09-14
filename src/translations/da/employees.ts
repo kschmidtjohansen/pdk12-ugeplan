@@ -73,6 +73,7 @@ const employees = {
   
   // Additional status translations
   terminated: 'Opsagt',
+  employees: 'Medarbejdere',
   
   // Form dialog
   addNewEmployee: 'Tilføj Ny Medarbejder',

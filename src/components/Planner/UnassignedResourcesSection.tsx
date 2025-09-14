@@ -269,34 +269,34 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     <div className="space-y-4">
       {/* Main Resource Overview Card */}
       <Card className="overflow-hidden border-2 border-primary/20">
-        <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-primary/10">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Calendar className="h-6 w-6 text-primary" />
+        <CardHeader className="py-2 px-4 bg-gradient-to-r from-primary/5 to-primary/10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary" />
               <div>
-                <h2 className="text-xl font-bold text-primary">
+                <h2 className="text-lg font-semibold text-primary">
                   {t('planner.unassignedResources')}
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground">
                   {formatDate(selectedDate)}
                 </p>
               </div>
             </div>
             
             {/* Date Navigation */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1 bg-background/80 rounded-lg p-1">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 bg-background/80 rounded-lg p-0.5">
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={handlePreviousDate} 
                   disabled={availableDates.indexOf(selectedDate) === 0}
-                  className="h-9 w-9 p-0"
+                  className="h-7 w-7 p-0"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-3 w-3" />
                 </Button>
                 
-                <div className="px-3 py-1 text-sm font-medium min-w-[140px] text-center">
+                <div className="px-2 py-1 text-xs font-medium min-w-[100px] text-center">
                   {formatDate(selectedDate)}
                 </div>
                 
@@ -305,9 +305,9 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                   size="sm" 
                   onClick={handleNextDate} 
                   disabled={availableDates.indexOf(selectedDate) === availableDates.length - 1}
-                  className="h-9 w-9 p-0"
+                  className="h-7 w-7 p-0"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-3 w-3" />
                 </Button>
               </div>
               
@@ -316,17 +316,17 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                 variant="ghost" 
                 size="sm" 
                 onClick={() => setIsCollapsed(!isCollapsed)} 
-                className="flex items-center gap-2 h-9"
+                className="flex items-center gap-1 h-7 px-2"
               >
                 {isCollapsed ? (
                   <>
-                    <span className="hidden sm:inline">{t('planner.expandResources')}</span>
-                    <ChevronDown className="h-4 w-4" />
+                    <span className="hidden sm:inline text-xs">{t('planner.expandResources')}</span>
+                    <ChevronDown className="h-3 w-3" />
                   </>
                 ) : (
                   <>
-                    <span className="hidden sm:inline">{t('planner.collapseResources')}</span>
-                    <ChevronUp className="h-4 w-4" />
+                    <span className="hidden sm:inline text-xs">{t('planner.collapseResources')}</span>
+                    <ChevronUp className="h-3 w-3" />
                   </>
                 )}
               </Button>
@@ -335,74 +335,70 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
         </CardHeader>
 
         {/* Summary Statistics Row (Always Visible) */}
-        <CardContent className="py-4 border-b">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <CardContent className="py-2 border-b">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {/* Available Employees */}
             <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Users className="h-5 w-5 text-emerald-600" />
-                <span className="text-2xl font-bold text-emerald-600">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Users className="h-4 w-4 text-emerald-600" />
+                <span className="text-xl font-bold text-emerald-600">
                   {stats.totalAvailableEmployees}
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground">{t('planner.availableCount')}</p>
-              <p className="text-sm text-muted-foreground">{t('employees.employees')}</p>
+              <p className="text-xs text-muted-foreground">{t('planner.availableCount')} {t('employees.employees')}</p>
             </div>
 
             {/* Available Cars */}
             <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Car className="h-5 w-5 text-blue-600" />
-                <span className="text-2xl font-bold text-blue-600">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Car className="h-4 w-4 text-blue-600" />
+                <span className="text-xl font-bold text-blue-600">
                   {stats.availableCars}
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground">{t('planner.availableCount')}</p>
-              <p className="text-sm text-muted-foreground">{t('planner.availableCars')}</p>
+              <p className="text-xs text-muted-foreground">{t('planner.availableCount')} {t('planner.availableCars')}</p>
             </div>
 
             {/* On Vacation */}
             <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <AlertCircle className="h-5 w-5 text-orange-600" />
-                <span className="text-2xl font-bold text-orange-600">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <AlertCircle className="h-4 w-4 text-orange-600" />
+                <span className="text-xl font-bold text-orange-600">
                   {stats.onVacationEmployees}
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground">{t('planner.onVacationCount')}</p>
-              <p className="text-sm text-muted-foreground">{t('employees.employees')}</p>
+              <p className="text-xs text-muted-foreground">{t('planner.onVacationCount')} {t('employees.employees')}</p>
             </div>
 
             {/* Partially Available */}
             <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Clock className="h-5 w-5 text-amber-600" />
-                <span className="text-2xl font-bold text-amber-600">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Clock className="h-4 w-4 text-amber-600" />
+                <span className="text-xl font-bold text-amber-600">
                   {stats.partiallyBookedEmployees}
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground">{t('planner.partiallyBookedCount')}</p>
-              <p className="text-sm text-muted-foreground">{t('employees.employees')}</p>
+              <p className="text-xs text-muted-foreground">{t('planner.partiallyBookedCount')} {t('employees.employees')}</p>
             </div>
           </div>
         </CardContent>
 
         {/* Detailed View (Collapsible) */}
         {!isCollapsed && (
-          <CardContent className="pt-4">
-            <div className="space-y-6">
+          <CardContent className="pt-2">
+            <div className="space-y-4">
               {/* Fully Available Employees */}
               {employeeAvailabilityData.available.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-emerald-700 mb-3 flex items-center gap-2">
-                    <Users className="h-5 w-5" />
+                  <h3 className="text-base font-semibold text-emerald-700 mb-2 flex items-center gap-2">
+                    <Users className="h-4 w-4" />
                     {t('planner.fullyAvailableEmployees')} ({employeeAvailabilityData.available.length})
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
                     {employeeAvailabilityData.available.map(employee => (
-                      <div key={employee.id} className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-                        <span className="font-medium">{employee.name}</span>
-                        <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-300">
+                      <div key={employee.id} className="flex items-center justify-between p-2 rounded-lg bg-emerald-50 border border-emerald-200">
+                        <span className="font-medium text-sm">{employee.name}</span>
+                        <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-300 text-xs">
                           {t('planner.employeeStatusAvailable')}
                         </Badge>
                       </div>
@@ -414,20 +410,20 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
               {/* Partially Available Employees */}
               {employeeAvailabilityData.partiallyBooked.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-amber-700 mb-3 flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
+                  <h3 className="text-base font-semibold text-amber-700 mb-2 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
                     {t('planner.partiallyAvailableEmployees')} ({employeeAvailabilityData.partiallyBooked.length})
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
                     {employeeAvailabilityData.partiallyBooked.map(employee => (
-                      <div key={employee.id} className="flex items-center justify-between p-3 rounded-lg bg-amber-50 border border-amber-200">
+                      <div key={employee.id} className="flex items-center justify-between p-2 rounded-lg bg-amber-50 border border-amber-200">
                         <div className="flex flex-col">
-                          <span className="font-medium">{employee.name}</span>
+                          <span className="font-medium text-sm">{employee.name}</span>
                           <span className="text-xs text-amber-700">
                             {employee.availabilityInfo?.text}
                           </span>
                         </div>
-                        <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300">
+                        <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 text-xs">
                           {t('planner.employeeStatusPartial')}
                         </Badge>
                       </div>
@@ -439,11 +435,11 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
               {/* Available Cars */}
               {availableCars.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-blue-700 mb-3 flex items-center gap-2">
-                    <Car className="h-5 w-5" />
+                  <h3 className="text-base font-semibold text-blue-700 mb-2 flex items-center gap-2">
+                    <Car className="h-4 w-4" />
                     {t('planner.availableCars')} ({availableCars.length})
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
                     {availableCars.map(car => (
                       <div key={car.id} className="flex items-center justify-between p-3 rounded-lg bg-blue-50 border border-blue-200">
                         <div className="flex flex-col">
