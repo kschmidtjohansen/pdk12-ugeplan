@@ -182,15 +182,20 @@ const planner = {
   nextDay: 'Næste dag',
   previousDays: 'Forrige dage',
   
-  // Validation messages
-  validation: {
-    titleRequired: 'Sagsnummer er påkrævet',
-    locationRequired: 'Adresse er påkrævet',
-    dateRequired: 'Dato er påkrævet',
-    fromTimeRequired: 'Start tid er påkrævet',
-    toTimeRequired: 'Slut tid er påkrævet',
-    timeOrderRequired: 'Start tid skal være før slut tid'
-  },
+  // Additional translations for enhanced unassigned resources
+  fullyAvailableEmployees: 'Fuldt Tilgængelige Medarbejdere',
+  partiallyAvailableEmployees: 'Delvist Tilgængelige Medarbejdere',
+  onVacationEmployees: 'Medarbejdere på Ferie',
+  availableCount: 'Tilgængelige',
+  onVacationCount: 'På Ferie',
+  partiallyBookedCount: 'Delvist Optaget',
+  noAvailableResources: 'Ingen Ledige Ressourcer',
+  allResourcesAssigned: 'Alle medarbejdere og biler er tildelt opgaver på denne dag.',
+  employeeStatusAvailable: 'Ledig',
+  employeeStatusPartial: 'Delvist',
+  employeeStatusVacation: 'Ferie',
+  carStatusAvailable: 'Ledig',
+  carWithTrailerLabel: 'Trailer',
   
   // Operation status messages
   operations: {
