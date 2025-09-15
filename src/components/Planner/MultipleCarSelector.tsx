@@ -142,7 +142,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
             }}
           >
             <div className="p-3 space-y-1">
-              {cars.map((car) => {
+              {cars.filter(car => car.show_in_planner !== false).map((car) => {
                 const isSelected = selectedCarIds.includes(car.id);
                 const bookingStatus = getCarBookingStatus(car.id);
                 const isGenerallyAvailable = car.is_available;

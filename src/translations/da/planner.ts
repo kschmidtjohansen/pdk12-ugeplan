@@ -144,6 +144,13 @@ const planner = {
   noCarsUnavailable: 'Alle biler er tilgængelige',
   carWithTrailer: 'Bil med trailer',
   carWithoutTrailer: 'Bil uden trailer',
+  cars: 'Biler',
+  selectCars: 'Vælg Biler',
+  carsSelected: '{count} biler valgt',
+  unavailable: 'Ikke tilgængelig',
+  available: 'Tilgængelig',
+  bookedUntil: 'Optaget til {time}',
+  carNotAvailable: 'Ikke tilgængelig',
   
   // Employee-related translations
   onVacation: 'Fri/Ferie',

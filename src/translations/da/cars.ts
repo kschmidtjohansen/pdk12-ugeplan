@@ -3,10 +3,17 @@ const cars = {
   // Basic car information
   vehicleInfo: "Køretøjsinformation",
   vehicleName: "Køretøjsnavn",
-  vehicleNumber: "Køretøjsnummer", 
+  vehicleNumber: "Køretøjsnummer",
+  carNumber: "Bilnummer",
   numberPlate: "Nummerplade",
   fuelCardCode: "Brændstofkortkode",
   showInPlanner: "Vis i Planlægger",
+  
+  // Dialog actions
+  editVehicle: "Rediger Køretøj",
+  addNewVehicle: "Tilføj Nyt Køretøj",
+  updateVehicleInfo: "Opdater køretøjsoplysningerne nedenfor",
+  addNewVehicleDesc: "Udfyld detaljerne for det nye køretøj",
   
   // Car selection and status
   selectCar: 'Vælg bil',

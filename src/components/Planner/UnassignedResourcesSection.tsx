@@ -202,6 +202,9 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       // Skip if not available
       if (!car.is_available) return false;
 
+      // Skip if not shown in planner
+      if (car.show_in_planner === false) return false;
+
       // Skip if assigned
       if (assignedCarIds.has(car.id)) return false;
       return true;

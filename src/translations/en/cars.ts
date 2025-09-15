@@ -3,10 +3,17 @@ const cars = {
   // Basic car information
   vehicleInfo: "Vehicle Information",
   vehicleName: "Vehicle Name",
-  vehicleNumber: "Vehicle Number", 
+  vehicleNumber: "Vehicle Number",
+  carNumber: "Car Number",
   numberPlate: "Number Plate",
   fuelCardCode: "Fuel Card Code",
   showInPlanner: "Show in Planner",
+  
+  // Dialog actions
+  editVehicle: "Edit Vehicle",
+  addNewVehicle: "Add New Vehicle",
+  updateVehicleInfo: "Update the vehicle information below",
+  addNewVehicleDesc: "Fill in the details for the new vehicle",
   
   // Car selection and status
   selectCar: 'Select car',

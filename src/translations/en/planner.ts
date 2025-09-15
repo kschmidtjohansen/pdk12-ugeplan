@@ -144,6 +144,13 @@ const planner = {
   noCarsUnavailable: 'All cars are available',
   carWithTrailer: 'Car with trailer',
   carWithoutTrailer: 'Car without trailer',
+  cars: 'Cars',
+  selectCars: 'Select Cars',
+  carsSelected: '{count} cars selected',
+  unavailable: 'Unavailable',
+  available: 'Available',
+  bookedUntil: 'Booked until {time}',
+  carNotAvailable: 'Not available',
   
   // Employee-related translations
   employeeOnVacation: 'On vacation',
