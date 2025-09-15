@@ -7,6 +7,7 @@ export interface Car {
   fuel_card_code: string;
   is_available: boolean;
   has_trailer_hitch?: boolean;
+  show_in_planner?: boolean;
   notes?: string;
   created_at?: string;
   updated_at?: string;

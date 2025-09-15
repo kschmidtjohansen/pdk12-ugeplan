@@ -118,22 +118,31 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
             />
           </div>
           
-          <div className="flex items-center space-x-2 mt-4">
-            <Checkbox 
-              id="has_trailer_hitch"
-              checked={formData.has_trailer_hitch || false} 
-              onCheckedChange={(checked) => handleCheckboxChange('has_trailer_hitch', checked === true)}
-            />
-            <Label htmlFor="has_trailer_hitch">{t('cars.hasTrailerHitch')}</Label>
-          </div>
-
-          <div className="flex items-center space-x-2 mt-4">
-            <Checkbox 
-              id="is_available"
-              checked={formData.is_available} 
-              onCheckedChange={(checked) => handleCheckboxChange('is_available', checked === true)}
-            />
-            <Label htmlFor="is_available">{t('cars.isAvailable')}</Label>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="has_trailer_hitch"
+                checked={formData.has_trailer_hitch || false}
+                onCheckedChange={(checked) => onCheckboxChange?.('has_trailer_hitch', checked as boolean)}
+              />
+              <Label htmlFor="has_trailer_hitch">{t('cars.hasTrailerHitch')}</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="is_available"
+                checked={formData.is_available}
+                onCheckedChange={(checked) => onCheckboxChange?.('is_available', checked as boolean)}
+              />
+              <Label htmlFor="is_available">{t('cars.isAvailable')}</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="show_in_planner"
+                checked={formData.show_in_planner ?? true}
+                onCheckedChange={(checked) => onCheckboxChange?.('show_in_planner', checked as boolean)}
+              />
+              <Label htmlFor="show_in_planner">{t('cars.showInPlanner')}</Label>
+            </div>
           </div>
           
           <DialogFooter>

@@ -1,24 +1,12 @@
 
 const cars = {
-  title: 'Cars',
-  description: 'Department vehicles and their details',
-  pageDescription: 'Manage department vehicles and their availability',
-  addVehicle: 'Add Vehicle',
-  addCar: 'Add Car',
-  addNewCar: 'Add New Car',
-  editCar: 'Edit Car',
-  editVehicle: 'Edit Vehicle',
-  deleteCar: 'Delete Car',
-  carName: 'Car Name',
-  vehicleName: 'Vehicle Name',
-  carModel: 'Car Model',
-  carNumber: 'Car Number',
-  licensePlate: 'License Plate',
-  numberPlate: 'Number Plate',
-  fuelCardCode: 'Fuel Card Code',
-  addNewVehicle: 'Add New Vehicle',
-  updateVehicleInfo: 'Update vehicle information.',
-  addNewVehicleDesc: 'Add a new vehicle to the department.',
+  // Basic car information
+  vehicleInfo: "Vehicle Information",
+  vehicleName: "Vehicle Name",
+  vehicleNumber: "Vehicle Number", 
+  numberPlate: "Number Plate",
+  fuelCardCode: "Fuel Card Code",
+  showInPlanner: "Show in Planner",
   
   // Car selection and status
   selectCar: 'Select car',

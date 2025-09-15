@@ -30,6 +30,7 @@ export const useCarFormState = ({
     fuel_card_code: '',
     has_trailer_hitch: false,
     is_available: true,
+    show_in_planner: true,
     notes: '',
   });
   const { t } = useTranslation();
@@ -43,6 +44,7 @@ export const useCarFormState = ({
       fuel_card_code: '',
       has_trailer_hitch: false,
       is_available: true,
+      show_in_planner: true,
       notes: '',
     });
     setDialogOpen(true);
@@ -56,6 +58,7 @@ export const useCarFormState = ({
       fuel_card_code: car.fuel_card_code,
       has_trailer_hitch: car.has_trailer_hitch || false,
       is_available: car.is_available,
+      show_in_planner: car.show_in_planner ?? true,
       notes: car.notes || '',
     });
   };

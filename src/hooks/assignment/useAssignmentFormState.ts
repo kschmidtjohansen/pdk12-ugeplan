@@ -14,6 +14,7 @@ export interface AssignmentFormData {
   toTime?: string;
   location?: string;
   car?: string;
+  cars?: string[];
   employees?: string[];
   responsibleUserId?: string;
 }
@@ -55,6 +56,7 @@ export const useAssignmentFormState = (
     toTime: '16:00',
     location: '',
     car: '',
+    cars: [],
     employees: [],
     responsibleUserId: getDefaultResponsibleUser()
   });
@@ -121,11 +123,19 @@ export const useAssignmentFormState = (
     });
   }, [formData.employees]);
 
-  // Handle car selection
+  // Handle car selection (single car - backward compatibility)
   const handleCarChange = useCallback((value: string) => {
     setFormData(prev => ({
       ...prev,
       car: value
+    }));
+  }, []);
+
+  // Handle multiple cars selection
+  const handleCarsChange = useCallback((carIds: string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      cars: carIds
     }));
   }, []);
 
@@ -149,6 +159,7 @@ export const useAssignmentFormState = (
       toTime: '16:00',
       location: '',
       car: '',
+      cars: [],
       employees: [],
       responsibleUserId: getDefaultResponsibleUser()
     });
@@ -183,6 +194,7 @@ export const useAssignmentFormState = (
     handleInputChange,
     handleEmployeeToggle,
     handleCarChange,
+    handleCarsChange,
     handleResponsibleUserChange,
     handleSubmit,
     resetForm

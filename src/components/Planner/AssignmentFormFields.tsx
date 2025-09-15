@@ -14,7 +14,7 @@ import { Car } from '@/types/car';
 import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
-import { CarSelector } from './CarSelector';
+import MultipleCarSelector from './MultipleCarSelector';
 import ResponsibleUserSelector from './ResponsibleUserSelector';
 import EmployeeSelector from './EmployeeSelector';
 
@@ -31,8 +31,8 @@ interface AssignmentFormFieldsProps {
   setToTime: (value: string) => void;
   description: string;
   setDescription: (value: string) => void;
-  selectedCarId: string;
-  setSelectedCarId: (value: string) => void;
+  selectedCarIds: string[];
+  setSelectedCarIds: (value: string[]) => void;
   selectedResponsibleUserId: string;
   setSelectedResponsibleUserId: (value: string) => void;
   selectedEmployees: string[]; // Now stores employee IDs instead of names
@@ -57,8 +57,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   setToTime,
   description,
   setDescription,
-  selectedCarId,
-  setSelectedCarId,
+  selectedCarIds,
+  setSelectedCarIds,
   selectedResponsibleUserId,
   setSelectedResponsibleUserId,
   selectedEmployees,
@@ -73,9 +73,9 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   const { isAdmin, isSkadeleder } = usePermissions();
 
   console.log('[AssignmentFormFields] Rendering with car state:', {
-    selectedCarId,
-    carType: typeof selectedCarId,
-    isEmpty: selectedCarId === '' || !selectedCarId
+    selectedCarIds,
+    carType: typeof selectedCarIds,
+    isEmpty: !selectedCarIds || selectedCarIds.length === 0
   });
 
   const currentDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
@@ -120,19 +120,28 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   // Show responsible user field only for admin and skadeleder
   const canAssignResponsibleUser = isAdmin || isSkadeleder;
 
-  // FIXED: Enhanced car selection with better validation
-  const handleCarSelect = (carId: string) => {
-    console.log('[AssignmentFormFields] Car selection handler called:', {
+  // FIXED: Enhanced car selection with better validation for multiple cars
+  const handleCarToggle = (carId: string) => {
+    console.log('[AssignmentFormFields] Car toggle handler called:', {
       carId,
       carType: typeof carId,
       isEmpty: carId === '' || !carId,
-      previousSelection: selectedCarId
+      currentSelection: selectedCarIds
     });
     
-    // Ensure we always pass a valid string
-    const normalizedCarId = carId && carId.trim() !== '' ? carId : '';
-    console.log('[AssignmentFormFields] Setting normalized car ID:', normalizedCarId);
-    setSelectedCarId(normalizedCarId);
+    const currentCars = selectedCarIds || [];
+    let updatedCars;
+    
+    if (currentCars.includes(carId)) {
+      updatedCars = currentCars.filter(id => id !== carId);
+      console.log('[AssignmentFormFields] Removing car:', carId);
+    } else {
+      updatedCars = [...currentCars, carId];
+      console.log('[AssignmentFormFields] Adding car:', carId);
+    }
+    
+    console.log('[AssignmentFormFields] Setting updated car IDs:', updatedCars);
+    setSelectedCarIds(updatedCars);
   };
 
   // FIXED: Enhanced employee selection with validation - now uses employee IDs
@@ -264,15 +273,17 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       )}
 
-      {/* Car Selector with enhanced error handling */}
-      <CarSelector
-        cars={cars}
-        selectedCarId={selectedCarId}
-        onCarSelect={handleCarSelect}
-        currentDate={currentDateStr}
-        assignments={assignments}
-        currentAssignmentId={assignmentId}
-      />
+      {/* Multiple Car Selector with enhanced error handling */}
+      <div className="space-y-2">
+        <MultipleCarSelector
+          cars={cars.filter(car => car.show_in_planner !== false)}
+          selectedCarIds={selectedCarIds}
+          onCarToggle={handleCarToggle}
+          currentDate={currentDateStr}
+          assignments={assignments}
+          currentAssignmentId={assignmentId}
+        />
+      </div>
 
       {/* Description Field */}
       <div className="space-y-2">

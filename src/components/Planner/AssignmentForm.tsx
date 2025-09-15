@@ -209,30 +209,22 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     setFormData(updatedData);
   };
 
-  // Enhanced helper function to handle car selection with proper debugging
+  // Helper function to update assignment's single car (backward compatibility)
   const handleCarChange = (carId: string) => {
-    console.log('[AssignmentForm] ===== CAR CHANGE =====');
-    console.log('[AssignmentForm] Car change handler called:', {
-      carId,
-      carType: typeof carId,
-      isEmpty: carId === '' || !carId,
-      currentCar: formData.car
-    });
-
-    // Normalize the car value - null for no car, or the car ID
-    const normalizedCar = carId === '' || !carId ? null : carId;
     const updatedData = {
       ...formData,
-      car: normalizedCar
+      car: carId === '' ? null : carId
     };
-    console.log('[AssignmentForm] Updated form data with car:', {
-      updatedData,
-      carValue: updatedData.car,
-      carType: typeof updatedData.car,
-      isEmpty: updatedData.car === '' || !updatedData.car
-    });
     setFormData(updatedData);
-    console.log('[AssignmentForm] ===== CAR CHANGE END =====');
+  };
+
+  // Helper function to update assignment's multiple cars
+  const handleCarsChange = (carIds: string[]) => {
+    const updatedData = {
+      ...formData,
+      cars: carIds
+    };
+    setFormData(updatedData);
   };
 
   // FIXED: Timezone-safe date handling to prevent date shifts
@@ -267,37 +259,61 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           {currentAssignment ? t('planner.editAssignment') : t('planner.createNew')}
         </h2>
         
-        <AssignmentFormFields title={formData.title || ''} setTitle={value => {
-        console.log('[AssignmentForm] Title updated:', value);
-        setFormData({
-          ...formData,
-          title: value
-        });
-      }} location={formData.location || ''} setLocation={value => {
-        console.log('[AssignmentForm] Location updated:', value);
-        setFormData({
-          ...formData,
-          location: value
-        });
-      }} selectedDate={formData.date ? new Date(formData.date) : undefined} setSelectedDate={handleDateChange} fromTime={formData.fromTime || '08:00'} setFromTime={value => {
-        console.log('[AssignmentForm] From time updated:', value);
-        setFormData({
-          ...formData,
-          fromTime: value
-        });
-      }} toTime={formData.toTime || '16:00'} setToTime={value => {
-        console.log('[AssignmentForm] To time updated:', value);
-        setFormData({
-          ...formData,
-          toTime: value
-        });
-      }} description={formData.description || ''} setDescription={value => {
-        console.log('[AssignmentForm] Description updated:', value);
-        setFormData({
-          ...formData,
-          description: value
-        });
-      }} selectedCarId={getCarId(formData.car)} setSelectedCarId={handleCarChange} selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)} setSelectedResponsibleUserId={setResponsibleUserById} selectedEmployees={normalizeEmployees(formData.employees)} onEmployeeToggle={onEmployeeToggle} cars={cars} employees={employees} vacations={vacations} assignmentId={currentAssignment?.id} assignments={assignments} />
+        <AssignmentFormFields 
+          title={formData.title || ''} 
+          setTitle={value => {
+            console.log('[AssignmentForm] Title updated:', value);
+            setFormData({
+              ...formData,
+              title: value
+            });
+          }} 
+          location={formData.location || ''} 
+          setLocation={value => {
+            console.log('[AssignmentForm] Location updated:', value);
+            setFormData({
+              ...formData,
+              location: value
+            });
+          }} 
+          selectedDate={formData.date ? new Date(formData.date) : undefined} 
+          setSelectedDate={handleDateChange} 
+          fromTime={formData.fromTime || '08:00'} 
+          setFromTime={value => {
+            console.log('[AssignmentForm] From time updated:', value);
+            setFormData({
+              ...formData,
+              fromTime: value
+            });
+          }} 
+          toTime={formData.toTime || '16:00'} 
+          setToTime={value => {
+            console.log('[AssignmentForm] To time updated:', value);
+            setFormData({
+              ...formData,
+              toTime: value
+            });
+          }} 
+          description={formData.description || ''} 
+          setDescription={value => {
+            console.log('[AssignmentForm] Description updated:', value);
+            setFormData({
+              ...formData,
+              description: value
+            });
+          }} 
+          selectedCarIds={formData.cars || []} 
+          setSelectedCarIds={handleCarsChange} 
+          selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)} 
+          setSelectedResponsibleUserId={setResponsibleUserById} 
+          selectedEmployees={normalizeEmployees(formData.employees)} 
+          onEmployeeToggle={onEmployeeToggle} 
+          cars={cars} 
+          employees={employees} 
+          vacations={vacations} 
+          assignmentId={currentAssignment?.id} 
+          assignments={assignments} 
+        />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">

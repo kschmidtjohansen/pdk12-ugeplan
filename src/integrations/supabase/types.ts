@@ -130,6 +130,7 @@ export type Database = {
           name: string
           notes: string | null
           number_plate: string
+          show_in_planner: boolean
           updated_at: string
         }
         Insert: {
@@ -142,6 +143,7 @@ export type Database = {
           name: string
           notes?: string | null
           number_plate: string
+          show_in_planner?: boolean
           updated_at?: string
         }
         Update: {
@@ -154,6 +156,7 @@ export type Database = {
           name?: string
           notes?: string | null
           number_plate?: string
+          show_in_planner?: boolean
           updated_at?: string
         }
         Relationships: []

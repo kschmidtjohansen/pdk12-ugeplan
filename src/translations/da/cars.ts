@@ -1,24 +1,12 @@
 
 const cars = {
-  title: 'Biler',
-  description: 'Afdelingens køretøjer og deres detaljer',
-  pageDescription: 'Administrer afdelingens køretøjer og deres tilgængelighed',
-  addVehicle: 'Tilføj køretøj',
-  addCar: 'Tilføj bil',
-  addNewCar: 'Tilføj ny bil',
-  editCar: 'Rediger bil',
-  editVehicle: 'Rediger køretøj',
-  deleteCar: 'Slet bil',
-  carName: 'Bilnavn',
-  vehicleName: 'Køretøjsnavn',
-  carModel: 'Bilmodel',
-  carNumber: 'Bilnummer',
-  licensePlate: 'Nummerplade',
-  numberPlate: 'Nummerplade',
-  fuelCardCode: 'Tankkortskode',
-  addNewVehicle: 'Tilføj nyt køretøj',
-  updateVehicleInfo: 'Opdater køretøjsinformation.',
-  addNewVehicleDesc: 'Tilføj et nyt køretøj til afdelingen.',
+  // Basic car information
+  vehicleInfo: "Køretøjsinformation",
+  vehicleName: "Køretøjsnavn",
+  vehicleNumber: "Køretøjsnummer", 
+  numberPlate: "Nummerplade",
+  fuelCardCode: "Brændstofkortkode",
+  showInPlanner: "Vis i Planlægger",
   
   // Car selection and status
   selectCar: 'Vælg bil',
