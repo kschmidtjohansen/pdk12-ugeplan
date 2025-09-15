@@ -65,7 +65,11 @@ const cars = {
   errorDeletingCar: 'Fejl ved sletning af bil',
   cannotDeleteCarInUse: 'Kan ikke slette køretøj',
   cannotDeleteCarInUseDesc: 'Dette køretøj kan ikke slettes, fordi det er tildelt en eller flere opgaver. Fjern det fra alle opgaver først eller marker det som ikke tilgængeligt i stedet.',
-  deleteError: 'Kunne ikke slette køretøj. Prøv igen.'
+  deleteError: 'Kunne ikke slette køretøj. Prøv igen.',
+  
+  // Page content
+  pageDescription: 'Administrer din køretøjsflåde og tilgængelighed',
+  addNewCar: 'Tilføj Nyt Køretøj'
 };
 
 export default cars;

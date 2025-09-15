@@ -231,7 +231,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                 )}
               </div>
               
-              {cars.map(car => {
+              {cars.filter(car => car.show_in_planner !== false).map(car => {
                 const isSelected = selectedCarId === car.id;
                 const isUnavailable = !car.is_available;
                 const carUsage = isCarInUse(car.id);

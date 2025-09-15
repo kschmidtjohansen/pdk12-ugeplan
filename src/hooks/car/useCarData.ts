@@ -4,6 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData } from '@/components/Cars/types';
 import { CarSecurityService } from '@/services/carSecurityService';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useCarData = (canViewFuelCardCode: boolean = false) => {
   const [cars, setCars] = useState<CarData[]>([]);
@@ -86,7 +87,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
     }
   };
 
-  // Load cars on component mount with enhanced error handling
+  // Load cars on component mount with enhanced error handling and realtime subscription
   useEffect(() => {
     let isMounted = true;
     
@@ -128,11 +129,32 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         }
       }
     };
+
+    // Set up realtime subscription for cars
+    const channel = supabase
+      .channel('cars-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cars'
+        },
+        (payload) => {
+          console.log('[useCarData] Realtime update received:', payload);
+          // Refresh cars when any change occurs
+          if (isMounted) {
+            loadCars().catch(console.error);
+          }
+        }
+      )
+      .subscribe();
     
     loadCars();
     
     return () => {
       isMounted = false;
+      supabase.removeChannel(channel);
     };
   }, [t, toast, canViewFuelCardCode]);
 

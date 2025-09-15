@@ -65,7 +65,11 @@ const cars = {
   errorDeletingCar: 'Error deleting car',
   cannotDeleteCarInUse: 'Cannot delete vehicle',
   cannotDeleteCarInUseDesc: 'This vehicle cannot be deleted because it is assigned to one or more tasks. Please unassign it from all tasks first or mark it as unavailable instead.',
-  deleteError: 'Failed to delete vehicle. Please try again.'
+  deleteError: 'Failed to delete vehicle. Please try again.',
+  
+  // Page content
+  pageDescription: 'Manage your vehicle fleet and availability',
+  addNewCar: 'Add New Vehicle'
 };
 
 export default cars;

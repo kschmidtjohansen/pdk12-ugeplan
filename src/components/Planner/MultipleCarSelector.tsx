@@ -182,17 +182,17 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                         <div className="flex gap-1 flex-shrink-0 ml-2">
                           {!isGenerallyAvailable ? (
                             <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
-                              {t('planner.unavailable')}
+                              {t('cars.unavailable')}
                             </Badge>
                           ) : canSelect ? (
                             <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                              {t('planner.available')}
+                              {t('cars.available')}
                             </Badge>
-                          ) : !isSelected && (
+                           ) : !isSelected && (
                             <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
                               {bookingStatus.endTime 
-                                ? t('planner.bookedUntil', { time: bookingStatus.endTime })
-                                : t('planner.carNotAvailable')
+                                ? t('cars.inUse', { time: bookingStatus.endTime })
+                                : t('cars.unavailable')
                               }
                             </Badge>
                           )}
