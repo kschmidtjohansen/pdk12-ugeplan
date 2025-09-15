@@ -4,6 +4,7 @@ import { unifiedDataService } from '@/services/data/unifiedDataService';
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseUnifiedDataResult {
   employees: Employee[];
@@ -58,7 +59,41 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
   };
 
   useEffect(() => {
-    fetchAllData();
+    let isMounted = true;
+    
+    const loadData = async () => {
+      if (isMounted) {
+        await fetchAllData();
+      }
+    };
+
+    // Set up realtime subscription for cars to get immediate updates
+    const channel = supabase
+      .channel('unified-cars-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cars'
+        },
+        (payload) => {
+          console.log('[useUnifiedData] Car realtime update received:', payload);
+          // Clear cache and refetch when cars change
+          if (isMounted) {
+            unifiedDataService.clearCache();
+            loadData().catch(console.error);
+          }
+        }
+      )
+      .subscribe();
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return {
