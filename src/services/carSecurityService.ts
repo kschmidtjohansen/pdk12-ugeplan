@@ -67,8 +67,11 @@ export class CarSecurityService {
         number_plate: carData.number_plate,
         has_trailer_hitch: carData.has_trailer_hitch || false,
         is_available: carData.is_available !== undefined ? carData.is_available : true,
+        show_in_planner: carData.show_in_planner !== undefined ? carData.show_in_planner : true,
         notes: carData.notes || null
       };
+
+      console.log('[CarSecurityService] Creating car with data:', insertData);
 
       // Only include fuel_card_code if user has database permission
       if (canViewFuel && carData.fuel_card_code) {
@@ -136,9 +139,12 @@ export class CarSecurityService {
         number_plate: carData.number_plate,
         has_trailer_hitch: carData.has_trailer_hitch,
         is_available: carData.is_available,
+        show_in_planner: carData.show_in_planner,
         notes: carData.notes,
         updated_at: new Date().toISOString()
       };
+
+      console.log('[CarSecurityService] Updating car with data:', updateData, 'for carId:', carId);
 
       // Only update fuel_card_code if user has database permission
       if (canViewFuel && carData.fuel_card_code !== undefined) {
