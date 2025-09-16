@@ -82,41 +82,51 @@ async function generatePdfBytes(report: any, equipment: any[]): Promise<Uint8Arr
   const { width, height } = page.getSize()
   let currentY = height - 50
 
-  // Header with logo
+  // Header with embedded logo image
   try {
-    // Fetch and embed the Polygon logo
-    const logoResponse = await fetch('https://www.polygongroup.com/UI/build/svg/polygon-logo.svg')
-    const logoSvg = await logoResponse.text()
-    
-    // Convert SVG to PNG buffer (simplified approach for pdf-lib)
-    // For now, we'll use text but positioned better
-    page.drawText('POLYGON', {
-      x: 50,
-      y: currentY,
-      size: 24,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    })
-  } catch (error) {
-    console.error('Failed to load logo, using text fallback:', error)
-    page.drawText('POLYGON', {
-      x: 50,
-      y: currentY,
-      size: 24,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    })
-  }
-  currentY -= 30
+    const logoBytes = await Deno.readFile(new URL('./polygon-logo.png', import.meta.url))
+    const logoImage = await pdfDoc.embedPng(logoBytes)
+    const logoWidth = 120
+    const logoHeight = (logoImage.height / logoImage.width) * logoWidth
 
-  page.drawText('Kalibreringsrapport – Fugtudstyr', {
-    x: width / 2 - 100,
-    y: currentY,
-    size: 16,
-    font: boldFont,
-    color: rgb(0, 0, 0),
-  })
-  currentY -= 50
+    // Draw logo on the left
+    page.drawImage(logoImage, {
+      x: 50,
+      y: currentY - logoHeight + 5,
+      width: logoWidth,
+      height: logoHeight,
+    })
+
+    // Title to the right of the logo
+    page.drawText('Kalibreringsrapport – Fugtudstyr', {
+      x: 50 + logoWidth + 20,
+      y: currentY - 10,
+      size: 16,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    })
+
+    currentY -= logoHeight + 30
+  } catch (error) {
+    console.error('Failed to load logo image, using text fallback:', error)
+    page.drawText('POLYGON', {
+      x: 50,
+      y: currentY,
+      size: 24,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    })
+    currentY -= 30
+
+    page.drawText('Kalibreringsrapport – Fugtudstyr', {
+      x: 50,
+      y: currentY,
+      size: 16,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    })
+    currentY -= 50
+  }
 
   // Report fields
   const fields = [
