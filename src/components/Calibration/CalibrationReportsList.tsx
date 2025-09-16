@@ -47,11 +47,11 @@ export const CalibrationReportsList: React.FC = () => {
 
   if (reports.length === 0) {
     return (
-      <EmptyState
-        icon="FileText"
-        title={t('calibration.reportsList.noReports')}
-        description={t('calibration.reportsList.noReportsDescription')}
-      />
+        <EmptyState
+          icon={<FileText />}
+          title={t('calibration.reportsList.noReports')}
+          description={t('calibration.reportsList.noReportsDescription')}
+        />
     );
   }
 
