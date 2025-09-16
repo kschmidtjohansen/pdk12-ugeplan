@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Users, Car, Clock, Calendar, Settings, Wrench } from 'lucide-react';
+import { Search, Users, Car, Clock, Calendar, Settings, Wrench, FileText, Plus, BookOpen } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { NavigationItem } from '@/types/navigation';
 
@@ -51,11 +51,31 @@ const NavigationItems: React.FC<NavigationItemsProps> = ({ hasVacationNotificati
       adminOnly: true 
     },
     { 
-      path: '/calibration', 
-      name: t('navigation.calibration'), 
-      translationKey: 'navigation.calibration', 
+      path: '/fugtafdelingen', 
+      name: t('navigation.fugtafdelingen'), 
+      translationKey: 'navigation.fugtafdelingen', 
       icon: <Wrench className="h-5 w-5" />, 
-      skadelederVisible: true 
+      skadelederVisible: true,
+      children: [
+        {
+          path: '/fugtafdelingen/rapporter',
+          name: t('navigation.rapporter'),
+          translationKey: 'navigation.rapporter',
+          icon: <FileText className="h-4 w-4" />
+        },
+        {
+          path: '/fugtafdelingen/ny-rapport',
+          name: t('navigation.nyRapport'),
+          translationKey: 'navigation.nyRapport',
+          icon: <Plus className="h-4 w-4" />
+        },
+        {
+          path: '/fugtafdelingen/manualer',
+          name: t('navigation.manualer'),
+          translationKey: 'navigation.manualer',
+          icon: <BookOpen className="h-4 w-4" />
+        }
+      ]
     },
   ];
   
@@ -106,11 +126,31 @@ export const getNavigationItems = (hasVacationNotifications: boolean): Navigatio
       adminOnly: true 
     },
     { 
-      path: '/calibration', 
-      name: t('navigation.calibration'), 
-      translationKey: 'navigation.calibration', 
+      path: '/fugtafdelingen', 
+      name: t('navigation.fugtafdelingen'), 
+      translationKey: 'navigation.fugtafdelingen', 
       icon: <Wrench className="h-5 w-5" />, 
-      skadelederVisible: true 
+      skadelederVisible: true,
+      children: [
+        {
+          path: '/fugtafdelingen/rapporter',
+          name: t('navigation.rapporter'),
+          translationKey: 'navigation.rapporter',
+          icon: <FileText className="h-4 w-4" />
+        },
+        {
+          path: '/fugtafdelingen/ny-rapport',
+          name: t('navigation.nyRapport'),
+          translationKey: 'navigation.nyRapport',
+          icon: <Plus className="h-4 w-4" />
+        },
+        {
+          path: '/fugtafdelingen/manualer',
+          name: t('navigation.manualer'),
+          translationKey: 'navigation.manualer',
+          icon: <BookOpen className="h-4 w-4" />
+        }
+      ]
     },
   ];
 };

@@ -1,8 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Bell, Phone, Mail } from 'lucide-react';
+import { Bell, Phone, Mail, ChevronDown, ChevronUp } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,8 +27,8 @@ interface MobileNavigationProps {
   handleLogout: () => void;
 }
 
-const MobileNavigation: React.FC<MobileNavigationProps> = ({ 
-  items, 
+const MobileNavigation: React.FC<MobileNavigationProps> = ({
+  items,
   mobileMenuOpen,
   setMobileMenuOpen,
   user,
@@ -43,6 +43,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
 }) => {
   const location = useLocation();
   const { t } = useTranslation();
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   // Get user initials for avatar
   const getInitials = (name: string): string => {
@@ -54,30 +55,93 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
       .substring(0, 2);
   };
 
+  const toggleExpanded = (path: string) => {
+    setExpandedItems(prev => 
+      prev.includes(path) 
+        ? prev.filter(p => p !== path)
+        : [...prev, path]
+    );
+  };
+
+  const isActiveParent = (item: NavigationItem) => {
+    if (item.children && item.children.length > 0) {
+      return item.children.some(child => location.pathname === child.path);
+    }
+    return location.pathname === item.path;
+  };
+
   if (!mobileMenuOpen) return null;
   
   return (
     <div className="md:hidden bg-white">
       <div className="px-2 pt-2 pb-3 space-y-1">
-        {items.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={cn(
-              "block px-3 py-2 rounded-md text-base font-medium flex items-center relative",
-              location.pathname === item.path 
-                ? "bg-polygon-purple text-white" 
-                : "text-gray-700 hover:bg-polygon-lightgray"
-            )}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <span className="mr-3">{item.icon}</span>
-            {item.name}
-            {item.hasNotification && (
-              <Badge className="ml-2 h-2 w-2 p-0 bg-red-500 absolute right-3 top-3" />
-            )}
-          </Link>
-        ))}
+        {items.map((item) => {
+          const hasChildren = item.children && item.children.length > 0;
+          const isExpanded = expandedItems.includes(item.path);
+          
+          if (hasChildren) {
+            return (
+              <div key={item.path}>
+                <button
+                  onClick={() => toggleExpanded(item.path)}
+                  className={cn(
+                    "w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-medium transition-colors",
+                    isActiveParent(item)
+                      ? "bg-polygon-blue text-white" 
+                      : "text-gray-700 hover:bg-polygon-lightgray hover:text-gray-900"
+                  )}
+                >
+                  <div className="flex items-center">
+                    <span className="mr-3">{item.icon}</span>
+                    {item.name}
+                  </div>
+                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </button>
+                
+                {isExpanded && (
+                  <div className="ml-6 mt-2 space-y-1">
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.path}
+                        to={child.path}
+                        className={cn(
+                          "w-full flex items-center px-3 py-2 rounded-md text-sm transition-colors",
+                          location.pathname === child.path
+                            ? "bg-polygon-blue text-white" 
+                            : "text-gray-600 hover:bg-polygon-lightgray hover:text-gray-900"
+                        )}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <span className="mr-3">{child.icon}</span>
+                        {child.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                "block px-3 py-2 rounded-md text-base font-medium flex items-center relative",
+                location.pathname === item.path 
+                  ? "bg-polygon-blue text-white" 
+                  : "text-gray-700 hover:bg-polygon-lightgray"
+              )}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span className="mr-3">{item.icon}</span>
+              {item.name}
+              {item.hasNotification && (
+                <Badge className="ml-2 h-2 w-2 p-0 bg-red-500 absolute right-3 top-3" />
+              )}
+            </Link>
+          );
+        })}
         
         {/* User profile */}
         <div className="pt-4 pb-3 border-t border-gray-200">

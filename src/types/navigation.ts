@@ -9,4 +9,5 @@ export interface NavigationItem {
   skadelederVisible?: boolean;
   translationKey: string;
   hasNotification?: boolean;
+  children?: NavigationItem[];
 }

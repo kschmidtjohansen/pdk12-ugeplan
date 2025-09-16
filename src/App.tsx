@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import { SecurityProvider } from "./context/SecurityContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -18,7 +18,7 @@ import EmployeesPage from "./pages/EmployeesPage";
 import CarsPage from "./pages/CarsPage";
 import VacationPage from "./pages/VacationPage";
 import AdminPage from "./pages/AdminPage";
-import { CalibrationPage } from "./pages/CalibrationPage";
+import { FugtafdelingenPage } from "./pages/FugtafdelingenPage";
 import PasswordResetPage from "./pages/PasswordResetPage";
 import ScreenDisplayPage from "./pages/ScreenDisplayPage";
 import NotFound from "./pages/NotFound";
@@ -88,7 +88,9 @@ const AppContent = () => {
         <Route path="/employees" element={<MainLayout><EmployeesPage /></MainLayout>} />
         <Route path="/cars" element={<MainLayout><CarsPage /></MainLayout>} />
         <Route path="/vacation" element={<MainLayout><VacationPage /></MainLayout>} />
-        <Route path="/calibration" element={<MainLayout><CalibrationPage /></MainLayout>} />
+        <Route path="/calibration" element={<Navigate to="/fugtafdelingen/rapporter" replace />} />
+        <Route path="/fugtafdelingen" element={<Navigate to="/fugtafdelingen/rapporter" replace />} />
+        <Route path="/fugtafdelingen/:section" element={<MainLayout><FugtafdelingenPage /></MainLayout>} />
         <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />
         
         {/* Special routes */}
