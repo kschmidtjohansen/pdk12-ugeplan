@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import { PDFDocument, rgb, StandardFonts } from 'https://cdn.skypack.dev/pdf-lib@^1.17.1/dist/pdf-lib.esm.js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -43,12 +44,13 @@ serve(async (req) => {
 
     if (equipmentError) throw equipmentError
 
-    // Generate HTML content for PDF
-    const htmlContent = generatePdfHtml(report, equipment || [])
-
-    // For now, return the HTML content
-    // In a production environment, you would use a library like Puppeteer to convert to PDF
-    const pdfBase64 = btoa(htmlContent) // Temporary solution
+    // Generate PDF document
+    const pdfBytes = await generatePdfBytes(report, equipment || [])
+    
+    // Convert to base64 using TextEncoder and btoa for proper encoding
+    const uint8Array = new Uint8Array(pdfBytes)
+    const binaryString = Array.from(uint8Array, (byte) => String.fromCharCode(byte)).join('')
+    const pdfBase64 = btoa(binaryString)
     
     return new Response(
       JSON.stringify({ 
@@ -71,135 +73,160 @@ serve(async (req) => {
   }
 })
 
-function generatePdfHtml(report: any, equipment: any[]) {
-  const equipmentRows = Array.from({ length: 10 }, (_, i) => {
+async function generatePdfBytes(report: any, equipment: any[]): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.create()
+  const page = pdfDoc.addPage([595, 842]) // A4 size in points
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+  
+  const { width, height } = page.getSize()
+  let currentY = height - 50
+
+  // Header
+  page.drawText('POLYGON', {
+    x: width / 2 - 40,
+    y: currentY,
+    size: 24,
+    font: boldFont,
+    color: rgb(0, 0, 0),
+  })
+  currentY -= 30
+
+  page.drawText('Kalibreringsrapport – Fugtudstyr', {
+    x: width / 2 - 100,
+    y: currentY,
+    size: 16,
+    font: boldFont,
+    color: rgb(0, 0, 0),
+  })
+  currentY -= 50
+
+  // Report fields
+  const fields = [
+    { label: 'Afdeling og medarbejdernavn:', value: report.department_and_employee },
+    { label: 'Rapport nr.:', value: report.report_number },
+    { label: 'Dato for kontrol:', value: new Date(report.control_date).toLocaleDateString('da-DK') }
+  ]
+
+  fields.forEach(field => {
+    page.drawText(field.label, {
+      x: 50,
+      y: currentY,
+      size: 12,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    })
+    page.drawText(field.value || '', {
+      x: 250,
+      y: currentY,
+      size: 12,
+      font: font,
+      color: rgb(0, 0, 0),
+    })
+    currentY -= 20
+  })
+
+  currentY -= 20
+
+  // Table header
+  page.drawText('Kontrollerede enheder', {
+    x: 50,
+    y: currentY,
+    size: 14,
+    font: boldFont,
+    color: rgb(0, 0, 0),
+  })
+  currentY -= 30
+
+  // Table headers
+  const headers = ['Nr.', 'Produktnavn', 'Produktnr.', 'Margin', 'Resultat', 'Vurdering', 'Init.']
+  const columnWidths = [40, 100, 80, 70, 70, 80, 50]
+  let startX = 50
+
+  headers.forEach((header, index) => {
+    page.drawRectangle({
+      x: startX,
+      y: currentY - 15,
+      width: columnWidths[index],
+      height: 20,
+      color: rgb(0.9, 0.9, 0.9),
+    })
+    page.drawText(header, {
+      x: startX + 5,
+      y: currentY - 10,
+      size: 10,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    })
+    startX += columnWidths[index]
+  })
+  currentY -= 20
+
+  // Table rows
+  for (let i = 0; i < 10; i++) {
     const entry = equipment.find(e => e.equipment_number === i + 1)
-    return `
-      <tr>
-        <td style="border: 1px solid #333; padding: 8px; text-align: center;">${i + 1}</td>
-        <td style="border: 1px solid #333; padding: 8px;">${entry?.product_name || ''}</td>
-        <td style="border: 1px solid #333; padding: 8px;">${entry?.product_number || ''}</td>
-        <td style="border: 1px solid #333; padding: 8px;">${entry?.approved_margin || ''}</td>
-        <td style="border: 1px solid #333; padding: 8px;">${entry?.measured_result || ''}</td>
-        <td style="border: 1px solid #333; padding: 8px;">${entry?.assessment || ''}</td>
-        <td style="border: 1px solid #333; padding: 8px;">${entry?.initials || ''}</td>
-      </tr>
-    `
-  }).join('')
+    const rowData = [
+      (i + 1).toString(),
+      entry?.product_name || '',
+      entry?.product_number || '',
+      entry?.approved_margin || '',
+      entry?.measured_result || '',
+      entry?.assessment || '',
+      entry?.initials || ''
+    ]
 
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Kalibreringsrapport</title>
-      <style>
-        @page { 
-          size: A4; 
-          margin: 20mm; 
-        }
-        body { 
-          font-family: Arial, sans-serif; 
-          font-size: 12px; 
-          line-height: 1.4;
-        }
-        .header { 
-          text-align: center; 
-          margin-bottom: 30px; 
-        }
-        .header h1 { 
-          font-size: 24px; 
-          margin: 0 0 10px 0; 
-        }
-        .header h2 { 
-          font-size: 18px; 
-          margin: 0; 
-        }
-        .form-fields { 
-          margin-bottom: 30px; 
-        }
-        .form-field { 
-          margin-bottom: 15px; 
-        }
-        .form-field label { 
-          font-weight: bold; 
-          display: inline-block; 
-          width: 200px; 
-        }
-        table { 
-          width: 100%; 
-          border-collapse: collapse; 
-          margin-bottom: 20px; 
-        }
-        th { 
-          background-color: #f0f0f0; 
-          border: 1px solid #333; 
-          padding: 8px; 
-          font-weight: bold; 
-          text-align: center; 
-          font-size: 10px;
-        }
-        td { 
-          border: 1px solid #333; 
-          padding: 8px; 
-          text-align: center; 
-        }
-        .notes { 
-          margin-top: 20px; 
-        }
-        .notes h3 { 
-          margin-bottom: 10px; 
-        }
-        .notes-content { 
-          border: 1px solid #333; 
-          min-height: 60px; 
-          padding: 10px; 
-        }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>POLYGON</h1>
-        <h2>Kalibreringsrapport – Fugtudstyr</h2>
-      </div>
+    startX = 50
+    rowData.forEach((data, index) => {
+      page.drawRectangle({
+        x: startX,
+        y: currentY - 15,
+        width: columnWidths[index],
+        height: 20,
+        borderColor: rgb(0, 0, 0),
+        borderWidth: 1,
+      })
+      page.drawText(data, {
+        x: startX + 5,
+        y: currentY - 10,
+        size: 9,
+        font: font,
+        color: rgb(0, 0, 0),
+      })
+      startX += columnWidths[index]
+    })
+    currentY -= 20
+  }
 
-      <div class="form-fields">
-        <div class="form-field">
-          <label>Afdeling og medarbejdernavn:</label> ${report.department_and_employee}
-        </div>
-        <div class="form-field">
-          <label>Rapport nr.:</label> ${report.report_number}
-        </div>
-        <div class="form-field">
-          <label>Dato for kontrol:</label> ${new Date(report.control_date).toLocaleDateString('da-DK')}
-        </div>
-      </div>
+  // Notes section
+  currentY -= 20
+  page.drawText('Bemærkninger:', {
+    x: 50,
+    y: currentY,
+    size: 12,
+    font: boldFont,
+    color: rgb(0, 0, 0),
+  })
+  currentY -= 20
 
-      <h3>Kontrollerede enheder</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Enhed nr.</th>
-            <th>Produktnavn</th>
-            <th>Produktnummer</th>
-            <th>Godkendt margen<br>(jf. producent)</th>
-            <th>Resultat<br>(målt værdi)</th>
-            <th>Vurdering<br>(OK/Ikke OK)</th>
-            <th>Initialer</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${equipmentRows}
-        </tbody>
-      </table>
+  page.drawRectangle({
+    x: 50,
+    y: currentY - 60,
+    width: width - 100,
+    height: 60,
+    borderColor: rgb(0, 0, 0),
+    borderWidth: 1,
+  })
 
-      <div class="notes">
-        <h3>Bemærkninger:</h3>
-        <div class="notes-content">
-          ${report.notes || ''}
-        </div>
-      </div>
-    </body>
-    </html>
-  `
+  if (report.notes) {
+    page.drawText(report.notes, {
+      x: 55,
+      y: currentY - 15,
+      size: 10,
+      font: font,
+      color: rgb(0, 0, 0),
+      maxWidth: width - 110,
+    })
+  }
+
+  return await pdfDoc.save()
 }
