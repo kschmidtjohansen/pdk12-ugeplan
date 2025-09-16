@@ -13,7 +13,7 @@ const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
   const location = useLocation();
   
   return (
-    <div className="hidden md:ml-6 md:flex md:space-x-4">
+    <div className="hidden md:flex md:space-x-4">
       {items.map((item) => (
         <Link
           key={item.path}
