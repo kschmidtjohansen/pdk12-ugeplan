@@ -32,7 +32,7 @@ export const CalibrationPage = () => {
               {t('calibration.title')}
             </h1>
             <p className="text-muted-foreground">
-              Administrer kalibreringsrapporter og se udstyrsmanualer
+              {t('calibration.subtitle')}
             </p>
           </div>
           <Button 
@@ -51,24 +51,24 @@ export const CalibrationPage = () => {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="reports" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              Rapporter
+              {t('calibration.tabs.reports')}
             </TabsTrigger>
             <TabsTrigger value="form" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Ny rapport
+              {t('calibration.tabs.form')}
             </TabsTrigger>
             <TabsTrigger value="manuals" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
-              {t('calibration.manuals')}
+              {t('calibration.tabs.manuals')}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="reports" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Kalibreringsrapporter</CardTitle>
+                <CardTitle>{t('calibration.reportsSection.title')}</CardTitle>
                 <CardDescription>
-                  Oversigt over alle oprettede kalibreringsrapporter
+                  {t('calibration.reportsSection.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -82,7 +82,7 @@ export const CalibrationPage = () => {
               <CardHeader>
                 <CardTitle>{t('calibration.newReport')}</CardTitle>
                 <CardDescription>
-                  Udfyld kalibreringsrapporten for fugtudstyr
+                  {t('calibration.formSection.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -96,7 +96,7 @@ export const CalibrationPage = () => {
               <CardHeader>
                 <CardTitle>{t('calibration.manuals')}</CardTitle>
                 <CardDescription>
-                  Manualer til kalibrering af alt udstyr
+                  {t('calibration.manualsSection.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>

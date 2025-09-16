@@ -8,8 +8,10 @@ import EmptyState from '@/components/shared/EmptyState';
 import { FileText, Download, Calendar, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
+import { useTranslation } from '@/context/TranslationContext';
 
 export const CalibrationReportsList: React.FC = () => {
+  const { t } = useTranslation();
   const { reports, loading } = useCalibration();
 
   const getStatusColor = (status: string) => {
@@ -26,9 +28,9 @@ export const CalibrationReportsList: React.FC = () => {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'Færdig';
+        return t('calibration.form.completed');
       case 'draft':
-        return 'Kladde';
+        return t('calibration.form.draft');
       default:
         return status;
     }
@@ -47,8 +49,8 @@ export const CalibrationReportsList: React.FC = () => {
     return (
       <EmptyState
         icon="FileText"
-        title="Ingen rapporter endnu"
-        description="Opret din første kalibreringsrapport ved at klikke på 'Ny rapport' knappen."
+        title={t('calibration.reportsList.noReports')}
+        description={t('calibration.reportsList.noReportsDescription')}
       />
     );
   }
@@ -62,7 +64,7 @@ export const CalibrationReportsList: React.FC = () => {
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-3">
                   <h3 className="font-semibold">
-                    Rapport #{report.report_number}
+                    {t('calibration.reportsList.reportNumber')}{report.report_number}
                   </h3>
                   <Badge variant={getStatusColor(report.status)}>
                     {getStatusText(report.status)}
@@ -76,18 +78,18 @@ export const CalibrationReportsList: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    Kontrol dato: {format(new Date(report.control_date), 'dd. MMM yyyy', { locale: da })}
+                    {t('calibration.reportsList.controlDate')} {format(new Date(report.control_date), 'dd. MMM yyyy', { locale: da })}
                   </div>
                 </div>
 
                 {report.notes && (
                   <p className="text-sm text-muted-foreground mt-2">
-                    <strong>Bemærkninger:</strong> {report.notes}
+                    <strong>{t('calibration.reportsList.notesLabel')}</strong> {report.notes}
                   </p>
                 )}
                 
                 <p className="text-xs text-muted-foreground">
-                  Oprettet: {format(new Date(report.created_at), 'dd. MMM yyyy HH:mm', { locale: da })}
+                  {t('calibration.reportsList.createdLabel')} {format(new Date(report.created_at), 'dd. MMM yyyy HH:mm', { locale: da })}
                 </p>
               </div>
 
@@ -99,7 +101,7 @@ export const CalibrationReportsList: React.FC = () => {
                   className="flex items-center gap-2"
                 >
                   <Download className="h-4 w-4" />
-                  PDF
+                  {t('calibration.reportsList.downloadPdf')}
                 </Button>
               </div>
             </div>
