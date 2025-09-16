@@ -8,7 +8,7 @@ const Logo: React.FC = () => {
       <img 
         src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" 
         alt="Polygon Logo" 
-        className="polygon-logo"
+        className="h-8 w-auto"
       />
     </Link>
   );
