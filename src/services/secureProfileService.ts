@@ -52,10 +52,12 @@ export class SecureProfileService {
 
   /**
    * Get multiple profiles (admin/skadeleder only)
-   * Falls back to direct table access with proper RLS
+   * Now uses the new restrictive RLS policies with automatic audit logging
    */
   static async getProfiles(): Promise<SecureProfile[]> {
     try {
+      // The new RLS policies automatically restrict access and log access attempts
+      // Only admins/skadeleder will see results due to profiles_admin_access_audited policy
       const { data, error } = await supabase
         .from('profiles')
         .select(`
@@ -72,6 +74,15 @@ export class SecureProfileService {
       if (error) {
         logAccessAttempt('profiles', false, { operation: 'SELECT_ALL', error: error.message });
         console.error('Error fetching profiles:', error);
+        return [];
+      }
+
+      // If no data is returned, it could mean:
+      // 1. No profiles exist, or 
+      // 2. User doesn't have permission (RLS blocked access)
+      // The logging is handled automatically by the database policies
+      if (!data || data.length === 0) {
+        console.warn('[SecureProfileService] No profiles returned - check permissions');
         return [];
       }
 

@@ -3,13 +3,16 @@ import { CarData } from '@/components/Cars/types';
 
 export class CarSecurityService {
   /**
-   * Fetches car data with enhanced security and proper access logging
-   * Uses new secure database function with automatic fuel card code protection
+   * Fetches car data with enhanced security using new RLS policies
+   * Automatic fuel card code masking based on user permissions
    */
   static async fetchCars(canViewFuelCardCode: boolean): Promise<CarData[]> {
     try {
-      // Use the new secure function that handles authentication and logging
-      const { data, error } = await supabase.rpc('get_cars_with_security');
+      // Use direct table access - new RLS policies handle security automatically
+      const { data, error } = await supabase
+        .from('cars')
+        .select('*')
+        .order('name');
       
       if (error) {
         // If access is denied due to authentication, provide clear error
@@ -19,6 +22,8 @@ export class CarSecurityService {
         throw error;
       }
       
+      // The database automatically masks fuel card codes for non-authorized users
+      // No additional client-side filtering needed due to RLS policies
       return data || [];
     } catch (error) {
       console.error('[CarSecurityService] Error fetching cars:', error);

@@ -84,7 +84,19 @@ const UserManagement: React.FC = () => {
         `);
       if (profilesError) {
         addDebugInfo(`FALLBACK profiles error: ${profilesError.message}`);
+        // Check if this is a permission error due to new RLS policies
+        if (profilesError.message?.includes('permission') || 
+            profilesError.message?.includes('policy') || 
+            profilesError.message?.includes('access denied')) {
+          throw new Error('You do not have permission to view user profiles. Please contact an administrator.');
+        }
         throw profilesError;
+      }
+
+      if (!profiles || profiles.length === 0) {
+        addDebugInfo('FALLBACK: No profiles returned - this may indicate insufficient permissions or no users exist');
+        setUsers([]);
+        return;
       }
 
       // Get user roles with proper error handling
@@ -94,7 +106,16 @@ const UserManagement: React.FC = () => {
       } = await supabase.from('user_roles').select('user_id, role');
       if (rolesError) {
         addDebugInfo(`FALLBACK roles error: ${rolesError.message}`);
-        throw rolesError;
+        // Check if this is a permission error due to new RLS policies
+        if (rolesError.message?.includes('permission') || 
+            rolesError.message?.includes('policy') || 
+            rolesError.message?.includes('access denied')) {
+          console.warn('[UserManagement] User roles access restricted, using default roles');
+          addDebugInfo('FALLBACK: Using default servicemedarbejder role due to restricted access');
+          // Continue with empty roles array - will default to servicemedarbejder
+        } else {
+          throw rolesError;
+        }
       }
       addDebugInfo(`FALLBACK: Got ${profiles?.length || 0} profiles and ${userRoles?.length || 0} role assignments`);
 

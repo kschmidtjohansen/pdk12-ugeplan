@@ -649,6 +649,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      can_view_fuel_codes_audited: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       check_data_access_health: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -744,6 +748,15 @@ export type Database = {
           phone: string
           role: Database["public"]["Enums"]["user_role"]
           status: Database["public"]["Enums"]["employee_status"]
+        }[]
+      }
+      get_security_events_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          affected_users: number
+          event_count: number
+          event_type: string
+          last_occurrence: string
         }[]
       }
       get_user_role: {
