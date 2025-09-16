@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { useCalibration, CalibrationReport } from '@/hooks/useCalibration';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
