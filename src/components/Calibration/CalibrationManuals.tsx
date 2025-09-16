@@ -8,7 +8,7 @@ export const CalibrationManuals: React.FC = () => {
   const { t } = useTranslation();
   
   const openManuals = () => {
-    window.open('/kalibreringsmanualer.pdf', '_blank');
+    window.open('/docs/kalibreringsmanualer.pdf', '_blank');
   };
 
   return (

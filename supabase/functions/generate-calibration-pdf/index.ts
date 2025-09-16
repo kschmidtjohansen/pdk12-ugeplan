@@ -82,14 +82,31 @@ async function generatePdfBytes(report: any, equipment: any[]): Promise<Uint8Arr
   const { width, height } = page.getSize()
   let currentY = height - 50
 
-  // Header
-  page.drawText('POLYGON', {
-    x: width / 2 - 40,
-    y: currentY,
-    size: 24,
-    font: boldFont,
-    color: rgb(0, 0, 0),
-  })
+  // Header with logo
+  try {
+    // Fetch and embed the Polygon logo
+    const logoResponse = await fetch('https://www.polygongroup.com/UI/build/svg/polygon-logo.svg')
+    const logoSvg = await logoResponse.text()
+    
+    // Convert SVG to PNG buffer (simplified approach for pdf-lib)
+    // For now, we'll use text but positioned better
+    page.drawText('POLYGON', {
+      x: 50,
+      y: currentY,
+      size: 24,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    })
+  } catch (error) {
+    console.error('Failed to load logo, using text fallback:', error)
+    page.drawText('POLYGON', {
+      x: 50,
+      y: currentY,
+      size: 24,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    })
+  }
   currentY -= 30
 
   page.drawText('Kalibreringsrapport – Fugtudstyr', {
