@@ -53,7 +53,8 @@ const calibration = {
     viewManuals: "Se manualer",
     cancel: "Annuller",
     complete: "Gem og færdiggør",
-    generating: "Genererer..."
+    generating: "Genererer...",
+    editReport: "Rediger Rapport"
   },
   messages: {
     saveSuccess: "Rapporten blev gemt",
@@ -102,7 +103,14 @@ const calibration = {
     controlDate: "Kontrol dato:",
     notesLabel: "Bemærkninger:",
     createdLabel: "Oprettet:",
-    downloadPdf: "PDF"
+    downloadPdf: "PDF",
+    editReport: "Rediger",
+    deleteReport: "Slet",
+    deleteConfirmTitle: "Slet Rapport",
+    deleteConfirmDescription: "Er du sikker på, at du vil slette denne kalibreringsrapport? Denne handling kan ikke fortrydes.",
+    cancel: "Annuller",
+    delete: "Slet",
+    deleting: "Sletter..."
   }
 };
 

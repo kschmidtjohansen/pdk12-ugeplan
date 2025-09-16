@@ -1,18 +1,29 @@
 import * as React from 'react';
-import { useCalibration, CalibrationReport } from '@/hooks/useCalibration';
+const { useState } = React;
+import { useCalibration, CalibrationReport, EquipmentEntry } from '@/hooks/useCalibration';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import EmptyState from '@/components/shared/EmptyState';
-import { FileText, Download, Calendar, User } from 'lucide-react';
+import { FileText, Download, Calendar, User, Edit, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 
-export const CalibrationReportsList: React.FC = () => {
+interface CalibrationReportsListProps {
+  onEditReport?: (report: CalibrationReport, equipment: EquipmentEntry[]) => void;
+}
+
+export const CalibrationReportsList: React.FC<CalibrationReportsListProps> = ({ onEditReport }) => {
   const { t } = useTranslation();
-  const { reports, loading } = useCalibration();
+  const { reports, loading, downloadReport, deleteReport, getEquipmentEntries } = useCalibration();
+  const { isEffectiveAdmin, isEffectiveSkadeleder } = useAuth();
+  const [deletingReportId, setDeletingReportId] = useState<string | null>(null);
+
+  const canManageReports = isEffectiveAdmin || isEffectiveSkadeleder;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -36,9 +47,24 @@ export const CalibrationReportsList: React.FC = () => {
     }
   };
 
-  const downloadReport = (report: CalibrationReport) => {
-    // This would generate and download the PDF
-    console.log('Download report:', report.id);
+  const handleDownloadReport = (report: CalibrationReport) => {
+    downloadReport(report.id);
+  };
+
+  const handleEditReport = async (report: CalibrationReport) => {
+    if (onEditReport) {
+      const equipment = await getEquipmentEntries(report.id);
+      onEditReport(report, equipment);
+    }
+  };
+
+  const handleDeleteReport = async (reportId: string) => {
+    setDeletingReportId(reportId);
+    try {
+      await deleteReport(reportId);
+    } finally {
+      setDeletingReportId(null);
+    }
   };
 
   if (loading) {
@@ -97,12 +123,57 @@ export const CalibrationReportsList: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => downloadReport(report)}
+                  onClick={() => handleDownloadReport(report)}
                   className="flex items-center gap-2"
                 >
                   <Download className="h-4 w-4" />
                   {t('calibration.reportsList.downloadPdf')}
                 </Button>
+                
+                {canManageReports && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditReport(report)}
+                      className="flex items-center gap-2"
+                    >
+                      <Edit className="h-4 w-4" />
+                      {t('calibration.reportsList.editReport')}
+                    </Button>
+                    
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-2 text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          {t('calibration.reportsList.deleteReport')}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t('calibration.reportsList.deleteConfirmTitle')}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t('calibration.reportsList.deleteConfirmDescription')}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{t('calibration.reportsList.cancel')}</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteReport(report.id)}
+                            disabled={deletingReportId === report.id}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            {deletingReportId === report.id ? t('calibration.reportsList.deleting') : t('calibration.reportsList.delete')}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </>
+                )}
               </div>
             </div>
           </CardContent>

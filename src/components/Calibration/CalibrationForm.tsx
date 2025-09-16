@@ -1,5 +1,5 @@
 import * as React from 'react';
-const { useState } = React;
+const { useState, useEffect } = React;
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCalibration, EquipmentEntry } from '@/hooks/useCalibration';
+import { useCalibration, EquipmentEntry, CalibrationReport } from '@/hooks/useCalibration';
 import { useTranslation } from '@/context/TranslationContext';
 import { Trash2, Plus, Download } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -23,12 +23,20 @@ type FormData = {
 
 interface CalibrationFormProps {
   onCancel: () => void;
+  editingReport?: CalibrationReport;
+  editingEquipment?: EquipmentEntry[];
 }
 
-export const CalibrationForm: React.FC<CalibrationFormProps> = ({ onCancel }) => {
+export const CalibrationForm: React.FC<CalibrationFormProps> = ({ 
+  onCancel, 
+  editingReport, 
+  editingEquipment 
+}) => {
   const { t } = useTranslation();
-  const { saveReport } = useCalibration();
+  const { saveReport, updateReport } = useCalibration();
   const { toast } = useToast();
+  
+  const isEditing = Boolean(editingReport);
   
   // Create the form schema with translated messages
   const getFormSchema = () => z.object({
@@ -46,12 +54,19 @@ export const CalibrationForm: React.FC<CalibrationFormProps> = ({ onCancel }) =>
   const form = useForm<FormData>({
     resolver: zodResolver(getFormSchema()),
     defaultValues: {
-      department_and_employee: '',
-      report_number: '',
-      control_date: new Date().toISOString().split('T')[0],
-      notes: '',
+      department_and_employee: editingReport?.department_and_employee || '',
+      report_number: editingReport?.report_number || '',
+      control_date: editingReport?.control_date || new Date().toISOString().split('T')[0],
+      notes: editingReport?.notes || '',
     },
   });
+
+  // Initialize equipment entries when editing
+  useEffect(() => {
+    if (editingEquipment && editingEquipment.length > 0) {
+      setEquipmentEntries(editingEquipment);
+    }
+  }, [editingEquipment]);
 
   const addEquipmentEntry = () => {
     if (equipmentEntries.length < 10) {
@@ -89,7 +104,12 @@ export const CalibrationForm: React.FC<CalibrationFormProps> = ({ onCancel }) =>
         status
       };
       
-      await saveReport(reportData, equipmentEntries);
+      if (isEditing && editingReport) {
+        await updateReport(editingReport.id, reportData, equipmentEntries);
+      } else {
+        await saveReport(reportData, equipmentEntries);
+      }
+      
       onCancel();
     } catch (error) {
       console.error('Error saving report:', error);
@@ -296,12 +316,12 @@ export const CalibrationForm: React.FC<CalibrationFormProps> = ({ onCancel }) =>
                >
                  {t('calibration.actions.saveDraft')}
                </Button>
-               <Button 
-                 type="button"
-                 onClick={() => form.handleSubmit((data) => onSubmit(data, 'completed'))()}
-               >
-                 {t('calibration.actions.complete')}
-               </Button>
+                <Button 
+                  type="button"
+                  onClick={() => form.handleSubmit((data) => onSubmit(data, 'completed'))()}
+                >
+                  {isEditing ? t('calibration.actions.save') : t('calibration.actions.complete')}
+                </Button>
                <Button 
                  type="button" 
                  variant="secondary"

@@ -11,17 +11,30 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { FileText, BookOpen, Plus } from 'lucide-react';
+import type { CalibrationReport, EquipmentEntry } from '@/hooks/useCalibration';
 
 export const CalibrationPage = () => {
   const { t } = useTranslation();
   const { user, isAdmin, isSkadeleder } = useAuth();
   const [activeTab, setActiveTab] = useState('reports');
   const [showForm, setShowForm] = useState(false);
+  const [editingReport, setEditingReport] = useState<{ report: CalibrationReport; equipment: EquipmentEntry[] } | null>(null);
 
   // Check if user has required permissions
   if (!user || (!isAdmin && !isSkadeleder)) {
     return <Navigate to="/dashboard" replace />;
   }
+
+  const handleEditReport = (report: CalibrationReport, equipment: EquipmentEntry[]) => {
+    setEditingReport({ report, equipment });
+    setActiveTab('form');
+  };
+
+  const handleCancelForm = () => {
+    setEditingReport(null);
+    setShowForm(false);
+    setActiveTab('reports');
+  };
 
   return (
     <MainLayout>
@@ -72,7 +85,7 @@ export const CalibrationPage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <CalibrationReportsList />
+                <CalibrationReportsList onEditReport={handleEditReport} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -80,13 +93,19 @@ export const CalibrationPage = () => {
           <TabsContent value="form" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>{t('calibration.newReport')}</CardTitle>
+                <CardTitle>
+                  {editingReport ? t('calibration.actions.editReport') : t('calibration.newReport')}
+                </CardTitle>
                 <CardDescription>
                   {t('calibration.formSection.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <CalibrationForm onCancel={() => setActiveTab('reports')} />
+                <CalibrationForm 
+                  onCancel={handleCancelForm}
+                  editingReport={editingReport?.report}
+                  editingEquipment={editingReport?.equipment}
+                />
               </CardContent>
             </Card>
           </TabsContent>

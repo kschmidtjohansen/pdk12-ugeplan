@@ -53,7 +53,8 @@ const calibration = {
     viewManuals: "View Manuals",
     cancel: "Cancel",
     complete: "Save and Complete",
-    generating: "Generating..."
+    generating: "Generating...",
+    editReport: "Edit Report"
   },
   messages: {
     saveSuccess: "Report saved successfully",
@@ -102,7 +103,14 @@ const calibration = {
     controlDate: "Control date:",
     notesLabel: "Notes:",
     createdLabel: "Created:",
-    downloadPdf: "PDF"
+    downloadPdf: "PDF",
+    editReport: "Edit",
+    deleteReport: "Delete",
+    deleteConfirmTitle: "Delete Report",
+    deleteConfirmDescription: "Are you sure you want to delete this calibration report? This action cannot be undone.",
+    cancel: "Cancel",
+    delete: "Delete",
+    deleting: "Deleting..."
   }
 };
 
