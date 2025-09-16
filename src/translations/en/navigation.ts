@@ -6,6 +6,7 @@ const navigation = {
   vacation: "Vacation",
   cars: "Cars",
   admin: "Admin",
+  calibration: "Calibration",
   logout: "Log out",
   notifications: "Notifications",
   profile: "Profile",

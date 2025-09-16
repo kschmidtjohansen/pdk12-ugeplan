@@ -119,6 +119,92 @@ export type Database = {
           },
         ]
       }
+      calibration_equipment_entries: {
+        Row: {
+          approved_margin: string | null
+          assessment: string | null
+          created_at: string | null
+          equipment_number: number
+          id: string
+          initials: string | null
+          measured_result: string | null
+          product_name: string | null
+          product_number: string | null
+          report_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          approved_margin?: string | null
+          assessment?: string | null
+          created_at?: string | null
+          equipment_number: number
+          id?: string
+          initials?: string | null
+          measured_result?: string | null
+          product_name?: string | null
+          product_number?: string | null
+          report_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          approved_margin?: string | null
+          assessment?: string | null
+          created_at?: string | null
+          equipment_number?: number
+          id?: string
+          initials?: string | null
+          measured_result?: string | null
+          product_name?: string | null
+          product_number?: string | null
+          report_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calibration_equipment_entries_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "calibration_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calibration_reports: {
+        Row: {
+          control_date: string
+          created_at: string | null
+          created_by: string
+          department_and_employee: string
+          id: string
+          notes: string | null
+          report_number: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          control_date: string
+          created_at?: string | null
+          created_by: string
+          department_and_employee: string
+          id?: string
+          notes?: string | null
+          report_number: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          control_date?: string
+          created_at?: string | null
+          created_by?: string
+          department_and_employee?: string
+          id?: string
+          notes?: string | null
+          report_number?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       cars: {
         Row: {
           car_number: string

@@ -28,6 +28,9 @@ redirect_urls = [
   "http://127.0.0.1"
 ]
 
+[functions.generate-calibration-pdf]
+verify_jwt = false
+
 [functions.admin-create-user]
 verify_jwt = true
 

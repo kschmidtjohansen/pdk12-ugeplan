@@ -15,6 +15,7 @@ import { auth } from './auth';
 import accessDenied from './accessDenied';
 import deleteConfirm from './deleteConfirm';
 import screenDisplay from './screenDisplay';
+import calibration from './calibration';
 
 export const en = {
   common,
@@ -31,5 +32,6 @@ export const en = {
   auth,
   accessDenied,
   deleteConfirm,
-  screenDisplay
+  screenDisplay,
+  calibration
 };

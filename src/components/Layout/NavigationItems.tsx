@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Users, Car, Clock, Calendar, Settings } from 'lucide-react';
+import { Search, Users, Car, Clock, Calendar, Settings, Wrench } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { NavigationItem } from '@/types/navigation';
 
@@ -50,6 +50,13 @@ const NavigationItems: React.FC<NavigationItemsProps> = ({ hasVacationNotificati
       icon: <Settings className="h-5 w-5" />, 
       adminOnly: true 
     },
+    { 
+      path: '/calibration', 
+      name: t('navigation.calibration'), 
+      translationKey: 'navigation.calibration', 
+      icon: <Wrench className="h-5 w-5" />, 
+      skadelederVisible: true 
+    },
   ];
   
   return <>{navigationItems}</>;
@@ -97,6 +104,13 @@ export const getNavigationItems = (hasVacationNotifications: boolean): Navigatio
       translationKey: 'navigation.admin', 
       icon: <Settings className="h-5 w-5" />, 
       adminOnly: true 
+    },
+    { 
+      path: '/calibration', 
+      name: t('navigation.calibration'), 
+      translationKey: 'navigation.calibration', 
+      icon: <Wrench className="h-5 w-5" />, 
+      skadelederVisible: true 
     },
   ];
 };
