@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +18,8 @@ export const FugtafdelingenPage = () => {
   const { t } = useTranslation();
   const { user, isAdmin, isSkadeleder } = useAuth();
   const { section } = useParams<{ section: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [editingReport, setEditingReport] = useState<{ report: CalibrationReport; equipment: EquipmentEntry[] } | null>(null);
 
   // Check if user has required permissions
@@ -30,14 +32,16 @@ export const FugtafdelingenPage = () => {
 
   const handleEditReport = (report: CalibrationReport, equipment: EquipmentEntry[]) => {
     setEditingReport({ report, equipment });
-    // Navigate to new report page when editing
-    window.location.href = '/fugtafdelingen/ny-rapport';
+    // Navigate to new report page when editing using React Router
+    navigate('/fugtafdelingen/ny-rapport', { 
+      state: { editingReport: report, editingEquipment: equipment } 
+    });
   };
 
   const handleCancelForm = () => {
     setEditingReport(null);
-    // Navigate back to reports
-    window.location.href = '/fugtafdelingen/rapporter';
+    // Navigate back to reports using React Router
+    navigate('/fugtafdelingen/rapporter');
   };
 
   const renderContent = () => {
@@ -54,7 +58,7 @@ export const FugtafdelingenPage = () => {
                   </CardDescription>
                 </div>
                 <Button 
-                  onClick={() => window.location.href = '/fugtafdelingen/ny-rapport'}
+                  onClick={() => navigate('/fugtafdelingen/ny-rapport')}
                   className="flex items-center gap-2"
                 >
                   <Plus className="h-4 w-4" />
@@ -82,8 +86,8 @@ export const FugtafdelingenPage = () => {
             <CardContent>
               <CalibrationForm 
                 onCancel={handleCancelForm}
-                editingReport={editingReport?.report}
-                editingEquipment={editingReport?.equipment}
+                editingReport={editingReport?.report || location.state?.editingReport}
+                editingEquipment={editingReport?.equipment || location.state?.editingEquipment}
               />
             </CardContent>
           </Card>
