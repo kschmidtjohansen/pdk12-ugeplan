@@ -18,7 +18,7 @@ import EmployeesPage from "./pages/EmployeesPage";
 import CarsPage from "./pages/CarsPage";
 import VacationPage from "./pages/VacationPage";
 import AdminPage from "./pages/AdminPage";
-import { FugtafdelingenPage } from "./pages/FugtafdelingenPage";
+
 import PasswordResetPage from "./pages/PasswordResetPage";
 import ScreenDisplayPage from "./pages/ScreenDisplayPage";
 import NotFound from "./pages/NotFound";
@@ -88,9 +88,6 @@ const AppContent = () => {
         <Route path="/employees" element={<MainLayout><EmployeesPage /></MainLayout>} />
         <Route path="/cars" element={<MainLayout><CarsPage /></MainLayout>} />
         <Route path="/vacation" element={<MainLayout><VacationPage /></MainLayout>} />
-        <Route path="/calibration" element={<RouterNavigate to="/fugtafdelingen/rapporter" replace />} />
-        <Route path="/fugtafdelingen" element={<RouterNavigate to="/fugtafdelingen/rapporter" replace />} />
-        <Route path="/fugtafdelingen/:section" element={<MainLayout><FugtafdelingenPage /></MainLayout>} />
         <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />
         
         {/* Special routes */}
