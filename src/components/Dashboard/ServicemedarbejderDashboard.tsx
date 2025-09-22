@@ -4,12 +4,12 @@ import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Clock, User, CheckCircle2 } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import { format } from 'date-fns';
-import WeeklyAssignments from './WeeklyAssignments';
-import { getCurrentWeekDates, getCurrentWeekNumber, getPreviousWeekInfo, getNextWeekInfo } from '@/utils/weekDates';
+import MineOpgaver from './MineOpgaver';
+import { getCurrentWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
 import { AssignmentFilterService } from '@/services/assignmentFilterService';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 const ServicemedarbejderDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -19,17 +19,10 @@ const ServicemedarbejderDashboard: React.FC = () => {
   const today = new Date();
   const currentWeek = getCurrentWeekNumber();
   const currentYear = new Date().getFullYear();
-  const [selectedWeek, setSelectedWeek] = useState(currentWeek);
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-
-  console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - User:', user?.name, 'Role:', user?.role);
-  console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - Total assignments available:', assignments.length);
-  console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - Sample assignments:', assignments.slice(0, 3));
 
   // For servicemedarbejder, filter to show assignments where they are assigned OR responsible
   const userAssignments = useMemo(() => {
     if (!user?.name && !user?.id) {
-      console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - No user info available');
       return [];
     }
 
@@ -43,25 +36,14 @@ const ServicemedarbejderDashboard: React.FC = () => {
       // For servicemedarbejder, show published assignments where they are involved
       const shouldShow = assignment.published && (isEmployee || isResponsible);
       
-      if (shouldShow) {
-        console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - Including assignment:', {
-          title: assignment.title,
-          employees: assignment.employees,
-          isEmployee,
-          isResponsible,
-          published: assignment.published
-        });
-      }
-      
       return shouldShow;
     });
 
-    console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - Filtered user assignments:', filtered.length);
     return filtered;
   }, [assignments, user]);
 
   // Get weekly assignments
-  const weekDates = getCurrentWeekDates(selectedWeek, selectedYear);
+  const weekDates = getCurrentWeekDates(currentWeek, currentYear);
   const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
   const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
 
@@ -72,7 +54,6 @@ const ServicemedarbejderDashboard: React.FC = () => {
       endDateISO
     );
     
-    console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - Weekly assignments:', filtered.length);
     return filtered;
   }, [userAssignments, startDateISO, endDateISO]);
 
@@ -81,32 +62,8 @@ const ServicemedarbejderDashboard: React.FC = () => {
     const todayStr = format(today, 'yyyy-MM-dd');
     const filtered = userAssignments.filter(assignment => assignment.date === todayStr);
     
-    console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - Today assignments:', filtered.length);
     return filtered;
   }, [userAssignments, today]);
-
-  // Completed assignments (published ones from the past)
-  const completedAssignments = useMemo(() => {
-    const todayStr = format(today, 'yyyy-MM-dd');
-    const filtered = userAssignments.filter(assignment => 
-      assignment.date < todayStr && assignment.published
-    );
-    
-    console.log('[ServicemedarbejderDashboard] COMPREHENSIVE FIX - Completed assignments:', filtered.length);
-    return filtered;
-  }, [userAssignments, today]);
-
-  const handlePreviousWeek = () => {
-    const { week, year } = getPreviousWeekInfo(selectedWeek, selectedYear);
-    setSelectedWeek(week);
-    setSelectedYear(year);
-  };
-
-  const handleNextWeek = () => {
-    const { week, year } = getNextWeekInfo(selectedWeek, selectedYear);
-    setSelectedWeek(week);
-    setSelectedYear(year);
-  };
 
   if (loading) {
     return (
@@ -148,13 +105,8 @@ const ServicemedarbejderDashboard: React.FC = () => {
 
       </div>
 
-      {/* Weekly Assignments */}
-      <WeeklyAssignments
-        assignments={weeklyAssignments}
-        selectedWeek={selectedWeek}
-        onPreviousWeek={handlePreviousWeek}
-        onNextWeek={handleNextWeek}
-      />
+      {/* Mine Opgaver */}
+      <MineOpgaver />
     </div>
   );
 };
