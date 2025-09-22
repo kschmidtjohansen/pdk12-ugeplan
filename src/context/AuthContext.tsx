@@ -138,49 +138,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log(`[AuthContext] KASPER SESSION FIX - Fetching profile and role data from database...`);
       console.log(`[AuthContext] KASPER SESSION FIX - Auth user object:`, authUser);
       
-      const fetchPromise = Promise.all([
-        supabase.from('profiles').select('id, name, email').eq('id', authUser.id).maybeSingle(),
-        supabase.from('user_roles').select('user_id, role').eq('user_id', authUser.id).maybeSingle()
-      ]);
+      // Use secure function to get user profile with role
+      const fetchPromise = supabase.rpc('get_profile_detailed', { 
+        profile_user_id: authUser.id 
+      }).maybeSingle();
 
       // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('User data fetch timeout')), 5000)
       );
 
-      const [profileResult, roleResult] = await Promise.race([fetchPromise, timeoutPromise]) as any;
+      const profileData = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
-      console.log(`[AuthContext] KASPER SESSION FIX - Database queries completed in ${Date.now() - startTime}ms`);
-      console.log(`[AuthContext] KASPER SESSION FIX - Profile result:`, profileResult);
-      console.log(`[AuthContext] KASPER SESSION FIX - Role result:`, roleResult);
-      console.log(`[AuthContext] KASPER SESSION FIX - Profile data:`, profileResult?.data);
-      console.log(`[AuthContext] KASPER SESSION FIX - Profile name:`, profileResult?.data?.name);
-      console.log(`[AuthContext] KASPER SESSION FIX - Role data:`, roleResult?.data);
-      console.log(`[AuthContext] KASPER SESSION FIX - Role:`, roleResult?.data?.role);
-      console.log(`[AuthContext] KASPER SESSION FIX - Profile error:`, profileResult?.error);
-      console.log(`[AuthContext] KASPER SESSION FIX - Role error:`, roleResult?.error);
+      console.log(`[AuthContext] KASPER SESSION FIX - Database query completed in ${Date.now() - startTime}ms`);
+      console.log(`[AuthContext] KASPER SESSION FIX - Profile result:`, profileData);
+      console.log(`[AuthContext] KASPER SESSION FIX - Profile data:`, profileData?.data);
+      console.log(`[AuthContext] KASPER SESSION FIX - Profile name:`, profileData?.data?.name);
+      console.log(`[AuthContext] KASPER SESSION FIX - Profile error:`, profileData?.error);
 
       // KASPER SESSION FIX: Better error handling for database errors
-      if (profileResult.error) {
-        console.error(`[AuthContext] KASPER SESSION FIX - Profile fetch error:`, profileResult.error);
+      if (profileData.error) {
+        console.error(`[AuthContext] KASPER SESSION FIX - Profile fetch error:`, profileData.error);
         console.error(`[AuthContext] KASPER SESSION FIX - Profile error details:`, {
-          message: profileResult.error.message,
-          details: profileResult.error.details,
-          hint: profileResult.error.hint,
-          code: profileResult.error.code
+          message: profileData.error.message,
+          details: profileData.error.details,
+          hint: profileData.error.hint,
+          code: profileData.error.code
         });
-        throw new Error(`Profile fetch failed: ${profileResult.error.message}`);
-      }
-      
-      if (roleResult.error) {
-        console.error(`[AuthContext] KASPER SESSION FIX - Role fetch error:`, roleResult.error);
-        console.error(`[AuthContext] KASPER SESSION FIX - Role error details:`, {
-          message: roleResult.error.message,
-          details: roleResult.error.details,
-          hint: roleResult.error.hint,
-          code: roleResult.error.code
-        });
-        throw new Error(`Role fetch failed: ${roleResult.error.message}`);
+        throw new Error(`Profile fetch failed: ${profileData.error.message}`);
       }
 
       // BRIAN REUS FIX: Improved name handling with explicit fallback chain
@@ -190,8 +175,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (isDemoUser) {
         name = 'Demo User';
         console.log(`[AuthContext] BRIAN REUS DEBUG - Using demo user name: ${name}`);
-      } else if (profileResult.data?.name) {
-        name = profileResult.data.name;
+      } else if (profileData.data?.name) {
+        name = profileData.data.name;
         console.log(`[AuthContext] BRIAN REUS DEBUG - Using profile name: ${name}`);
       } else if (authUser.email) {
         name = authUser.email;
@@ -205,15 +190,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       let role: UserRole = 'servicemedarbejder';
       
       if (isDemoUser) {
-        if (roleResult.data?.role) {
-          role = roleResult.data.role as UserRole;
+        if (profileData.data?.role) {
+          role = profileData.data.role as UserRole;
           console.log(`[AuthContext] BRIAN REUS DEBUG - Demo user: Using database role: ${role}`);
         } else {
           role = 'administrator';
           console.log(`[AuthContext] BRIAN REUS DEBUG - Demo user: No role found, defaulting to administrator`);
         }
-      } else if (roleResult.data?.role) {
-        role = roleResult.data.role as UserRole;
+      } else if (profileData.data?.role) {
+        role = profileData.data.role as UserRole;
         console.log(`[AuthContext] BRIAN REUS DEBUG - Regular user: Using database role: ${role}`);
       } else {
         console.warn(`[AuthContext] BRIAN REUS DEBUG - No role found for user ${authUser.email}, using default: ${role}`);

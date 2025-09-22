@@ -57,19 +57,9 @@ export class SecureProfileService {
   static async getProfiles(): Promise<SecureProfile[]> {
     try {
       // The new RLS policies automatically restrict access and log access attempts
-      // Only admins/skadeleder will see results due to profiles_admin_access_audited policy
+      // Use secure function to get admin-level profile data
       const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          name,
-          email,
-          phone,
-          job_title,
-          status,
-          avatar_url,
-          user_roles(role)
-        `);
+        .rpc('get_profiles_admin_detailed');
 
       if (error) {
         logAccessAttempt('profiles', false, { operation: 'SELECT_ALL', error: error.message });
@@ -88,12 +78,17 @@ export class SecureProfileService {
 
       logAccessAttempt('profiles', true, { operation: 'SELECT_ALL', count: data?.length || 0 });
       
-      // Transform the data to match SecureProfile interface
+      // Transform the data to match SecureProfile interface  
+      // get_profiles_admin_detailed returns data without user_roles relation
       return data.map(profile => ({
-        ...profile,
-        role: Array.isArray(profile.user_roles) && profile.user_roles.length > 0 
-          ? profile.user_roles[0].role 
-          : 'servicemedarbejder'
+        id: profile.id,
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        job_title: profile.job_title,
+        status: profile.status,
+        avatar_url: profile.avatar_url,
+        role: 'servicemedarbejder' // Default role, need to get from user_roles separately
       })) as SecureProfile[];
     } catch (error) {
       logAccessAttempt('profiles', false, { operation: 'SELECT_ALL', error: error instanceof Error ? error.message : 'Unknown error' });

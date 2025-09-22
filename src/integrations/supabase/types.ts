@@ -543,6 +543,14 @@ export type Database = {
         Args: { table_name: string }
         Returns: undefined
       }
+      base64url_decode: {
+        Args: { data: string }
+        Returns: string
+      }
+      base64url_encode: {
+        Args: { data: string }
+        Returns: string
+      }
       can_access_assignment: {
         Args: { assignment_id: string }
         Returns: boolean
@@ -735,6 +743,10 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      hmac_sha256: {
+        Args: { data: string; key: string }
+        Returns: string
+      }
       is_admin_or_skadeleder: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -758,6 +770,10 @@ export type Database = {
       is_valid_email: {
         Args: { email: string }
         Returns: boolean
+      }
+      jwt_verify_hs256: {
+        Args: { secret: string; token: string }
+        Returns: Json
       }
       list_accessible_assignments_with_team: {
         Args: Record<PropertyKey, never>

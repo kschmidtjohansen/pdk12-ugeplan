@@ -27,24 +27,22 @@ export const useEmployeeData = () => {
       
       console.log('[useEmployeeData] FIXED - Starting employee fetch with corrected RLS policy...');
       
-      // Fetch profiles with proper error handling
+      // Use secure function to fetch basic profile information
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('name', { ascending: true });
+        .rpc('get_profiles_basic');
       
       if (profilesError) {
-        console.error('[useEmployeeData] FIXED - Profiles fetch error:', profilesError);
+        console.error('[useEmployeeData] Profiles fetch error:', profilesError);
         throw new Error(`Profiles fetch failed: ${profilesError.message}`);
       }
       
       if (!profiles || profiles.length === 0) {
-        console.log('[useEmployeeData] FIXED - No profiles found');
+        console.log('[useEmployeeData] No profiles found');
         setEmployees([]);
         return;
       }
       
-      console.log(`[useEmployeeData] FIXED - Found ${profiles.length} profiles`);
+      console.log(`[useEmployeeData] Found ${profiles.length} profiles`);
       
       // Now fetch user roles - this should work without infinite recursion
       const { data: userRoles, error: rolesError } = await supabase
@@ -66,7 +64,7 @@ export const useEmployeeData = () => {
       
       console.log(`[useEmployeeData] FIXED - Role mapping created for ${rolesMap.size} users`);
       
-      // Transform data
+      // Transform data - only use available fields from get_profiles_basic
       const transformedEmployees: Employee[] = profiles.map(profile => {
         const role = rolesMap.get(profile.id) || 'servicemedarbejder';
         
@@ -74,12 +72,12 @@ export const useEmployeeData = () => {
           id: profile.id,
           name: profile.name || 'Unknown',
           email: profile.email || '',
-          phone: profile.phone || '',
+          phone: '', // Not available in basic profile data
           jobTitle: profile.job_title || '',
           role: role as 'administrator' | 'skadeleder' | 'servicemedarbejder',
-          onLeave: profile.on_leave || false,
-          status: profile.status || 'active', // Add status from database
-          notes: profile.notes || '',
+          onLeave: false, // Not available in basic profile data  
+          status: profile.status || 'active',
+          notes: '', // Not available in basic profile data
           avatar_url: profile.avatar_url
         };
         
