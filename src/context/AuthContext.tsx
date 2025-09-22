@@ -106,6 +106,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [authReady, setAuthReady] = useState<boolean>(false);
   const [userDataLoaded, setUserDataLoaded] = useState<boolean>(false);
+  const [authInitialized, setAuthInitialized] = useState<boolean>(false);
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [sessionExpired, setSessionExpired] = useState<boolean>(false);
   const { toast } = useToast();
@@ -197,7 +198,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!circuitBreaker.canProceed(AUTH_OPERATION_ID)) {
       console.warn('[AuthContext] Auth initialization circuit breaker is open');
       setLoading(false);
-      setAuthReady(true);
+      setAuthInitialized(true);
       return;
     }
 
@@ -264,63 +265,65 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               setUser(null);
               setUserDataLoaded(false);
               
-              // KASPER FIX: Fetch complete user data BEFORE setting user state
-              (async () => {
-                if (!mounted) return;
-                
-                try {
-                  console.log(`[AuthContext] KASPER FIX - Fetching complete user data for:`, newSession.user.email);
-                  const userData = await fetchUserData(newSession.user);
-                  if (userData && mounted) {
-                    console.log('[AuthContext] KASPER FIX - Complete user data loaded, setting user:', userData);
-                    console.log('[AuthContext] KASPER FIX - About to set user state with:', {
-                      name: userData.name,
-                      email: userData.email,
-                      role: userData.role,
-                      isKasper: userData.email === 'kasper.johansen@polygongroup.com',
-                      isAdmin: userData.role === 'administrator'
-                    });
-                    setUser(userData);
-                    setUserDataLoaded(true);
-                  } else {
-                    console.warn(`[AuthContext] KASPER FIX - No user data returned, using fallback`);
+              // KASPER FIX: Fetch complete user data BEFORE setting user state (deferred to avoid deadlocks)
+              setTimeout(() => {
+                (async () => {
+                  if (!mounted) return;
+                  
+                  try {
+                    console.log(`[AuthContext] KASPER FIX - Fetching complete user data for:`, newSession.user.email);
+                    const userData = await fetchUserData(newSession.user);
+                    if (userData && mounted) {
+                      console.log('[AuthContext] KASPER FIX - Complete user data loaded, setting user:', userData);
+                      console.log('[AuthContext] KASPER FIX - About to set user state with:', {
+                        name: userData.name,
+                        email: userData.email,
+                        role: userData.role,
+                        isKasper: userData.email === 'kasper.johansen@polygongroup.com',
+                        isAdmin: userData.role === 'administrator'
+                      });
+                      setUser(userData);
+                      setUserDataLoaded(true);
+                    } else {
+                      console.warn(`[AuthContext] KASPER FIX - No user data returned, using fallback`);
+                      if (mounted) {
+                        // Only use fallback if we can't get real data
+                        const fallbackUser: AppUser = {
+                          id: newSession.user.id,
+                          name: newSession.user.email || 'System User',
+                          email: newSession.user.email || '',
+                          role: 'servicemedarbejder'
+                        };
+                        setUser(fallbackUser);
+                        setUserDataLoaded(true);
+                      }
+                    }
+                  } catch (error) {
+                    console.error('[AuthContext] KASPER FIX - User data fetch failed:', error);
                     if (mounted) {
-                      // Only use fallback if we can't get real data
+                      // Only set fallback user if fetch completely failed
                       const fallbackUser: AppUser = {
                         id: newSession.user.id,
                         name: newSession.user.email || 'System User',
                         email: newSession.user.email || '',
                         role: 'servicemedarbejder'
                       };
+                      console.log('[AuthContext] KASPER FIX - Using fallback user due to error:', fallbackUser);
                       setUser(fallbackUser);
                       setUserDataLoaded(true);
                     }
                   }
-                } catch (error) {
-                  console.error('[AuthContext] KASPER FIX - User data fetch failed:', error);
-                  if (mounted) {
-                    // Only set fallback user if fetch completely failed
-                    const fallbackUser: AppUser = {
-                      id: newSession.user.id,
-                      name: newSession.user.email || 'System User',
-                      email: newSession.user.email || '',
-                      role: 'servicemedarbejder'
-                    };
-                    console.log('[AuthContext] KASPER FIX - Using fallback user due to error:', fallbackUser);
-                    setUser(fallbackUser);
-                    setUserDataLoaded(true);
-                  }
-                }
-              })();
+                })();
+              }, 0);
             } else {
               setUser(null);
               setUserDataLoaded(false);
             }
 
-            // Mark auth as ready after first state change
+            // Mark initialization as complete after first state change
             if (!initializationComplete) {
               setLoading(false);
-              setAuthReady(true);
+              setAuthInitialized(true);
               initializationComplete = true;
             }
           }
@@ -356,7 +359,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(null);
             if (!initializationComplete) {
               setLoading(false);
-              setAuthReady(true);
+              setAuthInitialized(true);
               initializationComplete = true;
             }
           }
@@ -372,7 +375,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(null);
           if (!initializationComplete) {
             setLoading(false);
-            setAuthReady(true);
+            setAuthInitialized(true);
             initializationComplete = true;
           }
         }
@@ -393,7 +396,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } finally {
         if (mounted) {
           setLoading(false);
-          setAuthReady(true);
+          setAuthInitialized(true);
         }
       }
     };
@@ -403,7 +406,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (mounted && !initializationComplete) {
         console.warn('[AuthContext] SESSION EXPIRATION FIX - Force completing auth initialization due to timeout');
         setLoading(false);
-        setAuthReady(true);
+        setAuthInitialized(true);
         initializationComplete = true;
       }
     }, 5000);
@@ -422,6 +425,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
   }, [toast, t]);
+
+  // Coordinate authReady with session and userDataLoaded to avoid race conditions
+  useEffect(() => {
+    if (!authInitialized) return;
+
+    // If no session, we're ready immediately
+    if (!session) {
+      if (!authReady) setAuthReady(true);
+      return;
+    }
+
+    // If authenticated, wait until user data is loaded
+    if (session && userDataLoaded && !authReady) {
+      setAuthReady(true);
+    }
+  }, [authInitialized, session, userDataLoaded, authReady]);
 
   // Demo role management (simplified)
   useEffect(() => {
