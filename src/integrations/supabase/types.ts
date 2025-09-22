@@ -722,6 +722,7 @@ export type Database = {
           id: string
           job_title: string
           name: string
+          on_leave: boolean
           status: Database["public"]["Enums"]["employee_status"]
           updated_at: string
         }[]

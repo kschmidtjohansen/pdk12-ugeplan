@@ -64,7 +64,7 @@ export const useEmployeeData = () => {
       
       console.log(`[useEmployeeData] FIXED - Role mapping created for ${rolesMap.size} users`);
       
-      // Transform data - only use available fields from get_profiles_basic
+      // Transform data - now including on_leave field from get_profiles_basic
       const transformedEmployees: Employee[] = profiles.map(profile => {
         const role = rolesMap.get(profile.id) || 'servicemedarbejder';
         
@@ -74,8 +74,8 @@ export const useEmployeeData = () => {
           email: profile.email || '',
           phone: '', // Not available in basic profile data
           jobTitle: profile.job_title || '',
-          role: role as 'administrator' | 'skadeleder' | 'servicemedarbejder',
-          onLeave: false, // Not available in basic profile data  
+          role: role as 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'vikar',
+          onLeave: profile.on_leave || false, // Now properly using actual on_leave value from database
           status: profile.status || 'active',
           notes: '', // Not available in basic profile data
           avatar_url: profile.avatar_url
