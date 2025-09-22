@@ -165,7 +165,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           hint: profileData.error.hint,
           code: profileData.error.code
         });
-        throw new Error(`Profile fetch failed: ${profileData.error.message}`);
+        
+        // MARK HANSEN FIX: Don't throw error, continue with email as name
+        console.warn(`[AuthContext] MARK HANSEN FIX - Profile fetch failed, using email as name: ${authUser.email}`);
+        
+        const appUser: AppUser = {
+          id: authUser.id,
+          email: authUser.email,
+          name: authUser.email, // Use email as fallback
+          role: 'servicemedarbejder'
+        };
+        
+        console.log(`[AuthContext] MARK HANSEN FIX - Created fallback user:`, appUser);
+        return appUser;
       }
 
       // BRIAN REUS FIX: Improved name handling with explicit fallback chain

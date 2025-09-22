@@ -26,6 +26,22 @@ const MineOpgaver: React.FC = () => {
     const { week: currentWeek, year: currentYear } = getCurrentWeekInfo();
     const currentWeekDates = getWeekDates(currentWeek, currentYear);
     
+    console.log('[MineOpgaver] MARK HANSEN DEBUG - Assignment data structure check:', {
+      sampleAssignment: assignments[0] ? {
+        id: assignments[0].id,
+        title: assignments[0].title,
+        hasDate: !!assignments[0].date,
+        actualDate: assignments[0].date,
+        hasResponsibleUserId: !!assignments[0].responsibleUserId,
+        hasResponsibleUser: !!assignments[0].responsibleUser,
+        actualResponsibleUserId: assignments[0].responsibleUserId || assignments[0].responsibleUser?.id,
+        hasAssignedEmployees: !!assignments[0].assignedEmployees,
+        hasEmployees: !!assignments[0].employees,
+        assignedEmployeesCount: assignments[0].assignedEmployees?.length || 0,
+        employeesCount: assignments[0].employees?.length || 0
+      } : null
+    });
+    
     console.log('[MineOpgaver] COMPREHENSIVE FIX - Filtering assignments:', {
       userName: user.name,
       userId: user.id,
@@ -35,18 +51,26 @@ const MineOpgaver: React.FC = () => {
     });
     
     const userTasks = assignments.filter(assignment => {
+      // MARK HANSEN FIX: Use correct property names from Assignment type
+      const assignmentDate = assignment.date;
+      const responsibleUserId = assignment.responsibleUserId || assignment.responsibleUser?.id;
+      
       // Check if user is assigned via assignedEmployees (preferred) or legacy employees array
       const isAssignedViaNew = assignment.assignedEmployees?.some(emp => emp.id === user.id);
       const isAssignedViaLegacy = assignment.employees?.includes(user.name);
-      const isResponsible = assignment.responsibleUser?.id === user.id;
-      const assignmentDate = parseISO(assignment.date);
+      const isResponsible = responsibleUserId === user.id;
+      
+      // Parse date properly
+      const parsedDate = parseISO(assignmentDate);
       
       // Check if assignment is in current week
-      const isInCurrentWeek = assignmentDate >= currentWeekDates.start && assignmentDate <= currentWeekDates.end;
+      const isInCurrentWeek = parsedDate >= currentWeekDates.start && parsedDate <= currentWeekDates.end;
       
       const isUserInvolved = isAssignedViaNew || isAssignedViaLegacy || isResponsible;
       
-      console.log(`[MineOpgaver] Assignment "${assignment.title}":`, {
+      console.log(`[MineOpgaver] MARK HANSEN DEBUG - Assignment "${assignment.title}":`, {
+        assignmentId: assignment.id,
+        assignmentDate: assignmentDate,
         currentUserId: user.id,
         currentUserName: user.name,
         isAssignedViaNew,
@@ -58,7 +82,7 @@ const MineOpgaver: React.FC = () => {
         assignedEmployeeIds: assignment.assignedEmployees?.map(e => e.id),
         assignedEmployeeNames: assignment.assignedEmployees?.map(e => e.name),
         legacyEmployees: assignment.employees,
-        responsibleUserId: assignment.responsibleUser?.id
+        responsibleUserId: responsibleUserId
       });
       
       return isUserInvolved && isInCurrentWeek; // FIXED: Removed published filter so servicemedarbejder can see all assignments they're involved in
