@@ -275,7 +275,7 @@ export class OptimizedAssignmentService {
             // Ensure car_ids is properly handled as UUID array
             let carIds: string[] = [];
             if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
-              carIds = assignment.car_ids.filter(Boolean); // Remove any null/undefined values
+              carIds = assignment.car_ids.filter(id => id != null && id !== ''); // Remove any null/undefined/empty values
             } else if (assignment.car_id) {
               carIds = [assignment.car_id]; // Convert single car to array
             }
@@ -334,57 +334,69 @@ export class OptimizedAssignmentService {
         return convertedData;
       } catch (rpcError) {
         console.warn('[OptimizedAssignmentService] RPC failed, falling back to direct query:', rpcError);
-        
-        // Fallback: Direct query with role-based filtering
-        const isAdmin = role === 'administrator' || role === 'skadeleder';
-        const query = supabase
-          .from('assignments')
-          .select(`
-            id,
-            title,
-            description,
-            assignment_date,
-            from_time,
-            to_time,
-            location,
-            type,
-            published,
-            responsible_user_id,
-            created_at,
-            updated_at,
-            car_id,
-            car_ids
-          `)
-          .order('assignment_date', { ascending: false })
-          .order('from_time', { ascending: false });
-
-        // Apply role-based filtering for non-admin users
-        if (!isAdmin) {
-          query.eq('published', true);
-        }
-
-        const { data: assignments, error } = await query;
-
-        if (error) {
-          console.error('[OptimizedAssignmentService] Fallback query failed:', error);
-          throw error;
-        }
-
-        if (!assignments) {
-          return [];
-        }
-
-        console.log(`[OptimizedAssignmentService] Fallback returned ${assignments.length} assignments`);
-        
-        // Enrich with employee and car data using existing method
-        const enrichedData = await this.enrichAssignmentData(assignments);
-        
-        console.log('[OptimizedAssignmentService] Sample fallback data:', enrichedData[0]);
-        return enrichedData;
+        return this.fetchAssignmentsFallback(role);
       }
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error fetching all assignments:', error);
-      throw error;
+      // Final fallback - return empty array to prevent app crash
+      return [];
+    }
+  }
+
+  private static async fetchAssignmentsFallback(role: string): Promise<OptimizedAssignmentData[]> {
+    try {
+      console.log('[OptimizedAssignmentService] Using fallback assignment fetch');
+      
+      // Fallback: Direct query with role-based filtering
+      const isAdmin = role === 'administrator' || role === 'skadeleder';
+      const query = supabase
+        .from('assignments')
+        .select(`
+          id,
+          title,
+          description,
+          assignment_date,
+          from_time,
+          to_time,
+          location,
+          type,
+          published,
+          responsible_user_id,
+          created_at,
+          updated_at,
+          car_id,
+          car_ids
+        `)
+        .order('assignment_date', { ascending: false })
+        .order('from_time', { ascending: false });
+
+      // Apply role-based filtering for non-admin users
+      if (!isAdmin) {
+        query.eq('published', true);
+      }
+
+      const { data: assignments, error } = await query;
+
+      if (error) {
+        console.error('[OptimizedAssignmentService] Fallback query failed:', error);
+        return [];
+      }
+
+      if (!assignments) {
+        return [];
+      }
+
+      console.log(`[OptimizedAssignmentService] Fallback returned ${assignments.length} assignments`);
+      
+      // Enrich with employee and car data using existing method
+      const enrichedData = await this.enrichAssignmentData(assignments);
+      
+      console.log('[OptimizedAssignmentService] Sample fallback data:', enrichedData[0]);
+      return enrichedData;
+      
+    } catch (error) {
+      console.error('[OptimizedAssignmentService] Fallback fetch failed:', error);
+      return [];
     }
   }
 
