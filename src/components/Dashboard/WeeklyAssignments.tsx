@@ -111,16 +111,14 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
         <CardHeader className="pb-4">
           <CardTitle>
             <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-2xl bg-primary/10 border border-primary/20">
-                  <Clock className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-lg sm:text-xl font-bold truncate">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-2xl bg-primary/10 border border-primary/20">
+                    <Clock className="h-5 w-5 text-primary" />
+                  </div>
+                  <h2 className="text-lg sm:text-xl font-bold">
                     {t('dashboard.myAssignments')}
                   </h2>
-                </div>
-                <div className="flex-shrink-0">
                   <WeekNavigation 
                     onPrevious={onPreviousWeek} 
                     onNext={onNextWeek} 
