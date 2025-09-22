@@ -272,14 +272,15 @@ const MineOpgaver: React.FC = () => {
             })()}
 
             {/* Show all team members for assignments user can access */}
-            {(assignment.assignedEmployees?.length || assignment.employees?.length) && (() => {
+            {(() => {
               let teamMembers = [];
               
+              // Priority 1: Use assignedEmployees array (new format with full employee objects)
               if (assignment.assignedEmployees?.length) {
-                // Show all team members
                 teamMembers = assignment.assignedEmployees.map(emp => emp.name);
-              } else if (assignment.employees?.length) {
-                // Show all team members from legacy format
+              } 
+              // Priority 2: Use employees array (legacy format with names)
+              else if (assignment.employees?.length) {
                 teamMembers = assignment.employees;
               }
               

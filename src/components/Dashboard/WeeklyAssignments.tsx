@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Users, Car, Clock, ArrowRight, UserCheck } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useCars } from '@/hooks/car';
-import { Assignment, normalizeEmployees } from '@/types/assignment';
+import { Assignment } from '@/types/assignment';
 import WeekNavigation from './WeekNavigation';
 import AssignmentDetailsDialog from './AssignmentDetailsDialog';
 
@@ -58,6 +58,21 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
     }
     
     return carNames;
+  };
+
+  // Function to get employee names from assignment
+  const getEmployeeNames = (assignment: Assignment): string[] => {
+    // Priority 1: Use assignedEmployees array (new format with full employee objects)
+    if (assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
+      return assignment.assignedEmployees.map(emp => emp.name);
+    }
+    
+    // Priority 2: Use employees array (legacy format with names)
+    if (assignment.employees && assignment.employees.length > 0) {
+      return assignment.employees;
+    }
+    
+    return [];
   };
 
   const sortedAssignments = useMemo(() => {
@@ -139,7 +154,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
             <div className="grid gap-3">
               {sortedAssignments.map((assignment, index) => {
                 // Use helper function to get employee names
-                const employeeNames = normalizeEmployees(assignment.employees);
+                const employeeNames = getEmployeeNames(assignment);
                 const carNames = getCarNames(assignment);
                 
                 return (
