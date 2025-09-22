@@ -247,29 +247,37 @@ export class EnhancedDataFetching {
       return { data: [], error: null };
     }
 
+    console.log('[EnhancedDataFetching] Fetching user profiles for IDs:', userIds);
+
     const cacheKey = this.getCacheKey('profiles', 'batch', { userIds: userIds.sort() });
     const cached = this.getCache(cacheKey);
     
     if (cached) {
+      console.log('[EnhancedDataFetching] User profiles cache hit for:', userIds.length, 'users');
       return { data: cached, error: null, fromCache: true };
     }
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name, email, status')
-        .in('id', userIds);
+      // Use RPC function to avoid RLS issues
+      const { data: allProfiles, error } = await supabase.rpc('get_profiles_basic');
 
       if (error) {
         throw Object.assign(error, {
-          context: 'profile_batch_fetch',
-          table: 'profiles',
+          context: 'profile_batch_fetch_rpc',
+          function: 'get_profiles_basic',
           userIds: userIds.length,
-          operation: 'select_in'
+          operation: 'rpc_call'
         });
       }
+
+      // Filter profiles to only include requested user IDs
+      const filteredProfiles = (allProfiles || []).filter(profile => 
+        userIds.includes(profile.id)
+      );
+
+      console.log('[EnhancedDataFetching] RPC returned', allProfiles?.length || 0, 'total profiles, filtered to', filteredProfiles.length, 'for requested IDs');
       
-      return { data, error: null };
+      return { data: filteredProfiles, error: null };
     }, 'fetchUserProfilesEnhanced', {
       retries: 3,
       timeout: 10000,
