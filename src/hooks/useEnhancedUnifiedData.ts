@@ -74,6 +74,9 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
     enhancedUnifiedDataService.clearCache();
     // Also clear the enhanced data fetching cache
     enhancedDataFetching.clearCache('employees');
+    // Clear the unified data service cache as well for consistency
+    const { unifiedDataService } = await import('@/services/data/unifiedDataService');
+    unifiedDataService.clearCache();
     await fetchAllData();
   };
 

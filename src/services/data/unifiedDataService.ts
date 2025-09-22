@@ -48,14 +48,14 @@ class UnifiedDataService {
     }
 
     try {
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, name, email, phone, job_title, on_leave, notes, avatar_url, status')
-        .order('name', { ascending: true });
+      // Use RPC function to avoid RLS issues
+      const { data: profilesData, error: profilesError } = await supabase.rpc('get_profiles_basic');
 
       if (profilesError) {
         throw new Error(`Profiles fetch failed: ${profilesError.message}`);
       }
+      
+      console.log('[UnifiedDataService] RPC get_profiles_basic returned:', profilesData?.length || 0, 'employees');
 
       if (!profilesData) {
         return { data: [], error: null, fromCache: false };
@@ -73,15 +73,17 @@ class UnifiedDataService {
           id: profile.id,
           name: profile.name || 'Unknown',
           email: profile.email || '',
-          phone: profile.phone || '',
+          phone: (profile as any).phone || '', // RPC function may not return this field
           jobTitle: profile.job_title || '',
           role: userRole?.role || 'servicemedarbejder',
           onLeave: profile.on_leave || false,
-          status: profile.status || 'active', // Add status from database
-          notes: profile.notes || '',
+          status: profile.status || 'active',
+          notes: (profile as any).notes || '', // RPC function may not return this field
           avatar_url: profile.avatar_url
         };
       });
+
+      console.log('[UnifiedDataService] Employees processed:', employees.map(e => `${e.name} (${e.role}, onLeave: ${e.onLeave})`));
 
       this.setCache(cacheKey, employees);
       return { data: employees, error: null, fromCache: false };
