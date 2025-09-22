@@ -220,10 +220,14 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
   // Helper function to update assignment's multiple cars
   const handleCarsChange = (carIds: string[]) => {
+    console.log('[AssignmentForm] Cars changed to:', carIds);
     const updatedData = {
       ...formData,
-      cars: carIds
+      cars: carIds,
+      // Also update the legacy car field for backward compatibility
+      car: carIds.length > 0 ? carIds[0] : ''
     };
+    console.log('[AssignmentForm] Updated form data with cars:', updatedData);
     setFormData(updatedData);
   };
 

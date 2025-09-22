@@ -140,8 +140,34 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           result = [];
       }
 
-      // Convert OptimizedAssignmentData to Assignment format
-      const convertedAssignments = result.map(data => convertToAssignment(data, allEmployees));
+      // Convert OptimizedAssignmentData to Assignment format with enhanced error handling
+      const convertedAssignments = result.map(data => {
+        try {
+          return convertToAssignment(data, allEmployees);
+        } catch (conversionError) {
+          console.error('[useOptimizedAssignments] Error converting assignment:', conversionError, data);
+          // Return a safe fallback assignment
+          return {
+            id: data.id || 'unknown',
+            title: data.title || 'Unknown Assignment',
+            description: data.description || '',
+            date: data.assignment_date || '',
+            fromTime: data.from_time || '08:00',
+            toTime: data.to_time || '16:00',
+            location: data.location || '',
+            type: data.type,
+            published: data.published || false,
+            responsibleUserId: data.responsible_user_id,
+            employees: [],
+            assignedEmployees: [],
+            car: '',
+            cars: [],
+            createdAt: data.created_at || '',
+            updatedAt: data.updated_at || '',
+            responsibleUser: data.responsible_user
+          };
+        }
+      });
 
       console.log(`[useOptimizedAssignments] Successfully fetched ${convertedAssignments.length} assignments`);
       if (convertedAssignments.length > 0) {
@@ -150,12 +176,20 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       setAssignments(convertedAssignments);
     } catch (err) {
       console.error('[useOptimizedAssignments] Error fetching assignments:', err);
-      setError(err instanceof Error ? err : new Error('Failed to fetch assignments'));
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch assignments';
+      console.error('[useOptimizedAssignments] Detailed error:', {
+        message: errorMessage,
+        stack: err instanceof Error ? err.stack : null,
+        userId: user?.id,
+        userRole: user?.role,
+        filter
+      });
+      setError(err instanceof Error ? err : new Error(errorMessage));
       setAssignments([]);
     } finally {
       setLoading(false);
     }
-  }, [user?.id, user?.role, user?.email, filter]);
+  }, [user?.id, user?.role, user?.email, filter, allEmployees]);
 
   const refetch = useCallback(async () => {
     setLoading(true);
