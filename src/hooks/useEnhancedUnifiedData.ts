@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { enhancedUnifiedDataService } from '@/services/enhancedUnifiedDataService';
+import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
@@ -71,6 +72,8 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
 
   const refetch = async () => {
     enhancedUnifiedDataService.clearCache();
+    // Also clear the enhanced data fetching cache
+    enhancedDataFetching.clearCache('employees');
     await fetchAllData();
   };
 

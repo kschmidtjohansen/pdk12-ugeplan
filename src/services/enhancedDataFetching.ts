@@ -357,18 +357,18 @@ export class EnhancedDataFetching {
     }
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name, email, phone, job_title, on_leave, notes, avatar_url, status')
-        .order('name', { ascending: true });
+      // Use RPC function instead of direct table query to avoid RLS issues
+      const { data, error } = await supabase.rpc('get_profiles_basic');
 
       if (error) {
         throw Object.assign(error, {
           context: 'employee_fetch',
           table: 'profiles',
-          operation: 'select_employees'
+          operation: 'rpc_get_profiles_basic'
         });
       }
+      
+      console.log('[Enhanced Data Fetching] RPC get_profiles_basic returned:', data?.length || 0, 'employees');
       
       return { data, error: null };
     }, 'fetchEmployeesEnhanced', {
