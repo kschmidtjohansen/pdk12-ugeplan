@@ -687,6 +687,24 @@ export type Database = {
           status: Database["public"]["Enums"]["employee_status"]
         }[]
       }
+      get_profiles_admin_detailed: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avatar_url: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          is_temporary: boolean
+          job_title: string
+          name: string
+          notes: string
+          on_leave: boolean
+          phone: string
+          status: Database["public"]["Enums"]["employee_status"]
+          updated_at: string
+        }[]
+      }
       get_profiles_basic: {
         Args: Record<PropertyKey, never>
         Returns: {

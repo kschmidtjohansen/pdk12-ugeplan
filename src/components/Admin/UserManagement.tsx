@@ -67,15 +67,15 @@ const UserManagement: React.FC = () => {
       setUsingFallback(true);
       addDebugInfo('FALLBACK: Using direct database queries with fixed role mapping');
 
-      // Use secure function to get profiles (addresses security vulnerability)
-      console.log('[fetchUsersWithFallback] Using secure profiles function');
+      // Use secure admin function to get detailed profiles (addresses security vulnerability)
+      console.log('[fetchUsersWithFallback] Using secure admin profiles function');
       
-      // Get basic profiles data using secure function
+      // Get detailed profiles data using secure admin function
       const { data: profiles, error: profilesError } = await supabase
-        .rpc('get_profiles_basic');
+        .rpc('get_profiles_admin_detailed');
         
       if (profilesError) {
-        addDebugInfo(`Secure profiles function error: ${profilesError.message}`);
+        addDebugInfo(`Secure admin profiles function error: ${profilesError.message}`);
         // Check if this is a permission error due to new RLS policies
         if (profilesError.message?.includes('permission') || 
             profilesError.message?.includes('policy') || 
@@ -119,15 +119,15 @@ const UserManagement: React.FC = () => {
           id: profile.id,
           email: profile.email,
           name: profile.name,
-          phone: profile.phone || '', // Handle missing sensitive field
+          phone: profile.phone || '', // Admin function includes all fields
           jobTitle: profile.job_title,
           role: userRole as UserRole,
           created_at: profile.created_at,
           updated_at: profile.updated_at,
           last_sign_in_at: null,
           banned_until: null,
-          onLeave: profile.on_leave ?? false, // Handle missing sensitive field
-          notes: profile.notes || '' // Handle missing sensitive field
+          onLeave: profile.on_leave || false, // Admin function includes all fields
+          notes: profile.notes || '' // Admin function includes all fields
         };
       }) || [];
 
