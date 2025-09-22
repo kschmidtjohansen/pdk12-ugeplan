@@ -67,23 +67,15 @@ const UserManagement: React.FC = () => {
       setUsingFallback(true);
       addDebugInfo('FALLBACK: Using direct database queries with fixed role mapping');
 
-      // Get profiles directly
-      const {
-        data: profiles,
-        error: profilesError
-      } = await supabase.from('profiles').select(`
-          id,
-          name,
-          email,
-          phone,
-          job_title,
-          on_leave,
-          notes,
-          created_at,
-          updated_at
-        `);
+      // Use secure function to get profiles (addresses security vulnerability)
+      console.log('[fetchUsersWithFallback] Using secure profiles function');
+      
+      // Get basic profiles data using secure function
+      const { data: profiles, error: profilesError } = await supabase
+        .rpc('get_profiles_basic');
+        
       if (profilesError) {
-        addDebugInfo(`FALLBACK profiles error: ${profilesError.message}`);
+        addDebugInfo(`Secure profiles function error: ${profilesError.message}`);
         // Check if this is a permission error due to new RLS policies
         if (profilesError.message?.includes('permission') || 
             profilesError.message?.includes('policy') || 
@@ -127,15 +119,15 @@ const UserManagement: React.FC = () => {
           id: profile.id,
           email: profile.email,
           name: profile.name,
-          phone: profile.phone,
+          phone: profile.phone || '', // Handle missing sensitive field
           jobTitle: profile.job_title,
           role: userRole as UserRole,
           created_at: profile.created_at,
           updated_at: profile.updated_at,
           last_sign_in_at: null,
           banned_until: null,
-          onLeave: profile.on_leave || false,
-          notes: profile.notes
+          onLeave: profile.on_leave ?? false, // Handle missing sensitive field
+          notes: profile.notes || '' // Handle missing sensitive field
         };
       }) || [];
 

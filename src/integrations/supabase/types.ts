@@ -551,6 +551,10 @@ export type Database = {
         Args: { case_number_param: string }
         Returns: boolean
       }
+      can_access_profile_field: {
+        Args: { field_name: string; target_user_id: string }
+        Returns: boolean
+      }
       can_user_access_assignment: {
         Args: { assignment_id: string; user_id: string }
         Returns: boolean
@@ -651,6 +655,25 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_profile_detailed: {
+        Args: { profile_user_id: string }
+        Returns: {
+          avatar_url: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          is_temporary: boolean
+          job_title: string
+          name: string
+          notes: string
+          on_leave: boolean
+          phone: string
+          role: Database["public"]["Enums"]["user_role"]
+          status: Database["public"]["Enums"]["employee_status"]
+          updated_at: string
+        }[]
+      }
       get_profile_with_role: {
         Args: { profile_id: string }
         Returns: {
@@ -662,6 +685,19 @@ export type Database = {
           phone: string
           role: Database["public"]["Enums"]["user_role"]
           status: Database["public"]["Enums"]["employee_status"]
+        }[]
+      }
+      get_profiles_basic: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avatar_url: string
+          created_at: string
+          email: string
+          id: string
+          job_title: string
+          name: string
+          status: Database["public"]["Enums"]["employee_status"]
+          updated_at: string
         }[]
       }
       get_security_events_summary: {
