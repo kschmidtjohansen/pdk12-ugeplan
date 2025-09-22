@@ -316,36 +316,23 @@ export class EnhancedDataFetching {
     }
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
-      // Enhanced assignment query with comprehensive data fetching
+      console.log('[Enhanced Data Fetching] Starting assignments fetch with secure function...');
+      
+      // Use the secure function to get assignments with team data
       const { data, error } = await supabase
-        .from('assignments')
-        .select(`
-          *,
-          responsible_user:profiles!fk_assignments_responsible_user_id(
-            id,
-            name,
-            email
-          ),
-          assignments_employees!fk_assignments_employees_assignment_id(
-            user_id,
-            profiles!fk_assignments_employees_user_id(
-              id,
-              name,
-              email
-            )
-          )
-        `)
-        .order('assignment_date', { ascending: true })
-        .order('from_time', { ascending: true });
+        .rpc('list_accessible_assignments_with_team');
       
       if (error) {
+        console.error('[Enhanced Data Fetching] Assignments fetch error:', error);
         // Enhanced error context for assignment queries
         throw Object.assign(error, {
           context: 'assignment_fetch',
           table: 'assignments',
-          operation: 'select_with_joins'
+          operation: 'secure_function_call'
         });
       }
+
+      console.log('[Enhanced Data Fetching] Raw assignments data:', data?.length || 0);
       
       return { data, error: null };
     }, 'fetchAssignmentsEnhanced', {

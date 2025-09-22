@@ -63,14 +63,18 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
 
   // Function to get employee names from assignment
   const getEmployeeNames = (assignment: Assignment): string[] => {
-    let names: string[] = [];
-    // Priority 1: Use assignedEmployees array (new format with full employee objects)
+    const names: string[] = [];
+    
+    // Add names from assignedEmployees (new format)
     if (assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
-      names = assignment.assignedEmployees.map(emp => emp.name);
-    } else if (assignment.employees && assignment.employees.length > 0) {
-      // Priority 2: Use employees array (legacy format with names)
-      names = assignment.employees;
+      names.push(...assignment.assignedEmployees.map(emp => emp.name || emp.email || ''));
     }
+    
+    // Add names from legacy employees array
+    if (assignment.employees && assignment.employees.length > 0) {
+      names.push(...assignment.employees);
+    }
+    
     return filterDisplayNames(names);
   };
 

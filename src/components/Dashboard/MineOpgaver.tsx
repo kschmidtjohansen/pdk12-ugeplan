@@ -274,15 +274,16 @@ const MineOpgaver: React.FC = () => {
 
             {/* Show all team members for assignments user can access */}
             {(() => {
-              let names: string[] = [];
+              const names: string[] = [];
               
-              // Priority 1: Use assignedEmployees array (new format with full employee objects)
+              // Add names from assignedEmployees (new format)
               if (assignment.assignedEmployees?.length) {
-                names = assignment.assignedEmployees.map(emp => emp.name);
-              } 
-              // Priority 2: Use employees array (legacy format with names)
-              else if (assignment.employees?.length) {
-                names = assignment.employees;
+                names.push(...assignment.assignedEmployees.map(emp => emp.name || emp.email || ''));
+              }
+              
+              // Add names from legacy employees array
+              if (assignment.employees?.length) {
+                names.push(...assignment.employees);
               }
               
               const teamMembers = filterDisplayNames(names);

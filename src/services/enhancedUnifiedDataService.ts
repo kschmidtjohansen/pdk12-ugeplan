@@ -122,57 +122,19 @@ class EnhancedUnifiedDataService {
         };
       }
 
-      // Transform raw assignment data to Assignment format
+      // Transform the data from the secure function response
       let assignments: Assignment[] = result.data.map(assignment => {
-        // Extract employee data from the nested structure with proper name handling
-        const assignedEmployees = (assignment.assignments_employees || [])
-          .map(ae => {
-            const profileName = ae.profiles?.name;
-            const profileEmail = ae.profiles?.email;
-            const userId = ae.profiles?.id || ae.user_id;
-            
-            // Function to check if a string is a UUID
-            const isUUID = (str: string) => {
-              const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-              return uuidRegex.test(str);
-            };
-            
-            // Determine the best name to use
-            let displayName = 'Unknown User';
-            
-            if (profileName && profileName.trim() && !isUUID(profileName)) {
-              // Use profile name if it exists and is not a UUID
-              displayName = profileName.trim();
-            } else if (profileEmail && profileEmail.includes('@')) {
-              // Use email prefix as fallback if name is missing or is a UUID
-              displayName = profileEmail.split('@')[0];
-            }
-            
-            return {
-              id: userId,
-              name: displayName,
-              email: profileEmail || ''
-            };
-          })
-          .filter(emp => emp.id); // Only filter out entries without IDs
-        
-        const employeeNames = assignedEmployees.map(emp => emp.name);
+        const team = Array.isArray(assignment.team) ? assignment.team : [];
+        const employees = team.map((emp: any) => emp.name || emp.email || 'Unknown User');
         
         // Debug logging for assignment employee data
-        if (assignedEmployees.length > 0) {
+        if (team.length > 0) {
           console.log(`[EnhancedUnifiedDataService] Assignment ${assignment.title} - Employee data:`, {
-            assignedEmployeesCount: assignedEmployees.length,
-            sampleEmployee: assignedEmployees[0],
-            allEmployeeNames: employeeNames
+            teamCount: team.length,
+            sampleTeamMember: team[0],
+            allEmployeeNames: employees
           });
         }
-        
-        // Handle responsible user data
-        const responsibleUser = assignment.responsible_user && typeof assignment.responsible_user === 'object' ? {
-          id: assignment.responsible_user.id || '',
-          name: assignment.responsible_user.name || '',
-          email: assignment.responsible_user.email || ''
-        } : null;
         
         return {
           id: assignment.id,
@@ -182,12 +144,16 @@ class EnhancedUnifiedDataService {
           fromTime: assignment.from_time,
           toTime: assignment.to_time,
           location: assignment.location,
-          employees: employeeNames,
-          assignedEmployees: assignedEmployees,
+          employees: employees,
+          assignedEmployees: team.map((emp: any) => ({
+            id: emp.id,
+            name: emp.name || 'Unknown User',
+            email: emp.email || ''
+          })),
           cars: assignment.car_ids || (assignment.car_id ? [assignment.car_id] : []),
           car: assignment.car_id || (assignment.car_ids && assignment.car_ids.length > 0 ? assignment.car_ids[0] : ''),
           published: assignment.published || false,
-          responsibleUser: responsibleUser,
+          responsibleUser: assignment.responsible_user,
           responsibleUserId: assignment.responsible_user_id,
           type: assignment.type || 'other',
           createdAt: assignment.created_at,
