@@ -251,46 +251,52 @@ export class OptimizedAssignmentService {
 
   static async fetchAllAssignments(role: string): Promise<OptimizedAssignmentData[]> {
     try {
-      console.log(`[OptimizedAssignmentService] Fetching all assignments for role: ${role}`);
+      console.log(`[OptimizedAssignmentService] Using secure function for all assignments, role: ${role}`);
 
-      const { data, error } = await supabase
-        .from('assignments')
-        .select(`
-          id,
-          title,
-          description,
-          assignment_date,
-          from_time,
-          to_time,
-          location,
-          type,
-          published,
-          responsible_user_id,
-          created_at,
-          updated_at,
-          car_id,
-          car_ids
-        `)
-        .order('assignment_date', { ascending: true })
-        .order('from_time', { ascending: true });
+      // Use the secure function that handles role-based access
+      const { data, error } = await supabase.rpc('list_accessible_assignments_with_team');
 
       if (error) {
-        console.error('[OptimizedAssignmentService] Database error:', error);
-        throw new Error(`Database error: ${error.message}`);
+        console.error('[OptimizedAssignmentService] Secure function error:', error);
+        throw new Error(`Secure function error: ${error.message}`);
       }
 
       if (!data) {
-        console.log('[OptimizedAssignmentService] No assignments found');
+        console.log('[OptimizedAssignmentService] No assignments found from secure function');
         return [];
       }
 
-      console.log(`[OptimizedAssignmentService] Found ${data.length} assignments`);
+      console.log(`[OptimizedAssignmentService] Secure function returned ${data.length} assignments`);
       
-      // Enrich with employee and car data
-      const enrichedData = await this.enrichAssignmentData(data);
-      console.log('[OptimizedAssignmentService] Sample enriched data:', enrichedData[0]);
+      // Convert secure function result to OptimizedAssignmentData format
+      const convertedData = data.map(assignment => ({
+        id: assignment.id,
+        title: assignment.title,
+        description: assignment.description,
+        assignment_date: assignment.assignment_date,
+        from_time: assignment.from_time,
+        to_time: assignment.to_time,
+        location: assignment.location,
+        type: assignment.type,
+        published: assignment.published,
+        responsible_user_id: assignment.responsible_user_id,
+        created_at: assignment.created_at,
+        updated_at: assignment.updated_at,
+        car_id: assignment.car_id,
+        car_ids: assignment.car_ids,
+        responsible_user: assignment.responsible_user ? {
+          id: (assignment.responsible_user as any).id || '',
+          name: (assignment.responsible_user as any).name || '',
+        } : null,
+        assignment_employees: Array.isArray(assignment.team) ? assignment.team.map((member: any) => ({
+          user_id: member.id,
+          profiles: { id: member.id, name: member.name }
+        })) : [],
+        assignment_cars: [] // Will be populated by enrichment if needed
+      }));
 
-      return enrichedData;
+      console.log('[OptimizedAssignmentService] Sample converted data:', convertedData[0]);
+      return convertedData;
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error fetching all assignments:', error);
       throw error;
@@ -299,47 +305,52 @@ export class OptimizedAssignmentService {
 
   static async fetchAllPublishedAssignments(): Promise<OptimizedAssignmentData[]> {
     try {
-      console.log('[OptimizedAssignmentService] Fetching ALL published assignments for servicemedarbejder');
+      console.log('[OptimizedAssignmentService] Using secure function for published assignments');
       
-      const { data, error } = await supabase
-        .from('assignments')
-        .select(`
-          id,
-          title,
-          description,
-          assignment_date,
-          from_time,
-          to_time,
-          location,
-          type,
-          published,
-          responsible_user_id,
-          created_at,
-          updated_at,
-          car_id,
-          car_ids
-        `)
-        .eq('published', true)
-        .order('assignment_date', { ascending: true })
-        .order('from_time', { ascending: true });
+      // Use the secure function - it will return only published assignments for servicemedarbejder
+      const { data, error } = await supabase.rpc('list_accessible_assignments_with_team');
 
       if (error) {
-        console.error('[OptimizedAssignmentService] Database error:', error);
-        throw new Error(`Database error: ${error.message}`);
+        console.error('[OptimizedAssignmentService] Secure function error:', error);
+        throw new Error(`Secure function error: ${error.message}`);
       }
 
       if (!data) {
-        console.log('[OptimizedAssignmentService] No published assignments found');
+        console.log('[OptimizedAssignmentService] No published assignments found from secure function');
         return [];
       }
 
-      console.log(`[OptimizedAssignmentService] Found ${data.length} published assignments for servicemedarbejder`);
+      console.log(`[OptimizedAssignmentService] Secure function returned ${data.length} published assignments`);
       
-      // Enrich with employee and car data
-      const enrichedData = await this.enrichAssignmentData(data);
-      console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER - Sample enriched data:', enrichedData[0]);
+      // Convert secure function result to OptimizedAssignmentData format
+      const convertedData = data.map(assignment => ({
+        id: assignment.id,
+        title: assignment.title,
+        description: assignment.description,
+        assignment_date: assignment.assignment_date,
+        from_time: assignment.from_time,
+        to_time: assignment.to_time,
+        location: assignment.location,
+        type: assignment.type,
+        published: assignment.published,
+        responsible_user_id: assignment.responsible_user_id,
+        created_at: assignment.created_at,
+        updated_at: assignment.updated_at,
+        car_id: assignment.car_id,
+        car_ids: assignment.car_ids,
+        responsible_user: assignment.responsible_user ? {
+          id: (assignment.responsible_user as any).id || '',
+          name: (assignment.responsible_user as any).name || '',
+        } : null,
+        assignment_employees: Array.isArray(assignment.team) ? assignment.team.map((member: any) => ({
+          user_id: member.id,
+          profiles: { id: member.id, name: member.name }
+        })) : [],
+        assignment_cars: [] // Will be populated by enrichment if needed
+      }));
       
-      return enrichedData;
+      console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER - Sample converted data:', convertedData[0]);
+      return convertedData;
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error fetching all published assignments:', error);
       throw error;

@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Assignment, getEmployeeNamesFromIds } from '../../types/assignment';
 import { Car as CarType } from '../../types/car';
 import { useEmployees } from '../../hooks/useEmployees';
+import { filterDisplayNames } from '../../utils/people';
 interface AssignmentDetailsProps {
   assignment: Assignment;
   cars: CarType[];
@@ -79,9 +80,8 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       names.push(...assignment.employees);
     }
     
-    const processedNames = names
-      .filter(name => name && name.trim() && name !== '' && name !== 'Unknown User')
-      .filter((name, index, array) => array.indexOf(name) === index); // Remove duplicates
+    // Use the filterDisplayNames utility to remove UUIDs and duplicates
+    const processedNames = filterDisplayNames(names);
     
     console.log('[AssignmentDetails] Processed names:', processedNames);
     

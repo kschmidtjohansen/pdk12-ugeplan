@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
 import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
+import { resolveEmployeeDisplayName } from '@/utils/people';
 
 export type FilterType = 'all' | 'published' | 'unpublished' | 'user';
 export type AssignmentFilter = FilterType; // Export for compatibility
@@ -32,35 +33,16 @@ const convertToAssignment = (data: OptimizedAssignmentData, allEmployees: Employ
   
   const assignedEmployees = data.assignment_employees?.map(emp => {
     const userId = emp.user_id;
-    const profile = emp.profiles as any; // Type assertion to handle interface mismatch
+    const profile = emp.profiles as any;
     const profileName = profile?.name || '';
     const profileEmail = profile?.email || '';
     
-    // Function to check if a string is a UUID
-    const isUUID = (str: string) => {
-      if (!str || typeof str !== 'string') return false;
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      return uuidRegex.test(str);
-    };
-    
-    // Try to find the employee in the planner's employee list first
-    const plannerEmployee = allEmployees.find((e: Employee) => e.id === userId);
-    if (plannerEmployee?.name && !isUUID(plannerEmployee.name)) {
-      return {
-        id: userId,
-        name: plannerEmployee.name,
-        email: plannerEmployee.email || profileEmail
-      };
-    }
-    
-    // Determine the best name to use from profile data
-    let displayName = 'Unknown User';
-    
-    if (profileName?.trim() && !isUUID(profileName)) {
-      displayName = profileName.trim();
-    } else if (profileEmail && profileEmail.includes('@')) {
-      displayName = profileEmail.split('@')[0];
-    }
+    // Use the resolveEmployeeDisplayName utility for consistent name resolution
+    const displayName = resolveEmployeeDisplayName({
+      id: userId,
+      name: profileName,
+      email: profileEmail
+    }, allEmployees);
     
     return {
       id: userId,

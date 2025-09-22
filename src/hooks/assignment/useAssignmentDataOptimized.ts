@@ -42,23 +42,19 @@ export const useAssignmentDataOptimized = () => {
         return;
       }
       
-      // Enhanced data transformation with better error handling
+      // Enhanced data transformation using new secure team data structure
       let transformedAssignments: Assignment[] = assignmentsWithEmployees.map(assignment => {
-        // Extract employee data from the nested structure with robust name resolution
-        const assignedEmployees = (assignment.assignments_employees || [])
-          .map(ae => {
-            const id = ae.profiles?.id || ae.user_id;
-            const name = resolveEmployeeDisplayName({ id, name: ae.profiles?.name, email: ae.profiles?.email });
-            return {
-              id,
-              name,
-              email: ae.profiles?.email || ''
-            };
-          });
+        // Extract employee data from the secure team structure
+        const teamData = assignment.team || [];
+        const assignedEmployees = Array.isArray(teamData) ? teamData.map(member => ({
+          id: member.id || '',
+          name: resolveEmployeeDisplayName(member) || 'Unknown User',
+          email: member.email || ''
+        })) : [];
         
         const employeeNames = filterDisplayNames(assignedEmployees.map(emp => emp.name));
         
-        // Handle responsible user data
+        // Handle responsible user data from secure function
         const responsibleUser = assignment.responsible_user && typeof assignment.responsible_user === 'object' ? {
           id: assignment.responsible_user.id || '',
           name: assignment.responsible_user.name || '',
@@ -154,7 +150,6 @@ export const useAssignmentDataOptimized = () => {
     fetchAssignments();
   }, [fetchAssignments]);
 
-  // Set up realtime subscription with demo user filtering awareness
   useEffect(() => {
     let debounceTimeout: NodeJS.Timeout;
     
@@ -196,13 +191,25 @@ export const useAssignmentDataOptimized = () => {
           }, 500);
         }
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
+        console.log('[useAssignmentDataOptimized] Profile change detected - this might affect employee names');
+        
+        // Clear cache to ensure fresh data
+        enhancedDataFetching.clearCache('assignments');
+        
+        // Debounce to prevent rapid-fire updates
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+          fetchAssignments();
+        }, 1000);
+      })
       .subscribe();
       
     return () => {
       clearTimeout(debounceTimeout);
       supabase.removeChannel(channel);
     };
-  }, [fetchAssignments]);
+  }, [fetchAssignments, user?.email]);
 
   return {
     assignments,

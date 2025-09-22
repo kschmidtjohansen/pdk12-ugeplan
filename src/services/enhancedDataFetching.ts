@@ -342,7 +342,7 @@ export class EnhancedDataFetching {
     });
     
     if (result.data) {
-      this.setCache(cacheKey, result.data);
+      this.setCache(cacheKey, result.data, 5000); // Shorter cache for real-time updates
     }
     
     return result;
