@@ -262,23 +262,15 @@ const MineOpgaver: React.FC = () => {
                 >
                   {formatAssignmentDate(assignment.date)}
                 </Badge>
-                {(isToday(parseISO(assignment.date)) || isTomorrow(parseISO(assignment.date))) && (
-                  <div className="flex items-center gap-0 ml-1">
-                    <button
-                      className="h-6 w-6 rounded-l-sm bg-background border border-border hover:bg-accent/50 transition-colors flex items-center justify-center"
-                      onClick={() => {/* Previous day logic */}}
-                      title="Forrige dag"
-                    >
-                      <ArrowLeft className="h-3 w-3" />
-                    </button>
-                    <button
-                      className="h-6 w-6 rounded-r-sm bg-background border-l-0 border-t border-r border-b border-border hover:bg-accent/50 transition-colors flex items-center justify-center"
-                      onClick={() => {/* Next day logic */}}
-                      title="Næste dag"
-                    >
-                      <ArrowRight className="h-3 w-3" />
-                    </button>
-                  </div>
+                {assignment.location && (
+                  <button
+                    onClick={() => handleNavigate(assignment.location)}
+                    className="flex items-center justify-center h-6 w-6 rounded-md hover:bg-accent/50 transition-colors group ml-1"
+                    title={t('dashboard.navigateToLocation') || 'Navigate to location'}
+                    aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
+                  >
+                    <Navigation className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </button>
                 )}
               </div>
             </div>
@@ -288,14 +280,6 @@ const MineOpgaver: React.FC = () => {
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="h-3 w-3" />
                 <span className="truncate flex-1">{assignment.location}</span>
-                <button
-                  onClick={() => handleNavigate(assignment.location)}
-                  className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent/50 transition-colors group"
-                  title={t('dashboard.navigateToLocation') || 'Navigate to location'}
-                  aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
-                >
-                  <Navigation className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                </button>
               </div>
             )}
 
