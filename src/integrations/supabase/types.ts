@@ -595,6 +595,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      debug_auth_info: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       delete_expired_approved_vacations: {
         Args: Record<PropertyKey, never>
         Returns: undefined
