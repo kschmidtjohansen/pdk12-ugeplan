@@ -633,12 +633,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { error: error.message };
       }
       
-      toast({
-        title: "Login Succesfuld",
-        description: "Du er nu logget ind.",
-      });
-      
-
       console.log('[AuthProvider] COMPREHENSIVE FIX - Login successful');
       return { error: null };
     } catch (error: any) {
