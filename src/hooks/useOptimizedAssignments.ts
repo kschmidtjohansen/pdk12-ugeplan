@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { OptimizedAssignmentService, OptimizedAssignmentData } from '@/services/optimizedAssignmentService';
 import { Assignment, normalizeEmployees } from '@/types/assignment';
+import { Employee } from '@/types/employee';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
@@ -25,14 +26,48 @@ interface UseOptimizedAssignmentsResult {
 }
 
 // Helper function to convert OptimizedAssignmentData to Assignment
-const convertToAssignment = (data: OptimizedAssignmentData): Assignment => {
-  // Convert assignment_employees to employee IDs array and preserve full employee data
+const convertToAssignment = (data: OptimizedAssignmentData, allEmployees: Employee[] = []): Assignment => {
+  // Convert assignment_employees to employee IDs array and preserve full employee data  
   const employees = data.assignment_employees?.map(emp => emp.user_id).filter(Boolean) || [];
-  const assignedEmployees = data.assignment_employees?.map(emp => ({
-    id: emp.user_id,
-    name: emp.profiles?.name || emp.user_id,
-    email: '' // Email not available in current structure
-  })).filter(emp => emp.id) || [];
+  
+  const assignedEmployees = data.assignment_employees?.map(emp => {
+    const userId = emp.user_id;
+    const profile = emp.profiles as any; // Type assertion to handle interface mismatch
+    const profileName = profile?.name || '';
+    const profileEmail = profile?.email || '';
+    
+    // Function to check if a string is a UUID
+    const isUUID = (str: string) => {
+      if (!str || typeof str !== 'string') return false;
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      return uuidRegex.test(str);
+    };
+    
+    // Try to find the employee in the planner's employee list first
+    const plannerEmployee = allEmployees.find((e: Employee) => e.id === userId);
+    if (plannerEmployee?.name && !isUUID(plannerEmployee.name)) {
+      return {
+        id: userId,
+        name: plannerEmployee.name,
+        email: plannerEmployee.email || profileEmail
+      };
+    }
+    
+    // Determine the best name to use from profile data
+    let displayName = 'Unknown User';
+    
+    if (profileName?.trim() && !isUUID(profileName)) {
+      displayName = profileName.trim();
+    } else if (profileEmail && profileEmail.includes('@')) {
+      displayName = profileEmail.split('@')[0];
+    }
+    
+    return {
+      id: userId,
+      name: displayName,
+      email: profileEmail
+    };
+  }).filter(emp => emp?.id) || [];
   
   // Handle car data - support both legacy car_id and new car_ids array
   let cars: string[] = [];
@@ -124,7 +159,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       }
 
       // Convert OptimizedAssignmentData to Assignment format
-      const convertedAssignments = result.map(convertToAssignment);
+      const convertedAssignments = result.map(data => convertToAssignment(data, allEmployees));
 
       console.log(`[useOptimizedAssignments] Successfully fetched ${convertedAssignments.length} assignments`);
       if (convertedAssignments.length > 0) {
@@ -217,7 +252,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       setAssignments(prev => 
         prev.map(assignment => 
           assignment.id === optimisticAssignment.id 
-            ? convertToAssignment(createdAssignment)
+            ? convertToAssignment(createdAssignment, allEmployees)
             : assignment
         )
       );

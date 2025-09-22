@@ -60,12 +60,33 @@ export const convertOptimizedAssignmentToAssignment = (data: OptimizedAssignment
     responsibleUserId: data.responsible_user_id,
     // CRITICAL FIX: employees should be array of IDs for consistency
     employees: data.assignment_employees?.map((emp: any) => emp.user_id) || [],
-    // assignedEmployees provides full employee data for display
-    assignedEmployees: data.assignment_employees?.map((emp: any) => ({
+  // assignedEmployees provides full employee data for display
+  assignedEmployees: data.assignment_employees?.map((emp: any) => {
+    const profileName = emp.profiles?.name;
+    const profileEmail = emp.profiles?.email;
+    
+    // Function to check if a string is a UUID
+    const isUUID = (str: string) => {
+      if (!str || typeof str !== 'string') return false;
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      return uuidRegex.test(str);
+    };
+    
+    // Determine the best name to use
+    let displayName = 'Unknown User';
+    
+    if (profileName && profileName.trim() && !isUUID(profileName)) {
+      displayName = profileName.trim();
+    } else if (profileEmail && profileEmail.includes('@')) {
+      displayName = profileEmail.split('@')[0];
+    }
+    
+    return {
       id: emp.user_id,
-      name: emp.profiles.name,
-      email: emp.profiles.email || ''
-    })) || [],
+      name: displayName,
+      email: profileEmail || ''
+    };
+  }) || [],
     // Cars array for display (names)
     cars: data.assignment_cars?.map((car: any) => car.name) || [],
     createdAt: data.created_at,

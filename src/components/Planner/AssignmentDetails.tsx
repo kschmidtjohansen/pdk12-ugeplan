@@ -54,7 +54,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
   };
   const carNames = getCarNames(assignment);
 
-  // Enhanced employee data processing - show all team members for assignments user is involved in
+  // Enhanced employee data processing with improved UUID detection and fallbacks
   const getEmployeeData = (assignment: Assignment): {
     names: string[];
     hasFullData: boolean;
@@ -67,17 +67,38 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       legacyEmployees: assignment.employees
     });
     
+    // Function to check if a string is a UUID
+    const isUUID = (str: string) => {
+      if (!str || typeof str !== 'string') return false;
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      return uuidRegex.test(str);
+    };
+    
     // PRIORITY 1: Use assignedEmployees with full employee data (preferred)
     if (assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
-      const names = assignment.assignedEmployees
-        .map(emp => emp.name)
-        .filter(name => name && name.trim() && name !== '')
-        .filter(name => !name.startsWith('User ')); // Filter out any remaining fallback names
+      const processedNames = assignment.assignedEmployees
+        .map(emp => {
+          // If the name is a UUID or "Unknown User", try to find the real name
+          if (isUUID(emp.name) || emp.name === 'Unknown User') {
+            const realEmployee = employees.find(e => e.id === emp.id);
+            if (realEmployee && realEmployee.name && !isUUID(realEmployee.name)) {
+              return realEmployee.name;
+            }
+            // Use email prefix if available
+            if (emp.email && emp.email.includes('@')) {
+              return emp.email.split('@')[0];
+            }
+            return 'Unknown User';
+          }
+          return emp.name;
+        })
+        .filter(name => name && name.trim() && name !== '' && name !== 'Unknown User')
+        .filter((name, index, array) => array.indexOf(name) === index); // Remove duplicates
       
-      console.log('[AssignmentDetails] Using assignedEmployees data:', names);
+      console.log('[AssignmentDetails] Processed assignedEmployees names:', processedNames);
       
       return {
-        names,
+        names: processedNames,
         hasFullData: true
       };
     }
@@ -88,22 +109,21 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       
       // Check if employees array contains names or IDs
       const firstEmployee = assignment.employees[0];
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(firstEmployee);
       
-      if (isUUID) {
+      if (isUUID(firstEmployee)) {
         // Convert UUIDs to names
         const names = getEmployeeNamesFromIds(assignment.employees, employees);
         console.log('[AssignmentDetails] Converted UUIDs to names:', names);
         
         return {
-          names: names.filter(name => name && !name.startsWith('User ')),
+          names: names.filter(name => name && !isUUID(name) && name !== 'Unknown User'),
           hasFullData: false
         };
       } else {
-        // Already names, filter out any fallback names
-        const names = assignment.employees.filter(name => 
-          name && typeof name === 'string' && !name.startsWith('User ')
-        );
+        // Already names, filter out any invalid names
+        const names = assignment.employees
+          .filter(name => name && typeof name === 'string' && !isUUID(name) && name !== 'Unknown User')
+          .filter((name, index, array) => array.indexOf(name) === index); // Remove duplicates
         console.log('[AssignmentDetails] Using legacy employee names directly:', names);
         
         return {
