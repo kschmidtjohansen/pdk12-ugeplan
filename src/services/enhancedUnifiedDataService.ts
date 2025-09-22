@@ -124,16 +124,48 @@ class EnhancedUnifiedDataService {
 
       // Transform raw assignment data to Assignment format
       let assignments: Assignment[] = result.data.map(assignment => {
-        // Extract employee data from the nested structure
+        // Extract employee data from the nested structure with proper name handling
         const assignedEmployees = (assignment.assignments_employees || [])
-          .map(ae => ({
-            id: ae.profiles?.id || ae.user_id,
-            name: ae.profiles?.name || 'Unknown',
-            email: ae.profiles?.email || 'unknown@example.com'
-          }))
-          .filter(emp => emp.name && emp.name !== 'Unknown');
+          .map(ae => {
+            const profileName = ae.profiles?.name;
+            const profileEmail = ae.profiles?.email;
+            const userId = ae.profiles?.id || ae.user_id;
+            
+            // Function to check if a string is a UUID
+            const isUUID = (str: string) => {
+              const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+              return uuidRegex.test(str);
+            };
+            
+            // Determine the best name to use
+            let displayName = 'Unknown User';
+            
+            if (profileName && profileName.trim() && !isUUID(profileName)) {
+              // Use profile name if it exists and is not a UUID
+              displayName = profileName.trim();
+            } else if (profileEmail && profileEmail.includes('@')) {
+              // Use email prefix as fallback if name is missing or is a UUID
+              displayName = profileEmail.split('@')[0];
+            }
+            
+            return {
+              id: userId,
+              name: displayName,
+              email: profileEmail || ''
+            };
+          })
+          .filter(emp => emp.id); // Only filter out entries without IDs
         
         const employeeNames = assignedEmployees.map(emp => emp.name);
+        
+        // Debug logging for assignment employee data
+        if (assignedEmployees.length > 0) {
+          console.log(`[EnhancedUnifiedDataService] Assignment ${assignment.title} - Employee data:`, {
+            assignedEmployeesCount: assignedEmployees.length,
+            sampleEmployee: assignedEmployees[0],
+            allEmployeeNames: employeeNames
+          });
+        }
         
         // Handle responsible user data
         const responsibleUser = assignment.responsible_user && typeof assignment.responsible_user === 'object' ? {
