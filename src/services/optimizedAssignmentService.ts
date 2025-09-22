@@ -253,84 +253,135 @@ export class OptimizedAssignmentService {
     try {
       console.log(`[OptimizedAssignmentService] Using secure function for all assignments, role: ${role}`);
 
-      // Use the secure function that handles role-based access
-      const { data, error } = await supabase.rpc('list_accessible_assignments_with_team');
+      // Try the secure RPC first
+      try {
+        const { data, error } = await supabase.rpc('list_accessible_assignments_with_team');
 
-      if (error) {
-        console.error('[OptimizedAssignmentService] Secure function error:', error);
-        throw new Error(`Secure function error: ${error.message}`);
-      }
-
-      if (!data) {
-        console.log('[OptimizedAssignmentService] No assignments found from secure function');
-        return [];
-      }
-
-      console.log(`[OptimizedAssignmentService] Secure function returned ${data.length} assignments`);
-      
-      // Convert secure function result to OptimizedAssignmentData format with enhanced error handling
-      const convertedData = data.map(assignment => {
-        try {
-          // Ensure car_ids is properly handled as UUID array
-          let carIds: string[] = [];
-          if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
-            carIds = assignment.car_ids.filter(Boolean); // Remove any null/undefined values
-          } else if (assignment.car_id) {
-            carIds = [assignment.car_id]; // Convert single car to array
-          }
-
-          return {
-            id: assignment.id,
-            title: assignment.title,
-            description: assignment.description,
-            assignment_date: assignment.assignment_date,
-            from_time: assignment.from_time,
-            to_time: assignment.to_time,
-            location: assignment.location,
-            type: assignment.type,
-            published: assignment.published,
-            responsible_user_id: assignment.responsible_user_id,
-            created_at: assignment.created_at,
-            updated_at: assignment.updated_at,
-            car_id: assignment.car_id,
-            car_ids: carIds, // Use processed car IDs
-            responsible_user: assignment.responsible_user ? {
-              id: (assignment.responsible_user as any).id || '',
-              name: (assignment.responsible_user as any).name || '',
-            } : null,
-            assignment_employees: Array.isArray(assignment.team) ? assignment.team.map((member: any) => ({
-              user_id: member.id,
-              profiles: { id: member.id, name: member.name || '', email: member.email || '' }
-            })) : [],
-            assignment_cars: [] // Will be populated by enrichment if needed
-          };
-        } catch (conversionError) {
-          console.error('[OptimizedAssignmentService] Error converting assignment:', conversionError, assignment);
-          // Return a safe fallback assignment
-          return {
-            id: assignment.id || '',
-            title: assignment.title || 'Unknown Assignment',
-            description: assignment.description || '',
-            assignment_date: assignment.assignment_date || '',
-            from_time: assignment.from_time || '08:00',
-            to_time: assignment.to_time || '16:00',
-            location: assignment.location || '',
-            type: assignment.type || null,
-            published: assignment.published || false,
-            responsible_user_id: assignment.responsible_user_id || null,
-            created_at: assignment.created_at || '',
-            updated_at: assignment.updated_at || '',
-            car_id: null,
-            car_ids: [],
-            responsible_user: null,
-            assignment_employees: [],
-            assignment_cars: []
-          };
+        if (error) {
+          console.error('[OptimizedAssignmentService] RPC error:', error);
+          throw new Error(`RPC failed: ${error.message}`);
         }
-      });
 
-      console.log('[OptimizedAssignmentService] Sample converted data:', convertedData[0]);
-      return convertedData;
+        if (!data) {
+          console.log('[OptimizedAssignmentService] No assignments found from secure function');
+          return [];
+        }
+
+        console.log(`[OptimizedAssignmentService] Secure function returned ${data.length} assignments`);
+        
+        // Convert secure function result to OptimizedAssignmentData format with enhanced error handling
+        const convertedData = data.map(assignment => {
+          try {
+            // Ensure car_ids is properly handled as UUID array
+            let carIds: string[] = [];
+            if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
+              carIds = assignment.car_ids.filter(Boolean); // Remove any null/undefined values
+            } else if (assignment.car_id) {
+              carIds = [assignment.car_id]; // Convert single car to array
+            }
+
+            return {
+              id: assignment.id,
+              title: assignment.title,
+              description: assignment.description,
+              assignment_date: assignment.assignment_date,
+              from_time: assignment.from_time,
+              to_time: assignment.to_time,
+              location: assignment.location,
+              type: assignment.type,
+              published: assignment.published,
+              responsible_user_id: assignment.responsible_user_id,
+              created_at: assignment.created_at,
+              updated_at: assignment.updated_at,
+              car_id: assignment.car_id,
+              car_ids: carIds, // Use processed car IDs
+              responsible_user: assignment.responsible_user ? {
+                id: (assignment.responsible_user as any).id || '',
+                name: (assignment.responsible_user as any).name || '',
+              } : null,
+              assignment_employees: Array.isArray(assignment.team) ? assignment.team.map((member: any) => ({
+                user_id: member.id,
+                profiles: { id: member.id, name: member.name || '', email: member.email || '' }
+              })) : [],
+              assignment_cars: [] // Will be populated by enrichment if needed
+            };
+          } catch (conversionError) {
+            console.error('[OptimizedAssignmentService] Error converting assignment:', conversionError, assignment);
+            // Return a safe fallback assignment
+            return {
+              id: assignment.id || '',
+              title: assignment.title || 'Unknown Assignment',
+              description: assignment.description || '',
+              assignment_date: assignment.assignment_date || '',
+              from_time: assignment.from_time || '08:00',
+              to_time: assignment.to_time || '16:00',
+              location: assignment.location || '',
+              type: assignment.type || null,
+              published: assignment.published || false,
+              responsible_user_id: assignment.responsible_user_id || null,
+              created_at: assignment.created_at || '',
+              updated_at: assignment.updated_at || '',
+              car_id: null,
+              car_ids: [],
+              responsible_user: null,
+              assignment_employees: [],
+              assignment_cars: []
+            };
+          }
+        });
+
+        console.log('[OptimizedAssignmentService] Sample converted data:', convertedData[0]);
+        return convertedData;
+      } catch (rpcError) {
+        console.warn('[OptimizedAssignmentService] RPC failed, falling back to direct query:', rpcError);
+        
+        // Fallback: Direct query with role-based filtering
+        const isAdmin = role === 'administrator' || role === 'skadeleder';
+        const query = supabase
+          .from('assignments')
+          .select(`
+            id,
+            title,
+            description,
+            assignment_date,
+            from_time,
+            to_time,
+            location,
+            type,
+            published,
+            responsible_user_id,
+            created_at,
+            updated_at,
+            car_id,
+            car_ids
+          `)
+          .order('assignment_date', { ascending: false })
+          .order('from_time', { ascending: false });
+
+        // Apply role-based filtering for non-admin users
+        if (!isAdmin) {
+          query.eq('published', true);
+        }
+
+        const { data: assignments, error } = await query;
+
+        if (error) {
+          console.error('[OptimizedAssignmentService] Fallback query failed:', error);
+          throw error;
+        }
+
+        if (!assignments) {
+          return [];
+        }
+
+        console.log(`[OptimizedAssignmentService] Fallback returned ${assignments.length} assignments`);
+        
+        // Enrich with employee and car data using existing method
+        const enrichedData = await this.enrichAssignmentData(assignments);
+        
+        console.log('[OptimizedAssignmentService] Sample fallback data:', enrichedData[0]);
+        return enrichedData;
+      }
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error fetching all assignments:', error);
       throw error;
