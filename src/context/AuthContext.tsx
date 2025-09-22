@@ -121,100 +121,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Circuit breaker for auth operations
   const AUTH_OPERATION_ID = 'auth_initialization';
 
-  // KASPER SESSION FIX: Enhanced user data fetching with comprehensive debugging
+  // Streamlined user data fetching
   const fetchUserData = async (authUser: User): Promise<AppUser | null> => {
-    const startTime = Date.now();
-    console.log(`[AuthContext] KASPER SESSION FIX - Starting user data fetch for: ${authUser.email}`);
-    console.log(`[AuthContext] KASPER SESSION FIX - Auth user ID: ${authUser.id}`);
-    console.log(`[AuthContext] KASPER SESSION FIX - Expected name: Kasper Schmidt Johansen`);
-    
     if (!circuitBreaker.canProceed(`user_data_fetch_${authUser.id}`)) {
-      console.warn(`[AuthContext] Circuit breaker open for user data fetch: ${authUser.email}`);
       return null;
     }
     
     try {
-      // KASPER SESSION FIX: More detailed logging for database queries
-      console.log(`[AuthContext] KASPER SESSION FIX - Fetching profile and role data from database...`);
-      console.log(`[AuthContext] KASPER SESSION FIX - Auth user object:`, authUser);
-      
-      // Use secure function to get user profile with role
-      const fetchPromise = supabase.rpc('get_profile_detailed', { 
-        profile_user_id: authUser.id 
-      }).maybeSingle();
-
-      // Add timeout to prevent hanging
+      // Use secure function to get user profile with role with timeout
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('User data fetch timeout')), 5000)
+        setTimeout(() => reject(new Error('User data fetch timeout')), 3000)
       );
+      
+      const fetchPromise = supabase
+        .rpc('get_profile_detailed', { profile_user_id: authUser.id })
+        .maybeSingle();
 
-      const profileData = await Promise.race([fetchPromise, timeoutPromise]) as any;
+      const profileResult = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
-      console.log(`[AuthContext] KASPER SESSION FIX - Database query completed in ${Date.now() - startTime}ms`);
-      console.log(`[AuthContext] KASPER SESSION FIX - Profile result:`, profileData);
-      console.log(`[AuthContext] KASPER SESSION FIX - Profile data:`, profileData?.data);
-      console.log(`[AuthContext] KASPER SESSION FIX - Profile name:`, profileData?.data?.name);
-      console.log(`[AuthContext] KASPER SESSION FIX - Profile error:`, profileData?.error);
-
-      // KASPER SESSION FIX: Better error handling for database errors
-      if (profileData.error) {
-        console.error(`[AuthContext] KASPER SESSION FIX - Profile fetch error:`, profileData.error);
-        console.error(`[AuthContext] KASPER SESSION FIX - Profile error details:`, {
-          message: profileData.error.message,
-          details: profileData.error.details,
-          hint: profileData.error.hint,
-          code: profileData.error.code
-        });
-        
-        // MARK HANSEN FIX: Don't throw error, continue with email as name
-        console.warn(`[AuthContext] MARK HANSEN FIX - Profile fetch failed, using email as name: ${authUser.email}`);
-        
+      if (profileResult.error) {
+        // Fallback user with email as name
         const appUser: AppUser = {
           id: authUser.id,
           email: authUser.email,
-          name: authUser.email, // Use email as fallback
+          name: authUser.email,
           role: 'servicemedarbejder'
         };
-        
-        console.log(`[AuthContext] MARK HANSEN FIX - Created fallback user:`, appUser);
         return appUser;
       }
 
-      // BRIAN REUS FIX: Improved name handling with explicit fallback chain
+      // Handle demo user and regular users
       const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
-      let name: string;
-      
-      if (isDemoUser) {
-        name = 'Demo User';
-        console.log(`[AuthContext] BRIAN REUS DEBUG - Using demo user name: ${name}`);
-      } else if (profileData.data?.name) {
-        name = profileData.data.name;
-        console.log(`[AuthContext] BRIAN REUS DEBUG - Using profile name: ${name}`);
-      } else if (authUser.email) {
-        name = authUser.email;
-        console.log(`[AuthContext] BRIAN REUS DEBUG - Using email as name: ${name}`);
-      } else {
-        name = 'Unknown User';
-        console.log(`[AuthContext] BRIAN REUS DEBUG - Using fallback name: ${name}`);
-      }
-      
-      // BRIAN REUS FIX: Enhanced role handling with explicit logging
-      let role: UserRole = 'servicemedarbejder';
-      
-      if (isDemoUser) {
-        if (profileData.data?.role) {
-          role = profileData.data.role as UserRole;
-          console.log(`[AuthContext] BRIAN REUS DEBUG - Demo user: Using database role: ${role}`);
-        } else {
-          role = 'administrator';
-          console.log(`[AuthContext] BRIAN REUS DEBUG - Demo user: No role found, defaulting to administrator`);
-        }
-      } else if (profileData.data?.role) {
-        role = profileData.data.role as UserRole;
-        console.log(`[AuthContext] BRIAN REUS DEBUG - Regular user: Using database role: ${role}`);
-      } else {
-        console.warn(`[AuthContext] BRIAN REUS DEBUG - No role found for user ${authUser.email}, using default: ${role}`);
-      }
+      const name = isDemoUser ? 'Demo User' : (profileResult.data?.name || authUser.email || 'Unknown User');
+      const role: UserRole = profileResult.data?.role || (isDemoUser ? 'administrator' : 'servicemedarbejder');
 
       const enhancedUser: AppUser = {
         id: authUser.id,
@@ -222,39 +161,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email: authUser.email || '',
         role
       };
-
-      console.log(`[AuthContext] KASPER SESSION FIX - Final user object created:`, {
-        id: enhancedUser.id,
-        name: enhancedUser.name,
-        email: enhancedUser.email,
-        role: enhancedUser.role,
-        isDemoUser,
-        totalTime: Date.now() - startTime,
-        expectedName: 'Kasper Schmidt Johansen',
-        nameMatches: enhancedUser.name === 'Kasper Schmidt Johansen',
-        expectedRole: 'administrator',
-        roleMatches: enhancedUser.role === 'administrator'
-      });
       
       circuitBreaker.recordSuccess(`user_data_fetch_${authUser.id}`);
       return enhancedUser;
       
     } catch (error) {
-      console.error(`[AuthContext] BRIAN REUS DEBUG - User data fetch failed after ${Date.now() - startTime}ms:`, error);
       circuitBreaker.recordFailure(`user_data_fetch_${authUser.id}`);
       
-      // BRIAN REUS FIX: Better fallback handling with detailed logging
+      // Better fallback handling 
       const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
       const fallbackRole: UserRole = isDemoUser ? 'administrator' : 'servicemedarbejder';
-      
-      let fallbackName: string;
-      if (isDemoUser) {
-        fallbackName = 'Demo User';
-      } else if (authUser.email) {
-        fallbackName = authUser.email;
-      } else {
-        fallbackName = 'System User';
-      }
+      const fallbackName = isDemoUser ? 'Demo User' : (authUser.email || 'Unknown User');
       
       const fallbackUser: AppUser = {
         id: authUser.id,

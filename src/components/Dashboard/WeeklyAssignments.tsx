@@ -8,7 +8,6 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useCars } from '@/hooks/car';
 import { Assignment } from '@/types/assignment';
 import { filterDisplayNames } from '@/utils/people';
-import WeekNavigation from './WeekNavigation';
 import AssignmentDetailsDialog from './AssignmentDetailsDialog';
 
 interface WeeklyAssignmentsProps {
@@ -119,11 +118,6 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                   <h2 className="text-lg sm:text-xl font-bold">
                     {t('dashboard.myAssignments')}
                   </h2>
-                  <WeekNavigation 
-                    onPrevious={onPreviousWeek} 
-                    onNext={onNextWeek} 
-                    currentWeek={selectedWeek} 
-                  />
                 </div>
               </div>
 

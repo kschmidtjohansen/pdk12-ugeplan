@@ -6,7 +6,7 @@ import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentData
 import { useCars } from '@/hooks/car';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, UserCheck, Calendar, Users, Car, Navigation } from 'lucide-react';
+import { Clock, MapPin, UserCheck, Calendar, Users, Car, Navigation, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { getCurrentWeekInfo, getWeekDates } from '@/utils/dates';
@@ -246,21 +246,41 @@ const MineOpgaver: React.FC = () => {
             key={assignment.id}
             className="flex flex-col space-y-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
           >
-            {/* Title and Date */}
+            {/* Title and Date with Navigation */}
             <div className="flex items-start justify-between">
               <h4 className="font-medium text-sm leading-tight">
                 {assignment.title}
               </h4>
-              <Badge 
-                variant="outline" 
-                className={`text-xs ${
-                  isToday(parseISO(assignment.date)) 
-                    ? 'bg-primary/10 text-primary border-primary/20' 
-                    : 'bg-muted'
-                }`}
-              >
-                {formatAssignmentDate(assignment.date)}
-              </Badge>
+              <div className="flex items-center gap-1">
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs ${
+                    isToday(parseISO(assignment.date)) 
+                      ? 'bg-primary/10 text-primary border-primary/20' 
+                      : 'bg-muted'
+                  }`}
+                >
+                  {formatAssignmentDate(assignment.date)}
+                </Badge>
+                {(isToday(parseISO(assignment.date)) || isTomorrow(parseISO(assignment.date))) && (
+                  <div className="flex items-center gap-0 ml-1">
+                    <button
+                      className="h-6 w-6 rounded-l-sm bg-background border border-border hover:bg-accent/50 transition-colors flex items-center justify-center"
+                      onClick={() => {/* Previous day logic */}}
+                      title="Forrige dag"
+                    >
+                      <ArrowLeft className="h-3 w-3" />
+                    </button>
+                    <button
+                      className="h-6 w-6 rounded-r-sm bg-background border-l-0 border-t border-r border-b border-border hover:bg-accent/50 transition-colors flex items-center justify-center"
+                      onClick={() => {/* Next day logic */}}
+                      title="Næste dag"
+                    >
+                      <ArrowRight className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Location */}
