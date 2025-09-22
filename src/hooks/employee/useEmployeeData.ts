@@ -5,13 +5,14 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DemoUserService } from '@/services/demoUserService';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, usePermissions } from '@/context/AuthContext';
 import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 
 export const useEmployeeData = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { isAdmin } = usePermissions();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,9 +28,12 @@ export const useEmployeeData = () => {
       
       console.log('[useEmployeeData] FIXED - Starting employee fetch with corrected RLS policy...');
       
-      // Use secure function to fetch basic profile information
+      // Use admin function for administrators to get phone/notes, basic function for others
+      const profilesFunction = isAdmin ? 'get_profiles_admin_detailed' : 'get_profiles_basic';
+      console.log(`[useEmployeeData] Using ${profilesFunction} for profile data`);
+      
       const { data: profiles, error: profilesError } = await supabase
-        .rpc('get_profiles_basic');
+        .rpc(profilesFunction);
       
       if (profilesError) {
         console.error('[useEmployeeData] Profiles fetch error:', profilesError);
@@ -72,12 +76,12 @@ export const useEmployeeData = () => {
           id: profile.id,
           name: profile.name || 'Unknown',
           email: profile.email || '',
-          phone: '', // Not available in basic profile data
+          phone: profile.phone || '', // Available in admin function
           jobTitle: profile.job_title || '',
           role: role as 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'vikar',
           onLeave: profile.on_leave || false, // Now properly using actual on_leave value from database
           status: profile.status || 'active',
-          notes: '', // Not available in basic profile data
+          notes: profile.notes || '', // Available in admin function
           avatar_url: profile.avatar_url
         };
         

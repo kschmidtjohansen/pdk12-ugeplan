@@ -105,10 +105,12 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
             <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
             {employee.email}
           </div>
-          <div className="flex items-center text-sm">
-            <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-            {employee.phone}
-          </div>
+          {(isAdmin || isSkadeleder) && (
+            <div className="flex items-center text-sm">
+              <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+              {employee.phone || t('employees.noPhoneProvided')}
+            </div>
+          )}
         </div>
       </TableCell>
       <TableCell>{employee.jobTitle}</TableCell>

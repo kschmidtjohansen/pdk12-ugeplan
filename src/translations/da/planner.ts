@@ -130,10 +130,10 @@ const planner = {
   createFirst: 'Opret din første opgave',
   
   // Unassigned resources
-  unassignedResources: 'Ikke-tildelte Ressourcer',
+  unassignedResources: 'Ledige Ressourcer',
   unassignedEmployees: 'Ikke-tildelte Medarbejdere',
   unassignedCars: 'Ikke-tildelte Biler',
-  employeesOnVacation: 'Medarbejdere på Ferie',
+  employeesOnVacation: 'Medarbejdere der holder fri',
   availableEmployees: 'Tilgængelige Medarbejdere',
   availableCars: 'Tilgængelige Biler',
   
@@ -192,7 +192,7 @@ const planner = {
   // Additional translations for enhanced unassigned resources
   fullyAvailableEmployees: 'Fuldt Tilgængelige Medarbejdere',
   partiallyAvailableEmployees: 'Delvist Tilgængelige Medarbejdere',
-  onVacationEmployees: 'Medarbejdere på Ferie',
+  onVacationEmployees: 'Medarbejdere der holder fri',
   availableCount: 'Tilgængelige',
   onVacationCount: 'På Ferie',
   partiallyBookedCount: 'Delvist Optaget',
