@@ -7,6 +7,7 @@ import { Calendar, Users, Car, Clock, ArrowRight, UserCheck } from 'lucide-react
 import { useTranslation } from '@/context/TranslationContext';
 import { useCars } from '@/hooks/car';
 import { Assignment } from '@/types/assignment';
+import { filterDisplayNames } from '@/utils/people';
 import WeekNavigation from './WeekNavigation';
 import AssignmentDetailsDialog from './AssignmentDetailsDialog';
 
@@ -62,17 +63,15 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
 
   // Function to get employee names from assignment
   const getEmployeeNames = (assignment: Assignment): string[] => {
+    let names: string[] = [];
     // Priority 1: Use assignedEmployees array (new format with full employee objects)
     if (assignment.assignedEmployees && assignment.assignedEmployees.length > 0) {
-      return assignment.assignedEmployees.map(emp => emp.name);
+      names = assignment.assignedEmployees.map(emp => emp.name);
+    } else if (assignment.employees && assignment.employees.length > 0) {
+      // Priority 2: Use employees array (legacy format with names)
+      names = assignment.employees;
     }
-    
-    // Priority 2: Use employees array (legacy format with names)
-    if (assignment.employees && assignment.employees.length > 0) {
-      return assignment.employees;
-    }
-    
-    return [];
+    return filterDisplayNames(names);
   };
 
   const sortedAssignments = useMemo(() => {

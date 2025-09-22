@@ -9,7 +9,7 @@ import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
 import { useAuth } from '@/context/AuthContext';
 import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 import { DemoUserService } from '@/services/demoUserService';
-
+import { resolveEmployeeDisplayName, filterDisplayNames } from '@/utils/people';
 export const useAssignmentDataOptimized = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -44,16 +44,19 @@ export const useAssignmentDataOptimized = () => {
       
       // Enhanced data transformation with better error handling
       let transformedAssignments: Assignment[] = assignmentsWithEmployees.map(assignment => {
-        // Extract employee data from the nested structure
+        // Extract employee data from the nested structure with robust name resolution
         const assignedEmployees = (assignment.assignments_employees || [])
-          .map(ae => ({
-            id: ae.profiles?.id || ae.user_id,
-            name: ae.profiles?.name || 'Unknown',
-            email: ae.profiles?.email || 'unknown@example.com'
-          }))
-          .filter(emp => emp.name && emp.name !== 'Unknown');
+          .map(ae => {
+            const id = ae.profiles?.id || ae.user_id;
+            const name = resolveEmployeeDisplayName({ id, name: ae.profiles?.name, email: ae.profiles?.email });
+            return {
+              id,
+              name,
+              email: ae.profiles?.email || ''
+            };
+          });
         
-        const employeeNames = assignedEmployees.map(emp => emp.name);
+        const employeeNames = filterDisplayNames(assignedEmployees.map(emp => emp.name));
         
         // Handle responsible user data
         const responsibleUser = assignment.responsible_user && typeof assignment.responsible_user === 'object' ? {

@@ -11,6 +11,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { getCurrentWeekInfo, getWeekDates } from '@/utils/dates';
 import { da } from 'date-fns/locale';
+import { filterDisplayNames } from '@/utils/people';
 
 const MineOpgaver: React.FC = () => {
   const { user } = useAuth();
@@ -273,17 +274,18 @@ const MineOpgaver: React.FC = () => {
 
             {/* Show all team members for assignments user can access */}
             {(() => {
-              let teamMembers = [];
+              let names: string[] = [];
               
               // Priority 1: Use assignedEmployees array (new format with full employee objects)
               if (assignment.assignedEmployees?.length) {
-                teamMembers = assignment.assignedEmployees.map(emp => emp.name);
+                names = assignment.assignedEmployees.map(emp => emp.name);
               } 
               // Priority 2: Use employees array (legacy format with names)
               else if (assignment.employees?.length) {
-                teamMembers = assignment.employees;
+                names = assignment.employees;
               }
               
+              const teamMembers = filterDisplayNames(names);
               return teamMembers.length > 0 ? (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Users className="h-3 w-3" />

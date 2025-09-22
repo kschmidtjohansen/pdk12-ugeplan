@@ -5,6 +5,7 @@ import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { useAuth } from '@/context/AuthContext';
+import { reconcileAssignmentEmployeeNames } from '@/utils/people';
 
 interface UseEnhancedUnifiedDataResult {
   employees: Employee[];
@@ -50,7 +51,10 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
       }
 
       setEmployees(employeesResult.data);
-      setAssignments(assignmentsResult.data);
+      const reconciledAssignments = (assignmentsResult.data || []).map(a => 
+        reconcileAssignmentEmployeeNames(a, employeesResult.data || [])
+      );
+      setAssignments(reconciledAssignments);
       setCars(carsResult.data);
       setFromCache(employeesResult.fromCache || assignmentsResult.fromCache || carsResult.fromCache);
       setHealthCheck(employeesResult.healthCheck && assignmentsResult.healthCheck && carsResult.healthCheck);
