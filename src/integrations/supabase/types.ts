@@ -727,7 +727,9 @@ export type Database = {
         }[]
       }
       get_profiles_admin_detailed: {
-        Args: Record<PropertyKey, never>
+        Args:
+          | Record<PropertyKey, never>
+          | { access_reason?: string; full_access?: boolean }
         Returns: {
           avatar_url: string
           created_at: string
@@ -884,6 +886,14 @@ export type Database = {
       log_vacation_security_event: {
         Args: { details?: Json; event_type: string; vacation_id: string }
         Returns: undefined
+      }
+      mask_email: {
+        Args: { p_email: string }
+        Returns: string
+      }
+      mask_phone: {
+        Args: { p_phone: string }
+        Returns: string
       }
       perform_database_maintenance: {
         Args: Record<PropertyKey, never>

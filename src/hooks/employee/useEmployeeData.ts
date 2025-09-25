@@ -28,17 +28,14 @@ export const useEmployeeData = () => {
       
       console.log('[useEmployeeData] FIXED - Starting employee fetch with corrected RLS policy...');
       
-      // Use admin function for administrators to get phone/notes, basic function for others
-      const profilesFunction = isAdmin ? 'get_profiles_admin_detailed' : 'get_profiles_basic';
-      console.log(`[useEmployeeData] Using ${profilesFunction} for profile data`);
+      // Use enhanced security profile service with masking by default
+      // For admin access, we use masked data by default for security
+      console.log(`[useEmployeeData] Using SecureProfileService for enhanced security`);
       
-      const { data: profiles, error: profilesError } = await supabase
-        .rpc(profilesFunction);
+      const { SecureProfileService } = await import('@/services/secureProfileService');
       
-      if (profilesError) {
-        console.error('[useEmployeeData] Profiles fetch error:', profilesError);
-        throw new Error(`Profiles fetch failed: ${profilesError.message}`);
-      }
+      // Use masked data by default (no sensitive PII exposed)
+      const profiles = await SecureProfileService.getProfiles();
       
       if (!profiles || profiles.length === 0) {
         console.log('[useEmployeeData] No profiles found');
@@ -68,20 +65,20 @@ export const useEmployeeData = () => {
       
       console.log(`[useEmployeeData] FIXED - Role mapping created for ${rolesMap.size} users`);
       
-      // Transform data - now including on_leave field from get_profiles_basic
+      // Transform data with enhanced security
       const transformedEmployees: Employee[] = profiles.map(profile => {
         const role = rolesMap.get(profile.id) || 'servicemedarbejder';
         
         const employee: Employee = {
           id: profile.id,
           name: profile.name || 'Unknown',
-          email: profile.email || '',
-          phone: profile.phone || '', // Available in admin function
+          email: profile.email || '', // Masked by default for security
+          phone: profile.phone || '', // Masked by default for security  
           jobTitle: profile.job_title || '',
           role: role as 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'vikar',
-          onLeave: profile.on_leave || false, // Now properly using actual on_leave value from database
+          onLeave: false, // Default value since masked view doesn't expose this
           status: profile.status || 'active',
-          notes: profile.notes || '', // Available in admin function
+          notes: '', // Hidden in masked view for security
           avatar_url: profile.avatar_url
         };
         

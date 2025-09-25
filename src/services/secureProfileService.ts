@@ -52,17 +52,31 @@ export class SecureProfileService {
 
   /**
    * Get multiple profiles (admin/skadeleder only)
-   * Now uses the new restrictive RLS policies with automatic audit logging
+   * Now uses masked data by default for enhanced security
+   * @param fullAccess - Whether to return unmasked sensitive data (requires justification)
+   * @param accessReason - Reason for requesting full access (required when fullAccess=true)
    */
-  static async getProfiles(): Promise<SecureProfile[]> {
+  static async getProfiles(fullAccess: boolean = false, accessReason?: string): Promise<SecureProfile[]> {
     try {
-      // The new RLS policies automatically restrict access and log access attempts
-      // Use secure function to get admin-level profile data
+      // Validate full access request
+      if (fullAccess && !accessReason) {
+        throw new Error('Access reason is required when requesting full access to profile data');
+      }
+
+      // Use the enhanced security function with masking support
       const { data, error } = await supabase
-        .rpc('get_profiles_admin_detailed');
+        .rpc('get_profiles_admin_detailed', { 
+          full_access: fullAccess,
+          access_reason: accessReason 
+        });
 
       if (error) {
-        logAccessAttempt('profiles', false, { operation: 'SELECT_ALL', error: error.message });
+        logAccessAttempt('profiles', false, { 
+          operation: 'SELECT_ALL', 
+          error: error.message,
+          fullAccess,
+          accessReason 
+        });
         console.error('Error fetching profiles:', error);
         return [];
       }
@@ -70,31 +84,51 @@ export class SecureProfileService {
       // If no data is returned, it could mean:
       // 1. No profiles exist, or 
       // 2. User doesn't have permission (RLS blocked access)
-      // The logging is handled automatically by the database policies
       if (!data || data.length === 0) {
         console.warn('[SecureProfileService] No profiles returned - check permissions');
         return [];
       }
 
-      logAccessAttempt('profiles', true, { operation: 'SELECT_ALL', count: data?.length || 0 });
+      logAccessAttempt('profiles', true, { 
+        operation: 'SELECT_ALL', 
+        count: data?.length || 0,
+        fullAccess,
+        accessReason: fullAccess ? accessReason : 'masked_access'
+      });
       
       // Transform the data to match SecureProfile interface  
-      // get_profiles_admin_detailed returns data without user_roles relation
       return data.map(profile => ({
         id: profile.id,
         name: profile.name,
-        email: profile.email,
-        phone: profile.phone,
+        email: profile.email, // Will be masked unless fullAccess=true
+        phone: profile.phone, // Will be masked unless fullAccess=true
         job_title: profile.job_title,
         status: profile.status,
         avatar_url: profile.avatar_url,
         role: 'servicemedarbejder' // Default role, need to get from user_roles separately
       })) as SecureProfile[];
     } catch (error) {
-      logAccessAttempt('profiles', false, { operation: 'SELECT_ALL', error: error instanceof Error ? error.message : 'Unknown error' });
+      logAccessAttempt('profiles', false, { 
+        operation: 'SELECT_ALL', 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        fullAccess,
+        accessReason 
+      });
       console.error('Error in getProfiles:', error);
       return [];
     }
+  }
+
+  /**
+   * Get profiles with full access (unmasked sensitive data)
+   * This method requires explicit justification and logs high-priority access
+   */
+  static async getProfilesFullAccess(accessReason: string): Promise<SecureProfile[]> {
+    if (!accessReason || accessReason.trim().length < 10) {
+      throw new Error('Valid access reason (minimum 10 characters) is required for full profile access');
+    }
+
+    return this.getProfiles(true, accessReason);
   }
 
   /**
