@@ -639,6 +639,21 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_accessible_profiles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          access_level: string
+          avatar_url: string
+          created_at: string
+          email: string
+          id: string
+          job_title: string
+          name: string
+          phone: string
+          status: Database["public"]["Enums"]["employee_status"]
+          updated_at: string
+        }[]
+      }
       get_car_with_conditional_access: {
         Args: { car_row: Database["public"]["Tables"]["cars"]["Row"] }
         Returns: {
