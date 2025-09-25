@@ -37,53 +37,61 @@ export const useEnhancedSecurity = () => {
     );
   }, [user?.id]);
 
-  // Enhanced input validation with security logging
+  // Enhanced input validation with server-side validation
   const validateSecureInput = useCallback((input: string, context: string): boolean => {
-    if (!input) return true;
-
-    // Check for potential XSS patterns
+    // Basic client-side patterns (keep lightweight)
     const xssPatterns = [
       /<script[^>]*>.*?<\/script>/gi,
       /javascript:/gi,
+      /vbscript:/gi,
       /on\w+\s*=/gi,
-      /<iframe[^>]*>/gi,
-      /<object[^>]*>/gi,
-      /<embed[^>]*>/gi
+      /<iframe/gi,
+      /<object/gi,
+      /<embed/gi,
+      /data:text\/html/gi
     ];
-
-    for (const pattern of xssPatterns) {
-      if (pattern.test(input)) {
-        detectSecurityViolation('xss_attempt', {
-          context,
-          inputLength: input.length,
-          pattern: pattern.source
-        });
-        return false;
-      }
-    }
-
-    // Check for SQL injection patterns
+    
     const sqlPatterns = [
-      /(\b(union|select|insert|update|delete|drop|create|alter)\b.*\b(from|where|into|values|table)\b)/gi,
-      /('.*?'.*?;.*?--)/gi,
-      /(\/\*.*?\*\/)/gi
+      /(\bselect\b|\binsert\b|\bupdate\b|\bdelete\b|\bunion\b|\bdrop\b)/gi,
+      /'(\s*)(union|select|insert|update|delete)/gi,
+      /;\s*(drop|delete|update)/gi,
+      /exec\s*\(/gi,
+      /execute\s*\(/gi
     ];
-
-    for (const pattern of sqlPatterns) {
-      if (pattern.test(input)) {
-        detectSecurityViolation('sql_injection_attempt', {
-          context,
-          inputLength: input.length,
-          pattern: pattern.source
-        });
-        return false;
-      }
+    
+    // Check input length
+    if (input.length > 10000) {
+      detectSecurityViolation('input_too_long', {
+        context,
+        length: input.length,
+        ...metricsRef.current
+      });
+      return false;
     }
-
+    
+    const hasXSS = xssPatterns.some(pattern => pattern.test(input));
+    const hasSQL = sqlPatterns.some(pattern => pattern.test(input));
+    
+    if (hasXSS || hasSQL) {
+      detectSecurityViolation('malicious_input', {
+        input: input.substring(0, 50), // Only log first 50 chars for security
+        context,
+        xss: hasXSS,
+        sql: hasSQL,
+        inputLength: input.length,
+        ...metricsRef.current
+      });
+      return false;
+    }
+    
+    // Update security metrics
+    metricsRef.current.activityCount++;
+    metricsRef.current.lastActivity = Date.now();
+    
     return true;
   }, [detectSecurityViolation]);
 
-  // Rate limiting with enhanced tracking
+  // Enhanced rate limiting with operation tracking
   const checkSecureRateLimit = useCallback((operation: string, maxAttempts: number = 5): boolean => {
     const key = `${operation}_${user?.id || 'anonymous'}`;
     const allowed = checkRateLimit(key, maxAttempts);
@@ -92,7 +100,20 @@ export const useEnhancedSecurity = () => {
       detectSecurityViolation('rate_limit_exceeded', {
         operation,
         maxAttempts,
-        userId: user?.id
+        timestamp: Date.now(),
+        userAgent: navigator.userAgent,
+        userId: user?.id,
+        ...metricsRef.current
+      });
+    }
+    
+    // Log successful operations too (for monitoring)
+    if (allowed && operation.includes('critical')) {
+      detectSecurityViolation('critical_operation_attempted', {
+        operation,
+        maxAttempts,
+        status: 'allowed',
+        ...metricsRef.current
       });
     }
     

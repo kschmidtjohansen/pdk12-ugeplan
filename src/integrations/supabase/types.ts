@@ -583,6 +583,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      check_rate_limit_security: {
+        Args: {
+          max_attempts?: number
+          operation_key: string
+          window_minutes?: number
+        }
+        Returns: boolean
+      }
       check_system_health: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -608,6 +616,10 @@ export type Database = {
         Returns: undefined
       }
       emergency_log_cleanup: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      enhanced_security_monitor: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
@@ -908,6 +920,10 @@ export type Database = {
       }
       validate_email_format_enhanced: {
         Args: { email: string }
+        Returns: boolean
+      }
+      validate_input_security: {
+        Args: { input_text: string; input_type: string; max_length?: number }
         Returns: boolean
       }
       verify_complete_fix: {
