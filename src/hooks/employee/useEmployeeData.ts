@@ -43,31 +43,14 @@ export const useEmployeeData = () => {
         return;
       }
       
-      console.log(`[useEmployeeData] Found ${profiles.length} profiles`);
+      console.log(`[useEmployeeData] Found ${profiles.length} profiles with roles included`);
       
-      // Now fetch user roles - this should work without infinite recursion
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
+      // FIXED: No need to fetch roles separately - the SecureProfileService now includes them
+      console.log(`[useEmployeeData] FIXED - Roles are now included directly from database function`);
       
-      if (rolesError) {
-        console.error('[useEmployeeData] FIXED - User roles fetch error (this should now work):', rolesError);
-        // Don't throw here, use default roles
-      } else {
-        console.log(`[useEmployeeData] FIXED - Successfully fetched ${userRoles?.length || 0} user roles`);
-      }
-      
-      // Create role mapping
-      const rolesMap = new Map<string, string>();
-      userRoles?.forEach(userRole => {
-        rolesMap.set(userRole.user_id, userRole.role);
-      });
-      
-      console.log(`[useEmployeeData] FIXED - Role mapping created for ${rolesMap.size} users`);
-      
-      // Transform data with enhanced security
+      // Transform data with enhanced security (roles now come directly from the service)
       const transformedEmployees: Employee[] = profiles.map(profile => {
-        const role = rolesMap.get(profile.id) || 'servicemedarbejder';
+        const role = profile.role || 'servicemedarbejder';
         
         const employee: Employee = {
           id: profile.id,

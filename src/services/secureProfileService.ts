@@ -105,7 +105,7 @@ export class SecureProfileService {
         job_title: profile.job_title,
         status: profile.status,
         avatar_url: profile.avatar_url,
-        role: 'servicemedarbejder' // Default role, need to get from user_roles separately
+        role: profile.role || 'servicemedarbejder' // Now includes actual role from database function
       })) as SecureProfile[];
     } catch (error) {
       logAccessAttempt('profiles', false, { 
