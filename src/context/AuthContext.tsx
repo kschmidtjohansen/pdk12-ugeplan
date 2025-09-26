@@ -106,7 +106,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [authReady, setAuthReady] = useState<boolean>(false);
   const [userDataLoaded, setUserDataLoaded] = useState<boolean>(false);
-  const [authInitialized, setAuthInitialized] = useState<boolean>(false);
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [sessionExpired, setSessionExpired] = useState<boolean>(false);
   const { toast } = useToast();
@@ -122,39 +121,103 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Circuit breaker for auth operations
   const AUTH_OPERATION_ID = 'auth_initialization';
 
-  // Streamlined user data fetching
+  // KASPER SESSION FIX: Enhanced user data fetching with comprehensive debugging
   const fetchUserData = async (authUser: User): Promise<AppUser | null> => {
+    const startTime = Date.now();
+    console.log(`[AuthContext] KASPER SESSION FIX - Starting user data fetch for: ${authUser.email}`);
+    console.log(`[AuthContext] KASPER SESSION FIX - Auth user ID: ${authUser.id}`);
+    console.log(`[AuthContext] KASPER SESSION FIX - Expected name: Kasper Schmidt Johansen`);
+    
     if (!circuitBreaker.canProceed(`user_data_fetch_${authUser.id}`)) {
+      console.warn(`[AuthContext] Circuit breaker open for user data fetch: ${authUser.email}`);
       return null;
     }
     
     try {
-      // Use secure function to get user profile with role with timeout
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('User data fetch timeout')), 3000)
-      );
+      // KASPER SESSION FIX: More detailed logging for database queries
+      console.log(`[AuthContext] KASPER SESSION FIX - Fetching profile and role data from database...`);
+      console.log(`[AuthContext] KASPER SESSION FIX - Auth user object:`, authUser);
       
-      const fetchPromise = supabase
-        .rpc('get_profile_detailed', { profile_user_id: authUser.id })
-        .maybeSingle();
+      const fetchPromise = Promise.all([
+        supabase.from('profiles').select('id, name, email').eq('id', authUser.id).maybeSingle(),
+        supabase.from('user_roles').select('user_id, role').eq('user_id', authUser.id).maybeSingle()
+      ]);
 
-      const profileResult = await Promise.race([fetchPromise, timeoutPromise]) as any;
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('User data fetch timeout')), 5000)
+      );
 
+      const [profileResult, roleResult] = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+      console.log(`[AuthContext] KASPER SESSION FIX - Database queries completed in ${Date.now() - startTime}ms`);
+      console.log(`[AuthContext] KASPER SESSION FIX - Profile result:`, profileResult);
+      console.log(`[AuthContext] KASPER SESSION FIX - Role result:`, roleResult);
+      console.log(`[AuthContext] KASPER SESSION FIX - Profile data:`, profileResult?.data);
+      console.log(`[AuthContext] KASPER SESSION FIX - Profile name:`, profileResult?.data?.name);
+      console.log(`[AuthContext] KASPER SESSION FIX - Role data:`, roleResult?.data);
+      console.log(`[AuthContext] KASPER SESSION FIX - Role:`, roleResult?.data?.role);
+      console.log(`[AuthContext] KASPER SESSION FIX - Profile error:`, profileResult?.error);
+      console.log(`[AuthContext] KASPER SESSION FIX - Role error:`, roleResult?.error);
+
+      // KASPER SESSION FIX: Better error handling for database errors
       if (profileResult.error) {
-        // Fallback user with email as name
-        const appUser: AppUser = {
-          id: authUser.id,
-          email: authUser.email,
-          name: authUser.email,
-          role: 'servicemedarbejder'
-        };
-        return appUser;
+        console.error(`[AuthContext] KASPER SESSION FIX - Profile fetch error:`, profileResult.error);
+        console.error(`[AuthContext] KASPER SESSION FIX - Profile error details:`, {
+          message: profileResult.error.message,
+          details: profileResult.error.details,
+          hint: profileResult.error.hint,
+          code: profileResult.error.code
+        });
+        throw new Error(`Profile fetch failed: ${profileResult.error.message}`);
+      }
+      
+      if (roleResult.error) {
+        console.error(`[AuthContext] KASPER SESSION FIX - Role fetch error:`, roleResult.error);
+        console.error(`[AuthContext] KASPER SESSION FIX - Role error details:`, {
+          message: roleResult.error.message,
+          details: roleResult.error.details,
+          hint: roleResult.error.hint,
+          code: roleResult.error.code
+        });
+        throw new Error(`Role fetch failed: ${roleResult.error.message}`);
       }
 
-      // Handle demo user and regular users
+      // BRIAN REUS FIX: Improved name handling with explicit fallback chain
       const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
-      const name = isDemoUser ? 'Demo User' : (profileResult.data?.name || authUser.email || 'Unknown User');
-      const role: UserRole = profileResult.data?.role || (isDemoUser ? 'administrator' : 'servicemedarbejder');
+      let name: string;
+      
+      if (isDemoUser) {
+        name = 'Demo User';
+        console.log(`[AuthContext] BRIAN REUS DEBUG - Using demo user name: ${name}`);
+      } else if (profileResult.data?.name) {
+        name = profileResult.data.name;
+        console.log(`[AuthContext] BRIAN REUS DEBUG - Using profile name: ${name}`);
+      } else if (authUser.email) {
+        name = authUser.email;
+        console.log(`[AuthContext] BRIAN REUS DEBUG - Using email as name: ${name}`);
+      } else {
+        name = 'Unknown User';
+        console.log(`[AuthContext] BRIAN REUS DEBUG - Using fallback name: ${name}`);
+      }
+      
+      // BRIAN REUS FIX: Enhanced role handling with explicit logging
+      let role: UserRole = 'servicemedarbejder';
+      
+      if (isDemoUser) {
+        if (roleResult.data?.role) {
+          role = roleResult.data.role as UserRole;
+          console.log(`[AuthContext] BRIAN REUS DEBUG - Demo user: Using database role: ${role}`);
+        } else {
+          role = 'administrator';
+          console.log(`[AuthContext] BRIAN REUS DEBUG - Demo user: No role found, defaulting to administrator`);
+        }
+      } else if (roleResult.data?.role) {
+        role = roleResult.data.role as UserRole;
+        console.log(`[AuthContext] BRIAN REUS DEBUG - Regular user: Using database role: ${role}`);
+      } else {
+        console.warn(`[AuthContext] BRIAN REUS DEBUG - No role found for user ${authUser.email}, using default: ${role}`);
+      }
 
       const enhancedUser: AppUser = {
         id: authUser.id,
@@ -162,17 +225,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email: authUser.email || '',
         role
       };
+
+      console.log(`[AuthContext] KASPER SESSION FIX - Final user object created:`, {
+        id: enhancedUser.id,
+        name: enhancedUser.name,
+        email: enhancedUser.email,
+        role: enhancedUser.role,
+        isDemoUser,
+        totalTime: Date.now() - startTime,
+        expectedName: 'Kasper Schmidt Johansen',
+        nameMatches: enhancedUser.name === 'Kasper Schmidt Johansen',
+        expectedRole: 'administrator',
+        roleMatches: enhancedUser.role === 'administrator'
+      });
       
       circuitBreaker.recordSuccess(`user_data_fetch_${authUser.id}`);
       return enhancedUser;
       
     } catch (error) {
+      console.error(`[AuthContext] BRIAN REUS DEBUG - User data fetch failed after ${Date.now() - startTime}ms:`, error);
       circuitBreaker.recordFailure(`user_data_fetch_${authUser.id}`);
       
-      // Better fallback handling 
+      // BRIAN REUS FIX: Better fallback handling with detailed logging
       const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
       const fallbackRole: UserRole = isDemoUser ? 'administrator' : 'servicemedarbejder';
-      const fallbackName = isDemoUser ? 'Demo User' : (authUser.email || 'Unknown User');
+      
+      let fallbackName: string;
+      if (isDemoUser) {
+        fallbackName = 'Demo User';
+      } else if (authUser.email) {
+        fallbackName = authUser.email;
+      } else {
+        fallbackName = 'System User';
+      }
       
       const fallbackUser: AppUser = {
         id: authUser.id,
@@ -198,7 +283,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!circuitBreaker.canProceed(AUTH_OPERATION_ID)) {
       console.warn('[AuthContext] Auth initialization circuit breaker is open');
       setLoading(false);
-      setAuthInitialized(true);
+      setAuthReady(true);
       return;
     }
 
@@ -265,65 +350,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               setUser(null);
               setUserDataLoaded(false);
               
-              // KASPER FIX: Fetch complete user data BEFORE setting user state (deferred to avoid deadlocks)
-              setTimeout(() => {
-                (async () => {
-                  if (!mounted) return;
-                  
-                  try {
-                    console.log(`[AuthContext] KASPER FIX - Fetching complete user data for:`, newSession.user.email);
-                    const userData = await fetchUserData(newSession.user);
-                    if (userData && mounted) {
-                      console.log('[AuthContext] KASPER FIX - Complete user data loaded, setting user:', userData);
-                      console.log('[AuthContext] KASPER FIX - About to set user state with:', {
-                        name: userData.name,
-                        email: userData.email,
-                        role: userData.role,
-                        isKasper: userData.email === 'kasper.johansen@polygongroup.com',
-                        isAdmin: userData.role === 'administrator'
-                      });
-                      setUser(userData);
-                      setUserDataLoaded(true);
-                    } else {
-                      console.warn(`[AuthContext] KASPER FIX - No user data returned, using fallback`);
-                      if (mounted) {
-                        // Only use fallback if we can't get real data
-                        const fallbackUser: AppUser = {
-                          id: newSession.user.id,
-                          name: newSession.user.email || 'System User',
-                          email: newSession.user.email || '',
-                          role: 'servicemedarbejder'
-                        };
-                        setUser(fallbackUser);
-                        setUserDataLoaded(true);
-                      }
-                    }
-                  } catch (error) {
-                    console.error('[AuthContext] KASPER FIX - User data fetch failed:', error);
+              // KASPER FIX: Fetch complete user data BEFORE setting user state
+              (async () => {
+                if (!mounted) return;
+                
+                try {
+                  console.log(`[AuthContext] KASPER FIX - Fetching complete user data for:`, newSession.user.email);
+                  const userData = await fetchUserData(newSession.user);
+                  if (userData && mounted) {
+                    console.log('[AuthContext] KASPER FIX - Complete user data loaded, setting user:', userData);
+                    console.log('[AuthContext] KASPER FIX - About to set user state with:', {
+                      name: userData.name,
+                      email: userData.email,
+                      role: userData.role,
+                      isKasper: userData.email === 'kasper.johansen@polygongroup.com',
+                      isAdmin: userData.role === 'administrator'
+                    });
+                    setUser(userData);
+                    setUserDataLoaded(true);
+                  } else {
+                    console.warn(`[AuthContext] KASPER FIX - No user data returned, using fallback`);
                     if (mounted) {
-                      // Only set fallback user if fetch completely failed
+                      // Only use fallback if we can't get real data
                       const fallbackUser: AppUser = {
                         id: newSession.user.id,
                         name: newSession.user.email || 'System User',
                         email: newSession.user.email || '',
                         role: 'servicemedarbejder'
                       };
-                      console.log('[AuthContext] KASPER FIX - Using fallback user due to error:', fallbackUser);
                       setUser(fallbackUser);
                       setUserDataLoaded(true);
                     }
                   }
-                })();
-              }, 0);
+                } catch (error) {
+                  console.error('[AuthContext] KASPER FIX - User data fetch failed:', error);
+                  if (mounted) {
+                    // Only set fallback user if fetch completely failed
+                    const fallbackUser: AppUser = {
+                      id: newSession.user.id,
+                      name: newSession.user.email || 'System User',
+                      email: newSession.user.email || '',
+                      role: 'servicemedarbejder'
+                    };
+                    console.log('[AuthContext] KASPER FIX - Using fallback user due to error:', fallbackUser);
+                    setUser(fallbackUser);
+                    setUserDataLoaded(true);
+                  }
+                }
+              })();
             } else {
               setUser(null);
               setUserDataLoaded(false);
             }
 
-            // Mark initialization as complete after first state change
+            // Mark auth as ready after first state change
             if (!initializationComplete) {
               setLoading(false);
-              setAuthInitialized(true);
+              setAuthReady(true);
               initializationComplete = true;
             }
           }
@@ -359,7 +442,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(null);
             if (!initializationComplete) {
               setLoading(false);
-              setAuthInitialized(true);
+              setAuthReady(true);
               initializationComplete = true;
             }
           }
@@ -375,7 +458,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(null);
           if (!initializationComplete) {
             setLoading(false);
-            setAuthInitialized(true);
+            setAuthReady(true);
             initializationComplete = true;
           }
         }
@@ -396,7 +479,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } finally {
         if (mounted) {
           setLoading(false);
-          setAuthInitialized(true);
+          setAuthReady(true);
         }
       }
     };
@@ -406,7 +489,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (mounted && !initializationComplete) {
         console.warn('[AuthContext] SESSION EXPIRATION FIX - Force completing auth initialization due to timeout');
         setLoading(false);
-        setAuthInitialized(true);
+        setAuthReady(true);
         initializationComplete = true;
       }
     }, 5000);
@@ -425,22 +508,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
   }, [toast, t]);
-
-  // Coordinate authReady with session and userDataLoaded to avoid race conditions
-  useEffect(() => {
-    if (!authInitialized) return;
-
-    // If no session, we're ready immediately
-    if (!session) {
-      if (!authReady) setAuthReady(true);
-      return;
-    }
-
-    // If authenticated, wait until user data is loaded
-    if (session && userDataLoaded && !authReady) {
-      setAuthReady(true);
-    }
-  }, [authInitialized, session, userDataLoaded, authReady]);
 
   // Demo role management (simplified)
   useEffect(() => {
@@ -569,6 +636,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { error: error.message };
       }
       
+      toast({
+        title: "Login Succesfuld",
+        description: "Du er nu logget ind.",
+      });
+      
+
       console.log('[AuthProvider] COMPREHENSIVE FIX - Login successful');
       return { error: null };
     } catch (error: any) {

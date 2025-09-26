@@ -89,7 +89,7 @@ serve(async (req) => {
     if (authError) {
       console.error(`[${requestId}] Auth verification error:`, authError);
       return new Response(
-        JSON.stringify({ error: 'Authentication failed: ' + (authError instanceof Error ? authError.message : 'Unknown auth error') }),
+        JSON.stringify({ error: 'Authentication failed: ' + authError.message }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -120,7 +120,7 @@ serve(async (req) => {
     if (roleError) {
       console.error(`[${requestId}] Role check error:`, roleError);
       return new Response(
-        JSON.stringify({ error: 'Failed to verify user permissions: ' + (roleError instanceof Error ? roleError.message : 'Unknown role error') }),
+        JSON.stringify({ error: 'Failed to verify user permissions: ' + roleError.message }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -181,7 +181,7 @@ serve(async (req) => {
       console.error(`[${requestId}] Failed to fetch profiles:`, profilesError);
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to fetch profiles: ' + (profilesError instanceof Error ? profilesError.message : 'Unknown profiles error'),
+          error: 'Failed to fetch profiles: ' + profilesError.message,
           requestId,
           details: profilesError
         }),
@@ -202,7 +202,7 @@ serve(async (req) => {
       console.error(`[${requestId}] Failed to fetch user roles:`, rolesError);
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to fetch user roles: ' + (rolesError instanceof Error ? rolesError.message : 'Unknown roles error'),
+          error: 'Failed to fetch user roles: ' + rolesError.message,
           requestId,
           details: rolesError
         }),
@@ -268,7 +268,7 @@ serve(async (req) => {
         created_at: authUser?.created_at || profile.created_at,
         updated_at: authUser?.updated_at || profile.updated_at,
         last_sign_in_at: authUser?.last_sign_in_at || null,
-        // banned_until property removed as it doesn't exist on User type
+        banned_until: authUser?.banned_until || null,
         onLeave: profile.on_leave || false,
         notes: profile.notes || null
       };
@@ -309,9 +309,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error(`[${requestId}] Unexpected error:`, error);
-    if (error instanceof Error) {
-      console.error(`[${requestId}] Error stack:`, error.stack);
-    }
+    console.error(`[${requestId}] Error stack:`, error.stack);
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error'),

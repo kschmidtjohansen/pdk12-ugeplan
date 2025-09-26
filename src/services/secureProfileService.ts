@@ -52,31 +52,27 @@ export class SecureProfileService {
 
   /**
    * Get multiple profiles (admin/skadeleder only)
-   * Now uses masked data by default for enhanced security
-   * @param fullAccess - Whether to return unmasked sensitive data (requires justification)
-   * @param accessReason - Reason for requesting full access (required when fullAccess=true)
+   * Now uses the new restrictive RLS policies with automatic audit logging
    */
-  static async getProfiles(fullAccess: boolean = false, accessReason?: string): Promise<SecureProfile[]> {
+  static async getProfiles(): Promise<SecureProfile[]> {
     try {
-      // Validate full access request
-      if (fullAccess && !accessReason) {
-        throw new Error('Access reason is required when requesting full access to profile data');
-      }
-
-      // Use the enhanced security function with masking support
+      // The new RLS policies automatically restrict access and log access attempts
+      // Only admins/skadeleder will see results due to profiles_admin_access_audited policy
       const { data, error } = await supabase
-        .rpc('get_profiles_admin_detailed', { 
-          full_access: fullAccess,
-          access_reason: accessReason 
-        });
+        .from('profiles')
+        .select(`
+          id,
+          name,
+          email,
+          phone,
+          job_title,
+          status,
+          avatar_url,
+          user_roles(role)
+        `);
 
       if (error) {
-        logAccessAttempt('profiles', false, { 
-          operation: 'SELECT_ALL', 
-          error: error.message,
-          fullAccess,
-          accessReason 
-        });
+        logAccessAttempt('profiles', false, { operation: 'SELECT_ALL', error: error.message });
         console.error('Error fetching profiles:', error);
         return [];
       }
@@ -84,51 +80,26 @@ export class SecureProfileService {
       // If no data is returned, it could mean:
       // 1. No profiles exist, or 
       // 2. User doesn't have permission (RLS blocked access)
+      // The logging is handled automatically by the database policies
       if (!data || data.length === 0) {
         console.warn('[SecureProfileService] No profiles returned - check permissions');
         return [];
       }
 
-      logAccessAttempt('profiles', true, { 
-        operation: 'SELECT_ALL', 
-        count: data?.length || 0,
-        fullAccess,
-        accessReason: fullAccess ? accessReason : 'masked_access'
-      });
+      logAccessAttempt('profiles', true, { operation: 'SELECT_ALL', count: data?.length || 0 });
       
-      // Transform the data to match SecureProfile interface  
+      // Transform the data to match SecureProfile interface
       return data.map(profile => ({
-        id: profile.id,
-        name: profile.name,
-        email: profile.email, // Will be masked unless fullAccess=true
-        phone: profile.phone, // Will be masked unless fullAccess=true
-        job_title: profile.job_title,
-        status: profile.status,
-        avatar_url: profile.avatar_url,
-        role: profile.role || 'servicemedarbejder' // Now includes actual role from database function
+        ...profile,
+        role: Array.isArray(profile.user_roles) && profile.user_roles.length > 0 
+          ? profile.user_roles[0].role 
+          : 'servicemedarbejder'
       })) as SecureProfile[];
     } catch (error) {
-      logAccessAttempt('profiles', false, { 
-        operation: 'SELECT_ALL', 
-        error: error instanceof Error ? error.message : 'Unknown error',
-        fullAccess,
-        accessReason 
-      });
+      logAccessAttempt('profiles', false, { operation: 'SELECT_ALL', error: error instanceof Error ? error.message : 'Unknown error' });
       console.error('Error in getProfiles:', error);
       return [];
     }
-  }
-
-  /**
-   * Get profiles with full access (unmasked sensitive data)
-   * This method requires explicit justification and logs high-priority access
-   */
-  static async getProfilesFullAccess(accessReason: string): Promise<SecureProfile[]> {
-    if (!accessReason || accessReason.trim().length < 10) {
-      throw new Error('Valid access reason (minimum 10 characters) is required for full profile access');
-    }
-
-    return this.getProfiles(true, accessReason);
   }
 
   /**

@@ -13,7 +13,6 @@ const employees = {
   statusLabel: 'Status',
   notes: 'Noter',
   contact: 'Kontakt',
-  noPhoneProvided: 'Ingen telefon oplyst',
   avatar: 'Profilbillede',
   onLeave: 'Fraværende',
   

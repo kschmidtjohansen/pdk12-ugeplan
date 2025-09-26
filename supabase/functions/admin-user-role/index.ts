@@ -86,9 +86,9 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     
     if (authError || !user) {
-      console.error(`[${requestId}] Auth verification error:`, (authError instanceof Error ? authError.message : null) || 'No user found');
+      console.error(`[${requestId}] Auth verification error:`, authError?.message || 'No user found');
       return new Response(
-        JSON.stringify({ error: 'Authentication failed', details: authError instanceof Error ? authError.message : 'Unknown auth error' }),
+        JSON.stringify({ error: 'Authentication failed', details: authError?.message }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -107,12 +107,12 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .maybeSingle();
 
-    console.log(`[${requestId}] Role query result:`, { roleData, roleError: roleError instanceof Error ? roleError.message : roleError });
+    console.log(`[${requestId}] Role query result:`, { roleData, roleError: roleError?.message });
 
     if (roleError) {
       console.error(`[${requestId}] Role query error:`, roleError);
       return new Response(
-        JSON.stringify({ error: 'Failed to verify user permissions', details: roleError instanceof Error ? roleError.message : 'Unknown role error' }),
+        JSON.stringify({ error: 'Failed to verify user permissions', details: roleError.message }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -177,7 +177,7 @@ serve(async (req) => {
     if (userCheckError) {
       console.error(`[${requestId}] Error checking target user:`, userCheckError);
       return new Response(
-        JSON.stringify({ error: 'Failed to verify target user', details: userCheckError instanceof Error ? userCheckError.message : 'Unknown user check error' }),
+        JSON.stringify({ error: 'Failed to verify target user', details: userCheckError.message }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -215,7 +215,7 @@ serve(async (req) => {
     if (updateError) {
       console.error(`[${requestId}] Failed to update user role:`, updateError);
       return new Response(
-        JSON.stringify({ error: 'Failed to update user role', details: updateError instanceof Error ? updateError.message : 'Unknown update error' }),
+        JSON.stringify({ error: 'Failed to update user role', details: updateError.message }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

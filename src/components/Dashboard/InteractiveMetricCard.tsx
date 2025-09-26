@@ -76,7 +76,7 @@ const InteractiveMetricCard: React.FC<InteractiveMetricCardProps> = ({
       
       <CardContent className="px-4 pb-3">
         <div className="text-xl font-bold">
-          {value.toString()}
+          {value}
           {total && (
             <span className="text-xs text-muted-foreground ml-1">
               / {total}

@@ -289,9 +289,9 @@ serve(async (req) => {
 
       const passwordValidation = validatePassword(newPassword);
       if (!passwordValidation.valid) {
-        console.error(`[admin-reset-password:${requestId}] Password validation failed: ${passwordValidation instanceof Error ? passwordValidation.message : 'Validation failed'}`);
+        console.error(`[admin-reset-password:${requestId}] Password validation failed: ${passwordValidation.message}`);
         return new Response(
-          JSON.stringify({ error: (passwordValidation instanceof Error ? passwordValidation.message : null) || 'Invalid password' }),
+          JSON.stringify({ error: passwordValidation.message || 'Invalid password' }),
           { 
             status: 400, 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -309,7 +309,7 @@ serve(async (req) => {
       if (resetError) {
         console.error(`[admin-reset-password:${requestId}] Password reset failed:`, resetError);
         return new Response(
-          JSON.stringify({ error: `Password reset failed: ${resetError instanceof Error ? resetError.message : 'Unknown reset error'}` }),
+          JSON.stringify({ error: `Password reset failed: ${resetError.message}` }),
           { 
             status: 500, 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -347,7 +347,7 @@ serve(async (req) => {
     } catch (authError) {
       console.error(`[admin-reset-password:${requestId}] Authentication error:`, authError);
       return new Response(
-        JSON.stringify({ error: `Authentication failed: ${authError instanceof Error ? authError.message : 'Unknown authentication error'}` }),
+        JSON.stringify({ error: `Authentication failed: ${authError.message}` }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

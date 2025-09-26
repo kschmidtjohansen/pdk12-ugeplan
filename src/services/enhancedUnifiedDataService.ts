@@ -1,7 +1,6 @@
 
 import { enhancedDataFetching } from './enhancedDataFetching';
 import { enhancedErrorHandler } from './enhancedErrorHandler';
-import { supabase } from '@/integrations/supabase/client';
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
@@ -52,39 +51,19 @@ class EnhancedUnifiedDataService {
         };
       }
 
-      // Fetch user roles separately to enrich employee data
-      let userRoles: { [key: string]: string } = {};
-      try {
-        const { data: rolesData } = await supabase
-          .from('user_roles')
-          .select('user_id, role');
-        
-        if (rolesData) {
-          userRoles = rolesData.reduce((acc, role) => {
-            acc[role.user_id] = role.role;
-            return acc;
-          }, {} as { [key: string]: string });
-        }
-        console.log('[EnhancedUnifiedDataService] Fetched roles for', Object.keys(userRoles).length, 'users');
-      } catch (roleError) {
-        console.warn('[EnhancedUnifiedDataService] Failed to fetch user roles:', roleError);
-      }
-
-      // Transform profiles to Employee format with proper role mapping
+      // Transform profiles to Employee format
       let employees: Employee[] = result.data.map(profile => ({
         id: profile.id,
         name: profile.name || 'Unknown',
         email: profile.email || '',
         phone: profile.phone || '',
         jobTitle: profile.job_title || '',
-        role: (userRoles[profile.id] as any) || 'servicemedarbejder', // Use actual role or default
+        role: 'servicemedarbejder', // Default role, will be enriched by role lookup
         onLeave: profile.on_leave || false,
         status: profile.status || 'active',
         notes: profile.notes || '',
         avatar_url: profile.avatar_url
       }));
-
-      console.log('[EnhancedUnifiedDataService] Employees with roles:', employees.map(e => `${e.name} (${e.role}, onLeave: ${e.onLeave})`));
 
       // Apply demo user filtering
       employees = DemoUserFiltering.filterEmployees(employees, currentUserEmail);

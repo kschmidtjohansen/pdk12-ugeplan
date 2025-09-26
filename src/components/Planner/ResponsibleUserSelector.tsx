@@ -101,14 +101,14 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
       
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button type="button" variant="outline" className="w-full justify-between h-11 px-4 py-2 border-indigo-200 hover:border-indigo-300 focus:border-indigo-400">
+          <Button variant="outline" className="w-full justify-between h-11 px-4 py-2 border-indigo-200 hover:border-indigo-300 focus:border-indigo-400">
             <div className="flex items-center gap-2">
               <UserCheck className="h-4 w-4 text-indigo-600" />
               <span className="truncate">{getSelectedUserDisplay()}</span>
             </div>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-[100] bg-background border border-border shadow-lg">
+        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-50 bg-white border shadow-md">
           {/* No responsible user option */}
           <DropdownMenuItem onClick={() => handleUserSelect('none')} className="cursor-pointer p-2 hover:bg-gray-50">
             <div className="flex items-center justify-between w-full space-x-2">

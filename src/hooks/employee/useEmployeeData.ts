@@ -5,14 +5,13 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DemoUserService } from '@/services/demoUserService';
-import { useAuth, usePermissions } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 
 export const useEmployeeData = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { isAdmin } = usePermissions();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,40 +27,59 @@ export const useEmployeeData = () => {
       
       console.log('[useEmployeeData] FIXED - Starting employee fetch with corrected RLS policy...');
       
-      // Use enhanced security profile service with masking by default
-      // For admin access, we use masked data by default for security
-      console.log(`[useEmployeeData] Using SecureProfileService for enhanced security`);
+      // Fetch profiles with proper error handling
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('name', { ascending: true });
       
-      const { SecureProfileService } = await import('@/services/secureProfileService');
-      
-      // Use masked data by default (no sensitive PII exposed)
-      const profiles = await SecureProfileService.getProfiles();
+      if (profilesError) {
+        console.error('[useEmployeeData] FIXED - Profiles fetch error:', profilesError);
+        throw new Error(`Profiles fetch failed: ${profilesError.message}`);
+      }
       
       if (!profiles || profiles.length === 0) {
-        console.log('[useEmployeeData] No profiles found');
+        console.log('[useEmployeeData] FIXED - No profiles found');
         setEmployees([]);
         return;
       }
       
-      console.log(`[useEmployeeData] Found ${profiles.length} profiles with roles included`);
+      console.log(`[useEmployeeData] FIXED - Found ${profiles.length} profiles`);
       
-      // FIXED: No need to fetch roles separately - the SecureProfileService now includes them
-      console.log(`[useEmployeeData] FIXED - Roles are now included directly from database function`);
+      // Now fetch user roles - this should work without infinite recursion
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
       
-      // Transform data with enhanced security (roles now come directly from the service)
+      if (rolesError) {
+        console.error('[useEmployeeData] FIXED - User roles fetch error (this should now work):', rolesError);
+        // Don't throw here, use default roles
+      } else {
+        console.log(`[useEmployeeData] FIXED - Successfully fetched ${userRoles?.length || 0} user roles`);
+      }
+      
+      // Create role mapping
+      const rolesMap = new Map<string, string>();
+      userRoles?.forEach(userRole => {
+        rolesMap.set(userRole.user_id, userRole.role);
+      });
+      
+      console.log(`[useEmployeeData] FIXED - Role mapping created for ${rolesMap.size} users`);
+      
+      // Transform data
       const transformedEmployees: Employee[] = profiles.map(profile => {
-        const role = profile.role || 'servicemedarbejder';
+        const role = rolesMap.get(profile.id) || 'servicemedarbejder';
         
         const employee: Employee = {
           id: profile.id,
           name: profile.name || 'Unknown',
-          email: profile.email || '', // Masked by default for security
-          phone: profile.phone || '', // Masked by default for security  
+          email: profile.email || '',
+          phone: profile.phone || '',
           jobTitle: profile.job_title || '',
-          role: role as 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'vikar',
-          onLeave: false, // Default value since masked view doesn't expose this
-          status: profile.status || 'active',
-          notes: '', // Hidden in masked view for security
+          role: role as 'administrator' | 'skadeleder' | 'servicemedarbejder',
+          onLeave: profile.on_leave || false,
+          status: profile.status || 'active', // Add status from database
+          notes: profile.notes || '',
           avatar_url: profile.avatar_url
         };
         

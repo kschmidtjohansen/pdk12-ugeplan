@@ -122,7 +122,6 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <Button 
-            type="button"
             variant="outline" 
             className="w-full justify-between h-11 px-4 py-2"
           >
@@ -132,7 +131,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             </div>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-[100] bg-background border border-border shadow-lg">
+        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-50 bg-white border shadow-md">
           {filteredEmployees.map(employee => {
             const isSelected = selectedEmployees.includes(employee.id);
             

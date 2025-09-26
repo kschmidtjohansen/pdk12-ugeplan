@@ -67,15 +67,23 @@ const UserManagement: React.FC = () => {
       setUsingFallback(true);
       addDebugInfo('FALLBACK: Using direct database queries with fixed role mapping');
 
-      // Use secure admin function to get detailed profiles (addresses security vulnerability)
-      console.log('[fetchUsersWithFallback] Using secure admin profiles function');
-      
-      // Get detailed profiles data using secure admin function
-      const { data: profiles, error: profilesError } = await supabase
-        .rpc('get_profiles_admin_detailed');
-        
+      // Get profiles directly
+      const {
+        data: profiles,
+        error: profilesError
+      } = await supabase.from('profiles').select(`
+          id,
+          name,
+          email,
+          phone,
+          job_title,
+          on_leave,
+          notes,
+          created_at,
+          updated_at
+        `);
       if (profilesError) {
-        addDebugInfo(`Secure admin profiles function error: ${profilesError.message}`);
+        addDebugInfo(`FALLBACK profiles error: ${profilesError.message}`);
         // Check if this is a permission error due to new RLS policies
         if (profilesError.message?.includes('permission') || 
             profilesError.message?.includes('policy') || 
@@ -119,15 +127,15 @@ const UserManagement: React.FC = () => {
           id: profile.id,
           email: profile.email,
           name: profile.name,
-          phone: profile.phone || '', // Admin function includes all fields
+          phone: profile.phone,
           jobTitle: profile.job_title,
           role: userRole as UserRole,
           created_at: profile.created_at,
           updated_at: profile.updated_at,
           last_sign_in_at: null,
           banned_until: null,
-          onLeave: profile.on_leave || false, // Admin function includes all fields
-          notes: profile.notes || '' // Admin function includes all fields
+          onLeave: profile.on_leave || false,
+          notes: profile.notes
         };
       }) || [];
 

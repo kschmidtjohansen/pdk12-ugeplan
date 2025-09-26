@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "12.2.3 (519615d)"
   }
   public: {
     Tables: {
@@ -543,24 +543,12 @@ export type Database = {
         Args: { table_name: string }
         Returns: undefined
       }
-      base64url_decode: {
-        Args: { data: string }
-        Returns: string
-      }
-      base64url_encode: {
-        Args: { data: string }
-        Returns: string
-      }
       can_access_assignment: {
         Args: { assignment_id: string }
         Returns: boolean
       }
       can_access_case_data: {
         Args: { case_number_param: string }
-        Returns: boolean
-      }
-      can_access_profile_field: {
-        Args: { field_name: string; target_user_id: string }
         Returns: boolean
       }
       can_user_access_assignment: {
@@ -583,14 +571,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
-      check_rate_limit_security: {
-        Args: {
-          max_attempts?: number
-          operation_key: string
-          window_minutes?: number
-        }
-        Returns: boolean
-      }
       check_system_health: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -603,10 +583,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      debug_auth_info: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
       delete_expired_approved_vacations: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -616,10 +592,6 @@ export type Database = {
         Returns: undefined
       }
       emergency_log_cleanup: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      enhanced_security_monitor: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
@@ -638,21 +610,6 @@ export type Database = {
       generate_database_summary: {
         Args: Record<PropertyKey, never>
         Returns: Json
-      }
-      get_accessible_profiles: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          access_level: string
-          avatar_url: string
-          created_at: string
-          email: string
-          id: string
-          job_title: string
-          name: string
-          phone: string
-          status: Database["public"]["Enums"]["employee_status"]
-          updated_at: string
-        }[]
       }
       get_car_with_conditional_access: {
         Args: { car_row: Database["public"]["Tables"]["cars"]["Row"] }
@@ -694,25 +651,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
-      get_profile_detailed: {
-        Args: { profile_user_id: string }
-        Returns: {
-          avatar_url: string
-          created_at: string
-          email: string
-          expires_at: string
-          id: string
-          is_temporary: boolean
-          job_title: string
-          name: string
-          notes: string
-          on_leave: boolean
-          phone: string
-          role: string
-          status: Database["public"]["Enums"]["employee_status"]
-          updated_at: string
-        }[]
-      }
       get_profile_with_role: {
         Args: { profile_id: string }
         Returns: {
@@ -724,41 +662,6 @@ export type Database = {
           phone: string
           role: Database["public"]["Enums"]["user_role"]
           status: Database["public"]["Enums"]["employee_status"]
-        }[]
-      }
-      get_profiles_admin_detailed: {
-        Args:
-          | Record<PropertyKey, never>
-          | { access_reason?: string; full_access?: boolean }
-        Returns: {
-          avatar_url: string
-          created_at: string
-          email: string
-          expires_at: string
-          id: string
-          is_temporary: boolean
-          job_title: string
-          name: string
-          notes: string
-          on_leave: boolean
-          phone: string
-          role: Database["public"]["Enums"]["user_role"]
-          status: Database["public"]["Enums"]["employee_status"]
-          updated_at: string
-        }[]
-      }
-      get_profiles_basic: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          avatar_url: string
-          created_at: string
-          email: string
-          id: string
-          job_title: string
-          name: string
-          on_leave: boolean
-          status: Database["public"]["Enums"]["employee_status"]
-          updated_at: string
         }[]
       }
       get_security_events_summary: {
@@ -777,10 +680,6 @@ export type Database = {
       get_user_role_safe: {
         Args: { user_uuid: string }
         Returns: Database["public"]["Enums"]["user_role"]
-      }
-      hmac_sha256: {
-        Args: { data: string; key: string }
-        Returns: string
       }
       is_admin_or_skadeleder: {
         Args: Record<PropertyKey, never>
@@ -805,10 +704,6 @@ export type Database = {
       is_valid_email: {
         Args: { email: string }
         Returns: boolean
-      }
-      jwt_verify_hs256: {
-        Args: { secret: string; token: string }
-        Returns: Json
       }
       list_accessible_assignments_with_team: {
         Args: Record<PropertyKey, never>
@@ -888,14 +783,6 @@ export type Database = {
         Args: { details?: Json; event_type: string; vacation_id: string }
         Returns: undefined
       }
-      mask_email: {
-        Args: { p_email: string }
-        Returns: string
-      }
-      mask_phone: {
-        Args: { p_phone: string }
-        Returns: string
-      }
       perform_database_maintenance: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -946,10 +833,6 @@ export type Database = {
       }
       validate_email_format_enhanced: {
         Args: { email: string }
-        Returns: boolean
-      }
-      validate_input_security: {
-        Args: { input_text: string; input_type: string; max_length?: number }
         Returns: boolean
       }
       verify_complete_fix: {

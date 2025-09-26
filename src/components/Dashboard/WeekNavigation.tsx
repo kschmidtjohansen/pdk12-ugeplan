@@ -29,27 +29,27 @@ const WeekNavigation: React.FC<WeekNavigationProps> = ({
   console.log(`[WeekNavigation] Week calculation matches: ${actualCurrentWeek === currentWeek}`);
   
   return (
-    <div className="flex items-center gap-0">
+    <div className="flex items-center gap-1">
       <Button
         variant="outline"
         size="icon"
         onClick={onPrevious}
         title={t('planner.previousWeek')}
         aria-label={t('planner.previousWeek')}
-        className="h-8 w-8 rounded-r-none"
+        className="h-8 w-8"
       >
         <ArrowLeft className="h-4 w-4" />
       </Button>
-      <div className="px-3 py-1.5 bg-background border-t border-b border-border text-sm font-medium whitespace-nowrap">
+      <span className="text-sm font-medium px-2">
         {t('dashboard.week')} {currentWeek}
-      </div>
+      </span>
       <Button
         variant="outline"
         size="icon"
         onClick={onNext}
         title={t('planner.nextWeek')}
         aria-label={t('planner.nextWeek')}
-        className="h-8 w-8 rounded-l-none"
+        className="h-8 w-8"
       >
         <ArrowRight className="h-4 w-4" />
       </Button>

@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: 'Failed to cleanup expired users',
-          details: error instanceof Error ? error.message : 'Unknown error' 
+          details: error.message 
         }),
         { 
           status: 500, 

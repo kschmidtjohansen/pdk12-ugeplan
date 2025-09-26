@@ -15,16 +15,7 @@ export const useDashboardMetrics = () => {
   const todayStr = format(today, 'yyyy-MM-dd');
 
   const metrics = useMemo(() => {
-    console.log('[useDashboardMetrics] === METRICS CALCULATION DEBUG ===');
-    console.log('[useDashboardMetrics] Loading states:', { loading, vacationsLoading });
-    console.log('[useDashboardMetrics] Data counts:', { 
-      employees: employees.length, 
-      assignments: assignments.length, 
-      vacations: vacations.length 
-    });
-    
     if (loading || vacationsLoading) {
-      console.log('[useDashboardMetrics] Still loading, returning zeros');
       return {
         availableEmployees: { count: 0, total: 0, employees: [] },
         availableCars: { count: 0, total: 0, cars: [] },
@@ -32,29 +23,13 @@ export const useDashboardMetrics = () => {
       };
     }
 
-    console.log('[useDashboardMetrics] Processing employees...');
-    console.log('[useDashboardMetrics] Employees data:', employees.map(e => ({
-      name: e.name,
-      role: e.role,
-      onLeave: e.onLeave,
-      id: e.id
-    })));
-
     // Calculate available employees (servicemedarbejder only, not fully booked, on vacation, or on leave)
     const availableEmployeesList = employees.filter(employee => {
       // Only include servicemedarbejder role
-      if (employee.role !== 'servicemedarbejder') {
-        console.log(`[useDashboardMetrics] Skipping ${employee.name} - role: ${employee.role}`);
-        return false;
-      }
+      if (employee.role !== 'servicemedarbejder') return false;
       
       const status = getEmployeeAvailabilityStatus(employee, today, assignments, vacations, t);
-      console.log(`[useDashboardMetrics] Employee ${employee.name} status:`, status);
-      
-      const isAvailable = status.status === 'available' || status.status === 'partiallyBooked';
-      console.log(`[useDashboardMetrics] Employee ${employee.name} is available: ${isAvailable}`);
-      
-      return isAvailable;
+      return status.status === 'available' || status.status === 'partiallyBooked';
     }).map(employee => {
       const status = getEmployeeAvailabilityStatus(employee, today, assignments, vacations, t);
       return {
@@ -62,8 +37,6 @@ export const useDashboardMetrics = () => {
         availabilityStatus: status
       };
     });
-
-    console.log('[useDashboardMetrics] Available employees:', availableEmployeesList.length);
 
     // Calculate available cars (not assigned to today's assignments)
     const assignedCarIds = new Set(
@@ -91,11 +64,7 @@ export const useDashboardMetrics = () => {
     // Calculate absent employees (on vacation or leave)
     const absentEmployeesList = employees.filter(employee => {
       const status = getEmployeeAvailabilityStatus(employee, today, assignments, vacations, t);
-      const isAbsent = status.status === 'onVacation' || status.status === 'onLeave' || status.status === 'partialVacation';
-      
-      console.log(`[useDashboardMetrics] Employee ${employee.name} absent status: ${status.status}, isAbsent: ${isAbsent}`);
-      
-      return isAbsent;
+      return status.status === 'onVacation' || status.status === 'onLeave' || status.status === 'partialVacation';
     }).map(employee => {
       const status = getEmployeeAvailabilityStatus(employee, today, assignments, vacations, t);
       const vacation = vacations.find(v => 
@@ -110,12 +79,6 @@ export const useDashboardMetrics = () => {
         availabilityStatus: status,
         vacation: vacation
       };
-    });
-
-    console.log('[useDashboardMetrics] Final counts:', {
-      available: availableEmployeesList.length,
-      absent: absentEmployeesList.length,
-      total: employees.length
     });
 
     return {

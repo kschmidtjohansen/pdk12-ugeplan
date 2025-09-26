@@ -11,8 +11,8 @@ import CurrentAndFutureDays from './CurrentAndFutureDays';
 import PastAssignments from './PastAssignments';
 import EmptyState from './EmptyState';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
-// Use enhanced unified data for consistency with dashboard
-import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
+// Fix the import path
+import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
 import { Monitor } from 'lucide-react';
 
@@ -48,8 +48,8 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
   
-  // Use enhanced unified data service for consistent RLS handling
-  const { employees, cars } = useEnhancedUnifiedData();
+  // Use streamlined unified data service
+  const { employees, cars } = useUnifiedData();
   const { vacations } = useVacations();
 
   console.log(`[PlannerContent] Displaying ${weekAssignments.length} assignments with ${employees.length} employees and ${cars.length} cars`);

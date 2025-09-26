@@ -167,7 +167,7 @@ serve(async (req) => {
     if (createError) {
       console.error(`[${requestId}] User creation error:`, createError);
       return new Response(
-        JSON.stringify({ error: `User creation failed: ${createError instanceof Error ? createError.message : 'Unknown error'}` }),
+        JSON.stringify({ error: `User creation failed: ${createError.message}` }),
         { status: 400, headers: corsHeaders }
       );
     }
@@ -229,7 +229,7 @@ serve(async (req) => {
         console.error(`[${requestId}] Profile creation error:`, profileError);
         
         // Check if it's a phone format constraint violation
-        if ((profileError instanceof Error && profileError.message?.includes('check_phone_format')) || (profileError as any)?.code === '23514') {
+        if (profileError.message?.includes('check_phone_format') || profileError.code === '23514') {
           return new Response(
             JSON.stringify({ 
               error: 'Phone number format is invalid. Please use a valid phone number format.' 

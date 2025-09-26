@@ -6,7 +6,7 @@ import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentData
 import { useCars } from '@/hooks/car';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, UserCheck, Calendar, Users, Car, Navigation, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Clock, MapPin, UserCheck, Calendar, Users, Car, Navigation } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { getCurrentWeekInfo, getWeekDates } from '@/utils/dates';
@@ -26,22 +26,6 @@ const MineOpgaver: React.FC = () => {
     const { week: currentWeek, year: currentYear } = getCurrentWeekInfo();
     const currentWeekDates = getWeekDates(currentWeek, currentYear);
     
-    console.log('[MineOpgaver] MARK HANSEN DEBUG - Assignment data structure check:', {
-      sampleAssignment: assignments[0] ? {
-        id: assignments[0].id,
-        title: assignments[0].title,
-        hasDate: !!assignments[0].date,
-        actualDate: assignments[0].date,
-        hasResponsibleUserId: !!assignments[0].responsibleUserId,
-        hasResponsibleUser: !!assignments[0].responsibleUser,
-        actualResponsibleUserId: assignments[0].responsibleUserId || assignments[0].responsibleUser?.id,
-        hasAssignedEmployees: !!assignments[0].assignedEmployees,
-        hasEmployees: !!assignments[0].employees,
-        assignedEmployeesCount: assignments[0].assignedEmployees?.length || 0,
-        employeesCount: assignments[0].employees?.length || 0
-      } : null
-    });
-    
     console.log('[MineOpgaver] COMPREHENSIVE FIX - Filtering assignments:', {
       userName: user.name,
       userId: user.id,
@@ -51,26 +35,18 @@ const MineOpgaver: React.FC = () => {
     });
     
     const userTasks = assignments.filter(assignment => {
-      // MARK HANSEN FIX: Use correct property names from Assignment type
-      const assignmentDate = assignment.date;
-      const responsibleUserId = assignment.responsibleUserId || assignment.responsibleUser?.id;
-      
       // Check if user is assigned via assignedEmployees (preferred) or legacy employees array
       const isAssignedViaNew = assignment.assignedEmployees?.some(emp => emp.id === user.id);
       const isAssignedViaLegacy = assignment.employees?.includes(user.name);
-      const isResponsible = responsibleUserId === user.id;
-      
-      // Parse date properly
-      const parsedDate = parseISO(assignmentDate);
+      const isResponsible = assignment.responsibleUser?.id === user.id;
+      const assignmentDate = parseISO(assignment.date);
       
       // Check if assignment is in current week
-      const isInCurrentWeek = parsedDate >= currentWeekDates.start && parsedDate <= currentWeekDates.end;
+      const isInCurrentWeek = assignmentDate >= currentWeekDates.start && assignmentDate <= currentWeekDates.end;
       
       const isUserInvolved = isAssignedViaNew || isAssignedViaLegacy || isResponsible;
       
-      console.log(`[MineOpgaver] MARK HANSEN DEBUG - Assignment "${assignment.title}":`, {
-        assignmentId: assignment.id,
-        assignmentDate: assignmentDate,
+      console.log(`[MineOpgaver] Assignment "${assignment.title}":`, {
         currentUserId: user.id,
         currentUserName: user.name,
         isAssignedViaNew,
@@ -82,7 +58,7 @@ const MineOpgaver: React.FC = () => {
         assignedEmployeeIds: assignment.assignedEmployees?.map(e => e.id),
         assignedEmployeeNames: assignment.assignedEmployees?.map(e => e.name),
         legacyEmployees: assignment.employees,
-        responsibleUserId: responsibleUserId
+        responsibleUserId: assignment.responsibleUser?.id
       });
       
       return isUserInvolved && isInCurrentWeek; // FIXED: Removed published filter so servicemedarbejder can see all assignments they're involved in
@@ -246,33 +222,21 @@ const MineOpgaver: React.FC = () => {
             key={assignment.id}
             className="flex flex-col space-y-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
           >
-            {/* Title and Date with Navigation */}
+            {/* Title and Date */}
             <div className="flex items-start justify-between">
               <h4 className="font-medium text-sm leading-tight">
                 {assignment.title}
               </h4>
-              <div className="flex items-center gap-1">
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs ${
-                    isToday(parseISO(assignment.date)) 
-                      ? 'bg-primary/10 text-primary border-primary/20' 
-                      : 'bg-muted'
-                  }`}
-                >
-                  {formatAssignmentDate(assignment.date)}
-                </Badge>
-                {assignment.location && (
-                  <button
-                    onClick={() => handleNavigate(assignment.location)}
-                    className="flex items-center justify-center h-6 w-6 rounded-md hover:bg-accent/50 transition-colors group ml-1"
-                    title={t('dashboard.navigateToLocation') || 'Navigate to location'}
-                    aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
-                  >
-                    <Navigation className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </button>
-                )}
-              </div>
+              <Badge 
+                variant="outline" 
+                className={`text-xs ${
+                  isToday(parseISO(assignment.date)) 
+                    ? 'bg-primary/10 text-primary border-primary/20' 
+                    : 'bg-muted'
+                }`}
+              >
+                {formatAssignmentDate(assignment.date)}
+              </Badge>
             </div>
 
             {/* Location */}
@@ -280,6 +244,14 @@ const MineOpgaver: React.FC = () => {
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="h-3 w-3" />
                 <span className="truncate flex-1">{assignment.location}</span>
+                <button
+                  onClick={() => handleNavigate(assignment.location)}
+                  className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent/50 transition-colors group"
+                  title={t('dashboard.navigateToLocation') || 'Navigate to location'}
+                  aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
+                >
+                  <Navigation className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                </button>
               </div>
             )}
 
