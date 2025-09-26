@@ -89,7 +89,7 @@ serve(async (req) => {
     if (authError) {
       console.error(`[${requestId}] Auth verification error:`, authError);
       return new Response(
-        JSON.stringify({ error: 'Authentication failed: ' + authError.message }),
+        JSON.stringify({ error: 'Authentication failed: ' + (authError instanceof Error ? authError.message : 'Unknown auth error') }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -120,7 +120,7 @@ serve(async (req) => {
     if (roleError) {
       console.error(`[${requestId}] Role check error:`, roleError);
       return new Response(
-        JSON.stringify({ error: 'Failed to verify user permissions: ' + roleError.message }),
+        JSON.stringify({ error: 'Failed to verify user permissions: ' + (roleError instanceof Error ? roleError.message : 'Unknown role error') }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -181,7 +181,7 @@ serve(async (req) => {
       console.error(`[${requestId}] Failed to fetch profiles:`, profilesError);
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to fetch profiles: ' + profilesError.message,
+          error: 'Failed to fetch profiles: ' + (profilesError instanceof Error ? profilesError.message : 'Unknown profiles error'),
           requestId,
           details: profilesError
         }),
@@ -202,7 +202,7 @@ serve(async (req) => {
       console.error(`[${requestId}] Failed to fetch user roles:`, rolesError);
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to fetch user roles: ' + rolesError.message,
+          error: 'Failed to fetch user roles: ' + (rolesError instanceof Error ? rolesError.message : 'Unknown roles error'),
           requestId,
           details: rolesError
         }),

@@ -289,9 +289,9 @@ serve(async (req) => {
 
       const passwordValidation = validatePassword(newPassword);
       if (!passwordValidation.valid) {
-        console.error(`[admin-reset-password:${requestId}] Password validation failed: ${passwordValidation.message}`);
+        console.error(`[admin-reset-password:${requestId}] Password validation failed: ${passwordValidation instanceof Error ? passwordValidation.message : 'Validation failed'}`);
         return new Response(
-          JSON.stringify({ error: passwordValidation.message || 'Invalid password' }),
+          JSON.stringify({ error: (passwordValidation instanceof Error ? passwordValidation.message : null) || 'Invalid password' }),
           { 
             status: 400, 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -309,7 +309,7 @@ serve(async (req) => {
       if (resetError) {
         console.error(`[admin-reset-password:${requestId}] Password reset failed:`, resetError);
         return new Response(
-          JSON.stringify({ error: `Password reset failed: ${resetError.message}` }),
+          JSON.stringify({ error: `Password reset failed: ${resetError instanceof Error ? resetError.message : 'Unknown reset error'}` }),
           { 
             status: 500, 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

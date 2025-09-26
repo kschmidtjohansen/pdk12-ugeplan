@@ -81,13 +81,13 @@ serve(async (req) => {
       // Log the failed deletion
       await supabaseAdmin.rpc('log_security_event_safe', {
         event_type: 'admin_user_delete_failed',
-        event_message: `Failed to delete user ${userId}: ${deleteError.message}`,
-        event_details: { target_user_id: userId, admin_user_id: user.id, error: deleteError.message },
+        event_message: `Failed to delete user ${userId}: ${deleteError instanceof Error ? deleteError.message : 'Unknown error'}`,
+        event_details: { target_user_id: userId, admin_user_id: user.id, error: deleteError instanceof Error ? deleteError.message : 'Unknown error' },
         severity: 'error'
       })
 
       return new Response(
-        JSON.stringify({ error: deleteError.message }),
+        JSON.stringify({ error: deleteError instanceof Error ? deleteError.message : 'Delete operation failed' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

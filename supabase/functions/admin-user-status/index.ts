@@ -153,7 +153,7 @@ serve(async (req) => {
     if (result.error) {
       console.error(`[${requestId}] Failed to ${action} user:`, result.error);
       return new Response(
-        JSON.stringify({ error: result.error.message }),
+        JSON.stringify({ error: result.error instanceof Error ? result.error.message : 'Status update failed' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

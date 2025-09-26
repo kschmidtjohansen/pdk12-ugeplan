@@ -152,7 +152,7 @@ serve(async (req) => {
     if (deleteError) {
       console.error(`[${requestId}] Failed to delete user:`, deleteError);
       return new Response(
-        JSON.stringify({ error: deleteError.message }),
+        JSON.stringify({ error: deleteError instanceof Error ? deleteError.message : 'Delete operation failed' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
