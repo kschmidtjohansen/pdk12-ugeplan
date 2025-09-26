@@ -108,7 +108,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
             </div>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-50 bg-white border shadow-md">
+        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-[100] bg-background border border-border shadow-lg">
           {/* No responsible user option */}
           <DropdownMenuItem onClick={() => handleUserSelect('none')} className="cursor-pointer p-2 hover:bg-gray-50">
             <div className="flex items-center justify-between w-full space-x-2">

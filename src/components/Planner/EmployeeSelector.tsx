@@ -131,7 +131,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             </div>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-50 bg-white border shadow-md">
+        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-[100] bg-background border border-border shadow-lg">
           {filteredEmployees.map(employee => {
             const isSelected = selectedEmployees.includes(employee.id);
             
