@@ -101,7 +101,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
       
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="w-full justify-between h-11 px-4 py-2 border-indigo-200 hover:border-indigo-300 focus:border-indigo-400">
+          <Button type="button" variant="outline" className="w-full justify-between h-11 px-4 py-2 border-indigo-200 hover:border-indigo-300 focus:border-indigo-400">
             <div className="flex items-center gap-2">
               <UserCheck className="h-4 w-4 text-indigo-600" />
               <span className="truncate">{getSelectedUserDisplay()}</span>

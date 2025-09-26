@@ -122,6 +122,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <Button 
+            type="button"
             variant="outline" 
             className="w-full justify-between h-11 px-4 py-2"
           >
