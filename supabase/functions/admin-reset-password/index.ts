@@ -347,7 +347,7 @@ serve(async (req) => {
     } catch (authError) {
       console.error(`[admin-reset-password:${requestId}] Authentication error:`, authError);
       return new Response(
-        JSON.stringify({ error: `Authentication failed: ${authError.message}` }),
+        JSON.stringify({ error: `Authentication failed: ${authError instanceof Error ? authError.message : 'Unknown authentication error'}` }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

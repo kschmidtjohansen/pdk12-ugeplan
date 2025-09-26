@@ -268,7 +268,7 @@ serve(async (req) => {
         created_at: authUser?.created_at || profile.created_at,
         updated_at: authUser?.updated_at || profile.updated_at,
         last_sign_in_at: authUser?.last_sign_in_at || null,
-        banned_until: authUser?.banned_until || null,
+        // banned_until property removed as it doesn't exist on User type
         onLeave: profile.on_leave || false,
         notes: profile.notes || null
       };
@@ -309,7 +309,9 @@ serve(async (req) => {
 
   } catch (error) {
     console.error(`[${requestId}] Unexpected error:`, error);
-    console.error(`[${requestId}] Error stack:`, error.stack);
+    if (error instanceof Error) {
+      console.error(`[${requestId}] Error stack:`, error.stack);
+    }
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error'),
