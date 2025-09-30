@@ -93,6 +93,13 @@ const MineOpgaver: React.FC = () => {
     return sorted.slice(0, 5); // Show max 5 tasks with today first, past at bottom
   }, [assignments, user]);
 
+  // Calculate unique days count - moved before early returns to fix React hooks error
+  const uniqueDaysCount = React.useMemo(() => {
+    if (!userAssignments || userAssignments.length === 0) return 0;
+    const uniqueDates = new Set(userAssignments.map(assignment => assignment.date));
+    return uniqueDates.size;
+  }, [userAssignments]);
+
   // Helper function to get car names from assignment
   const getCarNames = (assignment: any): string[] => {
     const carNames: string[] = [];
@@ -210,12 +217,6 @@ const MineOpgaver: React.FC = () => {
       </Card>
     );
   }
-
-  // Calculate unique days count
-  const uniqueDaysCount = React.useMemo(() => {
-    const uniqueDates = new Set(userAssignments.map(assignment => assignment.date));
-    return uniqueDates.size;
-  }, [userAssignments]);
 
   return (
     <Card className="h-full">
