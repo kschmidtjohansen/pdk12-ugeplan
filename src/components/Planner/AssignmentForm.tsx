@@ -231,22 +231,21 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     setFormData(updatedData);
   };
 
-  // FIXED: Timezone-safe date handling to prevent date shifts
-  const handleDateChange = (date: Date | undefined) => {
-    if (date) {
-      // Use date-fns format to ensure timezone-safe conversion
-      const dateString = format(date, 'yyyy-MM-dd');
-      console.log('[AssignmentForm] FIXED Date updated (timezone-safe):', dateString);
-      console.log('[AssignmentForm] Original date object:', date);
-      console.log('[AssignmentForm] Local date components:', {
-        year: date.getFullYear(),
-        month: date.getMonth() + 1,
-        day: date.getDate()
-      });
-      setFormData({
+  // FIXED: Handle multiple dates for create mode, single date for edit mode
+  const handleDatesChange = (dates: Date[]) => {
+    if (dates && dates.length > 0) {
+      const dateStrings = dates.map(date => format(date, 'yyyy-MM-dd'));
+      console.log('[AssignmentForm] Dates updated (timezone-safe):', dateStrings);
+      // Store dates in a way that doesn't conflict with Assignment type
+      const updatedData: any = {
         ...formData,
-        date: dateString
-      });
+        date: dateStrings[0], // Keep first date for backward compatibility
+      };
+      // Add dates array for multi-date support
+      if (dateStrings.length > 1) {
+        updatedData.dates = dateStrings;
+      }
+      setFormData(updatedData);
     } else {
       setFormData({
         ...formData,
@@ -280,8 +279,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               location: value
             });
           }} 
-          selectedDate={formData.date ? new Date(formData.date) : undefined} 
-          setSelectedDate={handleDateChange} 
+          selectedDates={(formData as any).dates?.map((d: string) => new Date(d)) || (formData.date ? [new Date(formData.date)] : [])} 
+          setSelectedDates={handleDatesChange}
+          isEditMode={!!currentAssignment}
           fromTime={formData.fromTime || '08:00'} 
           setFromTime={value => {
             console.log('[AssignmentForm] From time updated:', value);

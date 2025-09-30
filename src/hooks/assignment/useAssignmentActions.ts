@@ -52,38 +52,49 @@ export const useAssignmentActions = (
     }
   };
 
-  // Create a new assignment
+  // Create a new assignment (or multiple for multi-date)
   const createAssignment = useCallback(async (assignmentData: Partial<Assignment>) => {
     try {
       console.log("[useAssignmentActions] ===== CREATE ASSIGNMENT START =====");
       console.log("[useAssignmentActions] Full assignment data received:", assignmentData);
       
+      // Check for multi-date creation
+      const dates = (assignmentData as any).dates || [assignmentData.date];
+      const isMultiDate = dates.length > 1;
+      
+      console.log("[useAssignmentActions] Multi-date creation:", { isMultiDate, dateCount: dates.length, dates });
+      
       // Check if this is a demo user - if so, handle differently
       if (demoService.isDemoUser(user?.email)) {
         console.log("[useAssignmentActions] Demo user detected - using session storage");
         
-        const demoAssignment = {
-          id: `demo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          title: assignmentData.title,
-          description: assignmentData.description,
-          assignment_date: assignmentData.date,
-          from_time: assignmentData.fromTime,
-          to_time: assignmentData.toTime,
-          location: assignmentData.location,
-          car_id: assignmentData.car,
-          responsible_user_id: assignmentData.responsibleUserId || assignmentData.responsibleUser?.id,
-          published: assignmentData.published || false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          isDemoData: true
-        };
-        
-        demoService.storeDemoAssignment(demoAssignment);
-        demoService.trackOperation('assignments', 'create', demoAssignment.id);
+        // Handle multi-date for demo users
+        for (const dateStr of dates) {
+          const demoAssignment = {
+            id: `demo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            title: assignmentData.title,
+            description: assignmentData.description,
+            assignment_date: dateStr,
+            from_time: assignmentData.fromTime,
+            to_time: assignmentData.toTime,
+            location: assignmentData.location,
+            car_id: assignmentData.car,
+            responsible_user_id: assignmentData.responsibleUserId || assignmentData.responsibleUser?.id,
+            published: assignmentData.published || false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            isDemoData: true
+          };
+          
+          demoService.storeDemoAssignment(demoAssignment);
+          demoService.trackOperation('assignments', 'create', demoAssignment.id);
+        }
         
         toast({
-          title: t('planner.assignmentCreated'),
-          description: t('planner.assignmentCreatedMsg', { title: assignmentData.title }),
+          title: isMultiDate ? t('planner.assignmentsCreated') : t('planner.assignmentCreated'),
+          description: isMultiDate 
+            ? t('planner.assignmentCreatedMultipleDays', { count: dates.length, title: assignmentData.title })
+            : t('planner.assignmentCreatedMsg', { title: assignmentData.title }),
         });
         
         // For demo mode, clear cache and ensure immediate UI update
@@ -138,83 +149,97 @@ export const useAssignmentActions = (
         throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
       }
 
-      console.log("[useAssignmentActions] Inserting assignment with data:", {
-        title: assignmentData.title,
-        description: assignmentData.description,
-        location: assignmentData.location,
-        assignment_date: assignmentData.date,
-        from_time: assignmentData.fromTime,
-        to_time: assignmentData.toTime,
-        car_id: carId,
-        responsible_user_id: responsibleUserId,
-        published: assignmentData.published || false
-      });
-
-      // Insert the new assignment
-      const { data: newAssignment, error } = await supabase
-        .from('assignments')
-        .insert({
+      // Loop through all dates and create an assignment for each
+      const createdAssignmentIds: string[] = [];
+      
+      for (const dateStr of dates) {
+        console.log("[useAssignmentActions] Creating assignment for date:", dateStr);
+        console.log("[useAssignmentActions] Inserting assignment with data:", {
           title: assignmentData.title,
           description: assignmentData.description,
           location: assignmentData.location,
-          assignment_date: assignmentData.date,
+          assignment_date: dateStr,
           from_time: assignmentData.fromTime,
           to_time: assignmentData.toTime,
           car_id: carId,
           responsible_user_id: responsibleUserId,
-          published: assignmentData.published || false,
-          created_at: new Date().toISOString()
-        })
-        .select('id')
-        .single();
+          published: assignmentData.published || false
+        });
 
-      console.log("[useAssignmentActions] Assignment insert result:", { newAssignment, error });
-      if (error) {
-        console.error("[useAssignmentActions] Assignment insert error:", error);
-        throw error;
-      }
-      
-      // If there are employees, link them to the assignment
-      if (assignmentData.employees && assignmentData.employees.length > 0 && newAssignment?.id) {
-        console.log("Assignment created, now linking employees:", assignmentData.employees);
-        // Employee data is now employee IDs (UUIDs) instead of names
-        const employeeInserts = [];
+        // Insert the new assignment
+        const { data: newAssignment, error } = await supabase
+          .from('assignments')
+          .insert({
+            title: assignmentData.title,
+            description: assignmentData.description,
+            location: assignmentData.location,
+            assignment_date: dateStr,
+            from_time: assignmentData.fromTime,
+            to_time: assignmentData.toTime,
+            car_id: carId,
+            responsible_user_id: responsibleUserId,
+            published: assignmentData.published || false,
+            created_at: new Date().toISOString()
+          })
+          .select('id')
+          .single();
+
+        console.log("[useAssignmentActions] Assignment insert result:", { newAssignment, error });
+        if (error) {
+          console.error("[useAssignmentActions] Assignment insert error for date", dateStr, ":", error);
+          // Continue with other dates even if one fails
+          continue;
+        }
         
-        for (const employeeId of assignmentData.employees) {
-          // Skip any non-string values that might have gotten in the array
-          if (typeof employeeId !== 'string') {
-            console.warn("Skipping invalid employee data:", employeeId);
-            continue;
-          }
+        if (newAssignment?.id) {
+          createdAssignmentIds.push(newAssignment.id);
           
-          // Validate that this is a proper UUID
-          const validEmployeeId = safeUUID(employeeId);
-          if (validEmployeeId) {
-            employeeInserts.push({
-              assignment_id: newAssignment.id,
-              user_id: validEmployeeId
-            });
-          } else {
-            console.warn(`Invalid employee ID provided: ${employeeId}`);
-          }
-        }
-        
-        // Insert employee associations
-        if (employeeInserts.length > 0) {
-          const { error: employeeError } = await supabase
-            .from('assignments_employees')
-            .insert(employeeInserts);
+          // If there are employees, link them to the assignment
+          if (assignmentData.employees && assignmentData.employees.length > 0) {
+            console.log("Assignment created, now linking employees:", assignmentData.employees);
+            const employeeInserts = [];
             
-          if (employeeError) {
-            console.error('Error linking employees to assignment:', employeeError);
+            for (const employeeId of assignmentData.employees) {
+              if (typeof employeeId !== 'string') {
+                console.warn("Skipping invalid employee data:", employeeId);
+                continue;
+              }
+              
+              const validEmployeeId = safeUUID(employeeId);
+              if (validEmployeeId) {
+                employeeInserts.push({
+                  assignment_id: newAssignment.id,
+                  user_id: validEmployeeId
+                });
+              } else {
+                console.warn(`Invalid employee ID provided: ${employeeId}`);
+              }
+            }
+            
+            if (employeeInserts.length > 0) {
+              const { error: employeeError } = await supabase
+                .from('assignments_employees')
+                .insert(employeeInserts);
+                
+              if (employeeError) {
+                console.error('Error linking employees to assignment:', employeeError);
+              }
+            }
           }
         }
       }
       
-      toast({
-        title: t('planner.assignmentCreated'),
-        description: t('planner.assignmentCreatedMsg', { title: assignmentData.title }),
-      });
+      // Show success message
+      if (createdAssignmentIds.length > 0) {
+        toast({
+          title: isMultiDate ? t('planner.assignmentsCreated') : t('planner.assignmentCreated'),
+          description: isMultiDate 
+            ? t('planner.assignmentCreatedMultipleDays', { count: createdAssignmentIds.length, title: assignmentData.title })
+            : t('planner.assignmentCreatedMsg', { title: assignmentData.title }),
+        });
+      } else {
+        throw new Error('No assignments were created successfully');
+      }
       
       // Clear cache and refetch to ensure immediate UI update
       console.log('[useAssignmentActions] Clearing cache and refetching after assignment creation');

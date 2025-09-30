@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 
 export interface AssignmentFormData {
   date: string;
+  dates?: string[]; // Array of dates for multi-date assignments
   title?: string;
   description?: string;
   fromTime?: string;
@@ -50,6 +51,7 @@ export const useAssignmentFormState = (
 
   const [formData, setFormData] = useState<AssignmentFormData>({
     date: initialDate,
+    dates: [initialDate], // Initialize with today's date as array
     title: '',
     description: '',
     fromTime: '08:00',
@@ -67,7 +69,8 @@ export const useAssignmentFormState = (
       console.log('[useAssignmentFormState] Selected date changed, updating form date:', selectedDate);
       setFormData(prev => ({
         ...prev,
-        date: selectedDate
+        date: selectedDate,
+        dates: [selectedDate] // Also update dates array for consistency
       }));
     }
   }, [selectedDate]);
@@ -153,6 +156,7 @@ export const useAssignmentFormState = (
     const todayDate = format(new Date(), 'yyyy-MM-dd');
     setFormData({
       date: todayDate,
+      dates: [todayDate],
       title: '',
       description: '',
       fromTime: '08:00',

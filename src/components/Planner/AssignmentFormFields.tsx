@@ -23,8 +23,8 @@ interface AssignmentFormFieldsProps {
   setTitle: (value: string) => void;
   location: string;
   setLocation: (value: string) => void;
-  selectedDate?: Date;
-  setSelectedDate: (date: Date | undefined) => void;
+  selectedDates: Date[];
+  setSelectedDates: (dates: Date[]) => void;
   fromTime: string;
   setFromTime: (value: string) => void;
   toTime: string;
@@ -42,6 +42,7 @@ interface AssignmentFormFieldsProps {
   vacations: Vacation[];
   assignmentId?: string;
   assignments?: Assignment[];
+  isEditMode?: boolean;
 }
 
 const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
@@ -49,8 +50,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   setTitle,
   location,
   setLocation,
-  selectedDate,
-  setSelectedDate,
+  selectedDates,
+  setSelectedDates,
   fromTime,
   setFromTime,
   toTime,
@@ -67,7 +68,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   employees,
   vacations,
   assignmentId,
-  assignments = []
+  assignments = [],
+  isEditMode = false
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
@@ -78,7 +80,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     isEmpty: !selectedCarIds || selectedCarIds.length === 0
   });
 
-  const currentDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
+  const currentDateStr = selectedDates.length > 0 ? format(selectedDates[0], 'yyyy-MM-dd') : '';
 
   // FIXED: Enhanced date formatting with proper timezone handling
   const formatDateDisplay = (date: Date) => {
@@ -97,24 +99,29 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     }
   };
 
-  // FIXED: Use local date methods instead of UTC to prevent timezone shifts
-  const handleDateSelect = (date: Date | undefined) => {
-    console.log('[AssignmentFormFields] Date selected from calendar:', date);
-    if (date) {
+  // FIXED: Handle multi-date selection
+  const handleDateSelect = (dates: Date[] | undefined) => {
+    console.log('[AssignmentFormFields] Dates selected from calendar:', dates);
+    if (dates && dates.length > 0) {
       // Use local date methods instead of UTC to prevent timezone shifts
-      const localYear = date.getFullYear();
-      const localMonth = date.getMonth();
-      const localDay = date.getDate();
-      
-      // Create a local date using the local components
-      const localDate = new Date(localYear, localMonth, localDay);
-      console.log('[AssignmentFormFields] Created timezone-safe date:', localDate);
-      console.log('[AssignmentFormFields] Date ISO string:', localDate.toISOString().split('T')[0]);
-      
-      setSelectedDate(localDate);
+      const localDates = dates.map(date => {
+        const localYear = date.getFullYear();
+        const localMonth = date.getMonth();
+        const localDay = date.getDate();
+        return new Date(localYear, localMonth, localDay);
+      });
+      console.log('[AssignmentFormFields] Created timezone-safe dates:', localDates);
+      setSelectedDates(localDates);
     } else {
-      setSelectedDate(undefined);
+      setSelectedDates([]);
     }
+  };
+
+  const handleRemoveDate = (dateToRemove: Date) => {
+    const updatedDates = selectedDates.filter(d => 
+      d.getTime() !== dateToRemove.getTime()
+    );
+    setSelectedDates(updatedDates);
   };
 
   // Show responsible user field only for admin and skadeleder
@@ -190,36 +197,102 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       </div>
 
-      {/* Date Field - Updated to use assignmentDate translation */}
+      {/* Date Field - Multi-date selector or single date for edit mode */}
       <div className="space-y-2">
-        <Label>{t('planner.assignmentDate')}</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full justify-start text-left font-normal"
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {selectedDate ? formatDateDisplay(selectedDate) : t('common.selectDate')}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleDateSelect}
-              initialFocus
-              locale={currentLanguage === 'da' ? da : undefined}
-              className="pointer-events-auto"
-              disabled={(date) => {
-                // Prevent selection of dates in the past (except today)
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                return date < today;
-              }}
-            />
-          </PopoverContent>
-        </Popover>
+        <Label>
+          {isEditMode ? t('planner.assignmentDate') : t('planner.selectMultipleDates')}
+        </Label>
+        {isEditMode ? (
+          // Single date picker for edit mode
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDates.length > 0 ? formatDateDisplay(selectedDates[0]) : t('common.selectDate')}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDates[0]}
+                onSelect={(date) => handleDateSelect(date ? [date] : [])}
+                initialFocus
+                locale={currentLanguage === 'da' ? da : undefined}
+                className="pointer-events-auto"
+                disabled={(date) => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  return date < today;
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        ) : (
+          // Multi-date picker for create mode
+          <>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDates.length > 0 
+                    ? t('planner.datesSelected', { count: selectedDates.length })
+                    : t('common.selectDate')}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+                <Calendar
+                  mode="multiple"
+                  selected={selectedDates}
+                  onSelect={handleDateSelect}
+                  initialFocus
+                  locale={currentLanguage === 'da' ? da : undefined}
+                  className="pointer-events-auto"
+                  disabled={(date) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    return date < today;
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+            {/* Display selected dates as removable badges */}
+            {selectedDates.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedDates.map((date, index) => (
+                  <div 
+                    key={index}
+                    className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md text-sm"
+                  >
+                    <span>{formatDateDisplay(date)}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveDate(date)}
+                      className="ml-1 hover:text-destructive"
+                      aria-label={t('planner.removeDate')}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                {selectedDates.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDates([])}
+                    className="px-2 py-1 text-xs text-muted-foreground hover:text-destructive underline"
+                  >
+                    {t('planner.clearDates')}
+                  </button>
+                )}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Time Fields - Updated to use startTime and endTime translations */}
