@@ -1,7 +1,7 @@
 
 const planner = {
   title: 'Planner',
-  description: 'Manage assignments and schedule employees',
+  description: 'Description',
   
   // Assignment list
   assignments: 'Assignments',
@@ -83,6 +83,8 @@ const planner = {
   enterTitle: 'Enter title',
   descriptionLabel: 'Description',
   assignmentDescription: 'Assignment description',
+  dateAndTime: 'Date and Time',
+  assignmentDetails: 'Details',
   notesPlaceholder: 'Enter notes',
   dateLabel: 'Date',
   assignmentDate: 'Assignment date',

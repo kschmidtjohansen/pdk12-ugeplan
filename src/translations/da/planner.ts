@@ -1,7 +1,7 @@
 
 const planner = {
   title: 'Planner',
-  description: 'Administrer opgaver og planlæg arbejdsdagen',
+  description: 'Beskrivelse',
   
   // Assignment list
   assignments: 'Opgaver',
@@ -83,6 +83,8 @@ const planner = {
   enterTitle: 'Sagsnummer',
   descriptionLabel: 'Beskrivelse',
   assignmentDescription: 'Opgave beskrivelse',
+  dateAndTime: 'Dato og Tidspunkt',
+  assignmentDetails: 'Detaljer',
   notesPlaceholder: 'Indtast noter',
   dateLabel: 'Dato',
   assignmentDate: 'Opgave dato',
