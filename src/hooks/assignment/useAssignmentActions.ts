@@ -56,13 +56,21 @@ export const useAssignmentActions = (
   const createAssignment = useCallback(async (assignmentData: Partial<Assignment>) => {
     try {
       console.log("[useAssignmentActions] ===== CREATE ASSIGNMENT START =====");
-      console.log("[useAssignmentActions] Full assignment data received:", assignmentData);
+      console.log("[useAssignmentActions] Full assignment data received:", JSON.stringify(assignmentData, null, 2));
       
       // Check for multi-date creation
       const dates = (assignmentData as any).dates || [assignmentData.date];
       const isMultiDate = dates.length > 1;
       
-      console.log("[useAssignmentActions] Multi-date creation:", { isMultiDate, dateCount: dates.length, dates });
+      console.log("[useAssignmentActions] Multi-date creation:", { 
+        isMultiDate, 
+        dateCount: dates.length, 
+        dates,
+        datesType: typeof dates,
+        isArray: Array.isArray(dates),
+        firstDate: dates[0],
+        allDates: dates
+      });
       
       // Check if this is a demo user - if so, handle differently
       if (demoService.isDemoUser(user?.email)) {
@@ -151,9 +159,13 @@ export const useAssignmentActions = (
 
       // Loop through all dates and create an assignment for each
       const createdAssignmentIds: string[] = [];
+      const errors: Array<{ date: string; error: any }> = [];
       
-      for (const dateStr of dates) {
-        console.log("[useAssignmentActions] Creating assignment for date:", dateStr);
+      console.log(`[useAssignmentActions] Starting loop to create ${dates.length} assignment(s)`);
+      
+      for (let i = 0; i < dates.length; i++) {
+        const dateStr = dates[i];
+        console.log(`[useAssignmentActions] ===== Processing date ${i + 1}/${dates.length}: ${dateStr} =====`);
         console.log("[useAssignmentActions] Inserting assignment with data:", {
           title: assignmentData.title,
           description: assignmentData.description,
@@ -166,32 +178,40 @@ export const useAssignmentActions = (
           published: assignmentData.published || false
         });
 
-        // Insert the new assignment
-        const { data: newAssignment, error } = await supabase
-          .from('assignments')
-          .insert({
-            title: assignmentData.title,
-            description: assignmentData.description,
-            location: assignmentData.location,
-            assignment_date: dateStr,
-            from_time: assignmentData.fromTime,
-            to_time: assignmentData.toTime,
-            car_id: carId,
-            responsible_user_id: responsibleUserId,
-            published: assignmentData.published || false,
-            created_at: new Date().toISOString()
-          })
-          .select('id')
-          .single();
+        try {
+          // Insert the new assignment
+          const { data: newAssignment, error } = await supabase
+            .from('assignments')
+            .insert({
+              title: assignmentData.title,
+              description: assignmentData.description,
+              location: assignmentData.location,
+              assignment_date: dateStr,
+              from_time: assignmentData.fromTime,
+              to_time: assignmentData.toTime,
+              car_id: carId,
+              responsible_user_id: responsibleUserId,
+              published: assignmentData.published || false,
+              created_at: new Date().toISOString()
+            })
+            .select('id')
+            .single();
 
-        console.log("[useAssignmentActions] Assignment insert result:", { newAssignment, error });
-        if (error) {
-          console.error("[useAssignmentActions] Assignment insert error for date", dateStr, ":", error);
-          // Continue with other dates even if one fails
-          continue;
-        }
-        
-        if (newAssignment?.id) {
+          console.log(`[useAssignmentActions] Assignment insert result for date ${dateStr}:`, { newAssignment, error });
+          
+          if (error) {
+            console.error(`[useAssignmentActions] ❌ Assignment insert FAILED for date ${dateStr}:`, error);
+            errors.push({ date: dateStr, error });
+            continue;
+          }
+          
+          if (!newAssignment?.id) {
+            console.error(`[useAssignmentActions] ❌ No assignment ID returned for date ${dateStr}`);
+            errors.push({ date: dateStr, error: 'No ID returned' });
+            continue;
+          }
+          
+          console.log(`[useAssignmentActions] ✅ Assignment created successfully for date ${dateStr}, ID: ${newAssignment.id}`);
           createdAssignmentIds.push(newAssignment.id);
           
           // If there are employees, link them to the assignment
@@ -226,19 +246,37 @@ export const useAssignmentActions = (
               }
             }
           }
+        } catch (insertError) {
+          console.error(`[useAssignmentActions] ❌ Exception during insert for date ${dateStr}:`, insertError);
+          errors.push({ date: dateStr, error: insertError });
+          continue;
         }
       }
       
-      // Show success message
+      // Show success message with error details if any
+      console.log(`[useAssignmentActions] Summary: ${createdAssignmentIds.length} assignments created, ${errors.length} errors`);
+      
       if (createdAssignmentIds.length > 0) {
+        const successMsg = isMultiDate 
+          ? `${createdAssignmentIds.length} opgaver oprettet for "${assignmentData.title}"`
+          : `Opgave "${assignmentData.title}" oprettet`;
+        
         toast({
           title: isMultiDate ? t('planner.assignmentsCreated') : t('planner.assignmentCreated'),
-          description: isMultiDate 
-            ? t('planner.assignmentCreatedMultipleDays', { count: createdAssignmentIds.length, title: assignmentData.title })
-            : t('planner.assignmentCreatedMsg', { title: assignmentData.title }),
+          description: successMsg,
         });
+        
+        if (errors.length > 0) {
+          console.warn(`[useAssignmentActions] Some assignments failed:`, errors);
+          toast({
+            title: 'Delvis fejl',
+            description: `${errors.length} opgave(r) kunne ikke oprettes`,
+            variant: "destructive",
+          });
+        }
       } else {
-        throw new Error('No assignments were created successfully');
+        console.error('[useAssignmentActions] All assignments failed to create:', errors);
+        throw new Error(`No assignments were created. Errors: ${errors.map(e => e.date).join(', ')}`);
       }
       
       // Clear cache and refetch to ensure immediate UI update

@@ -211,6 +211,12 @@ const MineOpgaver: React.FC = () => {
     );
   }
 
+  // Calculate unique days count
+  const uniqueDaysCount = React.useMemo(() => {
+    const uniqueDates = new Set(userAssignments.map(assignment => assignment.date));
+    return uniqueDates.size;
+  }, [userAssignments]);
+
   return (
     <Card className="h-full">
         <CardHeader className="pb-3">
@@ -221,7 +227,7 @@ const MineOpgaver: React.FC = () => {
               - Uge {getCurrentWeekInfo().week}
             </span>
             <Badge variant="secondary" className="ml-auto">
-              {userAssignments.length}
+              {uniqueDaysCount} {uniqueDaysCount === 1 ? 'dag' : 'dage'}
             </Badge>
           </CardTitle>
         </CardHeader>

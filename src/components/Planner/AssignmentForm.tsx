@@ -235,22 +235,30 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   const handleDatesChange = (dates: Date[]) => {
     if (dates && dates.length > 0) {
       const dateStrings = dates.map(date => format(date, 'yyyy-MM-dd'));
-      console.log('[AssignmentForm] Dates updated (timezone-safe):', dateStrings);
+      console.log('[AssignmentForm] ===== DATES CHANGED =====');
+      console.log('[AssignmentForm] Date objects received:', dates);
+      console.log('[AssignmentForm] Date strings formatted:', dateStrings);
+      console.log('[AssignmentForm] Number of dates:', dateStrings.length);
+      
       // Store dates in a way that doesn't conflict with Assignment type
-      const updatedData: any = {
+      const updatedData = {
         ...formData,
         date: dateStrings[0], // Keep first date for backward compatibility
-      };
+      } as any;
+      
       // Add dates array for multi-date support
-      if (dateStrings.length > 1) {
-        updatedData.dates = dateStrings;
-      }
+      updatedData.dates = dateStrings;
+      
+      console.log('[AssignmentForm] Updated form data with dates:', updatedData);
       setFormData(updatedData);
     } else {
-      setFormData({
+      console.log('[AssignmentForm] No dates selected, clearing');
+      const clearedData = {
         ...formData,
         date: ''
-      });
+      } as any;
+      clearedData.dates = [];
+      setFormData(clearedData);
     }
   };
 
