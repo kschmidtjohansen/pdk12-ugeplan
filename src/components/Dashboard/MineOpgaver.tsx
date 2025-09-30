@@ -233,38 +233,42 @@ const MineOpgaver: React.FC = () => {
             className="flex flex-col space-y-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
           >
             {/* Title and Date */}
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-2">
               <h4 className="font-medium text-sm leading-tight">
                 {assignment.title}
               </h4>
-              <Badge 
-                variant="outline" 
-                className={`text-xs ${
-                  isToday(parseISO(assignment.date)) 
-                    ? 'bg-primary/10 text-primary border-primary/20' 
-                    : 'bg-muted'
-                }`}
-              >
-                {formatAssignmentDate(assignment.date)}
-              </Badge>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs ${
+                    isToday(parseISO(assignment.date)) 
+                      ? 'bg-primary/10 text-primary border-primary/20' 
+                      : 'bg-muted'
+                  }`}
+                >
+                  {formatAssignmentDate(assignment.date)}
+                </Badge>
+                {assignment.location && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNavigate(assignment.location);
+                    }}
+                    className="flex items-center justify-center h-6 w-6 rounded-md hover:bg-accent/50 transition-colors group"
+                    title={t('dashboard.navigateToLocation') || 'Navigate to location'}
+                    aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
+                  >
+                    <Navigation className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Location */}
             {assignment.location && (
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="h-3 w-3" />
-                <span className="truncate flex-1">{assignment.location}</span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleNavigate(assignment.location);
-                  }}
-                  className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent/50 transition-colors group"
-                  title={t('dashboard.navigateToLocation') || 'Navigate to location'}
-                  aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
-                >
-                  <Navigation className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                </button>
+                <span className="truncate">{assignment.location}</span>
               </div>
             )}
 
