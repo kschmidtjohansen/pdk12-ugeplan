@@ -208,9 +208,6 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       if (!data.title?.trim()) {
         throw new Error(t('planner.validation.titleRequired'));
       }
-      if (!data.date) {
-        throw new Error(t('planner.validation.dateRequired'));
-      }
       if (!data.fromTime) {
         throw new Error(t('planner.validation.fromTimeRequired'));
       }
@@ -221,11 +218,84 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         throw new Error(t('planner.validation.locationRequired'));
       }
 
-      // Convert Assignment data to service format with UUID sanitization
+      // Check for multiple dates (multi-date creation)
+      const dates = (data as any).dates?.length ? (data as any).dates : [data.date!];
+      
+      console.log('[useOptimizedAssignments] 🎯 CREATE - Detected dates:', dates);
+      
+      if (!dates || dates.length === 0 || !dates[0]) {
+        throw new Error(t('planner.validation.dateRequired'));
+      }
+
+      // MULTI-DATE CREATION
+      if (dates.length > 1) {
+        console.log('[useOptimizedAssignments] 🎯 MULTI-DATE CREATE - Creating assignments for', dates.length, 'dates');
+        
+        const createdAssignments = [];
+        const errors = [];
+        
+        // Build base service data (without assignment_date)
+        const baseServiceData = {
+          title: data.title.trim(),
+          description: data.description?.trim() || null,
+          from_time: data.fromTime,
+          to_time: data.toTime,
+          location: data.location.trim(),
+          type: data.type || null,
+          published: data.published || false,
+          responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
+          car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : null),
+          car_ids: data.cars || null,
+          employees: data.employees || []
+        };
+        
+        // Create one assignment per date
+        for (const date of dates) {
+          try {
+            console.log('[useOptimizedAssignments] 🎯 Creating assignment for date:', date);
+            const serviceData = { ...baseServiceData, assignment_date: date };
+            const created = await OptimizedAssignmentService.createAssignment(serviceData);
+            createdAssignments.push(created);
+            console.log('[useOptimizedAssignments] ✅ Successfully created assignment for', date);
+          } catch (err) {
+            console.error('[useOptimizedAssignments] ❌ Failed to create assignment for', date, err);
+            errors.push({ date, error: err });
+          }
+        }
+        
+        // Refresh data to show all created assignments
+        await refetch();
+        
+        setOperationStates(prev => ({ ...prev, [operationId]: 'success' }));
+        
+        if (errors.length === 0) {
+          toast({
+            title: t('planner.assignmentCreated'),
+            description: `Created ${createdAssignments.length} assignments across ${dates.length} days`,
+          });
+        } else {
+          toast({
+            title: t('common.warning'),
+            description: `Created ${createdAssignments.length} of ${dates.length} assignments. ${errors.length} failed.`,
+            variant: 'destructive'
+          });
+        }
+        
+        console.log('[useOptimizedAssignments] 🎯 MULTI-DATE CREATE complete:', {
+          success: createdAssignments.length,
+          failed: errors.length
+        });
+        
+        return;
+      }
+
+      // SINGLE-DATE CREATION (existing flow)
+      console.log('[useOptimizedAssignments] 🎯 SINGLE-DATE CREATE for date:', dates[0]);
+      
       const serviceData = {
         title: data.title.trim(),
         description: data.description?.trim() || null,
-        assignment_date: data.date,
+        assignment_date: dates[0],
         from_time: data.fromTime,
         to_time: data.toTime,
         location: data.location.trim(),
@@ -234,7 +304,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
         car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : null),
         car_ids: data.cars || null,
-        employees: data.employees || [] // These are now employee IDs instead of names
+        employees: data.employees || []
       };
 
       console.log('[useOptimizedAssignments] Creating assignment with data:', serviceData);
@@ -299,7 +369,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       
       throw error;
     }
-  }, [toast, t, setAssignments, setOperationStates]);
+  }, [toast, t, setAssignments, setOperationStates, allEmployees, refetch]);
 
   const updateAssignment = useCallback(async (id: string, data: Partial<Assignment>) => {
     setOperationState(id, 'loading');
@@ -315,9 +385,6 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       if (!data.location?.trim()) {
         throw new Error('Location is required and cannot be empty');
       }
-      if (!data.date) {
-        throw new Error('Date is required');
-      }
       if (!data.fromTime) {
         throw new Error('Start time is required');
       }
@@ -325,10 +392,103 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         throw new Error('End time is required');
       }
       
+      // Check for multiple dates (multi-date update)
+      const dates = (data as any).dates?.length ? (data as any).dates : [data.date!];
+      
+      console.log('[useOptimizedAssignments] 🎯 UPDATE - Detected dates:', dates);
+      
+      if (!dates || dates.length === 0 || !dates[0]) {
+        throw new Error('Date is required');
+      }
+      
       // Find original assignment for proper optimistic update
       const originalAssignment = assignments.find(a => a.id === id);
       
       console.log('[useOptimizedAssignments] Available employees for lookup:', allEmployees.length);
+      
+      // MULTI-DATE UPDATE
+      if (dates.length > 1) {
+        console.log('[useOptimizedAssignments] 🎯 MULTI-DATE UPDATE - Updating assignment and creating', dates.length - 1, 'additional assignments');
+        
+        // Update the current assignment with the first date
+        const firstDateServiceData = {
+          title: data.title?.trim(),
+          description: data.description?.trim() || null,
+          assignment_date: dates[0],
+          from_time: data.fromTime,
+          to_time: data.toTime,
+          location: data.location?.trim(),
+          published: data.published || false,
+          responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
+          car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
+          car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : 
+                   (data.car ? [typeof data.car === 'string' ? data.car : (data.car as any)?.id] : null),
+          employees: data.employees || []
+        };
+        
+        console.log('[useOptimizedAssignments] 🎯 Updating existing assignment with first date:', dates[0]);
+        await OptimizedAssignmentService.updateAssignment(id, firstDateServiceData);
+        
+        // Create new assignments for remaining dates
+        const createdAssignments = [];
+        const errors = [];
+        
+        for (let i = 1; i < dates.length; i++) {
+          try {
+            console.log('[useOptimizedAssignments] 🎯 Creating new assignment for date:', dates[i]);
+            const newAssignmentData = {
+              title: data.title?.trim(),
+              description: data.description?.trim() || null,
+              assignment_date: dates[i],
+              from_time: data.fromTime,
+              to_time: data.toTime,
+              location: data.location?.trim(),
+              type: data.type || null,
+              published: data.published || false,
+              responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
+              car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
+              car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : 
+                       (data.car ? [typeof data.car === 'string' ? data.car : (data.car as any)?.id] : null),
+              employees: data.employees || []
+            };
+            const created = await OptimizedAssignmentService.createAssignment(newAssignmentData);
+            createdAssignments.push(created);
+            console.log('[useOptimizedAssignments] ✅ Successfully created assignment for', dates[i]);
+          } catch (err) {
+            console.error('[useOptimizedAssignments] ❌ Failed to create assignment for', dates[i], err);
+            errors.push({ date: dates[i], error: err });
+          }
+        }
+        
+        // Refresh data to show all updated/created assignments
+        await refetch();
+        
+        setOperationState(id, 'success');
+        
+        if (errors.length === 0) {
+          toast({
+            title: t('planner.assignmentUpdated'),
+            description: `Updated and created assignments across ${dates.length} days`,
+          });
+        } else {
+          toast({
+            title: t('common.warning'),
+            description: `Updated 1 and created ${createdAssignments.length} of ${dates.length - 1} additional assignments. ${errors.length} failed.`,
+            variant: 'destructive'
+          });
+        }
+        
+        console.log('[useOptimizedAssignments] 🎯 MULTI-DATE UPDATE complete:', {
+          updated: 1,
+          created: createdAssignments.length,
+          failed: errors.length
+        });
+        
+        return;
+      }
+      
+      // SINGLE-DATE UPDATE (existing flow)
+      console.log('[useOptimizedAssignments] 🎯 SINGLE-DATE UPDATE for date:', dates[0]);
       
       // Optimistically update the UI with proper employee and car data reconstruction
       setAssignments(prev => prev.map(assignment => {
@@ -401,7 +561,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       const serviceData = {
         title: data.title?.trim(),
         description: data.description?.trim() || null,
-        assignment_date: data.date,
+        assignment_date: dates[0],
         from_time: data.fromTime,
         to_time: data.toTime,
         location: data.location?.trim(),
