@@ -80,13 +80,25 @@ const AssignmentDetailsDialog: React.FC<AssignmentDetailsDialogProps> = ({
             </div>
           </div>
 
-          {/* Car Assignment */}
-          {assignment.car && (
-            <div className="flex items-center gap-3">
-              <Car className="h-5 w-5 text-orange-600" />
+          {/* Car Assignment - Handle both new (cars array) and old (single car) format */}
+          {((assignment.cars && assignment.cars.length > 0) || assignment.car) && (
+            <div className="flex items-start gap-3">
+              <Car className="h-5 w-5 text-orange-600 mt-0.5" />
               <div>
                 <span className="font-medium">{t('planner.car')}: </span>
-                <span>{typeof assignment.car === 'string' ? assignment.car : assignment.car.name}</span>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {assignment.cars && assignment.cars.length > 0 ? (
+                    assignment.cars.map((carName, index) => (
+                      <Badge key={index} variant="outline">
+                        {carName}
+                      </Badge>
+                    ))
+                  ) : assignment.car ? (
+                    <Badge variant="outline">
+                      {typeof assignment.car === 'string' ? assignment.car : assignment.car.name}
+                    </Badge>
+                  ) : null}
+                </div>
               </div>
             </div>
           )}
@@ -102,18 +114,26 @@ const AssignmentDetailsDialog: React.FC<AssignmentDetailsDialogProps> = ({
             </div>
           )}
 
-          {/* Assigned Employees */}
-          {assignment.employees && assignment.employees.length > 0 && (
+          {/* Assigned Employees - Handle both new (assignedEmployees with full data) and old (employees string array) format */}
+          {((assignment.assignedEmployees && assignment.assignedEmployees.length > 0) || (assignment.employees && assignment.employees.length > 0)) && (
             <div className="flex items-start gap-3">
               <Users className="h-5 w-5 text-indigo-600 mt-0.5" />
               <div>
                 <span className="font-medium">{t('planner.employees')}: </span>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {assignment.employees.map((employee, index) => (
-                    <Badge key={index} variant="outline">
-                      {employee}
-                    </Badge>
-                  ))}
+                  {assignment.assignedEmployees && assignment.assignedEmployees.length > 0 ? (
+                    assignment.assignedEmployees.map((employee) => (
+                      <Badge key={employee.id} variant="outline">
+                        {employee.name}
+                      </Badge>
+                    ))
+                  ) : assignment.employees && assignment.employees.length > 0 ? (
+                    assignment.employees.map((employee, index) => (
+                      <Badge key={index} variant="outline">
+                        {employee}
+                      </Badge>
+                    ))
+                  ) : null}
                 </div>
               </div>
             </div>

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentDataOptimized';
@@ -12,12 +12,21 @@ import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { getCurrentWeekInfo, getWeekDates } from '@/utils/dates';
 import { da } from 'date-fns/locale';
 import { filterDisplayNames } from '@/utils/people';
+import AssignmentDetailsDialog from './AssignmentDetailsDialog';
+import { Assignment } from '@/types/assignment';
 
 const MineOpgaver: React.FC = () => {
   const { user } = useAuth();
   const { t, currentLanguage } = useTranslation();
   const { assignments, loading, error } = useAssignmentDataOptimized();
   const { cars } = useCars();
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleAssignmentClick = (assignment: Assignment) => {
+    setSelectedAssignment(assignment);
+    setIsDialogOpen(true);
+  };
 
   // Filter assignments for current week only
   const userAssignments = React.useMemo(() => {
@@ -220,7 +229,8 @@ const MineOpgaver: React.FC = () => {
         {userAssignments.map((assignment) => (
           <div
             key={assignment.id}
-            className="flex flex-col space-y-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+            onClick={() => handleAssignmentClick(assignment)}
+            className="flex flex-col space-y-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
           >
             {/* Title and Date */}
             <div className="flex items-start justify-between">
@@ -245,7 +255,10 @@ const MineOpgaver: React.FC = () => {
                 <MapPin className="h-3 w-3" />
                 <span className="truncate flex-1">{assignment.location}</span>
                 <button
-                  onClick={() => handleNavigate(assignment.location)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNavigate(assignment.location);
+                  }}
                   className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent/50 transition-colors group"
                   title={t('dashboard.navigateToLocation') || 'Navigate to location'}
                   aria-label={t('dashboard.navigateToLocation') || 'Navigate to location'}
@@ -317,6 +330,12 @@ const MineOpgaver: React.FC = () => {
           </button>
         </div>
       </CardContent>
+
+      <AssignmentDetailsDialog
+        assignment={selectedAssignment}
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+      />
     </Card>
   );
 };
