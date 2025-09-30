@@ -249,7 +249,8 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
       <AssignmentDetailsDialog 
         assignment={selectedAssignment} 
         isOpen={isAssignmentDialogOpen} 
-        onClose={() => setIsAssignmentDialogOpen(false)} 
+        onClose={() => setIsAssignmentDialogOpen(false)}
+        cars={cars}
       />
     </>
   );

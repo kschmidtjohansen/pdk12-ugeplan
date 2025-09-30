@@ -335,6 +335,7 @@ const MineOpgaver: React.FC = () => {
         assignment={selectedAssignment}
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
+        cars={cars}
       />
     </Card>
   );
