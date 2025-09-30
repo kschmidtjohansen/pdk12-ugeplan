@@ -118,9 +118,17 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   };
 
   const handleRemoveDate = (dateToRemove: Date) => {
-    const updatedDates = selectedDates.filter(d => 
-      d.getTime() !== dateToRemove.getTime()
-    );
+    console.log('[AssignmentFormFields] Removing date:', dateToRemove);
+    console.log('[AssignmentFormFields] Current dates:', selectedDates);
+    
+    // Compare dates as strings (YYYY-MM-DD) instead of timestamps
+    const dateToRemoveStr = format(dateToRemove, 'yyyy-MM-dd');
+    const updatedDates = selectedDates.filter(d => {
+      const dStr = format(d, 'yyyy-MM-dd');
+      return dStr !== dateToRemoveStr;
+    });
+    
+    console.log('[AssignmentFormFields] Updated dates after removal:', updatedDates);
     setSelectedDates(updatedDates);
   };
 
@@ -197,101 +205,66 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       </div>
 
-      {/* Date Field - Multi-date selector or single date for edit mode */}
+      {/* Date Field - Multi-date selector for both create and edit modes */}
       <div className="space-y-2">
-        <Label>
-          {isEditMode ? t('planner.assignmentDate') : t('planner.selectMultipleDates')}
-        </Label>
-        {isEditMode ? (
-          // Single date picker for edit mode
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left font-normal"
+        <Label>{t('planner.selectMultipleDates')}</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full justify-start text-left font-normal"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {selectedDates.length > 0 
+                ? t('planner.datesSelected', { count: selectedDates.length })
+                : t('common.selectDate')}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+            <Calendar
+              mode="multiple"
+              selected={selectedDates}
+              onSelect={handleDateSelect}
+              initialFocus
+              locale={currentLanguage === 'da' ? da : undefined}
+              className="pointer-events-auto"
+              disabled={(date) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                return date < today;
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+        {/* Display selected dates as removable badges */}
+        {selectedDates.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {selectedDates.map((date, index) => (
+              <div 
+                key={index}
+                className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md text-sm"
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDates.length > 0 ? formatDateDisplay(selectedDates[0]) : t('common.selectDate')}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-              <Calendar
-                mode="single"
-                selected={selectedDates[0]}
-                onSelect={(date) => handleDateSelect(date ? [date] : [])}
-                initialFocus
-                locale={currentLanguage === 'da' ? da : undefined}
-                className="pointer-events-auto"
-                disabled={(date) => {
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  return date < today;
-                }}
-              />
-            </PopoverContent>
-          </Popover>
-        ) : (
-          // Multi-date picker for create mode
-          <>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
+                <span>{formatDateDisplay(date)}</span>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveDate(date)}
+                  className="ml-1 hover:text-destructive"
+                  aria-label={t('planner.removeDate')}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDates.length > 0 
-                    ? t('planner.datesSelected', { count: selectedDates.length })
-                    : t('common.selectDate')}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-                <Calendar
-                  mode="multiple"
-                  selected={selectedDates}
-                  onSelect={handleDateSelect}
-                  initialFocus
-                  locale={currentLanguage === 'da' ? da : undefined}
-                  className="pointer-events-auto"
-                  disabled={(date) => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    return date < today;
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
-            {/* Display selected dates as removable badges */}
-            {selectedDates.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {selectedDates.map((date, index) => (
-                  <div 
-                    key={index}
-                    className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md text-sm"
-                  >
-                    <span>{formatDateDisplay(date)}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveDate(date)}
-                      className="ml-1 hover:text-destructive"
-                      aria-label={t('planner.removeDate')}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-                {selectedDates.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDates([])}
-                    className="px-2 py-1 text-xs text-muted-foreground hover:text-destructive underline"
-                  >
-                    {t('planner.clearDates')}
-                  </button>
-                )}
+                  ×
+                </button>
               </div>
+            ))}
+            {selectedDates.length > 1 && (
+              <button
+                type="button"
+                onClick={() => setSelectedDates([])}
+                className="px-2 py-1 text-xs text-muted-foreground hover:text-destructive underline"
+              >
+                {t('planner.clearDates')}
+              </button>
             )}
-          </>
+          </div>
         )}
       </div>
 

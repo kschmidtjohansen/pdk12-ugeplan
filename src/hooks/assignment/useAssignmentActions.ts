@@ -263,6 +263,12 @@ export const useAssignmentActions = (
       console.log("[useAssignmentActions] ===== UPDATE ASSIGNMENT START =====");
       console.log("[useAssignmentActions] Full assignment data received:", assignmentData);
       
+      // Check if multiple dates are provided (array with more than 1 date)
+      const dates = (assignmentData as any).dates || [];
+      const hasMultipleDates = dates.length > 1;
+      
+      console.log("[useAssignmentActions] Multi-date check:", { dates, hasMultipleDates });
+      
       // Check if this is a demo user - if so, handle differently
       if (demoService.isDemoUser(user?.email)) {
         console.log("[useAssignmentActions] Demo user detected - updating session storage");
@@ -270,7 +276,7 @@ export const useAssignmentActions = (
         const updates = {
           title: assignmentData.title,
           description: assignmentData.description,
-          assignment_date: assignmentData.date,
+          assignment_date: dates[0] || assignmentData.date,
           from_time: assignmentData.fromTime,
           to_time: assignmentData.toTime,
           location: assignmentData.location,
@@ -283,9 +289,26 @@ export const useAssignmentActions = (
         demoService.updateDemoAssignment(id, updates);
         demoService.trackOperation('assignments', 'update', id);
         
+        // If multiple dates, create additional assignments for other dates
+        if (hasMultipleDates) {
+          for (let i = 1; i < dates.length; i++) {
+            const newAssignment = {
+              ...updates,
+              assignment_date: dates[i],
+              id: `demo-${Date.now()}-${i}`,
+              created_at: new Date().toISOString()
+            };
+            demoService.storeDemoAssignment(newAssignment);
+          }
+        }
+        
+        const message = hasMultipleDates 
+          ? t('planner.assignmentCreatedMultipleDays', { count: dates.length })
+          : t('planner.assignmentUpdatedMsg', { title: assignmentData.title });
+        
         toast({
           title: t('planner.assignmentUpdated'),
-          description: t('planner.assignmentUpdatedMsg', { title: assignmentData.title }),
+          description: message,
         });
         
         // For demo mode, clear cache and ensure immediate UI update
@@ -332,14 +355,16 @@ export const useAssignmentActions = (
       }
       console.log("[useAssignmentActions] Final responsibleUserId to store:", responsibleUserId);
 
-      // Update the assignment
+      // Update the existing assignment (use first date if multiple dates provided)
+      const updateDate = hasMultipleDates ? dates[0] : assignmentData.date;
+      
       const { error } = await supabase
         .from('assignments')
         .update({
           title: assignmentData.title,
           description: assignmentData.description,
           location: assignmentData.location,
-          assignment_date: assignmentData.date,
+          assignment_date: updateDate,
           from_time: assignmentData.fromTime,
           to_time: assignmentData.toTime,
           car_id: carId,
@@ -398,9 +423,62 @@ export const useAssignmentActions = (
         }
       }
       
+      // If multiple dates were selected, create new assignments for the additional dates
+      if (hasMultipleDates) {
+        console.log("[useAssignmentActions] Creating additional assignments for other dates");
+        
+        for (let i = 1; i < dates.length; i++) {
+          const newAssignmentData = {
+            title: assignmentData.title,
+            description: assignmentData.description,
+            location: assignmentData.location,
+            assignment_date: dates[i],
+            from_time: assignmentData.fromTime,
+            to_time: assignmentData.toTime,
+            car_id: carId,
+            responsible_user_id: responsibleUserId,
+            published: assignmentData.published || false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          
+          const { data: newAssignment, error: createError } = await supabase
+            .from('assignments')
+            .insert(newAssignmentData)
+            .select()
+            .single();
+            
+          if (createError) {
+            console.error(`Error creating assignment for date ${dates[i]}:`, createError);
+            continue;
+          }
+          
+          // Link employees to the new assignment
+          if (assignmentData.employees && assignmentData.employees.length > 0 && newAssignment) {
+            const employeeInserts = assignmentData.employees
+              .filter(empId => typeof empId === 'string')
+              .map(empId => ({
+                assignment_id: newAssignment.id,
+                user_id: safeUUID(empId)
+              }))
+              .filter(insert => insert.user_id !== null);
+              
+            if (employeeInserts.length > 0) {
+              await supabase
+                .from('assignments_employees')
+                .insert(employeeInserts);
+            }
+          }
+        }
+      }
+      
+      const message = hasMultipleDates 
+        ? t('planner.assignmentCreatedMultipleDays', { count: dates.length })
+        : t('planner.assignmentUpdatedMsg', { title: assignmentData.title });
+      
       toast({
         title: t('planner.assignmentUpdated'),
-        description: t('planner.assignmentUpdatedMsg', { title: assignmentData.title }),
+        description: message,
       });
       
       // Wait for refetch to complete before closing dialog
