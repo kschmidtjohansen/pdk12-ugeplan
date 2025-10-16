@@ -37,8 +37,10 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const { employees } = useEmployees();
   const { data: warehouseIndicators } = useWarehouseIndicators();
   
-  const warehouseItemCount = assignment.case_number && warehouseIndicators 
-    ? warehouseIndicators.get(assignment.case_number) 
+  // Match by case_number first, fallback to title for flexibility
+  const warehouseItemCount = warehouseIndicators 
+    ? (assignment.case_number && warehouseIndicators.get(assignment.case_number)) || 
+      warehouseIndicators.get(assignment.title) || 0
     : 0;
 
   console.log(`[AssignmentCard] COMPREHENSIVE FIX - Assignment: ${assignment.title || assignment.location}`);
@@ -159,16 +161,16 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
             <div className="flex items-center gap-2">
               <h3 className="font-medium text-lg">{assignment.title || t('planner.titleLabel')}</h3>
               {warehouseItemCount > 0 && (
-                <TooltipProvider>
+                <TooltipProvider delayDuration={100}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-md">
-                        <Package className="h-4 w-4" />
-                        <span className="text-xs font-semibold">{warehouseItemCount}</span>
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500 text-white rounded-md shadow-sm animate-pulse hover:animate-none transition-all">
+                        <Package className="h-5 w-5" />
+                        <span className="text-sm font-bold">{warehouseItemCount}</span>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{warehouseItemCount} opbevaringer på lageret</p>
+                      <p className="font-medium">{warehouseItemCount} opbevaringer på lageret</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

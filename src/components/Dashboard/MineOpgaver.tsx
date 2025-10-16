@@ -250,20 +250,22 @@ const MineOpgaver: React.FC = () => {
                   {assignment.title}
                 </h4>
                 {(() => {
-                  const warehouseCount = assignment.case_number && warehouseIndicators 
-                    ? warehouseIndicators.get(assignment.case_number) 
+                  // Match by case_number first, fallback to title for flexibility
+                  const warehouseCount = warehouseIndicators 
+                    ? (assignment.case_number && warehouseIndicators.get(assignment.case_number)) || 
+                      warehouseIndicators.get(assignment.title) || 0
                     : 0;
                   return warehouseCount > 0 ? (
-                    <TooltipProvider>
+                    <TooltipProvider delayDuration={100}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded">
-                            <Package className="h-3 w-3" />
-                            <span className="text-xs font-semibold">{warehouseCount}</span>
+                          <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-500 text-white rounded shadow-sm">
+                            <Package className="h-4 w-4" />
+                            <span className="text-xs font-bold">{warehouseCount}</span>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>{warehouseCount} opbevaringer på lageret</p>
+                          <p className="font-medium">{warehouseCount} opbevaringer på lageret</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
