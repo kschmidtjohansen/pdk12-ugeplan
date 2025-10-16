@@ -56,12 +56,24 @@ const InteractiveMetricCard: React.FC<InteractiveMetricCardProps> = ({
   const classes = colorClasses[color];
 
   return (
-    <Card className={cn(
-      'relative overflow-hidden transition-all duration-300 border-l-4 shadow-md hover:shadow-lg cursor-pointer hover:scale-[1.01] bg-gradient-to-br from-card to-card/50 border-2 border-border/50',
-      classes.accent,
-      classes.hover,
-      className
-    )} onClick={onClick}>
+    <Card 
+      className={cn(
+        'relative overflow-hidden transition-all duration-300 border-l-4 shadow-md hover:shadow-lg cursor-pointer hover:scale-[1.01] bg-gradient-to-br from-card to-card/50 border-2 border-border/50',
+        classes.accent,
+        classes.hover,
+        className
+      )} 
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      aria-label={`${title}: ${value}${total ? ` of ${total}` : ''}${subtitle ? `, ${subtitle}` : ''}`}
+    >
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
       
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-4 pt-3">

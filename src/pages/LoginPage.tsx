@@ -46,7 +46,13 @@ const LoginPage = () => {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="mb-6">
-            <img src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" alt="Polygon Logo" className="h-12 mx-auto mb-4" />
+            <img 
+              src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" 
+              alt="Polygon Logo" 
+              className="h-12 mx-auto mb-4"
+              width="180"
+              height="48"
+            />
           </div>
           
           <h1 className="text-3xl font-bold text-gray-900 mb-2">

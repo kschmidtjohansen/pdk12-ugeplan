@@ -1,32 +1,57 @@
-
-import React from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate as RouterNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import { SecurityProvider } from "./context/SecurityContext";
 import { AuthProvider } from "./context/AuthContext";
 import { TranslationProvider, useTranslation } from "./context/TranslationContext";
 import { NotificationProvider } from "./context/NotificationContext";
-import Index from "./pages/Index";
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
-import PlannerPage from "./pages/PlannerPage";
-import EmployeesPage from "./pages/EmployeesPage";
-import CarsPage from "./pages/CarsPage";
-import VacationPage from "./pages/VacationPage";
-import AdminPage from "./pages/AdminPage";
-
-import PasswordResetPage from "./pages/PasswordResetPage";
-import ScreenDisplayPage from "./pages/ScreenDisplayPage";
-import NotFound from "./pages/NotFound";
+import RouteLoadingFallback from "./components/shared/RouteLoadingFallback";
 import MainLayout from "./components/Layout/MainLayout";
+import { performanceMonitor } from "./utils/performanceMonitor";
 
-const queryClient = new QueryClient();
+// Lazy load pages for better code splitting
+const Index = lazy(() => import("./pages/Index"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const PlannerPage = lazy(() => import("./pages/PlannerPage"));
+const EmployeesPage = lazy(() => import("./pages/EmployeesPage"));
+const CarsPage = lazy(() => import("./pages/CarsPage"));
+const VacationPage = lazy(() => import("./pages/VacationPage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
+const PasswordResetPage = lazy(() => import("./pages/PasswordResetPage"));
+const ScreenDisplayPage = lazy(() => import("./pages/ScreenDisplayPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Optimized QueryClient configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+      refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
+    }
+  }
+});
 
 const App = () => {
+  // Initialize performance monitoring
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Performance] Monitoring initialized');
+      // Log performance metrics after 10 seconds
+      setTimeout(() => {
+        const metrics = performanceMonitor.getAllMetrics();
+        console.log('[Performance] Current metrics:', metrics);
+      }, 10000);
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="ui-theme">
@@ -74,28 +99,30 @@ const AppContent = () => {
     <BrowserRouter>
       <Sonner />
       <Toaster />
-      <Routes>
-        <Route path="/" element={<Index />} />
-        
-        {/* Authentication routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/password-reset" element={<PasswordResetPage />} />
-        
-        {/* Protected routes wrapped in MainLayout */}
-        <Route path="/dashboard" element={<MainLayout><DashboardPage /></MainLayout>} />
-        <Route path="/planner" element={<MainLayout><PlannerPage /></MainLayout>} />
-        <Route path="/planner/:assignmentId" element={<MainLayout><PlannerPage /></MainLayout>} />
-        <Route path="/employees" element={<MainLayout><EmployeesPage /></MainLayout>} />
-        <Route path="/cars" element={<MainLayout><CarsPage /></MainLayout>} />
-        <Route path="/vacation" element={<MainLayout><VacationPage /></MainLayout>} />
-        <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />
-        
-        {/* Special routes */}
-        <Route path="/screen-display" element={<ScreenDisplayPage />} />
-        
-        {/* Catch all other routes */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Suspense fallback={<RouteLoadingFallback />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          
+          {/* Authentication routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/password-reset" element={<PasswordResetPage />} />
+          
+          {/* Protected routes wrapped in MainLayout */}
+          <Route path="/dashboard" element={<MainLayout><DashboardPage /></MainLayout>} />
+          <Route path="/planner" element={<MainLayout><PlannerPage /></MainLayout>} />
+          <Route path="/planner/:assignmentId" element={<MainLayout><PlannerPage /></MainLayout>} />
+          <Route path="/employees" element={<MainLayout><EmployeesPage /></MainLayout>} />
+          <Route path="/cars" element={<MainLayout><CarsPage /></MainLayout>} />
+          <Route path="/vacation" element={<MainLayout><VacationPage /></MainLayout>} />
+          <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />
+          
+          {/* Special routes */}
+          <Route path="/screen-display" element={<ScreenDisplayPage />} />
+          
+          {/* Catch all other routes */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 };

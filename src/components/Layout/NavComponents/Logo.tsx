@@ -9,6 +9,9 @@ const Logo: React.FC = () => {
         src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" 
         alt="Polygon Logo" 
         className="h-8 w-auto"
+        width="120"
+        height="32"
+        loading="lazy"
       />
     </Link>
   );
