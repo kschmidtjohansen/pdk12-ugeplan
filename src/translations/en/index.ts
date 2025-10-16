@@ -15,6 +15,7 @@ import { auth } from './auth';
 import accessDenied from './accessDenied';
 import deleteConfirm from './deleteConfirm';
 import screenDisplay from './screenDisplay';
+import { warehouse } from './warehouse';
 
 
 export const en = {
@@ -32,5 +33,6 @@ export const en = {
   auth,
   accessDenied,
   deleteConfirm,
-  screenDisplay
+  screenDisplay,
+  warehouse
 };

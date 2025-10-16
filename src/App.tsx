@@ -21,6 +21,7 @@ const PlannerPage = lazy(() => import("./pages/PlannerPage"));
 const EmployeesPage = lazy(() => import("./pages/EmployeesPage"));
 const CarsPage = lazy(() => import("./pages/CarsPage"));
 const VacationPage = lazy(() => import("./pages/VacationPage"));
+const WarehousePage = lazy(() => import("./pages/WarehousePage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const PasswordResetPage = lazy(() => import("./pages/PasswordResetPage"));
 const ScreenDisplayPage = lazy(() => import("./pages/ScreenDisplayPage"));
@@ -114,6 +115,7 @@ const AppContent = () => {
           <Route path="/employees" element={<MainLayout><EmployeesPage /></MainLayout>} />
           <Route path="/cars" element={<MainLayout><CarsPage /></MainLayout>} />
           <Route path="/vacation" element={<MainLayout><VacationPage /></MainLayout>} />
+          <Route path="/warehouse" element={<MainLayout><WarehousePage /></MainLayout>} />
           <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />
           
           {/* Special routes */}

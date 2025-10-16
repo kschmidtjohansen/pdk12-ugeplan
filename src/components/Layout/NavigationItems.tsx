@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Users, Car, Clock, Calendar, Settings } from 'lucide-react';
+import { Search, Users, Car, Clock, Calendar, Package, Settings } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { NavigationItem } from '@/types/navigation';
 
@@ -42,6 +42,12 @@ const NavigationItems: React.FC<NavigationItemsProps> = ({ hasVacationNotificati
       translationKey: 'navigation.vacation', 
       icon: <Calendar className="h-5 w-5" />,
       hasNotification: hasVacationNotifications 
+    },
+    { 
+      path: '/warehouse', 
+      name: t('navigation.warehouse'), 
+      translationKey: 'navigation.warehouse', 
+      icon: <Package className="h-5 w-5" /> 
     },
     { 
       path: '/admin', 
@@ -90,6 +96,12 @@ export const getNavigationItems = (hasVacationNotifications: boolean): Navigatio
       translationKey: 'navigation.vacation', 
       icon: <Calendar className="h-5 w-5" />,
       hasNotification: hasVacationNotifications 
+    },
+    { 
+      path: '/warehouse', 
+      name: t('navigation.warehouse'), 
+      translationKey: 'navigation.warehouse', 
+      icon: <Package className="h-5 w-5" /> 
     },
     { 
       path: '/admin', 
