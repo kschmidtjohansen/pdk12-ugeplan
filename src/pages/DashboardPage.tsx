@@ -39,7 +39,7 @@ const DashboardPage: React.FC = () => {
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
         {/* Success Message */}
         {showSuccessMessage && (
-          <Alert className="border-green-200 bg-green-50 animate-fade-in-up">
+          <Alert className="border-green-200 bg-green-50">
             <CheckCircle2 className="h-4 w-4" />
             <AlertDescription>
               <div className="font-medium text-green-800">
@@ -53,11 +53,7 @@ const DashboardPage: React.FC = () => {
         )}
 
         {/* Demo Dashboard - Only in demo mode */}
-        {isDemoMode && (
-          <div className="animate-fade-in-up">
-            <DemoDashboard />
-          </div>
-        )}
+        {isDemoMode && <DemoDashboard />}
 
         {/* Welcome Header */}
         <WelcomeHeader userName={user?.name} dailyQuote={dailyQuote} />
@@ -65,9 +61,7 @@ const DashboardPage: React.FC = () => {
         {/* Role-based Dashboard Content */}
         {isServicemedarbejder ? (
           /* Servicemedarbejder Dashboard - Specialized view */
-          <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            <ServicemedarbejderDashboard />
-          </div>
+          <ServicemedarbejderDashboard />
         ) : (
           /* Administrator/Skadeleder Dashboard - Full view */
           <>
@@ -75,16 +69,10 @@ const DashboardPage: React.FC = () => {
             <QuickAccessGrid userRole={effectiveRole} />
 
             {/* Dashboard Metrics - Only for administrators and skadeledere */}
-            {shouldShowMetrics && (
-              <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                <DashboardMetrics />
-              </div>
-            )}
+            {shouldShowMetrics && <DashboardMetrics />}
 
             {/* Main Content - Mine Opgaver for all users */}
-            <div className="animate-fade-in-up" style={{ animationDelay: shouldShowMetrics ? '0.2s' : '0.1s' }}>
-              <MineOpgaver />
-            </div>
+            <MineOpgaver />
           </>
         )}
       </div>

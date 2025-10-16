@@ -369,23 +369,33 @@ a:focus-visible,
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out;
+  animation: fadeInUp 0.3s ease-out;
 }
 
 .animate-fade-in-down {
-  animation: fadeInDown 0.6s ease-out;
+  animation: fadeInDown 0.3s ease-out;
 }
 
 .animate-slide-in-right {
-  animation: slideInRight 0.5s ease-out;
+  animation: slideInRight 0.3s ease-out;
 }
 
 .animate-slide-in-left {
-  animation: slideInLeft 0.5s ease-out;
+  animation: slideInLeft 0.3s ease-out;
 }
 
 .animate-scale-in {
   animation: scaleIn 0.4s ease-out;
+}
+
+/* Spin animation for spinners */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-shimmer {
@@ -465,6 +475,23 @@ a:focus-visible,
 
   .space-x-fluid > * + * {
     margin-left: clamp(0.5rem, 1vw, 1rem);
+  }
+
+  /* Performance optimizations */
+  .performance-contain {
+    contain: layout style paint;
+  }
+}
+
+/* Reduced motion support for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

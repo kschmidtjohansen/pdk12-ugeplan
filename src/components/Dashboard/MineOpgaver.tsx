@@ -238,6 +238,7 @@ const MineOpgaver: React.FC = () => {
             key={assignment.id}
             onClick={() => handleAssignmentClick(assignment)}
             className="flex flex-col space-y-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+            style={{ contentVisibility: 'auto' }}
           >
             {/* Title and Date */}
             <div className="flex items-start justify-between gap-2">

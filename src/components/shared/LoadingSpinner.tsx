@@ -15,7 +15,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', message })
 
   return (
     <div className="flex flex-col justify-center items-center py-8 space-y-4">
-      <div className={`animate-spin rounded-full border-t-2 border-polygon-blue ${sizeClasses[size]}`}></div>
+      <div className={`rounded-full border-t-2 border-polygon-blue ${sizeClasses[size]}`} style={{ animation: 'spin 1s linear infinite', willChange: 'transform' }}></div>
       {message && (
         <p className="text-sm text-gray-500">{message}</p>
       )}
