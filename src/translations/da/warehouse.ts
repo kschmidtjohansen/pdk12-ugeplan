@@ -63,7 +63,8 @@ export const warehouse = {
   cleanedStatus: {
     ja: "Ja",
     nej: "Nej",
-    ikke_noedvendigt: "Ikke nødvendigt"
+    ikke_noedvendigt: "Ikke nødvendigt",
+    ikkeNoedvendigt: "Ikke nødvendigt"
   },
   
   halls: {
