@@ -53,7 +53,7 @@ export const warehouse = {
   },
   
   empty: {
-    title: "Ingen opbevaringer i lageret",
+    title: "Ingen opbevaringer på lageret",
     description: "Begynd ved at tilføje din første opbevaring"
   },
   
