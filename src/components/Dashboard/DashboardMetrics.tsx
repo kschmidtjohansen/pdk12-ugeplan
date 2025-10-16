@@ -78,7 +78,7 @@ const DashboardMetrics: React.FC = () => {
           value={metrics.warehouseItems.count}
           subtitle={t('dashboard.metrics.warehouseItemsDesc')}
           icon={Package}
-          color="purple"
+          color="orange"
           onClick={() => navigate('/warehouse')}
         />
       </div>
