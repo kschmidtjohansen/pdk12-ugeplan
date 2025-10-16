@@ -222,7 +222,7 @@ const MineOpgaver: React.FC = () => {
   }
 
   return (
-    <Card className="h-full">
+    <Card className="h-full overflow-visible">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <Calendar className="h-5 w-5 text-primary" />
@@ -235,7 +235,7 @@ const MineOpgaver: React.FC = () => {
             </Badge>
           </CardTitle>
         </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 overflow-visible">
         {userAssignments.map((assignment) => (
           <div
             key={assignment.id}
