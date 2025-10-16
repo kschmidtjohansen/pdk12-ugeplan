@@ -2,6 +2,7 @@
 import { useMemo } from 'react';
 import { useEnhancedUnifiedData } from './useEnhancedUnifiedData';
 import { useVacationData } from './vacation/useVacationData';
+import { useWarehouseData } from './warehouse/useWarehouseData';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { useTranslation } from '@/context/TranslationContext';
 import { format } from 'date-fns';
@@ -9,17 +10,19 @@ import { format } from 'date-fns';
 export const useDashboardMetrics = () => {
   const { employees, assignments, cars, loading, error } = useEnhancedUnifiedData();
   const { vacations, loading: vacationsLoading } = useVacationData();
+  const { items: warehouseItems, loading: warehouseLoading } = useWarehouseData();
   const { t } = useTranslation();
 
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
 
   const metrics = useMemo(() => {
-    if (loading || vacationsLoading) {
+    if (loading || vacationsLoading || warehouseLoading) {
       return {
         availableEmployees: { count: 0, total: 0, employees: [] },
         availableCars: { count: 0, total: 0, cars: [] },
-        absentEmployees: { count: 0, employees: [] }
+        absentEmployees: { count: 0, employees: [] },
+        warehouseItems: { count: 0, items: [] }
       };
     }
 
@@ -81,6 +84,9 @@ export const useDashboardMetrics = () => {
       };
     });
 
+    // Calculate total warehouse quantity
+    const totalWarehouseQuantity = warehouseItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+
     return {
       availableEmployees: {
         count: availableEmployeesList.length,
@@ -95,13 +101,17 @@ export const useDashboardMetrics = () => {
       absentEmployees: {
         count: absentEmployeesList.length,
         employees: absentEmployeesList
+      },
+      warehouseItems: {
+        count: totalWarehouseQuantity,
+        items: warehouseItems
       }
     };
-  }, [employees, assignments, cars, vacations, loading, vacationsLoading, t, today, todayStr]);
+  }, [employees, assignments, cars, vacations, warehouseItems, loading, vacationsLoading, warehouseLoading, t, today, todayStr]);
 
   return {
     metrics,
-    loading: loading || vacationsLoading,
+    loading: loading || vacationsLoading || warehouseLoading,
     error,
     assignments,
     vacations

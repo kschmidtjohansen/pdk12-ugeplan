@@ -117,7 +117,12 @@ export const dashboard = {
     // Car details
     carNumber: "Car #{number}",
     hasTrailerHitch: "Has trailer hitch",
-    noTrailerHitch: "No trailer hitch"
+    noTrailerHitch: "No trailer hitch",
+    
+    // Warehouse items
+    warehouseItems: "Pallets/Furniture boxes in storage",
+    warehouseItemsDesc: "Total quantity in storage",
+    warehouseItemsDetails: "Warehouse details"
   },
   
   charts: {

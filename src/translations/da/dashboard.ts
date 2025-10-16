@@ -117,7 +117,12 @@ export const dashboard = {
     // Car details
     carNumber: "Bil #{number}",
     hasTrailerHitch: "Har anhængertræk",
-    noTrailerHitch: "Ingen anhængertræk"
+    noTrailerHitch: "Ingen anhængertræk",
+    
+    // Warehouse items
+    warehouseItems: "Paller/Møbelkasser på lager",
+    warehouseItemsDesc: "Total antal i lager",
+    warehouseItemsDetails: "Lager detaljer"
   },
   
   charts: {

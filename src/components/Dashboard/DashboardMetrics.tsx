@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { Users, Car, UserX } from 'lucide-react';
+import { Users, Car, UserX, Package } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
@@ -14,6 +15,7 @@ import { format } from 'date-fns';
 const DashboardMetrics: React.FC = () => {
   const { metrics, loading, error, assignments, vacations } = useDashboardMetrics();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [carModalOpen, setCarModalOpen] = useState(false);
@@ -41,7 +43,7 @@ const DashboardMetrics: React.FC = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <InteractiveMetricCard
           title={t('dashboard.metrics.availableEmployees')}
           value={metrics.availableEmployees.count}
@@ -69,6 +71,15 @@ const DashboardMetrics: React.FC = () => {
           icon={UserX}
           color="orange"
           onClick={() => setAbsentModalOpen(true)}
+        />
+        
+        <InteractiveMetricCard
+          title={t('dashboard.metrics.warehouseItems')}
+          value={metrics.warehouseItems.count}
+          subtitle={t('dashboard.metrics.warehouseItemsDesc')}
+          icon={Package}
+          color="purple"
+          onClick={() => navigate('/warehouse')}
         />
       </div>
 
