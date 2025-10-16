@@ -1,8 +1,8 @@
 export const warehouse = {
-  title: "Lagerliste",
-  addNew: "Tilføj ny vare",
-  editItem: "Rediger vare",
-  deleteItem: "Slet vare",
+  title: "Lager",
+  addNew: "Tilføj til opbevaring",
+  editItem: "Rediger opbevaring",
+  deleteItem: "Slet opbevaring",
   
   fields: {
     address: "Adresse",
@@ -30,12 +30,12 @@ export const warehouse = {
   },
   
   messages: {
-    addSuccess: "Vare tilføjet succesfuldt",
-    updateSuccess: "Vare opdateret succesfuldt",
-    deleteSuccess: "Vare slettet succesfuldt",
-    addError: "Kunne ikke tilføje vare",
-    updateError: "Kunne ikke opdatere vare",
-    deleteError: "Kunne ikke slette vare",
+    addSuccess: "Opbevaring tilføjet succesfuldt",
+    updateSuccess: "Opbevaring opdateret succesfuldt",
+    deleteSuccess: "Opbevaring slettet succesfuldt",
+    addError: "Kunne ikke tilføje opbevaring",
+    updateError: "Kunne ikke opdatere opbevaring",
+    deleteError: "Kunne ikke slette opbevaring",
     loadError: "Kunne ikke indlæse lagerliste"
   },
   
@@ -46,15 +46,15 @@ export const warehouse = {
   },
   
   deleteConfirm: {
-    title: "Slet lagervare",
-    message: "Er du sikker på, at du vil slette denne vare? Denne handling kan ikke fortrydes.",
+    title: "Slet opbevaring",
+    message: "Er du sikker på, at du vil slette denne opbevaring? Denne handling kan ikke fortrydes.",
     confirm: "Ja, slet",
     cancel: "Annuller"
   },
   
   empty: {
-    title: "Ingen varer i lageret",
-    description: "Begynd ved at tilføje din første lagervare"
+    title: "Ingen opbevaringer i lageret",
+    description: "Begynd ved at tilføje din første opbevaring"
   },
   
   cleaned: "Rengjort",
