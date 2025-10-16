@@ -255,13 +255,18 @@ const MineOpgaver: React.FC = () => {
                 <TooltipProvider delayDuration={100}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1 px-2 py-0.5 bg-amber-500 text-white rounded shadow-sm cursor-help">
+                      <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1 px-2 py-0.5 bg-amber-500 text-white rounded shadow-sm cursor-help">
                         <Package className="h-4 w-4" />
                         <span className="text-xs font-bold">{warehouseCount}</span>
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="font-medium">Der er {warehouseData.totalQuantity} møbelkasser/paller på lager</p>
+                    <TooltipContent 
+                      side="left" 
+                      align="end"
+                      sideOffset={8}
+                      className="max-w-xs z-[100]"
+                    >
+                      <p className="font-medium whitespace-normal">Der er {warehouseData.totalQuantity} møbelkasser/paller på lager</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
