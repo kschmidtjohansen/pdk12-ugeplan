@@ -39,7 +39,7 @@ const WarehouseTableRow: React.FC<WarehouseTableRowProps> = ({ item, onEdit, onD
               variant="outline"
               size="sm"
               onClick={() => onDelete(item)}
-              className="gap-2"
+              className="gap-2 hover:bg-green-600 hover:text-white hover:border-green-600 transition-colors"
             >
               <CheckCircle className="h-4 w-4" />
               {t('warehouse.actions.markAsDelivered')}

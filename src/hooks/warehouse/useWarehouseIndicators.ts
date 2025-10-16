@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 interface WarehouseIndicator {
-  case_number: string;
   count: number;
+  totalQuantity: number;
 }
 
 export const useWarehouseIndicators = () => {
@@ -12,17 +12,20 @@ export const useWarehouseIndicators = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('warehouse_items')
-        .select('case_number')
+        .select('case_number, quantity')
         .not('case_number', 'is', null);
 
       if (error) throw error;
 
-      // Count items per case number
-      const indicatorMap = new Map<string, number>();
+      // Count items per case number and sum quantities
+      const indicatorMap = new Map<string, WarehouseIndicator>();
       data?.forEach((item) => {
         if (item.case_number) {
-          const count = indicatorMap.get(item.case_number) || 0;
-          indicatorMap.set(item.case_number, count + 1);
+          const current = indicatorMap.get(item.case_number) || { count: 0, totalQuantity: 0 };
+          indicatorMap.set(item.case_number, {
+            count: current.count + 1,
+            totalQuantity: current.totalQuantity + (item.quantity || 0)
+          });
         }
       });
 

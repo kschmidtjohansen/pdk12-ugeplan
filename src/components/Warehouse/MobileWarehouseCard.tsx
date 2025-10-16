@@ -61,10 +61,10 @@ const MobileWarehouseCard: React.FC<MobileWarehouseCardProps> = ({ item, onEdit,
           {canEdit && (
             <div className="flex flex-col gap-2 pt-2 border-t">
               <Button
-                variant="default"
+                variant="outline"
                 size="sm"
                 onClick={() => onDelete(item)}
-                className="w-full gap-2"
+                className="w-full gap-2 hover:bg-green-600 hover:text-white hover:border-green-600 transition-colors"
               >
                 <CheckCircle className="h-4 w-4" />
                 {t('warehouse.actions.markAsDelivered')}

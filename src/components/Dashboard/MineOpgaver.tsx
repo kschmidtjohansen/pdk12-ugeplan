@@ -240,37 +240,40 @@ const MineOpgaver: React.FC = () => {
           <div
             key={assignment.id}
             onClick={() => handleAssignmentClick(assignment)}
-            className="flex flex-col space-y-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+            className="relative flex flex-col space-y-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
             style={{ contentVisibility: 'auto' }}
           >
+            {/* Warehouse indicator badge - positioned at bottom right */}
+            {(() => {
+              // Match by case_number first, fallback to title for flexibility
+              const warehouseData = warehouseIndicators 
+                ? (assignment.case_number && warehouseIndicators.get(assignment.case_number)) || 
+                  warehouseIndicators.get(assignment.title) || { count: 0, totalQuantity: 0 }
+                : { count: 0, totalQuantity: 0 };
+              const warehouseCount = warehouseData.count;
+              return warehouseCount > 0 ? (
+                <TooltipProvider delayDuration={100}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1 px-2 py-0.5 bg-amber-500 text-white rounded shadow-sm cursor-help">
+                        <Package className="h-4 w-4" />
+                        <span className="text-xs font-bold">{warehouseCount}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="font-medium">Der er {warehouseData.totalQuantity} møbelkasser/paller på lager</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : null;
+            })()}
+            
             {/* Title and Date */}
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2 flex-1">
                 <h4 className="font-medium text-sm leading-tight">
                   {assignment.title}
                 </h4>
-                {(() => {
-                  // Match by case_number first, fallback to title for flexibility
-                  const warehouseCount = warehouseIndicators 
-                    ? (assignment.case_number && warehouseIndicators.get(assignment.case_number)) || 
-                      warehouseIndicators.get(assignment.title) || 0
-                    : 0;
-                  return warehouseCount > 0 ? (
-                    <TooltipProvider delayDuration={100}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-500 text-white rounded shadow-sm">
-                            <Package className="h-4 w-4" />
-                            <span className="text-xs font-bold">{warehouseCount}</span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="font-medium">{warehouseCount} opbevaringer på lageret</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ) : null;
-                })()}
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 <Badge 

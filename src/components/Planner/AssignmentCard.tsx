@@ -38,10 +38,11 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const { data: warehouseIndicators } = useWarehouseIndicators();
   
   // Match by case_number first, fallback to title for flexibility
-  const warehouseItemCount = warehouseIndicators 
+  const warehouseData = warehouseIndicators 
     ? (assignment.case_number && warehouseIndicators.get(assignment.case_number)) || 
-      warehouseIndicators.get(assignment.title) || 0
-    : 0;
+      warehouseIndicators.get(assignment.title) || { count: 0, totalQuantity: 0 }
+    : { count: 0, totalQuantity: 0 };
+  const warehouseItemCount = warehouseData.count;
 
   console.log(`[AssignmentCard] COMPREHENSIVE FIX - Assignment: ${assignment.title || assignment.location}`);
   console.log(`[AssignmentCard] COMPREHENSIVE FIX - Employee data:`, {
@@ -154,27 +155,29 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   };
 
   return (
-    <Card className={`w-full p-4 bg-white hover:border-polygon-purple transition-colors ${isLoading ? 'opacity-75' : ''}`}>
+    <Card className={`relative w-full p-4 bg-white hover:border-polygon-purple transition-colors ${isLoading ? 'opacity-75' : ''}`}>
+      {/* Warehouse indicator badge - positioned at bottom right */}
+      {warehouseItemCount > 0 && (
+        <TooltipProvider delayDuration={100}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="absolute bottom-3 right-3 z-10 flex items-center gap-1.5 px-2.5 py-1 bg-amber-500 text-white rounded-md shadow-sm animate-pulse hover:animate-none transition-all cursor-help">
+                <Package className="h-5 w-5" />
+                <span className="text-sm font-bold">{warehouseItemCount}</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="font-medium">Der er {warehouseData.totalQuantity} møbelkasser/paller på lager</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+      
       <div className="flex justify-between items-start gap-2 mb-2">
         <div className="flex items-center gap-2 flex-1">
           <div className="flex flex-col flex-1">
             <div className="flex items-center gap-2">
               <h3 className="font-medium text-lg">{assignment.title || t('planner.titleLabel')}</h3>
-              {warehouseItemCount > 0 && (
-                <TooltipProvider delayDuration={100}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500 text-white rounded-md shadow-sm animate-pulse hover:animate-none transition-all">
-                        <Package className="h-5 w-5" />
-                        <span className="text-sm font-bold">{warehouseItemCount}</span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="font-medium">{warehouseItemCount} opbevaringer på lageret</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
               {operationState && (
                 <span className="text-xs text-blue-600 font-medium animate-pulse">
                   {getOperationText(operationState)}
