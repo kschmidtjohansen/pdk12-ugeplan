@@ -69,7 +69,7 @@ const DashboardMetrics: React.FC = () => {
           value={metrics.absentEmployees.count}
           subtitle={t('dashboard.metrics.absentEmployeesDesc')}
           icon={UserX}
-          color="orange"
+          color="red"
           onClick={() => setAbsentModalOpen(true)}
         />
         
