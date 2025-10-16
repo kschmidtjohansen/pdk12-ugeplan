@@ -22,6 +22,7 @@ export const useWarehouseActions = (onSuccess?: () => void) => {
           case_number: data.case_number || null,
           is_cleaned: data.is_cleaned,
           quantity: data.quantity,
+          hall: data.hall || null,
           notes: data.notes || null,
           created_by: user?.id
         });
@@ -56,6 +57,7 @@ export const useWarehouseActions = (onSuccess?: () => void) => {
           case_number: data.case_number || null,
           is_cleaned: data.is_cleaned,
           quantity: data.quantity,
+          hall: data.hall || null,
           notes: data.notes || null,
         })
         .eq('id', id);

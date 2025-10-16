@@ -27,6 +27,15 @@ const WarehouseTableRow: React.FC<WarehouseTableRowProps> = ({ item, onEdit, onD
           )}
         </div>
       </TableCell>
+      <TableCell>
+        {item.hall ? (
+          <span className="text-sm">
+            {item.hall === 'hal_1' ? t('warehouse.halls.hal1') : t('warehouse.halls.sortHal')}
+          </span>
+        ) : (
+          <span className="text-sm text-muted-foreground">-</span>
+        )}
+      </TableCell>
       <TableCell>{item.quantity}</TableCell>
       <TableCell className="max-w-xs truncate">{item.notes || '-'}</TableCell>
       {canEdit && (

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useTranslation } from '@/context/TranslationContext';
 import { useForm } from 'react-hook-form';
 import { WarehouseItemFormData } from '@/types/warehouse';
@@ -24,17 +25,20 @@ const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
       case_number: editingItem.case_number || '',
       is_cleaned: editingItem.is_cleaned,
       quantity: editingItem.quantity,
+      hall: editingItem.hall || undefined,
       notes: editingItem.notes || '',
     } : {
       address: '',
       case_number: '',
       is_cleaned: false,
       quantity: 0,
+      hall: undefined,
       notes: '',
     }
   });
 
   const isCleaned = watch('is_cleaned');
+  const hall = watch('hall');
 
   React.useEffect(() => {
     if (open) {
@@ -44,6 +48,7 @@ const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
           case_number: editingItem.case_number || '',
           is_cleaned: editingItem.is_cleaned,
           quantity: editingItem.quantity,
+          hall: editingItem.hall || undefined,
           notes: editingItem.notes || '',
         });
       } else {
@@ -52,6 +57,7 @@ const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
           case_number: '',
           is_cleaned: false,
           quantity: 0,
+          hall: undefined,
           notes: '',
         });
       }
@@ -105,6 +111,24 @@ const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
             <Label htmlFor="is_cleaned" className="cursor-pointer">
               {t('warehouse.fields.isCleaned')}
             </Label>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t('warehouse.fields.hall')}</Label>
+            <RadioGroup value={hall || ''} onValueChange={(value) => setValue('hall', value as 'hal_1' | 'sort_hal' | undefined)}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="hal_1" id="hal_1" />
+                <Label htmlFor="hal_1" className="cursor-pointer font-normal">
+                  {t('warehouse.halls.hal1')}
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="sort_hal" id="sort_hal" />
+                <Label htmlFor="sort_hal" className="cursor-pointer font-normal">
+                  {t('warehouse.halls.sortHal')}
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
 
           <div className="space-y-2">

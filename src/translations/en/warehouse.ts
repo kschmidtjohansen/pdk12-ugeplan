@@ -9,6 +9,7 @@ export const warehouse = {
     caseNumber: "Case Number",
     isCleaned: "Is Cleaned?",
     quantity: "Quantity",
+    hall: "Hall",
     notes: "Notes",
     createdAt: "Created",
     updatedAt: "Updated"
@@ -18,6 +19,7 @@ export const warehouse = {
     address: "Enter address...",
     caseNumber: "Enter case number...",
     quantity: "Enter quantity...",
+    selectHall: "Select hall...",
     notes: "Add any notes..."
   },
   
@@ -58,5 +60,10 @@ export const warehouse = {
   },
   
   cleaned: "Cleaned",
-  notCleaned: "Not Cleaned"
+  notCleaned: "Not Cleaned",
+  
+  halls: {
+    hal1: "Hall 1",
+    sortHal: "Black Hall"
+  }
 };

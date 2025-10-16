@@ -536,6 +536,7 @@ export type Database = {
           case_number: string | null
           created_at: string
           created_by: string | null
+          hall: string | null
           id: string
           is_cleaned: boolean
           notes: string | null
@@ -547,6 +548,7 @@ export type Database = {
           case_number?: string | null
           created_at?: string
           created_by?: string | null
+          hall?: string | null
           id?: string
           is_cleaned?: boolean
           notes?: string | null
@@ -558,6 +560,7 @@ export type Database = {
           case_number?: string | null
           created_at?: string
           created_by?: string | null
+          hall?: string | null
           id?: string
           is_cleaned?: boolean
           notes?: string | null

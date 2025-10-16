@@ -15,6 +15,7 @@ const WarehouseTable: React.FC<WarehouseListProps> = ({ items, onEdit, onDelete,
             <TableHead className="font-semibold">{t('warehouse.fields.address')}</TableHead>
             <TableHead className="font-semibold">{t('warehouse.fields.caseNumber')}</TableHead>
             <TableHead className="font-semibold">{t('warehouse.fields.isCleaned')}</TableHead>
+            <TableHead className="font-semibold">{t('warehouse.fields.hall')}</TableHead>
             <TableHead className="font-semibold">{t('warehouse.fields.quantity')}</TableHead>
             <TableHead className="font-semibold">{t('warehouse.fields.notes')}</TableHead>
             {canEdit && <TableHead className="font-semibold text-right">{t('common.actions')}</TableHead>}

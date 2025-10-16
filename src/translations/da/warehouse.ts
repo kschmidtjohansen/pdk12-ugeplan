@@ -9,6 +9,7 @@ export const warehouse = {
     caseNumber: "Sagsnummer",
     isCleaned: "Er rengjort?",
     quantity: "Antal",
+    hall: "Hal",
     notes: "Noter",
     createdAt: "Oprettet",
     updatedAt: "Opdateret"
@@ -18,6 +19,7 @@ export const warehouse = {
     address: "Indtast adresse...",
     caseNumber: "Indtast sagsnummer...",
     quantity: "Indtast antal...",
+    selectHall: "Vælg hal...",
     notes: "Tilføj eventuelle noter..."
   },
   
@@ -58,5 +60,10 @@ export const warehouse = {
   },
   
   cleaned: "Rengjort",
-  notCleaned: "Ikke rengjort"
+  notCleaned: "Ikke rengjort",
+  
+  halls: {
+    hal1: "Hal 1",
+    sortHal: "Sort Hal"
+  }
 };

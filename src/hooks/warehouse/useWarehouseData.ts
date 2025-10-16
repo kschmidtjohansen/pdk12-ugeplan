@@ -19,7 +19,7 @@ export const useWarehouseData = () => {
 
       if (fetchError) throw fetchError;
       
-      setItems(data || []);
+      setItems((data || []) as WarehouseItem[]);
     } catch (err) {
       console.error('Error fetching warehouse items:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch items');

@@ -48,6 +48,15 @@ const MobileWarehouseCard: React.FC<MobileWarehouseCardProps> = ({ item, onEdit,
             </div>
           </div>
           
+          {item.hall && (
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">{t('warehouse.fields.hall')}</p>
+              <p className="text-base">
+                {item.hall === 'hal_1' ? t('warehouse.halls.hal1') : t('warehouse.halls.sortHal')}
+              </p>
+            </div>
+          )}
+          
           {item.notes && (
             <div>
               <p className="text-sm font-medium text-muted-foreground">{t('warehouse.fields.notes')}</p>
