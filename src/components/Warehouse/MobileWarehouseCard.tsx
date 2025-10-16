@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Check, X } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { MobileWarehouseCardProps } from './types';
 
@@ -27,19 +27,13 @@ const MobileWarehouseCard: React.FC<MobileWarehouseCardProps> = ({ item, onEdit,
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">{t('warehouse.fields.isCleaned')}</p>
-              <div className="flex items-center gap-2 mt-1">
-                {item.is_cleaned ? (
-                  <>
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span className="text-sm text-green-600">{t('warehouse.cleaned')}</span>
-                  </>
-                ) : (
-                  <>
-                    <X className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">{t('warehouse.notCleaned')}</span>
-                  </>
-                )}
-              </div>
+              <span className={`text-sm ${
+                item.is_cleaned === 'ja' ? 'text-green-600' : 
+                item.is_cleaned === 'ikke_noedvendigt' ? 'text-blue-600' : 
+                'text-muted-foreground'
+              }`}>
+                {t(`warehouse.cleanedStatus.${item.is_cleaned}`)}
+              </span>
             </div>
             
             <div>

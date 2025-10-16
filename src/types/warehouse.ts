@@ -2,7 +2,7 @@ export interface WarehouseItem {
   id: string;
   address: string;
   case_number: string | null;
-  is_cleaned: boolean;
+  is_cleaned: 'ja' | 'nej' | 'ikke_noedvendigt';
   quantity: number;
   notes: string | null;
   hall: 'hal_1' | 'sort_hal' | null;
@@ -14,7 +14,7 @@ export interface WarehouseItem {
 export interface WarehouseItemFormData {
   address: string;
   case_number?: string;
-  is_cleaned: boolean;
+  is_cleaned: 'ja' | 'nej' | 'ikke_noedvendigt';
   quantity: number;
   hall?: 'hal_1' | 'sort_hal';
   notes?: string;

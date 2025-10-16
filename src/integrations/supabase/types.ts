@@ -538,7 +538,7 @@ export type Database = {
           created_by: string | null
           hall: string | null
           id: string
-          is_cleaned: boolean
+          is_cleaned: string
           notes: string | null
           quantity: number
           updated_at: string
@@ -550,7 +550,7 @@ export type Database = {
           created_by?: string | null
           hall?: string | null
           id?: string
-          is_cleaned?: boolean
+          is_cleaned?: string
           notes?: string | null
           quantity?: number
           updated_at?: string
@@ -562,7 +562,7 @@ export type Database = {
           created_by?: string | null
           hall?: string | null
           id?: string
-          is_cleaned?: boolean
+          is_cleaned?: string
           notes?: string | null
           quantity?: number
           updated_at?: string

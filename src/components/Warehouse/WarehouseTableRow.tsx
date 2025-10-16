@@ -1,7 +1,7 @@
 import React from 'react';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Check, X } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { WarehouseTableRowProps } from './types';
 
@@ -13,19 +13,13 @@ const WarehouseTableRow: React.FC<WarehouseTableRowProps> = ({ item, onEdit, onD
       <TableCell className="font-medium">{item.address}</TableCell>
       <TableCell>{item.case_number || '-'}</TableCell>
       <TableCell>
-        <div className="flex items-center gap-2">
-          {item.is_cleaned ? (
-            <>
-              <Check className="h-4 w-4 text-green-600" />
-              <span className="text-sm text-green-600">{t('warehouse.cleaned')}</span>
-            </>
-          ) : (
-            <>
-              <X className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">{t('warehouse.notCleaned')}</span>
-            </>
-          )}
-        </div>
+        <span className={`text-sm ${
+          item.is_cleaned === 'ja' ? 'text-green-600' : 
+          item.is_cleaned === 'ikke_noedvendigt' ? 'text-blue-600' : 
+          'text-muted-foreground'
+        }`}>
+          {t(`warehouse.cleanedStatus.${item.is_cleaned}`)}
+        </span>
       </TableCell>
       <TableCell>
         {item.hall ? (

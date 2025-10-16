@@ -7,8 +7,10 @@ import AssignmentStatusBadge from './AssignmentStatusBadge';
 import AssignmentActionButtons from './AssignmentActionButtons';
 import AssignmentDetails from './AssignmentDetails';
 import { useTranslation } from '@/context/TranslationContext';
-import { UserCheck } from 'lucide-react';
+import { UserCheck, Package } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AssignmentCardProps {
   assignment: Assignment;
@@ -33,6 +35,11 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 }) => {
   const { t } = useTranslation();
   const { employees } = useEmployees();
+  const { data: warehouseIndicators } = useWarehouseIndicators();
+  
+  const warehouseItemCount = assignment.case_number && warehouseIndicators 
+    ? warehouseIndicators.get(assignment.case_number) 
+    : 0;
 
   console.log(`[AssignmentCard] COMPREHENSIVE FIX - Assignment: ${assignment.title || assignment.location}`);
   console.log(`[AssignmentCard] COMPREHENSIVE FIX - Employee data:`, {
@@ -151,6 +158,21 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           <div className="flex flex-col flex-1">
             <div className="flex items-center gap-2">
               <h3 className="font-medium text-lg">{assignment.title || t('planner.titleLabel')}</h3>
+              {warehouseItemCount > 0 && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-md">
+                        <Package className="h-4 w-4" />
+                        <span className="text-xs font-semibold">{warehouseItemCount}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{warehouseItemCount} opbevaringer på lageret</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
               {operationState && (
                 <span className="text-xs text-blue-600 font-medium animate-pulse">
                   {getOperationText(operationState)}

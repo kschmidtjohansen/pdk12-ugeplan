@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useTranslation } from '@/context/TranslationContext';
 import { useForm } from 'react-hook-form';
@@ -30,7 +30,7 @@ const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
     } : {
       address: '',
       case_number: '',
-      is_cleaned: false,
+      is_cleaned: 'nej',
       quantity: 0,
       hall: undefined,
       notes: '',
@@ -55,7 +55,7 @@ const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
         reset({
           address: '',
           case_number: '',
-          is_cleaned: false,
+          is_cleaned: 'nej',
           quantity: 0,
           hall: undefined,
           notes: '',
@@ -102,15 +102,18 @@ const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
             />
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="is_cleaned"
-              checked={isCleaned}
-              onCheckedChange={(checked) => setValue('is_cleaned', checked as boolean)}
-            />
-            <Label htmlFor="is_cleaned" className="cursor-pointer">
-              {t('warehouse.fields.isCleaned')}
-            </Label>
+          <div className="space-y-2">
+            <Label htmlFor="is_cleaned">{t('warehouse.fields.isCleaned')}</Label>
+            <Select value={isCleaned} onValueChange={(value) => setValue('is_cleaned', value as 'ja' | 'nej' | 'ikke_noedvendigt')}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ja">{t('warehouse.cleanedStatus.ja')}</SelectItem>
+                <SelectItem value="nej">{t('warehouse.cleanedStatus.nej')}</SelectItem>
+                <SelectItem value="ikke_noedvendigt">{t('warehouse.cleanedStatus.ikkeNoedvendigt')}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

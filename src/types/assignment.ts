@@ -9,6 +9,7 @@ export interface Assignment {
   location: string;
   type?: string;
   published: boolean;
+  case_number?: string;
   responsibleUserId?: string;
   employees?: string[]; // Now stores employee IDs (UUIDs) instead of names
   assignedEmployees?: Array<{ id: string; name: string; email: string }>; // PHASE 3 FIX: Full employee data

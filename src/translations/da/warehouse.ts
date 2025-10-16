@@ -59,8 +59,11 @@ export const warehouse = {
     description: "Begynd ved at tilføje din første opbevaring"
   },
   
-  cleaned: "Rengjort",
-  notCleaned: "Ikke rengjort",
+  cleanedStatus: {
+    ja: "Ja",
+    nej: "Nej",
+    ikkeNoedvendigt: "Ikke nødvendigt"
+  },
   
   halls: {
     hal1: "Hal 1",

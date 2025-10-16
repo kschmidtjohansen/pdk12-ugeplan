@@ -6,7 +6,7 @@ import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentData
 import { useCars } from '@/hooks/car';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, UserCheck, Calendar, Users, Car, Navigation } from 'lucide-react';
+import { Clock, MapPin, UserCheck, Calendar, Users, Car, Navigation, Package } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { getCurrentWeekInfo, getWeekDates } from '@/utils/dates';
@@ -14,6 +14,8 @@ import { da } from 'date-fns/locale';
 import { filterDisplayNames } from '@/utils/people';
 import AssignmentDetailsDialog from './AssignmentDetailsDialog';
 import { Assignment } from '@/types/assignment';
+import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const MineOpgaver: React.FC = () => {
   const { user } = useAuth();
@@ -22,6 +24,7 @@ const MineOpgaver: React.FC = () => {
   const { cars } = useCars();
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { data: warehouseIndicators } = useWarehouseIndicators();
 
   const handleAssignmentClick = (assignment: Assignment) => {
     setSelectedAssignment(assignment);
@@ -242,9 +245,31 @@ const MineOpgaver: React.FC = () => {
           >
             {/* Title and Date */}
             <div className="flex items-start justify-between gap-2">
-              <h4 className="font-medium text-sm leading-tight">
-                {assignment.title}
-              </h4>
+              <div className="flex items-center gap-2 flex-1">
+                <h4 className="font-medium text-sm leading-tight">
+                  {assignment.title}
+                </h4>
+                {(() => {
+                  const warehouseCount = assignment.case_number && warehouseIndicators 
+                    ? warehouseIndicators.get(assignment.case_number) 
+                    : 0;
+                  return warehouseCount > 0 ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded">
+                            <Package className="h-3 w-3" />
+                            <span className="text-xs font-semibold">{warehouseCount}</span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{warehouseCount} opbevaringer på lageret</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : null;
+                })()}
+              </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 <Badge 
                   variant="outline" 
