@@ -121,7 +121,7 @@ export const dashboard = {
     
     // Warehouse items
     warehouseItems: "Paller/Møbelkasser på lager",
-    warehouseItemsDesc: "Total antal i lager",
+    warehouseItemsDesc: "Total antal på lager",
     warehouseItemsDetails: "Lager detaljer"
   },
   
