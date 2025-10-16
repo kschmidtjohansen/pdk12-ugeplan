@@ -42,7 +42,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     ? (assignment.case_number && warehouseIndicators.get(assignment.case_number)) || 
       warehouseIndicators.get(assignment.title) || { count: 0, totalQuantity: 0 }
     : { count: 0, totalQuantity: 0 };
-  const warehouseItemCount = warehouseData.count;
+  const warehouseItemCount = warehouseData.totalQuantity;
 
   console.log(`[AssignmentCard] COMPREHENSIVE FIX - Assignment: ${assignment.title || assignment.location}`);
   console.log(`[AssignmentCard] COMPREHENSIVE FIX - Employee data:`, {

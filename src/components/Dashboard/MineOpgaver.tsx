@@ -250,7 +250,7 @@ const MineOpgaver: React.FC = () => {
                 ? (assignment.case_number && warehouseIndicators.get(assignment.case_number)) || 
                   warehouseIndicators.get(assignment.title) || { count: 0, totalQuantity: 0 }
                 : { count: 0, totalQuantity: 0 };
-              const warehouseCount = warehouseData.count;
+              const warehouseCount = warehouseData.totalQuantity;
               return warehouseCount > 0 ? (
                 <TooltipProvider delayDuration={100}>
                   <Tooltip>
