@@ -1,7 +1,7 @@
 import React from 'react';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, CheckCircle } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { WarehouseTableRowProps } from './types';
 
@@ -36,18 +36,20 @@ const WarehouseTableRow: React.FC<WarehouseTableRowProps> = ({ item, onEdit, onD
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
             <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDelete(item)}
+              className="gap-2"
+            >
+              <CheckCircle className="h-4 w-4" />
+              {t('warehouse.actions.markAsDelivered')}
+            </Button>
+            <Button
               variant="ghost"
               size="sm"
               onClick={() => onEdit(item)}
             >
               <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete(item)}
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
             </Button>
           </div>
         </TableCell>

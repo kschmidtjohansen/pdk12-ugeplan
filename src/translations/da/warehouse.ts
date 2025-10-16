@@ -28,7 +28,8 @@ export const warehouse = {
     cancel: "Annuller",
     edit: "Rediger",
     delete: "Slet",
-    confirm: "Bekræft"
+    confirm: "Bekræft",
+    markAsDelivered: "Marker som afleveret"
   },
   
   messages: {

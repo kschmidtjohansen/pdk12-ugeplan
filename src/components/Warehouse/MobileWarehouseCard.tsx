@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, CheckCircle } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { MobileWarehouseCardProps } from './types';
 
@@ -59,24 +59,24 @@ const MobileWarehouseCard: React.FC<MobileWarehouseCardProps> = ({ item, onEdit,
           )}
           
           {canEdit && (
-            <div className="flex gap-2 pt-2 border-t">
+            <div className="flex flex-col gap-2 pt-2 border-t">
               <Button
-                variant="outline"
+                variant="default"
                 size="sm"
-                onClick={() => onEdit(item)}
-                className="flex-1"
+                onClick={() => onDelete(item)}
+                className="w-full gap-2"
               >
-                <Pencil className="h-4 w-4 mr-2" />
-                {t('warehouse.actions.edit')}
+                <CheckCircle className="h-4 w-4" />
+                {t('warehouse.actions.markAsDelivered')}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onDelete(item)}
-                className="flex-1"
+                onClick={() => onEdit(item)}
+                className="w-full gap-2"
               >
-                <Trash2 className="h-4 w-4 mr-2 text-destructive" />
-                {t('warehouse.actions.delete')}
+                <Pencil className="h-4 w-4" />
+                {t('warehouse.actions.edit')}
               </Button>
             </div>
           )}
