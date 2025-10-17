@@ -3,6 +3,7 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, CheckCircle } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { WarehouseTableRowProps } from './types';
 
 const WarehouseTableRow: React.FC<WarehouseTableRowProps> = ({ item, onEdit, onDelete, canEdit }) => {
@@ -31,7 +32,24 @@ const WarehouseTableRow: React.FC<WarehouseTableRowProps> = ({ item, onEdit, onD
         )}
       </TableCell>
       <TableCell>{item.quantity}</TableCell>
-      <TableCell className="max-w-xs truncate">{item.notes || '-'}</TableCell>
+      <TableCell className="max-w-xs">
+        {item.notes ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="truncate block cursor-help">
+                  {item.notes}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-md">
+                <p className="whitespace-normal break-words">{item.notes}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        )}
+      </TableCell>
       {canEdit && (
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
