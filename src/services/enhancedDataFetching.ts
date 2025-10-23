@@ -385,11 +385,26 @@ export class EnhancedDataFetching {
 
         console.log('[Enhanced Data Fetching] Demo assignments:', data?.length || 0);
         
-        // Transform demo data to match production shape if needed
-        const transformedData = (data || []).map((assignment: any) => ({
-          ...assignment,
-          // Add any shape transformations if the RPCs return different structures
-        }));
+        // Transform demo data to match production shape for dashboard metrics
+        const transformedData = (data || []).map((assignment: any) => {
+          const cars = Array.isArray(assignment.assignment_cars) ? assignment.assignment_cars : [];
+          const carIds = cars.map((c: any) => c.id);
+          const team = Array.isArray(assignment.team) ? assignment.team.map((m: any) => ({ 
+            id: m.id, 
+            name: m.name, 
+            email: m.email 
+          })) : [];
+          
+          return {
+            ...assignment,
+            assignment_date: assignment.date || assignment.assignment_date,
+            from_time: assignment.from_time || '08:00:00',
+            to_time: assignment.to_time || '16:00:00',
+            car_ids: carIds,
+            car_id: carIds[0] || null,
+            team
+          };
+        });
         
         return { data: transformedData, error: null };
       }

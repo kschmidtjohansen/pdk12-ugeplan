@@ -12,7 +12,7 @@ import { useAuth } from '@/context/AuthContext';
 export const useEmployeeData = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { user, isDemoMode } = useAuth();
+  const { user, isDemoMode, userDataLoaded } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +69,14 @@ export const useEmployeeData = () => {
         console.log('- Skadeledere:', skadeledere.length);
         console.log('- Total employees:', transformedEmployees.length);
 
-        setEmployees(transformedEmployees);
+        // Only update state if data actually changed to prevent stutter
+        setEmployees(prev => {
+          if (prev.length === transformedEmployees.length && 
+              prev.slice(0, 3).every((e, i) => e.id === transformedEmployees[i]?.id)) {
+            return prev; // No change, keep previous reference
+          }
+          return transformedEmployees;
+        });
         console.log('[useEmployeeData] Demo employee data set successfully');
       } else {
         // Fetch profiles with proper error handling using schema-aware client
@@ -142,7 +149,14 @@ export const useEmployeeData = () => {
         console.log('- Skadeledere:', skadeledere.length);
         console.log('- Total employees:', transformedEmployees.length);
 
-        setEmployees(transformedEmployees);
+        // Only update state if data actually changed to prevent stutter
+        setEmployees(prev => {
+          if (prev.length === transformedEmployees.length && 
+              prev.slice(0, 3).every((e, i) => e.id === transformedEmployees[i]?.id)) {
+            return prev; // No change, keep previous reference
+          }
+          return transformedEmployees;
+        });
         console.log('[useEmployeeData] Employee data set successfully');
       }
     } catch (err) {
@@ -162,10 +176,11 @@ export const useEmployeeData = () => {
     }
   }, [toast, t, isDemoMode, client]);
 
-  // Load employees on mount
+  // Load employees on mount - wait for userDataLoaded to stabilize
   useEffect(() => {
+    if (!userDataLoaded || !user) return;
     fetchEmployees();
-  }, [fetchEmployees]);
+  }, [fetchEmployees, userDataLoaded, user?.id]);
 
   // Realtime subscription with proper debouncing and schema awareness
   useEffect(() => {

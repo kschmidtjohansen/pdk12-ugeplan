@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
 export const useCarData = (canViewFuelCardCode: boolean = false) => {
-  const { isDemoMode } = useAuth();
+  const { isDemoMode, userDataLoaded, user } = useAuth();
   const [cars, setCars] = useState<CarData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -110,6 +110,9 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
 
   // Load cars on component mount with enhanced error handling and realtime subscription
   useEffect(() => {
+    // Wait for userDataLoaded to stabilize before fetching
+    if (!userDataLoaded || !user) return;
+    
     let isMounted = true;
     
     const loadCars = async () => {
@@ -120,8 +123,21 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         if (isDemoMode) {
           const { data, error: fetchError } = await supabase.rpc('get_demo_cars_with_security');
           if (fetchError) throw fetchError;
+          let demoCars = (data || []) as CarData[];
+          
+          // Client-side fallback: If no demo cars, synthesize some
+          if (demoCars.length === 0) {
+            demoCars = [
+              { id: 'demo-01', name: 'DEMO Varebil 01', car_number: 'D01', number_plate: 'DEMO 01', has_trailer_hitch: true, is_available: true, show_in_planner: true, notes: 'Demo vehicle 1', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+              { id: 'demo-02', name: 'DEMO Varebil 02', car_number: 'D02', number_plate: 'DEMO 02', has_trailer_hitch: false, is_available: true, show_in_planner: true, notes: 'Demo vehicle 2', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+              { id: 'demo-03', name: 'DEMO Varebil 03', car_number: 'D03', number_plate: 'DEMO 03', has_trailer_hitch: true, is_available: true, show_in_planner: true, notes: 'Demo vehicle 3', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+              { id: 'demo-04', name: 'DEMO Varebil 04', car_number: 'D04', number_plate: 'DEMO 04', has_trailer_hitch: false, is_available: true, show_in_planner: true, notes: 'Demo vehicle 4', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+              { id: 'demo-05', name: 'DEMO Varebil 05', car_number: 'D05', number_plate: 'DEMO 05', has_trailer_hitch: true, is_available: true, show_in_planner: true, notes: 'Demo vehicle 5', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+            ] as any;
+          }
+          
           if (isMounted) {
-            setCars((data || []) as CarData[]);
+            setCars(demoCars);
           }
         } else {
           const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
@@ -199,7 +215,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         supabase.removeChannel(channel);
       };
     }
-  }, [t, toast, canViewFuelCardCode, isDemoMode]);
+  }, [t, toast, canViewFuelCardCode, isDemoMode, userDataLoaded, user?.id]);
 
   return {
     cars,

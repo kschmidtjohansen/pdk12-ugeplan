@@ -16,7 +16,7 @@ import { useAuth } from '@/context/AuthContext';
 export const useVacationData = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { user, isDemoMode } = useAuth();
+  const { user, isDemoMode, userDataLoaded } = useAuth();
   const [vacations, setVacations] = useState<Vacation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,9 +58,26 @@ export const useVacationData = () => {
         });
       }
 
+      // Fetch employees as fallback for user names
+      const employeesResult = await enhancedDataFetching.fetchEmployeesEnhanced(user?.email);
+      const employees = employeesResult.data || [];
+
       // Transform the data to match our Vacation interface
       const transformedVacations: Vacation[] = vacationsData.map(vacation => {
-        const userProfile = profileResult.data?.find(p => p.id === vacation.user_id);
+        // Try profile first, then employees, then default
+        let userProfile = profileResult.data?.find(p => p.id === vacation.user_id);
+        
+        if (!userProfile && employees.length > 0) {
+          const employee = employees.find((e: any) => e.id === vacation.user_id);
+          if (employee) {
+            userProfile = { 
+              id: employee.id, 
+              name: employee.name, 
+              email: employee.email,
+              status: employee.status 
+            };
+          }
+        }
         
         return {
           id: vacation.id,
@@ -78,9 +95,13 @@ export const useVacationData = () => {
           updated_at: vacation.updated_at,
           user: userProfile ? {
             id: userProfile.id,
-            name: userProfile.name || 'Unknown',
+            name: userProfile.name || 'Demo Medarbejder',
             email: userProfile.email || ''
-          } : undefined
+          } : {
+            id: vacation.user_id,
+            name: 'Demo Medarbejder',
+            email: ''
+          }
         };
       });
 
@@ -123,10 +144,11 @@ export const useVacationData = () => {
     }
   }, [toast, t, user?.email]);
 
-  // Load vacations on component mount
+  // Load vacations on component mount - wait for userDataLoaded to stabilize
   useEffect(() => {
+    if (!userDataLoaded || !user) return;
     fetchVacations();
-  }, [fetchVacations]);
+  }, [fetchVacations, userDataLoaded, user?.id]);
 
   // Use centralized realtime manager for vacation subscriptions (or polling for demo)
   useEffect(() => {

@@ -5,7 +5,7 @@ import { WarehouseItem } from '@/types/warehouse';
 import { useAuth } from '@/context/AuthContext';
 
 export const useWarehouseData = () => {
-  const { isDemoMode } = useAuth();
+  const { isDemoMode, userDataLoaded, user } = useAuth();
   const [items, setItems] = useState<WarehouseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +20,13 @@ export const useWarehouseData = () => {
         // Use demo RPC for demo users
         const { data, error: fetchError } = await supabase.rpc('get_demo_warehouse_items');
         if (fetchError) throw fetchError;
-        setItems((data || []) as any);
+        
+        // Defensive client-side filter to ensure only demo items
+        const demoItems = (data || []).filter((item: any) => 
+          item.case_number?.startsWith('DEMO-') || item.address?.startsWith('Demo')
+        );
+        
+        setItems(demoItems as any);
       } else {
         // Use direct table access for production users
         const { data, error: fetchError } = await client
@@ -40,6 +46,9 @@ export const useWarehouseData = () => {
   };
 
   useEffect(() => {
+    // Wait for userDataLoaded to stabilize before fetching
+    if (!userDataLoaded || !user) return;
+    
     fetchItems();
 
     if (isDemoMode) {
@@ -70,7 +79,7 @@ export const useWarehouseData = () => {
         supabase.removeChannel(channel);
       };
     }
-  }, [isDemoMode]);
+  }, [isDemoMode, userDataLoaded, user?.id]);
 
   return { items, loading, error, refetch: fetchItems };
 };
