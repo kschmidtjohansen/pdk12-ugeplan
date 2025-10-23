@@ -465,12 +465,15 @@ export class EnhancedDataFetching {
 
         return { data, error: null };
       } else {
-        // Production: Use direct table access
+        // Production: Use direct table access with role join
         const client = getSchemaClient(false);
         
         const { data, error } = await client
           .from('profiles')
-          .select('id, name, email, phone, job_title, on_leave, notes, avatar_url, status')
+          .select(`
+            id, name, email, phone, job_title, on_leave, notes, avatar_url, status,
+            user_roles!inner(role)
+          `)
           .order('name', { ascending: true });
 
         if (error) {

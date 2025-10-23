@@ -75,7 +75,9 @@ export const useDashboardMetrics = () => {
       );
 
       const availableCarsList = safeCars.filter(car => 
-        car.is_available && !assignedCarIds.has(car.id)
+        car.is_available && 
+        car.show_in_planner !== false && 
+        !assignedCarIds.has(car.id)
       );
 
       // Calculate absent employees (on vacation or leave)
@@ -104,12 +106,12 @@ export const useDashboardMetrics = () => {
       return {
         availableEmployees: {
           count: availableEmployeesList.length,
-          total: safeEmployees.length,
+          total: safeEmployees.filter(e => e.role === 'servicemedarbejder').length,
           employees: availableEmployeesList
         },
         availableCars: {
           count: availableCarsList.length,
-          total: safeCars.length,
+          total: safeCars.filter(c => c.show_in_planner !== false).length,
           cars: availableCarsList
         },
         absentEmployees: {

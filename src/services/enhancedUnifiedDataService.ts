@@ -57,7 +57,7 @@ class EnhancedUnifiedDataService {
         email: profile.email || '',
         phone: profile.phone || '',
         jobTitle: profile.job_title || '',
-        role: 'servicemedarbejder', // Default role, will be enriched by role lookup
+        role: (profile as any).user_roles?.role || 'servicemedarbejder',
         onLeave: profile.on_leave || false,
         status: profile.status || 'active',
         notes: profile.notes || '',
