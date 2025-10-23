@@ -27,8 +27,18 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         // Use demo RPC for demo users
         const { data, error: fetchError } = await supabase.rpc('get_demo_cars_with_security');
         if (fetchError) throw fetchError;
-        console.log('[useCarData] Successfully fetched', data?.length || 0, 'demo cars');
-        setCars((data || []) as CarData[]);
+        
+        // Filter to only show explicitly demo-tagged vehicles
+        const demoOnly = (data || []).filter((c: any) => {
+          const carNumber = (c.car_number || '').toString();
+          const name = (c.name || '').toString().toLowerCase();
+          const looksDemo = /^(CAR|VAN)-/i.test(carNumber) || name.includes('demo');
+          const isProdNumber = /^\d+$/.test(carNumber); // Exclude purely numeric like "01", "02"
+          return looksDemo && !isProdNumber;
+        });
+        
+        console.log('[useCarData] Successfully fetched', demoOnly?.length || 0, 'demo cars');
+        setCars(demoOnly as CarData[]);
       } else {
         // Use production service for production users
         const data = await CarSecurityService.fetchCars(canViewFuelCardCode);

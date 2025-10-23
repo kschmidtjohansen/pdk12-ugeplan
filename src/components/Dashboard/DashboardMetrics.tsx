@@ -28,21 +28,14 @@ const DashboardMetrics: React.FC = () => {
     return <LoadingSpinner message={t('common.loading')} />;
   }
 
-  if (error) {
-    return (
-      <EmptyState
-        title={t('common.error')}
-        description={error}
-        action={{
-          label: t('common.retry'),
-          onClick: () => window.location.reload()
-        }}
-      />
-    );
-  }
-
   return (
     <>
+      {error && (
+        <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
+          {t('common.error')}: {error}
+        </div>
+      )}
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <InteractiveMetricCard
           title={t('dashboard.metrics.availableEmployees')}

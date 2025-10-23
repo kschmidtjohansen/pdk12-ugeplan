@@ -518,7 +518,16 @@ export class EnhancedDataFetching {
           });
         }
 
-        return { data, error: null };
+        // Filter to only show explicitly demo-tagged vehicles
+        const demoOnly = (data || []).filter((c: any) => {
+          const carNumber = (c.car_number || '').toString();
+          const name = (c.name || '').toString().toLowerCase();
+          const looksDemo = /^(CAR|VAN)-/i.test(carNumber) || name.includes('demo');
+          const isProdNumber = /^\d+$/.test(carNumber); // Exclude purely numeric
+          return looksDemo && !isProdNumber;
+        });
+
+        return { data: demoOnly, error: null };
       } else {
         // Production: Use direct table access
         const client = getSchemaClient(false);
