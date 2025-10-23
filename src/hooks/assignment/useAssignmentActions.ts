@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
@@ -16,7 +17,7 @@ export const useAssignmentActions = (
 ) => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, isDemoMode } = useAuth();
   const demoService = DemoUserService.getInstance();
 
   // Helper function to get profile ID by name
@@ -27,7 +28,8 @@ export const useAssignmentActions = (
         return null;
       }
 
-      const { data, error } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      const { data, error } = await client
         .from('profiles')
         .select('id')
         .eq('name', name)
@@ -180,7 +182,8 @@ export const useAssignmentActions = (
 
         try {
           // Insert the new assignment
-          const { data: newAssignment, error } = await supabase
+          const client = getSchemaClient(isDemoMode);
+          const { data: newAssignment, error } = await client
             .from('assignments')
             .insert({
               title: assignmentData.title,
@@ -237,7 +240,8 @@ export const useAssignmentActions = (
             }
             
             if (employeeInserts.length > 0) {
-              const { error: employeeError } = await supabase
+              const client = getSchemaClient(isDemoMode);
+              const { error: employeeError } = await client
                 .from('assignments_employees')
                 .insert(employeeInserts);
                 
@@ -396,7 +400,8 @@ export const useAssignmentActions = (
       // Update the existing assignment (use first date if multiple dates provided)
       const updateDate = hasMultipleDates ? dates[0] : assignmentData.date;
       
-      const { error } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      const { error } = await client
         .from('assignments')
         .update({
           title: assignmentData.title,
@@ -415,7 +420,7 @@ export const useAssignmentActions = (
       if (error) throw error;
       
       // Remove existing employee assignments
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await client
         .from('assignments_employees')
         .delete()
         .eq('assignment_id', id);
@@ -451,7 +456,8 @@ export const useAssignmentActions = (
         
         // Insert employee associations
         if (employeeInserts.length > 0) {
-          const { error: employeeError } = await supabase
+          const client = getSchemaClient(isDemoMode);
+          const { error: employeeError } = await client
             .from('assignments_employees')
             .insert(employeeInserts);
             
@@ -480,7 +486,8 @@ export const useAssignmentActions = (
             updated_at: new Date().toISOString()
           };
           
-          const { data: newAssignment, error: createError } = await supabase
+          const client = getSchemaClient(isDemoMode);
+          const { data: newAssignment, error: createError } = await client
             .from('assignments')
             .insert(newAssignmentData)
             .select()
@@ -502,7 +509,8 @@ export const useAssignmentActions = (
               .filter(insert => insert.user_id !== null);
               
             if (employeeInserts.length > 0) {
-              await supabase
+              const client = getSchemaClient(isDemoMode);
+              await client
                 .from('assignments_employees')
                 .insert(employeeInserts);
             }
@@ -562,7 +570,8 @@ export const useAssignmentActions = (
       }
 
       // First delete associated employee assignments
-      const { error: empError } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      const { error: empError } = await client
         .from('assignments_employees')
         .delete()
         .eq('assignment_id', id);
@@ -572,7 +581,7 @@ export const useAssignmentActions = (
       }
       
       // Then delete the assignment
-      const { error } = await supabase
+      const { error } = await client
         .from('assignments')
         .delete()
         .eq('id', id);
@@ -627,7 +636,8 @@ export const useAssignmentActions = (
         throw new Error('Invalid assignment ID provided');
       }
 
-      const { error } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      const { error } = await client
         .from('assignments')
         .update({ published: true, updated_at: new Date().toISOString() })
         .eq('id', id);
@@ -679,7 +689,8 @@ export const useAssignmentActions = (
         return true;
       }
 
-      const { error } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      const { error } = await client
         .from('assignments')
         .update({ published: true, updated_at: new Date().toISOString() })
         .eq('assignment_date', date)

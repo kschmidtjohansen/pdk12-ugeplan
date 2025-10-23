@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { Assignment } from '@/types/assignment';
 import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
 
@@ -498,11 +499,11 @@ export class OptimizedAssignmentService {
   static async createAssignment(assignmentData: any): Promise<OptimizedAssignmentData> {
     this.clearCache();
     
-    const { data, error } = await supabase
-      .from('assignments')
-      .insert(assignmentData)
-      .select()
-      .single();
+    const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+    
+    const { data, error } = isDemoMode 
+      ? await getSchemaClient(true).from('assignments').insert(assignmentData).select().single()
+      : await supabase.from('assignments').insert(assignmentData).select().single();
       
     if (error) throw error;
     
@@ -512,19 +513,13 @@ export class OptimizedAssignmentService {
   }
 
   static async updateAssignment(assignmentId: string, updates: any): Promise<OptimizedAssignmentData> {
-    const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
-    if (isDemoMode) {
-      throw new Error('Demo mode is read-only. Cannot update assignments.');
-    }
-
     this.clearCache();
     
-    const { data, error } = await supabase
-      .from('assignments')
-      .update(updates)
-      .eq('id', assignmentId)
-      .select()
-      .single();
+    const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+    
+    const { data, error } = isDemoMode
+      ? await getSchemaClient(true).from('assignments').update(updates).eq('id', assignmentId).select().single()
+      : await supabase.from('assignments').update(updates).eq('id', assignmentId).select().single();
     
     if (error) throw error;
     

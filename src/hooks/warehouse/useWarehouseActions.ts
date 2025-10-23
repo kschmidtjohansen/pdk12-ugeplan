@@ -1,21 +1,25 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { WarehouseItemFormData } from '@/types/warehouse';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 
 export const useWarehouseActions = (onSuccess?: () => void) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { isDemoMode } = useAuth();
 
   const createItem = async (data: WarehouseItemFormData) => {
     try {
       setLoading(true);
       
       const { data: { user } } = await supabase.auth.getUser();
+      const client = getSchemaClient(isDemoMode);
       
-      const { error } = await supabase
+      const { error } = await client
         .from('warehouse_items')
         .insert({
           address: data.address,
@@ -49,8 +53,9 @@ export const useWarehouseActions = (onSuccess?: () => void) => {
   const updateItem = async (id: string, data: WarehouseItemFormData) => {
     try {
       setLoading(true);
+      const client = getSchemaClient(isDemoMode);
       
-      const { error } = await supabase
+      const { error } = await client
         .from('warehouse_items')
         .update({
           address: data.address,
@@ -84,8 +89,9 @@ export const useWarehouseActions = (onSuccess?: () => void) => {
   const deleteItem = async (id: string) => {
     try {
       setLoading(true);
+      const client = getSchemaClient(isDemoMode);
       
-      const { error } = await supabase
+      const { error } = await client
         .from('warehouse_items')
         .delete()
         .eq('id', id);
