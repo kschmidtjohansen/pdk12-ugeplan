@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { CarSecurityService } from '@/services/carSecurityService';
 import { usePermissions, useAuth } from '@/context/AuthContext';
+import { DemoUserService } from '@/services/demoUserService';
 
 export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.SetStateAction<CarData[]>>) => {
   const { canViewFuelCardCode } = usePermissions();
@@ -32,6 +33,60 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
     if (currentCar) {
       try {
         let assignmentsAffected = 0;
+
+        // Handle demo mode deletion locally
+        if (isDemoMode && currentCar.id.startsWith('demo-')) {
+          console.log('[useCarActions] Demo mode: deleting car locally', currentCar.id);
+          const demoService = DemoUserService.getInstance();
+          
+          if (forceDelete) {
+            // Clean up assignments that reference this car in local storage
+            const demoAssignments = demoService.getDemoAssignments();
+            for (const assignment of demoAssignments) {
+              let needsUpdate = false;
+              const updates: any = {};
+              
+              if (assignment.car_id === currentCar.id) {
+                updates.car_id = null;
+                needsUpdate = true;
+                assignmentsAffected++;
+              }
+              
+              if (assignment.car_ids && Array.isArray(assignment.car_ids) && assignment.car_ids.includes(currentCar.id)) {
+                updates.car_ids = assignment.car_ids.filter(id => id !== currentCar.id);
+                if (updates.car_ids.length === 0) updates.car_ids = null;
+                needsUpdate = true;
+                assignmentsAffected++;
+              }
+              
+              if (needsUpdate) {
+                demoService.updateDemoAssignment(assignment.id, updates);
+              }
+            }
+            console.log(`[useCarActions] Demo: cleaned up ${assignmentsAffected} assignments`);
+          }
+          
+          // Delete the car from local storage
+          demoService.deleteDemoCar(currentCar.id);
+          
+          // Update local state
+          setCars(cars.filter(car => car.id !== currentCar.id));
+          
+          const successMessage = forceDelete && assignmentsAffected > 0
+            ? t('cars.vehicleDeletedWithCleanup', { 
+                name: currentCar.name, 
+                count: assignmentsAffected 
+              })
+            : t('cars.vehicleDeletedMsg', { name: currentCar.name });
+          
+          toast({
+            title: t('cars.vehicleDeleted'),
+            description: successMessage
+          });
+          
+          setDeleteDialogOpen(false);
+          return;
+        }
 
         if (forceDelete) {
           // First, clean up assignments that reference this car
@@ -201,6 +256,39 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         is_available: isAvailable,
         notes: notes
       });
+
+      // Handle demo mode updates locally
+      if (isDemoMode && car.id.startsWith('demo-')) {
+        console.log('[useCarActions] Demo mode: updating car availability locally', car.id);
+        const demoService = DemoUserService.getInstance();
+        
+        demoService.updateDemoCar(car.id, {
+          is_available: isAvailable,
+          notes: notes,
+          updated_at: new Date().toISOString()
+        });
+        
+        // Update local state
+        setCars(cars.map(c => 
+          c.id === car.id 
+            ? { ...c, is_available: isAvailable, notes: notes }
+            : c
+        ));
+        
+        // Show success message
+        if (isAvailable) {
+          toast({
+            title: t('cars.vehicleAvailable'),
+            description: t('cars.vehicleAvailableMsg', { name: car.name })
+          });
+        } else {
+          toast({
+            title: t('cars.vehicleUnavailable'),
+            description: t('cars.vehicleUnavailableMsg', { name: car.name })
+          });
+        }
+        return;
+      }
 
       // Update the car with both availability and notes
       const client = getSchemaClient(isDemoMode);

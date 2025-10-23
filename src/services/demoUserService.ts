@@ -243,6 +243,12 @@ export class DemoUserService {
         deletedCounts.warehouse_items = result.deleted_warehouse || 0;
       }
       
+      // Clear virtual demo data from sessionStorage
+      sessionStorage.removeItem('demo-assignments');
+      sessionStorage.removeItem('demo-cars');
+      sessionStorage.removeItem('demo-vacations');
+      console.log('[Demo] Cleared local virtual demo data from sessionStorage');
+      
       // Clear session storage (but keep session ID for continuity)
       sessionStorage.removeItem('demo-operations');
       this.operationHistory = [];

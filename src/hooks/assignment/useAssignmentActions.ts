@@ -313,7 +313,7 @@ export const useAssignmentActions = (
       console.log("[useAssignmentActions] Multi-date check:", { dates, hasMultipleDates });
       
       // Check if this is a demo user - if so, handle differently
-      if (demoService.isDemoUser(user?.email)) {
+      if (isDemoMode) {
         console.log("[useAssignmentActions] Demo user detected - updating session storage");
         
         const updates = {
@@ -547,7 +547,8 @@ export const useAssignmentActions = (
   const deleteAssignment = useCallback(async (id: string) => {
     try {
       // Check if this is a demo user - if so, handle differently
-      if (demoService.isDemoUser(user?.email)) {
+      // Check if this is a demo user - if so, handle differently
+      if (isDemoMode) {
         console.log("[useAssignmentActions] Demo user detected - removing from session storage");
         
         demoService.deleteDemoAssignment(id);
