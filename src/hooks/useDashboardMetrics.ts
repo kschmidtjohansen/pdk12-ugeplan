@@ -40,6 +40,9 @@ export const useDashboardMetrics = () => {
       const safeVacations = vacations || [];
       const safeWarehouseItems = warehouseItems || [];
 
+      // Total employees: count all active employees (not inactive)
+      const totalEmployees = safeEmployees.filter(e => e.status !== 'inactive').length;
+      
       // Calculate available employees (servicemedarbejder only, not fully booked, on vacation, or on leave)
       const availableEmployeesList = safeEmployees.filter(employee => {
         // Only include servicemedarbejder role
@@ -78,6 +81,9 @@ export const useDashboardMetrics = () => {
           })
       );
 
+      // Total cars: count all cars (regardless of show_in_planner)
+      const totalCars = safeCars.length;
+      
       const availableCarsList = safeCars.filter(car => 
         car.is_available && 
         car.show_in_planner !== false && 
@@ -118,8 +124,9 @@ export const useDashboardMetrics = () => {
       console.log('[useDashboardMetrics] COMPREHENSIVE METRICS DEBUG', {
         raw_data: {
           total_employees: safeEmployees.length,
+          active_employees: totalEmployees,
           servicemedarbejdere_count: servicemedarbejdere.length,
-          total_cars: safeCars.length,
+          total_cars: totalCars,
           cars_in_planner: carsInPlanner.length,
           total_assignments: safeAssignments.length,
           todays_assignments: todaysAssignments.length,
@@ -155,12 +162,12 @@ export const useDashboardMetrics = () => {
       return {
         availableEmployees: {
           count: availableEmployeesList.length,
-          total: safeEmployees.filter(e => e.role === 'servicemedarbejder').length,
+          total: totalEmployees,
           employees: availableEmployeesList
         },
         availableCars: {
           count: availableCarsList.length,
-          total: safeCars.filter(c => c.show_in_planner !== false).length,
+          total: totalCars,
           cars: availableCarsList
         },
         absentEmployees: {

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { User, Session } from '@supabase/supabase-js';
@@ -110,6 +110,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [sessionExpired, setSessionExpired] = useState<boolean>(false);
   const { toast } = useToast();
+  const manualLogoutRef = useRef(false);
   
   // Safe translation hook with fallback
   const translationContext = useContext(TranslationContext);
@@ -368,25 +369,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             
             // Handle session expiration - key fix for the redirect loop
             if (event === 'SIGNED_OUT' && session && !newSession) {
-              console.log('[AuthContext] SESSION EXPIRATION FIX - Session expired, clearing state and redirecting');
-              setSessionExpired(true);
+              console.log('[AuthContext] SESSION EXPIRATION FIX - Session expired or user signed out');
+              
+              // Check if this was a manual logout
+              const wasManualLogout = manualLogoutRef.current;
+              
+              setSessionExpired(!wasManualLogout);
               setUser(null);
               setSession(null);
               
-              // Show session expired toast
-              toast({
-                title: t('auth.sessionExpiredTitle') || 'Session Expired',
-                description: t('auth.sessionExpiredDescription') || 'Please log in again',
-                variant: "destructive",
-              });
-              
-              // Clear any sensitive data
-              sessionStorage.clear();
-              
-              // Force redirect to login after a brief delay
-              setTimeout(() => {
-                window.location.href = '/login';
-              }, 1000);
+              if (wasManualLogout) {
+                // Manual logout - TopNavbar handles the toast and redirect
+                console.log('[AuthContext] Manual logout detected - suppressing toast and redirect');
+                manualLogoutRef.current = false; // Reset flag
+              } else {
+                // Session expired - show toast and redirect
+                console.log('[AuthContext] Session expired - showing toast and redirecting');
+                toast({
+                  title: t('auth.sessionExpiredTitle') || 'Session Expired',
+                  description: t('auth.sessionExpiredDescription') || 'Please log in again',
+                  variant: "destructive",
+                });
+                
+                // Clear any sensitive data
+                sessionStorage.clear();
+                
+                // Force redirect to login after a brief delay
+                setTimeout(() => {
+                  window.location.href = '/login';
+                }, 1000);
+              }
               
               return;
             }
@@ -440,7 +452,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                       if (mounted) {
                         setUserDataLoaded(true);
                       }
-                    }, 50); // 50ms stabilization delay - faster login redirect
+                    }, 100); // 100ms stabilization delay for reliable state update
                   } else {
                     console.warn(`[AuthContext] KASPER FIX - No user data returned, using fallback`);
                     if (mounted) {
@@ -736,6 +748,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       console.log('[AuthProvider] SESSION EXPIRATION FIX - Logging out...');
+      
+      // Mark as manual logout to prevent "session expired" toast
+      manualLogoutRef.current = true;
       
       // Clean up demo data if in demo mode
       if (isDemoMode) {

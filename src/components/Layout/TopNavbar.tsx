@@ -6,6 +6,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { Menu, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 import { NotificationType } from '@/types/notification';
 import { useVacationRequestsStatus } from '@/hooks/vacation/useVacationRequestsStatus';
 
@@ -42,6 +43,39 @@ const TopNavbar: React.FC = () => {
     isEffectiveAdmin,
     timestamp: new Date().toISOString()
   });
+
+  // Show pending vacation requests notification for admins on each login session
+  useEffect(() => {
+    if (isEffectiveAdmin && hasPendingRequests && userDataLoaded) {
+      const noticeShown = sessionStorage.getItem('vacation-notice-shown');
+      
+      if (!noticeShown) {
+        console.log('[TopNavbar] 📢 Showing pending vacation requests notification', { pendingCount });
+        
+        toast({
+          title: t('vacation.pendingRequestsTitle') || 'Der er afventende anmodninger',
+          description: `${pendingCount} ${t('vacation.pendingRequestsDescription') || 'fridags-anmodning(er) venter på godkendelse'}`,
+          action: (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/vacation')}
+            >
+              {t('vacation.openVacationPage') || 'Åbn Fridage'}
+            </Button>
+          ),
+          duration: 10000, // Show for 10 seconds
+        });
+        
+        sessionStorage.setItem('vacation-notice-shown', '1');
+      }
+    }
+    
+    // Clear the notice flag when there are no pending requests
+    if (!hasPendingRequests) {
+      sessionStorage.removeItem('vacation-notice-shown');
+    }
+  }, [isEffectiveAdmin, hasPendingRequests, pendingCount, userDataLoaded, toast, t, navigate]);
 
   const handleLogout = async () => {
     try {

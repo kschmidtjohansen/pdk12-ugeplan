@@ -76,9 +76,18 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
         setError('');
 
         // Call success callback - toast will be shown by AuthContext
+        onSuccess?.();
+        
+        // Add fallback auto-refresh to ensure user lands on dashboard
         setTimeout(() => {
-          onSuccess?.();
-        }, 500);
+          console.log('[LoginForm] Auto-refresh fallback triggered');
+          if (window.location.pathname !== '/dashboard') {
+            window.location.replace('/dashboard');
+          } else {
+            // Already on dashboard, force refresh to load data
+            window.location.reload();
+          }
+        }, 800);
       }
     } catch (error) {
       clearTimeout(loginTimeoutId);

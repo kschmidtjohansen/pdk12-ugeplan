@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Users, Car, UserX, Package, AlertCircle, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
 import MetricsSkeleton from '@/components/shared/MetricsSkeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -16,6 +17,7 @@ import { format } from 'date-fns';
 const DashboardMetrics: React.FC = () => {
   const { metrics, loading, error, assignments, vacations } = useDashboardMetrics();
   const { t } = useTranslation();
+  const { isDemoMode } = useAuth();
   const navigate = useNavigate();
   
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
@@ -29,7 +31,8 @@ const DashboardMetrics: React.FC = () => {
     return <MetricsSkeleton count={4} />;
   }
   
-  if (error) {
+  // Only show error alert for production mode, not demo mode
+  if (error && !isDemoMode) {
     return (
       <Alert variant="destructive" className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
