@@ -78,6 +78,7 @@ export class DemoUserService {
     sessionStorage.removeItem('demo-session-id');
     sessionStorage.removeItem('demo-operations');
     sessionStorage.removeItem('demo-assignments');
+    sessionStorage.removeItem('demo-cars');
     sessionStorage.removeItem('demo-role');
     sessionStorage.removeItem('demo-last-activity');
     sessionStorage.removeItem('demo-last-cleanup');
@@ -157,6 +158,45 @@ export class DemoUserService {
       }
     }
     return [];
+  }
+  
+  // Demo cars storage helpers
+  storeDemoCar(car: any): void {
+    const cars = this.getDemoCars();
+    const record = {
+      ...car,
+      id: car.id || `demo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      isDemoData: true,
+      sessionId: this.demoSessionId
+    };
+    cars.push(record);
+    sessionStorage.setItem('demo-cars', JSON.stringify(cars));
+  }
+  
+  updateDemoCar(id: string, updates: any): void {
+    const cars = this.getDemoCars();
+    const idx = cars.findIndex((c: any) => c.id === id);
+    if (idx !== -1) {
+      cars[idx] = { ...cars[idx], ...updates, updated_at: new Date().toISOString() };
+      sessionStorage.setItem('demo-cars', JSON.stringify(cars));
+    }
+  }
+  
+  deleteDemoCar(id: string): void {
+    const cars = this.getDemoCars();
+    const filtered = cars.filter((c: any) => c.id !== id);
+    sessionStorage.setItem('demo-cars', JSON.stringify(filtered));
+  }
+  
+  getDemoCars(): any[] {
+    const stored = sessionStorage.getItem('demo-cars');
+    if (!stored) return [];
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Failed to parse demo cars from storage', e);
+      return [];
+    }
   }
   
   // Get demo data statistics

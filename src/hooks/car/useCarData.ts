@@ -7,6 +7,8 @@ import { CarSecurityService } from '@/services/carSecurityService';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
+import { DemoUserService } from '@/services/demoUserService';
 
 export const useCarData = (canViewFuelCardCode: boolean = false) => {
   const { isDemoMode, userDataLoaded, user } = useAuth();
@@ -24,20 +26,23 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       setError(null);
       
       if (isDemoMode) {
-        // Use demo RPC for secure data access
-        const { data, error: fetchError } = await supabase.rpc('get_demo_cars_with_security');
-          
+        // Use demo RPC for secure data access with safe retry, then merge locally created demo cars
+        const { data, error: fetchError } = await rpcWithRefresh<any[]>('get_demo_cars_with_security');
+        
         if (fetchError) throw fetchError;
         
-        // Filter to only show recent demo cars (created after 2025-10-23) and should be in planner
         const DEMO_DATA_CUTOFF = '2025-10-23T00:00:00Z';
-        const demoOnly = (data || []).filter((c: any) => 
+        const baseline = (data || []).filter((c: any) => 
           c.show_in_planner !== false && 
           new Date(c.created_at) >= new Date(DEMO_DATA_CUTOFF)
         );
         
-        console.log('[useCarData] Successfully fetched', demoOnly?.length || 0, 'demo cars');
-        setCars(demoOnly as CarData[]);
+        // Merge with locally stored demo cars
+        const localCars = DemoUserService.getInstance().getDemoCars?.() || [];
+        const merged = [...baseline, ...localCars];
+        
+        console.log('[useCarData] Successfully fetched', merged.length, 'demo cars (baseline + local)');
+        setCars(merged as CarData[]);
       } else {
         // Use production service for production users
         const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
@@ -73,12 +78,37 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
   const createCar = async (carData: Partial<CarData>) => {
     try {
       console.log('[useCarData] Creating car with data:', carData);
-      
+
+      if (isDemoMode) {
+        // Virtualize demo car creation: store locally and merge into state
+        const now = new Date().toISOString();
+        const demoCar: CarData = {
+          id: `demo-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+          name: carData.name || 'DEMO Varebil',
+          car_number: carData.car_number || 'DEMO-CAR',
+          number_plate: carData.number_plate || 'DEMO 000',
+          has_trailer_hitch: !!carData.has_trailer_hitch,
+          is_available: carData.is_available ?? true,
+          show_in_planner: carData.show_in_planner ?? true,
+          notes: carData.notes || '',
+          fuel_card_code: '***DEMO***',
+          created_at: now,
+          updated_at: now,
+        } as any;
+
+        DemoUserService.getInstance().storeDemoCar(demoCar);
+        setCars(prev => [...prev, demoCar]);
+
+        toast({
+          title: t('cars.vehicleAdded'),
+          description: t('cars.vehicleAddedMsg', { name: demoCar.name })
+        });
+        return true;
+      }
+
       const data = await CarSecurityService.createCar(carData, canViewFuelCardCode);
-      
-      // Add the new car to local state (fuel card filtering is handled by the database function)
       setCars(prevCars => [...prevCars, data]);
-      
+
       toast({
         title: t('cars.vehicleAdded'),
         description: t('cars.vehicleAddedMsg', { name: carData.name })
@@ -120,31 +150,30 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         setError(null);
         
         if (isDemoMode) {
-          // Use demo RPC for secure data access
-          const { data, error: fetchError } = await supabase.rpc('get_demo_cars_with_security');
-            
+          // Use demo RPC with JWT-safe retry and merge with local demo cars
+          const { data, error: fetchError } = await rpcWithRefresh<any[]>('get_demo_cars_with_security');
           if (fetchError) throw fetchError;
           
-          // Filter to only show recent demo cars (created after 2025-10-23) and should be in planner
           const DEMO_DATA_CUTOFF = '2025-10-23T00:00:00Z';
-          let demoCars = (data || []).filter((c: any) => 
+          let baseline = (data || []).filter((c: any) => 
             c.show_in_planner !== false && 
             new Date(c.created_at) >= new Date(DEMO_DATA_CUTOFF)
           ) as CarData[];
           
-          // Client-side fallback: If no demo cars, synthesize some with proper format
-          if (demoCars.length === 0) {
-            demoCars = [
+          // Client-side fallback if baseline empty
+          if (baseline.length === 0) {
+            baseline = [
               { id: 'demo-01', name: 'DEMO Varebil 01', car_number: 'CAR-001', number_plate: 'DEMO 01', has_trailer_hitch: true, is_available: true, show_in_planner: true, notes: 'Demo vehicle 1', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
               { id: 'demo-02', name: 'DEMO Varebil 02', car_number: 'CAR-002', number_plate: 'DEMO 02', has_trailer_hitch: false, is_available: true, show_in_planner: true, notes: 'Demo vehicle 2', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
               { id: 'demo-03', name: 'DEMO Varebil 03', car_number: 'CAR-003', number_plate: 'DEMO 03', has_trailer_hitch: true, is_available: true, show_in_planner: true, notes: 'Demo vehicle 3', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-              { id: 'demo-04', name: 'DEMO Varebil 04', car_number: 'CAR-004', number_plate: 'DEMO 04', has_trailer_hitch: false, is_available: true, show_in_planner: true, notes: 'Demo vehicle 4', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-              { id: 'demo-05', name: 'DEMO Varebil 05', car_number: 'CAR-005', number_plate: 'DEMO 05', has_trailer_hitch: true, is_available: true, show_in_planner: true, notes: 'Demo vehicle 5', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
             ] as any;
           }
           
+          const localCars = DemoUserService.getInstance().getDemoCars();
+          const merged = [...baseline, ...localCars];
+          
           if (isMounted) {
-            setCars(demoCars);
+            setCars(merged);
           }
         } else {
           const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
