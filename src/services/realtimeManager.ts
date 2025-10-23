@@ -35,15 +35,16 @@ class RealtimeManager {
     id: string,
     tables: string[],
     callback: () => void,
-    options: { filter?: string } = {}
+    options: { filter?: string; schema?: 'public' | 'demo' } = {}
   ): RealtimeSubscription | null {
     try {
       // Clean up existing subscription with same ID
       this.unsubscribe(id);
 
-      console.log(`[RealtimeManager] Creating subscription: ${id} for tables: ${tables.join(', ')}`);
+      const schema = options.schema || 'public';
+      console.log(`[RealtimeManager] Creating subscription: ${id} for tables: ${tables.join(', ')} in schema: ${schema}`);
 
-      const channelName = `${id}_${Math.random().toString(36).substring(2, 9)}`;
+      const channelName = `${id}_${schema}_${Math.random().toString(36).substring(2, 9)}`;
       const channel = supabase.channel(channelName);
 
       // Add listeners for each table
@@ -52,12 +53,12 @@ class RealtimeManager {
           'postgres_changes',
           {
             event: '*',
-            schema: 'public',
+            schema: schema,
             table: tableName,
             ...(options.filter && { filter: options.filter })
           },
           (payload) => {
-            console.log(`[RealtimeManager] ${tableName} change detected:`, payload.eventType);
+            console.log(`[RealtimeManager] ${tableName} change detected in ${schema}:`, payload.eventType);
             this.debounce(`${id}_${tableName}`, callback);
           }
         );

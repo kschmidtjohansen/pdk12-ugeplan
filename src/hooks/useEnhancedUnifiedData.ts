@@ -40,7 +40,7 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
       const [employeesResult, assignmentsResult, carsResult] = await Promise.all([
         enhancedUnifiedDataService.fetchEmployees(user?.email),
         enhancedUnifiedDataService.fetchAssignments(user?.email),
-        enhancedUnifiedDataService.fetchCars()
+        enhancedUnifiedDataService.fetchCars(user?.email)
       ]);
 
       if (employeesResult.error || assignmentsResult.error || carsResult.error) {

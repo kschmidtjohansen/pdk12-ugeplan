@@ -33,7 +33,7 @@ export const useVacationData = () => {
       console.log('[useVacationData] Starting enhanced vacation fetch...');
 
       // Use enhanced data fetching with better error handling
-      const vacationResult = await enhancedDataFetching.fetchVacationsEnhanced();
+      const vacationResult = await enhancedDataFetching.fetchVacationsEnhanced(user?.email);
       
       if (vacationResult.error || !vacationResult.data) {
         throw vacationResult.error || new Error('No vacation data received');
@@ -45,7 +45,7 @@ export const useVacationData = () => {
       // Fetch user profiles with enhanced error handling
       const userIds = [...new Set(vacationsData.map(v => v.user_id).filter(id => typeof id === 'string'))] as string[];
       
-      const profileResult = await enhancedDataFetching.fetchUserProfilesEnhanced(userIds);
+      const profileResult = await enhancedDataFetching.fetchUserProfilesEnhanced(userIds, user?.email);
       
       if (profileResult.error) {
         console.warn('[useVacationData] Profile fetch failed, continuing with vacation data only:', profileResult.error);
@@ -121,7 +121,7 @@ export const useVacationData = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, t]);
+  }, [toast, t, user?.email]);
 
   // Load vacations on component mount
   useEffect(() => {
@@ -154,7 +154,8 @@ export const useVacationData = () => {
     const subscription = realtimeManager.subscribe(
       subscriptionId,
       ['vacations'],
-      handleRealtimeUpdate
+      handleRealtimeUpdate,
+      { schema: isDemoMode ? 'demo' : 'public' }
     );
 
     if (!subscription) {
@@ -168,7 +169,7 @@ export const useVacationData = () => {
     return () => {
       realtimeManager.unsubscribe(subscriptionId);
     };
-  }, [fetchVacations]);
+  }, [fetchVacations, isDemoMode]);
 
   return {
     vacations,

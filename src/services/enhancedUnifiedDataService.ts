@@ -195,12 +195,12 @@ class EnhancedUnifiedDataService {
     }
   }
 
-  async fetchCars(): Promise<DataFetchResult<Car>> {
+  async fetchCars(currentUserEmail?: string): Promise<DataFetchResult<Car>> {
     try {
       console.log('[EnhancedUnifiedDataService] Fetching cars with enhanced error handling...');
       
       // Use enhanced data fetching with proper error serialization
-      const result = await enhancedDataFetching.fetchCarsEnhanced();
+      const result = await enhancedDataFetching.fetchCarsEnhanced(currentUserEmail);
       
       if (result.error) {
         throw result.error;

@@ -16,9 +16,11 @@ export class DemoSchemaClient {
    * @returns Supabase query builder for the table
    */
   from(table: string) {
-    // Prefix with demo schema if in demo mode
-    const tableName = this.useDemo ? `demo.${table}` : table;
-    return supabase.from(tableName as any);
+    // Use schema() method if in demo mode to avoid "public.demo.table" error
+    if (this.useDemo) {
+      return supabase.schema('demo' as any).from(table as any);
+    }
+    return supabase.from(table as any);
   }
   
   /**

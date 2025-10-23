@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { enhancedErrorHandler } from './enhancedErrorHandler';
+import { getSchemaClient, DemoSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 
 interface DataFetchOptions {
   retries?: number;
@@ -191,7 +192,8 @@ export class EnhancedDataFetching {
   }
 
   async fetchVacationsEnhanced(currentUserEmail?: string) {
-    const cacheKey = this.getCacheKey('vacations', 'enhanced', { currentUserEmail });
+    const isDemoMode = DemoSchemaClient.isDemoMode(currentUserEmail);
+    const cacheKey = this.getCacheKey('vacations', 'enhanced', { currentUserEmail, isDemoMode });
     const cached = this.getCache(cacheKey);
     
     if (cached) {
@@ -199,8 +201,10 @@ export class EnhancedDataFetching {
     }
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
+      const client = getSchemaClient(isDemoMode);
+      
       // Enhanced vacation query with better error handling
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('vacations')
         .select(`
           id,
@@ -224,7 +228,8 @@ export class EnhancedDataFetching {
         throw Object.assign(error, {
           context: 'vacation_fetch',
           table: 'vacations',
-          operation: 'select_with_order'
+          operation: 'select_with_order',
+          schema: isDemoMode ? 'demo' : 'public'
         });
       }
       
@@ -242,12 +247,13 @@ export class EnhancedDataFetching {
     return result;
   }
 
-  async fetchUserProfilesEnhanced(userIds: string[]) {
+  async fetchUserProfilesEnhanced(userIds: string[], currentUserEmail?: string) {
     if (!userIds.length) {
       return { data: [], error: null };
     }
 
-    const cacheKey = this.getCacheKey('profiles', 'batch', { userIds: userIds.sort() });
+    const isDemoMode = DemoSchemaClient.isDemoMode(currentUserEmail);
+    const cacheKey = this.getCacheKey('profiles', 'batch', { userIds: userIds.sort(), isDemoMode });
     const cached = this.getCache(cacheKey);
     
     if (cached) {
@@ -255,7 +261,9 @@ export class EnhancedDataFetching {
     }
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
-      const { data, error } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      
+      const { data, error } = await client
         .from('profiles')
         .select('id, name, email, status')
         .in('id', userIds);
@@ -265,7 +273,8 @@ export class EnhancedDataFetching {
           context: 'profile_batch_fetch',
           table: 'profiles',
           userIds: userIds.length,
-          operation: 'select_in'
+          operation: 'select_in',
+          schema: isDemoMode ? 'demo' : 'public'
         });
       }
       
@@ -308,7 +317,8 @@ export class EnhancedDataFetching {
   }
 
   async fetchAssignmentsEnhanced(currentUserEmail?: string) {
-    const cacheKey = this.getCacheKey('assignments', 'enhanced', { currentUserEmail });
+    const isDemoMode = DemoSchemaClient.isDemoMode(currentUserEmail);
+    const cacheKey = this.getCacheKey('assignments', 'enhanced', { currentUserEmail, isDemoMode });
     const cached = this.getCache(cacheKey);
     
     if (cached) {
@@ -316,15 +326,71 @@ export class EnhancedDataFetching {
     }
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
-      console.log('[Enhanced Data Fetching] Starting assignments fetch with secure function...');
+      console.log('[Enhanced Data Fetching] Starting assignments fetch...', isDemoMode ? 'DEMO MODE' : 'PRODUCTION');
       
-      // Use the secure function to get assignments with team data
+      // Demo mode: manually fetch from demo schema tables
+      if (isDemoMode) {
+        const client = getSchemaClient(true);
+        
+        // Fetch assignments
+        const { data: assignments, error: assignmentsError } = await client
+          .from('assignments')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (assignmentsError) throw assignmentsError;
+        if (!assignments || assignments.length === 0) {
+          return { data: [], error: null };
+        }
+        
+        // Fetch assignment-employee mappings
+        const assignmentIds = assignments.map((a: any) => a.id);
+        const { data: mapping, error: mappingError } = await client
+          .from('assignments_employees')
+          .select('assignment_id, user_id')
+          .in('assignment_id', assignmentIds);
+        
+        if (mappingError) throw mappingError;
+        
+        // Fetch profiles for team members
+        const userIds = [...new Set((mapping || []).map((m: any) => m.user_id))];
+        const { data: profiles, error: profilesError } = await client
+          .from('profiles')
+          .select('id, name, email')
+          .in('id', userIds);
+        
+        if (profilesError) throw profilesError;
+        
+        // Build team arrays per assignment
+        const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
+        const teamByAssignment = new Map<string, any[]>();
+        
+        (mapping || []).forEach((m: any) => {
+          if (!teamByAssignment.has(m.assignment_id)) {
+            teamByAssignment.set(m.assignment_id, []);
+          }
+          const profile = profileMap.get(m.user_id);
+          if (profile) {
+            teamByAssignment.get(m.assignment_id)!.push(profile);
+          }
+        });
+        
+        // Enrich assignments with team data
+        const enriched = assignments.map((a: any) => ({
+          ...a,
+          team: teamByAssignment.get(a.id) || []
+        }));
+        
+        console.log('[Enhanced Data Fetching] Demo assignments:', enriched.length);
+        return { data: enriched, error: null };
+      }
+      
+      // Production: use RPC
       const { data, error } = await supabase
         .rpc('list_accessible_assignments_with_team');
       
       if (error) {
         console.error('[Enhanced Data Fetching] Assignments fetch error:', error);
-        // Enhanced error context for assignment queries
         throw Object.assign(error, {
           context: 'assignment_fetch',
           table: 'assignments',
@@ -336,20 +402,21 @@ export class EnhancedDataFetching {
       
       return { data, error: null };
     }, 'fetchAssignmentsEnhanced', {
-      retries: 4, // More retries for critical assignment data
-      timeout: 15000, // Longer timeout for complex queries
-      skipRetryFor: ['auth', 'rls'] // Don't retry auth/permission errors
+      retries: 4,
+      timeout: 15000,
+      skipRetryFor: ['auth', 'rls']
     });
     
     if (result.data) {
-      this.setCache(cacheKey, result.data, 5000); // Shorter cache for real-time updates
+      this.setCache(cacheKey, result.data, 5000);
     }
     
     return result;
   }
 
   async fetchEmployeesEnhanced(currentUserEmail?: string) {
-    const cacheKey = this.getCacheKey('employees', 'enhanced', { currentUserEmail });
+    const isDemoMode = DemoSchemaClient.isDemoMode(currentUserEmail);
+    const cacheKey = this.getCacheKey('employees', 'enhanced', { currentUserEmail, isDemoMode });
     const cached = this.getCache(cacheKey);
     
     if (cached) {
@@ -357,7 +424,9 @@ export class EnhancedDataFetching {
     }
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
-      const { data, error } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      
+      const { data, error } = await client
         .from('profiles')
         .select('id, name, email, phone, job_title, on_leave, notes, avatar_url, status')
         .order('name', { ascending: true });
@@ -366,7 +435,8 @@ export class EnhancedDataFetching {
         throw Object.assign(error, {
           context: 'employee_fetch',
           table: 'profiles',
-          operation: 'select_employees'
+          operation: 'select_employees',
+          schema: isDemoMode ? 'demo' : 'public'
         });
       }
       
@@ -384,8 +454,9 @@ export class EnhancedDataFetching {
     return result;
   }
 
-  async fetchCarsEnhanced() {
-    const cacheKey = this.getCacheKey('cars', 'enhanced', {});
+  async fetchCarsEnhanced(currentUserEmail?: string) {
+    const isDemoMode = DemoSchemaClient.isDemoMode(currentUserEmail);
+    const cacheKey = this.getCacheKey('cars', 'enhanced', { isDemoMode });
     const cached = this.getCache(cacheKey);
     
     if (cached) {
@@ -393,7 +464,9 @@ export class EnhancedDataFetching {
     }
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
-      const { data, error } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      
+      const { data, error } = await client
         .from('cars')
         .select('*')
         .order('name', { ascending: true });
@@ -402,7 +475,8 @@ export class EnhancedDataFetching {
         throw Object.assign(error, {
           context: 'car_fetch',
           table: 'cars',
-          operation: 'select_all'
+          operation: 'select_all',
+          schema: isDemoMode ? 'demo' : 'public'
         });
       }
       
@@ -420,10 +494,12 @@ export class EnhancedDataFetching {
     return result;
   }
 
-  async checkDatabaseConnectionEnhanced(): Promise<{ connected: boolean; responseTime?: number; error?: any }> {
+  async checkDatabaseConnectionEnhanced(currentUserEmail?: string): Promise<{ connected: boolean; responseTime?: number; error?: any }> {
     const startTime = Date.now();
     try {
-      const { error } = await supabase.from('profiles').select('count').limit(1);
+      const isDemoMode = DemoSchemaClient.isDemoMode(currentUserEmail);
+      const client = getSchemaClient(isDemoMode);
+      const { error } = await client.from('profiles').select('count').limit(1);
       const responseTime = Date.now() - startTime;
       return { connected: !error, responseTime, error };
     } catch (error) {
