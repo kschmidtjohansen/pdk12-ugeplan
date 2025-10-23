@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { NotificationType } from '@/types/notification';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { sortNotifications } from '@/utils/notifications';

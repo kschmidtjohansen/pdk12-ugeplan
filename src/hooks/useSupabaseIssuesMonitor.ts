@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabaseIssuesAuditor, type AuditReport } from '@/services/supabaseIssuesAuditor';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface MonitoringState {
   isAuditing: boolean;

@@ -5,8 +5,9 @@ import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { Menu, X } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { NotificationType } from '@/types/notification';
+import { useVacationRequestsStatus } from '@/hooks/vacation/useVacationRequestsStatus';
 
 // Import custom components
 import Logo from './NavComponents/Logo';
@@ -32,24 +33,8 @@ const TopNavbar: React.FC = () => {
   const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  const [hasVacationNotifications, setHasVacationNotifications] = useState(false);
-  
-  // Check for vacation-related notifications
-  useEffect(() => {
-    const vacationNotifications = notifications.filter(
-      n => !n.read && (
-        n.type === 'vacation' || 
-        n.link?.includes('/vacation') ||
-        (n.message && (
-          n.message.includes('vacation') || 
-          n.message.includes('ferie')
-        ))
-      )
-    );
-    
-    const hasVacation = vacationNotifications.length > 0;
-    setHasVacationNotifications(hasVacation);
-  }, [notifications]);
+  // Use vacation requests status hook instead of notification-based logic
+  const { hasPendingRequests } = useVacationRequestsStatus();
 
   const handleLogout = async () => {
     try {
@@ -80,7 +65,7 @@ const TopNavbar: React.FC = () => {
     return null;
   }
 
-  const navigationItems = getNavigationItems(hasVacationNotifications);
+  const navigationItems = getNavigationItems(hasPendingRequests);
   const filteredNavItems = navigationItems.filter(
     item => !item.adminOnly || isEffectiveAdmin
   );

@@ -75,8 +75,13 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
   };
 
   useEffect(() => {
+    // Wait for both user ID and userDataLoaded to ensure demo mode is properly set
     if (user?.id) {
-      fetchAllData();
+      // Add small delay to ensure all auth state is stable
+      const timer = setTimeout(() => {
+        fetchAllData();
+      }, 50);
+      return () => clearTimeout(timer);
     }
   }, [user?.id]);
 

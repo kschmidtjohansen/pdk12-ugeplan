@@ -185,7 +185,8 @@ const MineOpgaver: React.FC = () => {
     );
   }
 
-  if (error) {
+  // Only show error if we have a fatal error AND no data
+  if (error && userAssignments.length === 0) {
     return (
       <Card className="h-full">
         <CardHeader className="pb-3">
@@ -195,9 +196,14 @@ const MineOpgaver: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-12">
-          <p className="text-sm text-muted-foreground">
-            {t('common.error') || 'Fejl ved indlæsning'}
-          </p>
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground mb-2">
+              {t('dashboard.noUpcomingTasks') || 'Ingen kommende opgaver'}
+            </p>
+            <p className="text-xs text-muted-foreground/60">
+              Kom tilbage senere for nye opgaver
+            </p>
+          </div>
         </CardContent>
       </Card>
     );

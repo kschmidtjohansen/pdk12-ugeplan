@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { User, Session } from '@supabase/supabase-js';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { DemoUserService } from '@/services/demoUserService';
 import { circuitBreaker } from '@/services/circuitBreakerService';
 import { TranslationContext } from './TranslationContext';
@@ -421,7 +421,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                       if (mounted) {
                         setUserDataLoaded(true);
                       }
-                    }, 100);
+                    }, 200);
                   } else {
                     console.warn(`[AuthContext] KASPER FIX - No user data returned, using fallback`);
                     if (mounted) {
@@ -437,7 +437,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                         if (mounted) {
                           setUserDataLoaded(true);
                         }
-                      }, 100);
+                      }, 200);
                     }
                   }
                 } catch (error) {

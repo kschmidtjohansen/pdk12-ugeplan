@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useOptimizedAssignments } from './useOptimizedAssignments';
 import { format } from 'date-fns';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 
 export const useAutoPublishAssignments = () => {

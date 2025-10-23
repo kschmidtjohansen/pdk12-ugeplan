@@ -8,7 +8,7 @@ import { Trash2, RefreshCw, Database, CheckCircle, AlertTriangle, Info } from 'l
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { cleanupFalsePositiveSecurityLogs, cleanupOldSecurityLogs, optimizeSecurityLogsTable } from '@/utils/databaseCleanup';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export const SystemCleanupPanel: React.FC = () => {
   const { user } = useAuth();

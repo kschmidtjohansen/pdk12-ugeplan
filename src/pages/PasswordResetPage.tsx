@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../integrations/supabase/client';
-import { useToast } from '../components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '../context/TranslationContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
