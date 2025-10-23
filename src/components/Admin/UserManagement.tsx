@@ -52,6 +52,29 @@ const UserManagement: React.FC = () => {
     return acc;
   }, {} as Record<UserRole, number>);
   const eligibleUsers = (roleCounts.administrator || 0) + (roleCounts.skadeleder || 0);
+  
+  const handleCreateVikar = () => {
+    if (isDemoMode) {
+      toast({
+        title: t('common.warning'),
+        description: 'Demo mode is read-only. Cannot create users.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Set form data for vikar creation
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      jobTitle: '',
+      role: 'vikar' as UserRole
+    });
+    setCurrentUser(null);
+    setUserDialogOpen(true);
+  };
+  
   const addDebugInfo = (info: string) => {
     const timestamp = new Date().toISOString().substring(11, 23);
     setDebugInfo(prev => [`[${timestamp}] ${info}`, ...prev.slice(0, 19)]);
@@ -784,6 +807,9 @@ const UserManagement: React.FC = () => {
               </Button>
               <Button onClick={handleCreateUser} className="bg-polygon-blue hover:bg-polygon-darkblue">
                 {t('admin.userManagement.addUser')}
+              </Button>
+              <Button onClick={handleCreateVikar} variant="outline" className="border-polygon-blue text-polygon-blue hover:bg-polygon-blue/10">
+                {t('employees.addVikar')}
               </Button>
             </div>
           </div>

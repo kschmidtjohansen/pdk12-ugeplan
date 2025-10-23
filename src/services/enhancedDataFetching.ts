@@ -397,6 +397,8 @@ export class EnhancedDataFetching {
           
           return {
             ...assignment,
+            // Keep BOTH date and assignment_date for compatibility with dashboard metrics
+            date: assignment.date || assignment.assignment_date,
             assignment_date: assignment.date || assignment.assignment_date,
             from_time: assignment.from_time || '08:00:00',
             to_time: assignment.to_time || '16:00:00',

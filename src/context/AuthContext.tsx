@@ -416,7 +416,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                       isAdmin: userData.role === 'administrator'
                     });
                     setUser(userData);
-                    setUserDataLoaded(true);
+                    // Add stabilization delay to ensure isDemoMode is computed correctly
+                    setTimeout(() => {
+                      if (mounted) {
+                        setUserDataLoaded(true);
+                      }
+                    }, 100);
                   } else {
                     console.warn(`[AuthContext] KASPER FIX - No user data returned, using fallback`);
                     if (mounted) {
@@ -428,7 +433,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                         role: 'servicemedarbejder'
                       };
                       setUser(fallbackUser);
-                      setUserDataLoaded(true);
+                      setTimeout(() => {
+                        if (mounted) {
+                          setUserDataLoaded(true);
+                        }
+                      }, 100);
                     }
                   }
                 } catch (error) {
@@ -443,7 +452,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     };
                     console.log('[AuthContext] KASPER FIX - Using fallback user due to error:', fallbackUser);
                     setUser(fallbackUser);
-                    setUserDataLoaded(true);
+                    setTimeout(() => {
+                      if (mounted) {
+                        setUserDataLoaded(true);
+                      }
+                    }, 100);
                   }
                 }
               })();

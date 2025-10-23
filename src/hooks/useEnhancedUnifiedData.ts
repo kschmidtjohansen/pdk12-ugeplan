@@ -75,8 +75,10 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
   };
 
   useEffect(() => {
-    fetchAllData();
-  }, []);
+    if (user?.id) {
+      fetchAllData();
+    }
+  }, [user?.id]);
 
   return {
     employees,

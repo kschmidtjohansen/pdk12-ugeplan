@@ -15,7 +15,6 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { t } = useTranslation();
-  const client = getSchemaClient(isDemoMode);
 
   // Fetch cars from Supabase with enhanced security
   const fetchCars = async () => {
