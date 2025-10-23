@@ -128,47 +128,56 @@ export const useVacationData = () => {
     fetchVacations();
   }, [fetchVacations]);
 
-  // Use centralized realtime manager for vacation subscriptions
+  // Use centralized realtime manager for vacation subscriptions (or polling for demo)
   useEffect(() => {
-    
-    
-    const subscriptionId = 'vacations_enhanced';
-    
-    const handleRealtimeUpdate = () => {
-      enhancedDataFetching.clearCache('vacations');
-      fetchVacations();
-      
-      // Log realtime data changes for monitoring with enhanced logging
-      logSecurityEvent(
-        'vacation_realtime_change',
-        'Vacation change detected via centralized realtime manager',
-        { 
-          subscription_id: subscriptionId,
-          timestamp: new Date().toISOString(),
-          source: 'realtime_manager'
-        },
-        'info'
-      );
-    };
-
-    const subscription = realtimeManager.subscribe(
-      subscriptionId,
-      ['vacations'],
-      handleRealtimeUpdate,
-      { schema: isDemoMode ? 'demo' : 'public' }
-    );
-
-    if (!subscription) {
+    if (isDemoMode) {
+      // Demo mode: Use polling instead of realtime
       const pollInterval = setInterval(() => {
+        enhancedDataFetching.clearCache('vacations');
         fetchVacations();
-      }, 30000);
-      
-      return () => clearInterval(pollInterval);
-    }
+      }, 30000); // Poll every 30 seconds
 
-    return () => {
-      realtimeManager.unsubscribe(subscriptionId);
-    };
+      return () => clearInterval(pollInterval);
+    } else {
+      // Production mode: Use realtime subscriptions
+      const subscriptionId = 'vacations_enhanced';
+      
+      const handleRealtimeUpdate = () => {
+        enhancedDataFetching.clearCache('vacations');
+        fetchVacations();
+        
+        // Log realtime data changes for monitoring with enhanced logging
+        logSecurityEvent(
+          'vacation_realtime_change',
+          'Vacation change detected via centralized realtime manager',
+          { 
+            subscription_id: subscriptionId,
+            timestamp: new Date().toISOString(),
+            source: 'realtime_manager'
+          },
+          'info'
+        );
+      };
+
+      const subscription = realtimeManager.subscribe(
+        subscriptionId,
+        ['vacations'],
+        handleRealtimeUpdate,
+        { schema: 'public' }
+      );
+
+      if (!subscription) {
+        const pollInterval = setInterval(() => {
+          fetchVacations();
+        }, 30000);
+        
+        return () => clearInterval(pollInterval);
+      }
+
+      return () => {
+        realtimeManager.unsubscribe(subscriptionId);
+      };
+    }
   }, [fetchVacations, isDemoMode]);
 
   return {

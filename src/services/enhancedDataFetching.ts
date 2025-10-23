@@ -201,39 +201,54 @@ export class EnhancedDataFetching {
     }
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
-      const client = getSchemaClient(isDemoMode);
-      
-      // Enhanced vacation query with better error handling
-      const { data, error } = await client
-        .from('vacations')
-        .select(`
-          id,
-          user_id,
-          start_date,
-          end_date,
-          request_type,
-          start_time,
-          end_time,
-          is_same_day,
-          status,
-          reason,
-          notes,
-          created_at,
-          updated_at
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        // Enhanced error context for vacation queries
-        throw Object.assign(error, {
-          context: 'vacation_fetch',
-          table: 'vacations',
-          operation: 'select_with_order',
-          schema: isDemoMode ? 'demo' : 'public'
-        });
+      if (isDemoMode) {
+        // Use demo RPC for demo users
+        const { data, error } = await supabase.rpc('get_demo_vacations');
+        
+        if (error) {
+          throw Object.assign(error, {
+            context: 'demo_vacation_fetch',
+            operation: 'demo_rpc_call'
+          });
+        }
+        
+        return { data, error: null };
+      } else {
+        // Production: Use direct table access
+        const client = getSchemaClient(false);
+        
+        // Enhanced vacation query with better error handling
+        const { data, error } = await client
+          .from('vacations')
+          .select(`
+            id,
+            user_id,
+            start_date,
+            end_date,
+            request_type,
+            start_time,
+            end_time,
+            is_same_day,
+            status,
+            reason,
+            notes,
+            created_at,
+            updated_at
+          `)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          // Enhanced error context for vacation queries
+          throw Object.assign(error, {
+            context: 'vacation_fetch',
+            table: 'vacations',
+            operation: 'select_with_order',
+            schema: 'public'
+          });
+        }
+        
+        return { data, error: null };
       }
-      
-      return { data, error: null };
     }, 'fetchVacationsEnhanced', {
       retries: 4, // More retries for critical vacation data
       timeout: 15000, // Longer timeout for complex queries
@@ -261,24 +276,52 @@ export class EnhancedDataFetching {
     }
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
-      const client = getSchemaClient(isDemoMode);
-      
-      const { data, error } = await client
-        .from('profiles')
-        .select('id, name, email, status')
-        .in('id', userIds);
-
-      if (error) {
-        throw Object.assign(error, {
-          context: 'profile_batch_fetch',
-          table: 'profiles',
-          userIds: userIds.length,
-          operation: 'select_in',
-          schema: isDemoMode ? 'demo' : 'public'
+      if (isDemoMode) {
+        // Use demo RPC for demo users - get all profiles then filter
+        const { data, error } = await supabase.rpc('get_demo_profiles_admin_detailed', {
+          full_access: false
         });
+
+        if (error) {
+          throw Object.assign(error, {
+            context: 'demo_profile_batch_fetch',
+            operation: 'demo_rpc_call',
+            userIds: userIds.length
+          });
+        }
+
+        // Filter to requested user IDs and transform to match expected shape
+        const filtered = (data || [])
+          .filter((profile: any) => userIds.includes(profile.id))
+          .map((profile: any) => ({
+            id: profile.id,
+            name: profile.name,
+            email: profile.email,
+            status: profile.status
+          }));
+        
+        return { data: filtered, error: null };
+      } else {
+        // Production: Use direct table access
+        const client = getSchemaClient(false);
+        
+        const { data, error } = await client
+          .from('profiles')
+          .select('id, name, email, status')
+          .in('id', userIds);
+
+        if (error) {
+          throw Object.assign(error, {
+            context: 'profile_batch_fetch',
+            table: 'profiles',
+            userIds: userIds.length,
+            operation: 'select_in',
+            schema: 'public'
+          });
+        }
+        
+        return { data, error: null };
       }
-      
-      return { data, error: null };
     }, 'fetchUserProfilesEnhanced', {
       retries: 3,
       timeout: 10000,
@@ -328,61 +371,27 @@ export class EnhancedDataFetching {
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
       console.log('[Enhanced Data Fetching] Starting assignments fetch...', isDemoMode ? 'DEMO MODE' : 'PRODUCTION');
       
-      // Demo mode: manually fetch from demo schema tables
       if (isDemoMode) {
-        const client = getSchemaClient(true);
+        // Use demo RPC for demo users
+        const { data, error } = await supabase.rpc('list_demo_assignments_with_team');
         
-        // Fetch assignments
-        const { data: assignments, error: assignmentsError } = await client
-          .from('assignments')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (assignmentsError) throw assignmentsError;
-        if (!assignments || assignments.length === 0) {
-          return { data: [], error: null };
+        if (error) {
+          console.error('[Enhanced Data Fetching] Demo assignments fetch error:', error);
+          throw Object.assign(error, {
+            context: 'demo_assignment_fetch',
+            operation: 'demo_rpc_call'
+          });
         }
+
+        console.log('[Enhanced Data Fetching] Demo assignments:', data?.length || 0);
         
-        // Fetch assignment-employee mappings
-        const assignmentIds = assignments.map((a: any) => a.id);
-        const { data: mapping, error: mappingError } = await client
-          .from('assignments_employees')
-          .select('assignment_id, user_id')
-          .in('assignment_id', assignmentIds);
-        
-        if (mappingError) throw mappingError;
-        
-        // Fetch profiles for team members
-        const userIds = [...new Set((mapping || []).map((m: any) => m.user_id))];
-        const { data: profiles, error: profilesError } = await client
-          .from('profiles')
-          .select('id, name, email')
-          .in('id', userIds);
-        
-        if (profilesError) throw profilesError;
-        
-        // Build team arrays per assignment
-        const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
-        const teamByAssignment = new Map<string, any[]>();
-        
-        (mapping || []).forEach((m: any) => {
-          if (!teamByAssignment.has(m.assignment_id)) {
-            teamByAssignment.set(m.assignment_id, []);
-          }
-          const profile = profileMap.get(m.user_id);
-          if (profile) {
-            teamByAssignment.get(m.assignment_id)!.push(profile);
-          }
-        });
-        
-        // Enrich assignments with team data
-        const enriched = assignments.map((a: any) => ({
-          ...a,
-          team: teamByAssignment.get(a.id) || []
+        // Transform demo data to match production shape if needed
+        const transformedData = (data || []).map((assignment: any) => ({
+          ...assignment,
+          // Add any shape transformations if the RPCs return different structures
         }));
         
-        console.log('[Enhanced Data Fetching] Demo assignments:', enriched.length);
-        return { data: enriched, error: null };
+        return { data: transformedData, error: null };
       }
       
       // Production: use RPC
@@ -424,23 +433,40 @@ export class EnhancedDataFetching {
     }
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
-      const client = getSchemaClient(isDemoMode);
-      
-      const { data, error } = await client
-        .from('profiles')
-        .select('id, name, email, phone, job_title, on_leave, notes, avatar_url, status')
-        .order('name', { ascending: true });
-
-      if (error) {
-        throw Object.assign(error, {
-          context: 'employee_fetch',
-          table: 'profiles',
-          operation: 'select_employees',
-          schema: isDemoMode ? 'demo' : 'public'
+      if (isDemoMode) {
+        // Use demo RPC for demo users
+        const { data, error } = await supabase.rpc('get_demo_profiles_admin_detailed', {
+          full_access: false
         });
+
+        if (error) {
+          throw Object.assign(error, {
+            context: 'demo_employee_fetch',
+            operation: 'demo_rpc_call'
+          });
+        }
+
+        return { data, error: null };
+      } else {
+        // Production: Use direct table access
+        const client = getSchemaClient(false);
+        
+        const { data, error } = await client
+          .from('profiles')
+          .select('id, name, email, phone, job_title, on_leave, notes, avatar_url, status')
+          .order('name', { ascending: true });
+
+        if (error) {
+          throw Object.assign(error, {
+            context: 'employee_fetch',
+            table: 'profiles',
+            operation: 'select_employees',
+            schema: 'public'
+          });
+        }
+        
+        return { data, error: null };
       }
-      
-      return { data, error: null };
     }, 'fetchEmployeesEnhanced', {
       retries: 3,
       timeout: 10000,
@@ -464,23 +490,38 @@ export class EnhancedDataFetching {
     }
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
-      const client = getSchemaClient(isDemoMode);
-      
-      const { data, error } = await client
-        .from('cars')
-        .select('*')
-        .order('name', { ascending: true });
+      if (isDemoMode) {
+        // Use demo RPC for demo users
+        const { data, error } = await supabase.rpc('get_demo_cars_with_security');
 
-      if (error) {
-        throw Object.assign(error, {
-          context: 'car_fetch',
-          table: 'cars',
-          operation: 'select_all',
-          schema: isDemoMode ? 'demo' : 'public'
-        });
+        if (error) {
+          throw Object.assign(error, {
+            context: 'demo_car_fetch',
+            operation: 'demo_rpc_call'
+          });
+        }
+
+        return { data, error: null };
+      } else {
+        // Production: Use direct table access
+        const client = getSchemaClient(false);
+        
+        const { data, error } = await client
+          .from('cars')
+          .select('*')
+          .order('name', { ascending: true });
+
+        if (error) {
+          throw Object.assign(error, {
+            context: 'car_fetch',
+            table: 'cars',
+            operation: 'select_all',
+            schema: 'public'
+          });
+        }
+        
+        return { data, error: null };
       }
-      
-      return { data, error: null };
     }, 'fetchCarsEnhanced', {
       retries: 3,
       timeout: 8000,
@@ -498,10 +539,19 @@ export class EnhancedDataFetching {
     const startTime = Date.now();
     try {
       const isDemoMode = DemoSchemaClient.isDemoMode(currentUserEmail);
-      const client = getSchemaClient(isDemoMode);
-      const { error } = await client.from('profiles').select('count').limit(1);
-      const responseTime = Date.now() - startTime;
-      return { connected: !error, responseTime, error };
+      
+      if (isDemoMode) {
+        // Demo mode: Use demo RPC
+        const { error } = await supabase.rpc('get_demo_profiles_admin_detailed', { full_access: false });
+        const responseTime = Date.now() - startTime;
+        return { connected: !error, responseTime, error };
+      } else {
+        // Production: Use direct table access
+        const client = getSchemaClient(false);
+        const { error } = await client.from('profiles').select('count').limit(1);
+        const responseTime = Date.now() - startTime;
+        return { connected: !error, responseTime, error };
+      }
     } catch (error) {
       const responseTime = Date.now() - startTime;
       return { connected: false, responseTime, error };

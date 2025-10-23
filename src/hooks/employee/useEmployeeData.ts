@@ -28,81 +28,125 @@ export const useEmployeeData = () => {
       
       console.log(`[useEmployeeData] Starting employee fetch from ${isDemoMode ? 'demo' : 'public'} schema...`);
       
-      // Fetch profiles with proper error handling using schema-aware client
-      const { data: profiles, error: profilesError } = await client
-        .from('profiles')
-        .select('*')
-        .order('name', { ascending: true });
-      
-      if (profilesError) {
-        console.error('[useEmployeeData] FIXED - Profiles fetch error:', profilesError);
-        throw new Error(`Profiles fetch failed: ${profilesError.message}`);
-      }
-      
-      if (!profiles || profiles.length === 0) {
-        console.log('[useEmployeeData] FIXED - No profiles found');
-        setEmployees([]);
-        return;
-      }
-      
-      console.log(`[useEmployeeData] Found ${profiles.length} profiles`);
-      
-      // Fetch user roles from same schema
-      const { data: userRoles, error: rolesError } = await client
-        .from('user_roles')
-        .select('user_id, role');
-      
-      if (rolesError) {
-        console.error('[useEmployeeData] User roles fetch error:', rolesError);
-        // Don't throw here, use default roles
-      } else {
-        console.log(`[useEmployeeData] Successfully fetched ${userRoles?.length || 0} user roles`);
-      }
-      
-      // Create role mapping
-      const rolesMap = new Map<string, string>();
-      if (userRoles && Array.isArray(userRoles)) {
-        userRoles.forEach((userRole: any) => {
-          rolesMap.set(userRole.user_id, userRole.role);
+      if (isDemoMode) {
+        // Use demo RPC for demo users
+        const { data, error: rpcError } = await supabase.rpc('get_demo_profiles_admin_detailed', {
+          full_access: false
         });
-      }
-      
-      console.log(`[useEmployeeData] Role mapping created for ${rolesMap.size} users`);
-      
-      // Transform data with proper type casting
-      const transformedEmployees: Employee[] = profiles.map((profile: any) => {
-        const role = rolesMap.get(profile.id) || 'servicemedarbejder';
-        
-        const employee: Employee = {
+
+        if (rpcError) {
+          console.error('[useEmployeeData] Demo RPC error:', rpcError);
+          throw new Error(`Demo profiles fetch failed: ${rpcError.message}`);
+        }
+
+        if (!data || data.length === 0) {
+          console.log('[useEmployeeData] No demo profiles found');
+          setEmployees([]);
+          return;
+        }
+
+        console.log(`[useEmployeeData] Found ${data.length} demo profiles`);
+
+        // Transform data with proper type casting
+        const transformedEmployees: Employee[] = data.map((profile: any) => ({
           id: profile.id,
           name: profile.name || 'Unknown',
           email: profile.email || '',
           phone: profile.phone || '',
           jobTitle: profile.job_title || '',
-          role: role as 'administrator' | 'skadeleder' | 'servicemedarbejder',
+          role: profile.role as 'administrator' | 'skadeleder' | 'servicemedarbejder',
           onLeave: profile.on_leave || false,
           status: profile.status || 'active',
           notes: profile.notes || '',
           avatar_url: profile.avatar_url
-        };
-        
-        return employee;
-      });
-      
-      // Schema isolation handles data separation - no filtering needed
-      const administrators = transformedEmployees.filter(emp => emp.role === 'administrator');
-      const skadeledere = transformedEmployees.filter(emp => emp.role === 'skadeleder');
-      
-      console.log('[useEmployeeData] FIXED - Final distribution:');
-      console.log('- Administrators:', administrators.length);
-      console.log('- Skadeledere:', skadeledere.length);
-      console.log('- Total employees:', transformedEmployees.length);
-      
-      setEmployees(transformedEmployees);
-      console.log('[useEmployeeData] FIXED - Employee data set successfully');
-      
+        }));
+
+        const administrators = transformedEmployees.filter(emp => emp.role === 'administrator');
+        const skadeledere = transformedEmployees.filter(emp => emp.role === 'skadeleder');
+
+        console.log('[useEmployeeData] Demo distribution:');
+        console.log('- Administrators:', administrators.length);
+        console.log('- Skadeledere:', skadeledere.length);
+        console.log('- Total employees:', transformedEmployees.length);
+
+        setEmployees(transformedEmployees);
+        console.log('[useEmployeeData] Demo employee data set successfully');
+      } else {
+        // Fetch profiles with proper error handling using schema-aware client
+        const { data: profiles, error: profilesError } = await client
+          .from('profiles')
+          .select('*')
+          .order('name', { ascending: true });
+
+        if (profilesError) {
+          console.error('[useEmployeeData] Profiles fetch error:', profilesError);
+          throw new Error(`Profiles fetch failed: ${profilesError.message}`);
+        }
+
+        if (!profiles || profiles.length === 0) {
+          console.log('[useEmployeeData] No profiles found');
+          setEmployees([]);
+          return;
+        }
+
+        console.log(`[useEmployeeData] Found ${profiles.length} profiles`);
+
+        // Fetch user roles from same schema
+        const { data: userRoles, error: rolesError } = await client
+          .from('user_roles')
+          .select('user_id, role');
+
+        if (rolesError) {
+          console.error('[useEmployeeData] User roles fetch error:', rolesError);
+          // Don't throw here, use default roles
+        } else {
+          console.log(`[useEmployeeData] Successfully fetched ${userRoles?.length || 0} user roles`);
+        }
+
+        // Create role mapping
+        const rolesMap = new Map<string, string>();
+        if (userRoles && Array.isArray(userRoles)) {
+          userRoles.forEach((userRole: any) => {
+            rolesMap.set(userRole.user_id, userRole.role);
+          });
+        }
+
+        console.log(`[useEmployeeData] Role mapping created for ${rolesMap.size} users`);
+
+        // Transform data with proper type casting
+        const transformedEmployees: Employee[] = profiles.map((profile: any) => {
+          const role = rolesMap.get(profile.id) || 'servicemedarbejder';
+
+          const employee: Employee = {
+            id: profile.id,
+            name: profile.name || 'Unknown',
+            email: profile.email || '',
+            phone: profile.phone || '',
+            jobTitle: profile.job_title || '',
+            role: role as 'administrator' | 'skadeleder' | 'servicemedarbejder',
+            onLeave: profile.on_leave || false,
+            status: profile.status || 'active',
+            notes: profile.notes || '',
+            avatar_url: profile.avatar_url
+          };
+
+          return employee;
+        });
+
+        // Schema isolation handles data separation - no filtering needed
+        const administrators = transformedEmployees.filter(emp => emp.role === 'administrator');
+        const skadeledere = transformedEmployees.filter(emp => emp.role === 'skadeleder');
+
+        console.log('[useEmployeeData] Final distribution:');
+        console.log('- Administrators:', administrators.length);
+        console.log('- Skadeledere:', skadeledere.length);
+        console.log('- Total employees:', transformedEmployees.length);
+
+        setEmployees(transformedEmployees);
+        console.log('[useEmployeeData] Employee data set successfully');
+      }
     } catch (err) {
-      console.error('[useEmployeeData] FIXED - Error:', err);
+      console.error('[useEmployeeData] Error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch employees';
       setError(errorMessage);
       
@@ -116,7 +160,7 @@ export const useEmployeeData = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, t]);
+  }, [toast, t, isDemoMode, client]);
 
   // Load employees on mount
   useEffect(() => {
@@ -125,40 +169,49 @@ export const useEmployeeData = () => {
 
   // Realtime subscription with proper debouncing and schema awareness
   useEffect(() => {
-    const schema = isDemoMode ? 'demo' : 'public';
-    console.log(`[useEmployeeData] Setting up realtime subscription for ${schema} schema...`);
-    
-    let timeoutId: NodeJS.Timeout;
-    
-    const channel = supabase
-      .channel(`employee_changes_${schema}`)
-      .on('postgres_changes', { event: '*', schema: schema, table: 'profiles' }, (payload) => {
-        console.log(`[useEmployeeData] Profile change detected in ${schema}:`, payload.eventType);
-        
-        // Debounce updates to prevent rapid-fire refetches
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-          fetchEmployees();
-        }, 1000);
-      })
-      .on('postgres_changes', { event: '*', schema: schema, table: 'user_roles' }, (payload) => {
-        console.log(`[useEmployeeData] Role change detected in ${schema}:`, payload.eventType);
-        
-        // Debounce updates to prevent rapid-fire refetches
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-          fetchEmployees();
-        }, 1000);
-      })
-      .subscribe((status) => {
-        console.log(`[useEmployeeData] Subscription status for ${schema}:`, status);
-      });
+    if (isDemoMode) {
+      // Demo mode: Use polling instead of realtime
+      const pollInterval = setInterval(() => {
+        fetchEmployees();
+      }, 30000); // Poll every 30 seconds
+
+      return () => clearInterval(pollInterval);
+    } else {
+      // Production mode: Use realtime subscriptions
+      console.log(`[useEmployeeData] Setting up realtime subscription for public schema...`);
       
-    return () => {
-      console.log(`[useEmployeeData] Cleaning up realtime subscription for ${schema}`);
-      clearTimeout(timeoutId);
-      supabase.removeChannel(channel);
-    };
+      let timeoutId: NodeJS.Timeout;
+      
+      const channel = supabase
+        .channel(`employee_changes_public`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
+          console.log(`[useEmployeeData] Profile change detected in public:`, payload.eventType);
+          
+          // Debounce updates to prevent rapid-fire refetches
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            fetchEmployees();
+          }, 1000);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, (payload) => {
+          console.log(`[useEmployeeData] Role change detected in public:`, payload.eventType);
+          
+          // Debounce updates to prevent rapid-fire refetches
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            fetchEmployees();
+          }, 1000);
+        })
+        .subscribe((status) => {
+          console.log(`[useEmployeeData] Subscription status for public:`, status);
+        });
+        
+      return () => {
+        console.log(`[useEmployeeData] Cleaning up realtime subscription for public`);
+        clearTimeout(timeoutId);
+        supabase.removeChannel(channel);
+      };
+    }
   }, [fetchEmployees, isDemoMode]);
 
   return {

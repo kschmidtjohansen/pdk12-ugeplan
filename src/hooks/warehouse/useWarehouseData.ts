@@ -16,14 +16,21 @@ export const useWarehouseData = () => {
       setLoading(true);
       setError(null);
       
-      const { data, error: fetchError } = await client
-        .from('warehouse_items')
-        .select('*')
-        .order('created_at', { ascending: false });
+      if (isDemoMode) {
+        // Use demo RPC for demo users
+        const { data, error: fetchError } = await supabase.rpc('get_demo_warehouse_items');
+        if (fetchError) throw fetchError;
+        setItems((data || []) as any);
+      } else {
+        // Use direct table access for production users
+        const { data, error: fetchError } = await client
+          .from('warehouse_items')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (fetchError) throw fetchError;
-      
-      setItems((data || []) as any);
+        if (fetchError) throw fetchError;
+        setItems((data || []) as any);
+      }
     } catch (err) {
       console.error('Error fetching warehouse items:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch items');
@@ -35,26 +42,34 @@ export const useWarehouseData = () => {
   useEffect(() => {
     fetchItems();
 
-    // Subscribe to real-time changes with schema awareness
-    const schema = isDemoMode ? 'demo' : 'public';
-    const channel = supabase
-      .channel(`warehouse_items_changes_${schema}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: schema,
-          table: 'warehouse_items'
-        },
-        () => {
-          fetchItems();
-        }
-      )
-      .subscribe();
+    if (isDemoMode) {
+      // Demo mode: Use polling instead of realtime
+      const pollInterval = setInterval(() => {
+        fetchItems();
+      }, 45000); // Poll every 45 seconds
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      return () => clearInterval(pollInterval);
+    } else {
+      // Production mode: Use realtime subscriptions
+      const channel = supabase
+        .channel(`warehouse_items_changes_public`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'warehouse_items'
+          },
+          () => {
+            fetchItems();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, [isDemoMode]);
 
   return { items, loading, error, refetch: fetchItems };

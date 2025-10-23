@@ -24,10 +24,18 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       setLoading(true);
       setError(null);
       
-      const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
-      
-      console.log('[useCarData] Successfully fetched', data?.length || 0, 'cars');
-      setCars(data || []);
+      if (isDemoMode) {
+        // Use demo RPC for demo users
+        const { data, error: fetchError } = await supabase.rpc('get_demo_cars_with_security');
+        if (fetchError) throw fetchError;
+        console.log('[useCarData] Successfully fetched', data?.length || 0, 'demo cars');
+        setCars((data || []) as CarData[]);
+      } else {
+        // Use production service for production users
+        const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
+        console.log('[useCarData] Successfully fetched', data?.length || 0, 'cars');
+        setCars(data || []);
+      }
     } catch (err) {
       console.error('[useCarData] Error fetching cars:', err);
       
@@ -55,6 +63,15 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
 
   // Create a new car with enhanced security validation
   const createCar = async (carData: Partial<CarData>) => {
+    if (isDemoMode) {
+      toast({
+        title: t('common.warning'),
+        description: 'Demo mode is read-only. Cannot create vehicles.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+
     try {
       console.log('[useCarData] Creating car with data:', carData);
       
@@ -100,10 +117,17 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         setLoading(true);
         setError(null);
         
-        const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
-        
-        if (isMounted) {
-          setCars(data || []);
+        if (isDemoMode) {
+          const { data, error: fetchError } = await supabase.rpc('get_demo_cars_with_security');
+          if (fetchError) throw fetchError;
+          if (isMounted) {
+            setCars((data || []) as CarData[]);
+          }
+        } else {
+          const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
+          if (isMounted) {
+            setCars(data || []);
+          }
         }
       } catch (err) {
         console.error('Error fetching cars:', err);
@@ -134,34 +158,48 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       }
     };
 
-    // Set up realtime subscription for cars (both public and demo schemas)
-    const schema = isDemoMode ? 'demo' : 'public';
-    const channel = supabase
-      .channel(`cars-changes-${schema}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: schema,
-          table: 'cars'
-        },
-        (payload) => {
-          console.log(`[useCarData] Realtime update received from ${schema} schema:`, payload);
-          // Refresh cars when any change occurs
-          if (isMounted) {
-            loadCars().catch(console.error);
-          }
+    if (isDemoMode) {
+      // Demo mode: Use polling instead of realtime
+      loadCars();
+      const pollInterval = setInterval(() => {
+        if (isMounted) {
+          loadCars().catch(console.error);
         }
-      )
-      .subscribe();
-    
-    loadCars();
-    
-    return () => {
-      isMounted = false;
-      supabase.removeChannel(channel);
-    };
-  }, [t, toast, canViewFuelCardCode]);
+      }, 40000); // Poll every 40 seconds
+      
+      return () => {
+        isMounted = false;
+        clearInterval(pollInterval);
+      };
+    } else {
+      // Production mode: Use realtime subscriptions
+      const channel = supabase
+        .channel(`cars-changes-public`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'cars'
+          },
+          (payload) => {
+            console.log(`[useCarData] Realtime update received:`, payload);
+            // Refresh cars when any change occurs
+            if (isMounted) {
+              loadCars().catch(console.error);
+            }
+          }
+        )
+        .subscribe();
+      
+      loadCars();
+      
+      return () => {
+        isMounted = false;
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [t, toast, canViewFuelCardCode, isDemoMode]);
 
   return {
     cars,

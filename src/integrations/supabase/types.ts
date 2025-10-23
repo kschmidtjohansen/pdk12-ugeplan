@@ -678,6 +678,74 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      get_demo_cars_with_security: {
+        Args: never
+        Returns: {
+          car_number: string
+          created_at: string
+          fuel_card_code: string
+          has_trailer_hitch: boolean
+          id: string
+          is_available: boolean
+          name: string
+          notes: string
+          number_plate: string
+          show_in_planner: boolean
+          updated_at: string
+        }[]
+      }
+      get_demo_profiles_admin_detailed: {
+        Args: { full_access?: boolean }
+        Returns: {
+          avatar_url: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          is_temporary: boolean
+          job_title: string
+          name: string
+          notes: string
+          on_leave: boolean
+          phone: string
+          role: Database["public"]["Enums"]["user_role"]
+          status: Database["public"]["Enums"]["employee_status"]
+          updated_at: string
+        }[]
+      }
+      get_demo_vacations: {
+        Args: never
+        Returns: {
+          created_at: string
+          end_date: string
+          end_time: string
+          id: string
+          is_same_day: boolean
+          notes: string
+          reason: string
+          request_type: string
+          start_date: string
+          start_time: string
+          status: Database["public"]["Enums"]["vacation_status"]
+          updated_at: string
+          user_id: string
+        }[]
+      }
+      get_demo_warehouse_items: {
+        Args: never
+        Returns: {
+          address: string
+          case_number: string
+          created_at: string
+          created_by: string
+          hall: string
+          id: string
+          is_cleaned: string
+          notes: string
+          quantity: number
+          updated_at: string
+        }[]
+      }
       get_enhanced_system_metrics: { Args: never; Returns: Json }
       get_profile_detailed: {
         Args: { profile_user_id: string }
@@ -813,6 +881,27 @@ export type Database = {
           title: string
           to_time: string
           type: Database["public"]["Enums"]["assignment_type"]
+          updated_at: string
+        }[]
+      }
+      list_demo_assignments_with_team: {
+        Args: never
+        Returns: {
+          assignment_cars: Json
+          case_number: string
+          client_name: string
+          contact_person: string
+          created_at: string
+          date: string
+          description: string
+          id: string
+          location: string
+          published: boolean
+          responsible_user_id: string
+          special_instructions: string
+          status: string
+          team: Json
+          title: string
           updated_at: string
         }[]
       }
