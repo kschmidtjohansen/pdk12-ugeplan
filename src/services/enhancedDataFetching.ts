@@ -511,26 +511,40 @@ export class EnhancedDataFetching {
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
       if (isDemoMode) {
-        // Use demo RPC for demo users
-        const { data, error } = await supabase.rpc('get_demo_cars_with_security');
+        // Demo: Use demo schema directly with strict filtering
+        const schemaClient = getSchemaClient(true);
+        const baselineTimestamp = schemaClient.getBaselineTimestamp();
+        
+        const { data, error } = await schemaClient
+          .from('cars')
+          .select('*')
+          .gte('created_at', baselineTimestamp)
+          .order('created_at', { ascending: false });
 
         if (error) {
           throw Object.assign(error, {
             context: 'demo_car_fetch',
-            operation: 'demo_rpc_call'
+            operation: 'demo_schema_query'
           });
         }
 
-        // Filter to only show explicitly demo-tagged vehicles
-        const demoOnly = (data || []).filter((c: any) => {
+        // Apply strict client-side filtering for demo data
+        const filteredDemoCars = (data || []).filter((c: any) => {
           const carNumber = (c.car_number || '').toString();
           const name = (c.name || '').toString().toLowerCase();
-          const looksDemo = /^(CAR|VAN)-/i.test(carNumber) || name.includes('demo');
-          const isProdNumber = /^\d+$/.test(carNumber); // Exclude purely numeric
-          return looksDemo && !isProdNumber;
+          const plate = (c.number_plate || '').toString().toLowerCase();
+          
+          const matchesDemoPattern = 
+            /^(CAR|VAN)-\d{3}$/i.test(carNumber) || 
+            name.includes('demo') || 
+            plate.includes('demo');
+          
+          const showInPlanner = c.show_in_planner !== false;
+          
+          return matchesDemoPattern && showInPlanner;
         });
 
-        return { data: demoOnly, error: null };
+        return { data: filteredDemoCars, error: null };
       } else {
         // Production: Use direct table access
         const client = getSchemaClient(false);
