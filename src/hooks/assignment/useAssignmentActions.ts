@@ -75,7 +75,7 @@ export const useAssignmentActions = (
       });
       
       // Check if this is a demo user - if so, handle differently
-      if (demoService.isDemoUser(user?.email)) {
+      if (isDemoMode) {
         console.log("[useAssignmentActions] Demo user detected - using session storage");
         
         // Handle multi-date for demo users
@@ -291,9 +291,10 @@ export const useAssignmentActions = (
       if (setIsDialogOpen) setIsDialogOpen(false);
     } catch (error: any) {
       console.error('Error creating assignment:', error);
+      const errorMessage = error instanceof Error ? error.message : t('planner.errorCreatingAssignment');
       toast({
         title: t('common.error'),
-        description: t('planner.errorCreatingAssignment'),
+        description: errorMessage,
         variant: "destructive",
       });
     }

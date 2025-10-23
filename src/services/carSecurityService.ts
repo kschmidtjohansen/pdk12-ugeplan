@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { CarData } from '@/components/Cars/types';
 
 export class CarSecurityService {
@@ -8,11 +9,13 @@ export class CarSecurityService {
    */
   static async fetchCars(canViewFuelCardCode: boolean): Promise<CarData[]> {
     try {
+      // Detect demo mode
+      const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+      
       // Use direct table access - new RLS policies handle security automatically
-      const { data, error } = await supabase
-        .from('cars')
-        .select('*')
-        .order('name');
+      const { data, error } = isDemoMode 
+        ? await getSchemaClient(true).from('cars').select('*').order('name')
+        : await supabase.from('cars').select('*').order('name');
       
       if (error) {
         // If access is denied due to authentication, provide clear error
@@ -53,6 +56,9 @@ export class CarSecurityService {
    */
   static async createCar(carData: Partial<CarData>, canViewFuelCardCode: boolean): Promise<CarData> {
     try {
+      // Detect demo mode
+      const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+      
       // Check database-level permissions first
       const { data: canViewFuel } = await supabase.rpc('can_view_fuel_codes');
       
@@ -86,11 +92,9 @@ export class CarSecurityService {
         insertData.fuel_card_code = 'PENDING_ADMIN_APPROVAL';
       }
 
-      const { data, error } = await supabase
-        .from('cars')
-        .insert(insertData)
-        .select()
-        .single();
+      const { data, error } = isDemoMode
+        ? await getSchemaClient(true).from('cars').insert(insertData).select().single()
+        : await supabase.from('cars').insert(insertData).select().single();
 
       if (error) {
         // Log failed car creation attempt
@@ -135,6 +139,9 @@ export class CarSecurityService {
     canViewFuelCardCode: boolean
   ): Promise<CarData> {
     try {
+      // Detect demo mode
+      const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+      
       // Check database-level permissions
       const { data: canViewFuel } = await supabase.rpc('can_view_fuel_codes');
       
@@ -156,12 +163,9 @@ export class CarSecurityService {
         updateData.fuel_card_code = carData.fuel_card_code;
       }
 
-      const { data, error } = await supabase
-        .from('cars')
-        .update(updateData)
-        .eq('id', carId)
-        .select()
-        .single();
+      const { data, error } = isDemoMode
+        ? await getSchemaClient(true).from('cars').update(updateData).eq('id', carId).select().single()
+        : await supabase.from('cars').update(updateData).eq('id', carId).select().single();
 
       if (error) {
         // Log failed car update attempt

@@ -82,7 +82,7 @@ export const useAssignmentDataOptimized = () => {
       // Schema isolation handles data separation - no filtering needed
       
       // If this is a demo user, include their session-stored assignments
-      if (demoService.isDemoUser(user?.email)) {
+      if (isDemoMode) {
         const demoAssignments = demoService.getDemoAssignments().map(demoAssignment => ({
           id: demoAssignment.id,
           title: demoAssignment.title,
@@ -155,14 +155,14 @@ export const useAssignmentDataOptimized = () => {
     
     const channel = supabase
       .channel('assignment_changes_optimized')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: isDemoMode ? 'demo' : 'public', table: 'assignments' }, (payload) => {
         console.log('[useAssignmentDataOptimized] Assignment change detected:', payload.eventType);
         
         // Clear cache to ensure fresh data
         enhancedDataFetching.clearCache('assignments');
         
         // For demo users, fetch immediately to ensure instant visibility
-        if (user?.email === 'demo@example.com') {
+        if (isDemoMode) {
           console.log('[useAssignmentDataOptimized] Demo user detected - immediate fetch');
           fetchAssignments();
         } else {
@@ -173,14 +173,14 @@ export const useAssignmentDataOptimized = () => {
           }, 500);
         }
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments_employees' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: isDemoMode ? 'demo' : 'public', table: 'assignments_employees' }, (payload) => {
         console.log('[useAssignmentDataOptimized] Assignment employee change detected:', payload.eventType);
         
         // Clear cache to ensure fresh data
         enhancedDataFetching.clearCache('assignments');
         
         // For demo users, fetch immediately to ensure instant visibility
-        if (user?.email === 'demo@example.com') {
+        if (isDemoMode) {
           console.log('[useAssignmentDataOptimized] Demo user detected - immediate fetch for employee changes');
           fetchAssignments();
         } else {
@@ -209,7 +209,7 @@ export const useAssignmentDataOptimized = () => {
       clearTimeout(debounceTimeout);
       supabase.removeChannel(channel);
     };
-  }, [fetchAssignments, user?.email]);
+  }, [fetchAssignments, isDemoMode]);
 
   return {
     assignments,

@@ -2,11 +2,14 @@
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { isValidUUID } from '@/utils/uuidValidation';
+import { useAuth } from '@/context/AuthContext';
 
 export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { isDemoMode } = useAuth();
 
   // Direct database user creation fallback
   const createUserDirectly = async (userData: any) => {
@@ -46,7 +49,8 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
       }
 
       // Create profile entry
-      const { error: profileError } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      const { error: profileError } = await client
         .from('profiles')
         .insert({
           id: userId,
@@ -66,7 +70,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
       }
 
       // Set user role
-      const { error: roleError } = await supabase
+      const { error: roleError } = await client
         .from('user_roles')
         .insert({
           user_id: userId,
@@ -204,7 +208,8 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         if (userId && isValidUUID(userId)) {
           console.log('[useEmployeeCreation] Updating profile with additional data');
           
-          const { error: profileError } = await supabase
+          const client = getSchemaClient(isDemoMode);
+          const { error: profileError } = await client
             .from('profiles')
             .update({
               phone: formData.phone || null,
@@ -224,7 +229,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           // Update role if specified and different from default
           const targetRole = formData.is_temporary ? 'vikar' : formData.role;
           if (targetRole && targetRole !== 'servicemedarbejder') {
-            const { error: roleError } = await supabase
+            const { error: roleError } = await client
               .from('user_roles')
               .update({ role: targetRole })
               .eq('user_id', userId);
