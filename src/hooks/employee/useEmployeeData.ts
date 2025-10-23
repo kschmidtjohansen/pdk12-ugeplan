@@ -16,9 +16,9 @@ export const useEmployeeData = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasShownError, setHasShownError] = useState(false);
   
   const demoService = DemoUserService.getInstance();
-  const client = getSchemaClient(isDemoMode);
 
   // FIXED: Now that RLS policy is corrected, we can fetch normally
   const fetchEmployees = useCallback(async () => {
@@ -79,8 +79,8 @@ export const useEmployeeData = () => {
         });
         console.log('[useEmployeeData] Demo employee data set successfully');
       } else {
-        // Fetch profiles with proper error handling using schema-aware client
-        const { data: profiles, error: profilesError } = await client
+        // Fetch profiles with proper error handling
+        const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
           .select('*')
           .order('name', { ascending: true });
@@ -99,7 +99,7 @@ export const useEmployeeData = () => {
         console.log(`[useEmployeeData] Found ${profiles.length} profiles`);
 
         // Fetch user roles from same schema
-        const { data: userRoles, error: rolesError } = await client
+        const { data: userRoles, error: rolesError } = await supabase
           .from('user_roles')
           .select('user_id, role');
 
@@ -164,33 +164,39 @@ export const useEmployeeData = () => {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch employees';
       setError(errorMessage);
       
-      toast({
-        title: t('common.error') || 'Error',
-        description: t('employees.fetchError') || 'Error loading employees',
-        variant: 'destructive',
-      });
+      if (!hasShownError) {
+        toast({
+          title: t('common.error') || 'Error',
+          description: t('employees.fetchError') || 'Error loading employees',
+          variant: 'destructive',
+        });
+        setHasShownError(true);
+      }
       
       setEmployees([]);
     } finally {
       setLoading(false);
     }
-  }, [toast, t, isDemoMode, client]);
+  }, [toast, t, isDemoMode, hasShownError]);
 
   // Load employees on mount - wait for userDataLoaded to stabilize
   useEffect(() => {
     if (!userDataLoaded || !user) return;
-    fetchEmployees();
-  }, [fetchEmployees, userDataLoaded, user?.id]);
+    
+    const timer = setTimeout(() => {
+      fetchEmployees();
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  }, [userDataLoaded, user?.id]);
 
   // Realtime subscription with proper debouncing and schema awareness
   useEffect(() => {
+    if (!userDataLoaded || !user) return;
+    
     if (isDemoMode) {
-      // Demo mode: Use polling instead of realtime
-      const pollInterval = setInterval(() => {
-        fetchEmployees();
-      }, 30000); // Poll every 30 seconds
-
-      return () => clearInterval(pollInterval);
+      console.log('[useEmployeeData] Demo mode: polling disabled (data is static)');
+      return;
     } else {
       // Production mode: Use realtime subscriptions
       console.log(`[useEmployeeData] Setting up realtime subscription for public schema...`);
@@ -227,7 +233,7 @@ export const useEmployeeData = () => {
         supabase.removeChannel(channel);
       };
     }
-  }, [fetchEmployees, isDemoMode]);
+  }, [isDemoMode, userDataLoaded, user]);
 
   return {
     employees,
