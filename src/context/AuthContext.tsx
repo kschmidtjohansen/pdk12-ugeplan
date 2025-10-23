@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
 import { DemoUserService } from '@/services/demoUserService';
@@ -143,13 +144,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     
     try {
-      // KASPER SESSION FIX: More detailed logging for database queries
+      // Detect demo mode from auth email FIRST, before fetching data
+      const isDemoUser = authUser.email === 'test@polygongroup.com';
+      const client = getSchemaClient(isDemoUser);
+      
+      console.log(`[AuthContext] Fetching from ${isDemoUser ? 'demo' : 'public'} schema for user:`, authUser.email);
       console.log(`[AuthContext] KASPER SESSION FIX - Fetching profile and role data from database...`);
       console.log(`[AuthContext] KASPER SESSION FIX - Auth user object:`, authUser);
       
       const fetchPromise = Promise.all([
-        supabase.from('profiles').select('id, name, email').eq('id', authUser.id).maybeSingle(),
-        supabase.from('user_roles').select('user_id, role').eq('user_id', authUser.id).maybeSingle()
+        client.from('profiles').select('id, name, email').eq('id', authUser.id).maybeSingle(),
+        client.from('user_roles').select('user_id, role').eq('user_id', authUser.id).maybeSingle()
       ]);
 
       // Add timeout to prevent hanging
@@ -193,7 +198,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // BRIAN REUS FIX: Improved name handling with explicit fallback chain
-      const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
+      // Reuse isDemoUser from above (already checked on line 148)
       let name: string;
       
       if (isDemoUser) {

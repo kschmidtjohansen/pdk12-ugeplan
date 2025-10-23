@@ -84,19 +84,9 @@ export const useVacationData = () => {
         };
       });
 
-      // DEMO USER FILTERING: Hide demo user vacations from non-demo users
-      let filteredVacations = transformedVacations;
-      if (!isDemoMode) {
-        filteredVacations = transformedVacations.filter(vacation => 
-          !vacation.user || !demoService.isDemoUser(vacation.user.email)
-        );
-        console.log(`[useVacationData] Filtered out demo user vacations. Showing ${filteredVacations.length} of ${transformedVacations.length} vacation records`);
-      } else {
-        console.log(`[useVacationData] Demo user logged in - showing all ${transformedVacations.length} vacation records including demo user`);
-      }
-
-      setVacations(filteredVacations);
-      console.log(`[useVacationData] Successfully processed ${filteredVacations.length} vacation records`);
+      // Schema isolation handles data separation - no filtering needed
+      setVacations(transformedVacations);
+      console.log(`[useVacationData] Successfully processed ${transformedVacations.length} vacation records`);
 
     } catch (err) {
       console.error('[useVacationData] Error in fetchVacations:', err);

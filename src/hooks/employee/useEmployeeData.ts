@@ -7,7 +7,7 @@ import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { supabase } from '@/integrations/supabase/client';
 import { DemoUserService } from '@/services/demoUserService';
 import { useAuth } from '@/context/AuthContext';
-import { DemoUserFiltering } from '@/utils/demoUserFiltering';
+// DemoUserFiltering removed - schema isolation handles data separation
 
 export const useEmployeeData = () => {
   const { toast } = useToast();
@@ -89,19 +89,16 @@ export const useEmployeeData = () => {
         return employee;
       });
       
-      // DEMO USER FILTERING: Use centralized filtering utility
-      const filteredEmployees = DemoUserFiltering.filterEmployees(transformedEmployees, user?.email);
-      console.log(`[useEmployeeData] Applied demo user filtering. Showing ${filteredEmployees.length} of ${transformedEmployees.length} employees`);
+      // Schema isolation handles data separation - no filtering needed
+      const administrators = transformedEmployees.filter(emp => emp.role === 'administrator');
+      const skadeledere = transformedEmployees.filter(emp => emp.role === 'skadeleder');
       
-      const administrators = filteredEmployees.filter(emp => emp.role === 'administrator');
-      const skadeledere = filteredEmployees.filter(emp => emp.role === 'skadeleder');
-      
-      console.log('[useEmployeeData] FIXED - Final distribution (after demo filtering):');
+      console.log('[useEmployeeData] FIXED - Final distribution:');
       console.log('- Administrators:', administrators.length);
       console.log('- Skadeledere:', skadeledere.length);
-      console.log('- Total employees:', filteredEmployees.length);
+      console.log('- Total employees:', transformedEmployees.length);
       
-      setEmployees(filteredEmployees);
+      setEmployees(transformedEmployees);
       console.log('[useEmployeeData] FIXED - Employee data set successfully');
       
     } catch (err) {
