@@ -624,8 +624,12 @@ export class OptimizedAssignmentService {
   static async deleteAssignment(assignmentId: string): Promise<boolean> {
     const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
     
-    if (isDemoMode) {
-      throw new Error('Demo mode is read-only. Cannot delete assignments.');
+    // Virtualize for demo mode
+    if (isDemoMode && assignmentId.startsWith('demo-')) {
+      console.log('[OptimizedAssignmentService] Deleting demo assignment locally:', assignmentId);
+      DemoUserService.getInstance().deleteDemoAssignment(assignmentId);
+      this.clearCache();
+      return true;
     }
 
     try {

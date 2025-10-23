@@ -117,16 +117,70 @@ export class DemoUserService {
     console.log(`[Demo] Tracked ${operation} operation on ${table}:`, recordId);
   }
 
+  // Employee storage helpers
+  storeDemoEmployee(employee: any): void {
+    const employees = this.getDemoEmployees();
+    const record = {
+      ...employee,
+      id: employee.id || `demo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      isDemoData: true,
+      sessionId: this.demoSessionId,
+      created_at: employee.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    employees.push(record);
+    sessionStorage.setItem('demo-employees', JSON.stringify(employees));
+    console.log('[DemoUserService] Stored demo employee:', record.id);
+  }
+
+  updateDemoEmployee(id: string, updates: any): void {
+    const employees = this.getDemoEmployees();
+    const idx = employees.findIndex((e: any) => e.id === id);
+    if (idx !== -1) {
+      employees[idx] = { 
+        ...employees[idx], 
+        ...updates, 
+        updated_at: new Date().toISOString() 
+      };
+      sessionStorage.setItem('demo-employees', JSON.stringify(employees));
+      console.log('[DemoUserService] Updated demo employee:', id);
+    }
+  }
+
+  deleteDemoEmployee(id: string): void {
+    const employees = this.getDemoEmployees();
+    const filtered = employees.filter((e: any) => e.id !== id);
+    sessionStorage.setItem('demo-employees', JSON.stringify(filtered));
+    console.log('[DemoUserService] Deleted demo employee:', id);
+  }
+
+  getDemoEmployees(): any[] {
+    const stored = sessionStorage.getItem('demo-employees');
+    if (!stored) return [];
+    try {
+      const parsed = JSON.parse(stored);
+      console.log('[DemoUserService] Loaded', parsed.length, 'demo employees from storage');
+      return parsed;
+    } catch (e) {
+      console.warn('[DemoUserService] Failed to parse demo employees from storage', e);
+      return [];
+    }
+  }
+
   // Store demo assignment data in session storage
   storeDemoAssignment(assignment: any): void {
     const demoAssignments = this.getDemoAssignments();
-    demoAssignments.push({
+    const record = {
       ...assignment,
       id: assignment.id || `demo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       isDemoData: true,
-      sessionId: this.demoSessionId
-    });
+      sessionId: this.demoSessionId,
+      created_at: assignment.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    demoAssignments.push(record);
     sessionStorage.setItem('demo-assignments', JSON.stringify(demoAssignments));
+    console.log('[DemoUserService] Stored demo assignment:', record.id, 'Total:', demoAssignments.length);
   }
 
   // Update demo assignment in session storage
@@ -149,15 +203,18 @@ export class DemoUserService {
   // Get demo assignments from session storage
   getDemoAssignments(): any[] {
     const stored = sessionStorage.getItem('demo-assignments');
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch (error) {
-        console.warn('Failed to load demo assignments:', error);
-        return [];
-      }
+    if (!stored) {
+      console.log('[DemoUserService] No demo assignments in storage');
+      return [];
     }
-    return [];
+    try {
+      const parsed = JSON.parse(stored);
+      console.log('[DemoUserService] Loaded', parsed.length, 'demo assignments from storage');
+      return parsed;
+    } catch (error) {
+      console.warn('[DemoUserService] Failed to load demo assignments:', error);
+      return [];
+    }
   }
   
   // Demo cars storage helpers
@@ -246,6 +303,7 @@ export class DemoUserService {
       // Clear virtual demo data from sessionStorage
       sessionStorage.removeItem('demo-assignments');
       sessionStorage.removeItem('demo-cars');
+      sessionStorage.removeItem('demo-employees');
       sessionStorage.removeItem('demo-vacations');
       console.log('[Demo] Cleared local virtual demo data from sessionStorage');
       

@@ -8,6 +8,7 @@ import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { isValidUUID, safeUUID } from '@/utils/uuidValidation';
 import { DemoUserService } from '@/services/demoUserService';
+import { OptimizedAssignmentService } from '@/services/optimizedAssignmentService';
 import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 
 // This hook provides actions for managing assignments
@@ -546,49 +547,10 @@ export const useAssignmentActions = (
   // Delete an assignment
   const deleteAssignment = useCallback(async (id: string) => {
     try {
-      // Check if this is a demo user - if so, handle differently
-      // Check if this is a demo user - if so, handle differently
-      if (isDemoMode) {
-        console.log("[useAssignmentActions] Demo user detected - removing from session storage");
-        
-        demoService.deleteDemoAssignment(id);
-        demoService.trackOperation('assignments', 'delete', id);
-        
-        toast({
-          title: t('planner.assignmentDeleted'),
-          description: t('planner.assignmentDeletedMsg'),
-        });
-        
-        // For demo mode, clear cache and ensure immediate UI update
-        console.log('[useAssignmentActions] Demo mode delete: clearing cache and refetching');
-        enhancedDataFetching.clearCache('assignments');
-        await refetch();
-        console.log('[useAssignmentActions] Demo mode delete: refetch completed');
-        return true;
-      }
-
-      if (!isValidUUID(id)) {
-        throw new Error('Invalid assignment ID provided');
-      }
-
-      // First delete associated employee assignments
-      const client = getSchemaClient(isDemoMode);
-      const { error: empError } = await client
-        .from('assignments_employees')
-        .delete()
-        .eq('assignment_id', id);
-        
-      if (empError) {
-        console.error('Error deleting employee assignments:', empError);
-      }
+      console.log('[useAssignmentActions] Deleting assignment:', id);
       
-      // Then delete the assignment
-      const { error } = await client
-        .from('assignments')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      // Use service method for consistent virtualization
+      await OptimizedAssignmentService.deleteAssignment(id);
       
       toast({
         title: t('planner.assignmentDeleted'),

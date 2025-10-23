@@ -6,6 +6,7 @@ import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { Employee } from '@/types/employee';
 import { validateAndSanitizePhone } from '@/utils/phoneValidation';
 import { useAuth } from '@/context/AuthContext';
+import { DemoUserService } from '@/services/demoUserService';
 
 export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   const { toast } = useToast();
@@ -18,6 +19,27 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         employeeId: employee.id,
         onLeave: setOnLeave
       });
+      
+      // Virtualize for demo mode
+      if (isDemoMode && (employee.id.startsWith('demo-') || (employee as any).isDemoData)) {
+        DemoUserService.getInstance().updateDemoEmployee(employee.id, {
+          on_leave: setOnLeave,
+          notes: notes || null,
+          updated_at: new Date().toISOString()
+        });
+        
+        toast({
+          title: setOnLeave 
+            ? t('employees.employeeOnLeave') 
+            : t('employees.employeeAvailable'),
+          description: setOnLeave 
+            ? t('employees.employeeOnLeaveMsg', { name: employee.name }) 
+            : t('employees.employeeAvailableMsg', { name: employee.name })
+        });
+        
+        await refreshEmployees();
+        return true;
+      }
       
       const client = getSchemaClient(isDemoMode);
       const { error } = await client
@@ -65,6 +87,28 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       const phoneValidation = validateAndSanitizePhone(formData.phone);
       if (!phoneValidation.valid) {
         throw new Error(phoneValidation.error || 'Invalid phone number format');
+      }
+      
+      // Virtualize for demo mode
+      if (isDemoMode && (employee.id.startsWith('demo-') || (employee as any).isDemoData)) {
+        DemoUserService.getInstance().updateDemoEmployee(employee.id, {
+          name: formData.name,
+          email: formData.email,
+          phone: phoneValidation.sanitized,
+          job_title: formData.jobTitle || null,
+          role: formData.role,
+          on_leave: formData.onLeave || false,
+          notes: formData.notes || null,
+          updated_at: new Date().toISOString()
+        });
+        
+        toast({
+          title: t('employees.employeeUpdated'),
+          description: t('employees.employeeUpdatedMsg', { name: formData.name })
+        });
+        
+        await refreshEmployees();
+        return true;
       }
       
       // Update profile
@@ -121,6 +165,19 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       if (!employee) throw new Error('Employee not found');
       
       console.log('[useEmployeeActions] Deleting employee:', employeeId);
+      
+      // Virtualize for demo mode
+      if (isDemoMode && (employeeId.startsWith('demo-') || (employee as any).isDemoData)) {
+        DemoUserService.getInstance().deleteDemoEmployee(employeeId);
+        
+        toast({
+          title: t('employees.employeeDeleted'),
+          description: t('employees.employeeDeletedMsg', { name: employee.name })
+        });
+        
+        await refreshEmployees();
+        return true;
+      }
       
       const { data, error } = await supabase.functions.invoke('admin-user-delete', {
         body: { userId: employeeId }

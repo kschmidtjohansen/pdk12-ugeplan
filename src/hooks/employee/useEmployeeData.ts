@@ -70,13 +70,31 @@ export const useEmployeeData = () => {
         console.log('- Skadeledere:', skadeledere.length);
         console.log('- Total employees:', transformedEmployees.length);
 
+        // Merge with locally stored demo employees
+        const localDemoEmployees = demoService.getDemoEmployees();
+        const localConverted: Employee[] = localDemoEmployees.map((profile: any) => ({
+          id: profile.id,
+          name: profile.name || 'Unknown',
+          email: profile.email || '',
+          phone: profile.phone || '',
+          jobTitle: profile.job_title || '',
+          role: profile.role as 'administrator' | 'skadeleder' | 'servicemedarbejder',
+          onLeave: profile.on_leave || false,
+          status: profile.status || 'active',
+          notes: profile.notes || '',
+          avatar_url: profile.avatar_url
+        }));
+
+        const merged = [...transformedEmployees, ...localConverted];
+        console.log(`[useEmployeeData] Merged ${transformedEmployees.length} baseline + ${localConverted.length} local demo employees`);
+
         // Only update state if data actually changed to prevent stutter
         setEmployees(prev => {
-          if (prev.length === transformedEmployees.length && 
-              prev.slice(0, 3).every((e, i) => e.id === transformedEmployees[i]?.id)) {
+          if (prev.length === merged.length && 
+              prev.slice(0, 3).every((e, i) => e.id === merged[i]?.id)) {
             return prev; // No change, keep previous reference
           }
-          return transformedEmployees;
+          return merged;
         });
         console.log('[useEmployeeData] Demo employee data set successfully');
       } else {
