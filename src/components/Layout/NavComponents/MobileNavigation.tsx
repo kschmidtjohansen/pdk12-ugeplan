@@ -127,7 +127,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
               key={item.path}
               to={item.path}
               className={cn(
-                "block px-3 py-2 rounded-md text-base font-medium flex items-center relative",
+                "block px-3 py-2 rounded-md text-base font-medium flex items-center relative overflow-visible",
                 location.pathname === item.path 
                   ? "bg-polygon-blue text-white" 
                   : "text-gray-700 hover:bg-polygon-lightgray"
@@ -137,7 +137,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
               <span className="mr-3">{item.icon}</span>
               {item.name}
               {item.hasNotification && (
-                <Badge className="ml-2 h-2 w-2 p-0 bg-red-500 absolute right-3 top-3" />
+                <Badge className="absolute top-2 right-2 h-3 w-3 p-0 bg-red-500 border-2 border-white z-[1] pointer-events-none" />
               )}
             </Link>
           );

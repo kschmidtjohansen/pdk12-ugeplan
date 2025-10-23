@@ -15,5 +15,6 @@ export const auth = {
   accountLocked: 'Account is locked',
   tooManyAttempts: 'Too many login attempts. Please try again later.',
   loginAttempts: '{count} failed attempts. {count} attempts remaining.',
-  loginSuccess: 'Login successful. Redirecting...'
+  loginSuccess: 'Login successful. Redirecting...',
+  logoutFailed: 'Logout failed. Please try again.'
 };

@@ -161,7 +161,8 @@ const DataHealthMonitor: React.FC = () => {
         ) : error ? (
           <div className="text-red-500">
             <AlertTriangle className="h-4 w-4 inline-block mr-1" />
-            {t('common.error')}: {error}
+            <div className="font-semibold">{t('dashboard.systemErrorTitle')}</div>
+            <div className="text-xs mt-1">{t('dashboard.systemErrorDescription')}</div>
           </div>
         ) : (
           <div className="space-y-2">

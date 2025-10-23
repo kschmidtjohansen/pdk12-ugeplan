@@ -69,7 +69,10 @@ const cars = {
   
   // Page content
   pageDescription: 'Manage your vehicle fleet and availability',
-  addNewCar: 'Add New Vehicle'
+  addNewCar: 'Add New Vehicle',
+  
+  // Error messages for fetching
+  fetchError: 'Failed to fetch vehicles. Please try again.'
 };
 
 export default cars;

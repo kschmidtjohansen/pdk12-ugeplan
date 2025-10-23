@@ -3,13 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
 export const useVacationRequestsStatus = () => {
-  const { isEffectiveAdmin } = useAuth();
+  const { isEffectiveAdmin, userDataLoaded } = useAuth();
   const [hasPendingRequests, setHasPendingRequests] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
-    // Only fetch for admins
-    if (!isEffectiveAdmin) {
+    // Only fetch for admins and wait for user data to be loaded
+    if (!isEffectiveAdmin || !userDataLoaded) {
       setHasPendingRequests(false);
       setPendingCount(0);
       return;
@@ -53,10 +53,16 @@ export const useVacationRequestsStatus = () => {
       )
       .subscribe();
 
+    // Add polling fallback every 30 seconds to ensure updates aren't missed
+    const pollInterval = setInterval(() => {
+      fetchPendingRequests();
+    }, 30000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(pollInterval);
     };
-  }, [isEffectiveAdmin]);
+  }, [isEffectiveAdmin, userDataLoaded]);
 
   return { hasPendingRequests, pendingCount };
 };

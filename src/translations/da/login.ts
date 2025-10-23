@@ -43,7 +43,15 @@ const login = {
   passwordUpdated: 'Din adgangskode er blevet opdateret!',
   passwordError: 'Der opstod en fejl ved opdatering af din adgangskode',
   unexpectedError: 'Der opstod en uventet fejl',
-  backToLogin: 'Tilbage til login'
+  backToLogin: 'Tilbage til login',
+  
+  // Form error messages
+  requiredFields: 'Udfyld venligst alle påkrævede felter.',
+  timeout: 'Login tager længere tid end forventet. Prøv venligst igen.',
+  lockedMessage: 'Konto midlertidigt låst på grund af for mange mislykkede forsøg. Prøv venligst igen senere.',
+  refreshPage: 'Opdater side',
+  tooManyAttemptsLock: 'Konto midlertidigt låst på grund af for mange mislykkede login-forsøg. Vent venligst 15 minutter før du prøver igen.',
+  timeoutMessage: 'Login tager længere tid end forventet. Dette kan være et forbindelsesproblem.'
 };
 
 export default login;

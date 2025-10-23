@@ -43,7 +43,15 @@ const login = {
   passwordUpdated: 'Your password has been updated!',
   passwordError: 'There was an error updating your password',
   unexpectedError: 'An unexpected error occurred',
-  backToLogin: 'Back to login'
+  backToLogin: 'Back to login',
+  
+  // Form error messages
+  requiredFields: 'Please fill in all required fields.',
+  timeout: 'Login is taking longer than expected. Please try again.',
+  lockedMessage: 'Account temporarily locked due to too many failed attempts. Please try again later.',
+  refreshPage: 'Refresh page',
+  tooManyAttemptsLock: 'Account temporarily locked due to too many failed login attempts. Please wait 15 minutes before trying again.',
+  timeoutMessage: 'Login is taking longer than expected. This might be a connectivity issue.'
 };
 
 export default login;

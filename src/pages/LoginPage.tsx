@@ -21,7 +21,7 @@ const LoginPage = () => {
     userDataLoaded
   });
 
-  // Only redirect if auth is ready and user is authenticated
+  // Only redirect if auth is ready, user is authenticated, and user data is loaded
   useEffect(() => {
     console.log('[LoginPage] REDIRECTION FIX - Auth state:', {
       isAuthenticated,
@@ -29,8 +29,8 @@ const LoginPage = () => {
       session: !!session,
       userDataLoaded
     });
-    if (authReady && isAuthenticated && session) {
-      console.log('[LoginPage] REDIRECTION FIX - User authenticated, redirecting to dashboard');
+    if (authReady && isAuthenticated && session && userDataLoaded) {
+      console.log('[LoginPage] REDIRECTION FIX - User authenticated and data loaded, redirecting to dashboard');
       navigate('/dashboard', {
         replace: true
       });

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { toast } from '@/components/ui/sonner';
+import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData, CarFormData } from '@/components/Cars/types';
 import { CarSecurityService } from '@/services/carSecurityService';
@@ -34,6 +34,7 @@ export const useCarFormState = ({
     notes: '',
   });
   const { t } = useTranslation();
+  const { toast } = useToast();
 
   const handleCreateNew = () => {
     setCurrentCar(null);
@@ -99,8 +100,9 @@ export const useCarFormState = ({
           cars.map((c) => c.id === currentCar.id ? filteredUpdatedCar : c)
         );
         
-        toast(t('cars.vehicleUpdated'), {
-          description: t('cars.vehicleUpdatedMsg', { name: formData.name }),
+        toast({
+          title: t('cars.vehicleUpdated'),
+          description: t('cars.vehicleUpdatedMsg', { name: formData.name })
         });
       } else {
         console.log('[useCarFormState] Creating new car');
@@ -119,8 +121,9 @@ export const useCarFormState = ({
           const filteredNewCar = canViewFuelCardCode ? newCar : { ...newCar, fuel_card_code: '' };
           setCars([...cars, filteredNewCar]);
           
-          toast(t('cars.vehicleAdded'), {
-            description: t('cars.vehicleAddedMsg', { name: formData.name }),
+          toast({
+            title: t('cars.vehicleAdded'),
+            description: t('cars.vehicleAddedMsg', { name: formData.name })
           });
         }
       }
@@ -129,8 +132,10 @@ export const useCarFormState = ({
       setDialogOpen(false);
     } catch (err) {
       console.error('[useCarFormState] Error saving car:', err);
-      toast(t('common.error'), {
+      toast({
+        title: t('common.error'),
         description: err instanceof Error ? err.message : 'Error saving vehicle',
+        variant: 'destructive'
       });
     }
   };

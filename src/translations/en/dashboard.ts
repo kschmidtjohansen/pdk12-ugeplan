@@ -141,5 +141,10 @@ export const dashboard = {
   
   // Navigation translations
   navigateToLocation: "Navigate to location",
-  openInMaps: "Open in Google Maps"
+  openInMaps: "Open in Google Maps",
+  
+  // System error messages
+  systemErrorTitle: "System Error",
+  systemErrorDescription: "A system error occurred. Our team has been notified.",
+  checkBackLater: "Please check back later or contact support if the problem persists."
 };

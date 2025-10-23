@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { toast } from '@/components/ui/sonner';
+import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData } from '@/components/Cars/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
   const [availableDialogOpen, setAvailableDialogOpen] = useState<boolean>(false);
   
   const { t } = useTranslation();
+  const { toast } = useToast();
 
   const handleEdit = (car: CarData) => {
     setCurrentCar(car);
@@ -98,8 +99,10 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
           
           // If car is referenced in assignments, prevent deletion
           if (assignments && assignments.length > 0) {
-            toast(t('cars.cannotDeleteCarInUse'), {
+            toast({
+              title: t('cars.cannotDeleteCarInUse'),
               description: t('cars.cannotDeleteCarInUseDesc'),
+              variant: 'destructive'
             });
             setDeleteDialogOpen(false);
             return;
@@ -123,8 +126,9 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
             })
           : t('cars.vehicleDeletedMsg', { name: currentCar.name });
         
-        toast(t('cars.vehicleDeleted'), {
-          description: successMessage,
+        toast({
+          title: t('cars.vehicleDeleted'),
+          description: successMessage
         });
       } catch (err) {
         console.error('Error deleting car:', err);
@@ -132,12 +136,16 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         // Check if it's a foreign key constraint error
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         if (errorMessage.includes('foreign key') || errorMessage.includes('violates')) {
-          toast(t('cars.cannotDeleteCarInUse'), {
+          toast({
+            title: t('cars.cannotDeleteCarInUse'),
             description: t('cars.cannotDeleteCarInUseDesc'),
+            variant: 'destructive'
           });
         } else {
-          toast(t('common.error'), {
+          toast({
+            title: t('common.error'),
             description: t('cars.deleteError'),
+            variant: 'destructive'
           });
         }
       } finally {
@@ -216,18 +224,22 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
       
       // Show success message
       if (isAvailable) {
-        toast(t('cars.vehicleAvailable'), {
+        toast({
+          title: t('cars.vehicleAvailable'),
           description: t('cars.vehicleAvailableMsg', { name: car.name })
         });
       } else {
-        toast(t('cars.vehicleUnavailable'), {
+        toast({
+          title: t('cars.vehicleUnavailable'),
           description: t('cars.vehicleUnavailableMsg', { name: car.name })
         });
       }
     } catch (err) {
       console.error('Error updating car availability:', err);
-      toast(t('common.error'), {
-          description: err instanceof Error ? err.message : 'Error updating vehicle availability',
+      toast({
+        title: t('common.error'),
+        description: err instanceof Error ? err.message : 'Error updating vehicle availability',
+        variant: 'destructive'
       });
     }
   };

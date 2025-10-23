@@ -141,5 +141,10 @@ export const dashboard = {
   
   // Navigation translations
   navigateToLocation: "Naviger til lokation",
-  openInMaps: "Åbn i Google Maps"
+  openInMaps: "Åbn i Google Maps",
+  
+  // System error messages
+  systemErrorTitle: "Systemfejl",
+  systemErrorDescription: "Der opstod en systemfejl. Vores team er blevet underrettet.",
+  checkBackLater: "Tjek venligst tilbage senere eller kontakt support hvis problemet fortsætter."
 };

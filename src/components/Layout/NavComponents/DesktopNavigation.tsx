@@ -36,7 +36,7 @@ const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
               <DropdownMenuTrigger asChild>
                 <button
                   className={cn(
-                    "px-3 py-2 rounded-md text-sm font-medium flex items-center relative",
+                    "px-3 py-2 rounded-md text-sm font-medium flex items-center relative overflow-visible",
                     isActiveParent(item)
                       ? "bg-polygon-blue text-white" 
                       : "text-gray-700 hover:bg-polygon-lightgray"
@@ -48,7 +48,7 @@ const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
                   
                   {/* Notification indicator */}
                   {item.hasNotification && (
-                    <Badge className="absolute -top-1 -right-1 h-2 w-2 p-0 bg-red-500" />
+                    <Badge className="absolute top-0 right-0 translate-x-1 -translate-y-1 h-3 w-3 p-0 bg-red-500 border-2 border-white z-[1] pointer-events-none" />
                   )}
                 </button>
               </DropdownMenuTrigger>
@@ -80,7 +80,7 @@ const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
             key={item.path}
             to={item.path}
             className={cn(
-              "px-3 py-2 rounded-md text-sm font-medium flex items-center relative",
+              "px-3 py-2 rounded-md text-sm font-medium flex items-center relative overflow-visible",
               location.pathname === item.path 
                 ? "bg-polygon-blue text-white" 
                 : "text-gray-700 hover:bg-polygon-lightgray"
@@ -91,7 +91,7 @@ const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
             
             {/* Notification indicator */}
             {item.hasNotification && (
-              <Badge className="absolute -top-1 -right-1 h-2 w-2 p-0 bg-red-500" />
+              <Badge className="absolute top-0 right-0 translate-x-1 -translate-y-1 h-3 w-3 p-0 bg-red-500 border-2 border-white z-[1] pointer-events-none" />
             )}
           </Link>
         );

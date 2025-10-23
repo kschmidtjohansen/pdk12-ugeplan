@@ -69,7 +69,10 @@ const cars = {
   
   // Page content
   pageDescription: 'Administrer din køretøjsflåde og tilgængelighed',
-  addNewCar: 'Tilføj Nyt Køretøj'
+  addNewCar: 'Tilføj Nyt Køretøj',
+  
+  // Error messages for fetching
+  fetchError: 'Kunne ikke hente køretøjer. Prøv venligst igen.'
 };
 
 export default cars;

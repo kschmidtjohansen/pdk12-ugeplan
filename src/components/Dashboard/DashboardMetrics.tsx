@@ -32,7 +32,8 @@ const DashboardMetrics: React.FC = () => {
     <>
       {error && (
         <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
-          {t('common.error')}: {error}
+          <div className="font-semibold">{t('dashboard.systemErrorTitle')}</div>
+          <div className="mt-1 text-xs">{t('dashboard.systemErrorDescription')}</div>
         </div>
       )}
       

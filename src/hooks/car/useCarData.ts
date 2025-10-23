@@ -24,17 +24,33 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       setError(null);
       
       if (isDemoMode) {
-        // Use demo RPC for demo users
-        const { data, error: fetchError } = await supabase.rpc('get_demo_cars_with_security');
+        // Use demo schema directly with strict filtering
+        const schemaClient = getSchemaClient(true);
+        const baselineTimestamp = schemaClient.getBaselineTimestamp();
+        
+        const { data, error: fetchError } = await schemaClient
+          .from('cars')
+          .select('*')
+          .gte('created_at', baselineTimestamp)
+          .order('created_at', { ascending: false });
+          
         if (fetchError) throw fetchError;
         
-        // Filter to only show explicitly demo-tagged vehicles
+        // Apply strict client-side filtering for demo data only
         const demoOnly = (data || []).filter((c: any) => {
           const carNumber = (c.car_number || '').toString();
           const name = (c.name || '').toString().toLowerCase();
-          const looksDemo = /^(CAR|VAN)-/i.test(carNumber) || name.includes('demo');
-          const isProdNumber = /^\d+$/.test(carNumber); // Exclude purely numeric like "01", "02"
-          return looksDemo && !isProdNumber;
+          const plate = (c.number_plate || '').toString().toLowerCase();
+          
+          // Only include cars that match demo patterns and show_in_planner is not false
+          const matchesDemoPattern = 
+            /^(CAR|VAN)-\d{3}$/i.test(carNumber) || 
+            name.includes('demo') || 
+            plate.includes('demo');
+          
+          const showInPlanner = c.show_in_planner !== false;
+          
+          return matchesDemoPattern && showInPlanner;
         });
         
         console.log('[useCarData] Successfully fetched', demoOnly?.length || 0, 'demo cars');
@@ -130,18 +146,42 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         setError(null);
         
         if (isDemoMode) {
-          const { data, error: fetchError } = await supabase.rpc('get_demo_cars_with_security');
-          if (fetchError) throw fetchError;
-          let demoCars = (data || []) as CarData[];
+          // Use demo schema directly with strict filtering
+          const schemaClient = getSchemaClient(true);
+          const baselineTimestamp = schemaClient.getBaselineTimestamp();
           
-          // Client-side fallback: If no demo cars, synthesize some
+          const { data, error: fetchError } = await schemaClient
+            .from('cars')
+            .select('*')
+            .gte('created_at', baselineTimestamp)
+            .order('created_at', { ascending: false });
+            
+          if (fetchError) throw fetchError;
+          
+          // Apply strict client-side filtering
+          let demoCars = (data || []).filter((c: any) => {
+            const carNumber = (c.car_number || '').toString();
+            const name = (c.name || '').toString().toLowerCase();
+            const plate = (c.number_plate || '').toString().toLowerCase();
+            
+            const matchesDemoPattern = 
+              /^(CAR|VAN)-\d{3}$/i.test(carNumber) || 
+              name.includes('demo') || 
+              plate.includes('demo');
+            
+            const showInPlanner = c.show_in_planner !== false;
+            
+            return matchesDemoPattern && showInPlanner;
+          }) as CarData[];
+          
+          // Client-side fallback: If no demo cars, synthesize some with proper format
           if (demoCars.length === 0) {
             demoCars = [
-              { id: 'demo-01', name: 'DEMO Varebil 01', car_number: 'D01', number_plate: 'DEMO 01', has_trailer_hitch: true, is_available: true, show_in_planner: true, notes: 'Demo vehicle 1', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-              { id: 'demo-02', name: 'DEMO Varebil 02', car_number: 'D02', number_plate: 'DEMO 02', has_trailer_hitch: false, is_available: true, show_in_planner: true, notes: 'Demo vehicle 2', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-              { id: 'demo-03', name: 'DEMO Varebil 03', car_number: 'D03', number_plate: 'DEMO 03', has_trailer_hitch: true, is_available: true, show_in_planner: true, notes: 'Demo vehicle 3', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-              { id: 'demo-04', name: 'DEMO Varebil 04', car_number: 'D04', number_plate: 'DEMO 04', has_trailer_hitch: false, is_available: true, show_in_planner: true, notes: 'Demo vehicle 4', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-              { id: 'demo-05', name: 'DEMO Varebil 05', car_number: 'D05', number_plate: 'DEMO 05', has_trailer_hitch: true, is_available: true, show_in_planner: true, notes: 'Demo vehicle 5', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+              { id: 'demo-01', name: 'DEMO Varebil 01', car_number: 'CAR-001', number_plate: 'DEMO 01', has_trailer_hitch: true, is_available: true, show_in_planner: true, notes: 'Demo vehicle 1', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+              { id: 'demo-02', name: 'DEMO Varebil 02', car_number: 'CAR-002', number_plate: 'DEMO 02', has_trailer_hitch: false, is_available: true, show_in_planner: true, notes: 'Demo vehicle 2', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+              { id: 'demo-03', name: 'DEMO Varebil 03', car_number: 'CAR-003', number_plate: 'DEMO 03', has_trailer_hitch: true, is_available: true, show_in_planner: true, notes: 'Demo vehicle 3', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+              { id: 'demo-04', name: 'DEMO Varebil 04', car_number: 'CAR-004', number_plate: 'DEMO 04', has_trailer_hitch: false, is_available: true, show_in_planner: true, notes: 'Demo vehicle 4', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+              { id: 'demo-05', name: 'DEMO Varebil 05', car_number: 'CAR-005', number_plate: 'DEMO 05', has_trailer_hitch: true, is_available: true, show_in_planner: true, notes: 'Demo vehicle 5', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
             ] as any;
           }
           

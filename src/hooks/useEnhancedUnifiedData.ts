@@ -23,7 +23,7 @@ interface UseEnhancedUnifiedDataResult {
 }
 
 export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
-  const { user } = useAuth();
+  const { user, userDataLoaded } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [cars, setCars] = useState<Car[]>([]);
@@ -76,14 +76,14 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
 
   useEffect(() => {
     // Wait for both user ID and userDataLoaded to ensure demo mode is properly set
-    if (user?.id) {
+    if (user?.id && userDataLoaded) {
       // Add small delay to ensure all auth state is stable
       const timer = setTimeout(() => {
         fetchAllData();
       }, 50);
       return () => clearTimeout(timer);
     }
-  }, [user?.id]);
+  }, [user?.id, userDataLoaded]);
 
   return {
     employees,

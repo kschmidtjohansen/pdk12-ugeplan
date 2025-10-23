@@ -37,11 +37,11 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
     setError('');
     setLoginTimeout(false);
     if (isBlocked) {
-      setError('Account temporarily locked due to too many failed attempts. Please try again later.');
+      setError(t('login.lockedMessage'));
       return;
     }
     if (!email || !password) {
-      setError('Please fill in all required fields.');
+      setError(t('login.requiredFields'));
       return;
     }
     console.log('[LoginForm] FIXED - Attempting login for:', email);
@@ -51,7 +51,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
     const loginTimeoutId = setTimeout(() => {
       setLoginTimeout(true);
       setIsLoading(false);
-      setError('Login is taking longer than expected. Please try again.');
+      setError(t('login.timeout'));
       console.warn('[LoginForm] FIXED - Login timeout reached');
     }, 15000);
     try {
@@ -65,8 +65,8 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
         setError(t('login.invalidCredentials'));
         if (attempts >= 3) {
           toast({
-            title: "Security Warning",
-            description: `${maxAttempts - attempts - 1} attempts remaining before temporary lockout.`,
+            title: t('auth.tooManyAttempts'),
+            description: `${maxAttempts - attempts - 1} ${t('login.tooManyAttempts')}`,
             variant: "destructive"
           });
         }
@@ -90,7 +90,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
       clearTimeout(loginTimeoutId);
       console.error('[LoginForm] FIXED - Login error:', error);
       setAttempts(prev => prev + 1);
-      setError('An unexpected error occurred. Please try again.');
+      setError(t('login.unexpectedError'));
     } finally {
       if (!loginTimeout) {
         setIsLoading(false);
@@ -112,17 +112,16 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
         {isBlocked && <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Account temporarily locked due to too many failed login attempts. 
-              Please wait 15 minutes before trying again.
+              {t('login.tooManyAttemptsLock')}
             </AlertDescription>
           </Alert>}
 
         {loginTimeout && <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Login is taking longer than expected. This might be a connectivity issue.
+              {t('login.timeoutMessage')}
               <button onClick={() => window.location.reload()} className="ml-2 underline hover:no-underline">
-                Refresh page
+                {t('login.refreshPage')}
               </button>
             </AlertDescription>
           </Alert>}

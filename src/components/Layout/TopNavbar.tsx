@@ -48,7 +48,8 @@ const TopNavbar: React.FC = () => {
       console.error('Logout error:', error);
       toast({
         title: t('common.error'),
-        description: 'Logout failed'
+        description: t('auth.logoutFailed'),
+        variant: 'destructive'
       });
     }
   };

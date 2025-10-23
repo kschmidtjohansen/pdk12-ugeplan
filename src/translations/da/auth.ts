@@ -15,5 +15,6 @@ export const auth = {
   accountLocked: 'Kontoen er låst',
   tooManyAttempts: 'For mange login-forsøg. Prøv venligst igen senere.',
   loginAttempts: '{count} forkerte forsøg. {count} forsøg tilbage.',
-  loginSuccess: 'Login lykkedes! Omdirigerer til side...'
+  loginSuccess: 'Login lykkedes! Omdirigerer til side...',
+  logoutFailed: 'Logout mislykkedes. Prøv venligst igen.'
 };
