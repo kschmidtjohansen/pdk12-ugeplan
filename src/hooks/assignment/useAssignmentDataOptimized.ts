@@ -7,7 +7,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
 import { useAuth } from '@/context/AuthContext';
-import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 import { DemoUserService } from '@/services/demoUserService';
 import { resolveEmployeeDisplayName, filterDisplayNames } from '@/utils/people';
 export const useAssignmentDataOptimized = () => {
@@ -80,8 +79,7 @@ export const useAssignmentDataOptimized = () => {
         };
       });
 
-      // Apply demo user filtering
-      transformedAssignments = DemoUserFiltering.filterAssignments(transformedAssignments, user?.email);
+      // Schema isolation handles data separation - no filtering needed
       
       // If this is a demo user, include their session-stored assignments
       if (demoService.isDemoUser(user?.email)) {

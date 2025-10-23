@@ -6,7 +6,6 @@ import { UserCheck } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/context/AuthContext';
-import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 interface ResponsibleUserSelectorProps {
   selectedUserId: string;
   onUserSelect: (userId: string) => void;
@@ -27,8 +26,10 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
     id: e.id.substring(0, 8) + '...'
   })));
 
-  // Use centralized demo user filtering for responsible users
-  const eligibleUsers = DemoUserFiltering.getEligibleResponsibleUsers(employees, user?.email);
+  // Filter to only admin/skadeleder roles for responsible users (schema already isolates data)
+  const eligibleUsers = employees.filter(emp => 
+    emp.role === 'administrator' || emp.role === 'skadeleder'
+  );
   
   // Add current user if they are demo user (for creating assignments)
   if (isDemoMode && user && !eligibleUsers.find(emp => emp.id === user.id)) {

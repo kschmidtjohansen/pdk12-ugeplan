@@ -5,7 +5,6 @@ import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { systemHealthService } from './systemHealthService';
-import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 
 interface DataFetchResult<T> {
   data: T[];
@@ -65,10 +64,9 @@ class EnhancedUnifiedDataService {
         avatar_url: profile.avatar_url
       }));
 
-      // Apply demo user filtering
-      employees = DemoUserFiltering.filterEmployees(employees, currentUserEmail);
+      // Schema isolation handles data separation - no filtering needed
 
-      console.log(`[EnhancedUnifiedDataService] Successfully fetched ${employees.length} employees (after demo filtering)`);
+      console.log(`[EnhancedUnifiedDataService] Successfully fetched ${employees.length} employees`);
 
       return {
         data: employees,
@@ -161,10 +159,9 @@ class EnhancedUnifiedDataService {
         };
       });
 
-      // Apply demo user filtering
-      assignments = DemoUserFiltering.filterAssignments(assignments, currentUserEmail);
+      // Schema isolation handles data separation - no filtering needed
 
-      console.log(`[EnhancedUnifiedDataService] Successfully processed ${assignments.length} assignments (after demo filtering)`);
+      console.log(`[EnhancedUnifiedDataService] Successfully processed ${assignments.length} assignments`);
 
       return {
         data: assignments,

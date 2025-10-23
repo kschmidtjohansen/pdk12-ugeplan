@@ -9,7 +9,6 @@ import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Car as CarType } from '@/types/car';
 import { Vacation } from '@/types/vacation';
-import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 import { getEmployeeAvailabilityStatus, EmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { format, parseISO, addDays, isSameDay, isWithinInterval } from 'date-fns';
 import { da } from 'date-fns/locale';
@@ -150,8 +149,8 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       onVacation: []
     };
     
-    // First apply demo user filtering
-    const filteredEmployees = DemoUserFiltering.filterEmployees(employees, user?.email);
+    // Schema isolation handles data separation - no filtering needed
+    const filteredEmployees = employees;
     
     const categorized = {
       available: [] as Array<Employee & { availabilityInfo?: any }>,
