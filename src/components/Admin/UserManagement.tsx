@@ -54,15 +54,6 @@ const UserManagement: React.FC = () => {
   const eligibleUsers = (roleCounts.administrator || 0) + (roleCounts.skadeleder || 0);
   
   const handleCreateVikar = () => {
-    if (isDemoMode) {
-      toast({
-        title: t('common.warning'),
-        description: 'Demo mode is read-only. Cannot create users.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
     // Set form data for vikar creation
     setFormData({
       name: '',

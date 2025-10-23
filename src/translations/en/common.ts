@@ -67,6 +67,7 @@ export const common = {
   debug: "Debug",
   today: "Today",
   tomorrow: "Tomorrow",
+  loadingApplication: "Loading application...",
   
   // New translations for operation states and toasters
   publishing: "Publishing",

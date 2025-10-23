@@ -71,15 +71,6 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
 
   // Create a new car with enhanced security validation
   const createCar = async (carData: Partial<CarData>) => {
-    if (isDemoMode) {
-      toast({
-        title: t('common.warning'),
-        description: 'Demo mode is read-only. Cannot create vehicles.',
-        variant: 'destructive',
-      });
-      return false;
-    }
-
     try {
       console.log('[useCarData] Creating car with data:', carData);
       

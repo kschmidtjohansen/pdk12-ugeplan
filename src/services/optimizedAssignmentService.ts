@@ -496,11 +496,6 @@ export class OptimizedAssignmentService {
   }
 
   static async createAssignment(assignmentData: any): Promise<OptimizedAssignmentData> {
-    const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
-    if (isDemoMode) {
-      throw new Error('Demo mode is read-only. Cannot create assignments.');
-    }
-
     this.clearCache();
     
     const { data, error } = await supabase

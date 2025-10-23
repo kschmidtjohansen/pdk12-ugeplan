@@ -1,11 +1,35 @@
 # Changelog
 
 <!-- 
-AI AUTOMATION REMINDER: Update this file after EVERY implementation with:
-- Date and version
-- Brief description of changes
-- Affected files
-- Impact on users
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️  CRITICAL: MANDATORY CHANGELOG UPDATES ⚠️
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+THIS FILE MUST BE UPDATED WITH EVERY CODE CHANGE!
+
+📝 When to Update:
+   ✅ New features or components
+   ✅ Bug fixes and issue resolutions
+   ✅ Performance improvements
+   ✅ Database schema changes
+   ✅ Security updates
+   ✅ Breaking changes
+
+📋 Format:
+   ## [Unreleased]
+   
+   ### Fixed - YYYY-MM-DD
+   - Bug fix descriptions
+   
+   ### Added - YYYY-MM-DD
+   - New feature descriptions
+   
+   ### Changed - YYYY-MM-DD
+   - Modification descriptions
+
+📖 See CONTRIBUTING.md for detailed guidelines
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -->
 
 All notable changes to this project will be documented in this file.
@@ -14,6 +38,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Added - 2025-01-09
+- **Demo Mode Write Access**: Demo mode now supports full CRUD operations
+  - Users can create, update, and delete assignments, cars, employees, and vacations in demo mode
+  - All demo operations are automatically tracked and cleaned up every 15 minutes
+  - Manual cleanup button available for immediate data reset
+  - Baseline data is preserved while session-created records are removed
+  - Affects: `src/hooks/car/useCarData.ts`, `src/components/Admin/UserManagement.tsx`, `src/services/optimizedAssignmentService.ts`
+
+- **Loading Translation**: Added Danish translation for loading screens
+  - New `loadingApplication` translation key added to both Danish and English
+  - Browser language detection implemented for pre-initialization loading screens
+  - Affects: `src/translations/da/common.ts`, `src/translations/en/common.ts`, `src/App.tsx`, `src/components/Layout/MainLayout.tsx`
+
+- **Documentation**: Created comprehensive CONTRIBUTING.md
+  - Guidelines for changelog updates (mandatory for all code changes)
+  - Development workflow documentation
+  - Code style guidelines and best practices
+  - Testing checklist and deployment notes
+
+### Fixed - 2025-01-09
+- **Loading Screen Language**: Fixed hard-coded English "Loading application..." appearing in Danish interface
+  - Loading screens now detect browser language (Danish/English) before translation system initializes
+  - Consistent language experience from initial page load
+  - Affects: `src/App.tsx`, `src/components/Layout/MainLayout.tsx`
+
+### Changed - 2025-01-09
+- **Demo Mode Behavior**: Removed read-only restrictions from demo mode
+  - Demo users can now fully interact with the system
+  - Data integrity maintained through automatic 15-minute cleanup cycles
+  - Session-end cleanup ensures no demo data persists after logout
+- **Changelog Header**: Enhanced with clear mandatory update instructions
+  - Visual indicators for critical requirements
+  - Quick reference format guide
+  - Link to detailed contributing guidelines
 
 ### Fixed - 2025-01-23
 - **Demo Mode Data Filtering**: Cars and employees now filtered by creation date (>= 2025-10-23) to exclude baseline production data
