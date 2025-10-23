@@ -149,39 +149,58 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log(`[AuthContext] Demo mode: ${isDemoUser}, user: ${authUser.email}`);
       
       if (isDemoUser) {
-        // For demo user, use the RPC function to get demo profile
-        console.log(`[AuthContext] Fetching demo profile via RPC...`);
-        
-        const { data: demoProfiles, error: demoError } = await supabase
-          .rpc('get_demo_profiles_admin_detailed', { full_access: false });
-        
-        if (demoError) {
-          console.error(`[AuthContext] Demo profile fetch error:`, demoError);
-          throw new Error(`Demo profile fetch failed: ${demoError.message}`);
-        }
-        
-        // Find the current user's profile by ID
-        const userProfile = demoProfiles?.find((p: any) => p.id === authUser.id);
-        
-        if (!userProfile) {
-          console.warn(`[AuthContext] Demo profile not found for user ${authUser.id}`);
-          // Return fallback demo user
+        try {
+          // For demo user, use the RPC function to get demo profile
+          console.log(`[AuthContext] Fetching demo profile via RPC...`);
+          
+          const { data: demoProfiles, error: demoError } = await supabase
+            .rpc('get_demo_profiles_admin_detailed', { full_access: false });
+          
+          if (demoError) {
+            console.error(`[AuthContext] Demo profile fetch error:`, demoError);
+            throw new Error(`Demo profile fetch failed: ${demoError.message}`);
+          }
+          
+          // Find the current user's profile by ID
+          const userProfile = demoProfiles?.find((p: any) => p.id === authUser.id);
+          
+          if (!userProfile) {
+            console.warn(`[AuthContext] Demo profile not found for user ${authUser.id}`);
+            // Return fallback demo user
+            return {
+              id: authUser.id,
+              name: 'Demo User',
+              email: authUser.email || '',
+              role: 'administrator'
+            };
+          }
+          
+          console.log(`[AuthContext] Demo profile loaded:`, userProfile);
+          
           return {
             id: authUser.id,
-            name: 'Demo User',
+            name: userProfile.name || 'Demo User',
             email: authUser.email || '',
+            role: (userProfile.role as UserRole) || 'administrator'
+          };
+        } catch (demoError) {
+          console.error('[AuthContext] ❌ ERROR in demo user profile transformation:', demoError);
+          console.error('[AuthContext] ❌ DEMO ERROR DETAILS', {
+            errorMessage: demoError instanceof Error ? demoError.message : 'Unknown error',
+            errorStack: demoError instanceof Error ? demoError.stack : undefined,
+            authUserId: authUser.id,
+            authUserEmail: authUser.email,
+            timestamp: new Date().toISOString()
+          });
+          
+          // Return a safe fallback to prevent app crash
+          return {
+            id: authUser.id,
+            name: authUser.email === 'kasper@polygongroup.com' ? 'Kasper (Demo)' : 'Demo User',
+            email: authUser.email || 'test@polygongroup.com',
             role: 'administrator'
           };
         }
-        
-        console.log(`[AuthContext] Demo profile loaded:`, userProfile);
-        
-        return {
-          id: authUser.id,
-          name: userProfile.name || 'Demo User',
-          email: authUser.email || '',
-          role: (userProfile.role as UserRole) || 'administrator'
-        };
       }
       
       // For non-demo users, fetch from public schema
@@ -421,7 +440,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                       if (mounted) {
                         setUserDataLoaded(true);
                       }
-                    }, 200);
+                    }, 50); // 50ms stabilization delay - faster login redirect
                   } else {
                     console.warn(`[AuthContext] KASPER FIX - No user data returned, using fallback`);
                     if (mounted) {

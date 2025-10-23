@@ -160,11 +160,22 @@ export const useEmployeeData = () => {
         console.log('[useEmployeeData] Employee data set successfully');
       }
     } catch (err) {
-      console.error('[useEmployeeData] Error:', err);
+      console.error('[useEmployeeData] ❌ ERROR fetching employees:', err);
+      console.error('[useEmployeeData] ❌ ERROR DETAILS', {
+        errorMessage: err instanceof Error ? err.message : 'Unknown error',
+        errorStack: err instanceof Error ? err.stack : undefined,
+        isDemoMode,
+        userDataLoaded,
+        userId: user?.id,
+        userEmail: user?.email,
+        timestamp: new Date().toISOString()
+      });
+      
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch employees';
       setError(errorMessage);
       
-      if (!hasShownError) {
+      // Suppress auth errors during initial auth flow and for demo users
+      if (!hasShownError && !errorMessage.includes('logged in') && !errorMessage.includes('Authentication required') && !isDemoMode) {
         toast({
           title: t('common.error') || 'Error',
           description: t('employees.fetchError') || 'Error loading employees',

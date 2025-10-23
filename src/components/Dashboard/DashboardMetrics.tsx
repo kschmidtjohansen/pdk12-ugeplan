@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
-import { Users, Car, UserX, Package } from 'lucide-react';
+import { Users, Car, UserX, Package, AlertCircle, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
 import MetricsSkeleton from '@/components/shared/MetricsSkeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import InteractiveMetricCard from './InteractiveMetricCard';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import CarAvailabilityModal from './CarAvailabilityModal';
@@ -26,16 +28,30 @@ const DashboardMetrics: React.FC = () => {
   if (loading) {
     return <MetricsSkeleton count={4} />;
   }
-
+  
+  if (error) {
+    return (
+      <Alert variant="destructive" className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {t('dashboard.systemErrorTitle')}: {t('dashboard.systemErrorDescription')}
+          </AlertDescription>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => window.location.reload()}
+          className="ml-4 shrink-0"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          {t('common.refresh')}
+        </Button>
+      </Alert>
+    );
+  }
   return (
     <>
-      {error && (
-        <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
-          <div className="font-semibold">{t('dashboard.systemErrorTitle')}</div>
-          <div className="mt-1 text-xs">{t('dashboard.systemErrorDescription')}</div>
-        </div>
-      )}
-      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <InteractiveMetricCard
           title={t('dashboard.metrics.availableEmployees')}

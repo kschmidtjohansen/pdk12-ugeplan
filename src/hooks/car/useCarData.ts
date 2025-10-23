@@ -162,25 +162,38 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
           }
         }
       } catch (err) {
-        console.error('Error fetching cars:', err);
+        console.error('[useCarData] ❌ ERROR fetching cars:', err);
+        console.error('[useCarData] ❌ ERROR DETAILS', {
+          errorMessage: err instanceof Error ? err.message : 'Unknown error',
+          errorStack: err instanceof Error ? err.stack : undefined,
+          isDemoMode,
+          userDataLoaded,
+          userId: user?.id,
+          timestamp: new Date().toISOString()
+        });
         
         if (isMounted) {
           const errorMessage = err instanceof Error ? err.message : 'Failed to fetch cars';
           setError(errorMessage);
           
-          // Handle authentication errors specifically
+          // Handle authentication errors specifically - DON'T show toast for demo users
           if (errorMessage.includes('logged in') || errorMessage.includes('Authentication required')) {
-            toast({
-              title: t('auth.authenticationRequired'),
-              description: t('auth.authenticationRequiredDescription'),
-              variant: 'destructive',
-            });
+            if (!isDemoMode) {
+              toast({
+                title: t('auth.authenticationRequired'),
+                description: t('auth.authenticationRequiredDescription'),
+                variant: 'destructive',
+              });
+            }
           } else {
-            toast({
-              title: t('common.error'),
-              description: t('cars.fetchError'),
-              variant: 'destructive',
-            });
+            // Only show error toast for non-demo users or critical errors
+            if (!isDemoMode || errorMessage.includes('critical')) {
+              toast({
+                title: t('common.error'),
+                description: t('cars.fetchError'),
+                variant: 'destructive',
+              });
+            }
           }
         }
       } finally {

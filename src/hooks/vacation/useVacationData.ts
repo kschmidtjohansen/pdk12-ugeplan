@@ -110,7 +110,16 @@ export const useVacationData = () => {
       console.log(`[useVacationData] Successfully processed ${transformedVacations.length} vacation records`);
 
     } catch (err) {
-      console.error('[useVacationData] Error in fetchVacations:', err);
+      console.error('[useVacationData] ❌ ERROR in fetchVacations:', err);
+      console.error('[useVacationData] ❌ ERROR DETAILS', {
+        errorMessage: err instanceof Error ? err.message : 'Unknown error',
+        errorStack: err instanceof Error ? err.stack : undefined,
+        isDemoMode,
+        userDataLoaded,
+        userId: user?.id,
+        userEmail: user?.email,
+        timestamp: new Date().toISOString()
+      });
       
       // Enhanced error handling with proper serialization
       const serializedError = enhancedErrorHandler.serializeError(err);
@@ -125,12 +134,14 @@ export const useVacationData = () => {
         additionalData: { 
           context: 'useVacationData',
           component: 'vacation_data_hook',
-          category
+          category,
+          isDemoMode,
+          userEmail: user?.email
         }
       });
       
-      // Only show toast for non-auth errors to avoid spam
-      if (category !== 'auth') {
+      // Only show toast for non-auth errors and non-demo users to avoid spam
+      if (category !== 'auth' && !isDemoMode) {
         toast({
           title: t('common.error') || 'Error',
           description: userFriendlyMessage,

@@ -34,7 +34,14 @@ const TopNavbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Use vacation requests status hook instead of notification-based logic
-  const { hasPendingRequests } = useVacationRequestsStatus();
+  const { hasPendingRequests, pendingCount } = useVacationRequestsStatus();
+  
+  console.log('[TopNavbar] 🔔 VACATION REQUESTS STATUS', {
+    hasPendingRequests,
+    pendingCount,
+    isEffectiveAdmin,
+    timestamp: new Date().toISOString()
+  });
 
   const handleLogout = async () => {
     try {
@@ -67,6 +74,14 @@ const TopNavbar: React.FC = () => {
   }
 
   const navigationItems = getNavigationItems(hasPendingRequests);
+  
+  console.log('[TopNavbar] 📋 NAVIGATION ITEMS', {
+    hasPendingRequests,
+    vacationItem: navigationItems.find(item => item.path === '/vacation'),
+    allItemsWithNotifications: navigationItems.filter(item => item.hasNotification),
+    timestamp: new Date().toISOString()
+  });
+  
   const filteredNavItems = navigationItems.filter(
     item => !item.adminOnly || isEffectiveAdmin
   );
