@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { format } from 'date-fns';
 import { Vacation, VacationRequestType } from '@/types/vacation';
 import { useNotifications } from '@/context/NotificationContext';
@@ -11,7 +12,7 @@ import { logSecurityEvent } from '@/utils/securityLogger';
 import { useVacationSecurity } from './useVacationSecurity';
 
 export const useVacationActions = (refreshVacations: () => Promise<void>) => {
-  const { user, isAdmin, isSkadeleder } = useAuth();
+  const { user, isAdmin, isSkadeleder, isDemoMode } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
@@ -78,7 +79,8 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
         status: 'pending' as const
       };
 
-      const { data, error } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      const { data, error } = await client
         .from('vacations')
         .insert(vacationData)
         .select()
@@ -177,7 +179,8 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
       const formattedEndDate = format(endDate, 'yyyy-MM-dd');
       const isSameDay = formattedStartDate === formattedEndDate;
 
-      const { error } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      const { error } = await client
         .from('vacations')
         .update({
           start_date: formattedStartDate,
@@ -259,7 +262,8 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
     }
 
     try {
-      const { error } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      const { error } = await client
         .from('vacations')
         .delete()
         .eq('id', vacation.id);
@@ -335,7 +339,8 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
     }
     
     try {
-      const { error } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      const { error } = await client
         .from('vacations')
         .update({
           status: 'approved' as const,
@@ -448,7 +453,8 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
     }
     
     try {
-      const { error } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      const { error } = await client
         .from('vacations')
         .update({
           status: 'rejected' as const,

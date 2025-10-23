@@ -3,11 +3,13 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData } from '@/components/Cars/types';
 import { supabase } from '@/integrations/supabase/client';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { CarSecurityService } from '@/services/carSecurityService';
-import { usePermissions } from '@/context/AuthContext';
+import { usePermissions, useAuth } from '@/context/AuthContext';
 
 export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.SetStateAction<CarData[]>>) => {
   const { canViewFuelCardCode } = usePermissions();
+  const { isDemoMode } = useAuth();
   const [currentCar, setCurrentCar] = useState<CarData | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [unavailableDialogOpen, setUnavailableDialogOpen] = useState<boolean>(false);
@@ -36,7 +38,8 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
           console.log('Force deleting car - cleaning up assignments first');
           
           // Update assignments that have this car as the main car_id
-          const { data: mainCarAssignments, error: mainCarError } = await supabase
+          const client = getSchemaClient(isDemoMode);
+          const { data: mainCarAssignments, error: mainCarError } = await client
             .from('assignments')
             .update({ car_id: null })
             .eq('car_id', currentCar.id)
@@ -52,7 +55,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
           }
 
           // Update assignments that have this car in the car_ids array
-          const { data: multiCarAssignments, error: multiCarError } = await supabase
+          const { data: multiCarAssignments, error: multiCarError } = await client
             .from('assignments')
             .select('id, car_ids')
             .contains('car_ids', [currentCar.id]);
@@ -68,7 +71,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
               if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
                 const updatedCarIds = assignment.car_ids.filter(id => id !== currentCar.id);
                 
-                const { error: updateError } = await supabase
+                const { error: updateError } = await client
                   .from('assignments')
                   .update({ car_ids: updatedCarIds.length > 0 ? updatedCarIds : null })
                   .eq('id', assignment.id);
@@ -86,7 +89,8 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
           console.log(`Cleaned up ${assignmentsAffected} assignments`);
         } else {
           // Check if the car is referenced in any assignments (original logic)
-          const { data: assignments, error: checkError } = await supabase
+          const client = getSchemaClient(isDemoMode);
+          const { data: assignments, error: checkError } = await client
             .from('assignments')
             .select('id')
             .or(`car_id.eq.${currentCar.id},car_ids.cs.{${currentCar.id}}`)
@@ -110,7 +114,8 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         }
         
         // Now delete the car
-        const { error } = await supabase
+        const client = getSchemaClient(isDemoMode);
+        const { error } = await client
           .from('cars')
           .delete()
           .eq('id', currentCar.id);
@@ -198,7 +203,8 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
       });
 
       // Update the car with both availability and notes
-      const { error, data } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      const { error, data } = await client
         .from('cars')
         .update({ 
           is_available: isAvailable,

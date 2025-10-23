@@ -2,12 +2,15 @@
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { Employee } from '@/types/employee';
 import { validateAndSanitizePhone } from '@/utils/phoneValidation';
+import { useAuth } from '@/context/AuthContext';
 
 export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { isDemoMode } = useAuth();
 
   const toggleEmployeeLeave = async (employee: Employee, setOnLeave: boolean, notes: string | null = null) => {
     try {
@@ -16,7 +19,8 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         onLeave: setOnLeave
       });
       
-      const { error } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      const { error } = await client
         .from('profiles')
         .update({ 
           on_leave: setOnLeave,
@@ -64,7 +68,8 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       }
       
       // Update profile
-      const { error: profileError } = await supabase
+      const client = getSchemaClient(isDemoMode);
+      const { error: profileError } = await client
         .from('profiles')
         .update({
           name: formData.name,

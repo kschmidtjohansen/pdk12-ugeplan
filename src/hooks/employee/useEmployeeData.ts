@@ -31,7 +31,7 @@ export const useEmployeeData = () => {
       if (isDemoMode) {
         // Use demo RPC for demo users
         const { data, error: rpcError } = await supabase.rpc('get_demo_profiles_admin_detailed', {
-          full_access: false
+          full_access: true  // Demo users should see unmasked data in their isolated environment
         });
 
         if (rpcError) {

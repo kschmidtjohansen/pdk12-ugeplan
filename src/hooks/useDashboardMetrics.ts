@@ -43,10 +43,10 @@ export const useDashboardMetrics = () => {
       // Total employees: count all active employees (not inactive)
       const totalEmployees = safeEmployees.filter(e => e.status !== 'inactive').length;
       
-      // Calculate available employees (servicemedarbejder only, not fully booked, on vacation, or on leave)
+      // Calculate available employees (all active employees, not fully booked, on vacation, or on leave)
       const availableEmployeesList = safeEmployees.filter(employee => {
-        // Only include servicemedarbejder role
-        if (employee.role !== 'servicemedarbejder') return false;
+        // Count all active employees regardless of role
+        if (employee.status === 'inactive') return false;
         
         const status = getEmployeeAvailabilityStatus(employee, today, safeAssignments, safeVacations, t);
         return status.status === 'available' || status.status === 'partiallyBooked';
