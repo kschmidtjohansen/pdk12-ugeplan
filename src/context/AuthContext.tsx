@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DemoUserService } from '@/services/demoUserService';
 import { circuitBreaker } from '@/services/circuitBreakerService';
 import { TranslationContext } from './TranslationContext';
+import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 
 // Define user roles
 export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'vikar';
@@ -154,8 +155,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // For demo user, use the RPC function to get demo profile
           console.log(`[AuthContext] Fetching demo profile via RPC...`);
           
-          const { data: demoProfiles, error: demoError } = await supabase
-            .rpc('get_demo_profiles_admin_detailed', { full_access: false });
+          const { data: demoProfiles, error: demoError } = await rpcWithRefresh(
+            'get_demo_profiles_admin_detailed', { full_access: false });
           
           if (demoError) {
             console.error(`[AuthContext] Demo profile fetch error:`, demoError);

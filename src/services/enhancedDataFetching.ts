@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { enhancedErrorHandler } from './enhancedErrorHandler';
 import { getSchemaClient, DemoSchemaClient } from '@/integrations/supabase/demoSchemaClient';
+import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 
 interface DataFetchOptions {
   retries?: number;
@@ -203,7 +204,7 @@ export class EnhancedDataFetching {
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
       if (isDemoMode) {
         // Use demo RPC for demo users
-        const { data, error } = await supabase.rpc('get_demo_vacations');
+        const { data, error } = await rpcWithRefresh('get_demo_vacations');
         
         if (error) {
           throw Object.assign(error, {
@@ -278,7 +279,7 @@ export class EnhancedDataFetching {
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
       if (isDemoMode) {
         // Use demo RPC for demo users - get all profiles then filter
-        const { data, error } = await supabase.rpc('get_demo_profiles_admin_detailed', {
+        const { data, error } = await rpcWithRefresh('get_demo_profiles_admin_detailed', {
           full_access: false
         });
 
@@ -373,7 +374,7 @@ export class EnhancedDataFetching {
       
       if (isDemoMode) {
         // Use demo RPC for demo users
-        const { data, error } = await supabase.rpc('list_demo_assignments_with_team');
+        const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
         
         if (error) {
           console.error('[Enhanced Data Fetching] Demo assignments fetch error:', error);
@@ -452,7 +453,7 @@ export class EnhancedDataFetching {
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
       if (isDemoMode) {
         // Use demo RPC for demo users
-        const { data, error } = await supabase.rpc('get_demo_profiles_admin_detailed', {
+        const { data, error } = await rpcWithRefresh('get_demo_profiles_admin_detailed', {
           full_access: false
         });
 
@@ -512,7 +513,7 @@ export class EnhancedDataFetching {
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
       if (isDemoMode) {
         // Use demo RPC for secure data access
-        const { data, error } = await supabase.rpc('get_demo_cars_with_security');
+        const { data, error } = await rpcWithRefresh('get_demo_cars_with_security');
 
         if (error) {
           throw Object.assign(error, {
@@ -564,7 +565,7 @@ export class EnhancedDataFetching {
       
       if (isDemoMode) {
         // Demo mode: Use demo RPC
-        const { error } = await supabase.rpc('get_demo_profiles_admin_detailed', { full_access: false });
+        const { error } = await rpcWithRefresh('get_demo_profiles_admin_detailed', { full_access: false });
         const responseTime = Date.now() - startTime;
         return { connected: !error, responseTime, error };
       } else {

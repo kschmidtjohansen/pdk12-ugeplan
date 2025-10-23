@@ -7,6 +7,7 @@ import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { supabase } from '@/integrations/supabase/client';
 import { DemoUserService } from '@/services/demoUserService';
 import { useAuth } from '@/context/AuthContext';
+import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 // DemoUserFiltering removed - schema isolation handles data separation
 
 export const useEmployeeData = () => {
@@ -30,7 +31,7 @@ export const useEmployeeData = () => {
       
       if (isDemoMode) {
         // Use demo RPC for demo users
-        const { data, error: rpcError } = await supabase.rpc('get_demo_profiles_admin_detailed', {
+        const { data, error: rpcError } = await rpcWithRefresh('get_demo_profiles_admin_detailed', {
           full_access: true  // Demo users should see unmasked data in their isolated environment
         });
 
