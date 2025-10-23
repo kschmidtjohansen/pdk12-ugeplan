@@ -26,15 +26,22 @@ export const useDashboardMetrics = () => {
       };
     }
 
+    // Defensive guards against undefined arrays
+    const safeEmployees = employees || [];
+    const safeAssignments = assignments || [];
+    const safeCars = cars || [];
+    const safeVacations = vacations || [];
+    const safeWarehouseItems = warehouseItems || [];
+
     // Calculate available employees (servicemedarbejder only, not fully booked, on vacation, or on leave)
-    const availableEmployeesList = employees.filter(employee => {
+    const availableEmployeesList = safeEmployees.filter(employee => {
       // Only include servicemedarbejder role
       if (employee.role !== 'servicemedarbejder') return false;
       
-      const status = getEmployeeAvailabilityStatus(employee, today, assignments, vacations, t);
+      const status = getEmployeeAvailabilityStatus(employee, today, safeAssignments, safeVacations, t);
       return status.status === 'available' || status.status === 'partiallyBooked';
     }).map(employee => {
-      const status = getEmployeeAvailabilityStatus(employee, today, assignments, vacations, t);
+      const status = getEmployeeAvailabilityStatus(employee, today, safeAssignments, safeVacations, t);
       return {
         ...employee,
         availabilityStatus: status
@@ -43,7 +50,7 @@ export const useDashboardMetrics = () => {
 
     // Calculate available cars (not assigned to today's assignments)
     const assignedCarIds = new Set(
-      assignments
+      safeAssignments
         .filter(assignment => assignment.date === todayStr)
         .flatMap(assignment => {
           const carIds = [];
@@ -60,17 +67,17 @@ export const useDashboardMetrics = () => {
         })
     );
 
-    const availableCarsList = cars.filter(car => 
+    const availableCarsList = safeCars.filter(car => 
       car.is_available && !assignedCarIds.has(car.id)
     );
 
     // Calculate absent employees (on vacation or leave)
-    const absentEmployeesList = employees.filter(employee => {
-      const status = getEmployeeAvailabilityStatus(employee, today, assignments, vacations, t);
+    const absentEmployeesList = safeEmployees.filter(employee => {
+      const status = getEmployeeAvailabilityStatus(employee, today, safeAssignments, safeVacations, t);
       return status.status === 'onVacation' || status.status === 'onLeave' || status.status === 'partialVacation';
     }).map(employee => {
-      const status = getEmployeeAvailabilityStatus(employee, today, assignments, vacations, t);
-      const vacation = vacations.find(v => 
+      const status = getEmployeeAvailabilityStatus(employee, today, safeAssignments, safeVacations, t);
+      const vacation = safeVacations.find(v =>
         v.user_id === employee.id && 
         v.status === 'approved' &&
         new Date(v.start_date) <= today &&
@@ -85,17 +92,17 @@ export const useDashboardMetrics = () => {
     });
 
     // Calculate total warehouse quantity
-    const totalWarehouseQuantity = warehouseItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+    const totalWarehouseQuantity = safeWarehouseItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
     return {
       availableEmployees: {
         count: availableEmployeesList.length,
-        total: employees.length,
+        total: safeEmployees.length,
         employees: availableEmployeesList
       },
       availableCars: {
         count: availableCarsList.length,
-        total: cars.length,
+        total: safeCars.length,
         cars: availableCarsList
       },
       absentEmployees: {
@@ -104,10 +111,10 @@ export const useDashboardMetrics = () => {
       },
       warehouseItems: {
         count: totalWarehouseQuantity,
-        items: warehouseItems
+        items: safeWarehouseItems
       }
     };
-  }, [employees, assignments, cars, vacations, warehouseItems, loading, vacationsLoading, warehouseLoading, t, today, todayStr]);
+  }, [employees, assignments, cars, vacations, warehouseItems, loading, vacationsLoading, warehouseLoading, t, todayStr]);
 
   return {
     metrics,

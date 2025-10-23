@@ -136,7 +136,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const startTime = Date.now();
     console.log(`[AuthContext] KASPER SESSION FIX - Starting user data fetch for: ${authUser.email}`);
     console.log(`[AuthContext] KASPER SESSION FIX - Auth user ID: ${authUser.id}`);
-    console.log(`[AuthContext] KASPER SESSION FIX - Expected name: Kasper Schmidt Johansen`);
     
     if (!circuitBreaker.canProceed(`user_data_fetch_${authUser.id}`)) {
       console.warn(`[AuthContext] Circuit breaker open for user data fetch: ${authUser.email}`);
@@ -144,17 +143,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     
     try {
-      // Detect demo mode from auth email FIRST, before fetching data
+      // Detect demo mode from auth email FIRST
       const isDemoUser = authUser.email === 'test@polygongroup.com';
-      const client = getSchemaClient(isDemoUser);
       
-      console.log(`[AuthContext] Fetching from ${isDemoUser ? 'demo' : 'public'} schema for user:`, authUser.email);
-      console.log(`[AuthContext] KASPER SESSION FIX - Fetching profile and role data from database...`);
-      console.log(`[AuthContext] KASPER SESSION FIX - Auth user object:`, authUser);
+      console.log(`[AuthContext] Demo mode: ${isDemoUser}, user: ${authUser.email}`);
+      
+      if (isDemoUser) {
+        // For demo user, use the RPC function to get demo profile
+        console.log(`[AuthContext] Fetching demo profile via RPC...`);
+        
+        const { data: demoProfiles, error: demoError } = await supabase
+          .rpc('get_demo_profiles_admin_detailed', { full_access: false });
+        
+        if (demoError) {
+          console.error(`[AuthContext] Demo profile fetch error:`, demoError);
+          throw new Error(`Demo profile fetch failed: ${demoError.message}`);
+        }
+        
+        // Find the current user's profile by ID
+        const userProfile = demoProfiles?.find((p: any) => p.id === authUser.id);
+        
+        if (!userProfile) {
+          console.warn(`[AuthContext] Demo profile not found for user ${authUser.id}`);
+          // Return fallback demo user
+          return {
+            id: authUser.id,
+            name: 'Demo User',
+            email: authUser.email || '',
+            role: 'administrator'
+          };
+        }
+        
+        console.log(`[AuthContext] Demo profile loaded:`, userProfile);
+        
+        return {
+          id: authUser.id,
+          name: userProfile.name || 'Demo User',
+          email: authUser.email || '',
+          role: (userProfile.role as UserRole) || 'administrator'
+        };
+      }
+      
+      // For non-demo users, fetch from public schema
+      console.log(`[AuthContext] Fetching production profile for:`, authUser.email);
       
       const fetchPromise = Promise.all([
-        client.from('profiles').select('id, name, email').eq('id', authUser.id).maybeSingle(),
-        client.from('user_roles').select('user_id, role').eq('user_id', authUser.id).maybeSingle()
+        supabase.from('profiles').select('id, name, email').eq('id', authUser.id).maybeSingle(),
+        supabase.from('user_roles').select('user_id, role').eq('user_id', authUser.id).maybeSingle()
       ]);
 
       // Add timeout to prevent hanging

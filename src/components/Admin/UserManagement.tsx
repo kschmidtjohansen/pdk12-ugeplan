@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { UserRole } from '@/context/AuthContext';
+import { UserRole, useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowDownAZ, ArrowUpAZ, RefreshCw, AlertCircle, Wifi, WifiOff, Bug, Database, CheckCircle } from 'lucide-react';
@@ -17,12 +17,9 @@ import PasswordChangeDialog from './PasswordChangeDialog';
 import UserStatusDialog from './UserStatusDialog';
 import { AdminUser } from './UserTableRow';
 const UserManagement: React.FC = () => {
-  const {
-    toast
-  } = useToast();
-  const {
-    t
-  } = useTranslation();
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const { isDemoMode } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
@@ -59,6 +56,46 @@ const UserManagement: React.FC = () => {
     const timestamp = new Date().toISOString().substring(11, 23);
     setDebugInfo(prev => [`[${timestamp}] ${info}`, ...prev.slice(0, 19)]);
     console.log(`[UserManagement Debug] ${info}`);
+  };
+
+  // Demo mode user fetching
+  const fetchDemoUsers = async () => {
+    try {
+      addDebugInfo('DEMO MODE: Fetching demo users via RPC');
+      
+      const { data, error } = await supabase.rpc('get_demo_profiles_admin_detailed', { full_access: true });
+      
+      if (error) {
+        addDebugInfo(`DEMO RPC error: ${error.message}`);
+        throw error;
+      }
+      
+      if (!data || data.length === 0) {
+        addDebugInfo('DEMO: No users found');
+        return { users: [], total: 0 };
+      }
+      
+      const demoUsers: AdminUser[] = data.map((profile: any) => ({
+        id: profile.id,
+        email: profile.email,
+        name: profile.name,
+        phone: profile.phone,
+        jobTitle: profile.job_title,
+        role: profile.role as UserRole,
+        created_at: profile.created_at,
+        updated_at: profile.updated_at,
+        last_sign_in_at: null,
+        banned_until: null,
+        onLeave: profile.on_leave || false,
+        notes: profile.notes
+      }));
+      
+      addDebugInfo(`DEMO: Loaded ${demoUsers.length} demo users`);
+      return { users: demoUsers, total: demoUsers.length };
+    } catch (err) {
+      addDebugInfo(`DEMO FETCH FAILED: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      throw err;
+    }
   };
 
   // FIXED: Enhanced fallback using direct database queries with proper role mapping
@@ -226,15 +263,20 @@ const UserManagement: React.FC = () => {
         setRetryCount(prev => prev + 1);
         addDebugInfo(`RETRY attempt: ${retryCount + 1}`);
       } else {
-        addDebugInfo('FRESH FETCH: Starting user fetch with fixed role handling');
+        addDebugInfo('FRESH FETCH: Starting user fetch');
         setRetryCount(0);
         setUsingFallback(false);
         setEdgeFunctionWorking(null);
       }
+      
       let data;
 
-      // Try edge function first (unless we're already using fallback)
-      if (!usingFallback) {
+      // Check for demo mode
+      if (isDemoMode) {
+        data = await fetchDemoUsers();
+        setConnectionStatus('connected');
+      } else if (!usingFallback) {
+        // Try edge function first (unless we're already using fallback)
         try {
           data = await testEdgeFunction();
           setConnectionStatus('connected');
@@ -282,6 +324,9 @@ const UserManagement: React.FC = () => {
 
   // Create user with fallback
   const createUserWithFallback = async (userData: any) => {
+    if (isDemoMode) {
+      throw new Error('Demo mode is read-only. Cannot create users.');
+    }
     const {
       data: {
         session
@@ -310,6 +355,9 @@ const UserManagement: React.FC = () => {
     }
   };
   const updateUserWithFallback = async (userId: string, updates: any) => {
+    if (isDemoMode) {
+      throw new Error('Demo mode is read-only. Cannot update users.');
+    }
     addDebugInfo(`Updating user ${userId}...`);
     try {
       // Update profile data
@@ -341,6 +389,9 @@ const UserManagement: React.FC = () => {
     }
   };
   const deleteUserWithFallback = async (userId: string) => {
+    if (isDemoMode) {
+      throw new Error('Demo mode is read-only. Cannot delete users.');
+    }
     addDebugInfo(`Deleting user ${userId}...`);
 
     // Try edge function first
@@ -378,6 +429,9 @@ const UserManagement: React.FC = () => {
     }
   };
   const toggleUserStatusWithFallback = async (userId: string, active: boolean) => {
+    if (isDemoMode) {
+      throw new Error('Demo mode is read-only. Cannot change user status.');
+    }
     addDebugInfo(`Toggling user ${userId} status to ${active ? 'active' : 'inactive'}...`);
 
     // Try edge function first
@@ -439,20 +493,31 @@ const UserManagement: React.FC = () => {
     fetchUsers();
   }, []);
 
-  // Set up realtime subscription for profile changes
+  // Set up realtime subscription or polling based on demo mode
   useEffect(() => {
-    const channel = supabase.channel('profiles_admin_changes').on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'profiles'
-    }, payload => {
-      console.log('Profile change detected in admin:', payload.eventType);
-      fetchUsers(); // Refresh user data when profiles change
-    }).subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+    if (isDemoMode) {
+      // Use polling for demo mode
+      const interval = setInterval(() => {
+        console.log('[UserManagement] Demo mode: polling for updates');
+        fetchUsers();
+      }, 30000); // Poll every 30 seconds
+      
+      return () => clearInterval(interval);
+    } else {
+      // Use realtime for production
+      const channel = supabase.channel('profiles_admin_changes').on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'profiles'
+      }, payload => {
+        console.log('Profile change detected in admin:', payload.eventType);
+        fetchUsers();
+      }).subscribe();
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [isDemoMode]);
 
   // Helper function to get role label
   const getRoleLabel = (role: UserRole): string => {
