@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { supabase } from '@/integrations/supabase/client';
 import { Vacation, VacationRequestType } from '@/types/vacation';
 import { logSecurityEvent, logSystemError } from '@/utils/securityLogger';
@@ -15,14 +16,14 @@ import { useAuth } from '@/context/AuthContext';
 export const useVacationData = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, isDemoMode } = useAuth();
   const [vacations, setVacations] = useState<Vacation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { executeWithRecovery } = useErrorRecovery();
   
   const demoService = DemoUserService.getInstance();
-  const isDemoUser = user ? demoService.isDemoUser(user.email) : false;
+  const client = getSchemaClient(isDemoMode);
 
   const fetchVacations = useCallback(async () => {
     try {
@@ -85,7 +86,7 @@ export const useVacationData = () => {
 
       // DEMO USER FILTERING: Hide demo user vacations from non-demo users
       let filteredVacations = transformedVacations;
-      if (!isDemoUser) {
+      if (!isDemoMode) {
         filteredVacations = transformedVacations.filter(vacation => 
           !vacation.user || !demoService.isDemoUser(vacation.user.email)
         );

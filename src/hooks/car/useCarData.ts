@@ -4,14 +4,18 @@ import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData } from '@/components/Cars/types';
 import { CarSecurityService } from '@/services/carSecurityService';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
 export const useCarData = (canViewFuelCardCode: boolean = false) => {
+  const { isDemoMode } = useAuth();
   const [cars, setCars] = useState<CarData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { t } = useTranslation();
+  const client = getSchemaClient(isDemoMode);
 
   // Fetch cars from Supabase with enhanced security
   const fetchCars = async () => {
@@ -130,18 +134,19 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       }
     };
 
-    // Set up realtime subscription for cars
+    // Set up realtime subscription for cars (both public and demo schemas)
+    const schema = isDemoMode ? 'demo' : 'public';
     const channel = supabase
-      .channel('cars-changes')
+      .channel(`cars-changes-${schema}`)
       .on(
         'postgres_changes',
         {
           event: '*',
-          schema: 'public',
+          schema: schema,
           table: 'cars'
         },
         (payload) => {
-          console.log('[useCarData] Realtime update received:', payload);
+          console.log(`[useCarData] Realtime update received from ${schema} schema:`, payload);
           // Refresh cars when any change occurs
           if (isMounted) {
             loadCars().catch(console.error);

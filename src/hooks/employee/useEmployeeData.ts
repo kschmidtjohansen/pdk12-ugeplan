@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Employee } from '@/types/employee';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { supabase } from '@/integrations/supabase/client';
 import { DemoUserService } from '@/services/demoUserService';
 import { useAuth } from '@/context/AuthContext';
@@ -11,13 +12,13 @@ import { DemoUserFiltering } from '@/utils/demoUserFiltering';
 export const useEmployeeData = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, isDemoMode } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
   const demoService = DemoUserService.getInstance();
-  const isDemoUser = user ? demoService.isDemoUser(user.email) : false;
+  const client = getSchemaClient(isDemoMode);
 
   // FIXED: Now that RLS policy is corrected, we can fetch normally
   const fetchEmployees = useCallback(async () => {
@@ -25,10 +26,10 @@ export const useEmployeeData = () => {
       setLoading(true);
       setError(null);
       
-      console.log('[useEmployeeData] FIXED - Starting employee fetch with corrected RLS policy...');
+      console.log(`[useEmployeeData] Starting employee fetch from ${isDemoMode ? 'demo' : 'public'} schema...`);
       
-      // Fetch profiles with proper error handling
-      const { data: profiles, error: profilesError } = await supabase
+      // Fetch profiles with proper error handling using schema-aware client
+      const { data: profiles, error: profilesError } = await client
         .from('profiles')
         .select('*')
         .order('name', { ascending: true });
@@ -44,30 +45,32 @@ export const useEmployeeData = () => {
         return;
       }
       
-      console.log(`[useEmployeeData] FIXED - Found ${profiles.length} profiles`);
+      console.log(`[useEmployeeData] Found ${profiles.length} profiles`);
       
-      // Now fetch user roles - this should work without infinite recursion
-      const { data: userRoles, error: rolesError } = await supabase
+      // Fetch user roles from same schema
+      const { data: userRoles, error: rolesError } = await client
         .from('user_roles')
         .select('user_id, role');
       
       if (rolesError) {
-        console.error('[useEmployeeData] FIXED - User roles fetch error (this should now work):', rolesError);
+        console.error('[useEmployeeData] User roles fetch error:', rolesError);
         // Don't throw here, use default roles
       } else {
-        console.log(`[useEmployeeData] FIXED - Successfully fetched ${userRoles?.length || 0} user roles`);
+        console.log(`[useEmployeeData] Successfully fetched ${userRoles?.length || 0} user roles`);
       }
       
       // Create role mapping
       const rolesMap = new Map<string, string>();
-      userRoles?.forEach(userRole => {
-        rolesMap.set(userRole.user_id, userRole.role);
-      });
+      if (userRoles && Array.isArray(userRoles)) {
+        userRoles.forEach((userRole: any) => {
+          rolesMap.set(userRole.user_id, userRole.role);
+        });
+      }
       
-      console.log(`[useEmployeeData] FIXED - Role mapping created for ${rolesMap.size} users`);
+      console.log(`[useEmployeeData] Role mapping created for ${rolesMap.size} users`);
       
-      // Transform data
-      const transformedEmployees: Employee[] = profiles.map(profile => {
+      // Transform data with proper type casting
+      const transformedEmployees: Employee[] = profiles.map((profile: any) => {
         const role = rolesMap.get(profile.id) || 'servicemedarbejder';
         
         const employee: Employee = {
@@ -78,7 +81,7 @@ export const useEmployeeData = () => {
           jobTitle: profile.job_title || '',
           role: role as 'administrator' | 'skadeleder' | 'servicemedarbejder',
           onLeave: profile.on_leave || false,
-          status: profile.status || 'active', // Add status from database
+          status: profile.status || 'active',
           notes: profile.notes || '',
           avatar_url: profile.avatar_url
         };
@@ -123,16 +126,17 @@ export const useEmployeeData = () => {
     fetchEmployees();
   }, [fetchEmployees]);
 
-  // FIXED: Realtime subscription with proper debouncing
+  // Realtime subscription with proper debouncing and schema awareness
   useEffect(() => {
-    console.log('[useEmployeeData] FIXED - Setting up realtime subscription...');
+    const schema = isDemoMode ? 'demo' : 'public';
+    console.log(`[useEmployeeData] Setting up realtime subscription for ${schema} schema...`);
     
     let timeoutId: NodeJS.Timeout;
     
     const channel = supabase
-      .channel('employee_changes_fixed')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
-        console.log('[useEmployeeData] FIXED - Profile change detected:', payload.eventType);
+      .channel(`employee_changes_${schema}`)
+      .on('postgres_changes', { event: '*', schema: schema, table: 'profiles' }, (payload) => {
+        console.log(`[useEmployeeData] Profile change detected in ${schema}:`, payload.eventType);
         
         // Debounce updates to prevent rapid-fire refetches
         clearTimeout(timeoutId);
@@ -140,8 +144,8 @@ export const useEmployeeData = () => {
           fetchEmployees();
         }, 1000);
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, (payload) => {
-        console.log('[useEmployeeData] FIXED - Role change detected:', payload.eventType);
+      .on('postgres_changes', { event: '*', schema: schema, table: 'user_roles' }, (payload) => {
+        console.log(`[useEmployeeData] Role change detected in ${schema}:`, payload.eventType);
         
         // Debounce updates to prevent rapid-fire refetches
         clearTimeout(timeoutId);
@@ -150,15 +154,15 @@ export const useEmployeeData = () => {
         }, 1000);
       })
       .subscribe((status) => {
-        console.log('[useEmployeeData] FIXED - Subscription status:', status);
+        console.log(`[useEmployeeData] Subscription status for ${schema}:`, status);
       });
       
     return () => {
-      console.log('[useEmployeeData] FIXED - Cleaning up realtime subscription');
+      console.log(`[useEmployeeData] Cleaning up realtime subscription for ${schema}`);
       clearTimeout(timeoutId);
       supabase.removeChannel(channel);
     };
-  }, [fetchEmployees]);
+  }, [fetchEmployees, isDemoMode]);
 
   return {
     employees,

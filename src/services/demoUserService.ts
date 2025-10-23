@@ -177,74 +177,43 @@ export class DemoUserService {
     return this.operationHistory.filter(op => op.table === table);
   }
   
-  // Clean up all demo data (comprehensive database cleanup)
+  // Clean up all demo data using schema-based cleanup (preserves baseline data)
   async cleanupAllDemoUserData(): Promise<{ success: boolean; errors: string[]; deletedCounts: Record<string, number> }> {
-    console.log('[Demo] Starting comprehensive cleanup of ALL demo user data...');
+    console.log('[Demo] Starting cleanup of session data (preserving baseline)...');
     const errors: string[] = [];
     const deletedCounts: Record<string, number> = {};
     
     try {
-      // Delete all assignments where responsible_user_id = demo user
-      const { count: assignmentsDeleted, error: assignmentsError } = await supabase
-        .from('assignments')
-        .delete()
-        .eq('responsible_user_id', DemoUserService.DEMO_USER_ID);
-        
-      if (assignmentsError) {
-        errors.push(`Failed to delete assignments: ${assignmentsError.message}`);
-      } else {
-        deletedCounts.assignments = assignmentsDeleted || 0;
+      // Call database function to clean up only session data
+      const { data, error } = await supabase.rpc('cleanup_session_data' as any, {
+        baseline_timestamp: '2024-01-01T00:00:00Z'
+      });
+      
+      if (error) {
+        errors.push(`Cleanup function failed: ${error.message}`);
+        return { success: false, errors, deletedCounts };
       }
-
-      // Delete all assignments_employees where user_id = demo user
-      const { count: assignmentEmployeesDeleted, error: assignmentEmployeesError } = await supabase
-        .from('assignments_employees')
-        .delete()
-        .eq('user_id', DemoUserService.DEMO_USER_ID);
-        
-      if (assignmentEmployeesError) {
-        errors.push(`Failed to delete assignment employees: ${assignmentEmployeesError.message}`);
-      } else {
-        deletedCounts.assignments_employees = assignmentEmployeesDeleted || 0;
+      
+      // Extract deletion counts from function result
+      if (data && Array.isArray(data) && data.length > 0) {
+        const result = data[0] as any;
+        deletedCounts.assignments = result.deleted_assignments || 0;
+        deletedCounts.notifications = result.deleted_notifications || 0;
+        deletedCounts.vacations = result.deleted_vacations || 0;
+        deletedCounts.warehouse_items = result.deleted_warehouse || 0;
       }
-
-      // Delete all notifications where user_id = demo user
-      const { count: notificationsDeleted, error: notificationsError } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('user_id', DemoUserService.DEMO_USER_ID);
-        
-      if (notificationsError) {
-        errors.push(`Failed to delete notifications: ${notificationsError.message}`);
-      } else {
-        deletedCounts.notifications = notificationsDeleted || 0;
-      }
-
-      // Delete all vacations where user_id = demo user
-      const { count: vacationsDeleted, error: vacationsError } = await supabase
-        .from('vacations')
-        .delete()
-        .eq('user_id', DemoUserService.DEMO_USER_ID);
-        
-      if (vacationsError) {
-        errors.push(`Failed to delete vacations: ${vacationsError.message}`);
-      } else {
-        deletedCounts.vacations = vacationsDeleted || 0;
-      }
-
-      // Clear operation history and session data
+      
+      // Clear session storage (but keep session ID for continuity)
+      sessionStorage.removeItem('demo-operations');
       this.operationHistory = [];
       this.saveOperationHistory();
-      this.clearSessionData();
       
-      const success = errors.length === 0;
       const totalDeleted = Object.values(deletedCounts).reduce((sum, count) => sum + count, 0);
+      console.log(`[Demo] Cleanup completed. Total deleted: ${totalDeleted}, Baseline data preserved.`);
       
-      console.log(`[Demo] Comprehensive cleanup completed. Success: ${success}, Total deleted: ${totalDeleted}, Errors: ${errors.length}`);
-      
-      return { success, errors, deletedCounts };
+      return { success: true, errors: [], deletedCounts };
     } catch (error) {
-      const errorMsg = `Comprehensive cleanup failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      const errorMsg = `Cleanup failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
       console.error('[Demo]', errorMsg);
       errors.push(errorMsg);
       return { success: false, errors, deletedCounts };

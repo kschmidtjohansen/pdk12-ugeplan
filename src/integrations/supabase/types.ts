@@ -582,14 +582,8 @@ export type Database = {
         Args: { table_name: string }
         Returns: undefined
       }
-      base64url_decode: {
-        Args: { data: string }
-        Returns: string
-      }
-      base64url_encode: {
-        Args: { data: string }
-        Returns: string
-      }
+      base64url_decode: { Args: { data: string }; Returns: string }
+      base64url_encode: { Args: { data: string }; Returns: string }
       can_access_assignment: {
         Args: { assignment_id: string }
         Returns: boolean
@@ -610,18 +604,9 @@ export type Database = {
         Args: { assignment_id: string; user_id: string }
         Returns: boolean
       }
-      can_view_fuel_codes: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      can_view_fuel_codes_audited: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      check_data_access_health: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      can_view_fuel_codes: { Args: never; Returns: boolean }
+      can_view_fuel_codes_audited: { Args: never; Returns: boolean }
+      check_data_access_health: { Args: never; Returns: Json }
       check_rate_limit_security: {
         Args: {
           max_attempts?: number
@@ -630,56 +615,20 @@ export type Database = {
         }
         Returns: boolean
       }
-      check_system_health: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      cleanup_expired_temporary_users: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      create_logs_partition_for_month: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      debug_auth_info: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      delete_expired_approved_vacations: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      delete_old_rejected_vacations: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      emergency_log_cleanup: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      enhanced_security_monitor: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      ensure_logs_rls_consistency: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      example_function: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      final_database_optimization: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      generate_database_summary: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      check_system_health: { Args: never; Returns: Json }
+      cleanup_expired_temporary_users: { Args: never; Returns: undefined }
+      create_logs_partition_for_month: { Args: never; Returns: undefined }
+      debug_auth_info: { Args: never; Returns: Json }
+      delete_expired_approved_vacations: { Args: never; Returns: undefined }
+      delete_old_rejected_vacations: { Args: never; Returns: undefined }
+      emergency_log_cleanup: { Args: never; Returns: Json }
+      enhanced_security_monitor: { Args: never; Returns: Json }
+      ensure_logs_rls_consistency: { Args: never; Returns: string }
+      example_function: { Args: never; Returns: Json }
+      final_database_optimization: { Args: never; Returns: Json }
+      generate_database_summary: { Args: never; Returns: Json }
       get_accessible_profiles: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           access_level: string
           avatar_url: string
@@ -710,7 +659,7 @@ export type Database = {
         }[]
       }
       get_cars_with_security: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           car_number: string
           created_at: string
@@ -726,13 +675,10 @@ export type Database = {
         }[]
       }
       get_current_user_role: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
-      get_enhanced_system_metrics: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_enhanced_system_metrics: { Args: never; Returns: Json }
       get_profile_detailed: {
         Args: { profile_user_id: string }
         Returns: {
@@ -765,28 +711,46 @@ export type Database = {
           status: Database["public"]["Enums"]["employee_status"]
         }[]
       }
-      get_profiles_admin_detailed: {
-        Args:
-          | Record<PropertyKey, never>
-          | { access_reason?: string; full_access?: boolean }
-        Returns: {
-          avatar_url: string
-          created_at: string
-          email: string
-          expires_at: string
-          id: string
-          is_temporary: boolean
-          job_title: string
-          name: string
-          notes: string
-          on_leave: boolean
-          phone: string
-          status: Database["public"]["Enums"]["employee_status"]
-          updated_at: string
-        }[]
-      }
+      get_profiles_admin_detailed:
+        | {
+            Args: never
+            Returns: {
+              avatar_url: string
+              created_at: string
+              email: string
+              expires_at: string
+              id: string
+              is_temporary: boolean
+              job_title: string
+              name: string
+              notes: string
+              on_leave: boolean
+              phone: string
+              status: Database["public"]["Enums"]["employee_status"]
+              updated_at: string
+            }[]
+          }
+        | {
+            Args: { access_reason?: string; full_access?: boolean }
+            Returns: {
+              avatar_url: string
+              created_at: string
+              email: string
+              expires_at: string
+              id: string
+              is_temporary: boolean
+              job_title: string
+              name: string
+              notes: string
+              on_leave: boolean
+              phone: string
+              role: Database["public"]["Enums"]["user_role"]
+              status: Database["public"]["Enums"]["employee_status"]
+              updated_at: string
+            }[]
+          }
       get_profiles_basic: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           avatar_url: string
           created_at: string
@@ -800,7 +764,7 @@ export type Database = {
         }[]
       }
       get_security_events_summary: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           affected_users: number
           event_count: number
@@ -816,40 +780,22 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
-      hmac_sha256: {
-        Args: { data: string; key: string }
-        Returns: string
-      }
-      is_admin_or_skadeleder: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_admin_user: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_current_user_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_strong_password: {
-        Args: { password: string }
-        Returns: boolean
-      }
+      hmac_sha256: { Args: { data: string; key: string }; Returns: string }
+      is_admin_or_skadeleder: { Args: never; Returns: boolean }
+      is_admin_user: { Args: never; Returns: boolean }
+      is_current_user_admin: { Args: never; Returns: boolean }
+      is_strong_password: { Args: { password: string }; Returns: boolean }
       is_user_assigned_to_assignment: {
         Args: { assignment_id: string; user_id: string }
         Returns: boolean
       }
-      is_valid_email: {
-        Args: { email: string }
-        Returns: boolean
-      }
+      is_valid_email: { Args: { email: string }; Returns: boolean }
       jwt_verify_hs256: {
         Args: { secret: string; token: string }
         Returns: Json
       }
       list_accessible_assignments_with_team: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           assignment_date: string
           car_id: string
@@ -926,62 +872,26 @@ export type Database = {
         Args: { details?: Json; event_type: string; vacation_id: string }
         Returns: undefined
       }
-      mask_email: {
-        Args: { p_email: string }
-        Returns: string
-      }
-      mask_phone: {
-        Args: { p_phone: string }
-        Returns: string
-      }
-      perform_database_maintenance: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      refresh_materialized_views: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      run_automated_maintenance: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      run_logs_rls_maintenance: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      mask_email: { Args: { p_email: string }; Returns: string }
+      mask_phone: { Args: { p_phone: string }; Returns: string }
+      perform_database_maintenance: { Args: never; Returns: Json }
+      refresh_materialized_views: { Args: never; Returns: undefined }
+      run_automated_maintenance: { Args: never; Returns: Json }
+      run_logs_rls_maintenance: { Args: never; Returns: string }
       sanitize_text_input: {
         Args: { input_text: string; max_length?: number }
         Returns: string
       }
-      schedule_maintenance_tasks: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      security_health_check: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      sync_user_roles_to_jwt: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      test_query_performance: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      schedule_maintenance_tasks: { Args: never; Returns: Json }
+      security_health_check: { Args: never; Returns: Json }
+      sync_user_roles_to_jwt: { Args: never; Returns: undefined }
+      test_query_performance: { Args: never; Returns: Json }
       user_has_role: {
         Args: { check_role: Database["public"]["Enums"]["user_role"] }
         Returns: boolean
       }
-      validate_data_integrity: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      validate_database_health: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      validate_data_integrity: { Args: never; Returns: Json }
+      validate_database_health: { Args: never; Returns: Json }
       validate_email_format_enhanced: {
         Args: { email: string }
         Returns: boolean
@@ -990,20 +900,11 @@ export type Database = {
         Args: { input_text: string; input_type: string; max_length?: number }
         Returns: boolean
       }
-      verify_complete_fix: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      verify_data_access_fix: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      verify_policy_fix: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      verify_complete_fix: { Args: never; Returns: Json }
+      verify_data_access_fix: { Args: never; Returns: Json }
+      verify_policy_fix: { Args: never; Returns: Json }
       verify_role_assignments: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           assigned_role: Database["public"]["Enums"]["user_role"]
           is_current_user: boolean

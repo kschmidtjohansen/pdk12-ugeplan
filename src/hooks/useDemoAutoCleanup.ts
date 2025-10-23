@@ -15,26 +15,29 @@ export const useDemoAutoCleanup = () => {
   const demoService = DemoUserService.getInstance();
 
   const performCleanup = useCallback(async () => {
-    console.log('[Demo Auto-Cleanup] Performing scheduled cleanup...');
+    console.log('[Demo Auto-Cleanup] Cleaning session data (preserving baseline)...');
     try {
       const result = await demoService.cleanupAllDemoUserData();
       const totalDeleted = Object.values(result.deletedCounts).reduce((sum, count) => sum + count, 0);
       
       toast({
-        title: "Demo Data Automatisk Ryddet",
-        description: `Ryddede ${totalDeleted} poster. Demo session opdateret.`,
+        title: "Demo Session Nulstillet",
+        description: `${totalDeleted} session-poster ryddet. Baseline data bevaret.`,
       });
       
       // Reset the timer
       setTimeUntilCleanup(CLEANUP_INTERVAL_MS);
       setShowWarning(false);
       
+      // Reload to show baseline data
+      window.location.reload();
+      
       console.log('[Demo Auto-Cleanup] Cleanup completed:', result);
     } catch (error) {
       console.error('[Demo Auto-Cleanup] Cleanup failed:', error);
       toast({
-        title: "Auto-Oprydning Mislykkedes",
-        description: "Kunne ikke rydde demo data. Prøv manuel oprydning.",
+        title: "Nulstilling Mislykkedes",
+        description: "Kunne ikke nulstille session data.",
         variant: "destructive",
       });
     }

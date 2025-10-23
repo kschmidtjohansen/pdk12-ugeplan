@@ -118,6 +118,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const demoService = DemoUserService.getInstance();
   const isDemoMode = user ? demoService.isDemoUser(user.email) : false;
 
+  // Store demo mode in sessionStorage for quick access across the app
+  useEffect(() => {
+    if (user?.email === 'test@polygongroup.com') {
+      sessionStorage.setItem('demo-mode', 'true');
+    } else {
+      sessionStorage.removeItem('demo-mode');
+    }
+  }, [user]);
+
   // Circuit breaker for auth operations
   const AUTH_OPERATION_ID = 'auth_initialization';
 
