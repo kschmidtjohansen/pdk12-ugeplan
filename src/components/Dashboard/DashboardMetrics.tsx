@@ -4,8 +4,7 @@ import { Users, Car, UserX, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import EmptyState from '@/components/shared/EmptyState';
+import MetricsSkeleton from '@/components/shared/MetricsSkeleton';
 import InteractiveMetricCard from './InteractiveMetricCard';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import CarAvailabilityModal from './CarAvailabilityModal';
@@ -25,7 +24,7 @@ const DashboardMetrics: React.FC = () => {
   const todayStr = format(today, 'yyyy-MM-dd');
 
   if (loading) {
-    return <LoadingSpinner message={t('common.loading')} />;
+    return <MetricsSkeleton count={4} />;
   }
 
   return (

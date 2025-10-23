@@ -1,6 +1,8 @@
 
 import { useMemo } from 'react';
-import { useEnhancedUnifiedData } from './useEnhancedUnifiedData';
+import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
+import { useCarData } from '@/hooks/car/useCarData';
+import { useAssignments } from '@/hooks/useAssignments';
 import { useVacationData } from './vacation/useVacationData';
 import { useWarehouseData } from './warehouse/useWarehouseData';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
@@ -8,7 +10,9 @@ import { useTranslation } from '@/context/TranslationContext';
 import { format } from 'date-fns';
 
 export const useDashboardMetrics = () => {
-  const { employees, assignments, cars, loading, error } = useEnhancedUnifiedData();
+  const { employees, loading: employeesLoading, error: employeesError } = useEmployeeData();
+  const { cars, loading: carsLoading, error: carsError } = useCarData();
+  const { assignments, loading: assignmentsLoading, error: assignmentsError } = useAssignments();
   const { vacations, loading: vacationsLoading } = useVacationData();
   const { items: warehouseItems, loading: warehouseLoading } = useWarehouseData();
   const { t } = useTranslation();
@@ -24,7 +28,7 @@ export const useDashboardMetrics = () => {
       warehouseItems: { count: 0, items: [] }
     };
 
-    if (loading || vacationsLoading || warehouseLoading) {
+    if (employeesLoading || carsLoading || assignmentsLoading || vacationsLoading || warehouseLoading) {
       return defaultMetrics;
     }
 
@@ -103,6 +107,17 @@ export const useDashboardMetrics = () => {
       // Calculate total warehouse quantity
       const totalWarehouseQuantity = safeWarehouseItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
+      console.log('[useDashboardMetrics] counts', {
+        employees: safeEmployees.length,
+        cars: safeCars.length,
+        assignments: safeAssignments.length,
+        assignedCarIds: assignedCarIds.size,
+        availableEmployees: availableEmployeesList.length,
+        availableCars: availableCarsList.length,
+        absentEmployees: absentEmployeesList.length,
+        warehouseQuantity: totalWarehouseQuantity
+      });
+
       return {
         availableEmployees: {
           count: availableEmployeesList.length,
@@ -127,7 +142,7 @@ export const useDashboardMetrics = () => {
       console.error('[useDashboardMetrics] Error computing metrics:', err);
       return defaultMetrics;
     }
-  }, [employees, assignments, cars, vacations, warehouseItems, loading, vacationsLoading, warehouseLoading, t, todayStr]);
+  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, t, todayStr]);
 
   // Only show error if we have NO data at all (fatal error)
   const hasAnyData = (employees && employees.length > 0) || 
@@ -136,11 +151,12 @@ export const useDashboardMetrics = () => {
                       (warehouseItems && warehouseItems.length > 0) ||
                       (vacations && vacations.length > 0);
   
-  const derivedError = error && !hasAnyData ? error : null;
+  const anyError = employeesError || carsError || assignmentsError;
+  const derivedError = anyError && !hasAnyData ? anyError : null;
 
   return {
     metrics,
-    loading: loading || vacationsLoading || warehouseLoading,
+    loading: employeesLoading || carsLoading || assignmentsLoading || vacationsLoading || warehouseLoading,
     error: derivedError,
     assignments,
     vacations
