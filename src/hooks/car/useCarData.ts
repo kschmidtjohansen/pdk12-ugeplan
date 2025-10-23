@@ -29,8 +29,12 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
           
         if (fetchError) throw fetchError;
         
-        // Filter to only show cars that should be in planner
-        const demoOnly = (data || []).filter((c: any) => c.show_in_planner !== false);
+        // Filter to only show recent demo cars (created after 2025-10-23) and should be in planner
+        const DEMO_DATA_CUTOFF = '2025-10-23T00:00:00Z';
+        const demoOnly = (data || []).filter((c: any) => 
+          c.show_in_planner !== false && 
+          new Date(c.created_at) >= new Date(DEMO_DATA_CUTOFF)
+        );
         
         console.log('[useCarData] Successfully fetched', demoOnly?.length || 0, 'demo cars');
         setCars(demoOnly as CarData[]);
@@ -130,8 +134,12 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
             
           if (fetchError) throw fetchError;
           
-          // Filter to only show cars that should be in planner
-          let demoCars = (data || []).filter((c: any) => c.show_in_planner !== false) as CarData[];
+          // Filter to only show recent demo cars (created after 2025-10-23) and should be in planner
+          const DEMO_DATA_CUTOFF = '2025-10-23T00:00:00Z';
+          let demoCars = (data || []).filter((c: any) => 
+            c.show_in_planner !== false && 
+            new Date(c.created_at) >= new Date(DEMO_DATA_CUTOFF)
+          ) as CarData[];
           
           // Client-side fallback: If no demo cars, synthesize some with proper format
           if (demoCars.length === 0) {

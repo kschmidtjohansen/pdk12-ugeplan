@@ -463,7 +463,13 @@ export class EnhancedDataFetching {
           });
         }
 
-        return { data, error: null };
+        // Filter to only show recent demo employees (created after 2025-10-23)
+        const DEMO_DATA_CUTOFF = '2025-10-23T00:00:00Z';
+        const demoOnly = (data || []).filter((emp: any) => 
+          new Date(emp.created_at) >= new Date(DEMO_DATA_CUTOFF)
+        );
+
+        return { data: demoOnly, error: null };
       } else {
         // Production: Use direct table access with role join
         const client = getSchemaClient(false);
@@ -521,8 +527,12 @@ export class EnhancedDataFetching {
           });
         }
 
-        // Filter to only show cars that should be in planner
-        const filteredDemoCars = (data || []).filter((c: any) => c.show_in_planner !== false);
+        // Filter to only show recent demo cars (created after 2025-10-23) and should be in planner
+        const DEMO_DATA_CUTOFF = '2025-10-23T00:00:00Z';
+        const filteredDemoCars = (data || []).filter((c: any) => 
+          c.show_in_planner !== false && 
+          new Date(c.created_at) >= new Date(DEMO_DATA_CUTOFF)
+        );
 
         return { data: filteredDemoCars, error: null };
       } else {

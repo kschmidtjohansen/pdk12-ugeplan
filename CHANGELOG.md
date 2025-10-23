@@ -1,11 +1,34 @@
 # Changelog
 
+<!-- 
+AI AUTOMATION REMINDER: Update this file after EVERY implementation with:
+- Date and version
+- Brief description of changes
+- Affected files
+- Impact on users
+-->
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Fixed - 2025-01-23
+- **Demo Mode Data Filtering**: Cars and employees now filtered by creation date (>= 2025-10-23) to exclude baseline production data
+  - Only shows recent demo cars (CAR-001, CAR-002, VAN-001) on Cars page
+  - Dashboard metrics now correctly count only recent demo employees and cars
+  - Affects: `src/hooks/car/useCarData.ts`, `src/services/enhancedDataFetching.ts`
+  
+- **Vacation Request Red Dot**: Fixed pending vacation indicator not appearing in demo mode
+  - Made `useVacationRequestsStatus` schema-aware to query demo.vacations in demo mode
+  - Red dot now appears on "Fridage" nav item when pending requests exist
+  - Affects: `src/hooks/vacation/useVacationRequestsStatus.ts`
+
+- **Admin Panel Navigation**: User Management ("Brugerstyring") now opens first when accessing admin section
+  - Changed default tab from "overview" to "users"
+  - Affects: `src/pages/AdminPage.tsx`
 
 ### Added
 - Created comprehensive changelog system for tracking project changes
