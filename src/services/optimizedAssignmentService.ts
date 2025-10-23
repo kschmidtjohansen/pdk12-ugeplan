@@ -495,48 +495,47 @@ export class OptimizedAssignmentService {
     }
   }
 
-  static async createAssignment(assignmentData: any): Promise<boolean> {
+  static async createAssignment(assignmentData: any): Promise<OptimizedAssignmentData> {
     const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
     if (isDemoMode) {
       throw new Error('Demo mode is read-only. Cannot create assignments.');
     }
 
-    try {
-      const { error } = await supabase.from('assignments').insert(assignmentData);
-      if (error) {
-        console.error('[OptimizedAssignmentService] Error creating assignment:', error);
-        return false;
-      }
-      this.clearCache();
-      return true;
-    } catch (error) {
-      console.error('[OptimizedAssignmentService] Error creating assignment:', error);
-      return false;
-    }
+    this.clearCache();
+    
+    const { data, error } = await supabase
+      .from('assignments')
+      .insert(assignmentData)
+      .select()
+      .single();
+      
+    if (error) throw error;
+    
+    // Enrich and return the created assignment
+    const enriched = await this.enrichAssignmentData([data]);
+    return enriched[0];
   }
 
-  static async updateAssignment(assignmentId: string, updates: any): Promise<boolean> {
+  static async updateAssignment(assignmentId: string, updates: any): Promise<OptimizedAssignmentData> {
     const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
     if (isDemoMode) {
       throw new Error('Demo mode is read-only. Cannot update assignments.');
     }
 
-    try {
-      const { error } = await supabase
-        .from('assignments')
-        .update(updates)
-        .eq('id', assignmentId);
-      
-      if (error) {
-        console.error('[OptimizedAssignmentService] Error updating assignment:', error);
-        return false;
-      }
-      this.clearCache();
-      return true;
-    } catch (error) {
-      console.error('[OptimizedAssignmentService] Error updating assignment:', error);
-      return false;
-    }
+    this.clearCache();
+    
+    const { data, error } = await supabase
+      .from('assignments')
+      .update(updates)
+      .eq('id', assignmentId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    // Enrich and return the updated assignment
+    const enriched = await this.enrichAssignmentData([data]);
+    return enriched[0];
   }
 
   static async deleteAssignment(assignmentId: string): Promise<boolean> {
@@ -565,7 +564,7 @@ export class OptimizedAssignmentService {
     }
   }
 
-  static async fetchUnpublishedAssignments(): Promise<OptimizedAssignmentData[]> {
+  static async fetchUnpublishedAssignments(userId: string, userRole: string): Promise<OptimizedAssignmentData[]> {
     const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
     
     if (isDemoMode) {
@@ -574,28 +573,26 @@ export class OptimizedAssignmentService {
       return this.convertDemoAssignments(data.filter((a: any) => !a.published));
     }
     
-    const allAssignments = await this.fetchAllAssignments('administrator');
+    const allAssignments = await this.fetchAllAssignments(userRole);
     return allAssignments.filter(a => !a.published);
   }
 
-  static async fetchUserAssignments(userId: string, onlyPublished: boolean = true): Promise<OptimizedAssignmentData[]> {
+  static async fetchUserAssignments(userId: string, userRole: string): Promise<OptimizedAssignmentData[]> {
     const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
     
     if (isDemoMode) {
       const { data, error } = await supabase.rpc('list_demo_assignments_with_team');
       if (error || !data) return [];
-      let filtered = data.filter((a: any) => 
+      const filtered = data.filter((a: any) => 
         a.responsible_user_id === userId || a.team?.some((m: any) => m.id === userId)
       );
-      if (onlyPublished) filtered = filtered.filter((a: any) => a.published);
       return this.convertDemoAssignments(filtered);
     }
     
-    const allAssignments = await this.fetchAllAssignments('servicemedarbejder');
-    let filtered = allAssignments.filter(a => 
+    const allAssignments = await this.fetchAllAssignments(userRole);
+    const filtered = allAssignments.filter(a => 
       a.responsible_user_id === userId || a.assignment_employees.some(e => e.user_id === userId)
     );
-    if (onlyPublished) filtered = filtered.filter(a => a.published);
     return filtered;
   }
 
@@ -614,12 +611,12 @@ export class OptimizedAssignmentService {
     return allPublished.filter(a => a.assignment_date === date);
   }
 
-  static async publishAssignment(assignmentId: string): Promise<boolean> {
+  static async publishAssignment(assignmentId: string): Promise<OptimizedAssignmentData> {
     const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
     if (isDemoMode) {
       throw new Error('Demo mode is read-only. Cannot publish assignments.');
     }
-    return this.updateAssignment(assignmentId, { published: true } as any);
+    return this.updateAssignment(assignmentId, { published: true });
   }
 
   static async publishAssignmentsByDate(date: string): Promise<boolean> {
