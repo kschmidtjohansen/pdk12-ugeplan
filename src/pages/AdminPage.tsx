@@ -47,8 +47,12 @@ const AdminPage: React.FC = () => {
           <h1 className="text-3xl font-bold">{t('admin.title')}</h1>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs defaultValue="users" className="space-y-6">
           <TabsList className="grid w-full grid-cols-8">
+            <TabsTrigger value="users" className="flex items-center space-x-2">
+              <Users className="h-4 w-4" />
+              <span>{t('admin.tabs.users')}</span>
+            </TabsTrigger>
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <BarChart3 className="h-4 w-4" />
               <span>{t('admin.tabs.overview')}</span>
@@ -67,10 +71,6 @@ const AdminPage: React.FC = () => {
               <span>{t('admin.tabs.diagnostics')}</span>
             </TabsTrigger>
             
-            <TabsTrigger value="users" className="flex items-center space-x-2">
-              <Users className="h-4 w-4" />
-              <span>{t('admin.tabs.users')}</span>
-            </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center space-x-2">
               <Shield className="h-4 w-4" />
               <span>{t('admin.tabs.security')}</span>

@@ -511,38 +511,18 @@ export class EnhancedDataFetching {
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
       if (isDemoMode) {
-        // Demo: Use demo schema directly with strict filtering
-        const schemaClient = getSchemaClient(true);
-        const baselineTimestamp = schemaClient.getBaselineTimestamp();
-        
-        const { data, error } = await schemaClient
-          .from('cars')
-          .select('*')
-          .gte('created_at', baselineTimestamp)
-          .order('created_at', { ascending: false });
+        // Use demo RPC for secure data access
+        const { data, error } = await supabase.rpc('get_demo_cars_with_security');
 
         if (error) {
           throw Object.assign(error, {
             context: 'demo_car_fetch',
-            operation: 'demo_schema_query'
+            operation: 'demo_rpc_call'
           });
         }
 
-        // Apply strict client-side filtering for demo data
-        const filteredDemoCars = (data || []).filter((c: any) => {
-          const carNumber = (c.car_number || '').toString();
-          const name = (c.name || '').toString().toLowerCase();
-          const plate = (c.number_plate || '').toString().toLowerCase();
-          
-          const matchesDemoPattern = 
-            /^(CAR|VAN)-\d{3}$/i.test(carNumber) || 
-            name.includes('demo') || 
-            plate.includes('demo');
-          
-          const showInPlanner = c.show_in_planner !== false;
-          
-          return matchesDemoPattern && showInPlanner;
-        });
+        // Filter to only show cars that should be in planner
+        const filteredDemoCars = (data || []).filter((c: any) => c.show_in_planner !== false);
 
         return { data: filteredDemoCars, error: null };
       } else {

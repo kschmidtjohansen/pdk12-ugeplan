@@ -24,34 +24,13 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       setError(null);
       
       if (isDemoMode) {
-        // Use demo schema directly with strict filtering
-        const schemaClient = getSchemaClient(true);
-        const baselineTimestamp = schemaClient.getBaselineTimestamp();
-        
-        const { data, error: fetchError } = await schemaClient
-          .from('cars')
-          .select('*')
-          .gte('created_at', baselineTimestamp)
-          .order('created_at', { ascending: false });
+        // Use demo RPC for secure data access
+        const { data, error: fetchError } = await supabase.rpc('get_demo_cars_with_security');
           
         if (fetchError) throw fetchError;
         
-        // Apply strict client-side filtering for demo data only
-        const demoOnly = (data || []).filter((c: any) => {
-          const carNumber = (c.car_number || '').toString();
-          const name = (c.name || '').toString().toLowerCase();
-          const plate = (c.number_plate || '').toString().toLowerCase();
-          
-          // Only include cars that match demo patterns and show_in_planner is not false
-          const matchesDemoPattern = 
-            /^(CAR|VAN)-\d{3}$/i.test(carNumber) || 
-            name.includes('demo') || 
-            plate.includes('demo');
-          
-          const showInPlanner = c.show_in_planner !== false;
-          
-          return matchesDemoPattern && showInPlanner;
-        });
+        // Filter to only show cars that should be in planner
+        const demoOnly = (data || []).filter((c: any) => c.show_in_planner !== false);
         
         console.log('[useCarData] Successfully fetched', demoOnly?.length || 0, 'demo cars');
         setCars(demoOnly as CarData[]);
@@ -146,33 +125,13 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         setError(null);
         
         if (isDemoMode) {
-          // Use demo schema directly with strict filtering
-          const schemaClient = getSchemaClient(true);
-          const baselineTimestamp = schemaClient.getBaselineTimestamp();
-          
-          const { data, error: fetchError } = await schemaClient
-            .from('cars')
-            .select('*')
-            .gte('created_at', baselineTimestamp)
-            .order('created_at', { ascending: false });
+          // Use demo RPC for secure data access
+          const { data, error: fetchError } = await supabase.rpc('get_demo_cars_with_security');
             
           if (fetchError) throw fetchError;
           
-          // Apply strict client-side filtering
-          let demoCars = (data || []).filter((c: any) => {
-            const carNumber = (c.car_number || '').toString();
-            const name = (c.name || '').toString().toLowerCase();
-            const plate = (c.number_plate || '').toString().toLowerCase();
-            
-            const matchesDemoPattern = 
-              /^(CAR|VAN)-\d{3}$/i.test(carNumber) || 
-              name.includes('demo') || 
-              plate.includes('demo');
-            
-            const showInPlanner = c.show_in_planner !== false;
-            
-            return matchesDemoPattern && showInPlanner;
-          }) as CarData[];
+          // Filter to only show cars that should be in planner
+          let demoCars = (data || []).filter((c: any) => c.show_in_planner !== false) as CarData[];
           
           // Client-side fallback: If no demo cars, synthesize some with proper format
           if (demoCars.length === 0) {
