@@ -12,7 +12,7 @@ import { resolveEmployeeDisplayName, filterDisplayNames } from '@/utils/people';
 export const useAssignmentDataOptimized = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, isDemoMode } = useAuth();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -128,13 +128,15 @@ export const useAssignmentDataOptimized = () => {
         }
       });
       
-      // Only show toast for non-auth errors to avoid spam
-      if (category !== 'auth') {
+      // Only show toast for non-auth errors and non-demo users
+      if (category !== 'auth' && !isDemoMode) {
         toast({
           title: t('common.error') || 'Error',
           description: userFriendlyMessage,
           variant: 'destructive',
         });
+      } else if (isDemoMode) {
+        console.log('[useAssignmentDataOptimized] Demo mode: Suppressed error toast', { category, error: userFriendlyMessage });
       }
       
       setAssignments([]);

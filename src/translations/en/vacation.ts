@@ -124,7 +124,12 @@ const vacation = {
     pending: "Pending",
     approved: "Approved",
     rejected: "Rejected"
-  }
+  },
+  
+  // Admin notification for pending requests
+  pendingRequestsTitle: "Pending Requests",
+  pendingRequestsDescription: "vacation request(s) waiting for approval",
+  openVacationPage: "Open Vacation"
 };
 
 export default vacation;

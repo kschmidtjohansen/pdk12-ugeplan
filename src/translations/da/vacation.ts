@@ -111,6 +111,11 @@ const vacation = {
     rejected: "Afvist"
   },
   
+  // Admin notification for pending requests
+  pendingRequestsTitle: "Afventende anmodninger",
+  pendingRequestsDescription: "fridags-anmodning(er) venter på godkendelse",
+  openVacationPage: "Åbn Fridage",
+  
   // New keys for partial day support - updated workingHours
   requestType: "Anmodningstype",
   timeRange: "Tidspunkt",
