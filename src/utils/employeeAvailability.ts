@@ -20,23 +20,6 @@ export interface EmployeeVacationInfo {
   vacation?: Vacation;
 }
 
-// Helper function to check if a time is within working hours
-const isWithinWorkingHours = (time: string, selectedDate: Date): boolean => {
-  const dayOfWeek = selectedDate.getDay(); // 0=Sunday, 1=Monday, ..., 5=Friday
-  const workdayEndTime = getWorkdayEndTime(selectedDate);
-  
-  // Normalize time to HH:MM format
-  const normalizedTime = normalizeTime(time);
-  
-  // Check if it's a working day (Monday-Friday)
-  if (dayOfWeek < 1 || dayOfWeek > 5) {
-    return false;
-  }
-  
-  // Check if time is before workday end
-  return normalizedTime < workdayEndTime;
-};
-
 // Enhanced function to get detailed vacation information
 export const getEmployeeVacationStatus = (employeeId: string, selectedDate: Date, vacations: Vacation[]): EmployeeVacationInfo => {
   console.log(`[getEmployeeVacationStatus] Checking vacation for employee ${employeeId} on ${format(selectedDate, 'yyyy-MM-dd')}`);
@@ -96,21 +79,71 @@ export const isEmployeeOnVacation = (employeeId: string, selectedDate: Date, vac
   return vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day';
 };
 
-// Helper function to normalize time
+// Helper function to normalize time to HH:MM format
 const normalizeTime = (time: string): string => {
   if (!time) return '';
   
-  // Remove seconds if present (HH:MM:SS -> HH:MM)
-  if (time.length === 8 && time.includes(':')) {
-    time = time.substring(0, 5);
-  }
+  // Aggressive whitespace trimming
+  time = time.trim();
+  
+  // Remove seconds explicitly: "16:00:00" -> "16:00"
+  time = time.replace(/:\d{2}$/, '');
+  
+  // Additional cleanup for any remaining whitespace
+  time = time.replace(/\s+/g, '');
   
   // Ensure we have HH:MM format
   if (time.length === 5 && time.includes(':')) {
     return time;
   }
   
-  return time.trim();
+  // Log warning for unexpected formats
+  if (time.length !== 5 || !time.includes(':')) {
+    console.warn(`[normalizeTime] Unexpected time format: "${time}"`);
+  }
+  
+  return time;
+};
+
+// Helper function to get the latest end time from assignments
+const getLatestEndTime = (assignments: Assignment[]): string => {
+  let latestEndTime = "00:00";
+  assignments.forEach(assignment => {
+    const normalizedTime = normalizeTime(assignment.toTime);
+    if (compareTimeStrings(normalizedTime, latestEndTime) > 0) {
+      latestEndTime = normalizedTime;
+    }
+  });
+  return latestEndTime;
+};
+
+// Helper function to get the earliest start time from assignments
+const getEarliestStartTime = (assignments: Assignment[]): string => {
+  let earliestStartTime = "23:59";
+  assignments.forEach(assignment => {
+    const normalizedTime = normalizeTime(assignment.fromTime);
+    if (compareTimeStrings(normalizedTime, earliestStartTime) < 0) {
+      earliestStartTime = normalizedTime;
+    }
+  });
+  return earliestStartTime;
+};
+
+// Helper function to subtract minutes from a time string
+const subtractMinutes = (time: string, minutes: number): string => {
+  const [hours, mins] = time.split(':').map(Number);
+  const totalMinutes = hours * 60 + mins - minutes;
+  const newHours = Math.floor(totalMinutes / 60);
+  const newMins = totalMinutes % 60;
+  return `${String(newHours).padStart(2, '0')}:${String(newMins).padStart(2, '0')}`;
+};
+
+// Helper function to compare time strings robustly
+const compareTimeStrings = (time1: string, time2: string): number => {
+  const normalize = (t: string) => normalizeTime(t).replace(':', '');
+  const num1 = parseInt(normalize(time1), 10);
+  const num2 = parseInt(normalize(time2), 10);
+  return num1 - num2;
 };
 
 // Helper function to determine workday end time based on day of week
@@ -218,36 +251,39 @@ export const getEmployeeAvailabilityStatus = (
 
   // Get the correct workday end time based on the day of the week
   const workdayEndTime = getWorkdayEndTime(selectedDate);
-  console.log(`[getEmployeeAvailabilityStatus] Workday end time for ${dateStr}: ${workdayEndTime}`);
+  const workdayStartTime = "08:00";
+  console.log(`[getEmployeeAvailabilityStatus] Workday for ${dateStr}: ${workdayStartTime} - ${workdayEndTime}`);
   
-  const hasEndTimeAtWorkdayEnd = employeeAssignments.some(assignment => {
-    const normalizedEndTime = normalizeTime(assignment.toTime);
-    const isAtWorkdayEnd = normalizedEndTime === workdayEndTime;
-    console.log(`[getEmployeeAvailabilityStatus] Assignment ${assignment.title || assignment.location} ends at ${normalizedEndTime}, workday ends at ${workdayEndTime}, matches: ${isAtWorkdayEnd}`);
-    return isAtWorkdayEnd;
-  });
-
-  if (hasEndTimeAtWorkdayEnd) {
-    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is fully booked (ends at workday end)`);
-    return {
-      status: 'fullyBooked',
-      statusText: t('employees.status.fullyBooked'),
-      badgeColor: 'bg-red-100 text-red-800 border-red-200'
-    };
-  }
-
-  // Get the latest end time for partially booked status
-  let latestEndTime = "00:00";
+  // Calculate coverage - get earliest start and latest end time
+  const latestEndTime = getLatestEndTime(employeeAssignments);
+  const earliestStartTime = getEarliestStartTime(employeeAssignments);
+  
+  console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} assignments span: ${earliestStartTime} - ${latestEndTime}`);
+  
+  // Log all assignment times for debugging
   employeeAssignments.forEach(assignment => {
-    const normalizedTime = normalizeTime(assignment.toTime);
-    if (normalizedTime > latestEndTime) {
-      latestEndTime = normalizedTime;
-    }
+    console.log(`[getEmployeeAvailabilityStatus] Assignment "${assignment.title || assignment.location}": ${normalizeTime(assignment.fromTime)} - ${normalizeTime(assignment.toTime)}`);
   });
   
-  // ENHANCED: Check if the latest end time is within working hours
-  if (!isWithinWorkingHours(latestEndTime, selectedDate)) {
-    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} latest assignment ends at ${latestEndTime} which is past working hours, marking as fully booked`);
+  // Check if assignments cover the full workday (with 30-minute tolerance)
+  // Employee is fully booked if:
+  // 1. They start at or before 08:30 AND
+  // 2. They end at or after (workday end - 30 minutes)
+  const toleranceThreshold = subtractMinutes(workdayEndTime, 30);
+  const startsEarlyEnough = compareTimeStrings(earliestStartTime, "08:30") <= 0;
+  const endsLateEnough = compareTimeStrings(latestEndTime, toleranceThreshold) >= 0;
+  
+  console.log(`[getEmployeeAvailabilityStatus] Fully booked check:`, {
+    earliestStartTime,
+    latestEndTime,
+    workdayEndTime,
+    toleranceThreshold,
+    startsEarlyEnough: `${earliestStartTime} <= 08:30 = ${startsEarlyEnough}`,
+    endsLateEnough: `${latestEndTime} >= ${toleranceThreshold} = ${endsLateEnough}`
+  });
+  
+  if (startsEarlyEnough && endsLateEnough) {
+    console.log(`[getEmployeeAvailabilityStatus] ✅ Employee ${employee.name} is FULLY BOOKED (covers full workday with tolerance)`);
     return {
       status: 'fullyBooked',
       statusText: t('employees.status.fullyBooked'),
@@ -255,8 +291,9 @@ export const getEmployeeAvailabilityStatus = (
     };
   }
   
+  // Employee is partially booked - show when they're available
   const formattedTime = latestEndTime.substring(0, 5);
-  console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is partially booked, available after ${formattedTime}`);
+  console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is PARTIALLY BOOKED, available after ${formattedTime}`);
   
   return {
     status: 'partiallyBooked',
