@@ -224,17 +224,12 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
     };
 
     if (isDemoMode) {
-      // Demo mode: Use polling instead of realtime
+      // Demo mode: Fetch once on mount, no polling needed
+      // Data persists in sessionStorage and updates via CRUD operations
       loadCars();
-      const pollInterval = setInterval(() => {
-        if (isMounted) {
-          loadCars().catch(console.error);
-        }
-      }, 40000); // Poll every 40 seconds
       
       return () => {
         isMounted = false;
-        clearInterval(pollInterval);
       };
     } else {
       // Production mode: Use realtime subscriptions

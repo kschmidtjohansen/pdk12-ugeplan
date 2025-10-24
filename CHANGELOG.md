@@ -82,6 +82,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Demo data now properly merges with baseline data on fetch
   - Data persists until manual deletion, "Clear demo data" button, or 15-minute auto-cleanup
   - Affects: `src/services/demoUserService.ts`, `src/hooks/employee/useEmployeeData.ts`, `src/hooks/employee/useEmployeeActions.ts`, `src/services/optimizedAssignmentService.ts`, `src/hooks/assignment/useAssignmentActions.ts`
+- **Demo Mode Auto-Refresh**: Removed unnecessary polling that caused page stuttering
+  - Removed 40-second polling interval from car data fetching in demo mode
+  - Demo data now only fetches once on mount and updates via explicit CRUD operations
+  - Significantly improves demo mode performance and prevents unwanted page refreshes
+  - Affects: `src/hooks/car/useCarData.ts`
 
 ### Fixed - 2025-01-23
 - **Demo Mode Data Filtering**: Cars and employees now filtered by creation date (>= 2025-10-23) to exclude baseline production data
