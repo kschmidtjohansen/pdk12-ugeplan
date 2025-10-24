@@ -56,6 +56,10 @@ const employees = {
   markAvailable: 'Mark as Available',
   leaveMarked: 'Leave Status Updated',
   leaveMarkedMsg: 'Employee leave status has been updated',
+  employeeOnLeave: 'Employee On Leave',
+  employeeAvailable: 'Employee Available',
+  employeeOnLeaveMsg: '{name} is now marked as on leave',
+  employeeAvailableMsg: '{name} is now marked as available',
   
   // Validation
   nameRequired: 'Name is required',

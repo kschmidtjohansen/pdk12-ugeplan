@@ -126,7 +126,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {employees.map(employee => <EmployeeTableRow key={employee.id} employee={employee} vacations={vacations} onEdit={onEdit} onDelete={onDelete} onToggleLeave={onToggleLeave} />)}
+            {employees.map(employee => <EmployeeTableRow key={`${employee.id}-${employee.onLeave}-${employee.status}`} employee={employee} vacations={vacations} onEdit={onEdit} onDelete={onDelete} onToggleLeave={onToggleLeave} />)}
           </TableBody>
         </Table>
       </div>

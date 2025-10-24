@@ -57,6 +57,10 @@ const employees = {
   markAvailable: 'Marker som tilgængelig',
   leaveMarked: 'Status Opdateret',
   leaveMarkedMsg: 'Medarbejderens status er blevet opdateret',
+  employeeOnLeave: 'Medarbejder Fraværende',
+  employeeAvailable: 'Medarbejder Tilgængelig',
+  employeeOnLeaveMsg: '{name} er nu markeret som fraværende',
+  employeeAvailableMsg: '{name} er nu markeret som tilgængelig',
   
   // Validation
   nameRequired: 'Navn er påkrævet',
