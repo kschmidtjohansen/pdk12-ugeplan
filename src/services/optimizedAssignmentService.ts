@@ -576,8 +576,43 @@ export class OptimizedAssignmentService {
     }
     
     // Production: write to DB
-    const { data, error } = await supabase.from('assignments').insert(assignmentData).select().single();
-    if (error) throw error;
+    // Separate employees from assignment data
+    const { employees, ...assignmentInsert } = assignmentData;
+    const employeeIds = Array.isArray(employees) 
+      ? employees.map(id => sanitizeUUIDForDB(id)).filter(Boolean)
+      : [];
+    
+    console.log('[OptimizedAssignmentService] Insert payload (no employees):', assignmentInsert);
+    console.log('[OptimizedAssignmentService] Employee IDs to link:', employeeIds);
+
+    const { data, error } = await supabase.from('assignments').insert(assignmentInsert).select().single();
+    if (error) {
+      console.error('[OptimizedAssignmentService] Error creating assignment:', error);
+      throw error;
+    }
+
+    console.log('[OptimizedAssignmentService] Assignment created:', data.id);
+
+    // Link employees if any
+    if (employeeIds.length > 0) {
+      const employeeLinks = employeeIds.map(userId => ({
+        assignment_id: data.id,
+        user_id: userId
+      }));
+
+      console.log('[OptimizedAssignmentService] Linking employees:', employeeLinks);
+      
+      const { error: linkError } = await supabase
+        .from('assignments_employees')
+        .insert(employeeLinks);
+
+      if (linkError) {
+        console.error('[OptimizedAssignmentService] Failed to link employees:', linkError);
+        throw new Error(`Failed to link employees: ${linkError.message}`);
+      }
+
+      console.log('[OptimizedAssignmentService] Employees linked successfully');
+    }
     
     // Enrich and return the created assignment
     const enriched = await this.enrichAssignmentData([data]);
@@ -613,8 +648,59 @@ export class OptimizedAssignmentService {
     }
     
     // Production: write to DB
-    const { data, error } = await supabase.from('assignments').update(updates).eq('id', assignmentId).select().single();
-    if (error) throw error;
+    // Separate employees from update payload
+    const { employees, ...updatePayload } = updates;
+    const employeeIds = Array.isArray(employees)
+      ? employees.map(id => sanitizeUUIDForDB(id)).filter(Boolean)
+      : null;
+    
+    console.log('[OptimizedAssignmentService] Update payload (no employees):', updatePayload);
+    if (employeeIds !== null) {
+      console.log('[OptimizedAssignmentService] Employee IDs to relink:', employeeIds);
+    }
+
+    const { data, error } = await supabase.from('assignments').update(updatePayload).eq('id', assignmentId).select().single();
+    if (error) {
+      console.error('[OptimizedAssignmentService] Error updating assignment:', error);
+      throw error;
+    }
+
+    console.log('[OptimizedAssignmentService] Assignment updated:', data.id);
+
+    // Relink employees if provided
+    if (employeeIds !== null) {
+      // Delete existing links
+      const { error: deleteError } = await supabase
+        .from('assignments_employees')
+        .delete()
+        .eq('assignment_id', assignmentId);
+
+      if (deleteError) {
+        console.error('[OptimizedAssignmentService] Failed to delete old employee links:', deleteError);
+        throw new Error(`Failed to unlink employees: ${deleteError.message}`);
+      }
+
+      // Insert new links
+      if (employeeIds.length > 0) {
+        const employeeLinks = employeeIds.map(userId => ({
+          assignment_id: assignmentId,
+          user_id: userId
+        }));
+
+        console.log('[OptimizedAssignmentService] Relinking employees:', employeeLinks);
+        
+        const { error: linkError } = await supabase
+          .from('assignments_employees')
+          .insert(employeeLinks);
+
+        if (linkError) {
+          console.error('[OptimizedAssignmentService] Failed to link employees:', linkError);
+          throw new Error(`Failed to link employees: ${linkError.message}`);
+        }
+
+        console.log('[OptimizedAssignmentService] Employees relinked successfully');
+      }
+    }
     
     // Enrich and return the updated assignment
     const enriched = await this.enrichAssignmentData([data]);
