@@ -271,12 +271,16 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         if (errors.length === 0) {
           toast({
             title: t('planner.assignmentCreated'),
-            description: `Created ${createdAssignments.length} assignments across ${dates.length} days`,
+            description: t('planner.assignmentsCreatedAcrossDays', { count: createdAssignments.length, days: dates.length }),
           });
         } else {
           toast({
             title: t('common.warning'),
-            description: `Created ${createdAssignments.length} of ${dates.length} assignments. ${errors.length} failed.`,
+            description: t('planner.assignmentsCreatedPartialFail', { 
+              success: createdAssignments.length, 
+              total: dates.length, 
+              failed: errors.length 
+            }),
             variant: 'destructive'
           });
         }
@@ -468,12 +472,16 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         if (errors.length === 0) {
           toast({
             title: t('planner.assignmentUpdated'),
-            description: `Updated and created assignments across ${dates.length} days`,
+            description: t('planner.assignmentsUpdatedAcrossDays', { days: dates.length }),
           });
         } else {
           toast({
             title: t('common.warning'),
-            description: `Updated 1 and created ${createdAssignments.length} of ${dates.length - 1} additional assignments. ${errors.length} failed.`,
+            description: t('planner.assignmentsUpdatedPartialFail', { 
+              success: createdAssignments.length, 
+              total: dates.length - 1, 
+              failed: errors.length 
+            }),
             variant: 'destructive'
           });
         }
