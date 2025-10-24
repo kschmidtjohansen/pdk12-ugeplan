@@ -132,26 +132,45 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-50 bg-white border shadow-md">
           {filteredEmployees.map(employee => {
-            const isSelected = selectedEmployees.includes(employee.id);
-            
-            // Get detailed vacation status
-            const vacationStatus = getEmployeeVacationStatus(employee.id, dateForComparison, vacations);
-            
-            // Use manual on leave status (not vacation-based)
-            const isManuallyOnLeave = employee.onLeave;
-            
-            // Get comprehensive availability info
-            const availabilityInfo = getEmployeeAvailabilityStatus(employee, dateForComparison, assignments, vacations, t);
-            
-            // Employee is disabled only for full-day vacation OR manually on leave
-            // Partial vacation employees should remain selectable
-            const isDisabled = (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day') || isManuallyOnLeave;
-            
-            // Apply red styling for workday end times with higher CSS specificity
-            const hasRedStyling = availabilityInfo.status === 'fullyBooked';
-            console.log(`[EmployeeSelector] Employee ${employee.name} red styling applied: ${hasRedStyling}, disabled: ${isDisabled}, vacation type: ${vacationStatus.vacationType}`);
-            
-            return (
+            try {
+              // Validate employee has required fields
+              if (!employee || !employee.id || !employee.name) {
+                console.error('[EmployeeSelector] Invalid employee object:', employee);
+                return null;
+              }
+
+              const isSelected = selectedEmployees.includes(employee.id);
+              
+              // Get detailed vacation status with error handling
+              let vacationStatus;
+              try {
+                vacationStatus = getEmployeeVacationStatus(employee.id, dateForComparison, vacations);
+              } catch (err) {
+                console.error(`[EmployeeSelector] Error getting vacation status for ${employee.name}:`, err);
+                vacationStatus = { isOnVacation: false, vacationType: 'none' };
+              }
+              
+              // Use manual on leave status (not vacation-based)
+              const isManuallyOnLeave = employee.onLeave || false;
+              
+              // Get comprehensive availability info with error handling
+              let availabilityInfo;
+              try {
+                availabilityInfo = getEmployeeAvailabilityStatus(employee, dateForComparison, assignments, vacations, t);
+              } catch (err) {
+                console.error(`[EmployeeSelector] Error getting availability status for ${employee.name}:`, err);
+                availabilityInfo = { status: 'available', statusText: '', badgeColor: '' };
+              }
+              
+              // Employee is disabled only for full-day vacation OR manually on leave
+              // Partial vacation employees should remain selectable
+              const isDisabled = (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day') || isManuallyOnLeave;
+              
+              // Apply red styling for workday end times with higher CSS specificity
+              const hasRedStyling = availabilityInfo.status === 'fullyBooked';
+              console.log(`[EmployeeSelector] Employee ${employee.name} red styling applied: ${hasRedStyling}, disabled: ${isDisabled}, vacation type: ${vacationStatus.vacationType}`);
+              
+              return (
               <DropdownMenuItem
                 key={employee.id}
                 className={`flex items-center space-x-2 p-2 ${
@@ -204,6 +223,10 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 </div>
               </DropdownMenuItem>
             );
+            } catch (err) {
+              console.error(`[EmployeeSelector] Error rendering employee ${employee?.name || 'unknown'}:`, err);
+              return null; // Skip this employee if there's an error
+            }
           })}
         </DropdownMenuContent>
       </DropdownMenu>

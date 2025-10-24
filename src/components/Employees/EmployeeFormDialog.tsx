@@ -226,17 +226,62 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                   </Label>
                 </div>
                 
-                {formData.is_temporary && <div className="bg-muted p-3 rounded-md">
+                {formData.is_temporary && <div className="bg-muted p-3 rounded-md space-y-2">
                     <div className="flex items-start space-x-2">
                       <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
                       <div className="space-y-2 flex-1">
                         <Label htmlFor="expires_at">{t('employees.expirationDate')}</Label>
-                        <Input id="expires_at" name="expires_at" type="date" value={formData.expires_at} onChange={handleInputChange} required={formData.is_temporary} min={new Date().toISOString().split('T')[0]} disabled={isSubmitting} />
+                        <Input 
+                          id="expires_at" 
+                          name="expires_at" 
+                          type="date" 
+                          value={formData.expires_at} 
+                          onChange={(e) => {
+                            handleInputChange(e);
+                            // Validate expiration date
+                            const selectedDate = new Date(e.target.value);
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const sixMonthsFromNow = new Date(today);
+                            sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+                            
+                            if (selectedDate < today) {
+                              setErrorMessage(t('employees.expirationMustBeFuture'));
+                            } else if (selectedDate > sixMonthsFromNow) {
+                              setErrorMessage('');
+                              // Just a warning, don't prevent submission
+                            } else {
+                              setErrorMessage('');
+                            }
+                          }}
+                          required={formData.is_temporary} 
+                          min={new Date().toISOString().split('T')[0]} 
+                          disabled={isSubmitting} 
+                        />
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">
+                    <p className="text-xs text-muted-foreground">
                       {t('employees.temporaryUserNote')}
                     </p>
+                    {formData.expires_at && (() => {
+                      const selectedDate = new Date(formData.expires_at);
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const sixMonthsFromNow = new Date(today);
+                      sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+                      
+                      if (selectedDate > sixMonthsFromNow) {
+                        return (
+                          <Alert className="py-2">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertDescription className="text-xs">
+                              {t('employees.expirationFarFuture')}
+                            </AlertDescription>
+                          </Alert>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>}
               </div>}
 
