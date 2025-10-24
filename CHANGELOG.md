@@ -88,10 +88,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Significantly improves demo mode performance and prevents unwanted page refreshes
   - Affects: `src/hooks/car/useCarData.ts`
 - **Employee Absence Toggle**: Fixed UI not refreshing immediately when toggling employee absence status
+  - Implemented deep change detection in `useEmployeeData` to properly detect onLeave and status changes
   - Updated component key prop to include absence status and employee status for proper re-rendering
   - Added missing translation keys for absence toggle toast messages (Danish and English)
   - Toast messages now display properly translated text instead of translation keys
-  - Affects: `src/components/Employees/EmployeesTable.tsx`, `src/translations/da/employees.ts`, `src/translations/en/employees.ts`
+  - Affects: `src/hooks/employee/useEmployeeData.ts`, `src/pages/EmployeesPage.tsx`, `src/components/Employees/EmployeesTable.tsx`, `src/translations/da/employees.ts`, `src/translations/en/employees.ts`
 
 ### Fixed - 2025-01-23
 - **Demo Mode Data Filtering**: Cars and employees now filtered by creation date (>= 2025-10-23) to exclude baseline production data

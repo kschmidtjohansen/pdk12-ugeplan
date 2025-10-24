@@ -78,9 +78,9 @@ const EmployeesPage: React.FC = () => {
     }
   };
 
-  const handleToggleLeave = (employee: Employee) => {
+  const handleToggleLeave = async (employee: Employee) => {
     if (!isAdmin) return;
-    toggleEmployeeLeave(employee, !employee.onLeave);
+    await toggleEmployeeLeave(employee, !employee.onLeave);
   };
 
   const handleRetry = () => {

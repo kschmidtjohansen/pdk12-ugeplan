@@ -88,14 +88,28 @@ export const useEmployeeData = () => {
         const merged = [...transformedEmployees, ...localConverted];
         console.log(`[useEmployeeData] Merged ${transformedEmployees.length} baseline + ${localConverted.length} local demo employees`);
 
-        // Only update state if data actually changed to prevent stutter
-        setEmployees(prev => {
-          if (prev.length === merged.length && 
-              prev.slice(0, 3).every((e, i) => e.id === merged[i]?.id)) {
-            return prev; // No change, keep previous reference
-          }
-          return merged;
-        });
+        // Deep comparison function to detect meaningful changes
+        const haveEmployeesChanged = (prev: Employee[], next: Employee[]) => {
+          if (prev.length !== next.length) return true;
+          
+          return prev.some((prevEmp, i) => {
+            const nextEmp = next[i];
+            if (!nextEmp || prevEmp.id !== nextEmp.id) return true;
+            
+            // Check fields that matter for UI updates
+            return prevEmp.onLeave !== nextEmp.onLeave ||
+                   prevEmp.status !== nextEmp.status ||
+                   prevEmp.name !== nextEmp.name ||
+                   prevEmp.email !== nextEmp.email ||
+                   prevEmp.phone !== nextEmp.phone ||
+                   prevEmp.jobTitle !== nextEmp.jobTitle ||
+                   prevEmp.role !== nextEmp.role ||
+                   prevEmp.notes !== nextEmp.notes ||
+                   prevEmp.avatar_url !== nextEmp.avatar_url;
+          });
+        };
+
+        setEmployees(prev => haveEmployeesChanged(prev, merged) ? merged : prev);
         console.log('[useEmployeeData] Demo employee data set successfully');
       } else {
         // Fetch profiles with proper error handling
@@ -168,14 +182,28 @@ export const useEmployeeData = () => {
         console.log('- Skadeledere:', skadeledere.length);
         console.log('- Total employees:', transformedEmployees.length);
 
-        // Only update state if data actually changed to prevent stutter
-        setEmployees(prev => {
-          if (prev.length === transformedEmployees.length && 
-              prev.slice(0, 3).every((e, i) => e.id === transformedEmployees[i]?.id)) {
-            return prev; // No change, keep previous reference
-          }
-          return transformedEmployees;
-        });
+        // Deep comparison function to detect meaningful changes
+        const haveEmployeesChanged = (prev: Employee[], next: Employee[]) => {
+          if (prev.length !== next.length) return true;
+          
+          return prev.some((prevEmp, i) => {
+            const nextEmp = next[i];
+            if (!nextEmp || prevEmp.id !== nextEmp.id) return true;
+            
+            // Check fields that matter for UI updates
+            return prevEmp.onLeave !== nextEmp.onLeave ||
+                   prevEmp.status !== nextEmp.status ||
+                   prevEmp.name !== nextEmp.name ||
+                   prevEmp.email !== nextEmp.email ||
+                   prevEmp.phone !== nextEmp.phone ||
+                   prevEmp.jobTitle !== nextEmp.jobTitle ||
+                   prevEmp.role !== nextEmp.role ||
+                   prevEmp.notes !== nextEmp.notes ||
+                   prevEmp.avatar_url !== nextEmp.avatar_url;
+          });
+        };
+
+        setEmployees(prev => haveEmployeesChanged(prev, transformedEmployees) ? transformedEmployees : prev);
         console.log('[useEmployeeData] Employee data set successfully');
       }
     } catch (err) {
