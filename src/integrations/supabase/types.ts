@@ -616,7 +616,14 @@ export type Database = {
         Returns: boolean
       }
       check_system_health: { Args: never; Returns: Json }
-      cleanup_expired_temporary_users: { Args: never; Returns: undefined }
+      cleanup_expired_temporary_users: {
+        Args: never
+        Returns: {
+          deleted_count: number
+          deleted_user_ids: string[]
+          message: string
+        }[]
+      }
       create_logs_partition_for_month: { Args: never; Returns: undefined }
       debug_auth_info: { Args: never; Returns: Json }
       delete_expired_approved_vacations: { Args: never; Returns: undefined }
