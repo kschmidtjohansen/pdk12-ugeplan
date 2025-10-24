@@ -98,6 +98,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Demo mode users still see all employees including demo user
   - Prevents confusion by keeping demo-only accounts hidden from regular users
   - Affects: `src/hooks/employee/useEmployeeData.ts`
+- **Vikar Selection Error Fixed**: Improved error handling in employee selector for vikarer
+  - Added comprehensive error handling and validation for employee data
+  - Vikarer with missing fields no longer crash the selector
+  - Added detailed error logging for debugging
+  - Affects: `src/components/Planner/EmployeeSelector.tsx`
+- **Expiration Date Validation**: Enhanced vikar creation with expiration date validation
+  - Prevents setting expiration dates in the past
+  - Warns when expiration is more than 6 months away
+  - Improved user experience with clear error messages
+  - Affects: `src/components/Employees/EmployeeFormDialog.tsx`
+- **Cleanup Function Enhanced**: Improved temporary user cleanup function
+  - Updated Petrie's expiration date for testing
+  - Added detailed logging for cleanup operations
+  - Now returns deletion count and affected user IDs
+  - Improved error handling for auth user deletion
+  - Fixed security warning (search_path set to empty string)
+  - Affects: Database function `cleanup_expired_temporary_users()`
 
 ### Fixed - 2025-01-23
 - **Demo Mode Data Filtering**: Cars and employees now filtered by creation date (>= 2025-10-23) to exclude baseline production data

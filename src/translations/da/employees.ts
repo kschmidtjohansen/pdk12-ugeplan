@@ -136,6 +136,10 @@ const employees = {
   networkError: 'Netværksfejl',
   rateLimitError: 'For mange forsøg',
   vikarAutoRole: 'Vikarer får automatisk tildelt "Vikar" rollen',
+  expirationMustBeFuture: 'Udløbsdato skal være i fremtiden',
+  expirationFarFuture: 'Advarsel: Udløbsdatoen er mere end 6 måneder væk. Overvej en kortere periode for vikarer.',
+  validEmailRequired: 'Gyldig email-adresse er påkrævet',
+  autoRemovedUnavailable: 'Følgende medarbejdere blev automatisk fjernet, fordi de blev utilgængelige',
 };
 
 export default employees;

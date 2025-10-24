@@ -134,6 +134,10 @@ const employees = {
   networkError: 'Network error',
   rateLimitError: 'Too many attempts',
   vikarAutoRole: 'Substitutes are automatically assigned the "Substitute" role',
+  expirationMustBeFuture: 'Expiration date must be in the future',
+  expirationFarFuture: 'Warning: Expiration date is more than 6 months away. Consider a shorter period for temporary users.',
+  validEmailRequired: 'Valid email address is required',
+  autoRemovedUnavailable: 'The following employees were automatically removed because they became unavailable',
 };
 
 export default employees;
