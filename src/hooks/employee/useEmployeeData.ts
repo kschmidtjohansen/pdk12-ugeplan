@@ -182,6 +182,20 @@ export const useEmployeeData = () => {
         console.log('- Skadeledere:', skadeledere.length);
         console.log('- Total employees:', transformedEmployees.length);
 
+        // Filter out demo user from production view (demo user is only for demo mode)
+        let finalEmployees = transformedEmployees;
+        if (!isDemoMode) {
+          const beforeCount = transformedEmployees.length;
+          finalEmployees = transformedEmployees.filter(emp => 
+            emp.email !== 'test@polygongroup.com' && 
+            emp.id !== '165cdbc9-6722-4c96-97d2-1a87185c8133'
+          );
+          
+          if (beforeCount !== finalEmployees.length) {
+            console.log(`[useEmployeeData] Filtered demo user from production view. Total: ${beforeCount} -> ${finalEmployees.length}`);
+          }
+        }
+
         // Deep comparison function to detect meaningful changes
         const haveEmployeesChanged = (prev: Employee[], next: Employee[]) => {
           if (prev.length !== next.length) return true;
@@ -203,7 +217,7 @@ export const useEmployeeData = () => {
           });
         };
 
-        setEmployees(prev => haveEmployeesChanged(prev, transformedEmployees) ? transformedEmployees : prev);
+        setEmployees(prev => haveEmployeesChanged(prev, finalEmployees) ? finalEmployees : prev);
         console.log('[useEmployeeData] Employee data set successfully');
       }
     } catch (err) {

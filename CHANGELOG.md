@@ -93,6 +93,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added missing translation keys for absence toggle toast messages (Danish and English)
   - Toast messages now display properly translated text instead of translation keys
   - Affects: `src/hooks/employee/useEmployeeData.ts`, `src/pages/EmployeesPage.tsx`, `src/components/Employees/EmployeesTable.tsx`, `src/translations/da/employees.ts`, `src/translations/en/employees.ts`
+- **Demo User Visibility**: Hidden demo user profile from production employee list
+  - Demo user (`test@polygongroup.com`) is now filtered out in production views
+  - Demo mode users still see all employees including demo user
+  - Prevents confusion by keeping demo-only accounts hidden from regular users
+  - Affects: `src/hooks/employee/useEmployeeData.ts`
 
 ### Fixed - 2025-01-23
 - **Demo Mode Data Filtering**: Cars and employees now filtered by creation date (>= 2025-10-23) to exclude baseline production data
