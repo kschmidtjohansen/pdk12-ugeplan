@@ -21,37 +21,41 @@ export const useAssignmentActions = (
   const { user, isDemoMode } = useAuth();
   const demoService = DemoUserService.getInstance();
 
-  // Helper function to get profile ID by name
-  const getProfileIdByName = async (name: string): Promise<string | null> => {
+  // Helper function to validate employee exists and is available
+  const validateEmployee = async (employeeId: string): Promise<{ valid: boolean; error?: string }> => {
     try {
-      if (!name || typeof name !== 'string') {
-        console.warn('Invalid name provided for profile lookup:', name);
-        return null;
+      if (!employeeId || !isValidUUID(employeeId)) {
+        return { valid: false, error: `Invalid employee ID: ${employeeId}` };
       }
 
       const client = getSchemaClient(isDemoMode);
-      const { data, error } = await client
+      const { data: employee, error } = await client
         .from('profiles')
-        .select('id')
-        .eq('name', name)
+        .select('id, name, status, is_temporary, expires_at')
+        .eq('id', employeeId)
         .single();
         
-      if (error) {
-        console.error('Error getting profile by name:', error);
-        return null;
+      if (error || !employee) {
+        return { valid: false, error: `Employee not found: ${employeeId}` };
+      }
+
+      // Check if temporary employee is expired
+      if (employee.is_temporary && employee.expires_at) {
+        const expiryDate = new Date(employee.expires_at);
+        if (expiryDate < new Date()) {
+          return { valid: false, error: `Employee ${employee.name} has expired (expired: ${expiryDate.toLocaleDateString()})` };
+        }
+      }
+
+      // Check if employee is inactive or terminated
+      if (employee.status === 'terminated' || employee.status === 'inactive') {
+        return { valid: false, error: `Employee ${employee.name} is ${employee.status}` };
       }
       
-      // Validate the returned ID
-      const profileId = safeUUID(data?.id);
-      if (!profileId) {
-        console.warn('Invalid UUID returned for profile:', name, data?.id);
-        return null;
-      }
-      
-      return profileId;
+      return { valid: true };
     } catch (err) {
-      console.error('Exception getting profile by name:', err);
-      return null;
+      console.error('Exception validating employee:', err);
+      return { valid: false, error: `Error validating employee: ${err}` };
     }
   };
 
@@ -222,10 +226,20 @@ export const useAssignmentActions = (
           if (assignmentData.employees && assignmentData.employees.length > 0) {
             console.log("Assignment created, now linking employees:", assignmentData.employees);
             const employeeInserts = [];
+            const validationErrors: string[] = [];
             
             for (const employeeId of assignmentData.employees) {
               if (typeof employeeId !== 'string') {
                 console.warn("Skipping invalid employee data:", employeeId);
+                validationErrors.push(`Invalid employee data type`);
+                continue;
+              }
+              
+              // Validate employee
+              const validation = await validateEmployee(employeeId);
+              if (!validation.valid) {
+                console.error(`Employee validation failed: ${validation.error}`);
+                validationErrors.push(validation.error || 'Unknown validation error');
                 continue;
               }
               
@@ -237,7 +251,13 @@ export const useAssignmentActions = (
                 });
               } else {
                 console.warn(`Invalid employee ID provided: ${employeeId}`);
+                validationErrors.push(`Invalid employee ID: ${employeeId}`);
               }
+            }
+            
+            // If all employees failed validation, throw error
+            if (validationErrors.length > 0 && employeeInserts.length === 0) {
+              throw new Error(`Failed to add employees: ${validationErrors.join(', ')}`);
             }
             
             if (employeeInserts.length > 0) {
@@ -248,7 +268,17 @@ export const useAssignmentActions = (
                 
               if (employeeError) {
                 console.error('Error linking employees to assignment:', employeeError);
+                throw new Error(`Failed to link employees: ${employeeError.message}`);
               }
+            }
+            
+            // Show warning if some employees failed
+            if (validationErrors.length > 0) {
+              toast({
+                title: t('common.warning'),
+                description: `Some employees could not be added: ${validationErrors.join(', ')}`,
+                variant: "destructive",
+              });
             }
           }
         } catch (insertError) {
@@ -434,13 +464,22 @@ export const useAssignmentActions = (
       // If there are employees, link them to the assignment
       if (assignmentData.employees && assignmentData.employees.length > 0) {
         console.log("Assignment updated, now linking employees:", assignmentData.employees);
-        // Employee data is now employee IDs (UUIDs) instead of names
         const employeeInserts = [];
+        const validationErrors: string[] = [];
         
         for (const employeeId of assignmentData.employees) {
           // Skip any non-string values that might have gotten in the array
           if (typeof employeeId !== 'string') {
             console.warn("Skipping invalid employee data:", employeeId);
+            validationErrors.push(`Invalid employee data type`);
+            continue;
+          }
+          
+          // Validate employee
+          const validation = await validateEmployee(employeeId);
+          if (!validation.valid) {
+            console.error(`Employee validation failed: ${validation.error}`);
+            validationErrors.push(validation.error || 'Unknown validation error');
             continue;
           }
           
@@ -453,7 +492,13 @@ export const useAssignmentActions = (
             });
           } else {
             console.warn(`Invalid employee ID provided: ${employeeId}`);
+            validationErrors.push(`Invalid employee ID: ${employeeId}`);
           }
+        }
+        
+        // If all employees failed validation, throw error
+        if (validationErrors.length > 0 && employeeInserts.length === 0) {
+          throw new Error(`Failed to add employees: ${validationErrors.join(', ')}`);
         }
         
         // Insert employee associations
@@ -465,7 +510,17 @@ export const useAssignmentActions = (
             
           if (employeeError) {
             console.error('Error linking employees to assignment:', employeeError);
+            throw new Error(`Failed to link employees: ${employeeError.message}`);
           }
+        }
+        
+        // Show warning if some employees failed
+        if (validationErrors.length > 0) {
+          toast({
+            title: t('common.warning'),
+            description: `Some employees could not be added: ${validationErrors.join(', ')}`,
+            variant: "destructive",
+          });
         }
       }
       

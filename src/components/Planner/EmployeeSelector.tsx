@@ -141,6 +141,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 
               const isSelected = selectedEmployees.includes(employee.id);
               
+              // Check if temporary employee is expired
+              const isExpired = employee.is_temporary && employee.expires_at 
+                ? new Date(employee.expires_at) < new Date() 
+                : false;
+              
               // Get detailed vacation status with error handling
               let vacationStatus;
               try {
@@ -162,9 +167,12 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 availabilityInfo = { status: 'available', statusText: '', badgeColor: '' };
               }
               
-              // Employee is disabled only for full-day vacation OR manually on leave
-              // Partial vacation employees should remain selectable
-              const isDisabled = (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day') || isManuallyOnLeave;
+              // Employee is disabled if: full-day vacation, manually on leave, expired, or terminated/inactive
+              const isDisabled = (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day') 
+                || isManuallyOnLeave 
+                || isExpired
+                || employee.status === 'terminated'
+                || employee.status === 'inactive';
               
               // Apply red styling for workday end times with higher CSS specificity
               const hasRedStyling = availabilityInfo.status === 'fullyBooked';
@@ -198,6 +206,16 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                       </span>
                     </div>
                     <div className="flex gap-1 ml-2 flex-shrink-0">
+                      {isExpired && (
+                        <Badge variant="destructive" className="text-xs">
+                          Expired
+                        </Badge>
+                      )}
+                      {(employee.status === 'terminated' || employee.status === 'inactive') && (
+                        <Badge variant="outline" className="text-xs text-red-600 border-red-300">
+                          {employee.status === 'terminated' ? 'Terminated' : 'Inactive'}
+                        </Badge>
+                      )}
                       {vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day' && (
                         <Badge variant="outline" className="text-xs">
                           {t('planner.onVacation')}
