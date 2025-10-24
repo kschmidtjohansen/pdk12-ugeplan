@@ -74,6 +74,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Quick reference format guide
   - Link to detailed contributing guidelines
 
+### Fixed - 2025-01-24
+- **Demo Data Persistence**: Fixed demo data disappearing on page navigation
+  - Employees and assignments now persist in sessionStorage across page changes
+  - Added full virtualization for employee CRUD operations (create, update, delete)
+  - Added virtualization for assignment delete operations
+  - Demo data now properly merges with baseline data on fetch
+  - Data persists until manual deletion, "Clear demo data" button, or 15-minute auto-cleanup
+  - Affects: `src/services/demoUserService.ts`, `src/hooks/employee/useEmployeeData.ts`, `src/hooks/employee/useEmployeeActions.ts`, `src/services/optimizedAssignmentService.ts`, `src/hooks/assignment/useAssignmentActions.ts`
+
 ### Fixed - 2025-01-23
 - **Demo Mode Data Filtering**: Cars and employees now filtered by creation date (>= 2025-10-23) to exclude baseline production data
   - Only shows recent demo cars (CAR-001, CAR-002, VAN-001) on Cars page
