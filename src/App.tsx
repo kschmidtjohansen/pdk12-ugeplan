@@ -8,6 +8,7 @@ import { SecurityProvider } from "./context/SecurityContext";
 import { AuthProvider } from "./context/AuthContext";
 import { TranslationProvider, useTranslation } from "./context/TranslationContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { ChangeLogProvider } from "./context/ChangeLogContext";
 import RouteLoadingFallback from "./components/shared/RouteLoadingFallback";
 import MainLayout from "./components/Layout/MainLayout";
 import { performanceMonitor } from "./utils/performanceMonitor";

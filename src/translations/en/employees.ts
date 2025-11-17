@@ -138,6 +138,16 @@ const employees = {
   expirationFarFuture: 'Warning: Expiration date is more than 6 months away. Consider a shorter period for temporary users.',
   validEmailRequired: 'Valid email address is required',
   autoRemovedUnavailable: 'The following employees were automatically removed because they became unavailable',
+  
+  // Certificates
+  certificatesSection: 'Certificates and Licenses',
+  hasAsbestosCertificate: 'Asbestos Certificate',
+  hasTrailerLicense: 'Trailer License',
+  hasDriversLicense: "Driver's License",
+  certificates: 'Certificates',
+  asbestosCertificate: 'Asbestos Cert.',
+  trailerLicense: 'Trailer License',
+  driversLicense: "Driver's License",
 };
 
 export default employees;

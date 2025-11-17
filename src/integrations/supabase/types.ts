@@ -386,12 +386,60 @@ export type Database = {
         }
         Relationships: []
       }
+      planner_change_log: {
+        Row: {
+          assignment_id: string | null
+          change_details: Json
+          changed_by: string
+          changed_by_name: string
+          created_at: string
+          id: string
+          operation: string
+        }
+        Insert: {
+          assignment_id?: string | null
+          change_details: Json
+          changed_by: string
+          changed_by_name: string
+          created_at?: string
+          id?: string
+          operation: string
+        }
+        Update: {
+          assignment_id?: string | null
+          change_details?: Json
+          changed_by?: string
+          changed_by_name?: string
+          created_at?: string
+          id?: string
+          operation?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planner_change_log_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planner_change_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
           email: string
           expires_at: string | null
+          has_asbestos_certificate: boolean | null
+          has_drivers_license: boolean | null
+          has_trailer_license: boolean | null
           id: string
           is_temporary: boolean | null
           job_title: string | null
@@ -407,6 +455,9 @@ export type Database = {
           created_at?: string
           email: string
           expires_at?: string | null
+          has_asbestos_certificate?: boolean | null
+          has_drivers_license?: boolean | null
+          has_trailer_license?: boolean | null
           id: string
           is_temporary?: boolean | null
           job_title?: string | null
@@ -422,6 +473,9 @@ export type Database = {
           created_at?: string
           email?: string
           expires_at?: string | null
+          has_asbestos_certificate?: boolean | null
+          has_drivers_license?: boolean | null
+          has_trailer_license?: boolean | null
           id?: string
           is_temporary?: boolean | null
           job_title?: string | null

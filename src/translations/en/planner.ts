@@ -49,6 +49,18 @@ const planner = {
   errorUpdatingAssignment: 'Error updating assignment',
   errorDeletingAssignment: 'Error deleting assignment',
   
+  // Change Log
+  changeLog: {
+    title: 'Planner Changes',
+    subtitle: 'Recent planner activity',
+    noChanges: 'No changes yet',
+    created: 'created',
+    updated: 'updated',
+    deleted: 'deleted',
+    published: 'published',
+    assignments: 'assignments',
+  },
+  
   // Week view
   weekView: 'Week {week}, {year} ({start} - {end})',
   week: 'Week',

@@ -199,6 +199,48 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
             
           </div>
           
+          {/* Certificates Section */}
+          <div className="space-y-4 pt-4 border-t">
+            <Label className="text-sm font-semibold">
+              {t('employees.certificatesSection')}
+            </Label>
+            <div className="space-y-3 pl-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="has_asbestos_certificate" 
+                  checked={formData.has_asbestos_certificate} 
+                  onCheckedChange={checked => onCheckboxChange('has_asbestos_certificate', checked as boolean)} 
+                  disabled={isSubmitting} 
+                />
+                <Label htmlFor="has_asbestos_certificate" className="text-sm font-normal cursor-pointer">
+                  {t('employees.hasAsbestosCertificate')}
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="has_trailer_license" 
+                  checked={formData.has_trailer_license} 
+                  onCheckedChange={checked => onCheckboxChange('has_trailer_license', checked as boolean)} 
+                  disabled={isSubmitting} 
+                />
+                <Label htmlFor="has_trailer_license" className="text-sm font-normal cursor-pointer">
+                  {t('employees.hasTrailerLicense')}
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="has_drivers_license" 
+                  checked={formData.has_drivers_license} 
+                  onCheckedChange={checked => onCheckboxChange('has_drivers_license', checked as boolean)} 
+                  disabled={isSubmitting} 
+                />
+                <Label htmlFor="has_drivers_license" className="text-sm font-normal cursor-pointer">
+                  {t('employees.hasDriversLicense')}
+                </Label>
+              </div>
+            </div>
+          </div>
+          
           {isAdmin && <>
               {/* Temporary user checkbox - only show when editing or creating vikar */}
               {creationType !== 'employee' && <div className="space-y-4">

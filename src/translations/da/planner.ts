@@ -49,6 +49,18 @@ const planner = {
   errorUpdatingAssignment: 'Fejl ved opdatering af opgave',
   errorDeletingAssignment: 'Fejl ved sletning af opgave',
   
+  // Change Log
+  changeLog: {
+    title: 'Planner Ændringer',
+    subtitle: 'Seneste aktivitet i planneren',
+    noChanges: 'Ingen ændringer endnu',
+    created: 'oprettede',
+    updated: 'opdaterede',
+    deleted: 'slettede',
+    published: 'publicerede',
+    assignments: 'opgaver',
+  },
+  
   // Week view
   weekView: 'Uge {week}, {year} ({start} - {end})',
   week: 'Uge',

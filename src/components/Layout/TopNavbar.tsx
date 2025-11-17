@@ -15,6 +15,7 @@ import Logo from './NavComponents/Logo';
 import DesktopNavigation from './NavComponents/DesktopNavigation';
 import MobileNavigation from './NavComponents/MobileNavigation';
 import NotificationsDropdown from './NavComponents/NotificationsDropdown';
+import ChangeLogDropdown from './NavComponents/ChangeLogDropdown';
 import UserMenu from './NavComponents/UserMenu';
 import { getNavigationItems } from './NavigationItems';
 
@@ -155,7 +156,7 @@ const TopNavbar: React.FC = () => {
             </div>
             
             {/* Notifications - Desktop */}
-            <div className="hidden md:flex md:items-center">
+            <div className="hidden md:flex md:items-center md:gap-2">
               <NotificationsDropdown 
                 notifications={notifications.slice(0, 10)}
                 unreadCount={unreadCount}
@@ -163,6 +164,9 @@ const TopNavbar: React.FC = () => {
                 handleNotificationClick={handleNotificationClick}
                 clearNotification={deleteNotification}
               />
+              {(isEffectiveAdmin || user?.role === 'skadeleder') && (
+                <ChangeLogDropdown />
+              )}
             </div>
             
             {/* User dropdown */}
