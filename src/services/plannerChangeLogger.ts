@@ -62,6 +62,29 @@ export class PlannerChangeLogger {
   }
 
   /**
+   * Get employee names from IDs
+   */
+  private static async getEmployeeNames(employeeIds: string[]): Promise<Record<string, string>> {
+    if (!employeeIds.length) return {};
+    
+    try {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .in('id', employeeIds);
+      
+      const nameMap: Record<string, string> = {};
+      profiles?.forEach(profile => {
+        nameMap[profile.id] = profile.name;
+      });
+      return nameMap;
+    } catch (error) {
+      console.error('[PlannerChangeLogger] Failed to fetch employee names:', error);
+      return {};
+    }
+  }
+
+  /**
    * Log assignment update
    */
   static async logUpdate(
@@ -71,7 +94,10 @@ export class PlannerChangeLogger {
   ): Promise<void> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.warn('[PlannerChangeLogger] No user found, skipping log');
+        return;
+      }
 
       const userName = await this.getCurrentUserName();
 
@@ -88,13 +114,21 @@ export class PlannerChangeLogger {
         }
       });
 
-      // Check employee changes
-      const beforeEmployees = before.employees || [];
-      const afterEmployees = after.employees || [];
-      if (JSON.stringify(beforeEmployees) !== JSON.stringify(afterEmployees)) {
+      // Check employee changes - track specific employees added/removed
+      const beforeEmployeeIds = new Set(before.employees || []);
+      const afterEmployeeIds = new Set(after.employees || []);
+      
+      const addedEmployeeIds = Array.from(afterEmployeeIds).filter(id => !beforeEmployeeIds.has(id));
+      const removedEmployeeIds = Array.from(beforeEmployeeIds).filter(id => !afterEmployeeIds.has(id));
+      
+      if (addedEmployeeIds.length > 0 || removedEmployeeIds.length > 0) {
+        // Fetch employee names for added/removed employees
+        const allChangedIds = [...addedEmployeeIds, ...removedEmployeeIds];
+        const nameMap = await this.getEmployeeNames(allChangedIds);
+        
         changes.employees = {
-          from: beforeEmployees.length,
-          to: afterEmployees.length
+          added: addedEmployeeIds.map(id => nameMap[id] || id),
+          removed: removedEmployeeIds.map(id => nameMap[id] || id)
         };
       }
 
@@ -120,7 +154,7 @@ export class PlannerChangeLogger {
         changes
       };
 
-      await supabase
+      const { error } = await supabase
         .from('planner_change_log')
         .insert({
           assignment_id: assignmentId,
@@ -130,9 +164,16 @@ export class PlannerChangeLogger {
           change_details: changeDetails
         });
 
+      if (error) {
+        console.error('[PlannerChangeLogger] Database insert error:', error);
+        throw error;
+      }
+
       console.log('[PlannerChangeLogger] Logged UPDATE operation', { assignmentId, changes });
     } catch (error) {
       console.error('[PlannerChangeLogger] Failed to log UPDATE:', error);
+      // Re-throw to make errors visible
+      throw error;
     }
   }
 

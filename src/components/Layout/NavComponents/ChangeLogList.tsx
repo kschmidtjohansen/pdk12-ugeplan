@@ -54,8 +54,27 @@ const ChangeLogList: React.FC = () => {
     }
     
     if (log.operation === 'UPDATE') {
-      const changedFields = Object.keys(details.changes || {});
-      const fieldsList = changedFields.length > 0 ? ` - ${changedFields.join(', ')}` : '';
+      const changes = details.changes || {};
+      const parts: string[] = [];
+      
+      // Handle employee changes specially
+      if (changes.employees) {
+        const { added, removed } = changes.employees;
+        if (removed && removed.length > 0) {
+          parts.push(`Removed: ${removed.join(', ')}`);
+        }
+        if (added && added.length > 0) {
+          parts.push(`Added: ${added.join(', ')}`);
+        }
+      }
+      
+      // Add other field changes
+      const otherFields = Object.keys(changes).filter(f => f !== 'employees');
+      if (otherFields.length > 0) {
+        parts.push(`Changed: ${otherFields.join(', ')}`);
+      }
+      
+      const fieldsList = parts.length > 0 ? ` - ${parts.join('; ')}` : '';
       return caseNumber
         ? `${caseNumber} - "${details.title}"${fieldsList}`
         : `"${details.title}"${fieldsList}`;
