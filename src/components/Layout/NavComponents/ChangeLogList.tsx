@@ -45,19 +45,26 @@ const ChangeLogList: React.FC = () => {
 
   const getChangeDescription = (log: any) => {
     const details = log.change_details;
+    const caseNumber = details.case_number || details.caseNumber;
     
     if (log.operation === 'CREATE') {
-      return `"${details.title}"`;
+      return caseNumber 
+        ? `${caseNumber} - "${details.title}"`
+        : `"${details.title}"`;
     }
     
     if (log.operation === 'UPDATE') {
       const changedFields = Object.keys(details.changes || {});
-      if (changedFields.length === 0) return `"${details.title}"`;
-      return `"${details.title}" - ${changedFields.join(', ')}`;
+      const fieldsList = changedFields.length > 0 ? ` - ${changedFields.join(', ')}` : '';
+      return caseNumber
+        ? `${caseNumber} - "${details.title}"${fieldsList}`
+        : `"${details.title}"${fieldsList}`;
     }
     
     if (log.operation === 'DELETE') {
-      return `"${details.title}"`;
+      return caseNumber
+        ? `${caseNumber} - "${details.title}"`
+        : `"${details.title}"`;
     }
     
     if (log.operation === 'PUBLISH') {
