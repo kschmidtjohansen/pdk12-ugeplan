@@ -140,6 +140,16 @@ const employees = {
   expirationFarFuture: 'Advarsel: Udløbsdatoen er mere end 6 måneder væk. Overvej en kortere periode for vikarer.',
   validEmailRequired: 'Gyldig email-adresse er påkrævet',
   autoRemovedUnavailable: 'Følgende medarbejdere blev automatisk fjernet, fordi de blev utilgængelige',
+  
+  // Certificates
+  certificatesSection: 'Certifikater og Kørekort',
+  hasAsbestosCertificate: 'Asbestbevis',
+  hasTrailerLicense: 'Trailerkørekort',
+  hasDriversLicense: 'Kørekort',
+  certificates: 'Certifikater',
+  asbestosCertificate: 'Asbestbevis',
+  trailerLicense: 'Trailerkørekort',
+  driversLicense: 'Kørekort',
 };
 
 export default employees;

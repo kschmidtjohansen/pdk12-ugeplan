@@ -4,7 +4,7 @@ import { usePermissions } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck } from 'lucide-react';
+import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, Shield, Truck, Car } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Employee } from '@/types/employee';
@@ -112,6 +112,48 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
         </div>
       </TableCell>
       <TableCell>{employee.jobTitle}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={employee.has_asbestos_certificate ? 'text-green-600' : 'text-muted-foreground/30'}>
+                  <Shield className="h-4 w-4" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">{t('employees.asbestosCertificate')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={employee.has_trailer_license ? 'text-blue-600' : 'text-muted-foreground/30'}>
+                  <Truck className="h-4 w-4" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">{t('employees.trailerLicense')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={employee.has_drivers_license ? 'text-orange-600' : 'text-muted-foreground/30'}>
+                  <Car className="h-4 w-4" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">{t('employees.driversLicense')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </TableCell>
       {(isAdmin) && (
         <TableCell>
           <StatusBadge variant={getRoleVariant(employee.role)}>

@@ -14,6 +14,9 @@ export interface EmployeeFormData {
   notes: string;
   is_temporary: boolean;
   expires_at: string;
+  has_asbestos_certificate: boolean;
+  has_trailer_license: boolean;
+  has_drivers_license: boolean;
 }
 
 export type CreationType = 'employee' | 'vikar' | 'edit';
@@ -31,7 +34,10 @@ export const useEmployeeFormState = () => {
     onLeave: false,
     notes: '',
     is_temporary: false,
-    expires_at: ''
+    expires_at: '',
+    has_asbestos_certificate: false,
+    has_trailer_license: false,
+    has_drivers_license: false
   });
 
   const resetFormData = () => {
@@ -45,7 +51,10 @@ export const useEmployeeFormState = () => {
       onLeave: false,
       notes: '',
       is_temporary: false,
-      expires_at: ''
+      expires_at: '',
+      has_asbestos_certificate: false,
+      has_trailer_license: false,
+      has_drivers_license: false
     });
   };
 
@@ -69,7 +78,10 @@ export const useEmployeeFormState = () => {
       onLeave: employee.onLeave || false,
       notes: employee.notes || '',
       is_temporary: employee.is_temporary || false,
-      expires_at: employee.expires_at ? new Date(employee.expires_at).toISOString().split('T')[0] : ''
+      expires_at: employee.expires_at ? new Date(employee.expires_at).toISOString().split('T')[0] : '',
+      has_asbestos_certificate: employee.has_asbestos_certificate || false,
+      has_trailer_license: employee.has_trailer_license || false,
+      has_drivers_license: employee.has_drivers_license || false
     });
     return formData;
   };
@@ -90,7 +102,10 @@ export const useEmployeeFormState = () => {
       onLeave: false,
       notes: '',
       is_temporary: true,
-      expires_at: expirationDate.toISOString().split('T')[0]
+      expires_at: expirationDate.toISOString().split('T')[0],
+      has_asbestos_certificate: false,
+      has_trailer_license: false,
+      has_drivers_license: false
     };
     
     setFormData(vikarFormData);

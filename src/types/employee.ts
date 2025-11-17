@@ -14,4 +14,7 @@ export interface Employee {
   avatar_url?: string;
   is_temporary?: boolean;
   expires_at?: string;
+  has_asbestos_certificate?: boolean;
+  has_trailer_license?: boolean;
+  has_drivers_license?: boolean;
 }
