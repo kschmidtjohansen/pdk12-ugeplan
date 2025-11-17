@@ -8,6 +8,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
 import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 import { resolveEmployeeDisplayName } from '@/utils/people';
+import { PlannerChangeLogger } from '@/services/plannerChangeLogger';
 
 export type FilterType = 'all' | 'published' | 'unpublished' | 'user';
 export type AssignmentFilter = FilterType; // Export for compatibility
@@ -242,6 +243,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           to_time: data.toTime,
           location: data.location.trim(),
           type: data.type || null,
+          case_number: data.case_number || null,
           published: data.published || false,
           responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
           car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : null),
@@ -256,6 +258,19 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
             const serviceData = { ...baseServiceData, assignment_date: date };
             const created = await OptimizedAssignmentService.createAssignment(serviceData);
             createdAssignments.push(created);
+            
+            // Log the creation
+            await PlannerChangeLogger.logCreate(created.id, {
+              title: serviceData.title,
+              date: date,
+              location: serviceData.location,
+              fromTime: serviceData.from_time,
+              toTime: serviceData.to_time,
+              case_number: serviceData.case_number,
+              employees: serviceData.employees,
+              cars: serviceData.car_ids
+            });
+            
             console.log('[useOptimizedAssignments] ✅ Successfully created assignment for', date);
           } catch (err) {
             console.error('[useOptimizedAssignments] ❌ Failed to create assignment for', date, err);
@@ -422,6 +437,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           from_time: data.fromTime,
           to_time: data.toTime,
           location: data.location?.trim(),
+          case_number: data.case_number || null,
           published: data.published || false,
           responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
           car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
@@ -432,6 +448,15 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         
         console.log('[useOptimizedAssignments] 🎯 Updating existing assignment with first date:', dates[0]);
         await OptimizedAssignmentService.updateAssignment(id, firstDateServiceData);
+        
+        // Log the update
+        if (originalAssignment) {
+          await PlannerChangeLogger.logUpdate(id, originalAssignment, {
+            ...data,
+            date: dates[0],
+            case_number: firstDateServiceData.case_number
+          });
+        }
         
         // Create new assignments for remaining dates
         const createdAssignments = [];
@@ -448,6 +473,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
               to_time: data.toTime,
               location: data.location?.trim(),
               type: data.type || null,
+              case_number: data.case_number || null,
               published: data.published || false,
               responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
               car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
@@ -457,6 +483,19 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
             };
             const created = await OptimizedAssignmentService.createAssignment(newAssignmentData);
             createdAssignments.push(created);
+            
+            // Log the creation
+            await PlannerChangeLogger.logCreate(created.id, {
+              title: newAssignmentData.title,
+              date: dates[i],
+              location: newAssignmentData.location,
+              fromTime: newAssignmentData.from_time,
+              toTime: newAssignmentData.to_time,
+              case_number: newAssignmentData.case_number,
+              employees: newAssignmentData.employees,
+              cars: newAssignmentData.car_ids
+            });
+            
             console.log('[useOptimizedAssignments] ✅ Successfully created assignment for', dates[i]);
           } catch (err) {
             console.error('[useOptimizedAssignments] ❌ Failed to create assignment for', dates[i], err);
@@ -573,6 +612,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         from_time: data.fromTime,
         to_time: data.toTime,
         location: data.location?.trim(),
+        case_number: data.case_number || null,
         published: data.published || false,
         responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
         car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
@@ -584,6 +624,15 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       console.log('[useOptimizedAssignments] Service data:', serviceData);
       
       await OptimizedAssignmentService.updateAssignment(id, serviceData);
+      
+      // Log the update
+      if (originalAssignment) {
+        await PlannerChangeLogger.logUpdate(id, originalAssignment, {
+          ...data,
+          date: dates[0],
+          case_number: serviceData.case_number
+        });
+      }
       
       // Refresh assignments to ensure UI is synchronized with server data
       console.log('[useOptimizedAssignments] Refreshing assignments after update to ensure data consistency');
@@ -630,6 +679,16 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       
       await OptimizedAssignmentService.deleteAssignment(id);
       
+      // Log the deletion
+      if (originalAssignment) {
+        await PlannerChangeLogger.logDelete(id, {
+          title: originalAssignment.title,
+          date: originalAssignment.date,
+          location: originalAssignment.location,
+          case_number: originalAssignment.case_number
+        });
+      }
+      
       toast({
         title: t('planner.assignmentDeleted'),
         description: t('planner.assignmentDeletedMsg')
@@ -673,6 +732,9 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       
       await OptimizedAssignmentService.publishAssignment(id);
       
+      // Log the publish operation
+      await PlannerChangeLogger.logPublish([id]);
+      
       toast({
         title: t('planner.assignmentPublished'),
         description: t('planner.assignmentPublishedMsg')
@@ -701,12 +763,23 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     try {
       console.log('[useOptimizedAssignments] Publishing assignments by date:', date);
       
+      // Get assignments to publish before the update
+      const assignmentsToPublish = assignments.filter(
+        assignment => assignment.date === date && !assignment.published
+      );
+      const assignmentIds = assignmentsToPublish.map(a => a.id);
+      
       // Optimistically update all assignments for the date
       setAssignments(prev => prev.map(assignment => 
         assignment.date === date ? { ...assignment, published: true } : assignment
       ));
       
       await OptimizedAssignmentService.publishAssignmentsByDate(date);
+      
+      // Log the bulk publish operation
+      if (assignmentIds.length > 0) {
+        await PlannerChangeLogger.logPublish(assignmentIds);
+      }
       
       toast({
         title: t('planner.dayPublished'),

@@ -3,18 +3,42 @@ import { Assignment } from '@/types/assignment';
 
 export class PlannerChangeLogger {
   /**
+   * Get current user's name from profile
+   */
+  private static async getCurrentUserName(): Promise<string> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 'Unknown';
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', user.id)
+        .single();
+        
+      return profile?.name || user.email || 'Unknown';
+    } catch (error) {
+      console.error('[PlannerChangeLogger] Failed to get user name:', error);
+      return 'Unknown';
+    }
+  }
+
+  /**
    * Log assignment creation
    */
-  static async logCreate(assignmentId: string, assignmentData: Partial<Assignment>, userName: string): Promise<void> {
+  static async logCreate(assignmentId: string, assignmentData: Partial<Assignment>): Promise<void> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      const userName = await this.getCurrentUserName();
 
       const changeDetails = {
         operation: 'CREATE',
         title: assignmentData.title,
         date: assignmentData.date,
         location: assignmentData.location,
+        case_number: assignmentData.case_number,
         from_time: assignmentData.fromTime,
         to_time: assignmentData.toTime,
         employees: assignmentData.employees?.length || 0,
@@ -43,12 +67,13 @@ export class PlannerChangeLogger {
   static async logUpdate(
     assignmentId: string, 
     before: Partial<Assignment>, 
-    after: Partial<Assignment>,
-    userName: string
+    after: Partial<Assignment>
   ): Promise<void> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      const userName = await this.getCurrentUserName();
 
       // Identify changed fields
       const changes: Record<string, any> = {};
@@ -91,6 +116,7 @@ export class PlannerChangeLogger {
       const changeDetails = {
         operation: 'UPDATE',
         title: after.title || before.title,
+        case_number: after.case_number || before.case_number,
         changes
       };
 
@@ -113,16 +139,19 @@ export class PlannerChangeLogger {
   /**
    * Log assignment deletion
    */
-  static async logDelete(assignmentId: string, assignmentData: Partial<Assignment>, userName: string): Promise<void> {
+  static async logDelete(assignmentId: string, assignmentData: Partial<Assignment>): Promise<void> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      const userName = await this.getCurrentUserName();
 
       const changeDetails = {
         operation: 'DELETE',
         title: assignmentData.title,
         date: assignmentData.date,
-        location: assignmentData.location
+        location: assignmentData.location,
+        case_number: assignmentData.case_number
       };
 
       await supabase
@@ -144,10 +173,12 @@ export class PlannerChangeLogger {
   /**
    * Log bulk publish operation
    */
-  static async logPublish(assignmentIds: string[], userName: string): Promise<void> {
+  static async logPublish(assignmentIds: string[]): Promise<void> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      const userName = await this.getCurrentUserName();
 
       // Log a single PUBLISH entry for bulk operations
       const changeDetails = {
