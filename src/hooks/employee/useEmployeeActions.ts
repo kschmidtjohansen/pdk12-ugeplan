@@ -117,6 +117,15 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       
       // Update profile
       const client = getSchemaClient(isDemoMode);
+      
+      // Log certificate values for debugging
+      console.log('[useEmployeeActions] Certificate values being sent:', {
+        has_asbestos_certificate: formData.has_asbestos_certificate ?? false,
+        has_trailer_license: formData.has_trailer_license ?? false,
+        has_drivers_license: formData.has_drivers_license ?? false,
+        has_forklift_license: formData.has_forklift_license ?? false
+      });
+      
       const { error: profileError } = await client
         .from('profiles')
         .update({
@@ -153,6 +162,8 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         description: t('employees.employeeUpdatedMsg', { name: formData.name })
       });
       
+      // Add delay to allow DB transaction to complete
+      await new Promise(resolve => setTimeout(resolve, 200));
       await refreshEmployees();
       return true;
     } catch (err) {

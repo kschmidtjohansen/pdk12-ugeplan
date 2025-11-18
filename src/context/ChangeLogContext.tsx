@@ -64,7 +64,7 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       let logs = (data || []) as ChangeLogEntry[];
 
-      // Enrich logs with missing case_numbers
+      // Enrich logs with missing case_numbers (fallback to title)
       const logsWithoutCaseNumber = logs.filter(
         log => log.assignment_id && !log.change_details?.case_number
       );
@@ -74,11 +74,11 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         
         const { data: assignments } = await supabase
           .from('assignments')
-          .select('id, case_number')
+          .select('id, case_number, title')
           .in('id', assignmentIds);
 
         if (assignments) {
-          const caseNumberMap = new Map(assignments.map(a => [a.id, a.case_number]));
+          const caseNumberMap = new Map(assignments.map(a => [a.id, a.case_number || a.title]));
           
           logs = logs.map(log => {
             if (log.assignment_id && !log.change_details?.case_number) {
@@ -176,20 +176,20 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         async (payload) => {
           let newLog = payload.new as ChangeLogEntry;
           
-          // Enrich with case_number if missing
+          // Enrich with case_number if missing (fallback to title)
           if (newLog.assignment_id && !newLog.change_details?.case_number) {
             const { data: assignment } = await supabase
               .from('assignments')
-              .select('case_number')
+              .select('case_number, title')
               .eq('id', newLog.assignment_id)
               .single();
             
-            if (assignment?.case_number) {
+            if (assignment) {
               newLog = {
                 ...newLog,
                 change_details: {
                   ...newLog.change_details,
-                  case_number: assignment.case_number
+                  case_number: assignment.case_number || assignment.title
                 }
               };
             }
