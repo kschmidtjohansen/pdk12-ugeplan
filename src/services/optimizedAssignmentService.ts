@@ -761,6 +761,12 @@ export class OptimizedAssignmentService {
       
       // Log the deletion
       if (assignment) {
+        console.log('[OptimizedAssignmentService] Deleting assignment with data:', {
+          id: assignmentId,
+          date: assignment.assignment_date,
+          case_number: assignment.case_number
+        });
+        
         const { PlannerChangeLogger } = await import('./plannerChangeLogger');
         await PlannerChangeLogger.logDelete(assignmentId, {
           title: assignment.title,

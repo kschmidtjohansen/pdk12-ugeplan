@@ -10,6 +10,7 @@ import { format, subDays } from 'date-fns';
 import { FileEdit, FilePlus, FileX, Upload, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/Layout/MainLayout';
+import { formatDateForDisplay } from '@/utils/dateUtils';
 import {
   Table,
   TableBody,
@@ -73,7 +74,9 @@ const ChangeLogPage: React.FC = () => {
     }
     
     if (log.operation === 'DELETE') {
-      return `${t('changeLog.deleted')} ${caseNumber}`;
+      const formattedDate = details.date ? formatDateForDisplay(details.date) : '';
+      const dateText = formattedDate ? ` ${t('changeLog.fromDate')} ${formattedDate}` : '';
+      return `${t('changeLog.deleted')} ${caseNumber}${dateText}`;
     }
     
     if (log.operation === 'PUBLISH') {

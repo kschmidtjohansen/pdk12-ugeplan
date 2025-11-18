@@ -7,6 +7,7 @@ export const changeLog = {
   published: 'Har publiceret',
   from: 'fra',
   to: 'til',
+  fromDate: 'fra datoen',
   tasks: 'opgaver',
   viewAll: 'Se flere',
   last14Days: 'Sidste 14 dage',
