@@ -61,14 +61,29 @@ export const useEmployeeFormState = () => {
   const prepareForCreate = () => {
     setCurrentEmployee(null);
     setCreationType('employee');
-    resetFormData();
-    return formData;
+    const defaultFormData = {
+      name: '',
+      email: '',
+      password: '',
+      phone: '',
+      jobTitle: '',
+      role: 'servicemedarbejder' as UserRole,
+      onLeave: false,
+      notes: '',
+      is_temporary: false,
+      expires_at: '',
+      has_asbestos_certificate: false,
+      has_trailer_license: false,
+      has_forklift_license: false
+    };
+    setFormData(defaultFormData);
+    return defaultFormData;
   };
 
   const prepareForEdit = (employee: Employee) => {
     setCurrentEmployee(employee);
     setCreationType('edit');
-    setFormData({
+    const newFormData = {
       name: employee.name,
       email: employee.email,
       password: '',
@@ -82,8 +97,9 @@ export const useEmployeeFormState = () => {
       has_asbestos_certificate: employee.has_asbestos_certificate || false,
       has_trailer_license: employee.has_trailer_license || false,
       has_forklift_license: employee.has_forklift_license || false
-    });
-    return formData;
+    };
+    setFormData(newFormData);
+    return newFormData;
   };
 
   const prepareForCreateVikar = () => {
