@@ -88,7 +88,8 @@ const convertToAssignment = (data: OptimizedAssignmentData, allEmployees: Employ
     cars: cars,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
-    responsibleUser: data.responsible_user
+    responsibleUser: data.responsible_user,
+    case_number: data.case_number
   };
 };
 

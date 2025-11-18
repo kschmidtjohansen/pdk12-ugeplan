@@ -20,6 +20,7 @@ export interface OptimizedAssignmentData {
   updated_at: string;
   car_id: string | null;
   car_ids: string[] | null;
+  case_number: string | null;
   responsible_user: {
     id: string;
     name: string;
@@ -91,6 +92,7 @@ export class OptimizedAssignmentService {
       updated_at: assignment.updated_at,
       car_id: assignment.car_id,
       car_ids: assignment.car_ids || [],
+      case_number: assignment.case_number || null,
       responsible_user: assignment.responsible_user ? {
         id: assignment.responsible_user.id,
         name: assignment.responsible_user.name
@@ -120,6 +122,7 @@ export class OptimizedAssignmentService {
       updated_at: demo.updated_at,
       car_id: demo.car_id || null,
       car_ids: demo.car_ids || [],
+      case_number: demo.case_number || null,
       responsible_user: demo.responsible_user || null,
       assignment_employees: Array.isArray(demo.employees) ? demo.employees.map((empId: string) => ({
         user_id: empId,
@@ -282,6 +285,7 @@ export class OptimizedAssignmentService {
         updated_at: assignment.updated_at,
         car_id: assignment.car_id,
         car_ids: assignment.car_ids,
+        case_number: assignment.case_number || null,
         responsible_user: null,
         assignment_employees: assignmentEmployees,
         assignment_cars: assignmentCars
@@ -360,6 +364,7 @@ export class OptimizedAssignmentService {
               updated_at: assignment.updated_at,
               car_id: assignment.car_id,
               car_ids: carIds,
+              case_number: assignment.case_number || null,
               responsible_user: assignment.responsible_user ? {
                 id: (assignment.responsible_user as any).id || '',
                 name: (assignment.responsible_user as any).name || '',
@@ -387,6 +392,7 @@ export class OptimizedAssignmentService {
               updated_at: assignment.updated_at || '',
               car_id: null,
               car_ids: [],
+              case_number: assignment.case_number || null,
               responsible_user: null,
               assignment_employees: [],
               assignment_cars: []
@@ -520,6 +526,7 @@ export class OptimizedAssignmentService {
         updated_at: assignment.updated_at,
         car_id: assignment.car_id,
         car_ids: assignment.car_ids,
+        case_number: assignment.case_number || null,
         responsible_user: assignment.responsible_user ? {
           id: (assignment.responsible_user as any).id || '',
           name: (assignment.responsible_user as any).name || '',

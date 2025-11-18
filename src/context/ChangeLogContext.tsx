@@ -173,9 +173,30 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           schema: 'public',
           table: 'planner_change_log'
         },
-        (payload) => {
-          console.log('[ChangeLogContext] New change log entry:', payload.new);
-          setChangeLogs(prev => [payload.new as ChangeLogEntry, ...prev].slice(0, 50));
+        async (payload) => {
+          let newLog = payload.new as ChangeLogEntry;
+          
+          // Enrich with case_number if missing
+          if (newLog.assignment_id && !newLog.change_details?.case_number) {
+            const { data: assignment } = await supabase
+              .from('assignments')
+              .select('case_number')
+              .eq('id', newLog.assignment_id)
+              .single();
+            
+            if (assignment?.case_number) {
+              newLog = {
+                ...newLog,
+                change_details: {
+                  ...newLog.change_details,
+                  case_number: assignment.case_number
+                }
+              };
+            }
+          }
+          
+          console.log('[ChangeLogContext] New change log entry:', newLog);
+          setChangeLogs(prev => [newLog, ...prev].slice(0, 50));
         }
       )
       .subscribe();
