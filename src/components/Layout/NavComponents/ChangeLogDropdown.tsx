@@ -10,13 +10,14 @@ import { useChangeLogs } from '@/context/ChangeLogContext';
 import ChangeLogList from './ChangeLogList';
 
 const ChangeLogDropdown: React.FC = () => {
-  const { unviewedCount, markAsViewed } = useChangeLogs();
+  const { unviewedCount, markAsViewed, fetchChangeLogs } = useChangeLogs();
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleOpenChange = (open: boolean) => {
+  const handleOpenChange = async (open: boolean) => {
     setIsOpen(open);
     if (open) {
-      // Mark as viewed when dropdown is opened
+      // Refresh logs and mark as viewed when dropdown is opened
+      await fetchChangeLogs();
       markAsViewed();
     }
   };

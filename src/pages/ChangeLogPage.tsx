@@ -66,7 +66,7 @@ const ChangeLogPage: React.FC = () => {
 
   const getChangeDescription = (log: any): string => {
     const details = log.change_details || {};
-    const caseNumber = details.case_number;
+    const caseNumber = details.case_number || '-';
     
     if (log.operation === 'CREATE') {
       return `${t('changeLog.created')} ${caseNumber}`;
