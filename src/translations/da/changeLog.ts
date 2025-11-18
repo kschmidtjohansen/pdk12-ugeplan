@@ -8,7 +8,7 @@ export const changeLog = {
   from: 'fra',
   to: 'til',
   tasks: 'opgaver',
-  viewAll: 'Se alle ændringer (sidste 14 dage)',
+  viewAll: 'Se flere',
   last14Days: 'Sidste 14 dage',
   last7Days: 'Sidste 7 dage',
   last30Days: 'Sidste 30 dage',

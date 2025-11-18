@@ -9,6 +9,7 @@ import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
 import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 import { resolveEmployeeDisplayName } from '@/utils/people';
 import { PlannerChangeLogger } from '@/services/plannerChangeLogger';
+import { supabase } from '@/integrations/supabase/client';
 
 export type FilterType = 'all' | 'published' | 'unpublished' | 'user';
 export type AssignmentFilter = FilterType; // Export for compatibility
@@ -632,6 +633,27 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           date: dates[0],
           case_number: serviceData.case_number
         });
+      } else {
+        // Fallback: fetch the before state from Supabase if not in local state
+        console.log('[useOptimizedAssignments] Original assignment not found in state, fetching from DB for logging');
+        try {
+          const { data: beforeData, error: fetchError } = await supabase
+            .from('assignments')
+            .select('*, assignment_employees(user_id, profiles(name, email))')
+            .eq('id', id)
+            .single();
+          
+          if (!fetchError && beforeData) {
+            const beforeAssignment = convertToAssignment(beforeData as any, allEmployees);
+            await PlannerChangeLogger.logUpdate(id, beforeAssignment, {
+              ...data,
+              date: dates[0],
+              case_number: serviceData.case_number
+            });
+          }
+        } catch (fetchErr) {
+          console.error('[useOptimizedAssignments] Failed to fetch before state for logging:', fetchErr);
+        }
       }
       
       // Refresh assignments to ensure UI is synchronized with server data

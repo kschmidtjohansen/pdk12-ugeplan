@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useChangeLogs } from '@/context/ChangeLogContext';
+import { usePermissions } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ const ChangeLogPage: React.FC = () => {
   const { t } = useTranslation();
   const { fetchChangeLogsByDateRange } = useChangeLogs();
   const navigate = useNavigate();
+  const { isEffectiveAdmin, isEffectiveSkadeleder } = usePermissions();
   
   const [logs, setLogs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -120,6 +122,24 @@ const ChangeLogPage: React.FC = () => {
       navigate('/planner');
     }
   };
+
+  // Role-gate: Only admin and skadeleder can access
+  if (!isEffectiveAdmin && !isEffectiveSkadeleder) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto p-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('accessDenied.title')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">{t('accessDenied.restricted')}</p>
+            </CardContent>
+          </Card>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>

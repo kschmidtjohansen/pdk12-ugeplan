@@ -114,44 +114,50 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
       <TableCell>{employee.jobTitle}</TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className={employee.has_asbestos_certificate ? 'text-green-600' : 'text-muted-foreground/30'}>
-                  <Shield className="h-4 w-4" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">{t('employees.asbestosCertificate')}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {employee.has_asbestos_certificate && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-polygon-blue">
+                    <Shield className="h-4 w-4" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">{t('employees.asbestosCertificate')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className={employee.has_trailer_license ? 'text-blue-600' : 'text-muted-foreground/30'}>
-                  <Truck className="h-4 w-4" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">{t('employees.trailerLicense')}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {employee.has_trailer_license && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-polygon-blue">
+                    <Truck className="h-4 w-4" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">{t('employees.trailerLicense')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className={employee.has_drivers_license ? 'text-orange-600' : 'text-muted-foreground/30'}>
-                  <Car className="h-4 w-4" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">{t('employees.driversLicense')}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {employee.has_drivers_license && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-polygon-blue">
+                    <Car className="h-4 w-4" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">{t('employees.driversLicense')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       </TableCell>
       {(isAdmin) && (
