@@ -16,6 +16,5 @@ export interface Employee {
   expires_at?: string;
   has_asbestos_certificate?: boolean;
   has_trailer_license?: boolean;
-  has_drivers_license?: boolean;
   has_forklift_license?: boolean;
 }
