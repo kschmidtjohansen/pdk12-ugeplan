@@ -725,15 +725,20 @@ export class OptimizedAssignmentService {
       const demoAssignment = DemoUserService.getInstance().getDemoAssignments()
         .find(a => a.id === assignmentId);
       
+      // Log before deletion to ensure data is available
       if (demoAssignment) {
-        // Import dynamically to avoid circular dependencies
-        const { PlannerChangeLogger } = await import('./plannerChangeLogger');
-        await PlannerChangeLogger.logDelete(assignmentId, {
-          title: demoAssignment.title,
-          date: demoAssignment.date,
-          case_number: demoAssignment.case_number,
-          location: demoAssignment.location
-        });
+        try {
+          const { PlannerChangeLogger } = await import('./plannerChangeLogger');
+          await PlannerChangeLogger.logDelete(assignmentId, {
+            title: demoAssignment.title,
+            date: demoAssignment.date,
+            case_number: demoAssignment.case_number,
+            location: demoAssignment.location
+          });
+        } catch (logErr) {
+          console.error('[OptimizedAssignmentService] Failed to log demo deletion:', logErr);
+          // Continue with deletion even if logging fails
+        }
       }
       
       DemoUserService.getInstance().deleteDemoAssignment(assignmentId);
@@ -749,6 +754,28 @@ export class OptimizedAssignmentService {
         .eq('id', assignmentId)
         .single();
       
+      // Log the deletion BEFORE actually deleting to ensure data is available
+      if (assignment) {
+        console.log('[OptimizedAssignmentService] Deleting assignment with data:', {
+          id: assignmentId,
+          date: assignment.assignment_date,
+          case_number: assignment.case_number
+        });
+        
+        try {
+          const { PlannerChangeLogger } = await import('./plannerChangeLogger');
+          await PlannerChangeLogger.logDelete(assignmentId, {
+            title: assignment.title,
+            date: assignment.assignment_date,
+            case_number: assignment.case_number,
+            location: assignment.location
+          });
+        } catch (logErr) {
+          console.error('[OptimizedAssignmentService] Failed to log deletion:', logErr);
+          // Continue with deletion even if logging fails
+        }
+      }
+      
       const { error } = await supabase
         .from('assignments')
         .delete()
@@ -757,23 +784,6 @@ export class OptimizedAssignmentService {
       if (error) {
         console.error('[OptimizedAssignmentService] Error deleting assignment:', error);
         return false;
-      }
-      
-      // Log the deletion
-      if (assignment) {
-        console.log('[OptimizedAssignmentService] Deleting assignment with data:', {
-          id: assignmentId,
-          date: assignment.assignment_date,
-          case_number: assignment.case_number
-        });
-        
-        const { PlannerChangeLogger } = await import('./plannerChangeLogger');
-        await PlannerChangeLogger.logDelete(assignmentId, {
-          title: assignment.title,
-          date: assignment.assignment_date,
-          case_number: assignment.case_number,
-          location: assignment.location
-        });
       }
       
       this.clearCache();
