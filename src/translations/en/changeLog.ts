@@ -7,6 +7,7 @@ export const changeLog = {
   published: 'Published',
   from: 'from',
   to: 'to',
+  fromDate: 'from date',
   tasks: 'tasks',
   viewAll: 'See more',
   last14Days: 'Last 14 days',
