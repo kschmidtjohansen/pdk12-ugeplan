@@ -4,7 +4,7 @@ import { usePermissions } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, Shield, Truck, Car } from 'lucide-react';
+import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, Shield, Truck, Car, Forklift } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Employee } from '@/types/employee';
@@ -154,6 +154,21 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs">{t('employees.driversLicense')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          
+          {employee.has_forklift_license && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-polygon-blue">
+                    <Forklift className="h-4 w-4" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">{t('employees.forkliftLicense')}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

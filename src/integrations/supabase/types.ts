@@ -442,6 +442,7 @@ export type Database = {
           expires_at: string | null
           has_asbestos_certificate: boolean | null
           has_drivers_license: boolean | null
+          has_forklift_license: boolean
           has_trailer_license: boolean | null
           id: string
           is_temporary: boolean | null
@@ -460,6 +461,7 @@ export type Database = {
           expires_at?: string | null
           has_asbestos_certificate?: boolean | null
           has_drivers_license?: boolean | null
+          has_forklift_license?: boolean
           has_trailer_license?: boolean | null
           id: string
           is_temporary?: boolean | null
@@ -478,6 +480,7 @@ export type Database = {
           expires_at?: string | null
           has_asbestos_certificate?: boolean | null
           has_drivers_license?: boolean | null
+          has_forklift_license?: boolean
           has_trailer_license?: boolean | null
           id?: string
           is_temporary?: boolean | null

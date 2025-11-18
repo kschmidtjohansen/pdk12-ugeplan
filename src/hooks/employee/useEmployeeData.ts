@@ -59,7 +59,11 @@ export const useEmployeeData = () => {
           onLeave: profile.on_leave || false,
           status: profile.status || 'active',
           notes: profile.notes || '',
-          avatar_url: profile.avatar_url
+          avatar_url: profile.avatar_url,
+          has_asbestos_certificate: !!profile.has_asbestos_certificate,
+          has_trailer_license: !!profile.has_trailer_license,
+          has_drivers_license: !!profile.has_drivers_license,
+          has_forklift_license: !!profile.has_forklift_license
         }));
 
         const administrators = transformedEmployees.filter(emp => emp.role === 'administrator');
@@ -82,7 +86,11 @@ export const useEmployeeData = () => {
           onLeave: profile.on_leave || false,
           status: profile.status || 'active',
           notes: profile.notes || '',
-          avatar_url: profile.avatar_url
+          avatar_url: profile.avatar_url,
+          has_asbestos_certificate: !!profile.has_asbestos_certificate,
+          has_trailer_license: !!profile.has_trailer_license,
+          has_drivers_license: !!profile.has_drivers_license,
+          has_forklift_license: !!profile.has_forklift_license
         }));
 
         const merged = [...transformedEmployees, ...localConverted];
@@ -115,7 +123,23 @@ export const useEmployeeData = () => {
         // Fetch profiles with proper error handling
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
-          .select('*')
+          .select(`
+            id,
+            name,
+            email,
+            phone,
+            job_title,
+            on_leave,
+            status,
+            notes,
+            avatar_url,
+            is_temporary,
+            expires_at,
+            has_asbestos_certificate,
+            has_trailer_license,
+            has_drivers_license,
+            has_forklift_license
+          `)
           .order('name', { ascending: true });
 
         if (profilesError) {
@@ -167,7 +191,13 @@ export const useEmployeeData = () => {
             onLeave: profile.on_leave || false,
             status: profile.status || 'active',
             notes: profile.notes || '',
-            avatar_url: profile.avatar_url
+            avatar_url: profile.avatar_url,
+            is_temporary: profile.is_temporary || false,
+            expires_at: profile.expires_at,
+            has_asbestos_certificate: !!profile.has_asbestos_certificate,
+            has_trailer_license: !!profile.has_trailer_license,
+            has_drivers_license: !!profile.has_drivers_license,
+            has_forklift_license: !!profile.has_forklift_license
           };
 
           return employee;
