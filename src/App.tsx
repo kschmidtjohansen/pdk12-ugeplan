@@ -22,6 +22,7 @@ const EmployeesPage = lazy(() => import("./pages/EmployeesPage"));
 const CarsPage = lazy(() => import("./pages/CarsPage"));
 const VacationPage = lazy(() => import("./pages/VacationPage"));
 const WarehousePage = lazy(() => import("./pages/WarehousePage"));
+const ChangeLogPage = lazy(() => import("./pages/ChangeLogPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const PasswordResetPage = lazy(() => import("./pages/PasswordResetPage"));
 const ScreenDisplayPage = lazy(() => import("./pages/ScreenDisplayPage"));
@@ -60,9 +61,11 @@ const App = () => {
           <SecurityProvider>
             <AuthProvider>
               <NotificationProvider>
-                <TooltipProvider>
-                  <AppContent />
-                </TooltipProvider>
+                <ChangeLogProvider>
+                  <TooltipProvider>
+                    <AppContent />
+                  </TooltipProvider>
+                </ChangeLogProvider>
               </NotificationProvider>
             </AuthProvider>
           </SecurityProvider>
