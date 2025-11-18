@@ -120,8 +120,13 @@ export class PlannerChangeLogger {
       });
 
       // Check employee changes - track specific employees added/removed
-      const beforeEmployeeIds = new Set(before.employees || []);
-      const afterEmployeeIds = new Set(after.employees || []);
+      // Fallback to assignedEmployees if employees is undefined
+      const beforeEmployeeIds = new Set(
+        before.employees || before.assignedEmployees?.map(e => e.id) || []
+      );
+      const afterEmployeeIds = new Set(
+        after.employees || after.assignedEmployees?.map(e => e.id) || []
+      );
       
       const addedEmployeeIds = Array.from(afterEmployeeIds).filter(id => !beforeEmployeeIds.has(id));
       const removedEmployeeIds = Array.from(beforeEmployeeIds).filter(id => !afterEmployeeIds.has(id));

@@ -75,16 +75,22 @@ const ChangeLogList: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-4 text-center text-sm text-muted-foreground">
-        {t('common.loading')}
-      </div>
-    );
-  }
-
-  if (changeLogs.length === 0) {
-    return (
-      <div className="p-8 text-center text-sm text-muted-foreground">
-        {t('changeLog.noRecentChanges')}
+      <div className="w-full">
+        <div className="p-4 border-b">
+          <h3 className="font-semibold text-sm">{t('changeLog.recentChanges')}</h3>
+        </div>
+        <div className="p-4 text-center text-sm text-muted-foreground">
+          {t('common.loading')}
+        </div>
+        <div className="p-3 border-t">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => navigate('/changelog')}
+          >
+            {t('changeLog.viewAll')}
+          </Button>
+        </div>
       </div>
     );
   }
@@ -97,24 +103,30 @@ const ChangeLogList: React.FC = () => {
       
       <ScrollArea className="h-[350px]">
         <div className="p-2">
-          {changeLogs.map((log) => (
-            <button
-              key={log.id}
-              onClick={() => handleLogClick(log)}
-              className="w-full text-left p-3 hover:bg-accent rounded-lg transition-colors mb-1"
-            >
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5">
-                  {getOperationIcon(log.operation)}
+          {changeLogs.length === 0 ? (
+            <div className="p-8 text-center text-sm text-muted-foreground">
+              {t('changeLog.noRecentChanges')}
+            </div>
+          ) : (
+            changeLogs.map((log) => (
+              <button
+                key={log.id}
+                onClick={() => handleLogClick(log)}
+                className="w-full text-left p-3 hover:bg-accent rounded-lg transition-colors mb-1"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5">
+                    {getOperationIcon(log.operation)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">
+                      {formatTime(log.created_at)} {log.changed_by_first_name || log.changed_by_name} - {getChangeDescription(log)}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">
-                    {formatTime(log.created_at)} {log.changed_by_first_name || log.changed_by_name} - {getChangeDescription(log)}
-                  </p>
-                </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            ))
+          )}
         </div>
       </ScrollArea>
       <div className="p-3 border-t">
