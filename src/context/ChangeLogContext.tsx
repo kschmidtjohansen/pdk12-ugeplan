@@ -8,6 +8,7 @@ export interface ChangeLogEntry {
   operation: 'CREATE' | 'UPDATE' | 'DELETE' | 'PUBLISH';
   changed_by: string;
   changed_by_name: string;
+  changed_by_first_name: string | null;
   change_details: any;
   created_at: string;
 }

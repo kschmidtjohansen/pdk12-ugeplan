@@ -126,7 +126,7 @@ const ChangeLogPage: React.FC = () => {
       <div className="container mx-auto p-6 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>{t.changeLog.title}</CardTitle>
+            <CardTitle>{t('changeLog.title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Filters */}
@@ -135,7 +135,7 @@ const ChangeLogPage: React.FC = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder={t.changeLog.searchPlaceholder}
+                    placeholder={t('changeLog.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
@@ -148,9 +148,9 @@ const ChangeLogPage: React.FC = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="7">{t.changeLog.last7Days}</SelectItem>
-                  <SelectItem value="14">{t.changeLog.last14Days}</SelectItem>
-                  <SelectItem value="30">{t.changeLog.last30Days}</SelectItem>
+                  <SelectItem value="7">{t('changeLog.last7Days')}</SelectItem>
+                  <SelectItem value="14">{t('changeLog.last14Days')}</SelectItem>
+                  <SelectItem value="30">{t('changeLog.last30Days')}</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -159,11 +159,11 @@ const ChangeLogPage: React.FC = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">{t.changeLog.allOperations}</SelectItem>
-                  <SelectItem value="CREATE">{t.changeLog.operations.CREATE}</SelectItem>
-                  <SelectItem value="UPDATE">{t.changeLog.operations.UPDATE}</SelectItem>
-                  <SelectItem value="DELETE">{t.changeLog.operations.DELETE}</SelectItem>
-                  <SelectItem value="PUBLISH">{t.changeLog.operations.PUBLISH}</SelectItem>
+                  <SelectItem value="ALL">{t('changeLog.allOperations')}</SelectItem>
+                  <SelectItem value="CREATE">{t('changeLog.operations.CREATE')}</SelectItem>
+                  <SelectItem value="UPDATE">{t('changeLog.operations.UPDATE')}</SelectItem>
+                  <SelectItem value="DELETE">{t('changeLog.operations.DELETE')}</SelectItem>
+                  <SelectItem value="PUBLISH">{t('changeLog.operations.PUBLISH')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -181,16 +181,16 @@ const ChangeLogPage: React.FC = () => {
               </div>
             ) : filteredLogs.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                {t.changeLog.noChanges}
+                {t('changeLog.noChanges')}
               </div>
             ) : (
               <div className="border rounded-lg">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[100px]">{t.changeLog.time}</TableHead>
-                      <TableHead className="w-[150px]">{t.changeLog.user}</TableHead>
-                      <TableHead>{t.changeLog.action}</TableHead>
+                      <TableHead className="w-[100px]">{t('changeLog.time')}</TableHead>
+                      <TableHead className="w-[150px]">{t('changeLog.user')}</TableHead>
+                      <TableHead>{t('changeLog.action')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
