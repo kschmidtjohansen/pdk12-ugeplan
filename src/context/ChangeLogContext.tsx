@@ -17,6 +17,8 @@ interface ChangeLogContextType {
   unviewedCount: number;
   loading: boolean;
   fetchChangeLogs: () => Promise<void>;
+  fetchChangeLogsByDateRange: (startDate: Date, endDate: Date) => Promise<ChangeLogEntry[]>;
+  fetchChangeLogsByCaseNumber: (caseNumber: string) => Promise<ChangeLogEntry[]>;
   markAsViewed: () => void;
 }
 
@@ -25,6 +27,8 @@ const defaultContext: ChangeLogContextType = {
   unviewedCount: 0,
   loading: false,
   fetchChangeLogs: async () => {},
+  fetchChangeLogsByDateRange: async () => [],
+  fetchChangeLogsByCaseNumber: async () => [],
   markAsViewed: () => {}
 };
 
@@ -62,6 +66,43 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.error('[ChangeLogContext] Failed to fetch change logs:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchChangeLogsByDateRange = async (startDate: Date, endDate: Date): Promise<ChangeLogEntry[]> => {
+    if (!isAuthenticated || !user) return [];
+
+    try {
+      const { data, error } = await supabase
+        .from('planner_change_log')
+        .select('*')
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as ChangeLogEntry[];
+    } catch (error) {
+      console.error('[ChangeLogContext] Failed to fetch logs by date range:', error);
+      return [];
+    }
+  };
+
+  const fetchChangeLogsByCaseNumber = async (caseNumber: string): Promise<ChangeLogEntry[]> => {
+    if (!isAuthenticated || !user) return [];
+
+    try {
+      const { data, error } = await supabase
+        .from('planner_change_log')
+        .select('*')
+        .contains('change_details', { case_number: caseNumber })
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as ChangeLogEntry[];
+    } catch (error) {
+      console.error('[ChangeLogContext] Failed to fetch logs by case number:', error);
+      return [];
     }
   };
 
@@ -108,7 +149,7 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [isAuthenticated, user?.id]);
 
   return (
-    <ChangeLogContext.Provider value={{ changeLogs, unviewedCount, loading, fetchChangeLogs, markAsViewed }}>
+    <ChangeLogContext.Provider value={{ changeLogs, unviewedCount, loading, fetchChangeLogs, fetchChangeLogsByDateRange, fetchChangeLogsByCaseNumber, markAsViewed }}>
       {children}
     </ChangeLogContext.Provider>
   );

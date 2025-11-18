@@ -16,6 +16,7 @@ import deleteConfirm from './deleteConfirm';
 import { auth } from './auth';
 import screenDisplay from './screenDisplay';
 import { warehouse } from './warehouse';
+import { changeLog } from './changeLog';
 
 
 export const da = {
@@ -34,5 +35,6 @@ export const da = {
   accessDenied,
   deleteConfirm,
   screenDisplay,
-  warehouse
+  warehouse,
+  changeLog,
 };

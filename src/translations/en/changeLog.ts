@@ -1,0 +1,31 @@
+export const changeLog = {
+  title: 'Planner Changes',
+  removed: 'Removed',
+  added: 'Added',
+  deleted: 'Deleted case',
+  created: 'Created case',
+  published: 'Published',
+  from: 'from',
+  to: 'to',
+  tasks: 'tasks',
+  viewAll: 'View all changes (last 14 days)',
+  last14Days: 'Last 14 days',
+  last7Days: 'Last 7 days',
+  last30Days: 'Last 30 days',
+  filterByType: 'Filter by type',
+  searchPlaceholder: 'Search by case number or name',
+  noChanges: 'No changes in this period',
+  allOperations: 'All operations',
+  operations: {
+    CREATE: 'Created',
+    UPDATE: 'Updated',
+    DELETE: 'Deleted',
+    PUBLISH: 'Published'
+  },
+  time: 'Time',
+  user: 'User',
+  action: 'Action',
+  caseNumber: 'Case Number',
+  recentChanges: 'Recent Changes',
+  noRecentChanges: 'No recent changes'
+};

@@ -391,6 +391,7 @@ export type Database = {
           assignment_id: string | null
           change_details: Json
           changed_by: string
+          changed_by_first_name: string | null
           changed_by_name: string
           created_at: string
           id: string
@@ -400,6 +401,7 @@ export type Database = {
           assignment_id?: string | null
           change_details: Json
           changed_by: string
+          changed_by_first_name?: string | null
           changed_by_name: string
           created_at?: string
           id?: string
@@ -409,6 +411,7 @@ export type Database = {
           assignment_id?: string | null
           change_details?: Json
           changed_by?: string
+          changed_by_first_name?: string | null
           changed_by_name?: string
           created_at?: string
           id?: string
@@ -678,6 +681,7 @@ export type Database = {
           message: string
         }[]
       }
+      cleanup_old_change_logs: { Args: never; Returns: Json }
       create_logs_partition_for_month: { Args: never; Returns: undefined }
       debug_auth_info: { Args: never; Returns: Json }
       delete_expired_approved_vacations: { Args: never; Returns: undefined }
