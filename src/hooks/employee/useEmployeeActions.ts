@@ -122,7 +122,6 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       console.log('[useEmployeeActions] Certificate values being sent:', {
         has_asbestos_certificate: formData.has_asbestos_certificate ?? false,
         has_trailer_license: formData.has_trailer_license ?? false,
-        has_drivers_license: formData.has_drivers_license ?? false,
         has_forklift_license: formData.has_forklift_license ?? false
       });
       
@@ -137,7 +136,6 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
           notes: formData.notes || null,
           has_asbestos_certificate: formData.has_asbestos_certificate ?? false,
           has_trailer_license: formData.has_trailer_license ?? false,
-          has_drivers_license: formData.has_drivers_license ?? false,
           has_forklift_license: formData.has_forklift_license ?? false,
           updated_at: new Date().toISOString()
         })

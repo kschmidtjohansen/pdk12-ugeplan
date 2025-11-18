@@ -16,7 +16,6 @@ export interface EmployeeFormData {
   expires_at: string;
   has_asbestos_certificate: boolean;
   has_trailer_license: boolean;
-  has_drivers_license: boolean;
   has_forklift_license: boolean;
 }
 
@@ -38,7 +37,6 @@ export const useEmployeeFormState = () => {
     expires_at: '',
     has_asbestos_certificate: false,
     has_trailer_license: false,
-    has_drivers_license: false,
     has_forklift_license: false
   });
 
@@ -56,7 +54,6 @@ export const useEmployeeFormState = () => {
       expires_at: '',
       has_asbestos_certificate: false,
       has_trailer_license: false,
-      has_drivers_license: false,
       has_forklift_license: false
     });
   };
@@ -84,7 +81,6 @@ export const useEmployeeFormState = () => {
       expires_at: employee.expires_at ? new Date(employee.expires_at).toISOString().split('T')[0] : '',
       has_asbestos_certificate: employee.has_asbestos_certificate || false,
       has_trailer_license: employee.has_trailer_license || false,
-      has_drivers_license: employee.has_drivers_license || false,
       has_forklift_license: employee.has_forklift_license || false
     });
     return formData;
@@ -109,7 +105,6 @@ export const useEmployeeFormState = () => {
       expires_at: expirationDate.toISOString().split('T')[0],
       has_asbestos_certificate: false,
       has_trailer_license: false,
-      has_drivers_license: false,
       has_forklift_license: false
     };
     

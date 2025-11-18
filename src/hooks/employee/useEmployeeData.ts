@@ -196,7 +196,6 @@ export const useEmployeeData = () => {
             expires_at: profile.expires_at,
             has_asbestos_certificate: !!profile.has_asbestos_certificate,
             has_trailer_license: !!profile.has_trailer_license,
-            has_drivers_license: !!profile.has_drivers_license,
             has_forklift_license: !!profile.has_forklift_license
           };
 
