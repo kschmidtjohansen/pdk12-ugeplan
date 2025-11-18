@@ -321,6 +321,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         to_time: data.toTime,
         location: data.location.trim(),
         type: data.type || null,
+        case_number: data.case_number || null,
         published: data.published || false,
         responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
         car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : null),
@@ -354,6 +355,23 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
       // Call service to create assignment
       const createdAssignment = await OptimizedAssignmentService.createAssignment(serviceData);
+      
+      // Log the creation for single-date assignments
+      try {
+        await PlannerChangeLogger.logCreate(createdAssignment.id, {
+          title: serviceData.title,
+          date: serviceData.assignment_date,
+          location: serviceData.location,
+          fromTime: serviceData.from_time,
+          toTime: serviceData.to_time,
+          case_number: serviceData.case_number,
+          employees: serviceData.employees,
+          cars: serviceData.car_ids
+        });
+      } catch (logErr) {
+        console.error('[useOptimizedAssignments] Failed to log creation:', logErr);
+        // Continue even if logging fails
+      }
       
       // Replace optimistic assignment with real one
       setAssignments(prev => 
@@ -700,17 +718,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       // Optimistically remove from UI
       setAssignments(prev => prev.filter(assignment => assignment.id !== id));
       
+      // Service now handles deletion logging internally
       await OptimizedAssignmentService.deleteAssignment(id);
-      
-      // Log the deletion
-      if (originalAssignment) {
-        await PlannerChangeLogger.logDelete(id, {
-          title: originalAssignment.title,
-          date: originalAssignment.date,
-          location: originalAssignment.location,
-          case_number: originalAssignment.case_number
-        });
-      }
       
       toast({
         title: t('planner.assignmentDeleted'),
