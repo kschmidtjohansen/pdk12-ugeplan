@@ -720,12 +720,35 @@ export class OptimizedAssignmentService {
     // Virtualize for demo mode
     if (isDemoMode && assignmentId.startsWith('demo-')) {
       console.log('[OptimizedAssignmentService] Deleting demo assignment locally:', assignmentId);
+      
+      // Fetch the assignment data before deletion for logging
+      const demoAssignment = DemoUserService.getInstance().getDemoAssignments()
+        .find(a => a.id === assignmentId);
+      
+      if (demoAssignment) {
+        // Import dynamically to avoid circular dependencies
+        const { PlannerChangeLogger } = await import('./plannerChangeLogger');
+        await PlannerChangeLogger.logDelete(assignmentId, {
+          title: demoAssignment.title,
+          date: demoAssignment.date,
+          case_number: demoAssignment.case_number,
+          location: demoAssignment.location
+        });
+      }
+      
       DemoUserService.getInstance().deleteDemoAssignment(assignmentId);
       this.clearCache();
       return true;
     }
 
     try {
+      // Fetch assignment data before deletion for logging
+      const { data: assignment } = await supabase
+        .from('assignments')
+        .select('*')
+        .eq('id', assignmentId)
+        .single();
+      
       const { error } = await supabase
         .from('assignments')
         .delete()
@@ -734,6 +757,17 @@ export class OptimizedAssignmentService {
       if (error) {
         console.error('[OptimizedAssignmentService] Error deleting assignment:', error);
         return false;
+      }
+      
+      // Log the deletion
+      if (assignment) {
+        const { PlannerChangeLogger } = await import('./plannerChangeLogger');
+        await PlannerChangeLogger.logDelete(assignmentId, {
+          title: assignment.title,
+          date: assignment.assignment_date,
+          case_number: assignment.case_number,
+          location: assignment.location
+        });
       }
       
       this.clearCache();
