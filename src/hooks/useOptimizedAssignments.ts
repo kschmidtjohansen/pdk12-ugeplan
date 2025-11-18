@@ -455,7 +455,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           await PlannerChangeLogger.logUpdate(id, originalAssignment, {
             ...data,
             date: dates[0],
-            case_number: firstDateServiceData.case_number
+            case_number: data.case_number ?? originalAssignment.case_number
           });
         }
         
@@ -631,7 +631,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         await PlannerChangeLogger.logUpdate(id, originalAssignment, {
           ...data,
           date: dates[0],
-          case_number: serviceData.case_number
+          case_number: data.case_number ?? originalAssignment.case_number
         });
       } else {
         // Fallback: fetch the before state from Supabase if not in local state
@@ -648,7 +648,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
             await PlannerChangeLogger.logUpdate(id, beforeAssignment, {
               ...data,
               date: dates[0],
-              case_number: serviceData.case_number
+              case_number: data.case_number ?? beforeAssignment.case_number
             });
           }
         } catch (fetchErr) {
