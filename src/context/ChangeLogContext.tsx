@@ -62,7 +62,43 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       if (error) throw error;
 
-      setChangeLogs((data || []) as ChangeLogEntry[]);
+      let logs = (data || []) as ChangeLogEntry[];
+
+      // Enrich logs with missing case_numbers
+      const logsWithoutCaseNumber = logs.filter(
+        log => log.assignment_id && !log.change_details?.case_number
+      );
+
+      if (logsWithoutCaseNumber.length > 0) {
+        const assignmentIds = [...new Set(logsWithoutCaseNumber.map(log => log.assignment_id))].filter(Boolean) as string[];
+        
+        const { data: assignments } = await supabase
+          .from('assignments')
+          .select('id, case_number')
+          .in('id', assignmentIds);
+
+        if (assignments) {
+          const caseNumberMap = new Map(assignments.map(a => [a.id, a.case_number]));
+          
+          logs = logs.map(log => {
+            if (log.assignment_id && !log.change_details?.case_number) {
+              const caseNumber = caseNumberMap.get(log.assignment_id);
+              if (caseNumber) {
+                return {
+                  ...log,
+                  change_details: {
+                    ...log.change_details,
+                    case_number: caseNumber
+                  }
+                };
+              }
+            }
+            return log;
+          });
+        }
+      }
+
+      setChangeLogs(logs);
     } catch (error) {
       console.error('[ChangeLogContext] Failed to fetch change logs:', error);
     } finally {
