@@ -160,7 +160,7 @@ export class PlannerChangeLogger {
       const changeDetails = {
         operation: 'UPDATE',
         title: after.title || before.title,
-        case_number: after.case_number || before.case_number,
+        case_number: after.case_number || before.case_number || after.title || before.title,
         changes
       };
 
