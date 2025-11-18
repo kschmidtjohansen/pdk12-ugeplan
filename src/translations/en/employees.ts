@@ -144,10 +144,12 @@ const employees = {
   hasAsbestosCertificate: 'Asbestos Certificate',
   hasTrailerLicense: 'Trailer License',
   hasDriversLicense: "Driver's License",
+  hasForkliftLicense: 'Forklift License',
   certificates: 'Certificates',
   asbestosCertificate: 'Asbestos Cert.',
   trailerLicense: 'Trailer License',
   driversLicense: "Driver's License",
+  forkliftLicense: 'Forklift License',
 };
 
 export default employees;
