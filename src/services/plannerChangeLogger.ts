@@ -3,9 +3,9 @@ import { Assignment } from '@/types/assignment';
 
 export class PlannerChangeLogger {
   /**
-   * Get current user's name from profile
+   * Get current user's first name from profile
    */
-  private static async getCurrentUserName(): Promise<string> {
+  private static async getCurrentUserFirstName(): Promise<string> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return 'Unknown';
@@ -15,8 +15,10 @@ export class PlannerChangeLogger {
         .select('name')
         .eq('id', user.id)
         .single();
-        
-      return profile?.name || user.email || 'Unknown';
+      
+      const fullName = profile?.name || user.email || 'Unknown';
+      // Extract first name (first word before space)
+      return fullName.split(' ')[0];
     } catch (error) {
       console.error('[PlannerChangeLogger] Failed to get user name:', error);
       return 'Unknown';
@@ -31,7 +33,7 @@ export class PlannerChangeLogger {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const userName = await this.getCurrentUserName();
+      const userFirstName = await this.getCurrentUserFirstName();
 
       const changeDetails = {
         operation: 'CREATE',
@@ -51,18 +53,19 @@ export class PlannerChangeLogger {
           assignment_id: assignmentId,
           operation: 'CREATE',
           changed_by: user.id,
-          changed_by_name: userName,
+          changed_by_name: userFirstName,
+          changed_by_first_name: userFirstName,
           change_details: changeDetails
         });
 
-      console.log('[PlannerChangeLogger] Logged CREATE operation', { assignmentId, userName });
+      console.log('[PlannerChangeLogger] Logged CREATE operation', { assignmentId, userFirstName });
     } catch (error) {
       console.error('[PlannerChangeLogger] Failed to log CREATE:', error);
     }
   }
 
   /**
-   * Get employee names from IDs
+   * Get employee first names from IDs
    */
   private static async getEmployeeNames(employeeIds: string[]): Promise<Record<string, string>> {
     if (!employeeIds.length) return {};
@@ -75,7 +78,9 @@ export class PlannerChangeLogger {
       
       const nameMap: Record<string, string> = {};
       profiles?.forEach(profile => {
-        nameMap[profile.id] = profile.name;
+        // Extract first name only
+        const firstName = profile.name.split(' ')[0];
+        nameMap[profile.id] = firstName;
       });
       return nameMap;
     } catch (error) {
@@ -99,7 +104,7 @@ export class PlannerChangeLogger {
         return;
       }
 
-      const userName = await this.getCurrentUserName();
+      const userFirstName = await this.getCurrentUserFirstName();
 
       // Identify changed fields
       const changes: Record<string, any> = {};
@@ -160,7 +165,8 @@ export class PlannerChangeLogger {
           assignment_id: assignmentId,
           operation: 'UPDATE',
           changed_by: user.id,
-          changed_by_name: userName,
+          changed_by_name: userFirstName,
+          changed_by_first_name: userFirstName,
           change_details: changeDetails
         });
 
@@ -185,7 +191,7 @@ export class PlannerChangeLogger {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const userName = await this.getCurrentUserName();
+      const userFirstName = await this.getCurrentUserFirstName();
 
       const changeDetails = {
         operation: 'DELETE',
@@ -201,11 +207,12 @@ export class PlannerChangeLogger {
           assignment_id: assignmentId,
           operation: 'DELETE',
           changed_by: user.id,
-          changed_by_name: userName,
+          changed_by_name: userFirstName,
+          changed_by_first_name: userFirstName,
           change_details: changeDetails
         });
 
-      console.log('[PlannerChangeLogger] Logged DELETE operation', { assignmentId, userName });
+      console.log('[PlannerChangeLogger] Logged DELETE operation', { assignmentId, userFirstName });
     } catch (error) {
       console.error('[PlannerChangeLogger] Failed to log DELETE:', error);
     }
@@ -219,7 +226,7 @@ export class PlannerChangeLogger {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const userName = await this.getCurrentUserName();
+      const userFirstName = await this.getCurrentUserFirstName();
 
       // Log a single PUBLISH entry for bulk operations
       const changeDetails = {
@@ -233,7 +240,8 @@ export class PlannerChangeLogger {
         assignment_id: id,
         operation: 'PUBLISH',
         changed_by: user.id,
-        changed_by_name: userName,
+        changed_by_name: userFirstName,
+        changed_by_first_name: userFirstName,
         change_details: changeDetails
       }));
 

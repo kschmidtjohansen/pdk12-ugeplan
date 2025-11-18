@@ -1,0 +1,31 @@
+export const changeLog = {
+  title: 'Planner Ændringer',
+  removed: 'Har fjernet',
+  added: 'Har tilføjet',
+  deleted: 'Har slettet sag',
+  created: 'Har oprettet sag',
+  published: 'Har publiceret',
+  from: 'fra',
+  to: 'til',
+  tasks: 'opgaver',
+  viewAll: 'Se alle ændringer (sidste 14 dage)',
+  last14Days: 'Sidste 14 dage',
+  last7Days: 'Sidste 7 dage',
+  last30Days: 'Sidste 30 dage',
+  filterByType: 'Filtrer efter type',
+  searchPlaceholder: 'Søg efter sagsnummer eller navn',
+  noChanges: 'Ingen ændringer i denne periode',
+  allOperations: 'Alle operationer',
+  operations: {
+    CREATE: 'Oprettet',
+    UPDATE: 'Opdateret',
+    DELETE: 'Slettet',
+    PUBLISH: 'Publiceret'
+  },
+  time: 'Tidspunkt',
+  user: 'Bruger',
+  action: 'Handling',
+  caseNumber: 'Sagsnummer',
+  recentChanges: 'Seneste Ændringer',
+  noRecentChanges: 'Ingen seneste ændringer'
+};

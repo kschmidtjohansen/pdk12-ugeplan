@@ -125,6 +125,7 @@ const AppContent = () => {
           <Route path="/cars" element={<MainLayout><CarsPage /></MainLayout>} />
           <Route path="/vacation" element={<MainLayout><VacationPage /></MainLayout>} />
           <Route path="/warehouse" element={<MainLayout><WarehousePage /></MainLayout>} />
+          <Route path="/changelog" element={<MainLayout><ChangeLogPage /></MainLayout>} />
           <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />
           
           {/* Special routes */}

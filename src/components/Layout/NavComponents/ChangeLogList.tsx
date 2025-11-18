@@ -1,16 +1,15 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { formatDistanceToNow } from 'date-fns';
-import { da, enUS } from 'date-fns/locale';
-import { Plus, Edit, Trash2, Send, FileText, Clock } from 'lucide-react';
+import { format } from 'date-fns';
+import { Plus, Edit, Trash2, Send, FileText } from 'lucide-react';
 import { useChangeLogs } from '@/context/ChangeLogContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const ChangeLogList: React.FC = () => {
-  const { changeLogs, loading } = useChangeLogs();
-  const { t, currentLanguage } = useTranslation();
+  const { changeLogs, loading: isLoading } = useChangeLogs();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const getOperationIcon = (operation: string) => {
@@ -43,66 +42,51 @@ const ChangeLogList: React.FC = () => {
     }
   };
 
-  const getChangeDescription = (log: any) => {
-    const details = log.change_details;
-    const caseNumber = details.case_number || details.caseNumber;
+  const getChangeDescription = (log: any): string => {
+    const details = log.change_details || {};
+    const caseNumber = details.case_number;
     
     if (log.operation === 'CREATE') {
-      return caseNumber 
-        ? `${caseNumber} - "${details.title}"`
-        : `"${details.title}"`;
+      return `${t('changeLog.created')} ${caseNumber}`;
+    }
+    
+    if (log.operation === 'DELETE') {
+      return `${t('changeLog.deleted')} ${caseNumber}`;
+    }
+    
+    if (log.operation === 'PUBLISH') {
+      const count = details.count || 1;
+      return `${t('changeLog.published')} ${count} ${t('changeLog.tasks')}`;
     }
     
     if (log.operation === 'UPDATE') {
       const changes = details.changes || {};
-      const parts: string[] = [];
       
-      // Handle employee changes specially
+      // Handle employee changes - show in Danish format
       if (changes.employees) {
         const { added, removed } = changes.employees;
         if (removed && removed.length > 0) {
-          parts.push(`Removed: ${removed.join(', ')}`);
+          return `${t('changeLog.removed')} ${removed.join(', ')} ${t('changeLog.from')} ${caseNumber}`;
         }
         if (added && added.length > 0) {
-          parts.push(`Added: ${added.join(', ')}`);
+          return `${t('changeLog.added')} ${added.join(', ')} ${t('changeLog.to')} ${caseNumber}`;
         }
       }
       
-      // Add other field changes
+      // Other changes
       const otherFields = Object.keys(changes).filter(f => f !== 'employees');
       if (otherFields.length > 0) {
-        parts.push(`Changed: ${otherFields.join(', ')}`);
+        return `Opdateret ${caseNumber}`;
       }
       
-      const fieldsList = parts.length > 0 ? ` - ${parts.join('; ')}` : '';
-      return caseNumber
-        ? `${caseNumber} - "${details.title}"${fieldsList}`
-        : `"${details.title}"${fieldsList}`;
+      return `Opdateret ${caseNumber}`;
     }
     
-    if (log.operation === 'DELETE') {
-      return caseNumber
-        ? `${caseNumber} - "${details.title}"`
-        : `"${details.title}"`;
-    }
-    
-    if (log.operation === 'PUBLISH') {
-      return `${details.count} ${t('planner.changeLog.assignments') || 'opgaver'}`;
-    }
-    
-    return '';
+    return 'Unknown operation';
   };
 
   const formatTime = (timestamp: string) => {
-    try {
-      const locale = currentLanguage === 'da' ? da : enUS;
-      return formatDistanceToNow(new Date(timestamp), { 
-        addSuffix: true,
-        locale 
-      });
-    } catch (error) {
-      return timestamp;
-    }
+    return format(new Date(timestamp), 'HH:mm');
   };
 
   const handleLogClick = (log: any) => {
