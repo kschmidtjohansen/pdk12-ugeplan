@@ -155,7 +155,7 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
 
                     {kørevagt && (
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="gap-1">
+                        <Badge variant="outline" className="gap-1 bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800">
                           <Car className="h-3 w-3" />
                           {t('duty.kørevagt')}
                         </Badge>

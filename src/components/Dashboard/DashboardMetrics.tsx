@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Users, Car, UserX, Package, AlertCircle, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Users, Car, UserX, Package, AlertCircle, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
@@ -24,6 +24,15 @@ const DashboardMetrics: React.FC = () => {
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [carModalOpen, setCarModalOpen] = useState(false);
   const [absentModalOpen, setAbsentModalOpen] = useState(false);
+  
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('dashboardMetricsCollapsed');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('dashboardMetricsCollapsed', JSON.stringify(isCollapsed));
+  }, [isCollapsed]);
 
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
@@ -56,7 +65,25 @@ const DashboardMetrics: React.FC = () => {
   }
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold">{t('dashboard.metrics.title')}</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="h-8 w-8 p-0"
+          >
+            {isCollapsed ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronUp className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+        
+        {!isCollapsed && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <InteractiveMetricCard
           title={t('dashboard.metrics.availableEmployees')}
           value={metrics.availableEmployees.count}
@@ -96,6 +123,8 @@ const DashboardMetrics: React.FC = () => {
         />
 
         <DutySummaryWidget />
+          </div>
+        )}
       </div>
 
       {/* Detail Modals */}

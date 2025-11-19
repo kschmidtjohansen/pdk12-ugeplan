@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from 'date-fns';
 import MineOpgaver from './MineOpgaver';
 import { getCurrentWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
@@ -20,6 +21,15 @@ const ServicemedarbejderDashboard: React.FC = () => {
   const today = new Date();
   const currentWeek = getCurrentWeekNumber();
   const currentYear = new Date().getFullYear();
+  
+  const [isStatsCollapsed, setIsStatsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('servicemedarbejderStatsCollapsed');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('servicemedarbejderStatsCollapsed', JSON.stringify(isStatsCollapsed));
+  }, [isStatsCollapsed]);
 
   // For servicemedarbejder, filter to show assignments where they are assigned OR responsible
   const userAssignments = useMemo(() => {
@@ -77,7 +87,25 @@ const ServicemedarbejderDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Personal Stats - Enhanced */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold">{t('dashboard.personalStats')}</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsStatsCollapsed(!isStatsCollapsed)}
+            className="h-8 w-8 p-0"
+          >
+            {isStatsCollapsed ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronUp className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+        
+        {!isStatsCollapsed && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
@@ -105,6 +133,8 @@ const ServicemedarbejderDashboard: React.FC = () => {
         </Card>
 
         <DutySummaryWidget />
+          </div>
+        )}
       </div>
 
       {/* Mine Opgaver */}
