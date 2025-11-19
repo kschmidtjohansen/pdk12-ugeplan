@@ -70,10 +70,10 @@ export default function DutyPage() {
           )}
         </div>
 
-        <Tabs defaultValue="list" className="space-y-4">
+        <Tabs defaultValue="calendar" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="list">{t('duty.list')}</TabsTrigger>
             <TabsTrigger value="calendar">{t('duty.calendar')}</TabsTrigger>
+            <TabsTrigger value="list">{t('duty.list')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="list" className="space-y-4">
