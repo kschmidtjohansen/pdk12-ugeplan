@@ -6,6 +6,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { formatDateForDisplay } from '@/utils/dateUtils';
 
 const ChangeLogList: React.FC = () => {
   const { changeLogs, loading: isLoading } = useChangeLogs();
@@ -36,7 +37,9 @@ const ChangeLogList: React.FC = () => {
     }
     
     if (log.operation === 'DELETE') {
-      return `${t('changeLog.deleted')} ${caseNumber}`;
+      const formattedDate = details.date ? formatDateForDisplay(details.date) : '';
+      const dateText = formattedDate ? ` ${t('changeLog.fromDate')} ${formattedDate}` : '';
+      return `${t('changeLog.deleted')} ${caseNumber}${dateText}`;
     }
     
     if (log.operation === 'PUBLISH') {
