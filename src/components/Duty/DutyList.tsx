@@ -32,6 +32,28 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
   const locale = currentLanguage === 'da' ? da : enUS;
   const { removeDuty, loading } = useDutyActions(onSuccess);
 
+  // Helper to extract initials from external entry notes
+  const getExternalInitials = (notes: string | null | undefined): string => {
+    if (!notes?.startsWith('EKSTERN:')) return '?';
+    
+    // Extract initials from format: "EKSTERN: Name [IN]"
+    const match = notes.match(/\[([A-Z]{1,2})\]/);
+    if (match) return match[1];
+    
+    // Fallback: extract from name if no initials in brackets
+    const name = notes.split('\n')[0].replace('EKSTERN: ', '');
+    return name.split(/\s+/).map(w => w.charAt(0).toUpperCase()).slice(0, 2).join('');
+  };
+
+  // Helper to get display name from duty
+  const getDisplayName = (duty: Duty): string => {
+    if (duty.employee?.name) return duty.employee.name;
+    if (duty.notes?.startsWith('EKSTERN:')) {
+      return duty.notes.split('\n')[0].replace('EKSTERN: ', '').replace(/\s*\[.*?\]\s*/, '').trim();
+    }
+    return 'Ukendt';
+  };
+
   if (duties.length === 0) {
     return (
       <Card className="p-8 text-center">
@@ -49,19 +71,14 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
               <Avatar>
                 <AvatarImage src={duty.employee?.avatar_url || undefined} />
                 <AvatarFallback>
-                  {duty.employee?.name?.charAt(0) || '?'}
+                  {duty.employee?.name?.charAt(0) || getExternalInitials(duty.notes)}
                 </AvatarFallback>
               </Avatar>
               
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-medium">
-                    {duty.employee?.name || 
-                      (duty.notes?.startsWith('EKSTERN:') 
-                        ? duty.notes.split('\n')[0].replace('EKSTERN: ', '') 
-                        : 'Ukendt'
-                      )
-                    }
+                    {getDisplayName(duty)}
                   </span>
                   {duty.notes?.startsWith('EKSTERN:') && (
                     <Badge variant="outline" className="text-xs">Ekstern</Badge>
