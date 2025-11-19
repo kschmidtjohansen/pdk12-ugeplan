@@ -45,6 +45,7 @@ const planner = {
   assignmentUpdatedMsg: 'Opgaven {title} er blevet opdateret',
   assignmentDeleted: 'Opgave Slettet',
   assignmentDeletedMsg: 'Opgaven er blevet slettet',
+  assignmentDeletedMsgWithCase: 'Sag {caseNumber} er blevet slettet',
   errorCreatingAssignment: 'Fejl ved oprettelse af opgave',
   errorUpdatingAssignment: 'Fejl ved opdatering af opgave',
   errorDeletingAssignment: 'Fejl ved sletning af opgave',

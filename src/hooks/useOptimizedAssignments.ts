@@ -721,9 +721,15 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       // Service now handles deletion logging internally
       await OptimizedAssignmentService.deleteAssignment(id);
       
+      // Show case number in toast if available
+      const caseNumber = originalAssignment?.case_number || originalAssignment?.title;
+      const description = originalAssignment?.case_number 
+        ? t('planner.assignmentDeletedMsgWithCase', { caseNumber })
+        : t('planner.assignmentDeletedMsg');
+      
       toast({
         title: t('planner.assignmentDeleted'),
-        description: t('planner.assignmentDeletedMsg')
+        description
       });
       
       setOperationState(id, 'success');
