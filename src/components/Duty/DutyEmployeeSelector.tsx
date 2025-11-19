@@ -1,5 +1,6 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectScrollUpButton, SelectScrollDownButton } from '@/components/ui/select';
 import { useTranslation } from '@/context/TranslationContext';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 import type { DutyType } from '@/types/duty';
 
 interface Employee {
@@ -35,12 +36,30 @@ export const DutyEmployeeSelector = ({
       <SelectTrigger>
         <SelectValue placeholder={t('duty.selectEmployee')} />
       </SelectTrigger>
-      <SelectContent position="popper" className="max-h-[300px] overflow-y-auto">
-        {filteredEmployees.map(employee => (
-          <SelectItem key={employee.id} value={employee.id}>
-            {employee.name}
-          </SelectItem>
-        ))}
+      <SelectContent 
+        position="popper" 
+        className="max-h-[300px] overflow-y-auto"
+        style={{ 
+          maxHeight: '300px',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch'
+        }}
+      >
+        <SelectScrollUpButton className="flex items-center justify-center py-1">
+          <ChevronUp className="h-4 w-4" />
+        </SelectScrollUpButton>
+        
+        <div className="max-h-[270px] overflow-y-auto">
+          {filteredEmployees.map(employee => (
+            <SelectItem key={employee.id} value={employee.id}>
+              {employee.name}
+            </SelectItem>
+          ))}
+        </div>
+        
+        <SelectScrollDownButton className="flex items-center justify-center py-1">
+          <ChevronDown className="h-4 w-4" />
+        </SelectScrollDownButton>
       </SelectContent>
     </Select>
   );

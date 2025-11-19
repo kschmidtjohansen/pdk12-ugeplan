@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Shield, Car } from 'lucide-react';
+import { Shield, Car, Loader2 } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDutyFormState } from '@/hooks/duty/useDutyFormState';
 import { useDutyActions } from '@/hooks/duty/useDutyActions';
@@ -45,26 +45,33 @@ export const DutyAssignmentDialog = ({
   const { assignDuty, loading } = useDutyActions(() => {
     onSuccess();
     resetForm();
+    setAttempted(false);
     onOpenChange(false);
   });
+  
+  const [attempted, setAttempted] = useState(false);
 
-  const canSubmit = (formData.employee_id || manualName.trim()) && formData.dates.length > 0;
+  const hasEmployee = !!(formData.employee_id || manualName.trim());
+  const hasDates = formData.dates.length > 0;
+  const canSubmit = hasEmployee && hasDates;
 
   const handleSubmit = async () => {
-    if (!formData.employee_id && !manualName.trim()) {
+    setAttempted(true);
+    
+    if (!hasEmployee) {
       toast({
         title: t('common.error'),
         description: t('duty.noEmployeeSelected'),
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
 
-    if (formData.dates.length === 0) {
+    if (!hasDates) {
       toast({
         title: t('common.error'),
         description: t('duty.noDatesSelected'),
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
@@ -102,8 +109,10 @@ export const DutyAssignmentDialog = ({
           </TabsList>
 
           <TabsContent value={formData.duty_type} className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t('duty.selectEmployee')}</Label>
+            <div className={`space-y-2 ${!hasEmployee && attempted ? 'ring-2 ring-red-500 rounded-md p-2' : ''}`}>
+              <Label className={!hasEmployee && attempted ? 'text-red-500' : ''}>
+                {t('duty.selectEmployee')} *
+              </Label>
               <DutyEmployeeSelector
                 employees={employees}
                 selectedEmployeeId={formData.employee_id}
@@ -130,13 +139,13 @@ export const DutyAssignmentDialog = ({
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>
-                {t('duty.selectDates')}
-                <span className="text-xs text-muted-foreground ml-2">
-                  {t('duty.multipleSelection')}
-                </span>
+            <div className={`space-y-2 ${!hasDates && attempted ? 'ring-2 ring-red-500 rounded-md p-2' : ''}`}>
+              <Label className={!hasDates && attempted ? 'text-red-500' : ''}>
+                {t('duty.selectDates')} *
               </Label>
+              <p className="text-xs text-muted-foreground">
+                {t('duty.multipleSelection')}
+              </p>
               <DutyCalendar
                 selectedDates={formData.dates}
                 onSelectDates={setDates}
@@ -146,10 +155,7 @@ export const DutyAssignmentDialog = ({
 
             <div className="space-y-2">
               <Label>
-                {t('duty.notes')}
-                <span className="text-xs text-muted-foreground ml-2">
-                  ({t('duty.optional')})
-                </span>
+                {t('duty.notes')} ({t('duty.optional')})
               </Label>
               <Textarea
                 value={formData.notes}
@@ -159,24 +165,40 @@ export const DutyAssignmentDialog = ({
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  resetForm();
-                  onOpenChange(false);
-                }}
-                disabled={loading}
-              >
-                {t('duty.cancel')}
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                disabled={!canSubmit || loading}
-              >
-                {loading ? t('common.saving') : t('duty.assign')}
-              </Button>
+            <div className="flex flex-col gap-2 pt-4">
+              {!canSubmit && attempted && (
+                <p className="text-xs text-red-500">
+                  * {t('common.required')}
+                </p>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    resetForm();
+                    setAttempted(false);
+                    onOpenChange(false);
+                  }}
+                  disabled={loading}
+                >
+                  {t('duty.cancel')}
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!canSubmit || loading}
+                  className={!canSubmit ? 'opacity-50 cursor-not-allowed' : ''}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {t('common.saving')}
+                    </>
+                  ) : (
+                    t('duty.assign')
+                  )}
+                </Button>
+              </div>
             </div>
           </TabsContent>
         </Tabs>

@@ -156,7 +156,7 @@ const TopNavbar: React.FC = () => {
             </div>
             
             {/* Notifications - Desktop */}
-            <div className="hidden md:flex md:items-center md:gap-2">
+            <div className="hidden md:flex md:items-center md:gap-2 overflow-visible">
               <NotificationsDropdown 
                 notifications={notifications.slice(0, 10)}
                 unreadCount={unreadCount}

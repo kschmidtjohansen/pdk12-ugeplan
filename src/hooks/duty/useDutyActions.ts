@@ -28,17 +28,17 @@ export const useDutyActions = (onSuccess?: () => void) => {
       const isDemoMode = user.email === 'test@polygongroup.com';
       const client = getSchemaClient(isDemoMode);
 
-      // If manual name is provided, use a placeholder employee_id and store name in notes
-      const finalEmployeeId = employeeId || user.id; // Use current user as fallback for manual entries
-      const finalNotes = manualName 
-        ? `EKSTERN: ${manualName}${notes ? ` - ${notes}` : ''}`
+      // If manual name is provided, use it instead of employee_id
+      const useManualName = manualName && manualName.trim() && !employeeId;
+      const notesWithManualName = useManualName 
+        ? `EKSTERN: ${manualName}${notes ? '\n' + notes : ''}`
         : notes || null;
 
       const duties = dates.map(date => ({
         duty_type: dutyType,
-        employee_id: finalEmployeeId,
+        employee_id: useManualName ? null : employeeId,
         duty_date: date.toISOString().split('T')[0],
-        notes: finalNotes,
+        notes: notesWithManualName,
         created_by: user.id,
       }));
 
@@ -49,7 +49,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       if (error) throw error;
 
       // Only create notification if it's an actual employee (not manual entry)
-      if (employeeId && !manualName) {
+      if (employeeId && !useManualName) {
         await createDutyAssignmentNotification(employeeId, dutyType, dates);
       }
 

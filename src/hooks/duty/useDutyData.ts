@@ -8,11 +8,16 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
   const { user } = useAuth();
   const [duties, setDuties] = useState<Duty[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefetching, setIsRefetching] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchDuties = async () => {
+  const fetchDuties = async (isInitial = false) => {
     try {
-      setLoading(true);
+      if (isInitial) {
+        setLoading(true);
+      } else {
+        setIsRefetching(true);
+      }
       setError(null);
 
       const isDemoMode = user?.email === 'test@polygongroup.com';
@@ -49,11 +54,12 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
       setError(err instanceof Error ? err : new Error('Failed to fetch duties'));
     } finally {
       setLoading(false);
+      setIsRefetching(false);
     }
   };
 
   useEffect(() => {
-    fetchDuties();
+    fetchDuties(true);
 
     const isDemoMode = user?.email === 'test@polygongroup.com';
     const schema = isDemoMode ? 'demo' : 'public';
@@ -68,7 +74,7 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
           table: 'on_call_duties'
         },
         () => {
-          fetchDuties();
+          fetchDuties(false);
         }
       )
       .subscribe();
@@ -81,7 +87,8 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
   return {
     duties,
     loading,
+    isRefetching,
     error,
-    refetch: fetchDuties
+    refetch: () => fetchDuties(false)
   };
 };
