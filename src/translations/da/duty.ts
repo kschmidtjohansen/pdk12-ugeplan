@@ -10,6 +10,7 @@ export const duty = {
   currentWeekDuty: "Vagter denne uge",
   upcomingDuties: "Kommende vagter",
   noDutyAssigned: "Ingen vagt tildelt",
+  noDutySelected: "Ingen vagter valgt",
   assignSuccess: "Vagt tildelt",
   removeSuccess: "Vagt fjernet",
   updateSuccess: "Vagt opdateret",

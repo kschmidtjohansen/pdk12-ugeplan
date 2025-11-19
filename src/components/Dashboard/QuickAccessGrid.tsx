@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Users, Car, Clock, ArrowRight } from 'lucide-react';
+import { Calendar, Users, Car, Clock, ArrowRight, Shield } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 
 interface QuickAccessItem {
@@ -35,6 +35,13 @@ const QuickAccessGrid: React.FC<QuickAccessGridProps> = ({ userRole }) => {
         description: t('dashboard.quickAccessGrid.vacation.description'),
         link: '/vacation',
         color: 'green'
+      },
+      {
+        title: t('dashboard.quickAccessGrid.duty.title'),
+        icon: <Shield className="h-6 w-6" />,
+        description: t('dashboard.quickAccessGrid.duty.description'),
+        link: '/duty',
+        color: 'indigo'
       }
     ];
 
@@ -69,6 +76,7 @@ const QuickAccessGrid: React.FC<QuickAccessGridProps> = ({ userRole }) => {
                   item.color === 'blue' ? 'bg-blue-50 text-blue-600' :
                   item.color === 'green' ? 'bg-green-50 text-green-600' :
                   item.color === 'purple' ? 'bg-purple-50 text-purple-600' :
+                  item.color === 'indigo' ? 'bg-indigo-50 text-indigo-600' :
                   'bg-orange-50 text-orange-600'
                 }`}>
                   {item.icon}

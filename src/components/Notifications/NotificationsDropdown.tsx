@@ -18,10 +18,10 @@ const NotificationsDropdown: React.FC = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-[1.2rem] w-[1.2rem]" />
+        <Button variant="ghost" size="icon" className="relative h-9 w-9">
+          <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs min-w-5 h-5 rounded-full flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[11px] font-semibold min-w-[18px] h-[18px] rounded-full flex items-center justify-center leading-none shadow-sm">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}

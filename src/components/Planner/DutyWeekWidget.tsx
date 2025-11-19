@@ -79,24 +79,30 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
       </CardHeader>
 
       <CardContent className="p-4 space-y-3">
-        {weekDays.map(day => {
-          const { skadeleder, kørevagt } = getDutiesForDay(day);
-          const hasDuties = skadeleder || kørevagt;
+        {loading ? (
+          <div className="text-sm text-muted-foreground">
+            {t('common.loading')}...
+          </div>
+        ) : duties.length === 0 ? (
+          <div className="text-sm text-muted-foreground">
+            {t('duty.noDutySelected')}
+          </div>
+        ) : (
+          weekDays.map(day => {
+            const { skadeleder, kørevagt } = getDutiesForDay(day);
+            const hasDuties = skadeleder || kørevagt;
 
-          return (
-            <div 
-              key={day.toISOString()} 
-              className="border-l-2 border-primary/30 pl-3 py-2"
-            >
-              <div className="text-sm font-medium mb-2">
-                {format(day, 'EEEE dd/MM', { locale })}
-              </div>
+            if (!hasDuties) return null;
 
-              {!hasDuties ? (
-                <div className="text-xs text-muted-foreground">
-                  {t('duty.noDutyAssigned')}
+            return (
+              <div 
+                key={day.toISOString()} 
+                className="border-l-2 border-primary/30 pl-3 py-2"
+              >
+                <div className="text-sm font-medium mb-2">
+                  {format(day, 'EEEE dd/MM', { locale })}
                 </div>
-              ) : (
+
                 <div className="space-y-2">
                   {skadeleder && (
                     <div className="flex items-center gap-2">
@@ -104,44 +110,44 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
                         <Shield className="h-3 w-3" />
                         {t('duty.skadelederVagt')}
                       </Badge>
-                      <div className="flex items-center gap-1">
-                        <Avatar className="h-5 w-5">
-                          <AvatarImage src={skadeleder.employee?.avatar_url || undefined} />
-                          <AvatarFallback className="text-xs">
-                            {skadeleder.employee?.name?.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs">
-                          {skadeleder.employee?.name?.split(' ')[0]}
-                        </span>
+                      <div className="flex items-center gap-1.5">
+                        {skadeleder.employee?.avatar_url && (
+                          <Avatar className="h-5 w-5">
+                            <AvatarImage src={skadeleder.employee.avatar_url} />
+                            <AvatarFallback className="text-[10px]">
+                              {skadeleder.employee.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        <span className="text-xs">{skadeleder.employee?.name}</span>
                       </div>
                     </div>
                   )}
 
                   {kørevagt && (
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="gap-1">
+                      <Badge variant="outline" className="gap-1">
                         <Car className="h-3 w-3" />
                         {t('duty.kørevagt')}
                       </Badge>
-                      <div className="flex items-center gap-1">
-                        <Avatar className="h-5 w-5">
-                          <AvatarImage src={kørevagt.employee?.avatar_url || undefined} />
-                          <AvatarFallback className="text-xs">
-                            {kørevagt.employee?.name?.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs">
-                          {kørevagt.employee?.name?.split(' ')[0]}
-                        </span>
+                      <div className="flex items-center gap-1.5">
+                        {kørevagt.employee?.avatar_url && (
+                          <Avatar className="h-5 w-5">
+                            <AvatarImage src={kørevagt.employee.avatar_url} />
+                            <AvatarFallback className="text-[10px]">
+                              {kørevagt.employee.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        <span className="text-xs">{kørevagt.employee?.name}</span>
                       </div>
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          );
-        })}
+              </div>
+            );
+          })
+        )}
       </CardContent>
     </Card>
   );
