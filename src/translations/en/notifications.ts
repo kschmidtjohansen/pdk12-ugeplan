@@ -15,7 +15,9 @@ const notifications = {
   vacationApproved: 'Your vacation request has been approved',
   vacationRejected: 'Your vacation request has been rejected: {reason}',
   new: 'New',
-  from: 'From'
+  from: 'From',
+  dutyAssigned: 'New duty assigned',
+  dutyAssignedMessage: 'You have been assigned to {dutyType} on {date}'
 };
 
 export default notifications;
