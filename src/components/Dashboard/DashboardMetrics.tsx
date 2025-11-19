@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Users, Car, UserX, Package, AlertCircle, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, Car, UserX, Package, AlertCircle, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
@@ -9,7 +9,6 @@ import MetricsSkeleton from '@/components/shared/MetricsSkeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import InteractiveMetricCard from './InteractiveMetricCard';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import CarAvailabilityModal from './CarAvailabilityModal';
@@ -26,15 +25,6 @@ const DashboardMetrics: React.FC = () => {
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [carModalOpen, setCarModalOpen] = useState(false);
   const [absentModalOpen, setAbsentModalOpen] = useState(false);
-  
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    const saved = localStorage.getItem('dashboardMetricsCollapsed');
-    return saved ? JSON.parse(saved) : false;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('dashboardMetricsCollapsed', JSON.stringify(isCollapsed));
-  }, [isCollapsed]);
 
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
@@ -67,23 +57,14 @@ const DashboardMetrics: React.FC = () => {
   }
   return (
     <>
-      <Collapsible open={!isCollapsed} onOpenChange={(open) => setIsCollapsed(!open)}>
-        <Card className="relative overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-              <CardTitle className="text-xl font-bold">System Metrics</CardTitle>
-              <CardDescription>Key performance indicators</CardDescription>
-            </div>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-              </Button>
-            </CollapsibleTrigger>
-          </CardHeader>
-          
-          <CollapsibleContent className="data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <Card className="relative overflow-hidden">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">System Metrics</CardTitle>
+          <CardDescription>Key performance indicators</CardDescription>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <InteractiveMetricCard
           title={t('dashboard.metrics.availableEmployees')}
           value={metrics.availableEmployees.count}
@@ -121,37 +102,34 @@ const DashboardMetrics: React.FC = () => {
           color="orange"
           onClick={() => navigate('/warehouse')}
         />
-              </div>
+          </div>
 
-              <DutySummaryWidget />
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+          <DutySummaryWidget />
+        </CardContent>
+      </Card>
 
-      {/* Detail Modals */}
       <EmployeeAvailabilityDialog
         open={employeeModalOpen}
-        onOpenChange={setEmployeeModalOpen}
+        onOpenChange={(open) => setEmployeeModalOpen(open)}
         employees={metrics.availableEmployees.employees}
+        selectedDate={todayStr}
         assignments={assignments}
         vacations={vacations}
-        selectedDate={todayStr}
-        title={t('dashboard.metrics.availableEmployeesDetails')}
+        title={t('dashboard.metrics.availableEmployees')}
       />
       
       <CarAvailabilityModal
         isOpen={carModalOpen}
         onClose={() => setCarModalOpen(false)}
         cars={metrics.availableCars.cars}
-        title={t('dashboard.metrics.availableCarsDetails')}
+        title={t('dashboard.metrics.availableCars')}
       />
       
       <AbsentEmployeesModal
         isOpen={absentModalOpen}
         onClose={() => setAbsentModalOpen(false)}
         employees={metrics.absentEmployees.employees}
-        title={t('dashboard.metrics.absentEmployeesDetails')}
+        title={t('dashboard.metrics.absentEmployees')}
       />
     </>
   );

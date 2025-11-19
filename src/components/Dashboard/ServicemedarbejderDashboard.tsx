@@ -1,12 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Calendar, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import MineOpgaver from './MineOpgaver';
 import { getCurrentWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
@@ -22,15 +20,6 @@ const ServicemedarbejderDashboard: React.FC = () => {
   const today = new Date();
   const currentWeek = getCurrentWeekNumber();
   const currentYear = new Date().getFullYear();
-  
-  const [isStatsCollapsed, setIsStatsCollapsed] = useState(() => {
-    const saved = localStorage.getItem('servicemedarbejderStatsCollapsed');
-    return saved ? JSON.parse(saved) : false;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('servicemedarbejderStatsCollapsed', JSON.stringify(isStatsCollapsed));
-  }, [isStatsCollapsed]);
 
   // For servicemedarbejder, filter to show assignments where they are assigned OR responsible
   const userAssignments = useMemo(() => {
@@ -88,34 +77,41 @@ const ServicemedarbejderDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Personal Stats */}
-      <Collapsible open={!isStatsCollapsed} onOpenChange={(open) => setIsStatsCollapsed(!open)}>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-semibold">Mine Statistikker</CardTitle>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                {isStatsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-              </Button>
-            </CollapsibleTrigger>
-          </CardHeader>
-          
-          <CollapsibleContent className="data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Opgaver denne uge</p>
-                  <p className="text-2xl font-bold">{weeklyAssignments.length}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Opgaver i dag</p>
-                  <p className="text-2xl font-bold">{todayAssignments.length}</p>
-                </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Mine Statistikker</CardTitle>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/40 rounded-full">
+                <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+              <div>
+                <p className="text-sm text-muted-foreground">I dag</p>
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  {todayAssignments.length}
+                </p>
+                <p className="text-xs text-muted-foreground">opgaver</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="p-3 bg-green-100 dark:bg-green-900/40 rounded-full">
+                <Calendar className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Denne uge</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  {weeklyAssignments.length}
+                </p>
+                <p className="text-xs text-muted-foreground">opgaver</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <DutySummaryWidget />
 
