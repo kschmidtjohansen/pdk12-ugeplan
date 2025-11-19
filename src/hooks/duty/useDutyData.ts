@@ -11,6 +11,10 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
   const [isRefetching, setIsRefetching] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  // Convert dates to stable strings to prevent excessive re-renders
+  const startDateStr = startDate ? startDate.toISOString().split('T')[0] : undefined;
+  const endDateStr = endDate ? endDate.toISOString().split('T')[0] : undefined;
+
   const fetchDuties = async (isInitial = false) => {
     try {
       if (isInitial) {
@@ -36,12 +40,12 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
         `)
         .order('duty_date', { ascending: true });
 
-      if (startDate) {
-        query = query.gte('duty_date', startDate.toISOString().split('T')[0]);
+      if (startDateStr) {
+        query = query.gte('duty_date', startDateStr);
       }
 
-      if (endDate) {
-        query = query.lte('duty_date', endDate.toISOString().split('T')[0]);
+      if (endDateStr) {
+        query = query.lte('duty_date', endDateStr);
       }
 
       const { data, error: fetchError } = await query;
@@ -82,7 +86,7 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.email, startDate, endDate]);
+  }, [user?.email, startDateStr, endDateStr]);
 
   return {
     duties,

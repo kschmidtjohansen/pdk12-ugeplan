@@ -58,7 +58,13 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return true;
     } catch (err) {
       console.error('Error assigning duty:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to assign duty');
+      const errorMessage = err instanceof Error ? err.message : '';
+      
+      if (errorMessage.includes('skadeleder') || errorMessage.includes('administrator')) {
+        toast.error(t('duty.assignFailed'));
+      } else {
+        toast.error(errorMessage || t('duty.assignFailedGeneric'));
+      }
       return false;
     } finally {
       setLoading(false);
