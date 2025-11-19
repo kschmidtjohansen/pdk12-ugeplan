@@ -1,6 +1,7 @@
 export const duty = {
   title: "On-Call Duty",
   todayDuties: "Duties Today",
+  noDutiesInPlan: "No duties in the plan",
   skadelederVagt: "Manager On-Call",
   kørevagt: "Driver On-Call",
   assignEmployee: "Assign employee",
