@@ -103,12 +103,14 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
             </CardTitle>
           </div>
           <div className="flex items-center gap-2">
-            <Link 
-              to="/duty" 
-              className="text-sm text-primary hover:underline transition-colors"
+            <Button
+              variant="link"
+              size="sm"
+              onClick={() => navigate('/duty')}
+              className="text-sm text-primary hover:underline transition-colors h-auto p-0"
             >
               {t('duty.viewAll')}
-            </Link>
+            </Button>
             <Button
               variant="ghost"
               size="sm"
