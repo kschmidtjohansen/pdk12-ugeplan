@@ -747,34 +747,8 @@ export class OptimizedAssignmentService {
     }
 
     try {
-      // Fetch assignment data before deletion for logging
-      const { data: assignment } = await supabase
-        .from('assignments')
-        .select('*')
-        .eq('id', assignmentId)
-        .single();
-      
-      // Log the deletion BEFORE actually deleting to ensure data is available
-      if (assignment) {
-        console.log('[OptimizedAssignmentService] Deleting assignment with data:', {
-          id: assignmentId,
-          date: assignment.assignment_date,
-          case_number: assignment.case_number
-        });
-        
-        try {
-          const { PlannerChangeLogger } = await import('./plannerChangeLogger');
-          await PlannerChangeLogger.logDelete(assignmentId, {
-            title: assignment.title,
-            date: assignment.assignment_date,
-            case_number: assignment.case_number,
-            location: assignment.location
-          });
-        } catch (logErr) {
-          console.error('[OptimizedAssignmentService] Failed to log deletion:', logErr);
-          // Continue with deletion even if logging fails
-        }
-      }
+      // Deletion logging is now handled automatically by database trigger
+      console.log('[OptimizedAssignmentService] Deleting assignment:', assignmentId);
       
       const { error } = await supabase
         .from('assignments')
