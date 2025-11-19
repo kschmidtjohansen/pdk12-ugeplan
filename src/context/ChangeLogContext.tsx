@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 
 export interface ChangeLogEntry {
   id: string;
@@ -53,8 +54,12 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       setLoading(true);
       
+      // Use schema-aware client for demo isolation
+      const isDemoMode = user.email === 'test@polygongroup.com';
+      const client = getSchemaClient(isDemoMode);
+      
       // Fetch last 50 change logs
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('planner_change_log')
         .select('*')
         .order('created_at', { ascending: false })
@@ -72,7 +77,10 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (logsWithoutCaseNumber.length > 0) {
         const assignmentIds = [...new Set(logsWithoutCaseNumber.map(log => log.assignment_id))].filter(Boolean) as string[];
         
-        const { data: assignments } = await supabase
+        const isDemoMode = user.email === 'test@polygongroup.com';
+        const client = getSchemaClient(isDemoMode);
+        
+        const { data: assignments } = await client
           .from('assignments')
           .select('id, case_number, title')
           .in('id', assignmentIds);
@@ -110,7 +118,10 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!isAuthenticated || !user) return [];
 
     try {
-      const { data, error } = await supabase
+      const isDemoMode = user.email === 'test@polygongroup.com';
+      const client = getSchemaClient(isDemoMode);
+      
+      const { data, error } = await client
         .from('planner_change_log')
         .select('*')
         .gte('created_at', startDate.toISOString())
@@ -129,7 +140,10 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!isAuthenticated || !user) return [];
 
     try {
-      const { data, error } = await supabase
+      const isDemoMode = user.email === 'test@polygongroup.com';
+      const client = getSchemaClient(isDemoMode);
+      
+      const { data, error } = await client
         .from('planner_change_log')
         .select('*')
         .contains('change_details', { case_number: caseNumber })
@@ -164,13 +178,16 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     if (!isAuthenticated || !user) return;
 
+    const isDemoMode = user.email === 'test@polygongroup.com';
+    const schema = isDemoMode ? 'demo' : 'public';
+
     const channel = supabase
       .channel('planner_change_log_changes')
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
-          schema: 'public',
+          schema: schema,
           table: 'planner_change_log'
         },
         async (payload) => {
@@ -178,7 +195,8 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           
           // Enrich with case_number if missing (fallback to title)
           if (newLog.assignment_id && !newLog.change_details?.case_number) {
-            const { data: assignment } = await supabase
+            const client = getSchemaClient(isDemoMode);
+            const { data: assignment } = await client
               .from('assignments')
               .select('case_number, title')
               .eq('id', newLog.assignment_id)
