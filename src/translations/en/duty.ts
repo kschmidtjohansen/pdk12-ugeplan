@@ -20,6 +20,7 @@ export const duty = {
   assignFailedGeneric: "Failed to assign duty",
   removeSuccess: "Duty removed",
   updateSuccess: "Duty updated",
+  updateFailed: "Failed to update duty",
   notes: "Notes",
   optional: "optional",
   assign: "Assign",
@@ -43,6 +44,8 @@ export const duty = {
   viewAll: "View all",
   filterByType: "Filter by type",
   allTypes: "All types",
+  editDuty: "Edit duty",
+  cannotChangeDateInEdit: "The date cannot be changed. Delete and create a new duty if you need to change the date.",
 };
 
 export default duty;
