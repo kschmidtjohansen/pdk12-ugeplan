@@ -66,7 +66,7 @@ const QuickAccessGrid: React.FC<QuickAccessGridProps> = ({ userRole }) => {
   const items = getQuickAccessItems();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       {items.map((item, index) => (
         <Link key={index} to={item.link} className="block group">
           <Card className="h-full border-2 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 animate-scale-in" style={{ animationDelay: `${index * 50}ms` }}>

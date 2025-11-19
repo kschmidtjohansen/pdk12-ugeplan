@@ -6,14 +6,17 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDutyData } from '@/hooks/duty/useDutyData';
+import { startOfWeek, endOfWeek } from 'date-fns';
 
 const DutySummaryWidget: React.FC = () => {
   const { t } = useTranslation();
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
   
-  const { duties, loading } = useDutyData(today, today);
+  const { duties, loading } = useDutyData(weekStart, weekEnd);
 
+  const todayStr = today.toISOString().split('T')[0];
   const todayDuties = duties.filter(duty => duty.duty_date === todayStr);
   const skadelederDuty = todayDuties.find(d => d.duty_type === 'skadeleder_vagt');
   const kørevagt = todayDuties.find(d => d.duty_type === 'kørevagt');
@@ -35,7 +38,7 @@ const DutySummaryWidget: React.FC = () => {
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-primary" />
               <CardTitle className="text-lg font-semibold text-primary">
-                {t('duty.todayDuties')}
+                {t('duty.currentWeekDuty')}
               </CardTitle>
             </div>
             <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />

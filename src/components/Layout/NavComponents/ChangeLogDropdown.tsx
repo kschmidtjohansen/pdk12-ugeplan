@@ -33,8 +33,8 @@ const ChangeLogDropdown: React.FC = () => {
         >
           <History className="h-5 w-5" />
           {unviewedCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-              {unviewedCount > 9 ? '9+' : unviewedCount}
+            <span className="absolute top-0 right-0 flex h-2 w-2 rounded-full bg-red-500">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75 animate-ping"></span>
             </span>
           )}
         </Button>

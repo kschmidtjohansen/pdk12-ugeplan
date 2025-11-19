@@ -9,7 +9,7 @@ import { DutyList } from '@/components/Duty/DutyList';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus } from 'lucide-react';
-import { startOfMonth, endOfMonth, addMonths } from 'date-fns';
+import { startOfMonth, endOfMonth, addMonths, startOfWeek } from 'date-fns';
 
 export default function DutyPage() {
   const { t } = useTranslation();
@@ -18,6 +18,8 @@ export default function DutyPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const today = new Date();
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const startDate = startOfMonth(selectedMonth);
   const endDate = endOfMonth(addMonths(selectedMonth, 2));
 
@@ -27,7 +29,7 @@ export default function DutyPage() {
   const loading = dutiesLoading || employeesLoading;
 
   const upcomingDuties = duties.filter(
-    duty => new Date(duty.duty_date) >= new Date()
+    duty => new Date(duty.duty_date) >= weekStart
   );
 
   const employeesWithRoles = employees.map(emp => ({
