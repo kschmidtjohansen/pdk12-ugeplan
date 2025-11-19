@@ -45,6 +45,7 @@ const planner = {
   assignmentUpdatedMsg: 'Assignment {title} has been updated',
   assignmentDeleted: 'Assignment Deleted',
   assignmentDeletedMsg: 'Assignment has been deleted',
+  assignmentDeletedMsgWithCase: 'Case {caseNumber} has been deleted',
   errorCreatingAssignment: 'Error creating assignment',
   errorUpdatingAssignment: 'Error updating assignment',
   errorDeletingAssignment: 'Error deleting assignment',
