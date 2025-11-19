@@ -59,6 +59,7 @@ export const DutyCalendar = ({
         onSelect={(dates) => dates && onSelectDates(dates)}
         month={month}
         onMonthChange={onMonthChange}
+        weekStartsOn={1}
         modifiers={getDayModifiers()}
         modifiersClassNames={{
           skadeleder: 'bg-blue-100 dark:bg-blue-900/30',

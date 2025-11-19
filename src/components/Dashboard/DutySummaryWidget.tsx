@@ -38,7 +38,7 @@ const DutySummaryWidget: React.FC = () => {
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-primary" />
               <CardTitle className="text-lg font-semibold text-primary">
-                {t('duty.currentWeekDuty')}
+                {t('duty.todayDuties')}
               </CardTitle>
             </div>
             <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
