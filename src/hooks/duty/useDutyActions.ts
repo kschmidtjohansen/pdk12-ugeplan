@@ -6,6 +6,7 @@ import { useDutyNotifications } from '@/hooks/notifications/dutyNotifications';
 import { toast } from 'sonner';
 import { useTranslation } from '@/context/TranslationContext';
 import type { DutyType } from '@/types/duty';
+import { format } from 'date-fns';
 
 export const useDutyActions = (onSuccess?: () => void) => {
   const { user } = useAuth();
@@ -37,7 +38,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       const duties = dates.map(date => ({
         duty_type: dutyType,
         employee_id: useManualName ? null : employeeId,
-        duty_date: date.toISOString().split('T')[0],
+        duty_date: format(date, 'yyyy-MM-dd'),
         notes: notesWithManualName,
         created_by: user.id,
       }));

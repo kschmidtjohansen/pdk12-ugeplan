@@ -65,6 +65,12 @@ export const DutyMonthCalendar = ({
     };
   };
 
+  const getDutyTypeName = (dutyType: string) => {
+    return dutyType === 'skadeleder_vagt' 
+      ? t('duty.skadelederVagt')
+      : t('duty.kørevagt');
+  };
+
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -164,7 +170,7 @@ export const DutyMonthCalendar = ({
                           canManage && colors.hover,
                           canManage ? "cursor-pointer" : "cursor-default"
                         )}
-                        title={`${employeeName} - ${t(`duty.${duty.duty_type}`)}`}
+                        title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}`}
                       >
                         <div className="font-medium truncate">
                           {getInitials(employeeName)}
