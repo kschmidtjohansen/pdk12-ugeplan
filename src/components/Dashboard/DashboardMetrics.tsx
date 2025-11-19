@@ -57,14 +57,7 @@ const DashboardMetrics: React.FC = () => {
   }
   return (
     <>
-      <Card className="relative overflow-hidden">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold">System Metrics</CardTitle>
-          <CardDescription>Key performance indicators</CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <InteractiveMetricCard
           title={t('dashboard.metrics.availableEmployees')}
           value={metrics.availableEmployees.count}
@@ -102,11 +95,9 @@ const DashboardMetrics: React.FC = () => {
           color="orange"
           onClick={() => navigate('/warehouse')}
         />
-          </div>
 
-          <DutySummaryWidget />
-        </CardContent>
-      </Card>
+        <DutySummaryWidget />
+      </div>
 
       <EmployeeAvailabilityDialog
         open={employeeModalOpen}
