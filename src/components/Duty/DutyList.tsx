@@ -6,7 +6,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useDutyActions } from '@/hooks/duty/useDutyActions';
 import { format } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
-import { Trash2, Shield, Car } from 'lucide-react';
+import { Trash2, Shield, Car, Pencil } from 'lucide-react';
 import type { Duty } from '@/types/duty';
 import {
   AlertDialog,
@@ -24,9 +24,10 @@ interface DutyListProps {
   duties: Duty[];
   onSuccess: () => void;
   canManage: boolean;
+  onDutyClick?: (duty: Duty) => void;
 }
 
-export const DutyList = ({ duties, onSuccess, canManage }: DutyListProps) => {
+export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyListProps) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : enUS;
   const { removeDuty, loading } = useDutyActions(onSuccess);
@@ -96,33 +97,45 @@ export const DutyList = ({ duties, onSuccess, canManage }: DutyListProps) => {
             </div>
 
             {canManage && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled={loading}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t('duty.confirmRemove')}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {t('duty.confirmRemoveMessage')}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t('duty.cancel')}</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => removeDuty(duty.id)}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onDutyClick?.(duty)}
+                  className="text-primary hover:text-primary hover:bg-primary/10"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={loading}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
-                      {t('duty.remove')}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t('duty.confirmRemove')}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t('duty.confirmRemoveMessage')}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t('duty.cancel')}</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => removeDuty(duty.id)}
+                        className="bg-destructive hover:bg-destructive/90"
+                      >
+                        {t('duty.remove')}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             )}
           </div>
         </Card>

@@ -5,11 +5,15 @@ import { usePermissions } from '@/context/AuthContext';
 import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 import { DutyAssignmentDialog } from '@/components/Duty/DutyAssignmentDialog';
+import { DutyEditDialog } from '@/components/Duty/DutyEditDialog';
 import { DutyList } from '@/components/Duty/DutyList';
+import { DutyMonthCalendar } from '@/components/Duty/DutyMonthCalendar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus } from 'lucide-react';
 import { startOfMonth, endOfMonth, addMonths, startOfWeek } from 'date-fns';
+import type { Duty } from '@/types/duty';
 
 export default function DutyPage() {
   const { t } = useTranslation();
@@ -17,7 +21,11 @@ export default function DutyPage() {
   const canManage = isAdmin || isSkadeleder;
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedDuty, setSelectedDuty] = useState<Duty | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+  
   const today = new Date();
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const startDate = startOfMonth(selectedMonth);
@@ -38,6 +46,11 @@ export default function DutyPage() {
     role: emp.role,
   }));
 
+  const handleDutyClick = (duty: Duty) => {
+    setSelectedDuty(duty);
+    setEditDialogOpen(true);
+  };
+
   return (
     <MainLayout>
       <div className="container mx-auto py-6 space-y-6">
@@ -57,38 +70,73 @@ export default function DutyPage() {
           )}
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center min-h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
-          </div>
-        ) : duties.length === 0 ? (
-          <Card className="border-2 border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground text-center">{t('duty.noDutiesInPlan')}</p>
-            </CardContent>
-          </Card>
-        ) : upcomingDuties.length === 0 ? (
-          <Card className="border-2 border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground text-center">{t('duty.noUpcomingDuties')}</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <DutyList
-            duties={upcomingDuties}
-            onSuccess={refetch}
-            canManage={canManage}
-          />
-        )}
+        <Tabs defaultValue="list" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="list">{t('duty.list')}</TabsTrigger>
+            <TabsTrigger value="calendar">{t('duty.calendar')}</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="list" className="space-y-4">
+            {loading ? (
+              <div className="flex items-center justify-center min-h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+              </div>
+            ) : duties.length === 0 ? (
+              <Card className="border-2 border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <p className="text-muted-foreground text-center">{t('duty.noDutiesInPlan')}</p>
+                </CardContent>
+              </Card>
+            ) : upcomingDuties.length === 0 ? (
+              <Card className="border-2 border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <p className="text-muted-foreground text-center">{t('duty.noUpcomingDuties')}</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <DutyList
+                duties={upcomingDuties}
+                onSuccess={refetch}
+                canManage={canManage}
+                onDutyClick={handleDutyClick}
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent value="calendar" className="space-y-4">
+            {loading ? (
+              <div className="flex items-center justify-center min-h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+              </div>
+            ) : (
+              <DutyMonthCalendar
+                duties={duties}
+                month={calendarMonth}
+                onMonthChange={setCalendarMonth}
+                onDutyClick={handleDutyClick}
+                canManage={canManage}
+              />
+            )}
+          </TabsContent>
+        </Tabs>
 
         {canManage && (
-          <DutyAssignmentDialog
-            open={dialogOpen}
-            onOpenChange={setDialogOpen}
-            employees={employeesWithRoles}
-            duties={duties}
-            onSuccess={refetch}
-          />
+          <>
+            <DutyAssignmentDialog
+              open={dialogOpen}
+              onOpenChange={setDialogOpen}
+              employees={employeesWithRoles}
+              duties={duties}
+              onSuccess={refetch}
+            />
+            <DutyEditDialog
+              open={editDialogOpen}
+              onOpenChange={setEditDialogOpen}
+              duty={selectedDuty}
+              employees={employeesWithRoles}
+              onSuccess={refetch}
+            />
+          </>
         )}
       </div>
     </MainLayout>

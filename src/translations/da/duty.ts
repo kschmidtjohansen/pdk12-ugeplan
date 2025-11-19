@@ -20,6 +20,7 @@ export const duty = {
   assignFailedGeneric: "Kunne ikke tildele vagt",
   removeSuccess: "Vagt fjernet",
   updateSuccess: "Vagt opdateret",
+  updateFailed: "Kunne ikke opdatere vagt",
   notes: "Noter",
   optional: "valgfrit",
   assign: "Tildel",
@@ -43,6 +44,8 @@ export const duty = {
   viewAll: "Se alle",
   filterByType: "Filtrer efter type",
   allTypes: "Alle typer",
+  editDuty: "Rediger vagt",
+  cannotChangeDateInEdit: "Datoen kan ikke ændres. Slet og opret en ny vagt hvis du vil ændre datoen.",
 };
 
 export default duty;
