@@ -11,6 +11,7 @@ import CurrentAndFutureDays from './CurrentAndFutureDays';
 import PastAssignments from './PastAssignments';
 import EmptyState from './EmptyState';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
+import { DutyWeekWidget } from './DutyWeekWidget';
 // Fix the import path
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
@@ -122,15 +123,25 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
 
   return (
     <div className="space-y-6 pb-6">
-      {/* Unassigned Resources Section */}
+      {/* Unassigned Resources and Duty Widget */}
       {(canEdit || canPublishTasks) && (
-        <UnassignedResourcesSection 
-          assignments={weekAssignments}
-          employees={employees}
-          cars={cars}
-          vacations={vacations}
-          weekDates={weekDates}
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            <UnassignedResourcesSection 
+              assignments={weekAssignments}
+              employees={employees}
+              cars={cars}
+              vacations={vacations}
+              weekDates={weekDates}
+            />
+          </div>
+          <div>
+            <DutyWeekWidget 
+              selectedWeek={selectedWeek}
+              selectedYear={selectedYear}
+            />
+          </div>
+        </div>
       )}
       
       {/* Show on Screen Button */}

@@ -17,6 +17,7 @@ import deleteConfirm from './deleteConfirm';
 import screenDisplay from './screenDisplay';
 import { warehouse } from './warehouse';
 import { changeLog } from './changeLog';
+import { duty } from './duty';
 
 
 export const en = {
@@ -37,4 +38,5 @@ export const en = {
   screenDisplay,
   warehouse,
   changeLog,
+  duty,
 };
