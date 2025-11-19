@@ -16,6 +16,8 @@ export const duty = {
   noDutyAssigned: "Ingen vagt tildelt",
   noDutySelected: "Ingen vagter valgt",
   assignSuccess: "Vagt tildelt",
+  assignFailed: "Kun skadeledere og administratorer kan tildeles til skadeleder vagt",
+  assignFailedGeneric: "Kunne ikke tildele vagt",
   removeSuccess: "Vagt fjernet",
   updateSuccess: "Vagt opdateret",
   notes: "Noter",

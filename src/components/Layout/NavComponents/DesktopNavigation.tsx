@@ -43,7 +43,7 @@ const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
                   )}
                 >
                   <span className="mr-2">{item.icon}</span>
-                  <span>{item.name}</span>
+                  <span className="whitespace-nowrap">{item.name}</span>
                   <ChevronDown className="ml-1 h-4 w-4" />
                   
                   {/* Notification indicator */}
@@ -65,7 +65,7 @@ const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
                       )}
                     >
                       <span className="mr-2">{child.icon}</span>
-                      <span>{child.name}</span>
+                      <span className="whitespace-nowrap">{child.name}</span>
                     </Link>
                   </DropdownMenuItem>
                 ))}
@@ -87,7 +87,7 @@ const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
             )}
           >
             <span className="mr-2">{item.icon}</span>
-            <span>{item.name}</span>
+            <span className="whitespace-nowrap">{item.name}</span>
             
             {/* Notification indicator */}
             {item.hasNotification && (

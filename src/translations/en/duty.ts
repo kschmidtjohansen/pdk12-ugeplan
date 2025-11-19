@@ -16,6 +16,8 @@ export const duty = {
   noDutyAssigned: "No duty assigned",
   noDutySelected: "No duties selected",
   assignSuccess: "Duty assigned",
+  assignFailed: "Only administrators and skadeledere can be assigned to manager on-call",
+  assignFailedGeneric: "Failed to assign duty",
   removeSuccess: "Duty removed",
   updateSuccess: "Duty updated",
   notes: "Notes",
