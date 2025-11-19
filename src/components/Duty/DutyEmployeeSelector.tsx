@@ -35,7 +35,7 @@ export const DutyEmployeeSelector = ({
       <SelectTrigger>
         <SelectValue placeholder={t('duty.selectEmployee')} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent position="popper" className="max-h-[300px] overflow-y-auto">
         {filteredEmployees.map(employee => (
           <SelectItem key={employee.id} value={employee.id}>
             {employee.name}

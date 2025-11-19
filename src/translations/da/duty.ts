@@ -1,9 +1,12 @@
 export const duty = {
   title: "Vagt",
+  todayDuties: "Vagter i dag",
   skadelederVagt: "Skadeleder Vagt",
   kørevagt: "Kørevagt",
   assignEmployee: "Tildel medarbejder",
   selectEmployee: "Vælg medarbejder",
+  enterNameManually: "Indtast navn manuelt",
+  enterName: "Indtast navn...",
   selectDates: "Vælg datoer",
   selectDate: "Vælg dato",
   multipleSelection: "Hold Ctrl/Cmd for at vælge flere dage",

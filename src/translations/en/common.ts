@@ -144,5 +144,6 @@ export const common = {
     skadeleder: "Damage Leader", 
     servicemedarbejder: "Service Employee"
   },
-  and: "and"
+  and: "and",
+  or: "or"
 };

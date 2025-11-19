@@ -9,12 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Shield, Car } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDutyFormState } from '@/hooks/duty/useDutyFormState';
 import { useDutyActions } from '@/hooks/duty/useDutyActions';
 import { DutyEmployeeSelector } from './DutyEmployeeSelector';
 import { DutyCalendar } from './DutyCalendar';
+import { toast } from '@/hooks/use-toast';
 import type { Duty } from '@/types/duty';
 
 interface Employee {
@@ -39,19 +41,31 @@ export const DutyAssignmentDialog = ({
   onSuccess,
 }: DutyAssignmentDialogProps) => {
   const { t } = useTranslation();
-  const { formData, setDutyType, setEmployeeId, setDates, setNotes, resetForm } = useDutyFormState();
+  const { formData, manualName, setDutyType, setEmployeeId, setDates, setNotes, setManualName, resetForm } = useDutyFormState();
   const { assignDuty, loading } = useDutyActions(() => {
     onSuccess();
     resetForm();
     onOpenChange(false);
   });
 
+  const canSubmit = (formData.employee_id || manualName.trim()) && formData.dates.length > 0;
+
   const handleSubmit = async () => {
-    if (!formData.employee_id) {
+    if (!formData.employee_id && !manualName.trim()) {
+      toast({
+        title: t('common.error'),
+        description: t('duty.noEmployeeSelected'),
+        variant: 'destructive'
+      });
       return;
     }
 
     if (formData.dates.length === 0) {
+      toast({
+        title: t('common.error'),
+        description: t('duty.noDatesSelected'),
+        variant: 'destructive'
+      });
       return;
     }
 
@@ -59,7 +73,8 @@ export const DutyAssignmentDialog = ({
       formData.duty_type,
       formData.employee_id,
       formData.dates,
-      formData.notes
+      formData.notes,
+      manualName.trim()
     );
   };
 
@@ -94,6 +109,24 @@ export const DutyAssignmentDialog = ({
                 selectedEmployeeId={formData.employee_id}
                 onSelectEmployee={setEmployeeId}
                 dutyType={formData.duty_type}
+              />
+              
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    {t('common.or')}
+                  </span>
+                </div>
+              </div>
+              
+              <Label>{t('duty.enterNameManually')}</Label>
+              <Input 
+                value={manualName}
+                onChange={(e) => setManualName(e.target.value)}
+                placeholder={t('duty.enterName')}
               />
             </div>
 
@@ -140,9 +173,9 @@ export const DutyAssignmentDialog = ({
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={loading || !formData.employee_id || formData.dates.length === 0}
+                disabled={!canSubmit || loading}
               >
-                {t('duty.assign')}
+                {loading ? t('common.saving') : t('duty.assign')}
               </Button>
             </div>
           </TabsContent>
