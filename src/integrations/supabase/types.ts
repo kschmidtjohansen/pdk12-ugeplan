@@ -362,7 +362,7 @@ export type Database = {
           created_by: string
           duty_date: string
           duty_type: Database["public"]["Enums"]["duty_type"]
-          employee_id: string
+          employee_id: string | null
           id: string
           notes: string | null
           updated_at: string
@@ -372,7 +372,7 @@ export type Database = {
           created_by: string
           duty_date: string
           duty_type: Database["public"]["Enums"]["duty_type"]
-          employee_id: string
+          employee_id?: string | null
           id?: string
           notes?: string | null
           updated_at?: string
@@ -382,7 +382,7 @@ export type Database = {
           created_by?: string
           duty_date?: string
           duty_type?: Database["public"]["Enums"]["duty_type"]
-          employee_id?: string
+          employee_id?: string | null
           id?: string
           notes?: string | null
           updated_at?: string
