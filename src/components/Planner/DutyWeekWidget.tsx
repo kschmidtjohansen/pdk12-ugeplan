@@ -164,15 +164,30 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
                           {t('duty.skadelederVagt')}
                         </Badge>
                         <div className="flex items-center gap-1.5">
-                          {skadeleder.employee?.avatar_url && (
-                            <Avatar className="h-5 w-5">
-                              <AvatarImage src={skadeleder.employee.avatar_url} />
-                              <AvatarFallback className="text-[10px]">
-                                {skadeleder.employee.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
+                          {skadeleder.employee ? (
+                            // Show employee with avatar
+                            <>
+                              {skadeleder.employee.avatar_url && (
+                                <Avatar className="h-5 w-5">
+                                  <AvatarImage src={skadeleder.employee.avatar_url} />
+                                  <AvatarFallback className="text-[10px]">
+                                    {skadeleder.employee.name.charAt(0)}
+                                  </AvatarFallback>
+                                </Avatar>
+                              )}
+                              <span className="text-xs">{skadeleder.employee.name}</span>
+                            </>
+                          ) : (
+                            // Show external entry with initials badge
+                            <>
+                              <Avatar className="h-5 w-5">
+                                <AvatarFallback className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                  {getExternalInitials(skadeleder.notes)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs">{getDisplayName(skadeleder)}</span>
+                            </>
                           )}
-                          <span className="text-xs">{skadeleder.employee?.name}</span>
                         </div>
                       </div>
                     )}
@@ -184,15 +199,30 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
                           {t('duty.kørevagt')}
                         </Badge>
                         <div className="flex items-center gap-1.5">
-                          {kørevagt.employee?.avatar_url && (
-                            <Avatar className="h-5 w-5">
-                              <AvatarImage src={kørevagt.employee.avatar_url} />
-                              <AvatarFallback className="text-[10px]">
-                                {kørevagt.employee.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
+                          {kørevagt.employee ? (
+                            // Show employee with avatar
+                            <>
+                              {kørevagt.employee.avatar_url && (
+                                <Avatar className="h-5 w-5">
+                                  <AvatarImage src={kørevagt.employee.avatar_url} />
+                                  <AvatarFallback className="text-[10px]">
+                                    {kørevagt.employee.name.charAt(0)}
+                                  </AvatarFallback>
+                                </Avatar>
+                              )}
+                              <span className="text-xs">{kørevagt.employee.name}</span>
+                            </>
+                          ) : (
+                            // Show external entry with initials badge
+                            <>
+                              <Avatar className="h-5 w-5">
+                                <AvatarFallback className="text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                  {getExternalInitials(kørevagt.notes)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs">{getDisplayName(kørevagt)}</span>
+                            </>
                           )}
-                          <span className="text-xs">{kørevagt.employee?.name}</span>
                         </div>
                       </div>
                     )}
