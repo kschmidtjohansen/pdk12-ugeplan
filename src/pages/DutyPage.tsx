@@ -7,8 +7,8 @@ import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 import { DutyAssignmentDialog } from '@/components/Duty/DutyAssignmentDialog';
 import { DutyList } from '@/components/Duty/DutyList';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Plus } from 'lucide-react';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { startOfMonth, endOfMonth, addMonths } from 'date-fns';
 
 export default function DutyPage() {
@@ -56,7 +56,15 @@ export default function DutyPage() {
         </div>
 
         {loading ? (
-          <LoadingSpinner />
+          <div className="flex items-center justify-center min-h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+          </div>
+        ) : upcomingDuties.length === 0 ? (
+          <Card className="border-2 border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <p className="text-muted-foreground text-center">{t('duty.noDutySelected')}</p>
+            </CardContent>
+          </Card>
         ) : (
           <DutyList
             duties={upcomingDuties}

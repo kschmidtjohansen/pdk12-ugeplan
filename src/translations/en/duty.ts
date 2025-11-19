@@ -10,6 +10,7 @@ export const duty = {
   currentWeekDuty: "This week's duties",
   upcomingDuties: "Upcoming duties",
   noDutyAssigned: "No duty assigned",
+  noDutySelected: "No duties selected",
   assignSuccess: "Duty assigned",
   removeSuccess: "Duty removed",
   updateSuccess: "Duty updated",

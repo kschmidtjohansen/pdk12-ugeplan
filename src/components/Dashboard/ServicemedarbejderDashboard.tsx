@@ -10,6 +10,7 @@ import MineOpgaver from './MineOpgaver';
 import { getCurrentWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
 import { AssignmentFilterService } from '@/services/assignmentFilterService';
 import { useMemo } from 'react';
+import DutySummaryWidget from './DutySummaryWidget';
 
 const ServicemedarbejderDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -76,7 +77,7 @@ const ServicemedarbejderDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Personal Stats - Enhanced */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
@@ -103,6 +104,7 @@ const ServicemedarbejderDashboard: React.FC = () => {
           </CardContent>
         </Card>
 
+        <DutySummaryWidget />
       </div>
 
       {/* Mine Opgaver */}

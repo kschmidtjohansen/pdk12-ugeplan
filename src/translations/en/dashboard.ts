@@ -75,6 +75,10 @@ export const dashboard = {
       title: "Vacation",
       description: "Manage vacation requests"
     },
+    duty: {
+      title: "On-Call Duty",
+      description: "Manage on-call duties"
+    },
     employees: {
       title: "Employees",
       description: "Manage employees and availability"

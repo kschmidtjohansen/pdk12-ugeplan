@@ -32,23 +32,15 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
 }) => {
   const { t } = useTranslation();
   
-  // Add debug logs
-  console.log('NotificationsDropdown rendering with:', { 
-    notificationCount: notifications.length, 
-    unreadCount,
-    notificationTypes: notifications.slice(0, 5).map(n => n.type),
-    hasUnreadVacation: notifications.some(n => !n.read && n.type === 'vacation')
-  });
-  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative h-9 w-9">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-polygon-purple text-white">
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[11px] font-semibold min-w-[18px] h-[18px] rounded-full flex items-center justify-center leading-none shadow-sm">
               {unreadCount > 9 ? '9+' : unreadCount}
-            </Badge>
+            </span>
           )}
         </Button>
       </DropdownMenuTrigger>

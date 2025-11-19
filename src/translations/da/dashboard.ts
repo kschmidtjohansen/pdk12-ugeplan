@@ -75,6 +75,10 @@ export const dashboard = {
       title: "Fridage",
       description: "Se og ønsk fridage"
     },
+    duty: {
+      title: "Vagt",
+      description: "Administrer vagter"
+    },
     employees: {
       title: "Medarbejdere",
       description: "Administrer medarbejdere og tilgængelighed"

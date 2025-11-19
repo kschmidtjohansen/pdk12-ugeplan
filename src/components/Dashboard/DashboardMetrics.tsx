@@ -12,6 +12,7 @@ import InteractiveMetricCard from './InteractiveMetricCard';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import CarAvailabilityModal from './CarAvailabilityModal';
 import AbsentEmployeesModal from './AbsentEmployeesModal';
+import DutySummaryWidget from './DutySummaryWidget';
 import { format } from 'date-fns';
 
 const DashboardMetrics: React.FC = () => {
@@ -28,7 +29,7 @@ const DashboardMetrics: React.FC = () => {
   const todayStr = format(today, 'yyyy-MM-dd');
 
   if (loading) {
-    return <MetricsSkeleton count={4} />;
+    return <MetricsSkeleton count={5} />;
   }
   
   // Only show error alert for production mode, not demo mode
@@ -55,7 +56,7 @@ const DashboardMetrics: React.FC = () => {
   }
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <InteractiveMetricCard
           title={t('dashboard.metrics.availableEmployees')}
           value={metrics.availableEmployees.count}
@@ -93,6 +94,8 @@ const DashboardMetrics: React.FC = () => {
           color="orange"
           onClick={() => navigate('/warehouse')}
         />
+
+        <DutySummaryWidget />
       </div>
 
       {/* Detail Modals */}
