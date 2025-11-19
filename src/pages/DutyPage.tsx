@@ -59,10 +59,16 @@ export default function DutyPage() {
           <div className="flex items-center justify-center min-h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
           </div>
+        ) : duties.length === 0 ? (
+          <Card className="border-2 border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <p className="text-muted-foreground text-center">{t('duty.noDutiesInPlan')}</p>
+            </CardContent>
+          </Card>
         ) : upcomingDuties.length === 0 ? (
           <Card className="border-2 border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground text-center">{t('duty.noDutySelected')}</p>
+              <p className="text-muted-foreground text-center">{t('duty.noUpcomingDuties')}</p>
             </CardContent>
           </Card>
         ) : (
