@@ -21,6 +21,7 @@ const PlannerPage = lazy(() => import("./pages/PlannerPage"));
 const EmployeesPage = lazy(() => import("./pages/EmployeesPage"));
 const CarsPage = lazy(() => import("./pages/CarsPage"));
 const VacationPage = lazy(() => import("./pages/VacationPage"));
+const DutyPage = lazy(() => import("./pages/DutyPage"));
 const WarehousePage = lazy(() => import("./pages/WarehousePage"));
 const ChangeLogPage = lazy(() => import("./pages/ChangeLogPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
@@ -127,6 +128,7 @@ const AppContent = () => {
           <Route path="/employees" element={<MainLayout><EmployeesPage /></MainLayout>} />
           <Route path="/cars" element={<MainLayout><CarsPage /></MainLayout>} />
           <Route path="/vacation" element={<MainLayout><VacationPage /></MainLayout>} />
+          <Route path="/duty" element={<MainLayout><DutyPage /></MainLayout>} />
           <Route path="/warehouse" element={<MainLayout><WarehousePage /></MainLayout>} />
           <Route path="/changelog" element={<MainLayout><ChangeLogPage /></MainLayout>} />
           <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />

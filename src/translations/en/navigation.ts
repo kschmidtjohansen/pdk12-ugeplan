@@ -4,6 +4,7 @@ const navigation = {
   planner: "Planner",
   employees: "Employees",
   vacation: "Vacation",
+  duty: "On-Call Duty",
   cars: "Cars",
   warehouse: "Warehouse",
   admin: "Admin",

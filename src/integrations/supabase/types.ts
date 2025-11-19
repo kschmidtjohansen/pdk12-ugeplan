@@ -356,6 +356,54 @@ export type Database = {
         }
         Relationships: []
       }
+      on_call_duties: {
+        Row: {
+          created_at: string
+          created_by: string
+          duty_date: string
+          duty_type: Database["public"]["Enums"]["duty_type"]
+          employee_id: string
+          id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          duty_date: string
+          duty_type: Database["public"]["Enums"]["duty_type"]
+          employee_id: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          duty_date?: string
+          duty_type?: Database["public"]["Enums"]["duty_type"]
+          employee_id?: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "on_call_duties_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "on_call_duties_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onedrive_settings: {
         Row: {
           base_sharepoint_url: string
@@ -1072,6 +1120,7 @@ export type Database = {
     }
     Enums: {
       assignment_type: "waterDamage" | "fireDamage" | "mold" | "other"
+      duty_type: "skadeleder_vagt" | "kørevagt"
       employee_status: "active" | "inactive" | "on_leave" | "terminated"
       user_role: "administrator" | "skadeleder" | "servicemedarbejder" | "vikar"
       vacation_status: "pending" | "approved" | "rejected"
@@ -1203,6 +1252,7 @@ export const Constants = {
   public: {
     Enums: {
       assignment_type: ["waterDamage", "fireDamage", "mold", "other"],
+      duty_type: ["skadeleder_vagt", "kørevagt"],
       employee_status: ["active", "inactive", "on_leave", "terminated"],
       user_role: ["administrator", "skadeleder", "servicemedarbejder", "vikar"],
       vacation_status: ["pending", "approved", "rejected"],

@@ -17,6 +17,7 @@ import { auth } from './auth';
 import screenDisplay from './screenDisplay';
 import { warehouse } from './warehouse';
 import { changeLog } from './changeLog';
+import { duty } from './duty';
 
 
 export const da = {
@@ -37,4 +38,5 @@ export const da = {
   screenDisplay,
   warehouse,
   changeLog,
+  duty,
 };
