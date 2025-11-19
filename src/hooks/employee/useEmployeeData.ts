@@ -113,7 +113,10 @@ export const useEmployeeData = () => {
                    prevEmp.jobTitle !== nextEmp.jobTitle ||
                    prevEmp.role !== nextEmp.role ||
                    prevEmp.notes !== nextEmp.notes ||
-                   prevEmp.avatar_url !== nextEmp.avatar_url;
+                   prevEmp.avatar_url !== nextEmp.avatar_url ||
+                   prevEmp.has_asbestos_certificate !== nextEmp.has_asbestos_certificate ||
+                   prevEmp.has_trailer_license !== nextEmp.has_trailer_license ||
+                   prevEmp.has_forklift_license !== nextEmp.has_forklift_license;
           });
         };
 
@@ -242,7 +245,10 @@ export const useEmployeeData = () => {
                    prevEmp.jobTitle !== nextEmp.jobTitle ||
                    prevEmp.role !== nextEmp.role ||
                    prevEmp.notes !== nextEmp.notes ||
-                   prevEmp.avatar_url !== nextEmp.avatar_url;
+                   prevEmp.avatar_url !== nextEmp.avatar_url ||
+                   prevEmp.has_asbestos_certificate !== nextEmp.has_asbestos_certificate ||
+                   prevEmp.has_trailer_license !== nextEmp.has_trailer_license ||
+                   prevEmp.has_forklift_license !== nextEmp.has_forklift_license;
           });
         };
 
