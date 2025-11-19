@@ -1,4 +1,4 @@
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslation } from '@/context/TranslationContext';
@@ -41,34 +41,44 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
 
   if (loading) {
     return (
-      <Card className="p-4">
-        <h3 className="font-semibold mb-3 flex items-center gap-2">
-          <Shield className="h-4 w-4" />
-          {t('duty.currentWeekDuty')}
-        </h3>
-        <div className="text-sm text-muted-foreground">
-          {t('common.loading')}...
-        </div>
+      <Card className="overflow-hidden border-2 border-primary/20">
+        <CardHeader className="py-2 px-4 bg-gradient-to-r from-primary/5 to-primary/10">
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-primary" />
+            <CardTitle className="text-lg font-semibold text-primary">
+              {t('duty.currentWeekDuty')}
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4">
+          <div className="text-sm text-muted-foreground">
+            {t('common.loading')}...
+          </div>
+        </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold flex items-center gap-2">
-          <Shield className="h-4 w-4" />
-          {t('duty.currentWeekDuty')}
-        </h3>
-        <Link 
-          to="/duty" 
-          className="text-sm text-primary hover:underline"
-        >
-          {t('duty.viewAll')}
-        </Link>
-      </div>
+    <Card className="overflow-hidden border-2 border-primary/20">
+      <CardHeader className="py-2 px-4 bg-gradient-to-r from-primary/5 to-primary/10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-primary" />
+            <CardTitle className="text-lg font-semibold text-primary">
+              {t('duty.currentWeekDuty')}
+            </CardTitle>
+          </div>
+          <Link 
+            to="/duty" 
+            className="text-sm text-primary hover:underline transition-colors"
+          >
+            {t('duty.viewAll')}
+          </Link>
+        </div>
+      </CardHeader>
 
-      <div className="space-y-3">
+      <CardContent className="p-4 space-y-3">
         {weekDays.map(day => {
           const { skadeleder, kørevagt } = getDutiesForDay(day);
           const hasDuties = skadeleder || kørevagt;
@@ -76,7 +86,7 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
           return (
             <div 
               key={day.toISOString()} 
-              className="border-l-2 border-muted pl-3 py-2"
+              className="border-l-2 border-primary/30 pl-3 py-2"
             >
               <div className="text-sm font-medium mb-2">
                 {format(day, 'EEEE dd/MM', { locale })}
@@ -132,7 +142,7 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
             </div>
           );
         })}
-      </div>
+      </CardContent>
     </Card>
   );
 };

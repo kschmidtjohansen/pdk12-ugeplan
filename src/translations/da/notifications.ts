@@ -16,7 +16,9 @@ const notifications = {
   vacationRejected: 'Din friansøgning er blevet afvist: {reason}',
   new: 'Ny',
   from: 'Fra',
-  notifications: 'Notifikationer'
+  notifications: 'Notifikationer',
+  dutyAssigned: 'Ny vagt tildelt',
+  dutyAssignedMessage: 'Du er blevet tildelt {dutyType} den {date}'
 };
 
 export default notifications;

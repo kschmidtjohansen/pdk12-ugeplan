@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { useAuth } from '@/context/AuthContext';
+import { useNotifications } from '@/context/NotificationContext';
+import { useDutyNotifications } from '@/hooks/notifications/dutyNotifications';
 import { toast } from 'sonner';
 import { useTranslation } from '@/context/TranslationContext';
 import type { DutyType } from '@/types/duty';
@@ -8,6 +10,8 @@ import type { DutyType } from '@/types/duty';
 export const useDutyActions = (onSuccess?: () => void) => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { addNotification } = useNotifications();
+  const { createDutyAssignmentNotification } = useDutyNotifications(addNotification);
   const [loading, setLoading] = useState(false);
 
   const assignDuty = async (
@@ -36,6 +40,9 @@ export const useDutyActions = (onSuccess?: () => void) => {
         .insert(duties);
 
       if (error) throw error;
+
+      // Create notification for assigned employee
+      await createDutyAssignmentNotification(employeeId, dutyType, dates);
 
       toast.success(t('duty.assignSuccess'));
       onSuccess?.();

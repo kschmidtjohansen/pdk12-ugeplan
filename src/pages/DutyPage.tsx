@@ -4,10 +4,10 @@ import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
-import { DutyAssignmentForm } from '@/components/Duty/DutyAssignmentForm';
+import { DutyAssignmentDialog } from '@/components/Duty/DutyAssignmentDialog';
 import { DutyList } from '@/components/Duty/DutyList';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, List } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { startOfMonth, endOfMonth, addMonths } from 'date-fns';
 
@@ -16,6 +16,7 @@ export default function DutyPage() {
   const { isAdmin, isSkadeleder } = usePermissions();
   const canManage = isAdmin || isSkadeleder;
 
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const startDate = startOfMonth(selectedMonth);
   const endDate = endOfMonth(addMonths(selectedMonth, 2));
@@ -38,56 +39,40 @@ export default function DutyPage() {
   return (
     <MainLayout>
       <div className="container mx-auto py-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">{t('duty.title')}</h1>
-          <p className="text-muted-foreground mt-2">
-            {canManage 
-              ? t('duty.assignEmployee') 
-              : t('duty.currentWeekDuty')
-            }
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">{t('duty.title')}</h1>
+            <p className="text-muted-foreground mt-2">
+              {t('duty.upcomingDuties')}
+            </p>
+          </div>
+          
+          {canManage && (
+            <Button onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t('duty.assignEmployee')}
+            </Button>
+          )}
         </div>
 
         {loading ? (
           <LoadingSpinner />
         ) : (
-          <Tabs defaultValue={canManage ? 'assign' : 'list'} className="space-y-6">
-            <TabsList>
-              {canManage && (
-                <TabsTrigger value="assign" className="gap-2">
-                  <Calendar className="h-4 w-4" />
-                  {t('duty.calendar')}
-                </TabsTrigger>
-              )}
-              <TabsTrigger value="list" className="gap-2">
-                <List className="h-4 w-4" />
-                {t('duty.list')}
-              </TabsTrigger>
-            </TabsList>
+          <DutyList
+            duties={upcomingDuties}
+            onSuccess={refetch}
+            canManage={canManage}
+          />
+        )}
 
-            {canManage && (
-              <TabsContent value="assign" className="space-y-6">
-                <DutyAssignmentForm
-                  employees={employeesWithRoles}
-                  duties={duties}
-                  onSuccess={refetch}
-                />
-              </TabsContent>
-            )}
-
-            <TabsContent value="list" className="space-y-6">
-              <div>
-                <h2 className="text-xl font-semibold mb-4">
-                  {t('duty.upcomingDuties')}
-                </h2>
-                <DutyList
-                  duties={upcomingDuties}
-                  onSuccess={refetch}
-                  canManage={canManage}
-                />
-              </div>
-            </TabsContent>
-          </Tabs>
+        {canManage && (
+          <DutyAssignmentDialog
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            employees={employeesWithRoles}
+            duties={duties}
+            onSuccess={refetch}
+          />
         )}
       </div>
     </MainLayout>

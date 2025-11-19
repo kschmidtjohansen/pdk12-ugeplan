@@ -57,9 +57,10 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
         side="bottom"
         sideOffset={8}
         alignOffset={0}
-        className="w-80 z-[100] bg-white border shadow-lg"
+        className="w-80 z-[9999] bg-background border shadow-lg"
         avoidCollisions={true}
         collisionPadding={20}
+        style={{ position: 'fixed' }}
       >
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>{t('notifications.title')}</span>

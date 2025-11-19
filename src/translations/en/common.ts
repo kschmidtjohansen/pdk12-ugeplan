@@ -143,5 +143,6 @@ export const common = {
     administrator: "Administrator",
     skadeleder: "Damage Leader", 
     servicemedarbejder: "Service Employee"
-  }
+  },
+  and: "and"
 };
