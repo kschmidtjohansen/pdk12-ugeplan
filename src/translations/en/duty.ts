@@ -1,9 +1,12 @@
 export const duty = {
   title: "On-Call Duty",
+  todayDuties: "Duties Today",
   skadelederVagt: "Manager On-Call",
   kørevagt: "Driver On-Call",
   assignEmployee: "Assign employee",
   selectEmployee: "Select employee",
+  enterNameManually: "Enter name manually",
+  enterName: "Enter name...",
   selectDates: "Select dates",
   selectDate: "Select date",
   multipleSelection: "Hold Ctrl/Cmd to select multiple days",

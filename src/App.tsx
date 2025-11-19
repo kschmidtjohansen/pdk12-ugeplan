@@ -13,21 +13,34 @@ import RouteLoadingFallback from "./components/shared/RouteLoadingFallback";
 import MainLayout from "./components/Layout/MainLayout";
 import { performanceMonitor } from "./utils/performanceMonitor";
 
-// Lazy load pages for better code splitting
-const Index = lazy(() => import("./pages/Index"));
-const LoginPage = lazy(() => import("./pages/LoginPage"));
-const DashboardPage = lazy(() => import("./pages/DashboardPage"));
-const PlannerPage = lazy(() => import("./pages/PlannerPage"));
-const EmployeesPage = lazy(() => import("./pages/EmployeesPage"));
-const CarsPage = lazy(() => import("./pages/CarsPage"));
-const VacationPage = lazy(() => import("./pages/VacationPage"));
-const DutyPage = lazy(() => import("./pages/DutyPage"));
-const WarehousePage = lazy(() => import("./pages/WarehousePage"));
-const ChangeLogPage = lazy(() => import("./pages/ChangeLogPage"));
-const AdminPage = lazy(() => import("./pages/AdminPage"));
-const PasswordResetPage = lazy(() => import("./pages/PasswordResetPage"));
-const ScreenDisplayPage = lazy(() => import("./pages/ScreenDisplayPage"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+// Lazy load pages for better code splitting with retry logic
+const lazyWithRetry = (importFn: () => Promise<any>) => {
+  return lazy(() =>
+    importFn().catch((error) => {
+      console.error('Failed to load module, retrying...', error);
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(importFn());
+        }, 1000);
+      });
+    })
+  );
+};
+
+const Index = lazyWithRetry(() => import("./pages/Index"));
+const LoginPage = lazyWithRetry(() => import("./pages/LoginPage"));
+const DashboardPage = lazyWithRetry(() => import("./pages/DashboardPage"));
+const PlannerPage = lazyWithRetry(() => import("./pages/PlannerPage"));
+const EmployeesPage = lazyWithRetry(() => import("./pages/EmployeesPage"));
+const CarsPage = lazyWithRetry(() => import("./pages/CarsPage"));
+const VacationPage = lazyWithRetry(() => import("./pages/VacationPage"));
+const DutyPage = lazyWithRetry(() => import("./pages/DutyPage"));
+const WarehousePage = lazyWithRetry(() => import("./pages/WarehousePage"));
+const ChangeLogPage = lazyWithRetry(() => import("./pages/ChangeLogPage"));
+const AdminPage = lazyWithRetry(() => import("./pages/AdminPage"));
+const PasswordResetPage = lazyWithRetry(() => import("./pages/PasswordResetPage"));
+const ScreenDisplayPage = lazyWithRetry(() => import("./pages/ScreenDisplayPage"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 // Optimized QueryClient configuration
 const queryClient = new QueryClient({

@@ -8,6 +8,7 @@ export const useDutyFormState = () => {
     dates: [],
     notes: '',
   });
+  const [manualName, setManualName] = useState('');
 
   const setDutyType = (dutyType: DutyType) => {
     setFormData(prev => ({ ...prev, duty_type: dutyType }));
@@ -32,14 +33,17 @@ export const useDutyFormState = () => {
       dates: [],
       notes: '',
     });
+    setManualName('');
   };
 
   return {
     formData,
+    manualName,
     setDutyType,
     setEmployeeId,
     setDates,
     setNotes,
+    setManualName,
     resetForm,
   };
 };

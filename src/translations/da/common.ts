@@ -147,5 +147,6 @@ export const common = {
     skadeleder: "Skadeleder", 
     servicemedarbejder: "Servicemedarbejder"
   },
-  and: "og"
+  and: "og",
+  or: "eller"
 };
