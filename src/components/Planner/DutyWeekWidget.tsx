@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDutyData } from '@/hooks/duty/useDutyData';
 import { Shield, Car, ChevronDown, ChevronUp } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
-import { Link } from 'react-router-dom';
 import type { Duty } from '@/types/duty';
 
 interface DutyWeekWidgetProps {
@@ -19,15 +20,36 @@ interface DutyWeekWidgetProps {
 export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetProps) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : enUS;
+  const navigate = useNavigate();
 
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('dutyWeekWidgetCollapsed');
-    return saved ? JSON.parse(saved) : true;
+    return saved ? JSON.parse(saved) : false;
   });
 
   useEffect(() => {
     localStorage.setItem('dutyWeekWidgetCollapsed', JSON.stringify(isCollapsed));
   }, [isCollapsed]);
+
+  // Helper to extract initials from external entry notes
+  const getExternalInitials = (notes: string | null | undefined): string => {
+    if (!notes?.startsWith('EKSTERN:')) return '?';
+    
+    const match = notes.match(/\[([A-Z]{1,2})\]/);
+    if (match) return match[1];
+    
+    const name = notes.split('\n')[0].replace('EKSTERN: ', '');
+    return name.split(/\s+/).map(w => w.charAt(0).toUpperCase()).slice(0, 2).join('');
+  };
+
+  // Helper to get display name from duty
+  const getDisplayName = (duty: Duty): string => {
+    if (duty.employee?.name) return duty.employee.name;
+    if (duty.notes?.startsWith('EKSTERN:')) {
+      return duty.notes.split('\n')[0].replace('EKSTERN: ', '').replace(/\s*\[.*?\]\s*/, '').trim();
+    }
+    return 'Ukendt';
+  };
 
   // Calculate week start and end dates
   const firstDayOfYear = new Date(selectedYear, 0, 1);

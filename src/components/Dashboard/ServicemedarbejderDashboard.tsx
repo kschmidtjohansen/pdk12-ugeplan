@@ -5,6 +5,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Calendar, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from 'date-fns';
 import MineOpgaver from './MineOpgaver';
@@ -86,58 +87,38 @@ const ServicemedarbejderDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Personal Stats - Enhanced */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold">{t('dashboard.personalStats')}</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsStatsCollapsed(!isStatsCollapsed)}
-            className="h-8 w-8 p-0"
-          >
-            {isStatsCollapsed ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronUp className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-        
-        {!isStatsCollapsed && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Personal Stats */}
+      <Collapsible open={!isStatsCollapsed} onOpenChange={(open) => setIsStatsCollapsed(!open)}>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Calendar className="h-4 w-4 text-primary" />
-              {t('dashboard.thisWeek')}
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-lg font-semibold">Mine Statistikker</CardTitle>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                {isStatsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+              </Button>
+            </CollapsibleTrigger>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">{weeklyAssignments.length}</div>
-            <p className="text-xs text-muted-foreground">{t('dashboard.assignmentsThisWeek')}</p>
-          </CardContent>
+          
+          <CollapsibleContent className="data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Opgaver denne uge</p>
+                  <p className="text-2xl font-bold">{weeklyAssignments.length}</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Opgaver i dag</p>
+                  <p className="text-2xl font-bold">{todayAssignments.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
         </Card>
+      </Collapsible>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Clock className="h-4 w-4 text-blue-600" />
-              {t('dashboard.today')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{todayAssignments.length}</div>
-            <p className="text-xs text-muted-foreground">{t('dashboard.tasksToday')}</p>
-          </CardContent>
-        </Card>
+      <DutySummaryWidget />
 
-        <DutySummaryWidget />
-          </div>
-        )}
-      </div>
-
-      {/* Mine Opgaver */}
       <MineOpgaver />
     </div>
   );

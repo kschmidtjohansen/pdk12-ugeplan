@@ -15,6 +15,16 @@ export const useDutyActions = (onSuccess?: () => void) => {
   const { createDutyAssignmentNotification } = useDutyNotifications(addNotification);
   const [loading, setLoading] = useState(false);
 
+  // Helper to extract initials from name
+  const getInitials = (name: string): string => {
+    return name
+      .trim()
+      .split(/\s+/)
+      .map(word => word.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('');
+  };
+
   const assignDuty = async (
     dutyType: DutyType,
     employeeId: string,
@@ -31,8 +41,9 @@ export const useDutyActions = (onSuccess?: () => void) => {
 
       // If manual name is provided, use it instead of employee_id
       const useManualName = manualName && manualName.trim() && !employeeId;
+      const initials = useManualName ? getInitials(manualName) : '';
       const notesWithManualName = useManualName 
-        ? `EKSTERN: ${manualName}${notes ? '\n' + notes : ''}`
+        ? `EKSTERN: ${manualName} [${initials}]${notes ? '\n' + notes : ''}`
         : notes || null;
 
       const duties = dates.map(date => ({

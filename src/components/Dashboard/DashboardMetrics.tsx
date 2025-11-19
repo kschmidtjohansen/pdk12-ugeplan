@@ -8,6 +8,8 @@ import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
 import MetricsSkeleton from '@/components/shared/MetricsSkeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import InteractiveMetricCard from './InteractiveMetricCard';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import CarAvailabilityModal from './CarAvailabilityModal';
@@ -65,25 +67,23 @@ const DashboardMetrics: React.FC = () => {
   }
   return (
     <>
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold">{t('dashboard.metrics.title')}</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="h-8 w-8 p-0"
-          >
-            {isCollapsed ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronUp className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-        
-        {!isCollapsed && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <Collapsible open={!isCollapsed} onOpenChange={(open) => setIsCollapsed(!open)}>
+        <Card className="relative overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div>
+              <CardTitle className="text-xl font-bold">System Metrics</CardTitle>
+              <CardDescription>Key performance indicators</CardDescription>
+            </div>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+              </Button>
+            </CollapsibleTrigger>
+          </CardHeader>
+          
+          <CollapsibleContent className="data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <InteractiveMetricCard
           title={t('dashboard.metrics.availableEmployees')}
           value={metrics.availableEmployees.count}
@@ -121,11 +121,13 @@ const DashboardMetrics: React.FC = () => {
           color="orange"
           onClick={() => navigate('/warehouse')}
         />
+              </div>
 
-        <DutySummaryWidget />
-          </div>
-        )}
-      </div>
+              <DutySummaryWidget />
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {/* Detail Modals */}
       <EmployeeAvailabilityDialog
