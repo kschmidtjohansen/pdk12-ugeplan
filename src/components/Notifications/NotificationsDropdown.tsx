@@ -30,12 +30,11 @@ const NotificationsDropdown: React.FC = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        side="bottom"
-        sideOffset={8}
-        alignOffset={0}
-        className="w-80 z-[100] bg-white border shadow-lg"
+        sideOffset={12}
+        alignOffset={-8}
+        className="w-80 max-h-[80vh] overflow-y-auto z-[100] bg-background dark:bg-slate-900 border shadow-lg"
         avoidCollisions={true}
-        collisionPadding={20}
+        collisionPadding={24}
       >
         <div className="p-3 border-b">
           <h3 className="font-medium">{t('notifications.notifications')}</h3>
