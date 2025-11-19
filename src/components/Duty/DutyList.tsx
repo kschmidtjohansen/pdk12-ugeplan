@@ -54,7 +54,17 @@ export const DutyList = ({ duties, onSuccess, canManage }: DutyListProps) => {
               
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium">{duty.employee?.name}</span>
+                  <span className="font-medium">
+                    {duty.employee?.name || 
+                      (duty.notes?.startsWith('EKSTERN:') 
+                        ? duty.notes.split('\n')[0].replace('EKSTERN: ', '') 
+                        : 'Ukendt'
+                      )
+                    }
+                  </span>
+                  {duty.notes?.startsWith('EKSTERN:') && (
+                    <Badge variant="outline" className="text-xs">Ekstern</Badge>
+                  )}
                   <Badge variant={duty.duty_type === 'skadeleder_vagt' ? 'default' : 'secondary'}>
                     <span className="flex items-center gap-1">
                       {duty.duty_type === 'skadeleder_vagt' ? (
@@ -72,9 +82,14 @@ export const DutyList = ({ duties, onSuccess, canManage }: DutyListProps) => {
                 <div className="text-sm text-muted-foreground">
                   {format(new Date(duty.duty_date), 'EEEE, dd MMMM yyyy', { locale })}
                 </div>
-                {duty.notes && (
+                {duty.notes && !duty.notes.startsWith('EKSTERN:') && (
                   <div className="text-sm text-muted-foreground mt-1">
                     {duty.notes}
+                  </div>
+                )}
+                {duty.notes?.startsWith('EKSTERN:') && duty.notes.split('\n')[1] && (
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {duty.notes.split('\n').slice(1).join('\n')}
                   </div>
                 )}
               </div>

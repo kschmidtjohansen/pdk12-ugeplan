@@ -18,6 +18,15 @@ const DutySummaryWidget: React.FC = () => {
   const skadelederDuty = todayDuties.find(d => d.duty_type === 'skadeleder_vagt');
   const kørevagt = todayDuties.find(d => d.duty_type === 'kørevagt');
 
+  const getDisplayName = (duty: typeof skadelederDuty) => {
+    if (!duty) return 'Ukendt';
+    if (duty.employee?.name) return duty.employee.name;
+    if (duty.notes?.startsWith('EKSTERN:')) {
+      return duty.notes.split('\n')[0].replace('EKSTERN: ', '');
+    }
+    return 'Ukendt';
+  };
+
   return (
     <Card className="overflow-hidden border-2 border-primary/20 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer group">
       <Link to="/duty" className="block">
@@ -32,59 +41,40 @@ const DutySummaryWidget: React.FC = () => {
             <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
           </div>
         </CardHeader>
-        <CardContent className="p-3 space-y-2">
+        <CardContent className="p-2 space-y-1.5">
           {loading ? (
-            <div className="text-sm text-muted-foreground">
+            <div className="text-xs text-muted-foreground py-1">
               {t('common.loading')}...
             </div>
           ) : !skadelederDuty && !kørevagt ? (
-            <div className="text-sm text-muted-foreground">
+            <div className="text-xs text-muted-foreground py-2">
               {t('duty.noDutySelected')}
             </div>
           ) : (
             <>
-              {/* Skadeleder Vagt */}
               {skadelederDuty && (
-                <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-blue-600 shrink-0" />
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    {skadelederDuty.employee?.avatar_url ? (
-                      <Avatar className="h-6 w-6 shrink-0">
-                        <AvatarImage src={skadelederDuty.employee.avatar_url} />
-                        <AvatarFallback className="text-xs">
-                          {skadelederDuty.employee.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : null}
-                    <span className="text-sm font-medium truncate">
-                      {skadelederDuty.employee?.name}
-                    </span>
-                    <Badge variant="secondary" className="ml-auto shrink-0 text-xs">
+                <div className="flex items-center gap-1.5 py-1">
+                  <Shield className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-foreground">
                       {t('duty.skadelederVagt')}
-                    </Badge>
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {getDisplayName(skadelederDuty)}
+                    </div>
                   </div>
                 </div>
               )}
-
-              {/* Kørevagt */}
               {kørevagt && (
-                <div className="flex items-center gap-2">
-                  <Car className="h-4 w-4 text-green-600 shrink-0" />
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    {kørevagt.employee?.avatar_url ? (
-                      <Avatar className="h-6 w-6 shrink-0">
-                        <AvatarImage src={kørevagt.employee.avatar_url} />
-                        <AvatarFallback className="text-xs">
-                          {kørevagt.employee.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : null}
-                    <span className="text-sm font-medium truncate">
-                      {kørevagt.employee?.name}
-                    </span>
-                    <Badge variant="secondary" className="ml-auto shrink-0 text-xs">
+                <div className="flex items-center gap-1.5 py-1">
+                  <Car className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-foreground">
                       {t('duty.kørevagt')}
-                    </Badge>
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {getDisplayName(kørevagt)}
+                    </div>
                   </div>
                 </div>
               )}
