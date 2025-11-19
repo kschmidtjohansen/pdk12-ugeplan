@@ -66,7 +66,10 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
                   {duty.notes?.startsWith('EKSTERN:') && (
                     <Badge variant="outline" className="text-xs">Ekstern</Badge>
                   )}
-                  <Badge variant={duty.duty_type === 'skadeleder_vagt' ? 'default' : 'secondary'}>
+                  <Badge 
+                    variant={duty.duty_type === 'skadeleder_vagt' ? 'default' : 'secondary'}
+                    className={duty.duty_type === 'kørevagt' ? 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800' : ''}
+                  >
                     <span className="flex items-center gap-1">
                       {duty.duty_type === 'skadeleder_vagt' ? (
                         <Shield className="h-3 w-3" />
