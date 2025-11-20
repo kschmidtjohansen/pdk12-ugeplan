@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { useTranslation } from '@/context/TranslationContext';
 import type { Duty } from '@/types/duty';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Phone, Car } from 'lucide-react';
+import { Phone, Car, Users, Loader2 } from 'lucide-react';
 
 interface DutySwapDialogProps {
   duty: Duty | null;
@@ -30,9 +31,15 @@ export function DutySwapDialog({
   onSwap,
 }: DutySwapDialogProps) {
   const { t } = useTranslation();
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [selectedDutyId, setSelectedDutyId] = useState<string>('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Reset duty selection when employee changes
+  useEffect(() => {
+    setSelectedDutyId('');
+  }, [selectedEmployeeId]);
 
   if (!duty) return null;
 
@@ -49,6 +56,39 @@ export function DutySwapDialog({
     
     return true;
   });
+
+  // Group duties by employee
+  const employeeDuties = useMemo(() => {
+    const grouped = swappableDuties.reduce((acc, d) => {
+      if (!d.employee?.id) return acc;
+      
+      if (!acc[d.employee.id]) {
+        acc[d.employee.id] = {
+          employee: d.employee,
+          duties: []
+        };
+      }
+      
+      acc[d.employee.id].duties.push(d);
+      return acc;
+    }, {} as Record<string, { employee: any; duties: Duty[] }>);
+
+    // Sort duties within each employee by date
+    Object.values(grouped).forEach(group => {
+      group.duties.sort((a, b) => 
+        new Date(a.duty_date).getTime() - new Date(b.duty_date).getTime()
+      );
+    });
+
+    return grouped;
+  }, [swappableDuties]);
+
+  // Convert to array and sort alphabetically
+  const employeeOptions = useMemo(() => {
+    return Object.values(employeeDuties).sort((a, b) => 
+      a.employee.name.localeCompare(b.employee.name)
+    );
+  }, [employeeDuties]);
 
   const selectedDuty = swappableDuties.find(d => d.id === selectedDutyId);
 
@@ -88,6 +128,7 @@ export function DutySwapDialog({
 
   const handleClose = () => {
     if (!loading) {
+      setSelectedEmployeeId('');
       setSelectedDutyId('');
       onOpenChange(false);
     }
@@ -121,60 +162,81 @@ export function DutySwapDialog({
               </div>
             </div>
 
-            {/* Available Duties to Swap With */}
+            {/* Employee Selection */}
             <div>
-              <h3 className="text-sm font-medium mb-3">{t('duty.selectDutyToSwapWith')}</h3>
+              <h3 className="text-sm font-medium mb-3">
+                {t('duty.selectEmployeeToSwapWith')}
+              </h3>
               
-              {swappableDuties.length === 0 ? (
+              {employeeOptions.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
+                  <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
                   <p>{t('duty.noAvailableDuties')}</p>
                 </div>
               ) : (
-                <ScrollArea className="h-[300px] border rounded-lg">
-                  <RadioGroup value={selectedDutyId} onValueChange={setSelectedDutyId}>
-                    <div className="space-y-2 p-4">
-                      {swappableDuties.map((d) => {
-                        const isPast = new Date(d.duty_date) < new Date();
-                        
-                        return (
-                          <div
-                            key={d.id}
-                            className={`border rounded-lg p-4 transition-colors ${
-                              selectedDutyId === d.id
-                                ? 'border-primary bg-primary/5'
-                                : 'border-border hover:border-primary/50'
-                            } ${isPast ? 'opacity-60' : ''}`}
-                          >
-                            <div className="flex items-start gap-3">
-                              <RadioGroupItem value={d.id} id={d.id} className="mt-1" />
-                              <Label htmlFor={d.id} className="flex-1 cursor-pointer">
-                                <div className="flex items-center gap-2 mb-2">
-                                  {getDutyIcon(d.duty_type)}
-                                  <Badge variant="outline" className="font-medium">
-                                    {getDutyTypeLabel(d.duty_type)}
-                                  </Badge>
-                                  {isPast && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      Tidligere
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-sm font-medium mb-1">
-                                  {formatDutyDate(d.duty_date)}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {t('duty.assignedTo')}: {d.employee?.name}
-                                </p>
-                              </Label>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                <ScrollArea className="h-[200px] border rounded-lg p-3">
+                  <RadioGroup value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
+                    {employeeOptions.map(({ employee, duties }) => (
+                      <div key={employee.id} className="flex items-center space-x-2 mb-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                        <RadioGroupItem value={employee.id} id={`emp-${employee.id}`} />
+                        <Label 
+                          htmlFor={`emp-${employee.id}`} 
+                          className="flex items-center gap-2 cursor-pointer flex-1"
+                        >
+                          {employee.avatar_url && (
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={employee.avatar_url} />
+                              <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                          )}
+                          <span className="font-medium">{employee.name}</span>
+                          <Badge variant="secondary" className="ml-auto">
+                            {duties.length} {duties.length === 1 ? t('duty.duty') : t('duty.duties')}
+                          </Badge>
+                        </Label>
+                      </div>
+                    ))}
                   </RadioGroup>
                 </ScrollArea>
               )}
             </div>
+
+            {/* Duty Selection - only shown when employee is selected */}
+            {selectedEmployeeId && employeeDuties[selectedEmployeeId] && (
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-medium mb-3">
+                  {t('duty.selectDutyToSwap')}
+                </h3>
+                <ScrollArea className="max-h-[250px] border rounded-lg p-3">
+                  <RadioGroup value={selectedDutyId} onValueChange={setSelectedDutyId}>
+                    {employeeDuties[selectedEmployeeId].duties.map((d) => (
+                      <div key={d.id} className="flex items-start space-x-2 mb-3 p-2 rounded hover:bg-muted/50">
+                        <RadioGroupItem value={d.id} id={`duty-${d.id}`} />
+                        <Label 
+                          htmlFor={`duty-${d.id}`} 
+                          className="cursor-pointer flex-1"
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            {getDutyIcon(d.duty_type)}
+                            <Badge variant="outline">
+                              {getDutyTypeLabel(d.duty_type)}
+                            </Badge>
+                          </div>
+                          <p className="text-sm font-medium">
+                            {formatDutyDate(d.duty_date)}
+                          </p>
+                          {d.notes && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {d.notes}
+                            </p>
+                          )}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </ScrollArea>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
@@ -183,8 +245,9 @@ export function DutySwapDialog({
             </Button>
             <Button
               onClick={handleSwapClick}
-              disabled={!selectedDutyId || loading}
+              disabled={!selectedEmployeeId || !selectedDutyId || loading}
             >
+              {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {t('duty.swapDuty')}
             </Button>
           </DialogFooter>
