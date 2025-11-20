@@ -76,6 +76,8 @@ export const duty = {
   noKørevagtAvailable: "Ingen kørevagter tilgængelige at bytte",
   noValidEmployeesForSkadelederVagt: "Ingen administratorer eller skadeledere tilgængelige at bytte med",
   servicemedarbejderCanOnlySwapKørevagt: "Servicemedarbejdere kan kun bytte kørevagter",
+  invalidRoleForSkadeleder: "Denne medarbejder kan ikke tildeles skadeleder vagt. Kun administratorer og skadeledere kan tildeles denne vagttype.",
+  roleValidationFailed: "Kunne ikke opdatere vagt: Medarbejderen har ikke den korrekte rolle",
 };
 
 export default duty;
