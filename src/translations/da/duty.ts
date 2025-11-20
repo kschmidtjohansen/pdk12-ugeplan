@@ -74,6 +74,7 @@ export const duty = {
   continueToSelectEmployee: "Fortsæt til medarbejdervalg",
   noDutiesAvailable: "Ingen vagter tilgængelige",
   noKørevagtAvailable: "Ingen kørevagter tilgængelige at bytte",
+  noValidEmployeesForSkadelederVagt: "Ingen administratorer eller skadeledere tilgængelige at bytte med",
   servicemedarbejderCanOnlySwapKørevagt: "Servicemedarbejdere kan kun bytte kørevagter",
 };
 

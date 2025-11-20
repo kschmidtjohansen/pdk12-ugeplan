@@ -57,18 +57,27 @@ export function DutySwapDialog({
     // Must be same duty type
     if (d.duty_type !== duty.duty_type) return false;
     
-    // Role-based filtering
+    // Role-based filtering for the CURRENT USER (who is initiating the swap)
     if (user?.role === 'servicemedarbejder') {
       // Servicemedarbejder can only swap kørevagt
-      // This is already handled by the "same duty type" check above,
-      // but we add explicit validation for clarity
       if (duty.duty_type !== 'kørevagt') {
         console.warn('Servicemedarbejder attempting to swap non-kørevagt duty');
         return false;
       }
     }
     
-    // Administrator and Skadeleder can swap with any compatible duty
+    // Role-based filtering for the TARGET EMPLOYEE (who we're swapping with)
+    // If swapping a skadeleder_vagt, the target employee must be admin or skadeleder
+    if (duty.duty_type === 'skadeleder_vagt') {
+      const targetEmployeeRole = d.employee?.role || 'servicemedarbejder';
+      const isValidRole = targetEmployeeRole === 'administrator' || targetEmployeeRole === 'skadeleder';
+      
+      if (!isValidRole) {
+        return false;
+      }
+    }
+    
+    // For kørevagt, any employee can be swapped with (no additional filtering needed)
     return true;
   });
 
