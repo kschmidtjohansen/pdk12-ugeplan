@@ -31,12 +31,12 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
         .from('on_call_duties')
         .select(`
           *,
-          employee:profiles!employee_id (
+          employee:profiles!on_call_duties_employee_id_fkey (
             id,
             name,
             email,
             avatar_url,
-            user_roles!user_id (
+            user_roles (
               role
             )
           )
@@ -63,7 +63,9 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
           name: duty.employee.name,
           email: duty.employee.email,
           avatar_url: duty.employee.avatar_url,
-          role: duty.employee.user_roles?.[0]?.role || 'servicemedarbejder'
+          role: Array.isArray(duty.employee.user_roles) && duty.employee.user_roles.length > 0
+            ? duty.employee.user_roles[0].role
+            : 'servicemedarbejder'
         } : undefined
       }));
 
