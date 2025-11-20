@@ -80,6 +80,26 @@ export const DutyMonthCalendar = ({
       .slice(0, 2);
   };
 
+  // Helper to extract initials from external entry notes
+  const getExternalInitials = (notes: string | null | undefined): string => {
+    if (!notes?.startsWith('EKSTERN:')) return '?';
+    
+    const match = notes.match(/\[([A-Z]{1,2})\]/);
+    if (match) return match[1];
+    
+    const name = notes.split('\n')[0].replace('EKSTERN: ', '');
+    return name.split(/\s+/).map(w => w.charAt(0).toUpperCase()).slice(0, 2).join('');
+  };
+
+  // Helper to get display name from duty
+  const getDisplayName = (duty: Duty): string => {
+    if (duty.employee?.name) return duty.employee.name;
+    if (duty.notes?.startsWith('EKSTERN:')) {
+      return duty.notes.split('\n')[0].replace('EKSTERN: ', '').replace(/\s*\[.*?\]\s*/, '').trim();
+    }
+    return 'Ukendt';
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -155,7 +175,10 @@ export const DutyMonthCalendar = ({
                 <div className="space-y-1">
                   {dayDuties.map((duty) => {
                     const colors = getDutyColor(duty.duty_type);
-                    const employeeName = duty.employee?.name || 'Unknown';
+                    const employeeName = getDisplayName(duty);
+                    const initials = duty.employee?.name 
+                      ? getInitials(employeeName) 
+                      : getExternalInitials(duty.notes);
                     
                     return (
                       <button
@@ -173,7 +196,7 @@ export const DutyMonthCalendar = ({
                         title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}`}
                       >
                         <div className="font-medium truncate">
-                          {getInitials(employeeName)}
+                          {initials}
                         </div>
                         <div className="text-[10px] opacity-75 truncate">
                           {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'}
