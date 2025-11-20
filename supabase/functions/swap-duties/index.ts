@@ -107,6 +107,20 @@ Deno.serve(async (req) => {
       throw new Error('Can only swap duties of the same type');
     }
 
+    // Validate that both duties are in the future or today (not past)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const duty1Date = new Date(duty1.duty_date);
+    const duty2Date = new Date(duty2.duty_date);
+
+    duty1Date.setHours(0, 0, 0, 0);
+    duty2Date.setHours(0, 0, 0, 0);
+
+    if (duty1Date < today || duty2Date < today) {
+      throw new Error('Cannot swap duties that are in the past. Only future duties and today can be swapped.');
+    }
+
     // Role-based restrictions for duty swapping
     if (userRole === 'servicemedarbejder') {
       // Servicemedarbejder can only swap kørevagt duties

@@ -74,8 +74,10 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
     const isDemoMode = user?.email === 'test@polygongroup.com';
     const schema = isDemoMode ? 'demo' : 'public';
     
+    // Use unique channel name to prevent conflicts
+    const channelName = `duties_${Date.now()}`;
     const channel = supabase
-      .channel('on_call_duties_changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -83,11 +85,14 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
           schema: schema,
           table: 'on_call_duties'
         },
-        () => {
+        (payload) => {
+          console.log('Duty change detected:', payload);
           fetchDuties(false);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Duty subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);

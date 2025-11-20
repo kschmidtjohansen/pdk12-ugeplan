@@ -61,6 +61,7 @@ export const DutyEditDialog = ({
     });
 
     if (success) {
+      onSuccess(); // Explicitly trigger refetch
       onOpenChange(false);
     }
   };

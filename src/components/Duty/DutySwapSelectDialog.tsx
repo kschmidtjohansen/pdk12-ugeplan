@@ -38,6 +38,15 @@ export function DutySwapSelectDialog({
       return false;
     }
     
+    // Only show future duties and today (not past)
+    const dutyDate = new Date(d.duty_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    dutyDate.setHours(0, 0, 0, 0);
+    if (dutyDate < today) {
+      return false;
+    }
+    
     // Role-based filtering
     if (user?.role === 'servicemedarbejder') {
       // Servicemedarbejder can only swap kørevagt

@@ -54,6 +54,15 @@ export function DutySwapDialog({
     // Must have an employee_id (can't swap external duties)
     if (!d.employee_id) return false;
     
+    // Only show future duties and today (not past)
+    const dutyDate = new Date(d.duty_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    dutyDate.setHours(0, 0, 0, 0);
+    if (dutyDate < today) {
+      return false;
+    }
+    
     // Must be same duty type
     if (d.duty_type !== duty.duty_type) return false;
     
