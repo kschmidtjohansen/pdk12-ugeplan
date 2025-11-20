@@ -51,8 +51,7 @@ export function DutySwapDialog({
     // Exclude the current duty
     if (d.id === duty.id) return false;
     
-    // Must have an employee_id (can't swap external duties)
-    if (!d.employee_id) return false;
+    const isUnassigned = !d.employee_id;
     
     // Only show future duties and today (not past)
     const dutyDate = new Date(d.duty_date);
@@ -75,7 +74,20 @@ export function DutySwapDialog({
       }
     }
     
-    // Role-based filtering for the TARGET EMPLOYEE (who we're swapping with)
+    // For unassigned duties, apply role validation
+    if (isUnassigned) {
+      // Only administrators and skadeledere can take unassigned skadeleder_vagt
+      if (duty.duty_type === 'skadeleder_vagt') {
+        const userRole = user?.role;
+        if (userRole !== 'administrator' && userRole !== 'skadeleder') {
+          return false;
+        }
+      }
+      // Allow unassigned kørevagt for anyone
+      return true;
+    }
+    
+    // For assigned duties, apply role validation for the target employee
     // If swapping a skadeleder_vagt, the target employee must be admin or skadeleder
     if (duty.duty_type === 'skadeleder_vagt') {
       const targetEmployeeRole = d.employee?.role || 'servicemedarbejder';
@@ -90,10 +102,20 @@ export function DutySwapDialog({
     return true;
   });
 
-  // Group duties by employee
+  // Group duties by employee and include unassigned duties
   const employeeDuties = useMemo(() => {
     const grouped = swappableDuties.reduce((acc, d) => {
-      if (!d.employee?.id) return acc;
+      // Handle unassigned duties separately
+      if (!d.employee?.id) {
+        if (!acc['__unassigned__']) {
+          acc['__unassigned__'] = {
+            employee: null,
+            duties: []
+          };
+        }
+        acc['__unassigned__'].duties.push(d);
+        return acc;
+      }
       
       if (!acc[d.employee.id]) {
         acc[d.employee.id] = {
@@ -116,11 +138,20 @@ export function DutySwapDialog({
     return grouped;
   }, [swappableDuties]);
 
-  // Convert to array and sort alphabetically
+  // Convert to array and sort alphabetically, putting unassigned duties last
   const employeeOptions = useMemo(() => {
-    return Object.values(employeeDuties).sort((a, b) => 
-      a.employee.name.localeCompare(b.employee.name)
-    );
+    const options = Object.entries(employeeDuties).map(([key, value]) => ({
+      key,
+      employee: value.employee,
+      duties: value.duties
+    }));
+    
+    return options.sort((a, b) => {
+      // Put unassigned duties at the end
+      if (!a.employee) return 1;
+      if (!b.employee) return -1;
+      return a.employee.name.localeCompare(b.employee.name);
+    });
   }, [employeeDuties]);
 
   const selectedDuty = swappableDuties.find(d => d.id === selectedDutyId);
@@ -209,20 +240,31 @@ export function DutySwapDialog({
               ) : (
                 <ScrollArea className="h-[200px] border rounded-lg p-3">
                   <RadioGroup value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
-                    {employeeOptions.map(({ employee, duties }) => (
-                      <div key={employee.id} className="flex items-center space-x-2 mb-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                        <RadioGroupItem value={employee.id} id={`emp-${employee.id}`} />
+                    {employeeOptions.map(({ key, employee, duties }) => (
+                      <div key={key} className="flex items-center space-x-2 mb-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                        <RadioGroupItem value={key} id={`emp-${key}`} />
                         <Label 
-                          htmlFor={`emp-${employee.id}`} 
+                          htmlFor={`emp-${key}`} 
                           className="flex items-center gap-2 cursor-pointer flex-1"
                         >
-                          {employee.avatar_url && (
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={employee.avatar_url} />
-                              <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
+                          {employee ? (
+                            <>
+                              {employee.avatar_url && (
+                                <Avatar className="h-6 w-6">
+                                  <AvatarImage src={employee.avatar_url} />
+                                  <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                              )}
+                              <span className="font-medium">{employee.name}</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
+                                <Users className="h-3 w-3 text-muted-foreground" />
+                              </div>
+                              <span className="font-medium">{t('duty.unassignedDuties')}</span>
+                            </>
                           )}
-                          <span className="font-medium">{employee.name}</span>
                           <Badge variant="secondary" className="ml-auto">
                             {duties.length} {duties.length === 1 ? t('duty.duty') : t('duty.duties')}
                           </Badge>

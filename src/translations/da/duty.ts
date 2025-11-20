@@ -78,6 +78,8 @@ export const duty = {
   servicemedarbejderCanOnlySwapKørevagt: "Servicemedarbejdere kan kun bytte kørevagter",
   invalidRoleForSkadeleder: "Denne medarbejder kan ikke tildeles skadeleder vagt. Kun administratorer og skadeledere kan tildeles denne vagttype.",
   roleValidationFailed: "Kunne ikke opdatere vagt: Medarbejderen har ikke den korrekte rolle",
+  unassignedDuties: "Ledige vagter",
+  availableSlots: "Tilgængelige pladser",
 };
 
 export default duty;

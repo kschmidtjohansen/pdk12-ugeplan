@@ -97,9 +97,14 @@ Deno.serve(async (req) => {
       throw new Error('One or both duties not found');
     }
 
-    // Validate both duties have employees (not external)
-    if (!duty1.employee_id || !duty2.employee_id) {
-      throw new Error('Cannot swap external duties (duties without assigned employees)');
+    // Check if this is a duty transfer (one duty is unassigned)
+    const isTransfer = !duty1.employee_id || !duty2.employee_id;
+    
+    if (isTransfer) {
+      // At least one duty must have an employee
+      if (!duty1.employee_id && !duty2.employee_id) {
+        throw new Error('Cannot swap two unassigned duties');
+      }
     }
 
     // Validate same duty type
@@ -123,84 +128,144 @@ Deno.serve(async (req) => {
 
     // Role-based restrictions for duty swapping
     if (userRole === 'servicemedarbejder') {
-      // Servicemedarbejder can only swap kørevagt duties
-      if (duty1.duty_type === 'skadeleder_vagt' || duty2.duty_type === 'skadeleder_vagt') {
+      if (duty1.duty_type !== 'kørevagt') {
         throw new Error('Servicemedarbejder can only swap kørevagt duties');
       }
     }
     // Administrator and Skadeleder have no restrictions
 
-    // Check permissions: user must be one of the employees OR admin/skadeleder
-    const isInvolvedEmployee = duty1.employee_id === requestedBy || duty2.employee_id === requestedBy;
-    if (!isInvolvedEmployee && !isAdminOrSkadeleder) {
-      throw new Error('You do not have permission to swap these duties');
+    // Check permissions based on whether it's a transfer or swap
+    if (isTransfer) {
+      // For transfers, user must be the one with the assigned duty OR admin/skadeleder
+      const assignedDuty = duty1.employee_id ? duty1 : duty2;
+      const isUserAssigned = assignedDuty.employee_id === requestedBy;
+      
+      if (!isUserAssigned && !isAdminOrSkadeleder) {
+        throw new Error('You do not have permission to transfer this duty');
+      }
+    } else {
+      // For swaps, user must be one of the employees OR admin/skadeleder
+      const isInvolvedEmployee = duty1.employee_id === requestedBy || duty2.employee_id === requestedBy;
+      if (!isInvolvedEmployee && !isAdminOrSkadeleder) {
+        throw new Error('You do not have permission to swap these duties');
+      }
     }
 
     // Role validation for skadeleder_vagt
     if (duty1.duty_type === 'skadeleder_vagt') {
-      // Check both employees have appropriate roles
-      const { data: emp1Role } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', duty1.employee_id)
-        .single();
-      
-      const { data: emp2Role } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', duty2.employee_id)
-        .single();
+      // For transfers, only validate the requesting user
+      if (isTransfer) {
+        const { data: userRoleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', requestedBy)
+          .single();
+        
+        const reqUserRole = userRoleData?.role || 'servicemedarbejder';
+        const isValidRole = reqUserRole === 'administrator' || reqUserRole === 'skadeleder';
+        
+        if (!isValidRole) {
+          throw new Error('Only administrators and skadeledere can take skadeleder vagt duties');
+        }
+      } else {
+        // For swaps, check both employees have appropriate roles
+        const { data: emp1Role } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', duty1.employee_id!)
+          .single();
+        
+        const { data: emp2Role } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', duty2.employee_id!)
+          .single();
 
-      const role1 = emp1Role?.role || 'servicemedarbejder';
-      const role2 = emp2Role?.role || 'servicemedarbejder';
+        const role1 = emp1Role?.role || 'servicemedarbejder';
+        const role2 = emp2Role?.role || 'servicemedarbejder';
 
-      const isValidRole1 = role1 === 'administrator' || role1 === 'skadeleder';
-      const isValidRole2 = role2 === 'administrator' || role2 === 'skadeleder';
+        const isValidRole1 = role1 === 'administrator' || role1 === 'skadeleder';
+        const isValidRole2 = role2 === 'administrator' || role2 === 'skadeleder';
 
-      if (!isValidRole1 || !isValidRole2) {
-        throw new Error('Only administrators and skadeledere can be assigned to skadeleder vagt');
+        if (!isValidRole1 || !isValidRole2) {
+          throw new Error('Only administrators and skadeledere can be assigned to skadeleder vagt');
+        }
       }
     }
 
-    // Perform the atomic swap
-    const { error: updateError } = await supabase.rpc('swap_duty_employees', {
-      p_duty1_id: duty1Id,
-      p_duty2_id: duty2Id,
-      p_employee1_id: duty2.employee_id,
-      p_employee2_id: duty1.employee_id
-    });
-
-    if (updateError) {
-      console.error('RPC call failed, falling back to manual update:', updateError);
+    // Handle transfer vs swap
+    if (isTransfer) {
+      const assignedDuty = duty1.employee_id ? duty1 : duty2;
+      const unassignedDuty = duty1.employee_id ? duty2 : duty1;
       
-      // Fallback: Manual update in transaction-like manner
-      const { error: update1Error } = await supabase
+      console.log(`Transfer: User ${requestedBy} taking unassigned duty ${unassignedDuty.id}, giving up duty ${assignedDuty.id}`);
+      
+      // Transfer: assign the unassigned duty to the user, unassign their current duty
+      const { error: assignError } = await supabase
         .from('on_call_duties')
-        .update({ employee_id: duty2.employee_id, updated_at: new Date().toISOString() })
-        .eq('id', duty1Id);
+        .update({ employee_id: requestedBy, updated_at: new Date().toISOString() })
+        .eq('id', unassignedDuty.id);
 
-      if (update1Error) {
-        console.error('Error updating duty 1:', update1Error);
-        throw new Error('Failed to swap duties');
+      if (assignError) {
+        console.error('Error assigning unassigned duty:', assignError);
+        throw new Error('Failed to transfer duty');
       }
 
-      const { error: update2Error } = await supabase
+      const { error: unassignError } = await supabase
         .from('on_call_duties')
-        .update({ employee_id: duty1.employee_id, updated_at: new Date().toISOString() })
-        .eq('id', duty2Id);
+        .update({ employee_id: null, updated_at: new Date().toISOString() })
+        .eq('id', assignedDuty.id);
 
-      if (update2Error) {
-        console.error('Error updating duty 2:', update2Error);
-        // Try to rollback duty1
+      if (unassignError) {
+        console.error('Error unassigning current duty:', unassignError);
+        // Try to rollback
         await supabase
           .from('on_call_duties')
-          .update({ employee_id: duty1.employee_id })
+          .update({ employee_id: null })
+          .eq('id', unassignedDuty.id);
+        throw new Error('Failed to transfer duty');
+      }
+    } else {
+      // Perform the atomic swap
+      const { error: updateError } = await supabase.rpc('swap_duty_employees', {
+        p_duty1_id: duty1Id,
+        p_duty2_id: duty2Id,
+        p_employee1_id: duty2.employee_id,
+        p_employee2_id: duty1.employee_id
+      });
+
+      if (updateError) {
+        console.error('RPC call failed, falling back to manual update:', updateError);
+        
+        // Fallback: Manual update in transaction-like manner
+        const { error: update1Error } = await supabase
+          .from('on_call_duties')
+          .update({ employee_id: duty2.employee_id, updated_at: new Date().toISOString() })
           .eq('id', duty1Id);
-        throw new Error('Failed to swap duties');
+
+        if (update1Error) {
+          console.error('Error updating duty 1:', update1Error);
+          throw new Error('Failed to swap duties');
+        }
+
+        const { error: update2Error } = await supabase
+          .from('on_call_duties')
+          .update({ employee_id: duty1.employee_id, updated_at: new Date().toISOString() })
+          .eq('id', duty2Id);
+
+        if (update2Error) {
+          console.error('Error updating duty 2:', update2Error);
+          // Try to rollback duty1
+          await supabase
+            .from('on_call_duties')
+            .update({ employee_id: duty1.employee_id })
+            .eq('id', duty1Id);
+          throw new Error('Failed to swap duties');
+        }
       }
     }
 
-    // Send notifications to both employees
+    // Send notifications
     const dutyTypeLabel = duty1.duty_type === 'skadeleder_vagt' ? 'Skadeleder vagt' : 'Kørevagt';
     
     const formatDate = (dateStr: string) => {
@@ -208,25 +273,41 @@ Deno.serve(async (req) => {
       return date.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     };
 
-    // Notification for employee 1 (now gets duty 2's date)
-    await supabase.from('notifications').insert({
-      user_id: duty1.employee_id,
-      type: 'duty',
-      title: 'Vagt byttet',
-      message: `Din ${dutyTypeLabel} på ${formatDate(duty1.duty_date)} er byttet med ${(duty2.employee as any)?.name} - du har nu vagt den ${formatDate(duty2.duty_date)}`,
-      link: '/duty',
-      read: false,
-    });
+    if (isTransfer) {
+      // Notification for duty transfer
+      const assignedDuty = duty1.employee_id ? duty1 : duty2;
+      const unassignedDuty = duty1.employee_id ? duty2 : duty1;
+      
+      await supabase.from('notifications').insert({
+        user_id: requestedBy,
+        type: 'duty',
+        title: 'Vagt flyttet',
+        message: `Du har flyttet din ${dutyTypeLabel} fra ${formatDate(assignedDuty.duty_date)} til ${formatDate(unassignedDuty.duty_date)}`,
+        link: '/duty',
+        read: false,
+      });
+    } else {
+      // Notifications for duty swap
+      // Notification for employee 1 (now gets duty 2's date)
+      await supabase.from('notifications').insert({
+        user_id: duty1.employee_id!,
+        type: 'duty',
+        title: 'Vagt byttet',
+        message: `Din ${dutyTypeLabel} på ${formatDate(duty1.duty_date)} er byttet med ${(duty2.employee as any)?.name} - du har nu vagt den ${formatDate(duty2.duty_date)}`,
+        link: '/duty',
+        read: false,
+      });
 
-    // Notification for employee 2 (now gets duty 1's date)
-    await supabase.from('notifications').insert({
-      user_id: duty2.employee_id,
-      type: 'duty',
-      title: 'Vagt byttet',
-      message: `Din ${dutyTypeLabel} på ${formatDate(duty2.duty_date)} er byttet med ${(duty1.employee as any)?.name} - du har nu vagt den ${formatDate(duty1.duty_date)}`,
-      link: '/duty',
-      read: false,
-    });
+      // Notification for employee 2 (now gets duty 1's date)
+      await supabase.from('notifications').insert({
+        user_id: duty2.employee_id!,
+        type: 'duty',
+        title: 'Vagt byttet',
+        message: `Din ${dutyTypeLabel} på ${formatDate(duty2.duty_date)} er byttet med ${(duty1.employee as any)?.name} - du har nu vagt den ${formatDate(duty1.duty_date)}`,
+        link: '/duty',
+        read: false,
+      });
+    }
 
     console.log('Duties swapped successfully');
 
