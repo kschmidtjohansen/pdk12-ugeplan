@@ -1,28 +1,35 @@
 import { useState } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { useTranslation } from '@/context/TranslationContext';
-import { usePermissions } from '@/context/AuthContext';
+import { usePermissions, useAuth } from '@/context/AuthContext';
 import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
+import { useDutyActions } from '@/hooks/duty/useDutyActions';
 import { DutyAssignmentDialog } from '@/components/Duty/DutyAssignmentDialog';
 import { DutyEditDialog } from '@/components/Duty/DutyEditDialog';
+import { DutySwapSelectDialog } from '@/components/Duty/DutySwapSelectDialog';
+import { DutySwapDialog } from '@/components/Duty/DutySwapDialog';
 import { DutyList } from '@/components/Duty/DutyList';
 import { DutyMonthCalendar } from '@/components/Duty/DutyMonthCalendar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus } from 'lucide-react';
-import { startOfMonth, endOfMonth, addMonths, startOfWeek } from 'date-fns';
+import { Plus, RefreshCw } from 'lucide-react';
+import { startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import type { Duty } from '@/types/duty';
 
 export default function DutyPage() {
   const { t } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
+  const { user } = useAuth();
   const canManage = isAdmin || isSkadeleder;
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [swapSelectDialogOpen, setSwapSelectDialogOpen] = useState(false);
+  const [swapDialogOpen, setSwapDialogOpen] = useState(false);
   const [selectedDuty, setSelectedDuty] = useState<Duty | null>(null);
+  const [dutyToSwap, setDutyToSwap] = useState<Duty | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   
@@ -35,6 +42,7 @@ export default function DutyPage() {
 
   const { duties, loading: dutiesLoading, refetch } = useDutyData(startDate, endDate);
   const { employees, loading: employeesLoading } = useEmployeeData();
+  const { swapDuties } = useDutyActions();
 
   const loading = dutiesLoading || employeesLoading;
 
@@ -53,6 +61,22 @@ export default function DutyPage() {
     setEditDialogOpen(true);
   };
 
+  const handleDutySelectedForSwap = (duty: Duty) => {
+    setDutyToSwap(duty);
+    setSwapSelectDialogOpen(false);
+    setSwapDialogOpen(true);
+  };
+
+  const handleSwapComplete = async (duty1Id: string, duty2Id: string) => {
+    const success = await swapDuties(duty1Id, duty2Id);
+    if (success) {
+      setSwapDialogOpen(false);
+      setDutyToSwap(null);
+      refetch();
+    }
+    return success;
+  };
+
   return (
     <MainLayout>
       <div className="container mx-auto py-6 space-y-6">
@@ -65,10 +89,20 @@ export default function DutyPage() {
           </div>
           
           {canManage && (
-            <Button onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              {t('duty.assignDuty')}
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                {t('duty.assignDuty')}
+              </Button>
+              <Button 
+                variant="secondary" 
+                onClick={() => setSwapSelectDialogOpen(true)}
+                disabled={duties.length < 2}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                {t('duty.swapDuty')}
+              </Button>
+            </div>
           )}
         </div>
 
@@ -137,6 +171,21 @@ export default function DutyPage() {
               duty={selectedDuty}
               employees={employeesWithRoles}
               onSuccess={refetch}
+            />
+            <DutySwapSelectDialog
+              open={swapSelectDialogOpen}
+              onOpenChange={setSwapSelectDialogOpen}
+              duties={duties}
+              currentUserId={user?.id}
+              onDutySelected={handleDutySelectedForSwap}
+            />
+            <DutySwapDialog
+              duty={dutyToSwap}
+              allDuties={duties}
+              currentUserId={user?.id}
+              open={swapDialogOpen}
+              onOpenChange={setSwapDialogOpen}
+              onSwap={handleSwapComplete}
             />
           </>
         )}

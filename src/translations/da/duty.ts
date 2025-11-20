@@ -70,6 +70,9 @@ export const duty = {
   cannotSwapExternal: "Kan ikke bytte eksterne vagter",
   cannotSwapDifferentTypes: "Kan kun bytte vagter af samme type",
   assignedTo: "Tildelt",
+  selectDutyToSwapFrom: "Vælg den vagt du vil bytte",
+  continueToSelectEmployee: "Fortsæt til medarbejdervalg",
+  noDutiesAvailable: "Ingen vagter tilgængelige",
 };
 
 export default duty;

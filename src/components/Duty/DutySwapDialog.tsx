@@ -30,6 +30,9 @@ export function DutySwapDialog({
   onOpenChange,
   onSwap,
 }: DutySwapDialogProps) {
+  // Early return FIRST, before any hooks
+  if (!duty) return null;
+  
   const { t } = useTranslation();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [selectedDutyId, setSelectedDutyId] = useState<string>('');
@@ -40,8 +43,6 @@ export function DutySwapDialog({
   useEffect(() => {
     setSelectedDutyId('');
   }, [selectedEmployeeId]);
-
-  if (!duty) return null;
 
   // Filter duties that can be swapped with
   const swappableDuties = allDuties.filter(d => {
