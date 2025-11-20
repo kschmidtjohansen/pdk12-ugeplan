@@ -140,10 +140,44 @@ export const useDutyActions = (onSuccess?: () => void) => {
     }
   };
 
+  const swapDuty = async (
+    dutyId: string,
+    newEmployeeId: string,
+    reason?: string
+  ): Promise<boolean> => {
+    if (!user) return false;
+
+    setLoading(true);
+    try {
+      const isDemoMode = user.email === 'test@polygongroup.com';
+      const client = getSchemaClient(isDemoMode);
+
+      const { data, error } = await client
+        .from('on_call_duties')
+        .update({ employee_id: newEmployeeId })
+        .eq('id', dutyId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success(t('duty.reassignSuccess'));
+      onSuccess?.();
+      return true;
+    } catch (error) {
+      console.error('Error swapping duty:', error);
+      toast.error(t('duty.reassignFailed'));
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     assignDuty,
     updateDuty,
     removeDuty,
+    swapDuty,
     loading
   };
 };

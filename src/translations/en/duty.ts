@@ -46,6 +46,14 @@ export const duty = {
   allTypes: "All types",
   editDuty: "Edit duty",
   cannotChangeDateInEdit: "The date cannot be changed. Delete and create a new duty if you need to change the date.",
+  reassign: "Reassign",
+  reassignDuty: "Reassign Duty to Another Employee",
+  selectNewEmployee: "Select new employee",
+  reassignReason: "Reason (optional)",
+  reassignSuccess: "Duty reassigned",
+  reassignFailed: "Failed to reassign duty",
+  currentAssignee: "Current assignee",
+  newAssignee: "New assignee",
 };
 
 export default duty;

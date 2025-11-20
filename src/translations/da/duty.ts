@@ -46,6 +46,14 @@ export const duty = {
   allTypes: "Alle typer",
   editDuty: "Rediger vagt",
   cannotChangeDateInEdit: "Datoen kan ikke ændres. Slet og opret en ny vagt hvis du vil ændre datoen.",
+  reassign: "Tildel om",
+  reassignDuty: "Tildel vagt til anden medarbejder",
+  selectNewEmployee: "Vælg ny medarbejder",
+  reassignReason: "Årsag (valgfrit)",
+  reassignSuccess: "Vagt tildelt",
+  reassignFailed: "Kunne ikke tildele vagt",
+  currentAssignee: "Nuværende tildeling",
+  newAssignee: "Ny tildeling",
 };
 
 export default duty;

@@ -6,7 +6,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useDutyActions } from '@/hooks/duty/useDutyActions';
 import { format } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
-import { Trash2, Phone, Car, Pencil } from 'lucide-react';
+import { Trash2, Phone, Car, Pencil, Users } from 'lucide-react';
 import type { Duty } from '@/types/duty';
 import {
   AlertDialog,
