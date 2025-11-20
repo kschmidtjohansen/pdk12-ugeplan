@@ -7,10 +7,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useDutyActions } from '@/hooks/duty/useDutyActions';
 import { format } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
-import { Trash2, Phone, Car, Pencil, Users, RefreshCw } from 'lucide-react';
+import { Trash2, Phone, Car, Pencil, Users } from 'lucide-react';
 import type { Duty } from '@/types/duty';
-import { useState } from 'react';
-import { DutySwapDialog } from './DutySwapDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,10 +31,8 @@ interface DutyListProps {
 export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyListProps) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : enUS;
-  const { removeDuty, swapDuties, loading } = useDutyActions(onSuccess);
+  const { removeDuty, loading } = useDutyActions(onSuccess);
   const { user } = useAuth();
-  const [swapDialogOpen, setSwapDialogOpen] = useState(false);
-  const [selectedSwapDuty, setSelectedSwapDuty] = useState<Duty | null>(null);
 
   // Helper to extract initials from external entry notes
   const getExternalInitials = (notes: string | null | undefined): string => {
@@ -123,21 +119,6 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Swap button - available to all users for their own duties */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSelectedSwapDuty(duty);
-                  setSwapDialogOpen(true);
-                }}
-                disabled={!duty.employee_id}
-                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-950"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                {t('duty.swapDuty')}
-              </Button>
-              
               {canManage && (
                 <>
                   <Button
@@ -184,14 +165,7 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
         </Card>
       ))}
       
-      <DutySwapDialog
-        duty={selectedSwapDuty}
-        allDuties={duties}
-        currentUserId={user?.id}
-        open={swapDialogOpen}
-        onOpenChange={setSwapDialogOpen}
-        onSwap={swapDuties}
-      />
+      {/* Removed DutySwapDialog from DutyList - use DutyPage swap functionality instead */}
     </div>
   );
 };

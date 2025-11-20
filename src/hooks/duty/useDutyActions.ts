@@ -148,6 +148,33 @@ export const useDutyActions = (onSuccess?: () => void) => {
     }
   };
 
+  const reassignDuty = async (dutyId: string, newEmployeeId: string) => {
+    if (!user) return false;
+
+    try {
+      setLoading(true);
+      const isDemoMode = user.email === 'test@polygongroup.com';
+      const client = getSchemaClient(isDemoMode);
+
+      const { error } = await client
+        .from('on_call_duties')
+        .update({ employee_id: newEmployeeId })
+        .eq('id', dutyId);
+
+      if (error) throw error;
+
+      toast.success(t('duty.dutyReassigned'));
+      onSuccess?.();
+      return true;
+    } catch (err) {
+      console.error('Error reassigning duty:', err);
+      toast.error(t('duty.reassignFailed'));
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const swapDuty = async (
     dutyId: string,
     newEmployeeId: string,
@@ -215,6 +242,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
     assignDuty,
     updateDuty,
     removeDuty,
+    reassignDuty,
     swapDuty,
     swapDuties,
     loading
