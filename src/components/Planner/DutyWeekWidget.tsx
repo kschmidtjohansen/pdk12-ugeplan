@@ -143,7 +143,7 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
                     className="border-l-2 border-primary pl-3 py-2 bg-primary/5"
                   >
                     <div className="text-sm font-semibold mb-2 text-primary">
-                      {format(today, 'EEEE dd/MM', { locale })} - {t('duty.todayDuties')}
+                      {format(today, 'EEEE dd.MM.yy', { locale })}
                     </div>
 
                     <div className="space-y-2">
