@@ -8,6 +8,7 @@ export const duty = {
   assignDuty: "Tildel vagt",
   selectEmployee: "Vælg medarbejder",
   selectEmployeeToSwapWith: "Vælg medarbejder at bytte med",
+  selectEmployeeToAssignTo: "Vælg medarbejder at tildele vagten til",
   duty: "vagt",
   duties: "vagter",
   enterNameManually: "Indtast navn manuelt",
@@ -80,6 +81,10 @@ export const duty = {
   roleValidationFailed: "Kunne ikke opdatere vagt: Medarbejderen har ikke den korrekte rolle",
   unassignedDuties: "Ledige vagter",
   availableSlots: "Tilgængelige pladser",
+  dutyReassigned: "Vagt blev tildelt",
+  reassignFailed: "Kunne ikke tildele vagt",
+  confirmReassignment: "Bekræft tildeling",
+  noEligibleEmployees: "Der er ingen andre medarbejdere med den rette rolle til denne vagt",
 };
 
 export default duty;
