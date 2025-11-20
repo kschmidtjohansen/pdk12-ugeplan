@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Car } from 'lucide-react';
+import { Phone, Car } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from '@/context/TranslationContext';
@@ -47,7 +47,7 @@ const DutySummaryWidget: React.FC = () => {
           {t('duty.todayDuties')}
         </CardTitle>
         <div className="p-2 rounded-xl border bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-900/30 dark:border-purple-800 dark:text-purple-300">
-          <Shield className="h-4 w-4" />
+          <Phone className="h-4 w-4" />
         </div>
       </CardHeader>
       
@@ -66,7 +66,7 @@ const DutySummaryWidget: React.FC = () => {
               <div className="text-xs text-muted-foreground mt-1 space-y-1">
                 {skadelederDuty && (
                   <div className="flex items-center gap-1">
-                    <Shield className="h-3 w-3 text-blue-600 shrink-0" />
+                    <Phone className="h-3 w-3 text-blue-600 shrink-0" />
                     <span className="truncate">{getDisplayName(skadelederDuty)}</span>
                   </div>
                 )}
