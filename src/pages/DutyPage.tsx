@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions, useAuth } from '@/context/AuthContext';
@@ -46,7 +46,26 @@ export default function DutyPage() {
 
   const loading = dutiesLoading || employeesLoading;
 
-  const upcomingDuties = duties.filter(
+  // Enrich duties with employee roles from the employees data
+  const dutiesWithRoles = useMemo(() => {
+    return duties.map(duty => {
+      if (!duty.employee_id) return duty; // External duties have no employee
+      
+      const employee = employees.find(emp => emp.id === duty.employee_id);
+      if (employee && duty.employee) {
+        return {
+          ...duty,
+          employee: {
+            ...duty.employee,
+            role: employee.role
+          }
+        };
+      }
+      return duty;
+    });
+  }, [duties, employees]);
+
+  const upcomingDuties = dutiesWithRoles.filter(
     duty => new Date(duty.duty_date) >= todayStart
   );
 
@@ -98,10 +117,10 @@ export default function DutyPage() {
                 variant="secondary" 
                 onClick={() => setSwapSelectDialogOpen(true)}
                 disabled={
-                  duties.length < 2 || 
+                  dutiesWithRoles.length < 2 || 
                   (user?.role === 'servicemedarbejder'
-                    ? !duties.some(d => d.duty_type === 'kørevagt' && d.employee_id === user.id)
-                    : !duties.some(d => d.employee_id === user.id))
+                    ? !dutiesWithRoles.some(d => d.duty_type === 'kørevagt' && d.employee_id === user.id)
+                    : !dutiesWithRoles.some(d => d.employee_id === user.id))
                 }
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
@@ -130,7 +149,7 @@ export default function DutyPage() {
               <div className="flex items-center justify-center min-h-64">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
               </div>
-            ) : duties.length === 0 ? (
+            ) : dutiesWithRoles.length === 0 ? (
               <Card className="border-2 border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <p className="text-muted-foreground text-center">{t('duty.noDutiesInPlan')}</p>
@@ -159,7 +178,7 @@ export default function DutyPage() {
               </div>
             ) : (
               <DutyMonthCalendar
-                duties={duties}
+                duties={dutiesWithRoles}
                 month={calendarMonth}
                 onMonthChange={setCalendarMonth}
                 onDutyClick={handleDutyClick}
@@ -175,7 +194,7 @@ export default function DutyPage() {
               open={dialogOpen}
               onOpenChange={setDialogOpen}
               employees={employeesWithRoles}
-              duties={duties}
+              duties={dutiesWithRoles}
               onSuccess={refetch}
             />
             <DutyEditDialog
@@ -188,13 +207,13 @@ export default function DutyPage() {
             <DutySwapSelectDialog
               open={swapSelectDialogOpen}
               onOpenChange={setSwapSelectDialogOpen}
-              duties={duties}
+              duties={dutiesWithRoles}
               currentUserId={user?.id}
               onDutySelected={handleDutySelectedForSwap}
             />
             <DutySwapDialog
               duty={dutyToSwap}
-              allDuties={duties}
+              allDuties={dutiesWithRoles}
               currentUserId={user?.id}
               open={swapDialogOpen}
               onOpenChange={setSwapDialogOpen}
