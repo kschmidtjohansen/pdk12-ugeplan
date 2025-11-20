@@ -35,10 +35,10 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
             id,
             name,
             email,
-            avatar_url
-          ),
-          employee_role:user_roles!on_call_duties_employee_id_fkey (
-            role
+            avatar_url,
+            user_roles!user_id (
+              role
+            )
           )
         `)
         .order('duty_date', { ascending: true });
@@ -59,10 +59,12 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
       const dutiesWithRoles = (data || []).map((duty: any) => ({
         ...duty,
         employee: duty.employee ? {
-          ...duty.employee,
-          role: duty.employee_role?.[0]?.role || 'servicemedarbejder'
-        } : undefined,
-        employee_role: undefined // Remove the separate field
+          id: duty.employee.id,
+          name: duty.employee.name,
+          email: duty.employee.email,
+          avatar_url: duty.employee.avatar_url,
+          role: duty.employee.user_roles?.[0]?.role || 'servicemedarbejder'
+        } : undefined
       }));
 
       setDuties(dutiesWithRoles as Duty[]);
