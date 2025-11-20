@@ -27,7 +27,9 @@ export default function DutyPage() {
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   
   const today = new Date();
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const todayStart = new Date(today);
+  todayStart.setHours(0, 0, 0, 0);
+  
   const startDate = startOfMonth(selectedMonth);
   const endDate = endOfMonth(addMonths(selectedMonth, 2));
 
@@ -37,7 +39,7 @@ export default function DutyPage() {
   const loading = dutiesLoading || employeesLoading;
 
   const upcomingDuties = duties.filter(
-    duty => new Date(duty.duty_date) >= weekStart
+    duty => new Date(duty.duty_date) >= todayStart
   );
 
   const employeesWithRoles = employees.map(emp => ({
