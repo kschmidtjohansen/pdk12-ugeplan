@@ -40,7 +40,7 @@ export default function DutyPage() {
   const startDate = startOfMonth(selectedMonth);
   const endDate = endOfMonth(addMonths(selectedMonth, 2));
 
-  const { duties, loading: dutiesLoading, refetch } = useDutyData(startDate, endDate);
+  const { duties, loading: dutiesLoading, error, refetch } = useDutyData(startDate, endDate);
   const { employees, loading: employeesLoading } = useEmployeeData();
   const { swapDuties } = useDutyActions();
 
@@ -110,6 +110,14 @@ export default function DutyPage() {
             </div>
           )}
         </div>
+
+        {error && (
+          <Card className="border border-destructive/30 bg-destructive/5">
+            <CardContent className="py-3 text-sm text-destructive">
+              {t('common.errorLoadingData') ?? 'Der opstod en fejl ved indlæsning af vagter.'}
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="calendar" className="space-y-4">
           <TabsList>
