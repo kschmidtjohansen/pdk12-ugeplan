@@ -54,6 +54,18 @@ export const duty = {
   reassignFailed: "Kunne ikke tildele vagt",
   currentAssignee: "Nuværende tildeling",
   newAssignee: "Ny tildeling",
+  swapDuty: "Byt vagt",
+  swapDutyTitle: "Byt vagt",
+  currentDuty: "Din nuværende vagt",
+  selectDutyToSwapWith: "Vælg vagt at bytte med",
+  swapWith: "Byt med",
+  confirmSwap: "Er du sikker på at du vil bytte din vagt den {date1} med {employee}s vagt den {date2}?",
+  swapSuccess: "Vagterne er byttet",
+  swapFailed: "Kunne ikke bytte vagter",
+  noAvailableDuties: "Ingen vagter tilgængelige at bytte med",
+  cannotSwapExternal: "Kan ikke bytte eksterne vagter",
+  cannotSwapDifferentTypes: "Kan kun bytte vagter af samme type",
+  assignedTo: "Tildelt",
 };
 
 export default duty;

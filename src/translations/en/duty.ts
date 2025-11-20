@@ -54,6 +54,18 @@ export const duty = {
   reassignFailed: "Failed to reassign duty",
   currentAssignee: "Current assignee",
   newAssignee: "New assignee",
+  swapDuty: "Swap Duty",
+  swapDutyTitle: "Swap Duty",
+  currentDuty: "Your current duty",
+  selectDutyToSwapWith: "Select duty to swap with",
+  swapWith: "Swap with",
+  confirmSwap: "Are you sure you want to swap your duty on {date1} with {employee}'s duty on {date2}?",
+  swapSuccess: "Duties swapped successfully",
+  swapFailed: "Failed to swap duties",
+  noAvailableDuties: "No duties available to swap with",
+  cannotSwapExternal: "Cannot swap external duties",
+  cannotSwapDifferentTypes: "Can only swap duties of the same type",
+  assignedTo: "Assigned to",
 };
 
 export default duty;
