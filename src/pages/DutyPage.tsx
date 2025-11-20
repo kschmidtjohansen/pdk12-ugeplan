@@ -97,7 +97,12 @@ export default function DutyPage() {
               <Button 
                 variant="secondary" 
                 onClick={() => setSwapSelectDialogOpen(true)}
-                disabled={duties.length < 2}
+                disabled={
+                  duties.length < 2 || 
+                  (user?.role === 'servicemedarbejder'
+                    ? !duties.some(d => d.duty_type === 'kørevagt' && d.employee_id === user.id)
+                    : !duties.some(d => d.employee_id === user.id))
+                }
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 {t('duty.swapDuty')}

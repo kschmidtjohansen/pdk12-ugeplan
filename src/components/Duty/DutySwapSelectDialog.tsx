@@ -9,6 +9,7 @@ import { Phone, Car } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 import type { Duty } from '@/types/duty';
 
 interface DutySwapSelectDialogProps {
@@ -27,12 +28,25 @@ export function DutySwapSelectDialog({
   onDutySelected,
 }: DutySwapSelectDialogProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [selectedDutyId, setSelectedDutyId] = useState<string>('');
 
   // Filter to only show duties assigned to the current user
-  const myDuties = duties.filter(d => 
-    d.employee_id === currentUserId && d.employee_id !== null
-  ).sort((a, b) => 
+  const myDuties = duties.filter(d => {
+    // Must be assigned to current user
+    if (d.employee_id !== currentUserId || d.employee_id === null) {
+      return false;
+    }
+    
+    // Role-based filtering
+    if (user?.role === 'servicemedarbejder') {
+      // Servicemedarbejder can only swap kørevagt
+      return d.duty_type === 'kørevagt';
+    }
+    
+    // Administrator and Skadeleder can swap any duty type
+    return true;
+  }).sort((a, b) => 
     new Date(a.duty_date).getTime() - new Date(b.duty_date).getTime()
   );
 
@@ -77,7 +91,11 @@ export function DutySwapSelectDialog({
             
             {myDuties.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <p>{t('duty.noDutiesAvailable')}</p>
+                <p>
+                  {user?.role === 'servicemedarbejder' 
+                    ? t('duty.noKørevagtAvailable') 
+                    : t('duty.noDutiesAvailable')}
+                </p>
               </div>
             ) : (
               <ScrollArea className="h-[400px] border rounded-lg p-3">

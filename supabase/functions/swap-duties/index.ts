@@ -107,6 +107,15 @@ Deno.serve(async (req) => {
       throw new Error('Can only swap duties of the same type');
     }
 
+    // Role-based restrictions for duty swapping
+    if (userRole === 'servicemedarbejder') {
+      // Servicemedarbejder can only swap kørevagt duties
+      if (duty1.duty_type === 'skadeleder_vagt' || duty2.duty_type === 'skadeleder_vagt') {
+        throw new Error('Servicemedarbejder can only swap kørevagt duties');
+      }
+    }
+    // Administrator and Skadeleder have no restrictions
+
     // Check permissions: user must be one of the employees OR admin/skadeleder
     const isInvolvedEmployee = duty1.employee_id === requestedBy || duty2.employee_id === requestedBy;
     if (!isInvolvedEmployee && !isAdminOrSkadeleder) {

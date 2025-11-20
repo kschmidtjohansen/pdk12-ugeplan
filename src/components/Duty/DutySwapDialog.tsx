@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 import type { Duty } from '@/types/duty';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Phone, Car, Users, Loader2 } from 'lucide-react';
@@ -34,6 +35,7 @@ export function DutySwapDialog({
   if (!duty) return null;
   
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [selectedDutyId, setSelectedDutyId] = useState<string>('');
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -55,6 +57,18 @@ export function DutySwapDialog({
     // Must be same duty type
     if (d.duty_type !== duty.duty_type) return false;
     
+    // Role-based filtering
+    if (user?.role === 'servicemedarbejder') {
+      // Servicemedarbejder can only swap kørevagt
+      // This is already handled by the "same duty type" check above,
+      // but we add explicit validation for clarity
+      if (duty.duty_type !== 'kørevagt') {
+        console.warn('Servicemedarbejder attempting to swap non-kørevagt duty');
+        return false;
+      }
+    }
+    
+    // Administrator and Skadeleder can swap with any compatible duty
     return true;
   });
 

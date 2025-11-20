@@ -73,6 +73,8 @@ export const duty = {
   selectDutyToSwapFrom: "Vælg den vagt du vil bytte",
   continueToSelectEmployee: "Fortsæt til medarbejdervalg",
   noDutiesAvailable: "Ingen vagter tilgængelige",
+  noKørevagtAvailable: "Ingen kørevagter tilgængelige at bytte",
+  servicemedarbejderCanOnlySwapKørevagt: "Servicemedarbejdere kan kun bytte kørevagter",
 };
 
 export default duty;
