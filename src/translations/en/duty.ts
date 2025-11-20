@@ -78,6 +78,8 @@ export const duty = {
   servicemedarbejderCanOnlySwapKørevagt: "Servicemedarbejder can only swap kørevagt duties",
   invalidRoleForSkadeleder: "This employee cannot be assigned to manager duty. Only administrators and managers can be assigned to this duty type.",
   roleValidationFailed: "Failed to update duty: Employee does not have the correct role",
+  unassignedDuties: "Unassigned Duties",
+  availableSlots: "Available slots",
 };
 
 export default duty;
