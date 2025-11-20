@@ -36,6 +36,9 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
             name,
             email,
             avatar_url
+          ),
+          employee_role:user_roles!on_call_duties_employee_id_fkey (
+            role
           )
         `)
         .order('duty_date', { ascending: true });
@@ -52,7 +55,17 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
 
       if (fetchError) throw fetchError;
 
-      setDuties(data as Duty[] || []);
+      // Map the data to include role in employee object
+      const dutiesWithRoles = (data || []).map((duty: any) => ({
+        ...duty,
+        employee: duty.employee ? {
+          ...duty.employee,
+          role: duty.employee_role?.[0]?.role || 'servicemedarbejder'
+        } : undefined,
+        employee_role: undefined // Remove the separate field
+      }));
+
+      setDuties(dutiesWithRoles as Duty[]);
     } catch (err) {
       console.error('Error fetching duties:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch duties'));
