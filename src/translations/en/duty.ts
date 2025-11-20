@@ -5,6 +5,7 @@ export const duty = {
   skadelederVagt: "Manager",
   kørevagt: "Driver On-Call",
   assignEmployee: "Assign employee",
+  assignDuty: "Assign Duty",
   selectEmployee: "Select employee",
   enterNameManually: "Enter name manually",
   enterName: "Enter name...",

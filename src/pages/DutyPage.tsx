@@ -67,7 +67,7 @@ export default function DutyPage() {
           {canManage && (
             <Button onClick={() => setDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              {t('duty.assignEmployee')}
+              {t('duty.assignDuty')}
             </Button>
           )}
         </div>

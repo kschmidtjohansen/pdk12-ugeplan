@@ -126,16 +126,16 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
               {/* Swap button - available to all users for their own duties */}
               <Button
                 variant="ghost"
-                size="icon"
+                size="sm"
                 onClick={() => {
                   setSelectedSwapDuty(duty);
                   setSwapDialogOpen(true);
                 }}
                 disabled={!duty.employee_id}
                 className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-950"
-                title={t('duty.swapDuty')}
               >
-                <RefreshCw className="h-4 w-4" />
+                <RefreshCw className="h-4 w-4 mr-2" />
+                {t('duty.swapDuty')}
               </Button>
               
               {canManage && (
