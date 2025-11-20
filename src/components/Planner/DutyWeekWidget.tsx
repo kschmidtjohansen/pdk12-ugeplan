@@ -22,19 +22,10 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
   const locale = currentLanguage === 'da' ? da : enUS;
   const navigate = useNavigate();
 
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    const saved = localStorage.getItem('dutyWeekWidgetCollapsed');
-    return saved ? JSON.parse(saved) : false;
-  });
-
   const [isRestOfWeekCollapsed, setIsRestOfWeekCollapsed] = useState(() => {
     const saved = localStorage.getItem('dutyWeekRestCollapsed');
     return saved ? JSON.parse(saved) : true;
   });
-
-  useEffect(() => {
-    localStorage.setItem('dutyWeekWidgetCollapsed', JSON.stringify(isCollapsed));
-  }, [isCollapsed]);
 
   useEffect(() => {
     localStorage.setItem('dutyWeekRestCollapsed', JSON.stringify(isRestOfWeekCollapsed));
@@ -111,36 +102,18 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
               {t('duty.currentWeekDuty')}
             </CardTitle>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="link"
-              size="sm"
-              onClick={() => navigate('/duty')}
-              className="text-sm text-primary hover:underline transition-colors h-auto p-0"
-            >
-              {t('duty.viewAll')}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                setIsCollapsed(!isCollapsed);
-              }}
-              className="h-8 w-8 p-0"
-            >
-              {isCollapsed ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronUp className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
+          <Button
+            variant="link"
+            size="sm"
+            onClick={() => navigate('/duty')}
+            className="text-sm text-primary hover:underline transition-colors h-auto p-0"
+          >
+            {t('duty.viewAll')}
+          </Button>
         </div>
-      </CardHeader>
+    </CardHeader>
 
-      {!isCollapsed && (
-        <CardContent className="p-4 space-y-3">
+    <CardContent className="p-4 space-y-3">
           {loading ? (
             <div className="text-sm text-muted-foreground">
               {t('common.loading')}...
@@ -369,7 +342,6 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
             </>
           )}
         </CardContent>
-      )}
-    </Card>
+      </Card>
   );
 };
