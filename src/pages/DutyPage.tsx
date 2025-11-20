@@ -42,7 +42,7 @@ export default function DutyPage() {
 
   const { duties, loading: dutiesLoading, error, refetch } = useDutyData(startDate, endDate);
   const { employees, loading: employeesLoading } = useEmployeeData();
-  const { swapDuties } = useDutyActions();
+  const { reassignDuty } = useDutyActions();
 
   const loading = dutiesLoading || employeesLoading;
 
@@ -73,6 +73,10 @@ export default function DutyPage() {
     id: emp.id,
     name: emp.name,
     role: emp.role,
+    avatar_url: emp.avatar_url,
+    jobTitle: emp.jobTitle,
+    status: emp.status,
+    onLeave: emp.onLeave,
   }));
 
   const handleDutyClick = (duty: Duty) => {
@@ -86,8 +90,8 @@ export default function DutyPage() {
     setSwapDialogOpen(true);
   };
 
-  const handleSwapComplete = async (duty1Id: string, duty2Id: string) => {
-    const success = await swapDuties(duty1Id, duty2Id);
+  const handleReassignment = async (dutyId: string, newEmployeeId: string) => {
+    const success = await reassignDuty(dutyId, newEmployeeId);
     if (success) {
       setSwapDialogOpen(false);
       setDutyToSwap(null);

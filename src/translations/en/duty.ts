@@ -8,6 +8,7 @@ export const duty = {
   assignDuty: "Assign Duty",
   selectEmployee: "Select employee",
   selectEmployeeToSwapWith: "Select employee to swap with",
+  selectEmployeeToAssignTo: "Select employee to assign the duty to",
   duty: "duty",
   duties: "duties",
   enterNameManually: "Enter name manually",
@@ -80,6 +81,10 @@ export const duty = {
   roleValidationFailed: "Failed to update duty: Employee does not have the correct role",
   unassignedDuties: "Unassigned Duties",
   availableSlots: "Available slots",
+  dutyReassigned: "Duty has been assigned",
+  reassignFailed: "Failed to assign duty",
+  confirmReassignment: "Confirm assignment",
+  noEligibleEmployees: "There are no other employees with the appropriate role for this duty",
 };
 
 export default duty;
