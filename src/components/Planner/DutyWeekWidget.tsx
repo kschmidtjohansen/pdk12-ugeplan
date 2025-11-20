@@ -27,9 +27,18 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
     return saved ? JSON.parse(saved) : false;
   });
 
+  const [isRestOfWeekCollapsed, setIsRestOfWeekCollapsed] = useState(() => {
+    const saved = localStorage.getItem('dutyWeekRestCollapsed');
+    return saved ? JSON.parse(saved) : true;
+  });
+
   useEffect(() => {
     localStorage.setItem('dutyWeekWidgetCollapsed', JSON.stringify(isCollapsed));
   }, [isCollapsed]);
+
+  useEffect(() => {
+    localStorage.setItem('dutyWeekRestCollapsed', JSON.stringify(isRestOfWeekCollapsed));
+  }, [isRestOfWeekCollapsed]);
 
   // Helper to extract initials from external entry notes
   const getExternalInitials = (notes: string | null | undefined): string => {
@@ -141,95 +150,223 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
               {t('duty.noDutySelected')}
             </div>
           ) : (
-            weekDays.map(day => {
-              const { skadeleder, kørevagt } = getDutiesForDay(day);
-              const hasDuties = skadeleder || kørevagt;
+            <>
+              {/* Today's duties - always visible */}
+              {(() => {
+                const today = new Date();
+                const { skadeleder, kørevagt } = getDutiesForDay(today);
+                const hasTodayDuties = skadeleder || kørevagt;
 
-              if (!hasDuties) return null;
+                if (!hasTodayDuties) {
+                  return (
+                    <div className="text-sm text-muted-foreground">
+                      {t('duty.noDutySelected')}
+                    </div>
+                  );
+                }
 
-              return (
-                <div 
-                  key={day.toISOString()} 
-                  className="border-l-2 border-primary/30 pl-3 py-2"
-                >
-                  <div className="text-sm font-medium mb-2">
-                    {format(day, 'EEEE dd/MM', { locale })}
-                  </div>
+                return (
+                  <div 
+                    className="border-l-2 border-primary pl-3 py-2 bg-primary/5"
+                  >
+                    <div className="text-sm font-semibold mb-2 text-primary">
+                      {format(today, 'EEEE dd/MM', { locale })} - {t('duty.todayDuties')}
+                    </div>
 
-                  <div className="space-y-2">
-                    {skadeleder && (
-                      <div className="flex items-center gap-2">
-                        <Badge variant="default" className="gap-1">
-                          <Shield className="h-3 w-3" />
-                          {t('duty.skadelederVagt')}
-                        </Badge>
-                        <div className="flex items-center gap-1.5">
-                          {skadeleder.employee ? (
-                            // Show employee with avatar
-                            <>
-                              {skadeleder.employee.avatar_url && (
+                    <div className="space-y-2">
+                      {skadeleder && (
+                        <div className="flex items-center gap-2">
+                          <Badge variant="default" className="gap-1">
+                            <Shield className="h-3 w-3" />
+                            {t('duty.skadelederVagt')}
+                          </Badge>
+                          <div className="flex items-center gap-1.5">
+                            {skadeleder.employee ? (
+                              <>
+                                {skadeleder.employee.avatar_url && (
+                                  <Avatar className="h-5 w-5">
+                                    <AvatarImage src={skadeleder.employee.avatar_url} />
+                                    <AvatarFallback className="text-[10px]">
+                                      {skadeleder.employee.name.charAt(0)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                )}
+                                <span className="text-xs">{skadeleder.employee.name}</span>
+                              </>
+                            ) : (
+                              <>
                                 <Avatar className="h-5 w-5">
-                                  <AvatarImage src={skadeleder.employee.avatar_url} />
-                                  <AvatarFallback className="text-[10px]">
-                                    {skadeleder.employee.name.charAt(0)}
+                                  <AvatarFallback className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                    {getExternalInitials(skadeleder.notes)}
                                   </AvatarFallback>
                                 </Avatar>
-                              )}
-                              <span className="text-xs">{skadeleder.employee.name}</span>
-                            </>
-                          ) : (
-                            // Show external entry with initials badge
-                            <>
-                              <Avatar className="h-5 w-5">
-                                <AvatarFallback className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                                  {getExternalInitials(skadeleder.notes)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span className="text-xs">{getDisplayName(skadeleder)}</span>
-                            </>
-                          )}
+                                <span className="text-xs">{getDisplayName(skadeleder)}</span>
+                              </>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {kørevagt && (
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="gap-1 bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800">
-                          <Car className="h-3 w-3" />
-                          {t('duty.kørevagt')}
-                        </Badge>
-                        <div className="flex items-center gap-1.5">
-                          {kørevagt.employee ? (
-                            // Show employee with avatar
-                            <>
-                              {kørevagt.employee.avatar_url && (
+                      {kørevagt && (
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="gap-1 bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800">
+                            <Car className="h-3 w-3" />
+                            {t('duty.kørevagt')}
+                          </Badge>
+                          <div className="flex items-center gap-1.5">
+                            {kørevagt.employee ? (
+                              <>
+                                {kørevagt.employee.avatar_url && (
+                                  <Avatar className="h-5 w-5">
+                                    <AvatarImage src={kørevagt.employee.avatar_url} />
+                                    <AvatarFallback className="text-[10px]">
+                                      {kørevagt.employee.name.charAt(0)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                )}
+                                <span className="text-xs">{kørevagt.employee.name}</span>
+                              </>
+                            ) : (
+                              <>
                                 <Avatar className="h-5 w-5">
-                                  <AvatarImage src={kørevagt.employee.avatar_url} />
-                                  <AvatarFallback className="text-[10px]">
-                                    {kørevagt.employee.name.charAt(0)}
+                                  <AvatarFallback className="text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                    {getExternalInitials(kørevagt.notes)}
                                   </AvatarFallback>
                                 </Avatar>
-                              )}
-                              <span className="text-xs">{kørevagt.employee.name}</span>
-                            </>
-                          ) : (
-                            // Show external entry with initials badge
-                            <>
-                              <Avatar className="h-5 w-5">
-                                <AvatarFallback className="text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                                  {getExternalInitials(kørevagt.notes)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span className="text-xs">{getDisplayName(kørevagt)}</span>
-                            </>
-                          )}
+                                <span className="text-xs">{getDisplayName(kørevagt)}</span>
+                              </>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              })()}
+
+              {/* Rest of week - collapsible */}
+              {(() => {
+                const today = new Date();
+                const restOfWeekDays = weekDays.filter(day => !isSameDay(day, today));
+                const restOfWeekDuties = restOfWeekDays.filter(day => {
+                  const { skadeleder, kørevagt } = getDutiesForDay(day);
+                  return skadeleder || kørevagt;
+                });
+
+                if (restOfWeekDuties.length === 0) return null;
+
+                return (
+                  <Collapsible
+                    open={!isRestOfWeekCollapsed}
+                    onOpenChange={() => setIsRestOfWeekCollapsed(!isRestOfWeekCollapsed)}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-between p-2 h-auto"
+                      >
+                        <span className="text-sm font-medium">
+                          Resten af ugen ({restOfWeekDuties.length} {restOfWeekDuties.length === 1 ? 'dag' : 'dage'})
+                        </span>
+                        {isRestOfWeekCollapsed ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronUp className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-3 pt-2">
+                      {restOfWeekDays.map(day => {
+                        const { skadeleder, kørevagt } = getDutiesForDay(day);
+                        const hasDuties = skadeleder || kørevagt;
+
+                        if (!hasDuties) return null;
+
+                        return (
+                          <div 
+                            key={day.toISOString()} 
+                            className="border-l-2 border-primary/30 pl-3 py-2"
+                          >
+                            <div className="text-sm font-medium mb-2">
+                              {format(day, 'EEEE dd/MM', { locale })}
+                            </div>
+
+                            <div className="space-y-2">
+                              {skadeleder && (
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="default" className="gap-1">
+                                    <Shield className="h-3 w-3" />
+                                    {t('duty.skadelederVagt')}
+                                  </Badge>
+                                  <div className="flex items-center gap-1.5">
+                                    {skadeleder.employee ? (
+                                      <>
+                                        {skadeleder.employee.avatar_url && (
+                                          <Avatar className="h-5 w-5">
+                                            <AvatarImage src={skadeleder.employee.avatar_url} />
+                                            <AvatarFallback className="text-[10px]">
+                                              {skadeleder.employee.name.charAt(0)}
+                                            </AvatarFallback>
+                                          </Avatar>
+                                        )}
+                                        <span className="text-xs">{skadeleder.employee.name}</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Avatar className="h-5 w-5">
+                                          <AvatarFallback className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                            {getExternalInitials(skadeleder.notes)}
+                                          </AvatarFallback>
+                                        </Avatar>
+                                        <span className="text-xs">{getDisplayName(skadeleder)}</span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {kørevagt && (
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="gap-1 bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800">
+                                    <Car className="h-3 w-3" />
+                                    {t('duty.kørevagt')}
+                                  </Badge>
+                                  <div className="flex items-center gap-1.5">
+                                    {kørevagt.employee ? (
+                                      <>
+                                        {kørevagt.employee.avatar_url && (
+                                          <Avatar className="h-5 w-5">
+                                            <AvatarImage src={kørevagt.employee.avatar_url} />
+                                            <AvatarFallback className="text-[10px]">
+                                              {kørevagt.employee.name.charAt(0)}
+                                            </AvatarFallback>
+                                          </Avatar>
+                                        )}
+                                        <span className="text-xs">{kørevagt.employee.name}</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Avatar className="h-5 w-5">
+                                          <AvatarFallback className="text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                            {getExternalInitials(kørevagt.notes)}
+                                          </AvatarFallback>
+                                        </Avatar>
+                                        <span className="text-xs">{getDisplayName(kørevagt)}</span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })()}
+            </>
           )}
         </CardContent>
       )}
