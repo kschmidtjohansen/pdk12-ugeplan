@@ -70,6 +70,9 @@ export const duty = {
   cannotSwapExternal: "Cannot swap external duties",
   cannotSwapDifferentTypes: "Can only swap duties of the same type",
   assignedTo: "Assigned to",
+  selectDutyToSwapFrom: "Select the duty you want to swap",
+  continueToSelectEmployee: "Continue to employee selection",
+  noDutiesAvailable: "No duties available",
 };
 
 export default duty;
