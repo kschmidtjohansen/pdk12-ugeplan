@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { useDutyNotifications } from '@/hooks/notifications/dutyNotifications';
@@ -173,11 +174,42 @@ export const useDutyActions = (onSuccess?: () => void) => {
     }
   };
 
+  const swapDuties = async (
+    duty1Id: string,
+    duty2Id: string
+  ): Promise<boolean> => {
+    if (!user) return false;
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('swap-duties', {
+        body: {
+          duty1Id,
+          duty2Id,
+          requestedBy: user.id,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success(t('duty.swapSuccess'));
+      onSuccess?.();
+      return true;
+    } catch (error) {
+      console.error('Error swapping duties:', error);
+      toast.error(error instanceof Error ? error.message : t('duty.swapFailed'));
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     assignDuty,
     updateDuty,
     removeDuty,
     swapDuty,
+    swapDuties,
     loading
   };
 };

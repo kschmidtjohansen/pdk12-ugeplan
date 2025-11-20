@@ -3,11 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 import { useDutyActions } from '@/hooks/duty/useDutyActions';
 import { format } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
-import { Trash2, Phone, Car, Pencil, Users } from 'lucide-react';
+import { Trash2, Phone, Car, Pencil, Users, RefreshCw } from 'lucide-react';
 import type { Duty } from '@/types/duty';
+import { useState } from 'react';
+import { DutySwapDialog } from './DutySwapDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +33,10 @@ interface DutyListProps {
 export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyListProps) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : enUS;
-  const { removeDuty, loading } = useDutyActions(onSuccess);
+  const { removeDuty, swapDuties, loading } = useDutyActions(onSuccess);
+  const { user } = useAuth();
+  const [swapDialogOpen, setSwapDialogOpen] = useState(false);
+  const [selectedSwapDuty, setSelectedSwapDuty] = useState<Duty | null>(null);
 
   // Helper to extract initials from external entry notes
   const getExternalInitials = (notes: string | null | undefined): string => {
@@ -116,50 +122,76 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
               </div>
             </div>
 
-            {canManage && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDutyClick?.(duty)}
-                  className="text-primary hover:text-primary hover:bg-primary/10"
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={loading}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>{t('duty.confirmRemove')}</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {t('duty.confirmRemoveMessage')}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>{t('duty.cancel')}</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => removeDuty(duty.id)}
-                        className="bg-destructive hover:bg-destructive/90"
+            <div className="flex items-center gap-2">
+              {/* Swap button - available to all users for their own duties */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setSelectedSwapDuty(duty);
+                  setSwapDialogOpen(true);
+                }}
+                disabled={!duty.employee_id}
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-950"
+                title={t('duty.swapDuty')}
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+              
+              {canManage && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDutyClick?.(duty)}
+                    className="text-primary hover:text-primary hover:bg-primary/10"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={loading}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
-                        {t('duty.remove')}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            )}
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{t('duty.confirmRemove')}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {t('duty.confirmRemoveMessage')}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{t('duty.cancel')}</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => removeDuty(duty.id)}
+                          className="bg-destructive hover:bg-destructive/90"
+                        >
+                          {t('duty.remove')}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              )}
+            </div>
           </div>
         </Card>
       ))}
+      
+      <DutySwapDialog
+        duty={selectedSwapDuty}
+        allDuties={duties}
+        currentUserId={user?.id}
+        open={swapDialogOpen}
+        onOpenChange={setSwapDialogOpen}
+        onSwap={swapDuties}
+      />
     </div>
   );
 };

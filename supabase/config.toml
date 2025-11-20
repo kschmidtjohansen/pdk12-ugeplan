@@ -57,3 +57,6 @@ verify_jwt = false
 
 [functions.swap-duty]
 verify_jwt = true
+
+[functions.swap-duties]
+verify_jwt = true
