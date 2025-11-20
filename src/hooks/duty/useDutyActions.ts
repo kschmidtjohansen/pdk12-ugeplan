@@ -86,7 +86,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
 
   const updateDuty = async (
     dutyId: string,
-    updates: { employee_id?: string; notes?: string }
+    updates: { employee_id?: string; notes?: string; duty_type?: DutyType }
   ) => {
     if (!user) return false;
 
@@ -107,7 +107,14 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return true;
     } catch (err) {
       console.error('Error updating duty:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to update duty');
+      const errorMessage = err instanceof Error ? err.message : '';
+      
+      // Check for role validation error
+      if (errorMessage.includes('skadeleder') || errorMessage.includes('administrator')) {
+        toast.error(t('duty.roleValidationFailed'));
+      } else {
+        toast.error(errorMessage || t('duty.updateFailed'));
+      }
       return false;
     } finally {
       setLoading(false);

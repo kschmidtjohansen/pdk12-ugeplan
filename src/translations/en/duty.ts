@@ -76,6 +76,8 @@ export const duty = {
   noKørevagtAvailable: "No kørevagt duties available to swap",
   noValidEmployeesForSkadelederVagt: "No administrators or skadeledere available to swap with",
   servicemedarbejderCanOnlySwapKørevagt: "Servicemedarbejder can only swap kørevagt duties",
+  invalidRoleForSkadeleder: "This employee cannot be assigned to manager duty. Only administrators and managers can be assigned to this duty type.",
+  roleValidationFailed: "Failed to update duty: Employee does not have the correct role",
 };
 
 export default duty;

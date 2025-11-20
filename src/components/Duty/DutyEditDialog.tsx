@@ -39,6 +39,7 @@ export const DutyEditDialog = ({
   const [dutyType, setDutyType] = useState<DutyType>('skadeleder_vagt');
   const [employeeId, setEmployeeId] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
+  const [validationError, setValidationError] = useState<string>('');
 
   useEffect(() => {
     if (duty) {
@@ -48,6 +49,28 @@ export const DutyEditDialog = ({
     }
   }, [duty]);
 
+  const validateEmployeeRole = (selectedEmployeeId: string, selectedDutyType: DutyType): boolean => {
+    if (selectedDutyType === 'skadeleder_vagt') {
+      const employee = employees.find(emp => emp.id === selectedEmployeeId);
+      if (employee) {
+        const role = employee.role;
+        if (role !== 'administrator' && role !== 'skadeleder') {
+          setValidationError(t('duty.invalidRoleForSkadeleder'));
+          return false;
+        }
+      }
+    }
+    setValidationError('');
+    return true;
+  };
+
+  // Validate when duty type or employee changes
+  useEffect(() => {
+    if (employeeId && dutyType) {
+      validateEmployeeRole(employeeId, dutyType);
+    }
+  }, [employeeId, dutyType, employees]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -55,9 +78,15 @@ export const DutyEditDialog = ({
       return;
     }
 
+    // Validate employee role before submitting
+    if (!validateEmployeeRole(employeeId, dutyType)) {
+      return;
+    }
+
     const success = await updateDuty(duty.id, {
       employee_id: employeeId,
       notes: notes || undefined,
+      duty_type: dutyType,
     });
 
     if (success) {
@@ -122,6 +151,14 @@ export const DutyEditDialog = ({
                 />
               </TabsContent>
             </Tabs>
+
+            {validationError && (
+              <div className="mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                <p className="text-sm text-destructive font-medium">
+                  {validationError}
+                </p>
+              </div>
+            )}
           </div>
 
           <div>
@@ -147,7 +184,7 @@ export const DutyEditDialog = ({
             >
               {t('duty.cancel')}
             </Button>
-            <Button type="submit" disabled={loading || !employeeId}>
+            <Button type="submit" disabled={loading || !employeeId || !!validationError}>
               {loading ? t('common.saving') : t('duty.save')}
             </Button>
           </DialogFooter>
