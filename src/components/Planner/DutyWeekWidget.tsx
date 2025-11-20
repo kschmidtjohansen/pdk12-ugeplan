@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDutyData } from '@/hooks/duty/useDutyData';
-import { Shield, Car, ChevronDown, ChevronUp } from 'lucide-react';
+import { Phone, Car, ChevronDown, ChevronUp } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
 import type { Duty } from '@/types/duty';
@@ -77,7 +77,7 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
       <Card className="overflow-hidden border-2 border-primary/20">
         <CardHeader className="py-2 px-4 bg-gradient-to-r from-primary/5 to-primary/10">
           <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-primary" />
+            <Phone className="h-4 w-4 text-primary" />
             <CardTitle className="text-lg font-semibold text-primary">
               {t('duty.currentWeekDuty')}
             </CardTitle>
@@ -97,7 +97,7 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
       <CardHeader className="py-2 px-4 bg-gradient-to-r from-primary/5 to-primary/10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-primary" />
+            <Phone className="h-4 w-4 text-primary" />
             <CardTitle className="text-lg font-semibold text-primary">
               {t('duty.currentWeekDuty')}
             </CardTitle>
@@ -150,7 +150,7 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
                       {skadeleder && (
                         <div className="flex items-center gap-2">
                           <Badge variant="default" className="gap-1">
-                            <Shield className="h-3 w-3" />
+                            <Phone className="h-3 w-3" />
                             {t('duty.skadelederVagt')}
                           </Badge>
                           <div className="flex items-center gap-1.5">
@@ -269,7 +269,7 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
                               {skadeleder && (
                                 <div className="flex items-center gap-2">
                                   <Badge variant="default" className="gap-1">
-                                    <Shield className="h-3 w-3" />
+                                    <Phone className="h-3 w-3" />
                                     {t('duty.skadelederVagt')}
                                   </Badge>
                                   <div className="flex items-center gap-1.5">

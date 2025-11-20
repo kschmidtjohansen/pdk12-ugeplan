@@ -6,7 +6,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useDutyActions } from '@/hooks/duty/useDutyActions';
 import { format } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
-import { Trash2, Shield, Car, Pencil } from 'lucide-react';
+import { Trash2, Phone, Car, Pencil } from 'lucide-react';
 import type { Duty } from '@/types/duty';
 import {
   AlertDialog,
@@ -89,7 +89,7 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
                   >
                     <span className="flex items-center gap-1">
                       {duty.duty_type === 'skadeleder_vagt' ? (
-                        <Shield className="h-3 w-3" />
+                        <Phone className="h-3 w-3" />
                       ) : (
                         <Car className="h-3 w-3" />
                       )}
