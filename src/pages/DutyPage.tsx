@@ -217,11 +217,10 @@ export default function DutyPage() {
             />
             <DutySwapDialog
               duty={dutyToSwap}
-              allDuties={dutiesWithRoles}
-              currentUserId={user?.id}
+              employees={employeesWithRoles}
               open={swapDialogOpen}
               onOpenChange={setSwapDialogOpen}
-              onSwap={handleSwapComplete}
+              onReassign={handleReassignment}
             />
           </>
         )}
