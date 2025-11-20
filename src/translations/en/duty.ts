@@ -73,6 +73,8 @@ export const duty = {
   selectDutyToSwapFrom: "Select the duty you want to swap",
   continueToSelectEmployee: "Continue to employee selection",
   noDutiesAvailable: "No duties available",
+  noKørevagtAvailable: "No kørevagt duties available to swap",
+  servicemedarbejderCanOnlySwapKørevagt: "Servicemedarbejder can only swap kørevagt duties",
 };
 
 export default duty;
