@@ -49,10 +49,20 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
 
   // Helper to get display name from duty
   const getDisplayName = (duty: Duty): string => {
+    // Check for unassigned duties first
+    if (!duty.employee_id) {
+      return t('duty.unassignedSlot');
+    }
+    
+    // Regular employee
     if (duty.employee?.name) return duty.employee.name;
+    
+    // External entry
     if (duty.notes?.startsWith('EKSTERN:')) {
       return duty.notes.split('\n')[0].replace('EKSTERN: ', '').replace(/\s*\[.*?\]\s*/, '').trim();
     }
+    
+    // Fallback
     return 'Ukendt';
   };
 
@@ -71,10 +81,18 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1">
               <Avatar>
-                <AvatarImage src={duty.employee?.avatar_url || undefined} />
-                <AvatarFallback>
-                  {duty.employee?.name?.charAt(0) || getExternalInitials(duty.notes)}
-                </AvatarFallback>
+                {!duty.employee_id ? (
+                  <AvatarFallback className="bg-muted">
+                    <Users className="h-4 w-4" />
+                  </AvatarFallback>
+                ) : (
+                  <>
+                    <AvatarImage src={duty.employee?.avatar_url || undefined} />
+                    <AvatarFallback>
+                      {duty.employee?.name?.charAt(0) || getExternalInitials(duty.notes)}
+                    </AvatarFallback>
+                  </>
+                )}
               </Avatar>
               
               <div className="flex-1">

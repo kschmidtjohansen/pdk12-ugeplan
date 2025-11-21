@@ -83,6 +83,7 @@ export const duty = {
   availableSlots: "Tilgængelige pladser",
   confirmReassignment: "Bekræft tildeling",
   noEligibleEmployees: "Der er ingen andre medarbejdere med den rette rolle til denne vagt",
+  unassignedSlot: "Ledig vagt",
 };
 
 export default duty;

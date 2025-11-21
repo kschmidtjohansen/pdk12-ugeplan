@@ -111,27 +111,27 @@ export default function DutyPage() {
             </p>
           </div>
           
-          {canManage && (
-            <div className="flex gap-2">
+          <div className="flex gap-2">
+            {canManage && (
               <Button onClick={() => setDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 {t('duty.assignDuty')}
               </Button>
-              <Button 
-                variant="secondary" 
-                onClick={() => setSwapSelectDialogOpen(true)}
-                disabled={
-                  dutiesWithRoles.length < 2 || 
-                  (user?.role === 'servicemedarbejder'
-                    ? !dutiesWithRoles.some(d => d.duty_type === 'kørevagt' && d.employee_id === user.id)
-                    : !dutiesWithRoles.some(d => d.employee_id === user.id))
-                }
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                {t('duty.swapDuty')}
-              </Button>
-            </div>
-          )}
+            )}
+            <Button 
+              variant="secondary" 
+              onClick={() => setSwapSelectDialogOpen(true)}
+              disabled={
+                dutiesWithRoles.length === 0 || 
+                (user?.role === 'servicemedarbejder'
+                  ? !dutiesWithRoles.some(d => d.duty_type === 'kørevagt' && d.employee_id === user.id)
+                  : !dutiesWithRoles.some(d => d.employee_id === user.id))
+              }
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              {t('duty.swapDuty')}
+            </Button>
+          </div>
         </div>
 
         {error && (
@@ -208,22 +208,23 @@ export default function DutyPage() {
               employees={employeesWithRoles}
               onSuccess={refetch}
             />
-            <DutySwapSelectDialog
-              open={swapSelectDialogOpen}
-              onOpenChange={setSwapSelectDialogOpen}
-              duties={dutiesWithRoles}
-              currentUserId={user?.id}
-              onDutySelected={handleDutySelectedForSwap}
-            />
-            <DutySwapDialog
-              duty={dutyToSwap}
-              employees={employeesWithRoles}
-              open={swapDialogOpen}
-              onOpenChange={setSwapDialogOpen}
-              onReassign={handleReassignment}
-            />
           </>
         )}
+        
+        <DutySwapSelectDialog
+          open={swapSelectDialogOpen}
+          onOpenChange={setSwapSelectDialogOpen}
+          duties={dutiesWithRoles}
+          currentUserId={user?.id}
+          onDutySelected={handleDutySelectedForSwap}
+        />
+        <DutySwapDialog
+          duty={dutyToSwap}
+          employees={employeesWithRoles}
+          open={swapDialogOpen}
+          onOpenChange={setSwapDialogOpen}
+          onReassign={handleReassignment}
+        />
       </div>
     </MainLayout>
   );
