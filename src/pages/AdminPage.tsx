@@ -4,16 +4,10 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Users, Settings, BarChart3, Activity, Zap, Trash2, Bug, Lock } from 'lucide-react';
+import { Shield, Users, Stethoscope } from 'lucide-react';
 import UserManagement from '@/components/Admin/UserManagement';
-import { SystemHealthDashboard } from '@/components/Admin/SystemHealthDashboard';
-import { SecurityLogViewer } from '@/components/Admin/SecurityLogViewer';
-import { ComprehensiveDiagnosticsPanel } from '@/components/Admin/ComprehensiveDiagnosticsPanel';
-import { PerformanceMonitoringPanel } from '@/components/Admin/PerformanceMonitoringPanel';
-import { SystemCleanupPanel } from '@/components/Admin/SystemCleanupPanel';
-import { SecurityDashboard } from '@/components/Admin/SecurityDashboard';
+import { SickLeaveStatisticsPanel } from '@/components/Admin/SickLeaveStatisticsPanel';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
-import PasswordResetDebugger from '@/components/Admin/PasswordResetDebugger';
 
 const AdminPage: React.FC = () => {
   const {
@@ -48,90 +42,16 @@ const AdminPage: React.FC = () => {
         </div>
 
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="users" className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
               <span>{t('admin.tabs.users')}</span>
             </TabsTrigger>
-            <TabsTrigger value="overview" className="flex items-center space-x-2">
-              <BarChart3 className="h-4 w-4" />
-              <span>{t('admin.tabs.overview')}</span>
+            <TabsTrigger value="sick-leave" className="flex items-center space-x-2">
+              <Stethoscope className="h-4 w-4" />
+              <span>Sygdomsstatistik</span>
             </TabsTrigger>
-            <TabsTrigger value="security-audit" className="flex items-center space-x-2">
-              <Lock className="h-4 w-4" />
-              <span>Security</span>
-            </TabsTrigger>
-            
-            <TabsTrigger value="cleanup" className="flex items-center space-x-2">
-              <Trash2 className="h-4 w-4" />
-              <span>{t('admin.tabs.cleanup')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="diagnostics" className="flex items-center space-x-2">
-              <Activity className="h-4 w-4" />
-              <span>{t('admin.tabs.diagnostics')}</span>
-            </TabsTrigger>
-            
-            <TabsTrigger value="security" className="flex items-center space-x-2">
-              <Shield className="h-4 w-4" />
-              <span>{t('admin.tabs.security')}</span>
-            </TabsTrigger>
-            
           </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('admin.dashboard.title')}</CardTitle>
-                <CardDescription>
-                  {t('admin.dashboard.description')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SystemHealthDashboard />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-
-          <TabsContent value="security-audit" className="space-y-6">
-            <SecurityDashboard />
-          </TabsContent>
-
-          <TabsContent value="debug" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Password Reset Debugger</CardTitle>
-                <CardDescription>
-                  Run comprehensive diagnostics to troubleshoot password reset issues
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PasswordResetDebugger />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="cleanup" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('admin.cleanup.title')}</CardTitle>
-                <CardDescription>
-                  {t('admin.cleanup.description')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SystemCleanupPanel />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="diagnostics" className="space-y-6">
-            <ComprehensiveDiagnosticsPanel />
-          </TabsContent>
-
-          <TabsContent value="performance" className="space-y-6">
-            <PerformanceMonitoringPanel />
-          </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
             <Card>
@@ -147,30 +67,19 @@ const AdminPage: React.FC = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="security" className="space-y-6">
+          <TabsContent value="sick-leave" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>{t('admin.security.title')}</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Stethoscope className="h-5 w-5" />
+                  Sygdomsstatistik
+                </CardTitle>
                 <CardDescription>
-                  {t('admin.security.description')}
+                  Statistik over sygefravær i afdelingen. Kun synlig for administratorer.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <SecurityLogViewer />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="system" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('admin.systemHealth.title')}</CardTitle>
-                <CardDescription>
-                  {t('admin.systemHealth.description')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SystemHealthDashboard />
+                <SickLeaveStatisticsPanel />
               </CardContent>
             </Card>
           </TabsContent>
