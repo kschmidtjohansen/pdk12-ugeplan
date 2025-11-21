@@ -174,9 +174,9 @@ export function DutySwapDialog({ duty, employees, open, onOpenChange, onReassign
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
-          <AlertDialogHeader>
-            <DialogTitle>{t('duty.confirmReassignment')}</DialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('duty.confirmReassignment')}</AlertDialogTitle>
+              <AlertDialogDescription>
               {selectedEmployee && (
                 <p className="mt-4">
                   Er du sikker på at du vil tildele denne {getDutyTypeLabel(duty.duty_type)} vagt den {formatDutyDate(duty.duty_date)} til {selectedEmployee.name}?
