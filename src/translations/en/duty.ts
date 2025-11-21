@@ -83,6 +83,7 @@ export const duty = {
   availableSlots: "Available slots",
   confirmReassignment: "Confirm assignment",
   noEligibleEmployees: "There are no other employees with the appropriate role for this duty",
+  unassignedSlot: "Unassigned duty",
 };
 
 export default duty;
