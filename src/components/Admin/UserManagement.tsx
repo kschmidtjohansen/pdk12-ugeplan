@@ -736,38 +736,6 @@ const UserManagement: React.FC = () => {
     );
   };
 
-  // FIXED: Enhanced debug info panel
-  const DebugPanel = () => {
-    if (debugInfo.length === 0) return null;
-    return <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
-        <div className="flex items-center space-x-2 mb-2">
-          <Bug className="h-4 w-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">
-            Debug Info ({debugInfo.length}) - FIXED Role Structure
-          </span>
-          <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded">
-            Eligible: {eligibleUsers}/7 expected
-          </span>
-          <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">
-            {edgeFunctionWorking === true ? 'Edge Function OK' : edgeFunctionWorking === false ? 'Using Fallback' : 'Testing...'}
-          </span>
-          <Button variant="ghost" size="sm" onClick={() => setDebugInfo([])} className="ml-auto h-6 px-2 text-xs">
-            Clear
-          </Button>
-          <Button variant="ghost" size="sm" onClick={handleSmartRetry} className="h-6 px-2 text-xs">
-            Smart Retry
-          </Button>
-          <Button variant="ghost" size="sm" onClick={handleForceFallback} className="h-6 px-2 text-xs">
-            Force Fallback
-          </Button>
-        </div>
-        <div className="space-y-1 max-h-40 overflow-y-auto">
-          {debugInfo.map((info, index) => <div key={index} className="text-xs text-gray-600 font-mono">
-              {info}
-            </div>)}
-        </div>
-      </div>;
-  };
   return <>
       <Card className="mb-6">
         <CardHeader>
@@ -787,7 +755,6 @@ const UserManagement: React.FC = () => {
                     <span>{lastError}</span>
                   </div>
                 </div>}
-              <DebugPanel />
             </div>
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="icon" onClick={handleSmartRetry} title="Refresh users list with smart retry" disabled={loading}>
