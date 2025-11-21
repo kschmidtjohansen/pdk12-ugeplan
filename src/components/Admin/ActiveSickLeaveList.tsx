@@ -200,7 +200,10 @@ export const ActiveSickLeaveList: React.FC<{ onUpdate: () => void }> = ({ onUpda
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <p className="font-semibold">{record.employee_name}</p>
-                    <Badge variant={record.days_sick > 7 ? "destructive" : "secondary"}>
+                    <Badge 
+                      variant={record.days_sick >= 3 ? "destructive" : "default"}
+                      className={record.days_sick <= 2 ? "bg-orange-100 text-orange-800 hover:bg-orange-100 dark:bg-orange-950 dark:text-orange-400" : ""}
+                    >
                       {record.days_sick} {record.days_sick === 1 ? 'dag' : 'dage'}
                     </Badge>
                   </div>
@@ -217,10 +220,10 @@ export const ActiveSickLeaveList: React.FC<{ onUpdate: () => void }> = ({ onUpda
                   onClick={() => handleMarkAsRecovered(record)}
                   variant="outline"
                   size="sm"
-                  className="gap-2"
+                  className="gap-2 hover:bg-green-50 hover:text-green-700 hover:border-green-300 dark:hover:bg-green-950 dark:hover:text-green-400 dark:hover:border-green-800 transition-colors"
                 >
                   <UserCheck className="h-4 w-4" />
-                  Raskmeldt
+                  Raskmeld
                 </Button>
               </div>
             ))}
