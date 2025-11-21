@@ -12,6 +12,20 @@ import { da } from 'date-fns/locale';
 import { ActiveSickLeaveList } from './ActiveSickLeaveList';
 import { SickLeaveTrendsChart } from './SickLeaveTrendsChart';
 
+interface IndustryBenchmark {
+  industry: string;
+  benchmark: number; // percentage
+}
+
+const INDUSTRY_BENCHMARKS: IndustryBenchmark[] = [
+  { industry: 'Privat sektor (gns.)', benchmark: 3.8 },
+  { industry: 'Offentlig sektor (gns.)', benchmark: 5.2 },
+  { industry: 'Industri/produktion', benchmark: 4.5 },
+  { industry: 'Transport', benchmark: 5.8 },
+  { industry: 'IT/konsulent', benchmark: 2.9 },
+  { industry: 'Sundhedsvæsen', benchmark: 6.1 },
+];
+
 interface SickLeaveStats {
   period_type: string;
   start_date: string;
@@ -309,6 +323,118 @@ export const SickLeaveStatisticsPanel: React.FC = () => {
     );
   };
 
+  const IndustryComparisonCard: React.FC<{ 
+    currentPercentage: number 
+  }> = ({ currentPercentage }) => {
+    const selectedBenchmark = INDUSTRY_BENCHMARKS[0]; // Default til privat sektor
+    const difference = currentPercentage - selectedBenchmark.benchmark;
+    const isAbove = difference > 0;
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-purple-600" />
+            Branchesammenligning
+          </CardTitle>
+          <CardDescription>
+            Sammenligning med danske gennemsnitstal (2024)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Current vs Benchmark */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Din virksomhed</p>
+              <p className="text-3xl font-bold text-blue-600">
+                {currentPercentage.toFixed(1)}%
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">{selectedBenchmark.industry}</p>
+              <p className="text-3xl font-bold text-muted-foreground">
+                {selectedBenchmark.benchmark}%
+              </p>
+            </div>
+          </div>
+
+          {/* Visual comparison */}
+          <div className="pt-4 border-t">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Status:</span>
+              <div className={`flex items-center gap-2 ${
+                isAbove ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
+              }`}>
+                {isAbove ? '▲' : '▼'}
+                <span className="font-bold">{Math.abs(difference).toFixed(1)}%</span>
+                <span className="text-sm">
+                  {isAbove ? 'over' : 'under'} gennemsnit
+                </span>
+              </div>
+            </div>
+            
+            {/* Progress bar */}
+            <div className="relative h-8 bg-muted rounded-lg overflow-hidden">
+              <div 
+                className={`absolute h-full transition-all ${
+                  isAbove ? 'bg-red-500' : 'bg-green-500'
+                }`}
+                style={{ 
+                  width: `${Math.min((currentPercentage / 10) * 100, 100)}%` 
+                }}
+              />
+              <div 
+                className="absolute h-full w-1 bg-foreground"
+                style={{ 
+                  left: `${Math.min((selectedBenchmark.benchmark / 10) * 100, 100)}%` 
+                }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <span>0%</span>
+              <span>10%</span>
+            </div>
+          </div>
+
+          {/* All benchmarks list */}
+          <div className="pt-4 border-t">
+            <p className="text-sm font-semibold mb-2">Branchegennemsnit:</p>
+            <div className="space-y-2">
+              {INDUSTRY_BENCHMARKS.map(bench => {
+                const diff = currentPercentage - bench.benchmark;
+                return (
+                  <div 
+                    key={bench.industry} 
+                    className="flex items-center justify-between p-2 rounded hover:bg-muted/50 transition-colors"
+                  >
+                    <span className="text-sm">{bench.industry}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium">{bench.benchmark}%</span>
+                      <span className={`text-xs font-medium ${
+                        diff > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
+                      }`}>
+                        {diff > 0 ? '+' : ''}{diff.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Info */}
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              Branchedata er baseret på danske gennemsnitstal fra 2024. 
+              Tallene er vejledende og kan variere mellem virksomheder.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <ActiveSickLeaveList onUpdate={fetchStatistics} />
@@ -347,14 +473,23 @@ export const SickLeaveStatisticsPanel: React.FC = () => {
 
         <TabsContent value="week" className="space-y-4">
           {renderStatCard(weekStats, "Denne uge", <Calendar className="h-5 w-5" />)}
+          {weekStats && weekStats.sick_percentage > 0 && (
+            <IndustryComparisonCard currentPercentage={weekStats.sick_percentage} />
+          )}
         </TabsContent>
 
         <TabsContent value="14days" className="space-y-4">
           {renderStatCard(fourteenDayStats, "Seneste 14 dage", <TrendingUp className="h-5 w-5" />)}
+          {fourteenDayStats && fourteenDayStats.sick_percentage > 0 && (
+            <IndustryComparisonCard currentPercentage={fourteenDayStats.sick_percentage} />
+          )}
         </TabsContent>
 
         <TabsContent value="month" className="space-y-4">
           {renderStatCard(monthStats, "Denne måned", <Users className="h-5 w-5" />)}
+          {monthStats && monthStats.sick_percentage > 0 && (
+            <IndustryComparisonCard currentPercentage={monthStats.sick_percentage} />
+          )}
         </TabsContent>
 
         <TabsContent value="trends" className="space-y-4">
