@@ -95,9 +95,47 @@ const EmployeesPage: React.FC = () => {
     fetchEmployees();
   };
 
-  const handleMarkSick = (employee: Employee) => {
-    setSelectedEmployeeForSick(employee);
-    setMarkSickDialogOpen(true);
+  const handleMarkSick = async (employee: Employee) => {
+    if (employee.isSick) {
+      // Employee is already sick, so this should mark them as recovered
+      try {
+        // Find their active sick leave record
+        const { data: sickLeave } = await supabase
+          .from('sick_leave_records')
+          .select('id')
+          .eq('user_id', employee.id)
+          .is('end_date', null)
+          .maybeSingle();
+        
+        if (sickLeave) {
+          // Call end_sick_leave with today as end date
+          const { error } = await supabase.rpc('end_sick_leave', {
+            p_record_id: sickLeave.id,
+            p_end_date: format(new Date(), 'yyyy-MM-dd')
+          });
+          
+          if (error) throw error;
+          
+          toast({
+            title: "Medarbejder raskmeldt",
+            description: `${employee.name} er markeret som rask`,
+          });
+          
+          fetchEmployees(); // Refresh list
+        }
+      } catch (error) {
+        console.error('Error marking as recovered:', error);
+        toast({
+          title: "Fejl",
+          description: "Kunne ikke raskmelde medarbejder. Prøv igen.",
+          variant: "destructive"
+        });
+      }
+    } else {
+      // Employee is not sick, show dialog to mark them as sick
+      setSelectedEmployeeForSick(employee);
+      setMarkSickDialogOpen(true);
+    }
   };
 
   const handleConfirmMarkSick = async (startDate: Date, notes: string) => {
@@ -116,6 +154,8 @@ const EmployeesPage: React.FC = () => {
         title: "Sygdom registreret",
         description: `${selectedEmployeeForSick.name} er markeret som syg fra ${format(startDate, 'PPP', { locale: da })}`,
       });
+      
+      fetchEmployees(); // Refresh list
     } catch (error) {
       console.error('Error recording sick leave:', error);
       toast({

@@ -77,28 +77,33 @@ export const ActiveSickLeaveList: React.FC<{ onUpdate: () => void }> = ({ onUpda
   const fetchActiveSickLeaves = async () => {
     setLoading(true);
     try {
+      // Use a direct query instead of nested select to avoid RLS issues
       const { data, error } = await supabase
         .from('sick_leave_records')
-        .select(`
-          id,
-          user_id,
-          start_date,
-          notes,
-          profiles!inner(name)
-        `)
+        .select('id, user_id, start_date, notes')
         .is('end_date', null)
         .order('start_date', { ascending: false });
 
       if (error) throw error;
 
-      const mapped = data?.map(record => ({
-        id: record.id,
-        user_id: record.user_id,
-        employee_name: (record.profiles as any).name,
-        start_date: record.start_date,
-        days_sick: differenceInDays(new Date(), new Date(record.start_date)) + 1,
-        notes: record.notes
-      })) || [];
+      // Fetch employee names separately
+      const userIds = data?.map(record => record.user_id) || [];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .in('id', userIds);
+
+      const mapped = data?.map(record => {
+        const profile = profiles?.find(p => p.id === record.user_id);
+        return {
+          id: record.id,
+          user_id: record.user_id,
+          employee_name: profile?.name || 'Ukendt medarbejder',
+          start_date: record.start_date,
+          days_sick: differenceInDays(new Date(), new Date(record.start_date)) + 1,
+          notes: record.notes
+        };
+      }) || [];
 
       setActiveSickLeaves(mapped);
       

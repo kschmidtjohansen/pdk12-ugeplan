@@ -170,6 +170,15 @@ export const useEmployeeData = () => {
           console.log(`[useEmployeeData] Successfully fetched ${userRoles?.length || 0} user roles`);
         }
 
+        // Fetch active sick leaves
+        const { data: sickLeaves } = await supabase
+          .from('sick_leave_records')
+          .select('user_id')
+          .is('end_date', null);
+        
+        const sickEmployeeIds = new Set(sickLeaves?.map(sl => sl.user_id) || []);
+        console.log(`[useEmployeeData] Found ${sickEmployeeIds.size} employees on sick leave`);
+
         // Create role mapping
         const rolesMap = new Map<string, string>();
         if (userRoles && Array.isArray(userRoles)) {
@@ -199,7 +208,8 @@ export const useEmployeeData = () => {
             expires_at: profile.expires_at,
             has_asbestos_certificate: !!profile.has_asbestos_certificate,
             has_trailer_license: !!profile.has_trailer_license,
-            has_forklift_license: !!profile.has_forklift_license
+            has_forklift_license: !!profile.has_forklift_license,
+            isSick: sickEmployeeIds.has(profile.id)
           };
 
           return employee;
