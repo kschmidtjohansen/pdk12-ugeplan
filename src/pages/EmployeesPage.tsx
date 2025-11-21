@@ -116,6 +116,9 @@ const EmployeesPage: React.FC = () => {
           
           if (error) throw error;
           
+          // Wait for database to update before refreshing
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
           toast({
             title: "Medarbejder raskmeldt",
             description: `${employee.name} er markeret som rask`,

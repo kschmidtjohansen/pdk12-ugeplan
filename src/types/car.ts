@@ -9,6 +9,8 @@ export interface Car {
   has_trailer_hitch?: boolean;
   show_in_planner?: boolean;
   notes?: string;
+  towing_capacity?: number | null;
+  total_weight?: number | null;
   created_at?: string;
   updated_at?: string;
 }

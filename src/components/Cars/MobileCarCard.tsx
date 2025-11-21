@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info } from 'lucide-react';
+import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info, Truck, Recycle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CarData } from './types';
@@ -112,19 +112,58 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <p className="text-gray-500 text-xs uppercase tracking-wide">{t('cars.numberPlate')}</p>
-              <p className="text-gray-900 font-medium">{car.number_plate}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-gray-900 font-medium">{car.number_plate}</p>
+                {car.number_plate.toLowerCase().includes('trailer') && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Truck className="h-4 w-4 text-orange-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Trailer</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+                {car.number_plate.toLowerCase().includes('miljø') && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Recycle className="h-4 w-4 text-green-600" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Miljøvogn</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
             </div>
             <div>
               <p className="text-gray-500 text-xs uppercase tracking-wide">{t('cars.hasTrailerHitch')}</p>
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 {car.has_trailer_hitch ? (
                   <>
-                    <Check className="h-4 w-4 mr-1 text-green-500" />
+                    <Check className="h-4 w-4 text-green-500" />
                     <span className="text-gray-900">{t('common.yes')}</span>
+                    {(car.towing_capacity || car.total_weight) && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-blue-500 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="space-y-1">
+                            {car.towing_capacity && (
+                              <p><strong>{t('cars.towingCapacity')}:</strong> {car.towing_capacity} kg</p>
+                            )}
+                            {car.total_weight && (
+                              <p><strong>{t('cars.totalWeight')}:</strong> {car.total_weight} kg</p>
+                            )}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                   </>
                 ) : (
                   <>
-                    <X className="h-4 w-4 mr-1 text-gray-400" />
+                    <X className="h-4 w-4 text-gray-400" />
                     <span className="text-gray-600">{t('common.no')}</span>
                   </>
                 )}

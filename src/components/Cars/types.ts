@@ -9,6 +9,8 @@ export interface CarData {
   is_available: boolean;
   show_in_planner?: boolean;
   notes?: string | null;
+  towing_capacity?: number | null;
+  total_weight?: number | null;
   created_at?: string;
   updated_at?: string;
 }
