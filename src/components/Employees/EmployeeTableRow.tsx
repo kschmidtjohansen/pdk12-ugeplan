@@ -230,14 +230,20 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
                       variant="ghost" 
                       size="sm" 
                       onClick={() => onMarkSick(employee)}
-                      className="h-8 w-8 p-0 text-amber-600"
+                      className={`h-8 w-8 p-0 ${employee.isSick ? 'text-green-600' : 'text-amber-600'}`}
                     >
-                      <span className="sr-only">Markér som syg</span>
-                      <Stethoscope className="h-4 w-4" />
+                      <span className="sr-only">
+                        {employee.isSick ? 'Marker som rask' : 'Markér som syg'}
+                      </span>
+                      {employee.isSick ? (
+                        <UserCheck className="h-4 w-4" />
+                      ) : (
+                        <Stethoscope className="h-4 w-4" />
+                      )}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Registrer sygdom</p>
+                    <p>{employee.isSick ? 'Marker som rask' : 'Registrer sygdom'}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
