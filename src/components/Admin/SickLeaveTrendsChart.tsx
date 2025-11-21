@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RefreshCw, TrendingUp, Activity } from 'lucide-react';
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { useToast } from '@/hooks/use-toast';
@@ -57,6 +58,7 @@ const chartConfig = {
 export const SickLeaveTrendsChart: React.FC = () => {
   const [trendsData, setTrendsData] = useState<MonthlyStats[]>([]);
   const [loading, setLoading] = useState(false);
+  const [monthsBack, setMonthsBack] = useState<number>(12);
   const { toast } = useToast();
 
   const fetchTrends = async () => {
@@ -64,7 +66,7 @@ export const SickLeaveTrendsChart: React.FC = () => {
     try {
       const { data, error } = await rpcWithRefresh<TrendsData>(
         'get_historical_sick_leave_trends',
-        { months_back: 12 }
+        { months_back: monthsBack }
       );
 
       if (error) throw error;
@@ -73,7 +75,7 @@ export const SickLeaveTrendsChart: React.FC = () => {
 
       toast({
         title: "Historisk data hentet",
-        description: "Trend data for de sidste 12 måneder er opdateret",
+        description: `Trend data for de sidste ${monthsBack} måneder er opdateret`,
       });
     } catch (error) {
       console.error('[SickLeaveTrends] Error fetching trends:', error);
@@ -89,7 +91,7 @@ export const SickLeaveTrendsChart: React.FC = () => {
 
   useEffect(() => {
     fetchTrends();
-  }, []);
+  }, [monthsBack]);
 
   // Reverse data so oldest is on left, newest on right
   const chartData = [...trendsData].reverse();
@@ -103,13 +105,26 @@ export const SickLeaveTrendsChart: React.FC = () => {
             Historisk Oversigt
           </h3>
           <p className="text-sm text-muted-foreground">
-            Sygdomstrends over de sidste 12 måneder
+            Sygdomstrends over den valgte periode
           </p>
         </div>
-        <Button onClick={fetchTrends} disabled={loading} variant="outline" size="sm">
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Opdater
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select value={monthsBack.toString()} onValueChange={(v) => setMonthsBack(Number(v))}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="3">Sidste 3 måneder</SelectItem>
+              <SelectItem value="6">Sidste 6 måneder</SelectItem>
+              <SelectItem value="12">Sidste 12 måneder</SelectItem>
+              <SelectItem value="24">Sidste 24 måneder</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={fetchTrends} disabled={loading} variant="outline" size="sm">
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Opdater
+          </Button>
+        </div>
       </div>
 
       {/* Sygdomsprocent og Antal Syge - Line Chart */}
