@@ -9,6 +9,7 @@ import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
 import { useAuth } from '@/context/AuthContext';
 import { DemoUserService } from '@/services/demoUserService';
 import { resolveEmployeeDisplayName, filterDisplayNames } from '@/utils/people';
+import { format } from 'date-fns';
 export const useAssignmentDataOptimized = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -60,11 +61,26 @@ export const useAssignmentDataOptimized = () => {
           email: assignment.responsible_user.email || ''
         } : null;
         
+        // Normalize assignment date to yyyy-MM-dd for consistent filtering
+        const rawDate = assignment.assignment_date;
+        let dateStr: string;
+
+        if (!rawDate) {
+          dateStr = '';
+        } else if (rawDate instanceof Date) {
+          dateStr = format(rawDate, 'yyyy-MM-dd');
+        } else if (typeof rawDate === 'string') {
+          dateStr = rawDate.split('T')[0];
+        } else {
+          console.warn('[useAssignmentDataOptimized] Unexpected assignment_date type:', typeof rawDate, rawDate);
+          dateStr = String(rawDate).split('T')[0];
+        }
+        
         return {
           id: assignment.id,
           title: assignment.title,
           description: assignment.description || '',
-          date: assignment.assignment_date,
+          date: dateStr,
           fromTime: assignment.from_time,
           toTime: assignment.to_time,
           location: assignment.location,
