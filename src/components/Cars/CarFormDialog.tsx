@@ -146,14 +146,25 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
           </div>
 
           {formData.has_trailer_hitch && (
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+            <div className="grid grid-cols-3 gap-4 pt-4 border-t">
               <div className="space-y-2">
-                <Label htmlFor="towing_capacity">{t('cars.towingCapacity')}</Label>
+                <Label htmlFor="towing_capacity_with_brakes">{t('cars.towingCapacityWithBrakes')}</Label>
                 <Input
-                  id="towing_capacity"
-                  name="towing_capacity"
+                  id="towing_capacity_with_brakes"
+                  name="towing_capacity_with_brakes"
                   type="number"
-                  value={formData.towing_capacity || ''}
+                  value={formData.towing_capacity_with_brakes || ''}
+                  onChange={onInputChange}
+                  placeholder="kg"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="towing_capacity_without_brakes">{t('cars.towingCapacityWithoutBrakes')}</Label>
+                <Input
+                  id="towing_capacity_without_brakes"
+                  name="towing_capacity_without_brakes"
+                  type="number"
+                  value={formData.towing_capacity_without_brakes || ''}
                   onChange={onInputChange}
                   placeholder="kg"
                 />

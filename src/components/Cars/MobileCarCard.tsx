@@ -143,18 +143,21 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                   <>
                     <Check className="h-4 w-4 text-green-500" />
                     <span className="text-gray-900">{t('common.yes')}</span>
-                    {(car.towing_capacity || car.total_weight) && (
+                    {(car.towing_capacity_with_brakes || car.towing_capacity_without_brakes || car.total_weight) && (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Info className="h-4 w-4 text-blue-500 cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <div className="space-y-1">
-                            {car.towing_capacity && (
-                              <p><strong>{t('cars.towingCapacity')}:</strong> {car.towing_capacity} kg</p>
+                          <div className="text-xs space-y-1">
+                            {car.towing_capacity_with_brakes && (
+                              <p>Med bremser: {car.towing_capacity_with_brakes} kg</p>
+                            )}
+                            {car.towing_capacity_without_brakes && (
+                              <p>Uden bremser: {car.towing_capacity_without_brakes} kg</p>
                             )}
                             {car.total_weight && (
-                              <p><strong>{t('cars.totalWeight')}:</strong> {car.total_weight} kg</p>
+                              <p>Totalvægt: {car.total_weight} kg</p>
                             )}
                           </div>
                         </TooltipContent>

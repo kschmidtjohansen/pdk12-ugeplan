@@ -132,7 +132,8 @@ export type Database = {
           number_plate: string
           show_in_planner: boolean
           total_weight: number | null
-          towing_capacity: number | null
+          towing_capacity_with_brakes: number | null
+          towing_capacity_without_brakes: number | null
           updated_at: string
         }
         Insert: {
@@ -147,7 +148,8 @@ export type Database = {
           number_plate: string
           show_in_planner?: boolean
           total_weight?: number | null
-          towing_capacity?: number | null
+          towing_capacity_with_brakes?: number | null
+          towing_capacity_without_brakes?: number | null
           updated_at?: string
         }
         Update: {
@@ -162,7 +164,8 @@ export type Database = {
           number_plate?: string
           show_in_planner?: boolean
           total_weight?: number | null
-          towing_capacity?: number | null
+          towing_capacity_with_brakes?: number | null
+          towing_capacity_without_brakes?: number | null
           updated_at?: string
         }
         Relationships: []
