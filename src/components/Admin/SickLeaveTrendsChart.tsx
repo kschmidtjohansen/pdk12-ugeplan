@@ -47,7 +47,7 @@ const chartConfig = {
   },
   total_sick_days: {
     label: "Sygedage",
-    color: "hsl(var(--chart-3))",
+    color: "hsl(0, 84%, 60%)",
   },
   avg_sick_days: {
     label: "Gns. sygedage",
@@ -195,7 +195,7 @@ export const SickLeaveTrendsChart: React.FC = () => {
         <CardHeader>
           <CardTitle>Total Sygedage per Måned</CardTitle>
           <CardDescription>
-            Antal sygedage registreret i hver måned
+            Det samlede antal sygedage for alle medarbejdere i hver måned. Hvis en sygemelding strækker sig over flere måneder, tælles kun dagene i den pågældende måned.
           </CardDescription>
         </CardHeader>
         <CardContent>
