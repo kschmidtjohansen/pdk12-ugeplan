@@ -42,7 +42,7 @@ export default function DutyPage() {
 
   const { duties, loading: dutiesLoading, error, refetch } = useDutyData(startDate, endDate);
   const { employees, loading: employeesLoading } = useEmployeeData();
-  const { reassignDuty } = useDutyActions();
+  const { reassignDuty } = useDutyActions(refetch);
 
   const loading = dutiesLoading || employeesLoading;
 
