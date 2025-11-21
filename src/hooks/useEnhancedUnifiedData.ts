@@ -20,6 +20,7 @@ interface UseEnhancedUnifiedDataResult {
   isLoading: boolean;
   hasErrors: boolean;
   isHealthy: boolean;
+  lastRefresh: Date | null;
 }
 
 export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
@@ -31,6 +32,7 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
   const [error, setError] = useState<string | null>(null);
   const [fromCache, setFromCache] = useState(false);
   const [healthCheck, setHealthCheck] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   const fetchAllData = async () => {
     try {
@@ -58,6 +60,7 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
       setCars(carsResult.data);
       setFromCache(employeesResult.fromCache || assignmentsResult.fromCache || carsResult.fromCache);
       setHealthCheck(employeesResult.healthCheck && assignmentsResult.healthCheck && carsResult.healthCheck);
+      setLastRefresh(new Date());
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';
@@ -97,6 +100,7 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
     // Map to expected properties
     isLoading: loading,
     hasErrors: !!error,
-    isHealthy: healthCheck
+    isHealthy: healthCheck,
+    lastRefresh
   };
 };

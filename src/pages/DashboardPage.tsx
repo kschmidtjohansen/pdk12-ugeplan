@@ -11,16 +11,21 @@ import { DemoDashboard } from '@/components/Demo/DemoDashboard';
 import ServicemedarbejderDashboard from '@/components/Dashboard/ServicemedarbejderDashboard';
 import { PullToRefresh } from '@/components/shared/PullToRefresh';
 import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
+import { LastRefreshIndicator } from '@/components/shared/LastRefreshIndicator';
+import { useState } from 'react';
 
 const DashboardPage: React.FC = () => {
   const { user, isDemoMode, effectiveRole } = useAuth();
   const { t } = useTranslation();
-  const { refetch } = useEnhancedUnifiedData();
+  const { refetch, lastRefresh } = useEnhancedUnifiedData();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const dailyQuote = getDailyQuote();
 
   const handleRefresh = async () => {
+    setIsRefreshing(true);
     await refetch();
+    setIsRefreshing(false);
   };
 
   console.log(`[DashboardPage] ROLE-BASED - User: ${user?.name} (${user?.role}) - Effective Role: ${effectiveRole}`);
@@ -35,6 +40,17 @@ const DashboardPage: React.FC = () => {
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
+          {/* Last Refresh Indicator */}
+          {!isServicemedarbejder && (
+            <div className="flex justify-end">
+              <LastRefreshIndicator 
+                lastRefresh={lastRefresh}
+                isRefreshing={isRefreshing}
+                onRefresh={handleRefresh}
+              />
+            </div>
+          )}
+
           {/* Demo Dashboard - Only in demo mode */}
           {isDemoMode && <DemoDashboard />}
 
