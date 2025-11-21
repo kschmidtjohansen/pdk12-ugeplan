@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { Duty } from '@/types/duty';
 import { 
   startOfMonth, 
@@ -182,7 +183,37 @@ export const DutyMonthCalendar = ({
                       ? getInitials(employeeName) 
                       : getExternalInitials(duty.notes);
                     
-                    return (
+                    return isMobile ? (
+                      <Popover key={duty.id}>
+                        <PopoverTrigger asChild>
+                          <button
+                            className={cn(
+                              "w-full text-left px-2 py-1.5 rounded border text-xs transition-colors",
+                              colors.bg,
+                              colors.border,
+                              colors.text,
+                              colors.hover,
+                              "cursor-pointer"
+                            )}
+                          >
+                            <div className="text-[12px] font-semibold leading-tight truncate">
+                              {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'} · {initials}
+                            </div>
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-3" side="top">
+                          <div className="space-y-1">
+                            <p className="font-semibold text-sm">{employeeName}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {getDutyTypeName(duty.duty_type)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {format(new Date(duty.duty_date), 'd. MMMM yyyy', { locale })}
+                            </p>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    ) : (
                       <button
                         key={duty.id}
                         onClick={() => canManage && onDutyClick(duty)}
@@ -197,20 +228,12 @@ export const DutyMonthCalendar = ({
                         )}
                         title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}`}
                       >
-                        {isMobile ? (
-                          <div className="text-[12px] font-semibold leading-tight truncate">
-                            {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'} · {initials}
-                          </div>
-                        ) : (
-                          <>
-                            <div className="font-semibold md:font-medium truncate text-[11px] md:text-xs">
-                              {initials}
-                            </div>
-                            <div className="text-[9px] md:text-[10px] opacity-75 truncate font-medium">
-                              {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'}
-                            </div>
-                          </>
-                        )}
+                        <div className="font-semibold md:font-medium truncate text-[11px] md:text-xs">
+                          {initials}
+                        </div>
+                        <div className="text-[9px] md:text-[10px] opacity-75 truncate font-medium">
+                          {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'}
+                        </div>
                       </button>
                     );
                   })}
