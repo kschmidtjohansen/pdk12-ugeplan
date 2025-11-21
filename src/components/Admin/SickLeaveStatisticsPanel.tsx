@@ -333,13 +333,20 @@ export const SickLeaveStatisticsPanel: React.FC = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-purple-600" />
-            Branchesammenligning
-          </CardTitle>
-          <CardDescription>
-            Sammenligning med danske gennemsnitstal (2024)
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-purple-600" />
+                Branchesammenligning
+              </CardTitle>
+              <CardDescription>
+                Sammenligning med danske gennemsnitstal (2024)
+              </CardDescription>
+            </div>
+            <Button onClick={fetchStatistics} disabled={loading} variant="ghost" size="sm">
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Current vs Benchmark */}
