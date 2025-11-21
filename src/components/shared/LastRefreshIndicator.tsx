@@ -23,17 +23,21 @@ export const LastRefreshIndicator: React.FC<LastRefreshIndicatorProps> = ({
   });
 
   return (
-    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+    <button
+      type="button"
+      onClick={onRefresh}
+      disabled={!onRefresh || isRefreshing}
+      className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
       <RefreshCw 
-        className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''} ${onRefresh ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
-        onClick={onRefresh}
+        className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`}
       />
       <span>Opdateret {relativeTime}</span>
       {isRefreshing && (
-        <Badge variant="secondary" className="h-5 text-xs">
+        <Badge variant="secondary" className="h-5 text-[10px] px-1.5">
           Opdaterer...
         </Badge>
       )}
-    </div>
+    </button>
   );
 };
