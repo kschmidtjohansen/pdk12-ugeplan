@@ -4,7 +4,7 @@ import { usePermissions } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, Biohazard, Truck, Car, Forklift, Stethoscope } from 'lucide-react';
+import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, ShieldCheck, Truck, Car, Forklift, Stethoscope } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Employee } from '@/types/employee';
@@ -120,7 +120,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="text-polygon-blue">
-                    <Biohazard className="h-4 w-4" />
+                    <ShieldCheck className="h-4 w-4" />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
