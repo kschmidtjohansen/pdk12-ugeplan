@@ -265,6 +265,9 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         demoService.updateDemoCar(car.id, {
           is_available: isAvailable,
           notes: notes,
+          towing_capacity_with_brakes: car.towing_capacity_with_brakes,
+          towing_capacity_without_brakes: car.towing_capacity_without_brakes,
+          total_weight: car.total_weight,
           updated_at: new Date().toISOString()
         });
         

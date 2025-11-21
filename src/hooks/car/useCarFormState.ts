@@ -32,6 +32,9 @@ export const useCarFormState = ({
     is_available: true,
     show_in_planner: true,
     notes: '',
+    towing_capacity_with_brakes: null,
+    towing_capacity_without_brakes: null,
+    total_weight: null,
   });
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -47,6 +50,9 @@ export const useCarFormState = ({
       is_available: true,
       show_in_planner: true,
       notes: '',
+      towing_capacity_with_brakes: null,
+      towing_capacity_without_brakes: null,
+      total_weight: null,
     });
     setDialogOpen(true);
   };
@@ -61,6 +67,9 @@ export const useCarFormState = ({
       is_available: car.is_available,
       show_in_planner: car.show_in_planner ?? true,
       notes: car.notes || '',
+      towing_capacity_with_brakes: car.towing_capacity_with_brakes || null,
+      towing_capacity_without_brakes: car.towing_capacity_without_brakes || null,
+      total_weight: car.total_weight || null,
     });
   };
 
