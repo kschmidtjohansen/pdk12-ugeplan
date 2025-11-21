@@ -9,12 +9,19 @@ import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
 import MineOpgaver from '@/components/Dashboard/MineOpgaver';
 import { DemoDashboard } from '@/components/Demo/DemoDashboard';
 import ServicemedarbejderDashboard from '@/components/Dashboard/ServicemedarbejderDashboard';
+import { PullToRefresh } from '@/components/shared/PullToRefresh';
+import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
 
 const DashboardPage: React.FC = () => {
   const { user, isDemoMode, effectiveRole } = useAuth();
   const { t } = useTranslation();
+  const { refetch } = useEnhancedUnifiedData();
 
   const dailyQuote = getDailyQuote();
+
+  const handleRefresh = async () => {
+    await refetch();
+  };
 
   console.log(`[DashboardPage] ROLE-BASED - User: ${user?.name} (${user?.role}) - Effective Role: ${effectiveRole}`);
 
@@ -25,28 +32,30 @@ const DashboardPage: React.FC = () => {
   const shouldShowMetrics = effectiveRole === 'administrator' || effectiveRole === 'skadeleder';
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
-        {/* Demo Dashboard - Only in demo mode */}
-        {isDemoMode && <DemoDashboard />}
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
+          {/* Demo Dashboard - Only in demo mode */}
+          {isDemoMode && <DemoDashboard />}
 
-        {/* Welcome Header */}
-        <WelcomeHeader userName={user?.name} dailyQuote={dailyQuote} />
+          {/* Welcome Header */}
+          <WelcomeHeader userName={user?.name} dailyQuote={dailyQuote} />
 
-        {/* Role-based Dashboard Content */}
-        {isServicemedarbejder ? (
-          /* Servicemedarbejder Dashboard - Specialized view */
-          <ServicemedarbejderDashboard />
-        ) : (
-          /* Administrator/Skadeleder Dashboard - Full view */
-          <>
-            <QuickAccessGrid userRole={effectiveRole} />
-            {shouldShowMetrics && <DashboardMetrics />}
-            <MineOpgaver />
-          </>
-        )}
+          {/* Role-based Dashboard Content */}
+          {isServicemedarbejder ? (
+            /* Servicemedarbejder Dashboard - Specialized view */
+            <ServicemedarbejderDashboard />
+          ) : (
+            /* Administrator/Skadeleder Dashboard - Full view */
+            <>
+              <QuickAccessGrid userRole={effectiveRole} />
+              {shouldShowMetrics && <DashboardMetrics />}
+              <MineOpgaver />
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </PullToRefresh>
   );
 };
 
