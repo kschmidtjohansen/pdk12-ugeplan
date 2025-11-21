@@ -79,7 +79,10 @@ export class CarSecurityService {
         has_trailer_hitch: carData.has_trailer_hitch || false,
         is_available: carData.is_available !== undefined ? carData.is_available : true,
         show_in_planner: carData.show_in_planner !== undefined ? carData.show_in_planner : true,
-        notes: carData.notes || null
+        notes: carData.notes || null,
+        towing_capacity_with_brakes: carData.towing_capacity_with_brakes || null,
+        towing_capacity_without_brakes: carData.towing_capacity_without_brakes || null,
+        total_weight: carData.total_weight || null
       };
 
       console.log('[CarSecurityService] Creating car with data:', insertData);
@@ -153,6 +156,9 @@ export class CarSecurityService {
         is_available: carData.is_available,
         show_in_planner: carData.show_in_planner,
         notes: carData.notes,
+        towing_capacity_with_brakes: carData.towing_capacity_with_brakes,
+        towing_capacity_without_brakes: carData.towing_capacity_without_brakes,
+        total_weight: carData.total_weight,
         updated_at: new Date().toISOString()
       };
 
