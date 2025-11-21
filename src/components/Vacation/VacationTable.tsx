@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Vacation } from '@/types/vacation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { EnhancedVacationCard } from './EnhancedVacationCard';
 
 interface VacationTableProps {
   vacations: Vacation[];
@@ -31,6 +33,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
 }) => {
   const { isEffectiveAdmin } = useAuth();
   const { t, currentLanguage } = useTranslation();
+  const isMobile = useIsMobile();
   
   const canApprove = isEffectiveAdmin;
 
@@ -93,8 +96,27 @@ const VacationTable: React.FC<VacationTableProps> = ({
     );
   }
   
+  // Mobile: Card-based layout
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        {vacations.map((vacation) => (
+          <EnhancedVacationCard
+            key={vacation.id}
+            vacation={vacation}
+            onApprove={canApprove && vacation.status === 'pending' ? onApprove : undefined}
+            onReject={canApprove && vacation.status === 'pending' ? onReject : undefined}
+            onEdit={onEdit && canApprove ? onEdit : undefined}
+            showActions={canApprove || !!onEdit}
+          />
+        ))}
+      </div>
+    );
+  }
+  
+  // Desktop: Table layout
   return (
-    <div className="border rounded-lg">
+    <div className="border rounded-lg overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
