@@ -7,17 +7,25 @@ import { Plus, Users, UserPlus } from 'lucide-react';
 import EmployeesTable from '@/components/Employees/EmployeesTable';
 import EmployeeFormDialog from '@/components/Employees/EmployeeFormDialog';
 import EmployeeDeleteDialog from '@/components/Employees/EmployeeDeleteDialog';
+import { MarkSickDialog } from '@/components/Employees/MarkSickDialog';
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useVacations } from '@/hooks/useVacations';
 import { Employee } from '@/types/employee';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
+import { da } from 'date-fns/locale';
 
 const EmployeesPage: React.FC = () => {
   const { isAdmin } = usePermissions();
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [markSickDialogOpen, setMarkSickDialogOpen] = useState(false);
+  const [selectedEmployeeForSick, setSelectedEmployeeForSick] = useState<Employee | null>(null);
 
   const { 
     employees,
@@ -87,6 +95,37 @@ const EmployeesPage: React.FC = () => {
     fetchEmployees();
   };
 
+  const handleMarkSick = (employee: Employee) => {
+    setSelectedEmployeeForSick(employee);
+    setMarkSickDialogOpen(true);
+  };
+
+  const handleConfirmMarkSick = async (startDate: Date, notes: string) => {
+    if (!selectedEmployeeForSick) return;
+
+    try {
+      const { data, error } = await supabase.rpc('record_sick_leave', {
+        p_user_id: selectedEmployeeForSick.id,
+        p_start_date: format(startDate, 'yyyy-MM-dd'),
+        p_notes: notes || null
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Sygdom registreret",
+        description: `${selectedEmployeeForSick.name} er markeret som syg fra ${format(startDate, 'PPP', { locale: da })}`,
+      });
+    } catch (error) {
+      console.error('Error recording sick leave:', error);
+      toast({
+        title: "Fejl",
+        description: "Kunne ikke registrere sygdom. Prøv igen.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen w-full bg-background">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -122,6 +161,7 @@ const EmployeesPage: React.FC = () => {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onToggleLeave={handleToggleLeave}
+            onMarkSick={isAdmin ? handleMarkSick : undefined}
             error={error}
             loading={loading}
             onRetry={handleRetry}
@@ -149,6 +189,14 @@ const EmployeesPage: React.FC = () => {
             onConfirmDelete={confirmDelete}
           />
         </AlertDialog>
+
+        {/* Mark Sick Dialog */}
+        <MarkSickDialog
+          open={markSickDialogOpen}
+          onOpenChange={setMarkSickDialogOpen}
+          employee={selectedEmployeeForSick}
+          onConfirm={handleConfirmMarkSick}
+        />
       </div>
     </div>
   );
