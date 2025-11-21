@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { EndSickLeaveDialog } from './EndSickLeaveDialog';
+import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 
 interface ActiveSickLeave {
   id: string;
@@ -24,6 +25,54 @@ export const ActiveSickLeaveList: React.FC<{ onUpdate: () => void }> = ({ onUpda
   const [selectedRecord, setSelectedRecord] = useState<ActiveSickLeave | null>(null);
   const [endDialogOpen, setEndDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  const checkAndSendNotifications = async (records: ActiveSickLeave[]) => {
+    // Check for employees sick > 7 days and send notifications if not already sent
+    for (const record of records) {
+      if (record.days_sick > 7) {
+        try {
+          // Check if notification already sent for this sick leave
+          const { data: existingNotif } = await supabase
+            .from('sick_leave_notifications_sent')
+            .select('id')
+            .eq('sick_leave_id', record.id)
+            .maybeSingle();
+
+          if (!existingNotif) {
+            // Get all administrators
+            const { data: admins } = await supabase
+              .from('user_roles')
+              .select('user_id')
+              .eq('role', 'administrator');
+
+            if (admins && admins.length > 0) {
+              // Send notification to each admin
+              const notifications = admins.map(admin => ({
+                user_id: admin.user_id,
+                type: 'sick_leave_alert',
+                title: 'Lang sygeperiode opdaget',
+                message: `En medarbejder har været syg i ${record.days_sick} dage (siden ${format(new Date(record.start_date), 'PPP', { locale: da })})`,
+                link: '/admin?tab=sick-leave',
+                read: false
+              }));
+
+              await supabase.from('notifications').insert(notifications);
+
+              // Track that notification was sent
+              await supabase.from('sick_leave_notifications_sent').insert({
+                sick_leave_id: record.id,
+                days_when_sent: record.days_sick
+              });
+
+              console.log(`[ActiveSickLeave] Notification sent for sick leave ${record.id}`);
+            }
+          }
+        } catch (error) {
+          console.error('[ActiveSickLeave] Error sending notification:', error);
+        }
+      }
+    }
+  };
 
   const fetchActiveSickLeaves = async () => {
     setLoading(true);
@@ -52,6 +101,9 @@ export const ActiveSickLeaveList: React.FC<{ onUpdate: () => void }> = ({ onUpda
       })) || [];
 
       setActiveSickLeaves(mapped);
+      
+      // Check and send notifications for long sick leaves
+      await checkAndSendNotifications(mapped);
     } catch (error) {
       console.error('[ActiveSickLeave] Error fetching:', error);
       toast({

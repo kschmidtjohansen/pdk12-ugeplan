@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, TrendingUp, Users, Calendar, AlertCircle, Download } from 'lucide-react';
+import { RefreshCw, TrendingUp, Users, Calendar, AlertCircle, Download, Trash2, BarChart3 } from 'lucide-react';
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { ActiveSickLeaveList } from './ActiveSickLeaveList';
+import { SickLeaveTrendsChart } from './SickLeaveTrendsChart';
 
 interface SickLeaveStats {
   period_type: string;
@@ -149,10 +149,10 @@ export const SickLeaveStatisticsPanel: React.FC = () => {
       csv += `Antal medarbejdere: ${weekStats.unique_employees}\n`;
       csv += `Sygdomsprocent: ${weekStats.sick_percentage}%\n`;
       csv += `Gennemsnitlige sygedage: ${weekStats.avg_sick_days_per_employee}\n\n`;
-      csv += 'Top 5 medarbejdere:\n';
-      csv += 'Placering,Navn,Dage,Antal gange\n';
-      weekStats.top_employees.forEach((emp, idx) => {
-        csv += `${idx + 1},${emp.employee_name},${emp.total_days},${emp.occurrences}\n`;
+      csv += 'Medarbejdere:\n';
+      csv += 'Navn,Dage,Antal gange\n';
+      weekStats.top_employees.forEach((emp) => {
+        csv += `${emp.employee_name},${emp.total_days},${emp.occurrences}\n`;
       });
       csv += '\n';
     }
@@ -164,10 +164,10 @@ export const SickLeaveStatisticsPanel: React.FC = () => {
       csv += `Antal medarbejdere: ${fourteenDayStats.unique_employees}\n`;
       csv += `Sygdomsprocent: ${fourteenDayStats.sick_percentage}%\n`;
       csv += `Gennemsnitlige sygedage: ${fourteenDayStats.avg_sick_days_per_employee}\n\n`;
-      csv += 'Top 5 medarbejdere:\n';
-      csv += 'Placering,Navn,Dage,Antal gange\n';
-      fourteenDayStats.top_employees.forEach((emp, idx) => {
-        csv += `${idx + 1},${emp.employee_name},${emp.total_days},${emp.occurrences}\n`;
+      csv += 'Medarbejdere:\n';
+      csv += 'Navn,Dage,Antal gange\n';
+      fourteenDayStats.top_employees.forEach((emp) => {
+        csv += `${emp.employee_name},${emp.total_days},${emp.occurrences}\n`;
       });
       csv += '\n';
     }
@@ -179,16 +179,62 @@ export const SickLeaveStatisticsPanel: React.FC = () => {
       csv += `Antal medarbejdere: ${monthStats.unique_employees}\n`;
       csv += `Sygdomsprocent: ${monthStats.sick_percentage}%\n`;
       csv += `Gennemsnitlige sygedage: ${monthStats.avg_sick_days_per_employee}\n\n`;
-      csv += 'Top 5 medarbejdere:\n';
-      csv += 'Placering,Navn,Dage,Antal gange\n';
-      monthStats.top_employees.forEach((emp, idx) => {
-        csv += `${idx + 1},${emp.employee_name},${emp.total_days},${emp.occurrences}\n`;
+      csv += 'Medarbejdere:\n';
+      csv += 'Navn,Dage,Antal gange\n';
+      monthStats.top_employees.forEach((emp) => {
+        csv += `${emp.employee_name},${emp.total_days},${emp.occurrences}\n`;
       });
     }
     
     csv += '\n\nGDPR ADVARSEL: Disse data er personfølsomme og må kun bruges til interne formål.\n';
     
     return csv;
+  };
+
+  const clearAllData = async () => {
+    const firstConfirm = window.confirm(
+      'ADVARSEL: Du er ved at slette ALLE sygdomsdata permanent!\n\n' +
+      'Denne handling KAN IKKE fortrydes.\n\n' +
+      'Er du ABSOLUT sikker?'
+    );
+    
+    if (!firstConfirm) return;
+
+    const secondConfirm = window.prompt(
+      'For at bekræfte, skriv "SLET" (med store bogstaver):'
+    );
+
+    if (secondConfirm !== 'SLET') {
+      toast({
+        title: "Handling annulleret",
+        description: "Ingen data blev slettet",
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await rpcWithRefresh<{ success: boolean; deleted_count: number; message: string }>(
+        'clear_sick_leave_data',
+        {}
+      );
+
+      if (error) throw error;
+
+      toast({
+        title: "Data ryddet",
+        description: data?.message || "Alle sygdomsdata er blevet slettet",
+      });
+
+      // Refresh all statistics
+      fetchStatistics();
+    } catch (error) {
+      console.error('[SickLeaveStats] Error clearing data:', error);
+      toast({
+        title: "Fejl ved rydning",
+        description: error instanceof Error ? error.message : "Kunne ikke rydde data",
+        variant: "destructive"
+      });
+    }
   };
 
   useEffect(() => {
@@ -244,16 +290,11 @@ export const SickLeaveStatisticsPanel: React.FC = () => {
 
           {stats.top_employees && stats.top_employees.length > 0 && (
             <div className="space-y-2 pt-2 border-t">
-              <p className="text-sm font-semibold">Top 5 - Flest sygedage</p>
+              <p className="text-sm font-semibold">Flest sygedage</p>
               <div className="space-y-2">
-                {stats.top_employees.map((emp, idx) => (
+                {stats.top_employees.map((emp) => (
                   <div key={emp.employee_id} className="flex items-center justify-between p-2 border rounded">
-                    <div className="flex items-center gap-2">
-                      <Badge variant={idx === 0 ? "destructive" : "secondary"}>
-                        #{idx + 1}
-                      </Badge>
-                      <span className="font-medium">{emp.employee_name}</span>
-                    </div>
+                    <span className="font-medium">{emp.employee_name}</span>
                     <div className="text-right text-sm">
                       <p className="font-semibold">{emp.total_days} dage</p>
                       <p className="text-muted-foreground">{emp.occurrences} {emp.occurrences === 1 ? 'gang' : 'gange'}</p>
@@ -270,14 +311,6 @@ export const SickLeaveStatisticsPanel: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          <strong>GDPR Advarsel:</strong> Disse data er ekstremt personfølsomme og må kun bruges til interne statistiske formål. 
-          Del aldrig disse oplysninger med uautoriserede personer.
-        </AlertDescription>
-      </Alert>
-
       <ActiveSickLeaveList onUpdate={fetchStatistics} />
 
       <div className="flex items-center justify-between">
@@ -286,6 +319,10 @@ export const SickLeaveStatisticsPanel: React.FC = () => {
           <p className="text-muted-foreground">Oversigt over sygefravær i afdelingen</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button onClick={clearAllData} variant="destructive" className="gap-2">
+            <Trash2 className="h-4 w-4" />
+            Ryd Alle Data
+          </Button>
           <Button onClick={exportToExcel} variant="default" className="gap-2">
             <Download className="h-4 w-4" />
             Eksporter til Excel
@@ -298,10 +335,14 @@ export const SickLeaveStatisticsPanel: React.FC = () => {
       </div>
 
       <Tabs defaultValue="week" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="week">Denne uge</TabsTrigger>
           <TabsTrigger value="14days">Seneste 14 dage</TabsTrigger>
           <TabsTrigger value="month">Denne måned</TabsTrigger>
+          <TabsTrigger value="trends">
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Historisk Oversigt
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="week" className="space-y-4">
@@ -315,7 +356,19 @@ export const SickLeaveStatisticsPanel: React.FC = () => {
         <TabsContent value="month" className="space-y-4">
           {renderStatCard(monthStats, "Denne måned", <Users className="h-5 w-5" />)}
         </TabsContent>
+
+        <TabsContent value="trends" className="space-y-4">
+          <SickLeaveTrendsChart />
+        </TabsContent>
       </Tabs>
+
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          <strong>GDPR Advarsel:</strong> Disse data er ekstremt personfølsomme og må kun bruges til interne statistiske formål. 
+          Del aldrig disse oplysninger med uautoriserede personer.
+        </AlertDescription>
+      </Alert>
     </div>
   );
 };
