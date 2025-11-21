@@ -2,6 +2,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { Duty } from '@/types/duty';
 import { 
   startOfMonth, 
@@ -35,6 +36,7 @@ export const DutyMonthCalendar = ({
 }: DutyMonthCalendarProps) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : enUS;
+  const isMobile = useIsMobile();
 
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
@@ -195,12 +197,20 @@ export const DutyMonthCalendar = ({
                         )}
                         title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}`}
                       >
-                        <div className="font-semibold md:font-medium truncate text-[11px] md:text-xs">
-                          {initials}
-                        </div>
-                        <div className="text-[9px] md:text-[10px] opacity-75 truncate font-medium">
-                          {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'}
-                        </div>
+                        {isMobile ? (
+                          <div className="text-[12px] font-semibold leading-tight truncate">
+                            {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'} · {initials}
+                          </div>
+                        ) : (
+                          <>
+                            <div className="font-semibold md:font-medium truncate text-[11px] md:text-xs">
+                              {initials}
+                            </div>
+                            <div className="text-[9px] md:text-[10px] opacity-75 truncate font-medium">
+                              {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'}
+                            </div>
+                          </>
+                        )}
                       </button>
                     );
                   })}
