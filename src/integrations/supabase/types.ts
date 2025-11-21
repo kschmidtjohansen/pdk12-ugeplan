@@ -551,86 +551,6 @@ export type Database = {
         }
         Relationships: []
       }
-      sick_leave_notifications_sent: {
-        Row: {
-          created_at: string
-          days_when_sent: number
-          id: string
-          notification_sent_at: string
-          sick_leave_id: string
-        }
-        Insert: {
-          created_at?: string
-          days_when_sent: number
-          id?: string
-          notification_sent_at?: string
-          sick_leave_id: string
-        }
-        Update: {
-          created_at?: string
-          days_when_sent?: number
-          id?: string
-          notification_sent_at?: string
-          sick_leave_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sick_leave_notifications_sent_sick_leave_id_fkey"
-            columns: ["sick_leave_id"]
-            isOneToOne: false
-            referencedRelation: "sick_leave_records"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      sick_leave_records: {
-        Row: {
-          created_at: string
-          created_by: string
-          end_date: string | null
-          id: string
-          notes: string | null
-          start_date: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          end_date?: string | null
-          id?: string
-          notes?: string | null
-          start_date: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          end_date?: string | null
-          id?: string
-          notes?: string | null
-          start_date?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sick_leave_records_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sick_leave_records_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       system_cleanup_tracking: {
         Row: {
           cleanup_type: string
@@ -828,10 +748,6 @@ export type Database = {
       delete_expired_approved_vacations: { Args: never; Returns: undefined }
       delete_old_rejected_vacations: { Args: never; Returns: undefined }
       emergency_log_cleanup: { Args: never; Returns: Json }
-      end_sick_leave: {
-        Args: { p_end_date: string; p_record_id: string }
-        Returns: boolean
-      }
       enhanced_security_monitor: { Args: never; Returns: Json }
       ensure_logs_rls_consistency: { Args: never; Returns: string }
       example_function: { Args: never; Returns: Json }
@@ -957,10 +873,6 @@ export type Database = {
         }[]
       }
       get_enhanced_system_metrics: { Args: never; Returns: Json }
-      get_historical_sick_leave_trends: {
-        Args: { months_back?: number }
-        Returns: Json
-      }
       get_profile_detailed: {
         Args: { profile_user_id: string }
         Returns: {
@@ -1053,10 +965,6 @@ export type Database = {
           event_type: string
           last_occurrence: string
         }[]
-      }
-      get_sick_leave_statistics: {
-        Args: { period_type?: string; target_date?: string }
-        Returns: Json
       }
       get_user_role: {
         Args: { uid: string }
@@ -1182,10 +1090,6 @@ export type Database = {
       mask_email: { Args: { p_email: string }; Returns: string }
       mask_phone: { Args: { p_phone: string }; Returns: string }
       perform_database_maintenance: { Args: never; Returns: Json }
-      record_sick_leave: {
-        Args: { p_notes?: string; p_start_date: string; p_user_id: string }
-        Returns: string
-      }
       refresh_materialized_views: { Args: never; Returns: undefined }
       run_automated_maintenance: { Args: never; Returns: Json }
       run_logs_rls_maintenance: { Args: never; Returns: string }

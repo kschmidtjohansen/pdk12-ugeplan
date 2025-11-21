@@ -15,7 +15,6 @@ interface EmployeesTableProps {
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   onToggleLeave: (employee: Employee) => void;
-  onMarkSick?: (employee: Employee) => void;
   error: string | null;
   loading: boolean;
   onRetry: () => void;
@@ -26,7 +25,6 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   onEdit,
   onDelete,
   onToggleLeave,
-  onMarkSick,
   error,
   loading,
   onRetry
@@ -129,7 +127,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {employees.map(employee => <EmployeeTableRow key={`${employee.id}-${employee.onLeave}-${employee.status}`} employee={employee} vacations={vacations} onEdit={onEdit} onDelete={onDelete} onToggleLeave={onToggleLeave} onMarkSick={onMarkSick} />)}
+            {employees.map(employee => <EmployeeTableRow key={`${employee.id}-${employee.onLeave}-${employee.status}`} employee={employee} vacations={vacations} onEdit={onEdit} onDelete={onDelete} onToggleLeave={onToggleLeave} />)}
           </TableBody>
         </Table>
       </div>

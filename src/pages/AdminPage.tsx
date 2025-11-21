@@ -4,9 +4,8 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Users, Stethoscope } from 'lucide-react';
+import { Shield, Users } from 'lucide-react';
 import UserManagement from '@/components/Admin/UserManagement';
-import { SickLeaveStatisticsPanel } from '@/components/Admin/SickLeaveStatisticsPanel';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
 
 const AdminPage: React.FC = () => {
@@ -41,49 +40,17 @@ const AdminPage: React.FC = () => {
           <h1 className="text-3xl font-bold">{t('admin.title')}</h1>
         </div>
 
-        <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="users" className="flex items-center space-x-2">
-              <Users className="h-4 w-4" />
-              <span>{t('admin.tabs.users')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="sick-leave" className="flex items-center space-x-2">
-              <Stethoscope className="h-4 w-4" />
-              <span>Sygdomsstatistik</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="users" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('admin.userManagement.title')}</CardTitle>
-                <CardDescription>
-                  {t('admin.userManagement.description')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UserManagement />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="sick-leave" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Stethoscope className="h-5 w-5" />
-                  Sygdomsstatistik
-                </CardTitle>
-                <CardDescription>
-                  Statistik over sygefravær i afdelingen. Kun synlig for administratorer.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SickLeaveStatisticsPanel />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('admin.userManagement.title')}</CardTitle>
+            <CardDescription>
+              {t('admin.userManagement.description')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <UserManagement />
+          </CardContent>
+        </Card>
       </div>
     </div>;
 };

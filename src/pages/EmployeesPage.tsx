@@ -7,7 +7,6 @@ import { Plus, Users, UserPlus } from 'lucide-react';
 import EmployeesTable from '@/components/Employees/EmployeesTable';
 import EmployeeFormDialog from '@/components/Employees/EmployeeFormDialog';
 import EmployeeDeleteDialog from '@/components/Employees/EmployeeDeleteDialog';
-import { MarkSickDialog } from '@/components/Employees/MarkSickDialog';
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -24,8 +23,6 @@ const EmployeesPage: React.FC = () => {
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
-  const [markSickDialogOpen, setMarkSickDialogOpen] = useState(false);
-  const [selectedEmployeeForSick, setSelectedEmployeeForSick] = useState<Employee | null>(null);
 
   const { 
     employees,
@@ -95,80 +92,6 @@ const EmployeesPage: React.FC = () => {
     fetchEmployees();
   };
 
-  const handleMarkSick = async (employee: Employee) => {
-    if (employee.isSick) {
-      // Employee is already sick, so this should mark them as recovered
-      try {
-        // Find their active sick leave record
-        const { data: sickLeave } = await supabase
-          .from('sick_leave_records')
-          .select('id')
-          .eq('user_id', employee.id)
-          .is('end_date', null)
-          .maybeSingle();
-        
-        if (sickLeave) {
-          // Call end_sick_leave with today as end date
-          const { error } = await supabase.rpc('end_sick_leave', {
-            p_record_id: sickLeave.id,
-            p_end_date: format(new Date(), 'yyyy-MM-dd')
-          });
-          
-          if (error) throw error;
-          
-          // Wait for database to update before refreshing
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          toast({
-            title: "Medarbejder raskmeldt",
-            description: `${employee.name} er markeret som rask`,
-          });
-          
-          fetchEmployees(); // Refresh list
-        }
-      } catch (error) {
-        console.error('Error marking as recovered:', error);
-        toast({
-          title: "Fejl",
-          description: "Kunne ikke raskmelde medarbejder. Prøv igen.",
-          variant: "destructive"
-        });
-      }
-    } else {
-      // Employee is not sick, show dialog to mark them as sick
-      setSelectedEmployeeForSick(employee);
-      setMarkSickDialogOpen(true);
-    }
-  };
-
-  const handleConfirmMarkSick = async (startDate: Date, notes: string) => {
-    if (!selectedEmployeeForSick) return;
-
-    try {
-      const { data, error } = await supabase.rpc('record_sick_leave', {
-        p_user_id: selectedEmployeeForSick.id,
-        p_start_date: format(startDate, 'yyyy-MM-dd'),
-        p_notes: notes || null
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Sygdom registreret",
-        description: `${selectedEmployeeForSick.name} er markeret som syg fra ${format(startDate, 'PPP', { locale: da })}`,
-      });
-      
-      fetchEmployees(); // Refresh list
-    } catch (error) {
-      console.error('Error recording sick leave:', error);
-      toast({
-        title: "Fejl",
-        description: "Kunne ikke registrere sygdom. Prøv igen.",
-        variant: "destructive"
-      });
-    }
-  };
-
   return (
     <div className="min-h-screen w-full bg-background">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -204,7 +127,6 @@ const EmployeesPage: React.FC = () => {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onToggleLeave={handleToggleLeave}
-            onMarkSick={isAdmin ? handleMarkSick : undefined}
             error={error}
             loading={loading}
             onRetry={handleRetry}
@@ -232,14 +154,6 @@ const EmployeesPage: React.FC = () => {
             onConfirmDelete={confirmDelete}
           />
         </AlertDialog>
-
-        {/* Mark Sick Dialog */}
-        <MarkSickDialog
-          open={markSickDialogOpen}
-          onOpenChange={setMarkSickDialogOpen}
-          employee={selectedEmployeeForSick}
-          onConfirm={handleConfirmMarkSick}
-        />
       </div>
     </div>
   );

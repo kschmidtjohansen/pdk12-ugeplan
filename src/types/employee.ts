@@ -17,5 +17,4 @@ export interface Employee {
   has_asbestos_certificate?: boolean;
   has_trailer_license?: boolean;
   has_forklift_license?: boolean;
-  isSick?: boolean; // Flag to indicate if employee is on sick leave
 }
