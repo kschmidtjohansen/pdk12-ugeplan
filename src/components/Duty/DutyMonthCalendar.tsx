@@ -157,7 +157,7 @@ export const DutyMonthCalendar = ({
               <div
                 key={i}
                 className={cn(
-                  "min-h-[100px] border rounded-lg p-2",
+                  "min-h-[120px] md:min-h-[100px] border rounded-lg p-1.5 md:p-2",
                   isCurrentMonth ? "bg-card" : "bg-muted/30",
                   isToday && "ring-2 ring-primary"
                 )}
@@ -186,7 +186,7 @@ export const DutyMonthCalendar = ({
                         onClick={() => canManage && onDutyClick(duty)}
                         disabled={!canManage}
                         className={cn(
-                          "w-full text-left px-2 py-1 rounded border text-xs transition-colors",
+                          "w-full text-left px-2 py-1.5 md:py-1 rounded border text-xs transition-colors",
                           colors.bg,
                           colors.border,
                           colors.text,
@@ -195,10 +195,10 @@ export const DutyMonthCalendar = ({
                         )}
                         title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}`}
                       >
-                        <div className="font-medium truncate">
+                        <div className="font-semibold md:font-medium truncate text-[11px] md:text-xs">
                           {initials}
                         </div>
-                        <div className="text-[10px] opacity-75 truncate">
+                        <div className="text-[9px] md:text-[10px] opacity-75 truncate font-medium">
                           {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'}
                         </div>
                       </button>
