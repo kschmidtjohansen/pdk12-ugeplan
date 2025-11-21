@@ -542,6 +542,38 @@ export type Database = {
         }
         Relationships: []
       }
+      sick_leave_notifications_sent: {
+        Row: {
+          created_at: string
+          days_when_sent: number
+          id: string
+          notification_sent_at: string
+          sick_leave_id: string
+        }
+        Insert: {
+          created_at?: string
+          days_when_sent: number
+          id?: string
+          notification_sent_at?: string
+          sick_leave_id: string
+        }
+        Update: {
+          created_at?: string
+          days_when_sent?: number
+          id?: string
+          notification_sent_at?: string
+          sick_leave_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sick_leave_notifications_sent_sick_leave_id_fkey"
+            columns: ["sick_leave_id"]
+            isOneToOne: false
+            referencedRelation: "sick_leave_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sick_leave_records: {
         Row: {
           created_at: string
@@ -781,6 +813,7 @@ export type Database = {
         }[]
       }
       cleanup_old_change_logs: { Args: never; Returns: Json }
+      clear_sick_leave_data: { Args: never; Returns: Json }
       create_logs_partition_for_month: { Args: never; Returns: undefined }
       debug_auth_info: { Args: never; Returns: Json }
       delete_expired_approved_vacations: { Args: never; Returns: undefined }
@@ -915,6 +948,10 @@ export type Database = {
         }[]
       }
       get_enhanced_system_metrics: { Args: never; Returns: Json }
+      get_historical_sick_leave_trends: {
+        Args: { months_back?: number }
+        Returns: Json
+      }
       get_profile_detailed: {
         Args: { profile_user_id: string }
         Returns: {
