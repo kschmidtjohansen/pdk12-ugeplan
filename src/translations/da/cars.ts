@@ -8,6 +8,8 @@ const cars = {
   numberPlate: "Nummerplade",
   fuelCardCode: "Brændstofkortkode",
   showInPlanner: "Vis i Planlægger",
+  towingCapacity: 'Trækvægt',
+  totalWeight: 'Totalvægt',
   
   // Dialog actions
   editVehicle: "Rediger Køretøj",

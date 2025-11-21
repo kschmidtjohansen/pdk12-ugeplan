@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info } from 'lucide-react';
+import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info, Truck, Recycle } from 'lucide-react';
 import { 
   Table,
   TableBody,
@@ -64,7 +64,31 @@ const CarsTable: React.FC<CarsTableProps> = ({
                 </div>
               </TableCell>
               <TableCell className="text-gray-900">{car.name}</TableCell>
-              <TableCell className="text-gray-900">{car.number_plate}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-900">{car.number_plate}</span>
+                  {car.number_plate.toLowerCase().includes('trailer') && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Truck className="h-4 w-4 text-orange-500" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Trailer</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                  {car.number_plate.toLowerCase().includes('miljø') && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Recycle className="h-4 w-4 text-green-600" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Miljøvogn</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
+              </TableCell>
               {canViewFuelCardCode && (
                 <TableCell>
                   <code className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-mono">{car.fuel_card_code}</code>
@@ -72,9 +96,26 @@ const CarsTable: React.FC<CarsTableProps> = ({
               )}
               <TableCell>
                 {car.has_trailer_hitch ? (
-                  <div className="flex items-center">
-                    <Check className="h-4 w-4 mr-2 text-green-500" />
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
                     <span className="text-gray-900">{t('common.yes')}</span>
+                    {(car.towing_capacity || car.total_weight) && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-blue-500 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="space-y-1">
+                            {car.towing_capacity && (
+                              <p><strong>{t('cars.towingCapacity')}:</strong> {car.towing_capacity} kg</p>
+                            )}
+                            {car.total_weight && (
+                              <p><strong>{t('cars.totalWeight')}:</strong> {car.total_weight} kg</p>
+                            )}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                   </div>
                 ) : (
                   <div className="flex items-center">

@@ -131,6 +131,8 @@ export type Database = {
           notes: string | null
           number_plate: string
           show_in_planner: boolean
+          total_weight: number | null
+          towing_capacity: number | null
           updated_at: string
         }
         Insert: {
@@ -144,6 +146,8 @@ export type Database = {
           notes?: string | null
           number_plate: string
           show_in_planner?: boolean
+          total_weight?: number | null
+          towing_capacity?: number | null
           updated_at?: string
         }
         Update: {
@@ -157,6 +161,8 @@ export type Database = {
           notes?: string | null
           number_plate?: string
           show_in_planner?: boolean
+          total_weight?: number | null
+          towing_capacity?: number | null
           updated_at?: string
         }
         Relationships: []
