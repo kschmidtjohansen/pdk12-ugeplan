@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
@@ -9,13 +9,14 @@ import { format } from 'date-fns';
 import MineOpgaver from './MineOpgaver';
 import { getCurrentWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
 import { AssignmentFilterService } from '@/services/assignmentFilterService';
-import { useMemo } from 'react';
 import DutySummaryWidget from './DutySummaryWidget';
+import { LastRefreshIndicator } from '@/components/shared/LastRefreshIndicator';
 
 const ServicemedarbejderDashboard: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const { assignments, loading } = useEnhancedUnifiedData();
+  const { assignments, loading, refetch, lastRefresh } = useEnhancedUnifiedData();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const today = new Date();
   const currentWeek = getCurrentWeekNumber();
@@ -24,8 +25,16 @@ const ServicemedarbejderDashboard: React.FC = () => {
   // For servicemedarbejder, filter to show assignments where they are assigned OR responsible
   const userAssignments = useMemo(() => {
     if (!user?.name && !user?.id) {
+      console.log('[ServicemedarbejderDashboard] ❌ No user name or ID');
       return [];
     }
+
+    console.log('[ServicemedarbejderDashboard] 🔍 Filtering assignments for user:', {
+      userId: user.id,
+      userName: user.name,
+      userEmail: user.email,
+      totalAssignments: assignments.length
+    });
 
     const filtered = assignments.filter(assignment => {
       // Check if user is assigned via assignedEmployees (NEW format with user IDs)
@@ -37,9 +46,25 @@ const ServicemedarbejderDashboard: React.FC = () => {
       // Check if user is responsible user
       const isResponsible = assignment.responsibleUserId === user.id || assignment.responsibleUser?.id === user.id;
       
+      // COMPREHENSIVE LOGGING for matched assignments
+      if (isAssignedViaNew || isAssignedViaLegacy || isResponsible) {
+        console.log(`[ServicemedarbejderDashboard] ✅ Match found for "${assignment.title}":`, {
+          date: assignment.date,
+          isAssignedViaNew,
+          isAssignedViaLegacy,
+          isResponsible,
+          assignedEmployees: assignment.assignedEmployees?.map(e => ({ id: e.id, name: e.name })),
+          legacyEmployees: assignment.employees,
+          responsibleUserId: assignment.responsibleUserId,
+          responsibleUserObj: assignment.responsibleUser
+        });
+      }
+      
       // Show all assignments where user is involved
       return isAssignedViaNew || isAssignedViaLegacy || isResponsible;
     });
+
+    console.log(`[ServicemedarbejderDashboard] 📊 Filtered ${filtered.length} total user assignments`);
 
     return filtered;
   }, [assignments, user]);
@@ -56,6 +81,9 @@ const ServicemedarbejderDashboard: React.FC = () => {
       endDateISO
     );
     
+    console.log(`[ServicemedarbejderDashboard] 📅 Week filter (${startDateISO} to ${endDateISO}): ${filtered.length} assignments`);
+    console.log(`[ServicemedarbejderDashboard] Week assignments:`, filtered.map(a => ({ title: a.title, date: a.date })));
+    
     return filtered;
   }, [userAssignments, startDateISO, endDateISO]);
 
@@ -64,8 +92,17 @@ const ServicemedarbejderDashboard: React.FC = () => {
     const todayStr = format(today, 'yyyy-MM-dd');
     const filtered = userAssignments.filter(assignment => assignment.date === todayStr);
     
+    console.log(`[ServicemedarbejderDashboard] 📍 Today filter (${todayStr}): ${filtered.length} assignments`);
+    console.log(`[ServicemedarbejderDashboard] Today assignments:`, filtered.map(a => ({ title: a.title, date: a.date })));
+    
     return filtered;
   }, [userAssignments, today]);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  };
 
   if (loading) {
     return (
@@ -79,8 +116,13 @@ const ServicemedarbejderDashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Personal Stats */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-lg font-semibold">Mine Statistikker</CardTitle>
+          <LastRefreshIndicator 
+            lastRefresh={lastRefresh}
+            isRefreshing={isRefreshing}
+            onRefresh={handleManualRefresh}
+          />
         </CardHeader>
         
         <CardContent>
