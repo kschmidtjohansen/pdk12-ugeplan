@@ -4,7 +4,7 @@ import { usePermissions } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, HardHat, Truck, Car, Forklift, Stethoscope } from 'lucide-react';
+import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, HardHat, Truck, Car, Forklift } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Employee } from '@/types/employee';
@@ -19,10 +19,9 @@ interface EmployeeTableRowProps {
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   onToggleLeave?: (employee: Employee) => void;
-  onMarkSick?: (employee: Employee) => void;
 }
 
-const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vacations, onEdit, onDelete, onToggleLeave, onMarkSick }) => {
+const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vacations, onEdit, onDelete, onToggleLeave }) => {
   const { isAdmin, isSkadeleder } = usePermissions();
   const { t } = useTranslation();
 
@@ -217,33 +216,6 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-
-            {onMarkSick && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => onMarkSick(employee)}
-                      className={`h-8 w-8 p-0 ${employee.isSick ? 'text-green-600' : 'text-amber-600'}`}
-                    >
-                      <span className="sr-only">
-                        {employee.isSick ? 'Marker som rask' : 'Markér som syg'}
-                      </span>
-                      {employee.isSick ? (
-                        <UserCheck className="h-4 w-4" />
-                      ) : (
-                        <Stethoscope className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{employee.isSick ? 'Marker som rask' : 'Registrer sygdom'}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

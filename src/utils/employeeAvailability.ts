@@ -171,16 +171,6 @@ export const getEmployeeAvailabilityStatus = (
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
   console.log(`[getEmployeeAvailabilityStatus] Checking employee: ${employee.name} (${employee.id}) for date: ${dateStr}`);
   
-  // PRIORITY 0: Check if employee is on sick leave (NEW!)
-  if (employee.isSick) {
-    console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on sick leave`);
-    return {
-      status: 'onLeave',
-      statusText: 'Sygemeldt',
-      badgeColor: 'bg-red-100 text-red-800 border-red-200'
-    };
-  }
-  
   // PRIORITY 1: Check vacation status with detailed information
   const vacationStatus = getEmployeeVacationStatus(employee.id, selectedDate, vacations);
   
