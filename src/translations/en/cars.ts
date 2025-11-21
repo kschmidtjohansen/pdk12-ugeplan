@@ -8,7 +8,8 @@ const cars = {
   numberPlate: "Number Plate",
   fuelCardCode: "Fuel Card Code",
   showInPlanner: "Show in Planner",
-  towingCapacity: 'Towing Capacity',
+  towingCapacityWithBrakes: 'With Brakes',
+  towingCapacityWithoutBrakes: 'Without Brakes',
   totalWeight: 'Total Weight',
   
   // Dialog actions
