@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, TrendingUp, Users, Calendar, AlertCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -33,29 +33,47 @@ export const SickLeaveStatisticsPanel: React.FC = () => {
   const fetchStatistics = async () => {
     setLoading(true);
     try {
-      const { data: weekData, error: weekError } = await supabase.rpc('get_sick_leave_statistics', {
-        period_type: 'week'
-      });
-      if (weekError) throw weekError;
-      setWeekStats(weekData as unknown as SickLeaveStats);
+      console.log('[SickLeaveStats] Fetching week stats...');
+      const { data: weekData, error: weekError } = await rpcWithRefresh<SickLeaveStats>(
+        'get_sick_leave_statistics',
+        { period_type: 'week' }
+      );
+      if (weekError) {
+        console.error('[SickLeaveStats] Week error:', weekError);
+        throw weekError;
+      }
+      console.log('[SickLeaveStats] Week data:', weekData);
+      setWeekStats(weekData);
 
-      const { data: fourteenData, error: fourteenError } = await supabase.rpc('get_sick_leave_statistics', {
-        period_type: '14days'
-      });
-      if (fourteenError) throw fourteenError;
-      setFourteenDayStats(fourteenData as unknown as SickLeaveStats);
+      console.log('[SickLeaveStats] Fetching 14-day stats...');
+      const { data: fourteenData, error: fourteenError } = await rpcWithRefresh<SickLeaveStats>(
+        'get_sick_leave_statistics',
+        { period_type: '14days' }
+      );
+      if (fourteenError) {
+        console.error('[SickLeaveStats] 14-day error:', fourteenError);
+        throw fourteenError;
+      }
+      console.log('[SickLeaveStats] 14-day data:', fourteenData);
+      setFourteenDayStats(fourteenData);
 
-      const { data: monthData, error: monthError } = await supabase.rpc('get_sick_leave_statistics', {
-        period_type: 'month'
-      });
-      if (monthError) throw monthError;
-      setMonthStats(monthData as unknown as SickLeaveStats);
+      console.log('[SickLeaveStats] Fetching month stats...');
+      const { data: monthData, error: monthError } = await rpcWithRefresh<SickLeaveStats>(
+        'get_sick_leave_statistics',
+        { period_type: 'month' }
+      );
+      if (monthError) {
+        console.error('[SickLeaveStats] Month error:', monthError);
+        throw monthError;
+      }
+      console.log('[SickLeaveStats] Month data:', monthData);
+      setMonthStats(monthData);
 
     } catch (error) {
-      console.error('Error fetching sick leave statistics:', error);
+      console.error('[SickLeaveStats] Error fetching sick leave statistics:', error);
       toast({
-        title: "Fejl",
-        description: "Kunne ikke hente sygdomsstatistik",
+        title: "Fejl ved hentning af sygdomsstatistik",
+        description: error instanceof Error ? error.message : "Kunne ikke hente data",
         variant: "destructive"
       });
     } finally {
