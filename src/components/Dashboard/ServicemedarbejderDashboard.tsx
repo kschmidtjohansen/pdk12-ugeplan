@@ -28,16 +28,17 @@ const ServicemedarbejderDashboard: React.FC = () => {
     }
 
     const filtered = assignments.filter(assignment => {
-      // Check if user is assigned as employee
-      const isEmployee = assignment.employees?.includes(user.name || '');
+      // Check if user is assigned via assignedEmployees (NEW format with user IDs)
+      const isAssignedViaNew = assignment.assignedEmployees?.some(emp => emp.id === user.id);
+      
+      // Check if user is assigned via legacy employees array (OLD format with names)
+      const isAssignedViaLegacy = assignment.employees?.includes(user.name || '');
       
       // Check if user is responsible user
-      const isResponsible = assignment.responsibleUserId === user.id;
+      const isResponsible = assignment.responsibleUserId === user.id || assignment.responsibleUser?.id === user.id;
       
-      // For servicemedarbejder, show all assignments where they are involved
-      const shouldShow = (isEmployee || isResponsible);
-      
-      return shouldShow;
+      // Show all assignments where user is involved
+      return isAssignedViaNew || isAssignedViaLegacy || isResponsible;
     });
 
     return filtered;
