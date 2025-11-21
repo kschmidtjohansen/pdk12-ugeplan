@@ -1,10 +1,10 @@
-
 import { enhancedDataFetching } from './enhancedDataFetching';
 import { enhancedErrorHandler } from './enhancedErrorHandler';
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { systemHealthService } from './systemHealthService';
+import { format } from 'date-fns';
 
 interface DataFetchResult<T> {
   data: T[];
@@ -125,12 +125,29 @@ class EnhancedUnifiedDataService {
         const team = Array.isArray(assignment.team) ? assignment.team : [];
         const employees = team.map((emp: any) => emp.name || emp.email || 'Unknown User');
         
+        // Normalize assignment date to yyyy-MM-dd format
+        const rawDate = assignment.assignment_date;
+        let dateStr: string;
+
+        if (!rawDate) {
+          dateStr = '';
+        } else if (rawDate instanceof Date) {
+          dateStr = format(rawDate, 'yyyy-MM-dd');
+        } else if (typeof rawDate === 'string') {
+          // Handle both 'yyyy-MM-dd' and ISO strings like 'yyyy-MM-ddTHH:mm:ss+00:00'
+          dateStr = rawDate.split('T')[0];
+        } else {
+          console.warn('[EnhancedUnifiedDataService] Unexpected assignment_date type:', typeof rawDate, rawDate);
+          dateStr = String(rawDate).split('T')[0];
+        }
+        
         // Debug logging for assignment employee data
         if (team.length > 0) {
           console.log(`[EnhancedUnifiedDataService] Assignment ${assignment.title} - Employee data:`, {
             teamCount: team.length,
             sampleTeamMember: team[0],
-            allEmployeeNames: employees
+            allEmployeeNames: employees,
+            normalizedDate: dateStr
           });
         }
         
@@ -138,7 +155,7 @@ class EnhancedUnifiedDataService {
           id: assignment.id,
           title: assignment.title,
           description: assignment.description || '',
-          date: assignment.assignment_date,
+          date: dateStr,
           fromTime: assignment.from_time,
           toTime: assignment.to_time,
           location: assignment.location,
