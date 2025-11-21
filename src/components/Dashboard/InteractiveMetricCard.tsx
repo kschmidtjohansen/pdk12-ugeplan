@@ -59,6 +59,7 @@ const InteractiveMetricCard: React.FC<InteractiveMetricCardProps> = ({
     <Card 
       className={cn(
         'relative overflow-hidden transition-[border-color,box-shadow] duration-200 border-l-4 shadow-md hover:shadow-lg cursor-pointer bg-gradient-to-br from-card to-card/50 border-2 border-border/50',
+        'min-h-[120px] active:scale-[0.98]', // Mobile: Ensure minimum touch target size and add active feedback
         classes.accent,
         classes.hover,
         className
@@ -76,28 +77,28 @@ const InteractiveMetricCard: React.FC<InteractiveMetricCardProps> = ({
     >
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" style={{ transform: 'translateZ(0)', willChange: 'opacity' }}></div>
       
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-4 pt-3">
-        <CardTitle className="text-xs font-medium text-muted-foreground">{title}</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-4 sm:px-6 pt-4">
+        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{title}</CardTitle>
         <div className={cn(
-          'p-2 rounded-xl border transition-all duration-300 hover:scale-105',
+          'p-2.5 sm:p-2 rounded-xl border transition-all duration-300 hover:scale-105',
           classes.icon
         )}>
-          <Icon className="h-4 w-4" />
+          <Icon className="h-5 w-5 sm:h-4 sm:w-4" />
         </div>
       </CardHeader>
       
-      <CardContent className="px-4 pb-3">
-        <div className="text-xl font-bold">
+      <CardContent className="px-4 sm:px-6 pb-4">
+        <div className="text-2xl sm:text-xl font-bold">
           {value}
           {total && (
-            <span className="text-xs text-muted-foreground ml-1">
+            <span className="text-sm sm:text-xs text-muted-foreground ml-1">
               / {total}
             </span>
           )}
         </div>
         
         {subtitle && (
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-sm sm:text-xs text-muted-foreground mt-1">
             {subtitle}
           </p>
         )}

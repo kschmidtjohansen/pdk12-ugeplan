@@ -34,8 +34,8 @@ const ServicemedarbejderDashboard: React.FC = () => {
       // Check if user is responsible user
       const isResponsible = assignment.responsibleUserId === user.id;
       
-      // For servicemedarbejder, show published assignments where they are involved
-      const shouldShow = assignment.published && (isEmployee || isResponsible);
+      // For servicemedarbejder, show all assignments where they are involved
+      const shouldShow = (isEmployee || isResponsible);
       
       return shouldShow;
     });
@@ -83,7 +83,7 @@ const ServicemedarbejderDashboard: React.FC = () => {
         </CardHeader>
         
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
               <div className="p-3 bg-blue-100 dark:bg-blue-900/40 rounded-full">
                 <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
