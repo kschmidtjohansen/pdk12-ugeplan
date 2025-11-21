@@ -15,6 +15,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  ReferenceLine,
 } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
@@ -155,6 +156,18 @@ export const SickLeaveTrendsChart: React.FC = () => {
                   strokeWidth={2}
                   name="Antal syge"
                   dot={{ fill: "var(--color-unique_employees)" }}
+                />
+                <ReferenceLine 
+                  yAxisId="left"
+                  y={3.8} 
+                  stroke="#666" 
+                  strokeDasharray="3 3"
+                  label={{ 
+                    value: 'Privat sektor gns. (3.8%)', 
+                    position: 'right',
+                    fill: '#666',
+                    fontSize: 12
+                  }}
                 />
               </LineChart>
             </ResponsiveContainer>
