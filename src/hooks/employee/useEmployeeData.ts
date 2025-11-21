@@ -340,6 +340,15 @@ export const useEmployeeData = () => {
             fetchEmployees();
           }, 1000);
         })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'sick_leave_records' }, (payload) => {
+          console.log(`[useEmployeeData] Sick leave change detected:`, payload.eventType);
+          
+          // Debounce updates to prevent rapid-fire refetches
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            fetchEmployees();
+          }, 1000);
+        })
         .subscribe((status) => {
           console.log(`[useEmployeeData] Subscription status for public:`, status);
         });

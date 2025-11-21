@@ -89,11 +89,6 @@ export const SickLeaveStatisticsPanel: React.FC = () => {
       }
       console.log('[SickLeaveStats] Month data:', monthData);
       setMonthStats(monthData);
-
-      toast({
-        title: "Statistik opdateret",
-        description: "Sygdomsstatistik er blevet hentet succesfuldt",
-      });
     } catch (error) {
       console.error('[SickLeaveStats] Error fetching sick leave statistics:', error);
       toast({
