@@ -1,91 +1,85 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
-import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
+import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentDataOptimized';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Clock } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import MineOpgaver from './MineOpgaver';
-import { getCurrentWeekDates, getCurrentWeekNumber } from '@/utils/weekDates';
-import { AssignmentFilterService } from '@/services/assignmentFilterService';
+import { getCurrentWeekInfo, getWeekDates } from '@/utils/dates';
 import DutySummaryWidget from './DutySummaryWidget';
 import { LastRefreshIndicator } from '@/components/shared/LastRefreshIndicator';
 
 const ServicemedarbejderDashboard: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const { assignments, loading, refetch, lastRefresh } = useEnhancedUnifiedData();
+  const { assignments, loading, fetchAssignments } = useAssignmentDataOptimized();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+
+  // Update last refresh whenever assignments change
+  useEffect(() => {
+    if (assignments) {
+      setLastRefresh(new Date());
+    }
+  }, [assignments]);
 
   const today = new Date();
-  const currentWeek = getCurrentWeekNumber();
-  const currentYear = new Date().getFullYear();
 
-  // For servicemedarbejder, filter to show assignments where they are assigned OR responsible
+  // For servicemedarbejder, filter to show assignments where they are assigned OR responsible, within current week
   const userAssignments = useMemo(() => {
-    if (!user?.name && !user?.id) {
-      console.log('[ServicemedarbejderDashboard] ❌ No user name or ID');
+    if (!user?.id || !assignments) {
+      console.log('[ServicemedarbejderDashboard] ❌ No user ID or assignments');
       return [];
     }
 
-    console.log('[ServicemedarbejderDashboard] 🔍 Filtering assignments for user:', {
+    const { week: currentWeek, year: currentYear } = getCurrentWeekInfo();
+    const currentWeekDates = getWeekDates(currentWeek, currentYear);
+
+    console.log('[ServicemedarbejderDashboard] 🔍 Filtering assignments for user (current week):', {
       userId: user.id,
       userName: user.name,
       userEmail: user.email,
-      totalAssignments: assignments.length
+      totalAssignments: assignments.length,
+      currentWeek,
+      currentYear
     });
 
     const filtered = assignments.filter(assignment => {
-      // Check if user is assigned via assignedEmployees (NEW format with user IDs)
       const isAssignedViaNew = assignment.assignedEmployees?.some(emp => emp.id === user.id);
-      
-      // Check if user is assigned via legacy employees array (OLD format with names)
       const isAssignedViaLegacy = assignment.employees?.includes(user.name || '');
-      
-      // Check if user is responsible user
       const isResponsible = assignment.responsibleUserId === user.id || assignment.responsibleUser?.id === user.id;
-      
-      // COMPREHENSIVE LOGGING for matched assignments
-      if (isAssignedViaNew || isAssignedViaLegacy || isResponsible) {
+
+      const assignmentDate = parseISO(assignment.date);
+      const isInCurrentWeek = assignmentDate >= currentWeekDates.start && assignmentDate <= currentWeekDates.end;
+
+      const isUserInvolved = isAssignedViaNew || isAssignedViaLegacy || isResponsible;
+
+      if (isUserInvolved && isInCurrentWeek) {
         console.log(`[ServicemedarbejderDashboard] ✅ Match found for "${assignment.title}":`, {
           date: assignment.date,
           isAssignedViaNew,
           isAssignedViaLegacy,
           isResponsible,
+          isInCurrentWeek,
           assignedEmployees: assignment.assignedEmployees?.map(e => ({ id: e.id, name: e.name })),
           legacyEmployees: assignment.employees,
           responsibleUserId: assignment.responsibleUserId,
           responsibleUserObj: assignment.responsibleUser
         });
       }
-      
-      // Show all assignments where user is involved
-      return isAssignedViaNew || isAssignedViaLegacy || isResponsible;
+
+      return isUserInvolved && isInCurrentWeek;
     });
 
-    console.log(`[ServicemedarbejderDashboard] 📊 Filtered ${filtered.length} total user assignments`);
+    console.log(`[ServicemedarbejderDashboard] 📊 Filtered ${filtered.length} weekly user assignments`);
 
     return filtered;
   }, [assignments, user]);
 
-  // Get weekly assignments
-  const weekDates = getCurrentWeekDates(currentWeek, currentYear);
-  const startDateISO = format(weekDates.start, 'yyyy-MM-dd');
-  const endDateISO = format(weekDates.end, 'yyyy-MM-dd');
-
-  const weeklyAssignments = useMemo(() => {
-    const filtered = AssignmentFilterService.filterByDateRange(
-      userAssignments,
-      startDateISO,
-      endDateISO
-    );
-    
-    console.log(`[ServicemedarbejderDashboard] 📅 Week filter (${startDateISO} to ${endDateISO}): ${filtered.length} assignments`);
-    console.log(`[ServicemedarbejderDashboard] Week assignments:`, filtered.map(a => ({ title: a.title, date: a.date })));
-    
-    return filtered;
-  }, [userAssignments, startDateISO, endDateISO]);
+  // Week assignments are the user assignments already filtered to current week
+  const weeklyAssignments = userAssignments;
 
   // Today's assignments
   const todayAssignments = useMemo(() => {
@@ -100,7 +94,8 @@ const ServicemedarbejderDashboard: React.FC = () => {
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
-    await refetch();
+    await fetchAssignments();
+    setLastRefresh(new Date());
     setIsRefreshing(false);
   };
 
