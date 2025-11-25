@@ -31,10 +31,8 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
           const car = cars.find(c => c.id === carId);
           if (car) {
             carNames.push(car.name);
-          } else {
-            // Enhanced fallback: use the ID if we can't find the car object
-            carNames.push(`Car ${carId.substring(0, 8)}`);
           }
+          // Skip unknown cars instead of showing UUID
         }
       });
     } else if (assignment.car) {
@@ -43,10 +41,8 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
         const car = cars.find(c => c.id === assignment.car);
         if (car) {
           carNames.push(car.name);
-        } else {
-          // Enhanced fallback for string car ID
-          carNames.push(`Car ${assignment.car.substring(0, 8)}`);
         }
+        // Skip unknown cars instead of showing UUID
       } else if (typeof assignment.car === 'object' && assignment.car.name) {
         carNames.push(assignment.car.name);
       }
