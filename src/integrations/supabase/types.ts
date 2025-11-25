@@ -820,6 +820,20 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_demo_duties_with_employee: {
+        Args: { end_date_param?: string; start_date_param?: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          duty_date: string
+          duty_type: string
+          employee: Json
+          employee_id: string
+          id: string
+          notes: string
+          updated_at: string
+        }[]
+      }
       get_demo_profiles_admin_detailed: {
         Args: { full_access?: boolean }
         Returns: {
@@ -1014,20 +1028,21 @@ export type Database = {
         Args: never
         Returns: {
           assignment_cars: Json
+          assignment_date: string
+          car_id: string
+          car_ids: string[]
           case_number: string
-          client_name: string
-          contact_person: string
           created_at: string
-          date: string
           description: string
+          from_time: string
           id: string
           location: string
           published: boolean
           responsible_user_id: string
-          special_instructions: string
-          status: string
           team: Json
           title: string
+          to_time: string
+          type: string
           updated_at: string
         }[]
       }

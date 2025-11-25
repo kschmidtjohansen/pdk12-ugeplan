@@ -167,7 +167,7 @@ export class DemoUserService {
     }
   }
 
-  // Store demo assignment data in session storage
+  // Store demo assignment data in session storage with car names preserved
   storeDemoAssignment(assignment: any): void {
     const demoAssignments = this.getDemoAssignments();
     const record = {
@@ -176,7 +176,12 @@ export class DemoUserService {
       isDemoData: true,
       sessionId: this.demoSessionId,
       created_at: assignment.created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      // Preserve car data if it exists
+      cars: assignment.cars || [],
+      car: assignment.car || null,
+      // Preserve assigned employees if they exist
+      assignedEmployees: assignment.assignedEmployees || []
     };
     demoAssignments.push(record);
     sessionStorage.setItem('demo-assignments', JSON.stringify(demoAssignments));
