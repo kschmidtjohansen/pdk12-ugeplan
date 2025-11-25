@@ -293,10 +293,10 @@ export class OptimizedAssignmentService {
     });
   }
 
-  static async fetchAllAssignments(role: string): Promise<OptimizedAssignmentData[]> {
+  static async fetchAllAssignments(role: string, userEmail?: string): Promise<OptimizedAssignmentData[]> {
     try {
-      // Check for demo mode
-      const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+      // Check for demo mode - use userEmail as primary check for reliability
+      const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
       
       if (isDemoMode) {
         console.log(`[OptimizedAssignmentService] DEMO MODE: Fetching demo assignments`);
@@ -466,10 +466,10 @@ export class OptimizedAssignmentService {
     }
   }
 
-  static async fetchAllPublishedAssignments(): Promise<OptimizedAssignmentData[]> {
+  static async fetchAllPublishedAssignments(userEmail?: string): Promise<OptimizedAssignmentData[]> {
     try {
-      // Check for demo mode
-      const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+      // Check for demo mode - use userEmail as primary check for reliability
+      const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
       
       if (isDemoMode) {
         console.log(`[OptimizedAssignmentService] DEMO MODE: Fetching demo published assignments`);
@@ -546,10 +546,10 @@ export class OptimizedAssignmentService {
     }
   }
 
-  static async createAssignment(assignmentData: any): Promise<OptimizedAssignmentData> {
+  static async createAssignment(assignmentData: any, userEmail?: string): Promise<OptimizedAssignmentData> {
     this.clearCache();
     
-    const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+    const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
     if (isDemoMode) {
       // Virtualize demo creation - no DB write
@@ -626,10 +626,10 @@ export class OptimizedAssignmentService {
     return enriched[0];
   }
 
-  static async updateAssignment(assignmentId: string, updates: any): Promise<OptimizedAssignmentData> {
+  static async updateAssignment(assignmentId: string, updates: any, userEmail?: string): Promise<OptimizedAssignmentData> {
     this.clearCache();
     
-    const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+    const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
     if (isDemoMode) {
       // Virtualize demo update - no DB write
@@ -714,8 +714,8 @@ export class OptimizedAssignmentService {
     return enriched[0];
   }
 
-  static async deleteAssignment(assignmentId: string): Promise<boolean> {
-    const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+  static async deleteAssignment(assignmentId: string, userEmail?: string): Promise<boolean> {
+    const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
     // Virtualize for demo mode
     if (isDemoMode && assignmentId.startsWith('demo-')) {
@@ -768,8 +768,8 @@ export class OptimizedAssignmentService {
     }
   }
 
-  static async fetchUnpublishedAssignments(userId: string, userRole: string): Promise<OptimizedAssignmentData[]> {
-    const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+  static async fetchUnpublishedAssignments(userId: string, userRole: string, userEmail?: string): Promise<OptimizedAssignmentData[]> {
+    const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
     if (isDemoMode) {
       const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
@@ -788,8 +788,8 @@ export class OptimizedAssignmentService {
     return allAssignments.filter(a => !a.published);
   }
 
-  static async fetchUserAssignments(userId: string, userRole: string): Promise<OptimizedAssignmentData[]> {
-    const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+  static async fetchUserAssignments(userId: string, userRole: string, userEmail?: string): Promise<OptimizedAssignmentData[]> {
+    const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
     if (isDemoMode) {
       const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
@@ -809,15 +809,15 @@ export class OptimizedAssignmentService {
       return [...baselineConverted, ...localConverted];
     }
     
-    const allAssignments = await this.fetchAllAssignments(userRole);
-    const filtered = allAssignments.filter(a => 
+    const allAssignments = await this.fetchAllAssignments(userRole, userEmail);
+    const filtered = allAssignments.filter(a =>
       a.responsible_user_id === userId || a.assignment_employees.some(e => e.user_id === userId)
     );
     return filtered;
   }
 
-  static async fetchPublishedAssignmentsByDate(date: string): Promise<OptimizedAssignmentData[]> {
-    const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+  static async fetchPublishedAssignmentsByDate(date: string, userEmail?: string): Promise<OptimizedAssignmentData[]> {
+    const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
     if (isDemoMode) {
       const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
@@ -835,20 +835,20 @@ export class OptimizedAssignmentService {
       return [...baselineConverted, ...localConverted];
     }
     
-    const allPublished = await this.fetchAllPublishedAssignments();
+    const allPublished = await this.fetchAllPublishedAssignments(userEmail);
     return allPublished.filter(a => a.assignment_date === date);
   }
 
-  static async publishAssignment(assignmentId: string): Promise<OptimizedAssignmentData> {
-    const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+  static async publishAssignment(assignmentId: string, userEmail?: string): Promise<OptimizedAssignmentData> {
+    const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     if (isDemoMode) {
       throw new Error('Demo mode is read-only. Cannot publish assignments.');
     }
-    return this.updateAssignment(assignmentId, { published: true });
+    return this.updateAssignment(assignmentId, { published: true }, userEmail);
   }
 
-  static async publishAssignmentsByDate(date: string): Promise<boolean> {
-    const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
+  static async publishAssignmentsByDate(date: string, userEmail?: string): Promise<boolean> {
+    const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     if (isDemoMode) {
       throw new Error('Demo mode is read-only. Cannot publish assignments.');
     }
