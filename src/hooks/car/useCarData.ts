@@ -31,10 +31,9 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         
         if (fetchError) throw fetchError;
         
-        const DEMO_DATA_CUTOFF = '2025-10-23T00:00:00Z';
+        // Include all demo cars regardless of creation date
         const baseline = (data || []).filter((c: any) => 
-          c.show_in_planner !== false && 
-          new Date(c.created_at) >= new Date(DEMO_DATA_CUTOFF)
+          c.show_in_planner !== false
         );
         
         // Merge with locally stored demo cars
@@ -154,10 +153,9 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
           const { data, error: fetchError } = await rpcWithRefresh<any[]>('get_demo_cars_with_security');
           if (fetchError) throw fetchError;
           
-          const DEMO_DATA_CUTOFF = '2025-10-23T00:00:00Z';
+          // Include all demo cars regardless of creation date
           let baseline = (data || []).filter((c: any) => 
-            c.show_in_planner !== false && 
-            new Date(c.created_at) >= new Date(DEMO_DATA_CUTOFF)
+            c.show_in_planner !== false
           ) as CarData[];
           
           // Client-side fallback if baseline empty

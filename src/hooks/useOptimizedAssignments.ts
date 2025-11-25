@@ -124,19 +124,19 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       switch (filter) {
         case 'all':
           console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: all - calling fetchAllAssignments');
-          result = await OptimizedAssignmentService.fetchAllAssignments(user.role);
+          result = await OptimizedAssignmentService.fetchAllAssignments(user.role, user.email);
           break;
         case 'published':
           console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: published - calling fetchAllPublishedAssignments');
-          result = await OptimizedAssignmentService.fetchAllPublishedAssignments();
+          result = await OptimizedAssignmentService.fetchAllPublishedAssignments(user.email);
           break;
         case 'unpublished':
           console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: unpublished - calling fetchUnpublishedAssignments');
-          result = await OptimizedAssignmentService.fetchUnpublishedAssignments(user.id, user.role);
+          result = await OptimizedAssignmentService.fetchUnpublishedAssignments(user.id, user.role, user.email);
           break;
         case 'user':
           console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: user - calling fetchUserAssignments');
-          result = await OptimizedAssignmentService.fetchUserAssignments(user.id, user.role);
+          result = await OptimizedAssignmentService.fetchUserAssignments(user.id, user.role, user.email);
           break;
         default:
           console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: default - no assignments');
@@ -258,7 +258,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           try {
             console.log('[useOptimizedAssignments] 🎯 Creating assignment for date:', date);
             const serviceData = { ...baseServiceData, assignment_date: date };
-            const created = await OptimizedAssignmentService.createAssignment(serviceData);
+            const created = await OptimizedAssignmentService.createAssignment(serviceData, user.email);
             createdAssignments.push(created);
             
             // Log the creation
@@ -354,7 +354,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       setAssignments(prev => [optimisticAssignment, ...prev]);
 
       // Call service to create assignment
-      const createdAssignment = await OptimizedAssignmentService.createAssignment(serviceData);
+      const createdAssignment = await OptimizedAssignmentService.createAssignment(serviceData, user.email);
       
       // Log the creation for single-date assignments
       try {
@@ -467,7 +467,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         };
         
         console.log('[useOptimizedAssignments] 🎯 Updating existing assignment with first date:', dates[0]);
-        await OptimizedAssignmentService.updateAssignment(id, firstDateServiceData);
+        await OptimizedAssignmentService.updateAssignment(id, firstDateServiceData, user.email);
         
         // Log the update
         if (originalAssignment) {
@@ -501,7 +501,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
                        (data.car ? [typeof data.car === 'string' ? data.car : (data.car as any)?.id] : null),
               employees: data.employees || []
             };
-            const created = await OptimizedAssignmentService.createAssignment(newAssignmentData);
+            const created = await OptimizedAssignmentService.createAssignment(newAssignmentData, user.email);
             createdAssignments.push(created);
             
             // Log the creation
@@ -643,7 +643,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       
       console.log('[useOptimizedAssignments] Service data:', serviceData);
       
-      await OptimizedAssignmentService.updateAssignment(id, serviceData);
+      await OptimizedAssignmentService.updateAssignment(id, serviceData, user.email);
       
       // Log the update
       if (originalAssignment) {
@@ -719,7 +719,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       setAssignments(prev => prev.filter(assignment => assignment.id !== id));
       
       // Service now handles deletion logging internally
-      await OptimizedAssignmentService.deleteAssignment(id);
+      await OptimizedAssignmentService.deleteAssignment(id, user.email);
       
       // Show case number in toast if available
       const caseNumber = originalAssignment?.case_number || originalAssignment?.title;
@@ -768,7 +768,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         assignment.id === id ? { ...assignment, published: true } : assignment
       ));
       
-      await OptimizedAssignmentService.publishAssignment(id);
+      await OptimizedAssignmentService.publishAssignment(id, user.email);
       
       // Log the publish operation
       await PlannerChangeLogger.logPublish([id]);
@@ -812,7 +812,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         assignment.date === date ? { ...assignment, published: true } : assignment
       ));
       
-      await OptimizedAssignmentService.publishAssignmentsByDate(date);
+      await OptimizedAssignmentService.publishAssignmentsByDate(date, user.email);
       
       // Log the bulk publish operation
       if (assignmentIds.length > 0) {
