@@ -166,6 +166,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       <CurrentAndFutureDays 
         dates={currentAndFutureDates || []}
         groupedAssignments={groupedAssignments || {}}
+        allAssignments={weekAssignments}
         operationStates={operationStates}
         expandedDays={expandedDays}
         onToggleExpansion={handleToggleExpansion}
@@ -182,6 +183,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       <PastAssignments 
         pastDates={pastDates || []}
         groupedAssignments={groupedAssignments || {}}
+        allAssignments={weekAssignments}
         operationStates={operationStates}
         expandedDays={expandedDays}
         onToggleExpansion={handleToggleExpansion}

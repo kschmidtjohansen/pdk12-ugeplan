@@ -233,7 +233,16 @@ const planner = {
     processing: 'Processing',
     success: 'Success',
     failed: 'Failed'
-  }
+  },
+
+  // Car booking conflict dialog
+  carBookingConflict: 'Car already in use',
+  carAlreadyInUse: 'is already in use on this day.',
+  conflictingTasks: 'Used for the following tasks',
+  confirmDoubleBooking: 'Do you still want to select this car?',
+  useAnywayButton: 'Use anyway',
+  until: 'until',
+  sharedWithOtherTasks: 'Shared with other tasks'
 };
 
 export default planner;

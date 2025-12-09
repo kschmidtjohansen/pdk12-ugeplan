@@ -11,6 +11,7 @@ import AssignmentCard from './AssignmentCard';
 interface DaySectionProps {
   dateKey: string;
   dayAssignments: Assignment[];
+  allAssignments?: Assignment[];
   operationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
   isExpanded: boolean;
   onToggleExpansion: (date: string) => void;
@@ -27,6 +28,7 @@ interface DaySectionProps {
 const DaySection: React.FC<DaySectionProps> = ({
   dateKey,
   dayAssignments = [],
+  allAssignments = [],
   operationStates,
   isExpanded,
   onToggleExpansion,
@@ -109,6 +111,7 @@ const DaySection: React.FC<DaySectionProps> = ({
                 key={assignment.id}
                 assignment={assignment}
                 cars={cars}
+                assignments={allAssignments}
                 canEdit={canEdit}
                 onEdit={() => onEditAssignment(assignment)}
                 onDelete={() => onDeleteAssignment(assignment.id)}
