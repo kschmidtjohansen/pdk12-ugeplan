@@ -138,6 +138,17 @@ const vacation = {
   availableHours: "Tilgængelig {startTime} - {endTime}",
   offHours: "Fri {startTime} - {endTime}",
   returnsOn: "Ferie/fri til:",
+  
+  // Vacation history dialog
+  history: "Feriehistorik",
+  historyFor: "{name}s feriehistorik",
+  currentVacation: "Nuværende ferie",
+  upcomingVacations: "Kommende ferier",
+  pastVacations: "Tidligere ferier",
+  pendingRequests: "Afventende anmodninger",
+  notOnVacation: "Ikke på ferie i øjeblikket",
+  noUpcoming: "Ingen kommende ferier",
+  noPast: "Ingen tidligere ferier",
 };
 
 export default vacation;

@@ -1,9 +1,9 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { usePermissions } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, HardHat, Truck, Forklift } from 'lucide-react';
+import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, HardHat, Truck, Forklift, Calendar } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Employee } from '@/types/employee';
@@ -11,6 +11,7 @@ import { Vacation } from '@/types/vacation';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
+import EmployeeVacationHistoryDialog from './EmployeeVacationHistoryDialog';
 
 
 interface EmployeeTableRowProps {
@@ -24,6 +25,7 @@ interface EmployeeTableRowProps {
 const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vacations, onEdit, onDelete, onToggleLeave }) => {
   const { isAdmin, isSkadeleder } = usePermissions();
   const { t } = useTranslation();
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
 
   // Get role variant for status badge
   const getRoleVariant = (role: string) => {
@@ -216,6 +218,25 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
                   <Button 
                     variant="ghost" 
                     size="sm" 
+                    onClick={() => setHistoryDialogOpen(true)} 
+                    className="h-8 w-8 p-0"
+                  >
+                    <span className="sr-only">{t("vacation.history")}</span>
+                    <Calendar className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t("vacation.history")}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
                     onClick={() => onEdit(employee)} 
                     className="h-8 w-8 p-0"
                   >
@@ -277,6 +298,13 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
           </div>
         </TableCell>
       )}
+
+      <EmployeeVacationHistoryDialog
+        employee={employee}
+        vacations={vacations}
+        open={historyDialogOpen}
+        onOpenChange={setHistoryDialogOpen}
+      />
     </TableRow>
   );
 });
