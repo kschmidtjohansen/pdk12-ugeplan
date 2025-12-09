@@ -247,10 +247,8 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                               {t('cars.unavailable')}
                             </Badge>
                           ) : !isBookingAvailable ? (
-                            <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
-                              {bookingStatus.endTime 
-                                ? t('cars.inUse', { time: bookingStatus.endTime })
-                                : t('planner.inUseToday')}
+                            <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-300">
+                              {t('cars.unavailable')}
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">

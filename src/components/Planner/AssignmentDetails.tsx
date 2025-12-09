@@ -81,41 +81,71 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
   
   const carData = getCarData(assignment);
 
-  // Enhanced employee data processing with improved UUID detection and fallbacks
-  const getEmployeeData = (assignment: Assignment): {
-    names: string[];
-    hasFullData: boolean;
-  } => {
-    console.log('[AssignmentDetails] Processing employee data for assignment:', assignment.title);
-    console.log('[AssignmentDetails] Employee data available:', {
-      hasAssignedEmployees: !!assignment.assignedEmployees?.length,
-      assignedEmployees: assignment.assignedEmployees?.map(e => ({ id: e.id, name: e.name })),
-      hasLegacyEmployees: !!assignment.employees?.length,
-      legacyEmployees: assignment.employees
+  // Check if an employee is shared with other assignments on the same day
+  const getEmployeeSharingInfo = (employeeId: string, employeeName: string): { isShared: boolean; otherAssignments: string[] } => {
+    if (!assignments.length) return { isShared: false, otherAssignments: [] };
+    
+    const otherAssignments = assignments.filter(a => {
+      if (a.id === assignment.id) return false;
+      if (a.date !== assignment.date) return false;
+      
+      // Check if employee is assigned to this assignment
+      const assignedIds = a.assignedEmployees?.map(e => e.id) || [];
+      const assignedNames = a.employees || [];
+      return assignedIds.includes(employeeId) || assignedNames.includes(employeeName);
     });
     
-    const names: string[] = [];
-    
-    // Add names from assignedEmployees (new format)
-    if (assignment.assignedEmployees?.length) {
-      names.push(...assignment.assignedEmployees.map(emp => emp.name || emp.email || ''));
-    }
-    
-    // Add names from legacy employees array
-    if (assignment.employees?.length) {
-      names.push(...assignment.employees);
-    }
-    
-    // Use the filterDisplayNames utility to remove UUIDs and duplicates
-    const processedNames = filterDisplayNames(names);
-    
-    console.log('[AssignmentDetails] Processed names:', processedNames);
-    
     return {
-      names: processedNames,
-      hasFullData: !!assignment.assignedEmployees?.length
+      isShared: otherAssignments.length > 0,
+      otherAssignments: otherAssignments.map(a => a.title || a.case_number || t('planner.assignment'))
     };
   };
+
+  // Enhanced employee data processing with sharing info
+  const getEmployeeData = (assignment: Assignment): {
+    id: string;
+    name: string;
+    isShared: boolean;
+    sharedWith: string[];
+  }[] => {
+    const employeeData: { id: string; name: string; isShared: boolean; sharedWith: string[] }[] = [];
+    
+    // Add from assignedEmployees (new format)
+    if (assignment.assignedEmployees?.length) {
+      assignment.assignedEmployees.forEach(emp => {
+        const name = emp.name || emp.email || '';
+        if (name) {
+          const sharingInfo = getEmployeeSharingInfo(emp.id, name);
+          employeeData.push({
+            id: emp.id,
+            name,
+            isShared: sharingInfo.isShared,
+            sharedWith: sharingInfo.otherAssignments
+          });
+        }
+      });
+    }
+    
+    // Add from legacy employees array (filter out UUIDs and duplicates)
+    if (assignment.employees?.length) {
+      const processedNames = filterDisplayNames(assignment.employees);
+      processedNames.forEach(name => {
+        // Skip if already added from assignedEmployees
+        if (!employeeData.some(e => e.name === name)) {
+          const sharingInfo = getEmployeeSharingInfo('', name);
+          employeeData.push({
+            id: '',
+            name,
+            isShared: sharingInfo.isShared,
+            sharedWith: sharingInfo.otherAssignments
+          });
+        }
+      });
+    }
+    
+    return employeeData;
+  };
+  
   const employeeData = getEmployeeData(assignment);
   return <div className="grid grid-cols-2 gap-4 text-sm">
       {/* Left Column */}
@@ -170,16 +200,38 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       <div className="space-y-3">
 
         {/* Show all team members for assignments user can access */}
-        {employeeData.names.length > 0 && <div className="flex items-center gap-2">
+        {employeeData.length > 0 && <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
               <Users className="h-3.5 w-3.5 text-purple-600" />
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              
               <div className="flex flex-wrap gap-1">
-                {employeeData.names.map((employeeName, index) => <Badge key={index} variant="secondary" className="text-xs bg-purple-50">
-                    {employeeName || t('planner.unknownEmployee')}
-                  </Badge>)}
+                <TooltipProvider delayDuration={100}>
+                  {employeeData.map((emp, index) => (
+                    <Tooltip key={emp.id || index}>
+                      <TooltipTrigger asChild>
+                        <Badge 
+                          variant="secondary" 
+                          className={cn(
+                            "text-xs cursor-default",
+                            emp.isShared 
+                              ? "bg-yellow-50 border-yellow-300 text-yellow-700 border" 
+                              : "bg-purple-50"
+                          )}
+                        >
+                          {emp.name || t('planner.unknownEmployee')}
+                          {emp.isShared && <AlertTriangle className="h-3 w-3 ml-1" />}
+                        </Badge>
+                      </TooltipTrigger>
+                      {emp.isShared && (
+                        <TooltipContent side="top" className="max-w-xs">
+                          <p className="font-medium">{t('planner.sharedWithOtherTasks')}</p>
+                          <p className="text-xs text-muted-foreground">{emp.sharedWith.join(', ')}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  ))}
+                </TooltipProvider>
               </div>
             </div>
           </div>}
