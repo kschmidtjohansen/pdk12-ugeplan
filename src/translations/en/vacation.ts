@@ -42,6 +42,7 @@ const vacation = {
   requestRejected: "Request Rejected",
   requestRejectedMsg: "Vacation request for {name} has been rejected",
   offFrom: "Off from {time}",
+  offUntil: "Off until {time}",
   vacationStatusChanged: "Vacation Status Changed",
   vacationApproved: "Vacation Approved",
   yourRequestApproved: "Your vacation request has been approved",

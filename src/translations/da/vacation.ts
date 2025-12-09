@@ -49,6 +49,7 @@ const vacation = {
   requestRejected: "Anmodning afvist",
   requestRejectedMsg: "{name}s ferieanmodning er blevet afvist",
   offFrom: "Fri fra {time}",
+  offUntil: "Fri til {time}",
   vacationApproved: "Ferie godkendt",
   vacationStatusChanged: "Feriestatus ændret",
   yourRequestApproved: "Din ferieanmodning er blevet godkendt",

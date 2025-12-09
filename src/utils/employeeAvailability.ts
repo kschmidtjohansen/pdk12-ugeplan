@@ -182,12 +182,12 @@ export const getEmployeeAvailabilityStatus = (
         statusText: t('employees.status.onVacation'),
         badgeColor: 'bg-blue-100 text-blue-800 border-blue-200'
       };
-    } else if (vacationStatus.vacationType === 'partial_day' && vacationStatus.startTime) {
-      const formattedStartTime = normalizeTime(vacationStatus.startTime);
-      console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on partial vacation from ${formattedStartTime} on ${dateStr}`);
+    } else if (vacationStatus.vacationType === 'partial_day' && vacationStatus.endTime) {
+      const formattedEndTime = normalizeTime(vacationStatus.endTime);
+      console.log(`[getEmployeeAvailabilityStatus] Employee ${employee.name} is on partial vacation until ${formattedEndTime} on ${dateStr}`);
       return {
         status: 'partialVacation',
-        statusText: t('vacation.offFrom', { time: formattedStartTime }),
+        statusText: t('vacation.offUntil', { time: formattedEndTime }),
         badgeColor: 'bg-orange-100 text-orange-800 border-orange-200'
       };
     }
