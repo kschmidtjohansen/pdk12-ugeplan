@@ -78,28 +78,28 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
       data-testid="notification-item"
     >
       <ContentWrapper>
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3 overflow-hidden">
           <div className="flex-shrink-0 mt-1">
             {getIconComponent()}
           </div>
-          <div className="flex-grow min-w-0">
-            <div className="flex items-center justify-between gap-2">
+          <div className="flex-grow min-w-0 overflow-hidden">
+            <div className="flex items-center gap-2 min-w-0">
               <h4 className={cn(
-                "font-medium text-sm",
+                "font-medium text-sm truncate flex-1 min-w-0",
                 !notification.read && "font-semibold"
               )}>
                 {notification.title}
-                {!notification.read && (
-                  <span className="ml-2 inline-flex items-center rounded-full bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700">
-                    {t('notifications.new')}
-                  </span>
-                )}
               </h4>
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
+              {!notification.read && (
+                <span className="flex-shrink-0 inline-flex items-center rounded-full bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700">
+                  {t('notifications.new')}
+                </span>
+              )}
+              <span className="flex-shrink-0 text-xs text-muted-foreground whitespace-nowrap">
                 {formattedDate}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+            <p className="text-sm text-muted-foreground line-clamp-2 mt-1 break-words">
               {notification.message}
             </p>
           </div>

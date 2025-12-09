@@ -1,7 +1,7 @@
 import React from 'react';
 import { format, isPast, isFuture, isToday, parseISO } from 'date-fns';
 import { da } from 'date-fns/locale';
-import { Calendar, Clock, CalendarCheck, CalendarX, CalendarClock } from 'lucide-react';
+import { Calendar, Clock, CalendarCheck, CalendarClock } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -48,12 +48,6 @@ const EmployeeVacationHistoryDialog: React.FC<EmployeeVacationHistoryDialogProps
     const start = parseISO(v.start_date);
     return isFuture(start) && !isToday(start);
   }).sort((a, b) => parseISO(a.start_date).getTime() - parseISO(b.start_date).getTime());
-
-  const pastVacations = employeeVacations.filter(v => {
-    if (v.status !== 'approved') return false;
-    const end = parseISO(v.end_date);
-    return isPast(end) && !isToday(end);
-  }).sort((a, b) => parseISO(b.start_date).getTime() - parseISO(a.start_date).getTime()).slice(0, 10);
 
   const pendingVacations = employeeVacations.filter(v => v.status === 'pending')
     .sort((a, b) => parseISO(a.start_date).getTime() - parseISO(b.start_date).getTime());
@@ -169,14 +163,6 @@ const EmployeeVacationHistoryDialog: React.FC<EmployeeVacationHistoryDialogProps
                 variant="warning"
               />
             )}
-
-            {/* Past vacations */}
-            <Section
-              title={t('vacation.pastVacations')}
-              icon={CalendarX}
-              items={pastVacations}
-              emptyMessage={t('vacation.noPast')}
-            />
           </div>
         </ScrollArea>
       </DialogContent>
