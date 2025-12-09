@@ -5,11 +5,21 @@ import { format } from 'date-fns';
 
 export type EmployeeAvailabilityStatus = 'available' | 'partiallyBooked' | 'fullyBooked' | 'onLeave' | 'onVacation' | 'partialVacation';
 
+export interface VacationDetails {
+  startDate: string;
+  endDate: string;
+  startTime?: string;
+  endTime?: string;
+  reason?: string | null;
+  requestType: 'full_day' | 'partial_day';
+}
+
 export interface EmployeeAvailabilityInfo {
   status: EmployeeAvailabilityStatus;
   statusText: string;
   badgeColor: string;
   availableAt?: string;
+  vacationDetails?: VacationDetails;
 }
 
 export interface EmployeeVacationInfo {
@@ -180,7 +190,13 @@ export const getEmployeeAvailabilityStatus = (
       return {
         status: 'onVacation',
         statusText: t('employees.status.onVacation'),
-        badgeColor: 'bg-blue-100 text-blue-800 border-blue-200'
+        badgeColor: 'bg-blue-100 text-blue-800 border-blue-200',
+        vacationDetails: {
+          startDate: vacationStatus.vacation!.start_date,
+          endDate: vacationStatus.vacation!.end_date,
+          reason: vacationStatus.vacation!.reason,
+          requestType: 'full_day'
+        }
       };
     } else if (vacationStatus.vacationType === 'partial_day' && vacationStatus.endTime) {
       const formattedEndTime = normalizeTime(vacationStatus.endTime);
@@ -188,7 +204,15 @@ export const getEmployeeAvailabilityStatus = (
       return {
         status: 'partialVacation',
         statusText: t('vacation.offUntil', { time: formattedEndTime }),
-        badgeColor: 'bg-orange-100 text-orange-800 border-orange-200'
+        badgeColor: 'bg-orange-100 text-orange-800 border-orange-200',
+        vacationDetails: {
+          startDate: vacationStatus.vacation!.start_date,
+          endDate: vacationStatus.vacation!.end_date,
+          startTime: vacationStatus.startTime,
+          endTime: vacationStatus.endTime,
+          reason: vacationStatus.vacation!.reason,
+          requestType: 'partial_day'
+        }
       };
     }
   }

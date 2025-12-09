@@ -1,16 +1,16 @@
-
 import React, { memo } from 'react';
 import { usePermissions } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, HardHat, Truck, Car, Forklift } from 'lucide-react';
+import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, HardHat, Truck, Forklift } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { format } from 'date-fns';
 
 
 interface EmployeeTableRowProps {
@@ -168,9 +168,44 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
         </TableCell>
       )}
       <TableCell>
-        <StatusBadge variant={availabilityInfo.status === 'available' ? 'success' : 'error'}>
-          {availabilityInfo.statusText}
-        </StatusBadge>
+        {availabilityInfo.vacationDetails ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="cursor-help inline-block">
+                  <StatusBadge variant={availabilityInfo.status === 'available' ? 'success' : 'error'}>
+                    {availabilityInfo.statusText}
+                  </StatusBadge>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <div className="space-y-1">
+                  <p className="font-medium">{t('vacation.vacationDetails')}</p>
+                  <p className="text-xs">
+                    {t('vacation.dateRange')}: {format(new Date(availabilityInfo.vacationDetails.startDate), 'dd/MM/yyyy')} - {format(new Date(availabilityInfo.vacationDetails.endDate), 'dd/MM/yyyy')}
+                  </p>
+                  {availabilityInfo.vacationDetails.requestType === 'partial_day' && availabilityInfo.vacationDetails.startTime && availabilityInfo.vacationDetails.endTime && (
+                    <p className="text-xs">
+                      {t('vacation.offHours', { 
+                        startTime: availabilityInfo.vacationDetails.startTime, 
+                        endTime: availabilityInfo.vacationDetails.endTime 
+                      })}
+                    </p>
+                  )}
+                  {availabilityInfo.vacationDetails.reason && (
+                    <p className="text-xs text-muted-foreground">
+                      {t('vacation.reason')}: {availabilityInfo.vacationDetails.reason}
+                    </p>
+                  )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <StatusBadge variant={availabilityInfo.status === 'available' ? 'success' : 'error'}>
+            {availabilityInfo.statusText}
+          </StatusBadge>
+        )}
       </TableCell>
       {isAdmin && (
         <TableCell>
