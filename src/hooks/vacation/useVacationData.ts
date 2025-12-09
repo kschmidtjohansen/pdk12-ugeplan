@@ -105,9 +105,14 @@ export const useVacationData = () => {
         };
       });
 
-      // Schema isolation handles data separation - no filtering needed
-      setVacations(transformedVacations);
-      console.log(`[useVacationData] Successfully processed ${transformedVacations.length} vacation records`);
+      // Filter out expired vacations (only show current/future or pending)
+      const today = new Date().toISOString().split('T')[0];
+      const currentAndFutureVacations = transformedVacations.filter(vacation => 
+        vacation.end_date >= today || vacation.status === 'pending'
+      );
+      
+      setVacations(currentAndFutureVacations);
+      console.log(`[useVacationData] Filtered ${transformedVacations.length} to ${currentAndFutureVacations.length} current/future vacation records`);
 
     } catch (err) {
       console.error('[useVacationData] ❌ ERROR in fetchVacations:', err);

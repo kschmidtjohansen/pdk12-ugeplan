@@ -117,9 +117,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     }, { pastDates: [], currentAndFutureDates: [] });
   }, [weekDateStrings, today]);
 
-  if (Array.isArray(weekAssignments) && weekAssignments.length === 0) {
-    return <EmptyState message={t("planner.noAssignmentsWeek")} />;
-  }
+  const hasNoAssignments = Array.isArray(weekAssignments) && weekAssignments.length === 0;
 
   return (
     <div className="space-y-6 pb-6">
@@ -155,6 +153,13 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             <Monitor className="h-4 w-4" />
             {t('planner.showOnScreen')}
           </Button>
+        </div>
+      )}
+
+      {/* Show empty state message if no assignments, but still render the days */}
+      {hasNoAssignments && (
+        <div className="text-center py-8 text-muted-foreground">
+          {t("planner.noAssignmentsWeek")}
         </div>
       )}
       
