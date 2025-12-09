@@ -12,6 +12,8 @@ import { Clock, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/spinner';
+import { getISOWeek, getISOWeekYear, startOfISOWeek, endOfISOWeek, addWeeks } from 'date-fns';
+
 const PlannerPage: React.FC = () => {
   const {
     t,
@@ -48,13 +50,10 @@ const PlannerPage: React.FC = () => {
     publishAssignmentsByDate
   } = useOptimizedAssignments('all');
 
-  // Simplified planner state management without conflicting hooks
-  const [selectedWeek, setSelectedWeek] = React.useState(() => {
-    const today = new Date();
-    const onejan = new Date(today.getFullYear(), 0, 1);
-    return Math.ceil(((today.getTime() - onejan.getTime()) / 86400000 + onejan.getDay() + 1) / 7);
-  });
-  const [selectedYear, setSelectedYear] = React.useState(new Date().getFullYear());
+  // Simplified planner state management using ISO week numbers
+  const [selectedWeek, setSelectedWeek] = React.useState(() => getISOWeek(new Date()));
+  const [selectedYear, setSelectedYear] = React.useState(() => getISOWeekYear(new Date()));
+  
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [currentAssignment, setCurrentAssignment] = React.useState<Assignment | null>(null);
   const [selectedDay, setSelectedDay] = React.useState(new Date().toISOString().split('T')[0]);
@@ -69,48 +68,42 @@ const PlannerPage: React.FC = () => {
     employees: []
   });
 
-  // Week utilities
+  // Week utilities using date-fns for accurate ISO week handling
   const getWeekDates = (week: number, year: number) => {
-    const simple = new Date(year, 0, 1 + (week - 1) * 7);
-    const dow = simple.getDay();
-    const weekStart = new Date(simple);
-    if (dow <= 4) weekStart.setDate(simple.getDate() - simple.getDay() + 1);
-    else weekStart.setDate(simple.getDate() + 8 - simple.getDay());
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6);
+    // Create a date in the target ISO week/year
+    const jan4 = new Date(year, 0, 4); // Jan 4 is always in week 1
+    const weekStart = startOfISOWeek(addWeeks(jan4, week - 1));
+    const weekEnd = endOfISOWeek(weekStart);
     return { start: weekStart, end: weekEnd, weekNumber: week, year };
   };
 
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // Filter assignments by week
+  // Filter assignments by week using ISO week numbers
   const weekAssignments = React.useMemo(() => {
     if (!assignments || assignments.length === 0) return [];
     
     return assignments.filter(assignment => {
       const assignmentDate = new Date(assignment.date);
-      const assignmentWeek = Math.ceil(((assignmentDate.getTime() - new Date(selectedYear, 0, 1).getTime()) / 86400000 + new Date(selectedYear, 0, 1).getDay() + 1) / 7);
-      return assignmentWeek === selectedWeek && assignmentDate.getFullYear() === selectedYear;
+      const assignmentWeek = getISOWeek(assignmentDate);
+      const assignmentYear = getISOWeekYear(assignmentDate);
+      return assignmentWeek === selectedWeek && assignmentYear === selectedYear;
     });
   }, [assignments, selectedWeek, selectedYear]);
 
-  // Handlers
+  // Handlers - use date-fns for proper week navigation
   const handlePreviousWeek = () => {
-    if (selectedWeek === 1) {
-      setSelectedWeek(52);
-      setSelectedYear(selectedYear - 1);
-    } else {
-      setSelectedWeek(selectedWeek - 1);
-    }
+    const currentWeekStart = getWeekDates(selectedWeek, selectedYear).start;
+    const prevWeekStart = addWeeks(currentWeekStart, -1);
+    setSelectedWeek(getISOWeek(prevWeekStart));
+    setSelectedYear(getISOWeekYear(prevWeekStart));
   };
 
   const handleNextWeek = () => {
-    if (selectedWeek === 52) {
-      setSelectedWeek(1);
-      setSelectedYear(selectedYear + 1);
-    } else {
-      setSelectedWeek(selectedWeek + 1);
-    }
+    const currentWeekStart = getWeekDates(selectedWeek, selectedYear).start;
+    const nextWeekStart = addWeeks(currentWeekStart, 1);
+    setSelectedWeek(getISOWeek(nextWeekStart));
+    setSelectedYear(getISOWeekYear(nextWeekStart));
   };
 
   const handleOpenCreateDialog = (date: string) => {
