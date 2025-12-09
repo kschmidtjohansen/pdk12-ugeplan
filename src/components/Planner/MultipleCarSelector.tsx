@@ -147,28 +147,30 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                 const bookingStatus = getCarBookingStatus(car.id);
                 const isGenerallyAvailable = car.is_available;
                 const isBookingAvailable = bookingStatus.isAvailable;
-                const canSelect = isGenerallyAvailable && isBookingAvailable;
+                
+                // Only block generally unavailable cars - occupied cars CAN be selected
+                const canSelect = isGenerallyAvailable;
                 
                 return (
                   <div
                     key={car.id}
                     className={`flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-200 ${
-                      !canSelect && !isSelected ? 'opacity-60' : ''
+                      !canSelect ? 'opacity-60' : ''
                     }`}
-                    onClick={() => (canSelect || isSelected) && onCarToggle(car.id)}
+                    onClick={() => canSelect && onCarToggle(car.id)}
                   >
                     <input
                       type="checkbox"
                       id={`car-${car.id}`}
                       checked={isSelected}
-                      onChange={() => (canSelect || isSelected) && onCarToggle(car.id)}
-                      disabled={!canSelect && !isSelected}
+                      onChange={() => canSelect && onCarToggle(car.id)}
+                      disabled={!canSelect}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <label
                       htmlFor={`car-${car.id}`}
                       className={`flex-1 text-sm cursor-pointer ${
-                        !canSelect && !isSelected ? 'text-gray-400' : ''
+                        !canSelect ? 'text-gray-400' : ''
                       }`}
                     >
                       <div className="flex items-center justify-between w-full">
@@ -184,16 +186,15 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                             <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
                               {t('cars.unavailable')}
                             </Badge>
-                          ) : canSelect ? (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                              {t('cars.available')}
-                            </Badge>
-                           ) : !isSelected && (
-                            <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                          ) : !isBookingAvailable ? (
+                            <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
                               {bookingStatus.endTime 
                                 ? t('cars.inUse', { time: bookingStatus.endTime })
-                                : t('cars.unavailable')
-                              }
+                                : t('planner.inUseToday')}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                              {t('cars.available')}
                             </Badge>
                           )}
                         </div>
