@@ -42,17 +42,17 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
         <div 
           key={notification.id}
           className={cn(
-            "flex flex-col items-start p-3 cursor-pointer gap-1 border-b last:border-0",
+            "flex flex-col items-start p-3 cursor-pointer gap-1 border-b last:border-0 overflow-hidden",
             !notification.read && "bg-muted"
           )}
           onClick={() => onNotificationClick(notification)}
         >
-          <div className="flex justify-between w-full">
-            <span className="font-medium">{notification.title}</span>
+          <div className="flex justify-between w-full items-start gap-2">
+            <span className="font-medium truncate flex-1 min-w-0">{notification.title}</span>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-5 w-5" 
+              className="h-5 w-5 flex-shrink-0" 
               onClick={(e) => {
                 e.stopPropagation();
                 onClearNotification(notification.id);
@@ -61,9 +61,9 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
               <X className="h-3 w-3" />
             </Button>
           </div>
-          <span className="text-sm">{notification.message}</span>
-          <span className="text-xs text-muted-foreground">
-            {format(notification.date, 'PPpp')}
+          <span className="text-sm break-words overflow-hidden w-full">{notification.message}</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {format(notification.date, 'dd/MM/yy HH:mm')}
           </span>
         </div>
       ))}
