@@ -23,17 +23,18 @@
 
 - 📅 **Ugeplanlægning** med farvekodede statusser og real-time opdateringer
 - 👥 **Brugeradministration** med rollebaseret adgang (Administrator, Skadeleder, Servicemedarbejder, Vikar)
-- 🚗 **Bilhåndtering** med brændstofkort og trailer-tracking
+- 🚗 **Bilhåndtering** med brændstofkort, vægtkapacitet og trailer-tracking
 - 📦 **Lagerstyring** med sagsnummer-tracking og rengøringsstatus
-- 🏖️ **Ferieadministration** med godkendelsesworkflow og notifikationer
-- 🔔 **Real-time notifikationer** for opgaver og ferieansøgninger
+- 🏖️ **Ferieadministration** med godkendelsesworkflow og feriehistorik per medarbejder
+- 🔔 **Real-time notifikationer** med optimeret tekstvisning og responsivt layout
 - 🎭 **Demo-mode** med automatisk data cleanup (15 minutter) og rolleskift
 - 🔒 **Avanceret sikkerhed** med RLS policies, audit logging og password reset
 - 🌐 **Flersproget interface** (Dansk/Engelsk) med komplet oversættelse
 - 📱 **Responsivt design** til mobil, tablet og desktop
-- 📊 **Dashboard** med interaktive metrics og opgaveoversigt
+- 📊 **Dashboard** med interaktive metrics, tooltips og opgaveoversigt
 - 📸 **Profilbilleder** med avatar upload og cropping
 - 🔄 **Automatisk cleanup** af demo data og udløbne brugere
+- 📆 **Vagtplanlægning** med månedsoversigt og mulighed for vagtbytte
 
 ---
 
@@ -90,9 +91,11 @@ npm run build
     /Auth           → Login, password reset, sikkerhedsheaders
     /Cars           → Bilhåndtering med dialogs og tabeller
     /Dashboard      → Dashboard widgets, metrics og oversigter
-    /Employees      → Medarbejderhåndtering
+    /Duty           → Vagtplanlægning med kalender og bytte
+    /Employees      → Medarbejderhåndtering med feriehistorik
     /Layout         → Navigation, topbar, sidebars
-    /Planner        → Ugeplanlægning med drag-drop (kommende)
+    /Notifications  → Notifikationssystem med optimeret visning
+    /Planner        → Ugeplanlægning med opgavetildeling
     /Vacation       → Ferieadministration med godkendelse
     /Warehouse      → Lagerstyring
     /ui             → Shadcn UI komponenter (buttons, dialogs, etc.)
@@ -100,6 +103,7 @@ npm run build
   /hooks            → Custom React hooks organiseret efter feature
     /assignment     → Hooks til opgavehåndtering
     /car            → Hooks til bilhåndtering
+    /duty           → Hooks til vagthåndtering
     /employee       → Hooks til medarbejderhåndtering
     /vacation       → Hooks til feriehåndtering
     /warehouse      → Hooks til lagerhåndtering
@@ -157,17 +161,18 @@ Projektet er under privat licens. Kontakt udvikleren for brug og samarbejde.
 
 - 📅 **Weekly Planning** with color-coded statuses and real-time updates
 - 👥 **User Management** with role-based access control (Administrator, Supervisor, Employee, Temp)
-- 🚗 **Vehicle Management** with fuel cards and trailer tracking
+- 🚗 **Vehicle Management** with fuel cards, weight capacity and trailer tracking
 - 📦 **Warehouse Inventory** with case number tracking and cleaning status
-- 🏖️ **Vacation Management** with approval workflow and notifications
-- 🔔 **Real-time Notifications** for tasks and vacation requests
+- 🏖️ **Vacation Management** with approval workflow and vacation history per employee
+- 🔔 **Real-time Notifications** with optimized text display and responsive layout
 - 🎭 **Demo Mode** with automatic data cleanup (15 minutes) and role switching
 - 🔒 **Advanced Security** with RLS policies, audit logging, and password reset
 - 🌐 **Multi-language Interface** (Danish/English) with complete translations
 - 📱 **Responsive Design** for mobile, tablet, and desktop
-- 📊 **Dashboard** with interactive metrics and task overview
+- 📊 **Dashboard** with interactive metrics, tooltips and task overview
 - 📸 **Profile Pictures** with avatar upload and cropping
 - 🔄 **Automatic Cleanup** of demo data and expired users
+- 📆 **Duty Scheduling** with monthly overview and duty swap functionality
 
 ---
 
@@ -224,9 +229,11 @@ npm run build
     /Auth           → Login, password reset, security headers
     /Cars           → Vehicle management with dialogs and tables
     /Dashboard      → Dashboard widgets, metrics and overviews
-    /Employees      → Employee management
+    /Duty           → Duty scheduling with calendar and swap
+    /Employees      → Employee management with vacation history
     /Layout         → Navigation, topbar, sidebars
-    /Planner        → Weekly planning with drag-drop (upcoming)
+    /Notifications  → Notification system with optimized display
+    /Planner        → Weekly planning with task assignment
     /Vacation       → Vacation management with approval
     /Warehouse      → Inventory management
     /ui             → Shadcn UI components (buttons, dialogs, etc.)
@@ -234,6 +241,7 @@ npm run build
   /hooks            → Custom React hooks organized by feature
     /assignment     → Hooks for assignment handling
     /car            → Hooks for vehicle handling
+    /duty           → Hooks for duty handling
     /employee       → Hooks for employee handling
     /vacation       → Hooks for vacation handling
     /warehouse      → Hooks for warehouse handling
