@@ -206,32 +206,15 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
             </div>
             <div className="flex flex-col min-w-0 flex-1">
               <div className="flex flex-wrap gap-1">
-                <TooltipProvider delayDuration={100}>
-                  {employeeData.map((emp, index) => (
-                    <Tooltip key={emp.id || index}>
-                      <TooltipTrigger asChild>
-                        <Badge 
-                          variant="secondary" 
-                          className={cn(
-                            "text-xs cursor-default",
-                            emp.isShared 
-                              ? "bg-yellow-50 border-yellow-300 text-yellow-700 border" 
-                              : "bg-purple-50"
-                          )}
-                        >
-                          {emp.name || t('planner.unknownEmployee')}
-                          {emp.isShared && <AlertTriangle className="h-3 w-3 ml-1" />}
-                        </Badge>
-                      </TooltipTrigger>
-                      {emp.isShared && (
-                        <TooltipContent side="top" className="max-w-xs">
-                          <p className="font-medium">{t('planner.sharedWithOtherTasks')}</p>
-                          <p className="text-xs text-muted-foreground">{emp.sharedWith.join(', ')}</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  ))}
-                </TooltipProvider>
+                {employeeData.map((emp, index) => (
+                  <Badge 
+                    key={emp.id || index}
+                    variant="secondary" 
+                    className="text-xs cursor-default bg-purple-50"
+                  >
+                    {emp.name || t('planner.unknownEmployee')}
+                  </Badge>
+                ))}
               </div>
             </div>
           </div>}
