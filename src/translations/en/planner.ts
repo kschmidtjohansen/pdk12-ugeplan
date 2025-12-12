@@ -220,7 +220,8 @@ const planner = {
     dateRequired: 'Date is required',
     fromTimeRequired: 'Start time is required',
     toTimeRequired: 'End time is required',
-    timeOrderRequired: 'Start time must be before end time'
+    timeOrderRequired: 'Start time must be before end time',
+    carRequired: 'You must select at least one car'
   },
   
   // Operation status messages
