@@ -84,6 +84,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     if (!formData.toTime) {
       validationErrors.push(t('planner.validation.toTimeRequired'));
     }
+    
+    // Validate car selection - at least one car is required
+    if (!formData.cars || formData.cars.length === 0) {
+      validationErrors.push(t('planner.validation.carRequired'));
+    }
 
     // Validate time logic
     if (formData.fromTime && formData.toTime && formData.fromTime >= formData.toTime) {

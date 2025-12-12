@@ -107,9 +107,18 @@ export const useVacationData = () => {
 
       // Filter out expired vacations (only show current/future or pending)
       const today = new Date().toISOString().split('T')[0];
-      const currentAndFutureVacations = transformedVacations.filter(vacation => 
+      let currentAndFutureVacations = transformedVacations.filter(vacation => 
         vacation.end_date >= today || vacation.status === 'pending'
       );
+      
+      // Filter out demo user's vacations from production view
+      const DEMO_USER_EMAIL = 'test@polygongroup.com';
+      const DEMO_USER_ID = '165cdbc9-6722-4c96-97d2-1a87185c8133';
+      if (user?.email !== DEMO_USER_EMAIL) {
+        currentAndFutureVacations = currentAndFutureVacations.filter(vacation =>
+          vacation.user_id !== DEMO_USER_ID
+        );
+      }
       
       setVacations(currentAndFutureVacations);
       console.log(`[useVacationData] Filtered ${transformedVacations.length} to ${currentAndFutureVacations.length} current/future vacation records`);

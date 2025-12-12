@@ -1,5 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectScrollUpButton, SelectScrollDownButton } from '@/components/ui/select';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import type { DutyType } from '@/types/duty';
 
@@ -7,6 +8,7 @@ interface Employee {
   id: string;
   name: string;
   role?: string;
+  email?: string;
 }
 
 interface DutyEmployeeSelectorProps {
@@ -23,13 +25,26 @@ export const DutyEmployeeSelector = ({
   dutyType,
 }: DutyEmployeeSelectorProps) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+
+  // Demo user constants
+  const DEMO_USER_EMAIL = 'test@polygongroup.com';
+  const DEMO_USER_ID = '165cdbc9-6722-4c96-97d2-1a87185c8133';
+  const isDemoMode = user?.email === DEMO_USER_EMAIL;
+
+  // Filter out demo user from production view, then filter by duty type
+  let filteredEmployees = isDemoMode 
+    ? employees 
+    : employees.filter(emp => 
+        emp.id !== DEMO_USER_ID && emp.email !== DEMO_USER_EMAIL
+      );
 
   // Filter employees based on duty type
-  const filteredEmployees = dutyType === 'skadeleder_vagt'
-    ? employees.filter(emp => 
+  filteredEmployees = dutyType === 'skadeleder_vagt'
+    ? filteredEmployees.filter(emp => 
         emp.role === 'administrator' || emp.role === 'skadeleder'
       )
-    : employees;
+    : filteredEmployees;
 
   return (
     <Select value={selectedEmployeeId} onValueChange={onSelectEmployee}>

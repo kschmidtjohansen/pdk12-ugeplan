@@ -229,6 +229,17 @@ const planner = {
   carStatusAvailable: 'Ledig',
   carWithTrailerLabel: 'Trailer',
   
+  // Validation messages
+  validation: {
+    titleRequired: 'Titel er påkrævet',
+    locationRequired: 'Adresse er påkrævet',
+    dateRequired: 'Dato er påkrævet',
+    fromTimeRequired: 'Starttid er påkrævet',
+    toTimeRequired: 'Sluttid er påkrævet',
+    timeOrderRequired: 'Starttid skal være før sluttid',
+    carRequired: 'Du skal vælge mindst én bil'
+  },
+
   // Operation status messages
   operations: {
     creating: 'Opretter',
