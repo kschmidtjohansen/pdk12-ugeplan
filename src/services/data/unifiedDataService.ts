@@ -66,7 +66,7 @@ class UnifiedDataService {
         .select('user_id, role')
         .in('user_id', profilesData.map(p => p.id));
 
-      const employees: Employee[] = profilesData.map(profile => {
+      let employees: Employee[] = profilesData.map(profile => {
         const userRole = rolesData?.find(r => r.user_id === profile.id);
         
         return {
@@ -77,11 +77,19 @@ class UnifiedDataService {
           jobTitle: profile.job_title || '',
           role: userRole?.role || 'servicemedarbejder',
           onLeave: profile.on_leave || false,
-          status: profile.status || 'active', // Add status from database
+          status: profile.status || 'active',
           notes: profile.notes || '',
           avatar_url: profile.avatar_url
         };
       });
+
+      // Filter out demo user from production view (this service doesn't receive currentUserEmail, so always filter)
+      const DEMO_USER_EMAIL = 'test@polygongroup.com';
+      const DEMO_USER_ID = '165cdbc9-6722-4c96-97d2-1a87185c8133';
+      employees = employees.filter(emp => 
+        emp.email !== DEMO_USER_EMAIL && 
+        emp.id !== DEMO_USER_ID
+      );
 
       this.setCache(cacheKey, employees);
       return { data: employees, error: null, fromCache: false };

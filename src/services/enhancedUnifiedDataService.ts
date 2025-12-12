@@ -64,7 +64,17 @@ class EnhancedUnifiedDataService {
         avatar_url: profile.avatar_url
       }));
 
-      // Schema isolation handles data separation - no filtering needed
+      // Filter out demo user from production view
+      const DEMO_USER_EMAIL = 'test@polygongroup.com';
+      const DEMO_USER_ID = '165cdbc9-6722-4c96-97d2-1a87185c8133';
+      const isDemoMode = currentUserEmail === DEMO_USER_EMAIL;
+      
+      if (!isDemoMode) {
+        employees = employees.filter(emp => 
+          emp.email !== DEMO_USER_EMAIL && 
+          emp.id !== DEMO_USER_ID
+        );
+      }
 
       console.log(`[EnhancedUnifiedDataService] Successfully fetched ${employees.length} employees`);
 
@@ -176,7 +186,26 @@ class EnhancedUnifiedDataService {
         };
       });
 
-      // Schema isolation handles data separation - no filtering needed
+      // Filter out demo user assignments from production view
+      const DEMO_USER_EMAIL = 'test@polygongroup.com';
+      const DEMO_USER_ID = '165cdbc9-6722-4c96-97d2-1a87185c8133';
+      const isDemoMode = currentUserEmail === DEMO_USER_EMAIL;
+      
+      if (!isDemoMode) {
+        // Filter out assignments where demo user is the responsible user
+        assignments = assignments.filter(assignment => 
+          assignment.responsibleUserId !== DEMO_USER_ID
+        );
+        
+        // Also remove demo user from assignedEmployees arrays
+        assignments = assignments.map(assignment => ({
+          ...assignment,
+          assignedEmployees: assignment.assignedEmployees?.filter(emp => 
+            emp.id !== DEMO_USER_ID && emp.email !== DEMO_USER_EMAIL
+          ) || [],
+          employees: assignment.employees?.filter(name => name !== 'Demo User') || []
+        }));
+      }
 
       console.log(`[EnhancedUnifiedDataService] Successfully processed ${assignments.length} assignments`);
 

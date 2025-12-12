@@ -149,8 +149,17 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       onVacation: []
     };
     
-    // Schema isolation handles data separation - no filtering needed
-    const filteredEmployees = employees;
+    // Filter out demo user from production view
+    const DEMO_USER_EMAIL = 'test@polygongroup.com';
+    const DEMO_USER_ID = '165cdbc9-6722-4c96-97d2-1a87185c8133';
+    const isDemoMode = user?.email === DEMO_USER_EMAIL;
+    
+    const filteredEmployees = isDemoMode 
+      ? employees 
+      : employees.filter(emp => 
+          emp.email !== DEMO_USER_EMAIL && 
+          emp.id !== DEMO_USER_ID
+        );
     
     const categorized = {
       available: [] as Array<Employee & { availabilityInfo?: any }>,
