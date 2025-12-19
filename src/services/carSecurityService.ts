@@ -170,8 +170,13 @@ export class CarSecurityService {
       }
 
       const { data, error } = isDemoMode
-        ? await getSchemaClient(true).from('cars').update(updateData).eq('id', carId).select().single()
-        : await supabase.from('cars').update(updateData).eq('id', carId).select().single();
+        ? await getSchemaClient(true).from('cars').update(updateData).eq('id', carId).select().maybeSingle()
+        : await supabase.from('cars').update(updateData).eq('id', carId).select().maybeSingle();
+
+      // Check if update was blocked by RLS (no rows returned)
+      if (!data && !error) {
+        throw new Error('Du har ikke tilladelse til at redigere køretøjer');
+      }
 
       if (error) {
         // Log failed car update attempt
