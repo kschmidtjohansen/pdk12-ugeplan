@@ -72,9 +72,15 @@ export class CarSecurityService {
         throw new Error('Fuel card code is required for administrators');
       }
 
+      // Sanitize car_number: uppercase, only A-Z, 0-9, and hyphens
+      const sanitizedCarNumber = (carData.car_number || '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9-]/g, '')
+        .slice(0, 10);
+
       const insertData: any = {
         name: carData.name,
-        car_number: carData.car_number,
+        car_number: sanitizedCarNumber,
         number_plate: carData.number_plate,
         has_trailer_hitch: carData.has_trailer_hitch || false,
         is_available: carData.is_available !== undefined ? carData.is_available : true,
@@ -148,9 +154,15 @@ export class CarSecurityService {
       // Check database-level permissions
       const { data: canViewFuel } = await supabase.rpc('can_view_fuel_codes');
       
+      // Sanitize car_number: uppercase, only A-Z, 0-9, and hyphens
+      const sanitizedCarNumber = (carData.car_number || '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9-]/g, '')
+        .slice(0, 10);
+
       const updateData: any = {
         name: carData.name,
-        car_number: carData.car_number,
+        car_number: sanitizedCarNumber,
         number_plate: carData.number_plate,
         has_trailer_hitch: carData.has_trailer_hitch,
         is_available: carData.is_available,

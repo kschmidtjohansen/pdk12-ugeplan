@@ -77,7 +77,9 @@ const cars = {
   // Error messages for fetching
   fetchError: 'Failed to fetch vehicles. Please try again.',
   errorSaving: 'Could not save the vehicle',
-  updatePermissionDenied: 'You do not have permission to edit vehicles'
+  updatePermissionDenied: 'You do not have permission to edit vehicles',
+  carNumberInvalid: 'Car number may only contain uppercase letters, numbers and hyphens (2-10 characters)',
+  carNumberHelper: 'E.g. CAR-01, VAN5'
 };
 
 export default cars;

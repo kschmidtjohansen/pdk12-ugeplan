@@ -78,9 +78,19 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
               id="car_number"
               name="car_number"
               value={formData.car_number}
-              onChange={onInputChange}
+              onChange={(e) => {
+                // Auto-uppercase and filter invalid characters
+                const sanitized = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+                onInputChange({
+                  ...e,
+                  target: { ...e.target, name: 'car_number', value: sanitized }
+                } as React.ChangeEvent<HTMLInputElement>);
+              }}
+              maxLength={10}
+              placeholder={t('cars.carNumberHelper')}
               required
             />
+            <p className="text-xs text-muted-foreground">{t('cars.carNumberHelper')}</p>
           </div>
           
           <div className="space-y-2">
