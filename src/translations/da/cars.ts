@@ -75,7 +75,9 @@ const cars = {
   addNewCar: 'Tilføj Nyt Køretøj',
   
   // Error messages for fetching
-  fetchError: 'Kunne ikke hente køretøjer. Prøv venligst igen.'
+  fetchError: 'Kunne ikke hente køretøjer. Prøv venligst igen.',
+  errorSaving: 'Kunne ikke gemme køretøjet',
+  updatePermissionDenied: 'Du har ikke tilladelse til at redigere køretøjer'
 };
 
 export default cars;

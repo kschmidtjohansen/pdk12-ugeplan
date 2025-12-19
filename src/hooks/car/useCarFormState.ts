@@ -143,7 +143,7 @@ export const useCarFormState = ({
       console.error('[useCarFormState] Error saving car:', err);
       toast({
         title: t('common.error'),
-        description: err instanceof Error ? err.message : 'Error saving vehicle',
+        description: (err as any)?.message || t('cars.errorSaving'),
         variant: 'destructive'
       });
     }

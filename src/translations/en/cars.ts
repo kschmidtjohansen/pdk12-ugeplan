@@ -75,7 +75,9 @@ const cars = {
   addNewCar: 'Add New Vehicle',
   
   // Error messages for fetching
-  fetchError: 'Failed to fetch vehicles. Please try again.'
+  fetchError: 'Failed to fetch vehicles. Please try again.',
+  errorSaving: 'Could not save the vehicle',
+  updatePermissionDenied: 'You do not have permission to edit vehicles'
 };
 
 export default cars;
