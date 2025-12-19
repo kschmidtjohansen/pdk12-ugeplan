@@ -77,7 +77,9 @@ const cars = {
   // Error messages for fetching
   fetchError: 'Kunne ikke hente køretøjer. Prøv venligst igen.',
   errorSaving: 'Kunne ikke gemme køretøjet',
-  updatePermissionDenied: 'Du har ikke tilladelse til at redigere køretøjer'
+  updatePermissionDenied: 'Du har ikke tilladelse til at redigere køretøjer',
+  carNumberInvalid: 'Bilnummer må kun indeholde store bogstaver, tal og bindestreger (2-10 tegn)',
+  carNumberHelper: 'F.eks. BIL-01, VOGN5'
 };
 
 export default cars;
