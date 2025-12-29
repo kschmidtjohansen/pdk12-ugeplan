@@ -106,6 +106,11 @@ export class CarSecurityService {
         : await supabase.from('cars').insert(insertData).select().single();
 
       if (error) {
+        // Check for duplicate fuel card code error
+        if (error.message?.includes('unique_fuel_card_code') || error.code === '23505') {
+          throw new Error('DUPLICATE_FUEL_CARD_CODE');
+        }
+        
         // Log failed car creation attempt
         await supabase.rpc('log_security_event_safe', {
           event_type: 'car_creation_failure',
@@ -191,6 +196,11 @@ export class CarSecurityService {
       }
 
       if (error) {
+        // Check for duplicate fuel card code error
+        if (error.message?.includes('unique_fuel_card_code') || error.code === '23505') {
+          throw new Error('DUPLICATE_FUEL_CARD_CODE');
+        }
+        
         // Log failed car update attempt
         await supabase.rpc('log_security_event_safe', {
           event_type: 'car_update_failure',
