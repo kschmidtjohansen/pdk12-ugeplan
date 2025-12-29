@@ -79,7 +79,8 @@ const cars = {
   errorSaving: 'Kunne ikke gemme køretøjet',
   updatePermissionDenied: 'Du har ikke tilladelse til at redigere køretøjer',
   carNumberInvalid: 'Bilnummer må kun indeholde store bogstaver, tal og bindestreger (2-10 tegn)',
-  carNumberHelper: 'F.eks. BIL-01, VOGN5'
+  carNumberHelper: 'F.eks. BIL-01, VOGN5',
+  fuelCardCodeDuplicate: 'Denne brændstofkortkode er allerede i brug af et andet køretøj'
 };
 
 export default cars;

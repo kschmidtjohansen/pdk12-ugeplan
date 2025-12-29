@@ -79,7 +79,8 @@ const cars = {
   errorSaving: 'Could not save the vehicle',
   updatePermissionDenied: 'You do not have permission to edit vehicles',
   carNumberInvalid: 'Car number may only contain uppercase letters, numbers and hyphens (2-10 characters)',
-  carNumberHelper: 'E.g. CAR-01, VAN5'
+  carNumberHelper: 'E.g. CAR-01, VAN5',
+  fuelCardCodeDuplicate: 'This fuel card code is already in use by another vehicle'
 };
 
 export default cars;

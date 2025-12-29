@@ -141,9 +141,20 @@ export const useCarFormState = ({
       setDialogOpen(false);
     } catch (err) {
       console.error('[useCarFormState] Error saving car:', err);
+      
+      // Handle specific error for duplicate fuel card code
+      const errorMessage = (err as Error)?.message;
+      let description = t('cars.errorSaving');
+      
+      if (errorMessage === 'DUPLICATE_FUEL_CARD_CODE') {
+        description = t('cars.fuelCardCodeDuplicate');
+      } else if (errorMessage) {
+        description = errorMessage;
+      }
+      
       toast({
         title: t('common.error'),
-        description: (err as any)?.message || t('cars.errorSaving'),
+        description,
         variant: 'destructive'
       });
     }
