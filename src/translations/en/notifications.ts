@@ -17,7 +17,15 @@ const notifications = {
   new: 'New',
   from: 'From',
   dutyAssigned: 'New duty assigned',
-  dutyAssignedMessage: 'You have been assigned to {dutyType} on {date}'
+  dutyAssignedMessage: 'You have been assigned to {dutyType} on {date}',
+  title: 'Notifications',
+  pageTitle: 'All notifications',
+  filterByType: 'Filter by type',
+  allTypes: 'All types',
+  searchPlaceholder: 'Search notifications...',
+  noResults: 'No notifications found',
+  thisWeek: 'This week',
+  older: 'Older'
 };
 
 export default notifications;
