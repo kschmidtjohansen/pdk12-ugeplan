@@ -32,7 +32,7 @@ const NotificationsDropdown: React.FC = () => {
         align="end" 
         sideOffset={12}
         alignOffset={-8}
-        className="w-80 max-h-[80vh] overflow-y-auto z-[100] bg-background dark:bg-slate-900 border shadow-lg"
+        className="w-96 max-h-[80vh] overflow-y-auto z-[100] bg-background dark:bg-slate-900 border shadow-lg"
         avoidCollisions={true}
         collisionPadding={24}
       >

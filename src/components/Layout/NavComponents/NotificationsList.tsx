@@ -42,7 +42,7 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
         <div 
           key={notification.id}
           className={cn(
-            "flex flex-col items-start p-3 cursor-pointer gap-1 border-b last:border-0 overflow-hidden",
+            "flex flex-col items-start p-3 cursor-pointer gap-1 border-b last:border-0",
             !notification.read && "bg-muted"
           )}
           onClick={() => onNotificationClick(notification)}
@@ -61,7 +61,7 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
               <X className="h-3 w-3" />
             </Button>
           </div>
-          <span className="text-sm break-words overflow-hidden w-full">{notification.message}</span>
+          <p className="text-sm text-muted-foreground w-full whitespace-normal break-words leading-relaxed">{notification.message}</p>
           <span className="text-xs text-muted-foreground whitespace-nowrap">
             {format(notification.date, 'dd/MM/yy HH:mm')}
           </span>
