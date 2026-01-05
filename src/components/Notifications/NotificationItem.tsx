@@ -78,11 +78,11 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
       data-testid="notification-item"
     >
       <ContentWrapper>
-        <div className="flex items-start gap-3 overflow-hidden">
+        <div className="flex items-start gap-3">
           <div className="flex-shrink-0 mt-1">
             {getIconComponent()}
           </div>
-          <div className="flex-grow min-w-0 overflow-hidden">
+          <div className="flex-grow min-w-0">
             <div className="flex items-center gap-2 min-w-0">
               <h4 className={cn(
                 "font-medium text-sm truncate flex-1 min-w-0",
@@ -99,7 +99,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
                 {formattedDate}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground line-clamp-2 mt-1 break-words">
+            <p className="text-sm text-muted-foreground line-clamp-3 mt-1 break-words whitespace-normal">
               {notification.message}
             </p>
           </div>
