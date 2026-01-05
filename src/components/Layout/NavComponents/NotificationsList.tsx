@@ -70,7 +70,7 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
       
       <div className="p-2 border-t flex justify-between items-center">
         <Link 
-          to="/vacation" 
+          to="/notifications" 
           className="text-xs text-polygon-purple hover:underline"
         >
           {t('notifications.viewAll')}
