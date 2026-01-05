@@ -61,7 +61,7 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
               <X className="h-3 w-3" />
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground w-full whitespace-normal break-words leading-relaxed">{notification.message}</p>
+          <p className="text-sm text-muted-foreground max-w-full whitespace-normal break-words leading-relaxed">{notification.message}</p>
           <span className="text-xs text-muted-foreground whitespace-nowrap">
             {format(notification.date, 'dd/MM/yy HH:mm')}
           </span>
