@@ -259,7 +259,13 @@ const planner = {
   confirmDoubleBooking: 'Vil du alligevel vælge denne bil?',
   useAnywayButton: 'Brug alligevel',
   until: 'indtil',
-  sharedWithOtherTasks: 'Delt med andre opgaver'
+  sharedWithOtherTasks: 'Delt med andre opgaver',
+
+  // Address autocomplete
+  routeDistance: '{distance} km · ca. {duration} kørsel',
+  calculatingRoute: 'Beregner kørerute...',
+  noAddressesFound: 'Ingen adresser fundet',
+  locationNotAvailable: 'Kunne ikke hente din placering'
 };
 
 export default planner;

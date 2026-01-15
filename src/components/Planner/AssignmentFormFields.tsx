@@ -17,6 +17,7 @@ import { Vacation } from '@/types/vacation';
 import MultipleCarSelector from './MultipleCarSelector';
 import ResponsibleUserSelector from './ResponsibleUserSelector';
 import EmployeeSelector from './EmployeeSelector';
+import AddressAutocomplete from './AddressAutocomplete';
 
 interface AssignmentFormFieldsProps {
   title: string;
@@ -190,16 +191,12 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       </div>
 
-      {/* Location Field - Updated to use enterLocation translation */}
+      {/* Location Field with Address Autocomplete */}
       <div className="space-y-2">
         <Label htmlFor="location">{t('planner.location')}</Label>
-        <Input
-          id="location"
+        <AddressAutocomplete
           value={location}
-          onChange={(e) => {
-            console.log('[AssignmentFormFields] Location changed:', e.target.value);
-            setLocation(e.target.value);
-          }}
+          onChange={setLocation}
           placeholder={t('planner.enterLocation')}
           required
         />

@@ -243,7 +243,13 @@ const planner = {
   confirmDoubleBooking: 'Do you still want to select this car?',
   useAnywayButton: 'Use anyway',
   until: 'until',
-  sharedWithOtherTasks: 'Shared with other tasks'
+  sharedWithOtherTasks: 'Shared with other tasks',
+
+  // Address autocomplete
+  routeDistance: '{distance} km · approx. {duration} drive',
+  calculatingRoute: 'Calculating route...',
+  noAddressesFound: 'No addresses found',
+  locationNotAvailable: 'Could not get your location'
 };
 
 export default planner;
