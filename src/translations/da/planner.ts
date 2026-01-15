@@ -268,8 +268,8 @@ const planner = {
   locationNotAvailable: 'Kunne ikke hente din placering',
 
   // View toggle
-  kanbanView: 'Kanban',
-  listView: 'Liste',
+  kanbanView: 'Dagsplan',
+  listView: 'Ugeplan',
   
   // Drag and drop
   movedSuccess: 'Opgave flyttet',

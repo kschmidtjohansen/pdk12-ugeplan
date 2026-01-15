@@ -63,8 +63,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
     })
   );
   
-  // Show 2 columns (days) side by side
-  const columnsToShow = 2;
+  // Show 1 day at a time (tasks shown in 2 columns within the day)
+  const columnsToShow = 1;
   
   // Generate week date strings
   const weekDateStrings = useMemo(() => {
