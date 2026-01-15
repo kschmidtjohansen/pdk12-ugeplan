@@ -191,20 +191,27 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         )}
       </div>
 
-      {/* Suggestions dropdown */}
+      {/* Suggestions dropdown - Portal-like positioning with very high z-index */}
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-[100] top-full mt-1 w-full bg-white dark:bg-gray-900 border border-border rounded-md shadow-xl max-h-60 overflow-y-auto">
+        <div 
+          className="absolute z-[99999] top-full left-0 right-0 mt-1 w-full bg-white dark:bg-gray-900 border-2 border-primary/30 rounded-lg shadow-2xl max-h-60 overflow-y-auto"
+          style={{ 
+            position: 'absolute',
+            backgroundColor: 'var(--background)',
+          }}
+        >
           {suggestions.map((suggestion) => (
             <div
               key={suggestion.place_id}
               onClick={() => handleSelect(suggestion)}
               className={cn(
-                "px-3 py-2 hover:bg-accent cursor-pointer text-sm",
-                "flex items-start gap-2 border-b last:border-b-0 border-border"
+                "px-3 py-3 hover:bg-accent cursor-pointer text-sm",
+                "flex items-start gap-2 border-b last:border-b-0 border-border",
+                "transition-colors bg-background"
               )}
             >
-              <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
-              <span className="line-clamp-2">{suggestion.display_name}</span>
+              <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary" />
+              <span className="line-clamp-2 text-foreground">{suggestion.display_name}</span>
             </div>
           ))}
         </div>

@@ -118,6 +118,8 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
           onPublishDay={onPublishDay}
           onCreateAssignment={onCreateAssignment}
           onMoveAssignment={onMoveAssignment}
+          selectedWeek={selectedWeek}
+          selectedYear={selectedYear}
         />
       ) : (
         <AssignmentList

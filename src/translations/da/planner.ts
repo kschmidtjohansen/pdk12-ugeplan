@@ -277,6 +277,13 @@ const planner = {
   moveError: 'Kunne ikke flytte opgave',
   dragToMove: 'Træk for at flytte til en anden dag',
 
+  // Week overview widget
+  weekOverview: 'Uge oversigt',
+  
+  // Employee categories
+  skadeledere: 'Skadeledere',
+  servicemedarbejdere: 'Servicemedarbejdere',
+
   // Kanban view
   kanban: {
     viewTitle: 'Uge oversigt',

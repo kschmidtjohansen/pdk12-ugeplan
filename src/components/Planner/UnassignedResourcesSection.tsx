@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Car, Calendar, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Clock, AlertCircle } from 'lucide-react';
+import { Users, Car, Calendar, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Clock, AlertCircle, ShieldCheck, Wrench } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { Assignment, normalizeEmployees } from '@/types/assignment';
@@ -12,6 +12,7 @@ import { Vacation } from '@/types/vacation';
 import { getEmployeeAvailabilityStatus, EmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { format, parseISO, addDays, isSameDay, isWithinInterval } from 'date-fns';
 import { da } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface UnassignedResourcesSectionProps {
   assignments: Assignment[];
@@ -398,50 +399,108 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
         {!isCollapsed && (
           <CardContent className="pt-2">
             <div className="space-y-4">
-              {/* Fully Available Employees */}
-              {employeeAvailabilityData.available.length > 0 && (
-                <div>
-                  <h3 className="text-base font-semibold text-emerald-700 mb-2 flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    {t('planner.fullyAvailableEmployees')} ({employeeAvailabilityData.available.length})
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
-                    {employeeAvailabilityData.available.map(employee => (
-                      <div key={employee.id} className="flex items-center justify-between p-2 rounded-lg bg-emerald-50 border border-emerald-200">
-                        <span className="font-medium text-sm">{employee.name}</span>
-                        <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-300 text-xs">
-                          {t('planner.employeeStatusAvailable')}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Partially Available Employees */}
-              {employeeAvailabilityData.partiallyBooked.length > 0 && (
-                <div>
-                  <h3 className="text-base font-semibold text-amber-700 mb-2 flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    {t('planner.partiallyAvailableEmployees')} ({employeeAvailabilityData.partiallyBooked.length})
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
-                    {employeeAvailabilityData.partiallyBooked.map(employee => (
-                      <div key={employee.id} className="flex items-center justify-between p-2 rounded-lg bg-amber-50 border border-amber-200">
-                        <div className="flex flex-col">
-                          <span className="font-medium text-sm">{employee.name}</span>
-                          <span className="text-xs text-amber-700">
-                            {employee.availabilityInfo?.text}
-                          </span>
+              {/* Categorize available employees by role */}
+              {(() => {
+                const allAvailable = [...employeeAvailabilityData.available, ...employeeAvailabilityData.partiallyBooked];
+                const skadeledere = allAvailable.filter(emp => emp.role === 'skadeleder' || emp.role === 'administrator');
+                const servicemedarbejdere = allAvailable.filter(emp => emp.role === 'servicemedarbejder' || emp.role === 'vikar');
+                
+                return (
+                  <>
+                    {/* Skadeledere Section */}
+                    {skadeledere.length > 0 && (
+                      <div>
+                        <h3 className="text-base font-semibold text-blue-700 dark:text-blue-400 mb-2 flex items-center gap-2">
+                          <ShieldCheck className="h-4 w-4" />
+                          {t('planner.skadeledere')} ({skadeledere.length})
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
+                          {skadeledere.map(employee => {
+                            const isPartial = employeeAvailabilityData.partiallyBooked.some(e => e.id === employee.id);
+                            return (
+                              <div 
+                                key={employee.id} 
+                                className={cn(
+                                  "flex items-center justify-between p-2 rounded-lg border",
+                                  isPartial 
+                                    ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800" 
+                                    : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                                )}
+                              >
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-sm">{employee.name}</span>
+                                  {isPartial && (
+                                    <span className="text-xs text-amber-700 dark:text-amber-400">
+                                      {employee.availabilityInfo?.text}
+                                    </span>
+                                  )}
+                                </div>
+                                <Badge 
+                                  variant="outline" 
+                                  className={cn(
+                                    "text-xs",
+                                    isPartial 
+                                      ? "bg-amber-100 text-amber-700 border-amber-300" 
+                                      : "bg-blue-100 text-blue-700 border-blue-300"
+                                  )}
+                                >
+                                  {isPartial ? t('planner.employeeStatusPartial') : t('planner.employeeStatusAvailable')}
+                                </Badge>
+                              </div>
+                            );
+                          })}
                         </div>
-                        <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 text-xs">
-                          {t('planner.employeeStatusPartial')}
-                        </Badge>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                    )}
+
+                    {/* Servicemedarbejdere Section */}
+                    {servicemedarbejdere.length > 0 && (
+                      <div>
+                        <h3 className="text-base font-semibold text-purple-700 dark:text-purple-400 mb-2 flex items-center gap-2">
+                          <Wrench className="h-4 w-4" />
+                          {t('planner.servicemedarbejdere')} ({servicemedarbejdere.length})
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
+                          {servicemedarbejdere.map(employee => {
+                            const isPartial = employeeAvailabilityData.partiallyBooked.some(e => e.id === employee.id);
+                            return (
+                              <div 
+                                key={employee.id} 
+                                className={cn(
+                                  "flex items-center justify-between p-2 rounded-lg border",
+                                  isPartial 
+                                    ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800" 
+                                    : "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800"
+                                )}
+                              >
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-sm">{employee.name}</span>
+                                  {isPartial && (
+                                    <span className="text-xs text-amber-700 dark:text-amber-400">
+                                      {employee.availabilityInfo?.text}
+                                    </span>
+                                  )}
+                                </div>
+                                <Badge 
+                                  variant="outline" 
+                                  className={cn(
+                                    "text-xs",
+                                    isPartial 
+                                      ? "bg-amber-100 text-amber-700 border-amber-300" 
+                                      : "bg-purple-100 text-purple-700 border-purple-300"
+                                  )}
+                                >
+                                  {isPartial ? t('planner.employeeStatusPartial') : t('planner.employeeStatusAvailable')}
+                                </Badge>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               {/* Available Cars */}
               {availableCars.length > 0 && (

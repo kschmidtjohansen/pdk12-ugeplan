@@ -8,6 +8,7 @@ import { format, isToday, parseISO } from 'date-fns';
 import KanbanColumn from './KanbanColumn';
 import KanbanDayNavigation from './KanbanDayNavigation';
 import KanbanCard from './KanbanCard';
+import WeekOverviewWidget from './WeekOverviewWidget';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +27,8 @@ interface KanbanBoardProps {
   onPublishDay: (date: string) => void;
   onCreateAssignment: (date: string) => void;
   onMoveAssignment?: (assignmentId: string, newDate: string) => Promise<void>;
+  selectedWeek: number;
+  selectedYear: number;
 }
 
 const KanbanBoard: React.FC<KanbanBoardProps> = ({
@@ -41,7 +44,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onCopyAssignment,
   onPublishDay,
   onCreateAssignment,
-  onMoveAssignment
+  onMoveAssignment,
+  selectedWeek,
+  selectedYear
 }) => {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -59,8 +64,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
     })
   );
   
-  // Columns to show based on screen size
-  const columnsToShow = isMobile ? 1 : 2;
+  // Always show 1 day at a time for focused view
+  const columnsToShow = 1;
   
   // Generate week date strings
   const weekDateStrings = useMemo(() => {
@@ -168,6 +173,15 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
       onDragCancel={handleDragCancel}
     >
       <div className="w-full">
+        {/* Week Overview Widget */}
+        <WeekOverviewWidget
+          weekDates={weekDateStrings}
+          weekAssignments={weekAssignments}
+          onDayClick={(date, index) => setVisibleStartIndex(index)}
+          currentVisibleIndex={visibleStartIndex}
+          selectedWeek={selectedWeek}
+        />
+        
         {/* Day Navigation */}
         <KanbanDayNavigation
           weekDates={weekDateStrings}

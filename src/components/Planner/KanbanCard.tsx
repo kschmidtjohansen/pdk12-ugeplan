@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { useTranslation } from '@/context/TranslationContext';
-import { Clock, UserCheck, Car as CarIcon, Users, MapPin, FileText, Pencil, Copy, Send, Trash2, GripVertical } from 'lucide-react';
+import { Clock, UserCheck, Car as CarIcon, Users, MapPin, FileText, Pencil, Copy, Send, Trash2, GripVertical, Navigation } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useDraggable } from '@dnd-kit/core';
 import { cn } from '@/lib/utils';
@@ -117,6 +117,13 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
   const carNames = getCarNames();
   const employeeNames = getEmployeeNames();
 
+  // Helper to format time without seconds
+  const formatTime = (time: string) => {
+    if (!time) return '';
+    // Remove seconds if present (08:00:00 → 08:00)
+    return time.split(':').slice(0, 2).join(':');
+  };
+
   const getOperationText = (state: 'publishing' | 'deleting' | 'updating') => {
     switch (state) {
       case 'publishing':
@@ -181,7 +188,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           <span className="text-foreground font-medium">
-            {assignment.fromTime} - {assignment.toTime}
+            {formatTime(assignment.fromTime)} - {formatTime(assignment.toTime)}
           </span>
         </div>
         
