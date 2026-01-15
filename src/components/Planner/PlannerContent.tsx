@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
 import { DutyWeekWidget } from './DutyWeekWidget';
 import KanbanBoard from './KanbanBoard';
+import AssignmentList from './AssignmentList';
+import ViewToggle, { ViewMode } from './ViewToggle';
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
 import { Monitor } from 'lucide-react';
@@ -20,6 +22,7 @@ interface PlannerContentProps {
   onPublishDay: (date: string) => void;
   onCreateAssignment: (date: string) => void;
   onCopyAssignment: (assignment: Assignment) => void;
+  onMoveAssignment?: (assignmentId: string, newDate: string) => Promise<void>;
   selectedWeek: number;
   selectedYear: number;
   weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
@@ -35,6 +38,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   onPublishDay,
   onCreateAssignment,
   onCopyAssignment,
+  onMoveAssignment,
   selectedWeek,
   selectedYear,
   weekDates,
@@ -42,6 +46,16 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
 }) => {
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
+  
+  // View mode state with localStorage persistence
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const saved = localStorage.getItem('plannerViewMode');
+    return (saved as ViewMode) || 'kanban';
+  });
+  
+  useEffect(() => {
+    localStorage.setItem('plannerViewMode', viewMode);
+  }, [viewMode]);
   
   // Use streamlined unified data service
   const { employees, cars } = useUnifiedData();
@@ -72,9 +86,11 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         </div>
       )}
       
-      {/* Show on Screen Button */}
-      {canPublishTasks && (
-        <div className="flex justify-center mb-4">
+      {/* View Toggle and Show on Screen Button */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+        <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+        
+        {canPublishTasks && (
           <Button 
             onClick={handleShowOnScreen}
             size="sm" 
@@ -83,24 +99,42 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             <Monitor className="h-4 w-4" />
             {t('planner.showOnScreen')}
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Kanban Board */}
-      <KanbanBoard
-        weekAssignments={weekAssignments}
-        cars={cars}
-        operationStates={operationStates}
-        canEdit={canEdit}
-        canPublishTasks={canPublishTasks}
-        weekDates={weekDates}
-        onEditAssignment={onEditAssignment}
-        onDeleteAssignment={onDeleteAssignment}
-        onPublishAssignment={onPublishAssignment}
-        onCopyAssignment={onCopyAssignment}
-        onPublishDay={onPublishDay}
-        onCreateAssignment={onCreateAssignment}
-      />
+      {/* Kanban Board or List View based on viewMode */}
+      {viewMode === 'kanban' ? (
+        <KanbanBoard
+          weekAssignments={weekAssignments}
+          cars={cars}
+          operationStates={operationStates}
+          canEdit={canEdit}
+          canPublishTasks={canPublishTasks}
+          weekDates={weekDates}
+          onEditAssignment={onEditAssignment}
+          onDeleteAssignment={onDeleteAssignment}
+          onPublishAssignment={onPublishAssignment}
+          onCopyAssignment={onCopyAssignment}
+          onPublishDay={onPublishDay}
+          onCreateAssignment={onCreateAssignment}
+          onMoveAssignment={onMoveAssignment}
+        />
+      ) : (
+        <AssignmentList
+          assignments={weekAssignments}
+          operationStates={operationStates}
+          onEditAssignment={onEditAssignment}
+          onDeleteAssignment={onDeleteAssignment}
+          onPublishAssignment={onPublishAssignment}
+          onPublishDay={onPublishDay}
+          onCreateAssignment={onCreateAssignment}
+          onCopyAssignment={onCopyAssignment}
+          selectedWeek={selectedWeek}
+          selectedYear={selectedYear}
+          weekDates={weekDates}
+          cars={cars}
+        />
+      )}
     </div>
   );
 };

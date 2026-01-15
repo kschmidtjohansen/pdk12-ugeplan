@@ -25,6 +25,7 @@ interface UseOptimizedAssignmentsResult {
   deleteAssignment: (id: string) => Promise<void>;
   publishAssignment: (id: string) => Promise<void>;
   publishAssignmentsByDate: (date: string) => Promise<void>;
+  moveAssignment: (id: string, newDate: string) => Promise<void>;
   setAssignments: React.Dispatch<React.SetStateAction<Assignment[]>>;
 }
 
@@ -840,6 +841,47 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     }
   }, [toast, t, refetch, setAssignments]);
 
+  // Move assignment to a different date (for drag-and-drop)
+  const moveAssignment = useCallback(async (id: string, newDate: string) => {
+    setOperationState(id, 'loading');
+    
+    try {
+      console.log('[useOptimizedAssignments] Moving assignment', id, 'to date', newDate);
+      
+      // Find original assignment
+      const originalAssignment = assignments.find(a => a.id === id);
+      if (!originalAssignment) {
+        throw new Error('Assignment not found');
+      }
+      
+      // Optimistically update the assignment date
+      setAssignments(prev => prev.map(assignment => 
+        assignment.id === id 
+          ? { ...assignment, date: newDate } 
+          : assignment
+      ));
+      
+      // Update in database
+      const { error } = await supabase
+        .from('assignments')
+        .update({ assignment_date: newDate })
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      setOperationState(id, 'success');
+      
+    } catch (error) {
+      console.error('[useOptimizedAssignments] Move assignment failed:', error);
+      
+      // Revert optimistic update on error
+      await refetch();
+      
+      setOperationState(id, 'error');
+      throw error;
+    }
+  }, [assignments, setAssignments, refetch, setOperationState]);
+
   useEffect(() => {
     if (authReady && isAuthenticated && user?.id && user?.role) {
       fetchAssignments();
@@ -857,6 +899,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     deleteAssignment,
     publishAssignment,
     publishAssignmentsByDate,
+    moveAssignment,
     setAssignments
   };
 };

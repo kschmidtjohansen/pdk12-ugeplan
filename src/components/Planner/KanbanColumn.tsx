@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatDateWithCapital } from '@/utils/dateUtils';
 import { format, parseISO, isToday, isPast } from 'date-fns';
+import { da } from 'date-fns/locale';
 import { Plus, Send } from 'lucide-react';
 import KanbanCard from './KanbanCard';
 import { cn } from '@/lib/utils';
+import { useDroppable } from '@dnd-kit/core';
 
 interface KanbanColumnProps {
   dateKey: string;
@@ -45,9 +47,15 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
   const isTodayDate = isToday(parsedDate);
   const isPastDate = isPast(parsedDate) && !isTodayDate;
   
-  const dayName = format(parsedDate, 'EEEE', { locale: currentLanguage === 'da' ? require('date-fns/locale/da').da : undefined });
+  // Droppable hook for drag-and-drop
+  const { setNodeRef, isOver } = useDroppable({
+    id: dateKey,
+    data: { dateKey }
+  });
+  
+  const dayName = format(parsedDate, 'EEEE', { locale: currentLanguage === 'da' ? da : undefined });
   const dayNumber = format(parsedDate, 'd');
-  const monthName = format(parsedDate, 'MMMM', { locale: currentLanguage === 'da' ? require('date-fns/locale/da').da : undefined });
+  const monthName = format(parsedDate, 'MMMM', { locale: currentLanguage === 'da' ? da : undefined });
   
   const hasUnpublishedAssignments = assignments.some(a => !a.published);
   const assignmentCount = assignments.length;
@@ -59,13 +67,15 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
 
   return (
     <div 
+      ref={setNodeRef}
       className={cn(
-        "flex flex-col h-full min-w-0 rounded-xl border",
+        "flex flex-col h-full min-w-0 rounded-xl border transition-all duration-200",
         isTodayDate 
           ? "bg-primary/5 border-primary/30" 
           : isPastDate 
             ? "bg-muted/30 border-border/50" 
-            : "bg-card border-border"
+            : "bg-card border-border",
+        isOver && "ring-2 ring-primary ring-opacity-50 bg-primary/10"
       )}
     >
       {/* Column Header */}
