@@ -4,13 +4,10 @@ import { Car } from '@/types/car';
 import { useTranslation } from '@/context/TranslationContext';
 import { groupAssignmentsByDay } from '@/utils/dateUtils';
 import { getAllWeekDays } from '@/utils/dates';
-import { format, isToday, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import KanbanColumn from './KanbanColumn';
 import KanbanDayNavigation from './KanbanDayNavigation';
-import KanbanCard from './KanbanCard';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
-import { useToast } from '@/hooks/use-toast';
 
 interface KanbanBoardProps {
   weekAssignments: Assignment[];
@@ -25,7 +22,6 @@ interface KanbanBoardProps {
   onCopyAssignment: (assignment: Assignment) => void;
   onPublishDay: (date: string) => void;
   onCreateAssignment: (date: string) => void;
-  onMoveAssignment?: (assignmentId: string, newDate: string) => Promise<void>;
   selectedWeek: number;
   selectedYear: number;
 }
@@ -43,25 +39,11 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onCopyAssignment,
   onPublishDay,
   onCreateAssignment,
-  onMoveAssignment,
   selectedWeek,
   selectedYear
 }) => {
   const { t } = useTranslation();
-  const { toast } = useToast();
   const isMobile = useIsMobile();
-  
-  // State for drag-and-drop
-  const [activeAssignment, setActiveAssignment] = useState<Assignment | null>(null);
-  
-  // Configure sensors for drag-and-drop
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // 8px movement before drag starts
-      },
-    })
-  );
   
   // Show 1 day at a time (tasks shown in 2 columns within the day)
   const columnsToShow = 1;
@@ -113,47 +95,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
       }
     });
   };
-  
-  // Drag-and-drop handlers
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    const assignment = active.data.current?.assignment as Assignment;
-    if (assignment) {
-      setActiveAssignment(assignment);
-    }
-  };
-  
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveAssignment(null);
-    
-    if (!over || !onMoveAssignment) return;
-    
-    const assignmentId = active.id as string;
-    const newDate = over.id as string;
-    const assignment = active.data.current?.assignment as Assignment;
-    
-    // Don't do anything if dropped on the same day
-    if (assignment?.date === newDate) return;
-    
-    try {
-      await onMoveAssignment(assignmentId, newDate);
-      toast({
-        title: t('planner.movedSuccess'),
-        description: t('planner.movedSuccessMsg'),
-      });
-    } catch (error) {
-      console.error('Failed to move assignment:', error);
-      toast({
-        title: t('planner.moveError'),
-        variant: 'destructive',
-      });
-    }
-  };
-  
-  const handleDragCancel = () => {
-    setActiveAssignment(null);
-  };
 
   if (weekDateStrings.length === 0) {
     return (
@@ -164,67 +105,42 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
-    >
-      <div className="w-full">
-        {/* Day Navigation */}
-        <KanbanDayNavigation
-          weekDates={weekDateStrings}
-          visibleStartIndex={visibleStartIndex}
-          columnsToShow={columnsToShow}
-          onNavigate={handleNavigate}
-        />
-        
-        {/* Kanban Columns */}
-        <div 
-          className="grid gap-4"
-          style={{ 
-            gridTemplateColumns: `repeat(${columnsToShow}, minmax(0, 1fr))` 
-          }}
-        >
-          {visibleDates.map(dateKey => (
-            <div key={dateKey} className="min-h-[500px] max-h-[calc(100vh-350px)]">
-              <KanbanColumn
-                dateKey={dateKey}
-                assignments={groupedAssignments[dateKey] || []}
-                cars={cars}
-                operationStates={operationStates}
-                canEdit={canEdit}
-                canPublishTasks={canPublishTasks}
-                onEditAssignment={onEditAssignment}
-                onDeleteAssignment={onDeleteAssignment}
-                onPublishAssignment={onPublishAssignment}
-                onCopyAssignment={onCopyAssignment}
-                onPublishDay={onPublishDay}
-                onCreateAssignment={onCreateAssignment}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+    <div className="w-full">
+      {/* Day Navigation */}
+      <KanbanDayNavigation
+        weekDates={weekDateStrings}
+        visibleStartIndex={visibleStartIndex}
+        columnsToShow={columnsToShow}
+        onNavigate={handleNavigate}
+      />
       
-      {/* Drag Overlay - shows the card being dragged */}
-      <DragOverlay dropAnimation={null}>
-        {activeAssignment ? (
-          <div className="w-80 opacity-90">
-            <KanbanCard
-              assignment={activeAssignment}
+      {/* Kanban Columns */}
+      <div 
+        className="grid gap-4"
+        style={{ 
+          gridTemplateColumns: `repeat(${columnsToShow}, minmax(0, 1fr))` 
+        }}
+      >
+        {visibleDates.map(dateKey => (
+          <div key={dateKey} className="min-h-[500px]">
+            <KanbanColumn
+              dateKey={dateKey}
+              assignments={groupedAssignments[dateKey] || []}
               cars={cars}
-              canEdit={false}
-              onEdit={() => {}}
-              onDelete={() => {}}
-              operationState={null}
-              isDraggable={false}
+              operationStates={operationStates}
+              canEdit={canEdit}
+              canPublishTasks={canPublishTasks}
+              onEditAssignment={onEditAssignment}
+              onDeleteAssignment={onDeleteAssignment}
+              onPublishAssignment={onPublishAssignment}
+              onCopyAssignment={onCopyAssignment}
+              onPublishDay={onPublishDay}
+              onCreateAssignment={onCreateAssignment}
             />
           </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+        ))}
+      </div>
+    </div>
   );
 };
 

@@ -3,14 +3,12 @@ import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { useTranslation } from '@/context/TranslationContext';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatDateWithCapital } from '@/utils/dateUtils';
 import { format, parseISO, isToday, isPast } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Plus, Send } from 'lucide-react';
 import KanbanCard from './KanbanCard';
 import { cn } from '@/lib/utils';
-import { useDroppable } from '@dnd-kit/core';
 
 interface KanbanColumnProps {
   dateKey: string;
@@ -47,12 +45,6 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
   const isTodayDate = isToday(parsedDate);
   const isPastDate = isPast(parsedDate) && !isTodayDate;
   
-  // Droppable hook for drag-and-drop
-  const { setNodeRef, isOver } = useDroppable({
-    id: dateKey,
-    data: { dateKey }
-  });
-  
   const dayName = format(parsedDate, 'EEEE', { locale: currentLanguage === 'da' ? da : undefined });
   const dayNumber = format(parsedDate, 'd');
   const monthName = format(parsedDate, 'MMMM', { locale: currentLanguage === 'da' ? da : undefined });
@@ -67,15 +59,13 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
 
   return (
     <div 
-      ref={setNodeRef}
       className={cn(
         "flex flex-col h-full min-w-0 rounded-xl border transition-all duration-200",
         isTodayDate 
           ? "bg-primary/5 border-primary/30" 
           : isPastDate 
             ? "bg-muted/30 border-border/50" 
-            : "bg-card border-border",
-        isOver && "ring-2 ring-primary ring-opacity-50 bg-primary/10"
+            : "bg-card border-border"
       )}
     >
       {/* Column Header */}
@@ -131,8 +121,8 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
         </div>
       </div>
       
-      {/* Column Content */}
-      <ScrollArea className="flex-1 p-3">
+      {/* Column Content - No ScrollArea, natural flow */}
+      <div className="flex-1 p-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {assignments.length > 0 ? (
             assignments.map(assignment => (
@@ -150,14 +140,14 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
             ))
           ) : (
             <div className={cn(
-              "text-center py-8 text-sm",
+              "text-center py-8 text-sm col-span-full",
               isPastDate ? "text-muted-foreground/50" : "text-muted-foreground"
             )}>
               {t('planner.nothingPlannedToday')}
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
       
       {/* Add Button Footer */}
       {canEdit && !isPastDate && onCreateAssignment && (
