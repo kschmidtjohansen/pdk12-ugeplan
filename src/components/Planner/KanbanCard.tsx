@@ -152,6 +152,13 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
         </span>
       </div>
       
+      {/* Description */}
+      {assignment.description && (
+        <div className="mb-3 text-sm text-muted-foreground bg-muted/50 rounded-md p-2">
+          {assignment.description}
+        </div>
+      )}
+      
       <Separator className="my-3" />
       
       {/* Info Grid */}
