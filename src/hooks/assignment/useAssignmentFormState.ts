@@ -18,6 +18,9 @@ export interface AssignmentFormData {
   cars?: string[];
   employees?: string[];
   responsibleUserId?: string;
+  // Route info from depot
+  routeDistanceKm?: number;
+  routeDurationMin?: number;
 }
 
 export const useAssignmentFormState = (

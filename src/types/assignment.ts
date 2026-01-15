@@ -22,6 +22,9 @@ export interface Assignment {
     name: string;
     role?: string;
   };
+  // Route info from depot
+  route_distance_km?: number;
+  route_duration_min?: number;
 }
 
 // Helper function to convert various employee formats to string[] of IDs

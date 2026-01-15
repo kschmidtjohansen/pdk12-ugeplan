@@ -17,7 +17,7 @@ import { Vacation } from '@/types/vacation';
 import MultipleCarSelector from './MultipleCarSelector';
 import ResponsibleUserSelector from './ResponsibleUserSelector';
 import EmployeeSelector from './EmployeeSelector';
-import AddressAutocomplete from './AddressAutocomplete';
+import AddressAutocomplete, { RouteInfo } from './AddressAutocomplete';
 
 interface AssignmentFormFieldsProps {
   title: string;
@@ -38,6 +38,7 @@ interface AssignmentFormFieldsProps {
   setSelectedResponsibleUserId: (value: string) => void;
   selectedEmployees: string[]; // Now stores employee IDs instead of names
   onEmployeeToggle: (employeeId: string) => void;
+  onRouteInfoChange?: (info: RouteInfo | null) => void;
   cars: Car[];
   employees: Employee[];
   vacations: Vacation[];
@@ -65,6 +66,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   setSelectedResponsibleUserId,
   selectedEmployees,
   onEmployeeToggle,
+  onRouteInfoChange,
   cars,
   employees,
   vacations,
@@ -197,6 +199,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         <AddressAutocomplete
           value={location}
           onChange={setLocation}
+          onRouteInfoChange={onRouteInfoChange}
           placeholder={t('planner.enterLocation')}
           required
         />
