@@ -151,6 +151,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   // Handle input change with debounce
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
+    console.log('[AddressAutocomplete] Input changed to:', newValue);
     setInputValue(newValue);
     onChange(newValue);
     setRouteInfo(null);
