@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
 import { DutyWeekWidget } from './DutyWeekWidget';
 import KanbanBoard from './KanbanBoard';
@@ -11,7 +10,6 @@ import AssignmentList from './AssignmentList';
 import ViewToggle, { ViewMode } from './ViewToggle';
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
-import { Monitor } from 'lucide-react';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
@@ -22,11 +20,9 @@ interface PlannerContentProps {
   onPublishDay: (date: string) => void;
   onCreateAssignment: (date: string) => void;
   onCopyAssignment: (assignment: Assignment) => void;
-  onMoveAssignment?: (assignmentId: string, newDate: string) => Promise<void>;
   selectedWeek: number;
   selectedYear: number;
   weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
-  handleShowOnScreen: () => void;
 }
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
@@ -38,11 +34,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   onPublishDay,
   onCreateAssignment,
   onCopyAssignment,
-  onMoveAssignment,
   selectedWeek,
   selectedYear,
-  weekDates,
-  handleShowOnScreen
+  weekDates
 }) => {
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
@@ -86,20 +80,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         </div>
       )}
       
-      {/* View Toggle and Show on Screen Button */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+      {/* View Toggle */}
+      <div className="flex items-center justify-start">
         <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-        
-        {canPublishTasks && (
-          <Button 
-            onClick={handleShowOnScreen}
-            size="sm" 
-            className="flex items-center gap-2 text-white shadow-lg bg-polygon-blue"
-          >
-            <Monitor className="h-4 w-4" />
-            {t('planner.showOnScreen')}
-          </Button>
-        )}
       </div>
 
       {/* Kanban Board or List View based on viewMode */}
@@ -117,7 +100,6 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
           onCopyAssignment={onCopyAssignment}
           onPublishDay={onPublishDay}
           onCreateAssignment={onCreateAssignment}
-          onMoveAssignment={onMoveAssignment}
           selectedWeek={selectedWeek}
           selectedYear={selectedYear}
         />

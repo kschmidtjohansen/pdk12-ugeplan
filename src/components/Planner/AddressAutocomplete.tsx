@@ -40,6 +40,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   required = false
 }) => {
   const { t } = useTranslation();
+  const [inputValue, setInputValue] = useState(value);
   const [suggestions, setSuggestions] = useState<NominatimSuggestion[]>([]);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -49,6 +50,11 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Sync local state with parent value
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
 
   // Update input rect for portal positioning
   const updateInputRect = useCallback(() => {
@@ -88,6 +94,9 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     }
 
     setIsSearching(true);
+    setShowSuggestions(true);
+    updateInputRect();
+    
     try {
       console.log('[AddressAutocomplete] Searching for:', query);
       const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=dk&limit=5&addressdetails=1`;
@@ -103,10 +112,6 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       const data: NominatimSuggestion[] = await response.json();
       console.log('[AddressAutocomplete] Got suggestions:', data.length);
       setSuggestions(data);
-      if (data.length > 0) {
-        updateInputRect();
-        setShowSuggestions(true);
-      }
     } catch (error) {
       console.error('[AddressAutocomplete] Search error:', error);
       setSuggestions([]);
@@ -146,6 +151,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   // Handle input change with debounce
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
+    setInputValue(newValue);
     onChange(newValue);
     setRouteInfo(null);
     onRouteInfoChange?.(null);
@@ -163,7 +169,9 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
   // Handle suggestion selection
   const handleSelect = useCallback(async (suggestion: NominatimSuggestion) => {
-    onChange(suggestion.display_name);
+    const newValue = suggestion.display_name;
+    setInputValue(newValue);
+    onChange(newValue);
     setSuggestions([]);
     setShowSuggestions(false);
 
@@ -228,20 +236,20 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         <Input
           ref={inputRef}
           id="location"
-          value={value}
+          value={inputValue}
           onChange={handleInputChange}
           onFocus={() => {
             updateInputRect();
             if (suggestions.length > 0) {
               setShowSuggestions(true);
-            } else if (value.length >= 3) {
+            } else if (inputValue.length >= 3) {
               // Search on existing value in edit mode
-              searchAddresses(value);
+              searchAddresses(inputValue);
             }
           }}
           placeholder={placeholder}
           required={required}
-          autoComplete="off"
+          autoComplete="new-password"
           className="pr-8"
         />
         {isSearching && (

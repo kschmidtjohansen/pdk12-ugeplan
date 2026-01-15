@@ -6,9 +6,8 @@ import { Separator } from '@/components/ui/separator';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { useTranslation } from '@/context/TranslationContext';
-import { Clock, UserCheck, Car as CarIcon, Users, MapPin, FileText, Pencil, Copy, Send, Trash2, GripVertical, Navigation } from 'lucide-react';
+import { Clock, UserCheck, Car as CarIcon, Users, MapPin, FileText, Pencil, Copy, Send, Trash2, Navigation } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
-import { useDraggable } from '@dnd-kit/core';
 import { cn } from '@/lib/utils';
 
 interface KanbanCardProps {
@@ -20,7 +19,6 @@ interface KanbanCardProps {
   onPublish?: () => void;
   onCopy?: () => void;
   operationState?: 'publishing' | 'deleting' | 'updating' | null;
-  isDraggable?: boolean;
 }
 
 const KanbanCard: React.FC<KanbanCardProps> = ({
@@ -31,26 +29,13 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
   onDelete,
   onPublish,
   onCopy,
-  operationState = null,
-  isDraggable = true
+  operationState = null
 }) => {
   const { t } = useTranslation();
   const { employees } = useEmployees();
   
   const isPublished = assignment.published === true;
   const isLoading = operationState !== null;
-  
-  // Draggable hook for drag-and-drop
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: assignment.id,
-    data: { assignment },
-    disabled: !isDraggable || !canEdit || isLoading
-  });
-  
-  const style = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    zIndex: isDragging ? 100 : undefined,
-  } : undefined;
 
   // Get responsible user info
   const getResponsibleUserInfo = () => {
@@ -139,27 +124,14 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
 
   return (
     <Card 
-      ref={setNodeRef}
-      style={style}
       className={cn(
         "p-4 bg-card hover:shadow-lg transition-all duration-200 border-border",
-        isLoading && "opacity-60",
-        isDragging && "opacity-50 shadow-2xl rotate-2 cursor-grabbing",
-        isDraggable && canEdit && !isLoading && "cursor-grab"
+        isLoading && "opacity-60"
       )}
-      {...attributes}
     >
-      {/* Header: Case number with drag handle */}
+      {/* Header: Case number */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          {isDraggable && canEdit && !isLoading && (
-            <div 
-              {...listeners}
-              className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground p-0.5 -ml-1"
-            >
-              <GripVertical className="h-4 w-4" />
-            </div>
-          )}
           <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           <span className="font-semibold text-base text-foreground truncate">
             {assignment.case_number || assignment.title || t('planner.titleLabel')}
