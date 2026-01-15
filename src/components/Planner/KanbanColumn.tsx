@@ -107,17 +107,33 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
             )}
           </span>
           
-          {canPublishTasks && hasUnpublishedAssignments && onPublishDay && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onPublishDay(dateKey)}
-              className="h-6 px-2 text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
-            >
-              <Send className="h-3 w-3 mr-1" />
-              {currentLanguage === 'da' ? 'Udgiv' : 'Publish'}
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {/* Ny opgave knap */}
+            {canEdit && !isPastDate && onCreateAssignment && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onCreateAssignment(dateKey)}
+                className="h-6 px-2 text-xs text-primary hover:text-primary hover:bg-primary/10"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                {currentLanguage === 'da' ? 'Ny' : 'New'}
+              </Button>
+            )}
+            
+            {/* Udgiv knap */}
+            {canPublishTasks && hasUnpublishedAssignments && onPublishDay && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onPublishDay(dateKey)}
+                className="h-6 px-2 text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
+              >
+                <Send className="h-3 w-3 mr-1" />
+                {currentLanguage === 'da' ? 'Udgiv' : 'Publish'}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
       
