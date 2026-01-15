@@ -324,7 +324,15 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)} 
           setSelectedResponsibleUserId={setResponsibleUserById} 
           selectedEmployees={normalizeEmployees(formData.employees)} 
-          onEmployeeToggle={onEmployeeToggle} 
+          onEmployeeToggle={onEmployeeToggle}
+          onRouteInfoChange={(info) => {
+            console.log('[AssignmentForm] Route info updated:', info);
+            setFormData({
+              ...formData,
+              route_distance_km: info?.distanceKm ?? undefined,
+              route_duration_min: info?.durationMin ?? undefined
+            });
+          }}
           cars={cars} 
           employees={employees} 
           vacations={vacations} 

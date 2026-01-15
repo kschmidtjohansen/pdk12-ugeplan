@@ -208,6 +208,16 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
           </div>
         )}
         
+        {/* Route info from depot */}
+        {(assignment.route_distance_km || assignment.route_duration_min) && (
+          <div className="flex items-center gap-2">
+            <Navigation className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="text-foreground text-xs">
+              {assignment.route_distance_km?.toFixed(1)} km · ca. {assignment.route_duration_min} min fra depot
+            </span>
+          </div>
+        )}
+        
         {/* Employees */}
         {employeeNames.length > 0 && (
           <div className="flex items-start gap-2">

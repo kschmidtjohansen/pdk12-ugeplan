@@ -27,7 +27,7 @@ const planner = {
   editAssignment: 'Rediger Opgave',
   copyAssignment: 'Kopier Opgave',
   deleteAssignment: 'Slet Opgave',
-  publish: 'Publicer',
+  publish: 'Udgiv',
   publishDayTasks: 'Publicer Dagens Opgaver',
   showOnScreen: 'Vis på Skærm',
   newAssignment: 'Ny Opgave',
