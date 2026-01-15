@@ -148,21 +148,6 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
           )}
         </div>
       </div>
-      
-      {/* Add Button Footer */}
-      {canEdit && !isPastDate && onCreateAssignment && (
-        <div className="p-3 border-t border-border">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onCreateAssignment(dateKey)}
-            className="w-full h-9 text-muted-foreground hover:text-foreground border border-dashed border-border hover:border-primary/50"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {t('planner.newAssignment')}
-          </Button>
-        </div>
-      )}
     </div>
   );
 };
