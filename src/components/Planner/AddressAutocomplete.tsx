@@ -79,20 +79,19 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
     setIsSearching(true);
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?` +
-        `format=json&q=${encodeURIComponent(query)}&countrycodes=dk&limit=5&addressdetails=1`,
-        {
-          headers: {
-            'Accept-Language': 'da',
-            'User-Agent': 'PDK12-Ugeplan/1.0'
-          }
+      console.log('[AddressAutocomplete] Searching for:', query);
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=dk&limit=5&addressdetails=1`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Accept-Language': 'da'
         }
-      );
+      });
       
       if (!response.ok) throw new Error('Search failed');
       
       const data: NominatimSuggestion[] = await response.json();
+      console.log('[AddressAutocomplete] Got suggestions:', data.length);
       setSuggestions(data);
       setShowSuggestions(data.length > 0);
     } catch (error) {
@@ -194,14 +193,14 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
       {/* Suggestions dropdown */}
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-50 w-full bg-background border rounded-md shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-[100] top-full mt-1 w-full bg-white dark:bg-gray-900 border border-border rounded-md shadow-xl max-h-60 overflow-y-auto">
           {suggestions.map((suggestion) => (
             <div
               key={suggestion.place_id}
               onClick={() => handleSelect(suggestion)}
               className={cn(
                 "px-3 py-2 hover:bg-accent cursor-pointer text-sm",
-                "flex items-start gap-2 border-b last:border-b-0"
+                "flex items-start gap-2 border-b last:border-b-0 border-border"
               )}
             >
               <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
