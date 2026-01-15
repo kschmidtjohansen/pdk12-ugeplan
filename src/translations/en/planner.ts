@@ -261,6 +261,13 @@ const planner = {
   moveError: 'Could not move assignment',
   dragToMove: 'Drag to move to another day',
 
+  // Week overview widget
+  weekOverview: 'Week Overview',
+  
+  // Employee categories
+  skadeledere: 'Case Managers',
+  servicemedarbejdere: 'Service Workers',
+
   // Kanban view
   kanban: {
     viewTitle: 'Week overview',
