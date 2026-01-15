@@ -265,7 +265,18 @@ const planner = {
   routeDistance: '{distance} km · ca. {duration} kørsel',
   calculatingRoute: 'Beregner kørerute...',
   noAddressesFound: 'Ingen adresser fundet',
-  locationNotAvailable: 'Kunne ikke hente din placering'
+  locationNotAvailable: 'Kunne ikke hente din placering',
+
+  // Kanban view
+  kanban: {
+    viewTitle: 'Uge oversigt',
+    noCase: 'Ingen sagsnr.',
+    draft: 'Kladde',
+    publishColumn: 'Udgiv alle',
+    addNew: 'Opret ny',
+    tasksCount: '{count} opgaver',
+    publishedCount: '{count} aftalt'
+  }
 };
 
 export default planner;

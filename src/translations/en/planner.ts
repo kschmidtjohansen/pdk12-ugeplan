@@ -249,7 +249,18 @@ const planner = {
   routeDistance: '{distance} km · approx. {duration} drive',
   calculatingRoute: 'Calculating route...',
   noAddressesFound: 'No addresses found',
-  locationNotAvailable: 'Could not get your location'
+  locationNotAvailable: 'Could not get your location',
+
+  // Kanban view
+  kanban: {
+    viewTitle: 'Week overview',
+    noCase: 'No case number',
+    draft: 'Draft',
+    publishColumn: 'Publish all',
+    addNew: 'Create new',
+    tasksCount: '{count} tasks',
+    publishedCount: '{count} published'
+  }
 };
 
 export default planner;

@@ -1,18 +1,12 @@
 
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { groupAssignmentsByDay } from '@/utils/dateUtils';
-import { format, parseISO } from 'date-fns';
-import { getAllWeekDays } from '@/utils/dates';
-import CurrentAndFutureDays from './CurrentAndFutureDays';
-import PastAssignments from './PastAssignments';
-import EmptyState from './EmptyState';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
 import { DutyWeekWidget } from './DutyWeekWidget';
-// Fix the import path
+import KanbanBoard from './KanbanBoard';
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
 import { Monitor } from 'lucide-react';
@@ -55,91 +49,27 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
 
   console.log(`[PlannerContent] Displaying ${weekAssignments.length} assignments with ${employees.length} employees and ${cars.length} cars`);
 
-  // Group assignments by day
-  const groupedAssignments = useMemo(() => {
-    return groupAssignmentsByDay(weekAssignments || []);
-  }, [weekAssignments]);
-
-  // Generate dates array for the week
-  const weekDateStrings = useMemo(() => {
-    if (!weekDates?.start || !weekDates?.end) {
-      console.error("Missing week dates in PlannerContent");
-      return [];
-    }
-    return getAllWeekDays({
-      start: weekDates.start,
-      end: weekDates.end
-    });
-  }, [weekDates]);
-
-  // State to track which days are expanded - only today should be expanded by default
-  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    return { [today]: true };
-  });
-
-  // Toggle expansion of a day section
-  const handleToggleExpansion = (date: string) => {
-    setExpandedDays(prev => ({
-      ...prev,
-      [date]: !(prev[date] ?? false)
-    }));
-  };
-
-  // Determine current date to split past and current/future days
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // Split dates into past and current/future
-  const { pastDates, currentAndFutureDates } = useMemo(() => {
-    if (!Array.isArray(weekDateStrings)) {
-      return { pastDates: [], currentAndFutureDates: [] };
-    }
-    return weekDateStrings.reduce<{
-      pastDates: string[];
-      currentAndFutureDates: string[];
-    }>((result, dateStr) => {
-      if (typeof dateStr !== 'string') {
-        console.error(`Invalid date string: ${dateStr}`);
-        return result;
-      }
-      try {
-        const date = parseISO(dateStr);
-        if (date < today) {
-          result.pastDates.push(dateStr);
-        } else {
-          result.currentAndFutureDates.push(dateStr);
-        }
-      } catch (error) {
-        console.error(`Error parsing date: ${dateStr}`, error);
-      }
-      return result;
-    }, { pastDates: [], currentAndFutureDates: [] });
-  }, [weekDateStrings, today]);
-
-  const hasNoAssignments = Array.isArray(weekAssignments) && weekAssignments.length === 0;
-
   return (
     <div className="space-y-6 pb-6">
       {/* Unassigned Resources and Duty Widget */}
       {(canEdit || canPublishTasks) && (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
-          <UnassignedResourcesSection
-            assignments={weekAssignments}
-            employees={employees}
-            cars={cars}
-            vacations={vacations}
-            weekDates={weekDates}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            <UnassignedResourcesSection
+              assignments={weekAssignments}
+              employees={employees}
+              cars={cars}
+              vacations={vacations}
+              weekDates={weekDates}
+            />
+          </div>
+          <div>
+            <DutyWeekWidget
+              selectedWeek={selectedWeek}
+              selectedYear={selectedYear}
+            />
+          </div>
         </div>
-        <div>
-          <DutyWeekWidget
-            selectedWeek={selectedWeek}
-            selectedYear={selectedYear}
-          />
-        </div>
-      </div>
       )}
       
       {/* Show on Screen Button */}
@@ -156,45 +86,20 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         </div>
       )}
 
-      {/* Show empty state message if no assignments, but still render the days */}
-      {hasNoAssignments && (
-        <div className="text-center py-8 text-muted-foreground">
-          {t("planner.noAssignmentsWeek")}
-        </div>
-      )}
-      
-      <CurrentAndFutureDays 
-        dates={currentAndFutureDates || []}
-        groupedAssignments={groupedAssignments || {}}
-        allAssignments={weekAssignments}
+      {/* Kanban Board */}
+      <KanbanBoard
+        weekAssignments={weekAssignments}
+        cars={cars}
         operationStates={operationStates}
-        expandedDays={expandedDays}
-        onToggleExpansion={handleToggleExpansion}
-        onPublishDay={onPublishDay}
+        canEdit={canEdit}
+        canPublishTasks={canPublishTasks}
+        weekDates={weekDates}
         onEditAssignment={onEditAssignment}
         onDeleteAssignment={onDeleteAssignment}
         onPublishAssignment={onPublishAssignment}
         onCopyAssignment={onCopyAssignment}
-        canEdit={canEdit}
-        canPublishTasks={canPublishTasks}
-        cars={cars}
-      />
-      
-      <PastAssignments 
-        pastDates={pastDates || []}
-        groupedAssignments={groupedAssignments || {}}
-        allAssignments={weekAssignments}
-        operationStates={operationStates}
-        expandedDays={expandedDays}
-        onToggleExpansion={handleToggleExpansion}
         onPublishDay={onPublishDay}
-        onEditAssignment={onEditAssignment}
-        onDeleteAssignment={onDeleteAssignment}
-        onPublishAssignment={onPublishAssignment}
-        onCopyAssignment={onCopyAssignment}
-        canEdit={canEdit}
-        canPublishTasks={canPublishTasks}
-        cars={cars}
+        onCreateAssignment={onCreateAssignment}
       />
     </div>
   );
