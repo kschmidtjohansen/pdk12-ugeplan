@@ -252,8 +252,8 @@ const planner = {
   locationNotAvailable: 'Could not get your location',
 
   // View toggle
-  kanbanView: 'Kanban',
-  listView: 'List',
+  kanbanView: 'Day Plan',
+  listView: 'Week Plan',
   
   // Drag and drop
   movedSuccess: 'Assignment moved',

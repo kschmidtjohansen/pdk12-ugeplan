@@ -133,7 +133,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
       
       {/* Column Content */}
       <ScrollArea className="flex-1 p-3">
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {assignments.length > 0 ? (
             assignments.map(assignment => (
               <KanbanCard

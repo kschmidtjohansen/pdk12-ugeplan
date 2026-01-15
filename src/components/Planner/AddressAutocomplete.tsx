@@ -188,7 +188,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   };
 
   // Suggestions dropdown rendered via Portal
-  const suggestionsDropdown = showSuggestions && suggestions.length > 0 && inputRect && createPortal(
+  const suggestionsDropdown = showSuggestions && (suggestions.length > 0 || isSearching) && inputRect && createPortal(
     <div 
       className="fixed z-[99999] bg-white dark:bg-gray-900 border-2 border-primary/30 rounded-lg shadow-2xl max-h-60 overflow-y-auto"
       style={{ 
@@ -198,6 +198,12 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       }}
       onMouseDown={(e) => e.preventDefault()} // Prevent blur on click
     >
+      {isSearching && (
+        <div className="px-3 py-3 text-sm text-muted-foreground flex items-center gap-2">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Søger...
+        </div>
+      )}
       {suggestions.map((suggestion) => (
         <div
           key={suggestion.place_id}
@@ -226,7 +232,12 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
           onChange={handleInputChange}
           onFocus={() => {
             updateInputRect();
-            if (suggestions.length > 0) setShowSuggestions(true);
+            if (suggestions.length > 0) {
+              setShowSuggestions(true);
+            } else if (value.length >= 3) {
+              // Search on existing value in edit mode
+              searchAddresses(value);
+            }
           }}
           placeholder={placeholder}
           required={required}
