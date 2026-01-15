@@ -267,6 +267,16 @@ const planner = {
   noAddressesFound: 'Ingen adresser fundet',
   locationNotAvailable: 'Kunne ikke hente din placering',
 
+  // View toggle
+  kanbanView: 'Kanban',
+  listView: 'Liste',
+  
+  // Drag and drop
+  movedSuccess: 'Opgave flyttet',
+  movedSuccessMsg: 'Opgaven er blevet flyttet til den nye dato',
+  moveError: 'Kunne ikke flytte opgave',
+  dragToMove: 'Træk for at flytte til en anden dag',
+
   // Kanban view
   kanban: {
     viewTitle: 'Uge oversigt',

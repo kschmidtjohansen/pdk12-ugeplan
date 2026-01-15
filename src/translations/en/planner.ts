@@ -251,6 +251,16 @@ const planner = {
   noAddressesFound: 'No addresses found',
   locationNotAvailable: 'Could not get your location',
 
+  // View toggle
+  kanbanView: 'Kanban',
+  listView: 'List',
+  
+  // Drag and drop
+  movedSuccess: 'Assignment moved',
+  movedSuccessMsg: 'The assignment has been moved to the new date',
+  moveError: 'Could not move assignment',
+  dragToMove: 'Drag to move to another day',
+
   // Kanban view
   kanban: {
     viewTitle: 'Week overview',
