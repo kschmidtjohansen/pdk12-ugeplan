@@ -46,7 +46,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   selectedWeek,
   selectedYear,
   weekDates,
-  viewMode = 'compact'
+  viewMode = 'standard'
 }) => {
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
