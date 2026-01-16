@@ -220,6 +220,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         isOpen={!!detailsDialogAssignment}
         onClose={() => setDetailsDialogAssignment(null)}
         cars={cars}
+        onEdit={onEditAssignment}
       />
     </div>
   );

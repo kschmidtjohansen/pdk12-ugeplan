@@ -97,22 +97,11 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
       </td>
       
       {/* Location */}
-      <td className="py-2.5 px-3 text-sm text-muted-foreground">
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center gap-1.5 truncate max-w-[200px]">
-                <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
-                <span className="truncate">{assignment.location || '-'}</span>
-              </div>
-            </TooltipTrigger>
-            {assignment.location && (
-              <TooltipContent side="top">
-                <p>{assignment.location}</p>
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
+      <td className="py-2.5 px-3 text-sm text-foreground">
+        <div className="flex items-center gap-1.5">
+          <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+          <span>{assignment.location || '-'}</span>
+        </div>
       </td>
       
       {/* Car */}

@@ -3,23 +3,26 @@ import React from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Assignment } from '@/types/assignment';
 import { Car as CarType } from '@/types/car';
-import { Calendar, Clock, MapPin, Car, Users, UserCheck } from 'lucide-react';
+import { Calendar, Clock, MapPin, Car, Users, UserCheck, Pencil } from 'lucide-react';
 
 interface AssignmentDetailsDialogProps {
   assignment: Assignment | null;
   isOpen: boolean;
   onClose: () => void;
   cars: CarType[];
+  onEdit?: (assignment: Assignment) => void;
 }
 
 const AssignmentDetailsDialog: React.FC<AssignmentDetailsDialogProps> = ({
   assignment,
   isOpen,
   onClose,
-  cars
+  cars,
+  onEdit
 }) => {
   const { t, currentLanguage } = useTranslation();
 
@@ -76,9 +79,25 @@ const AssignmentDetailsDialog: React.FC<AssignmentDetailsDialogProps> = ({
               <div>
                 <h3 className="text-xl font-semibold">{assignment.title}</h3>
               </div>
-              <Badge variant={assignment.published ? "default" : "secondary"}>
-                {assignment.published ? t('planner.published') : t('planner.notPublished')}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant={assignment.published ? "default" : "secondary"}>
+                  {assignment.published ? t('planner.published') : t('planner.notPublished')}
+                </Badge>
+                {onEdit && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      onEdit(assignment);
+                      onClose();
+                    }}
+                    className="flex items-center gap-1"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    {t('common.edit')}
+                  </Button>
+                )}
+              </div>
             </div>
             
             {/* Description - Full width */}
