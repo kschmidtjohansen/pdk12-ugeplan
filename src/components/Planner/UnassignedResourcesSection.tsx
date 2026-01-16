@@ -288,50 +288,6 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
           </div>
         </CardHeader>
 
-        {/* Summary Statistics Row (Always Visible) */}
-        <CardContent className="py-2 border-b">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <Users className="h-4 w-4 text-emerald-600" />
-                <span className="text-xl font-bold text-emerald-600">
-                  {stats.totalAvailableEmployees}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground">{t('planner.availableCount')} {t('employees.employees')}</p>
-            </div>
-
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <Car className="h-4 w-4 text-blue-600" />
-                <span className="text-xl font-bold text-blue-600">
-                  {stats.availableCars}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground">{t('planner.availableCount')} {t('planner.cars')}</p>
-            </div>
-
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <AlertCircle className="h-4 w-4 text-orange-600" />
-                <span className="text-xl font-bold text-orange-600">
-                  {stats.onVacationEmployees}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground">{t('planner.onVacationCount')}</p>
-            </div>
-
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <Clock className="h-4 w-4 text-amber-600" />
-                <span className="text-xl font-bold text-amber-600">
-                  {stats.partiallyBookedEmployees}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground">{t('planner.partiallyBookedCount')}</p>
-            </div>
-          </div>
-        </CardContent>
 
         {/* Detailed View (Collapsible) */}
         {!isCollapsed && (
