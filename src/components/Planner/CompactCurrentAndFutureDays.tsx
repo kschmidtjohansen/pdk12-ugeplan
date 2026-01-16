@@ -14,6 +14,7 @@ interface CompactCurrentAndFutureDaysProps {
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
   onCopyAssignment?: (assignment: Assignment) => void;
+  onViewAssignmentDetails: (assignment: Assignment) => void;
   canEdit: boolean;
   canPublishTasks: boolean;
   cars?: Car[];
@@ -30,6 +31,7 @@ const CompactCurrentAndFutureDays: React.FC<CompactCurrentAndFutureDaysProps> = 
   onDeleteAssignment,
   onPublishAssignment,
   onCopyAssignment,
+  onViewAssignmentDetails,
   canEdit,
   canPublishTasks,
   cars = []
@@ -50,6 +52,7 @@ const CompactCurrentAndFutureDays: React.FC<CompactCurrentAndFutureDaysProps> = 
           onDeleteAssignment={onDeleteAssignment}
           onPublishAssignment={onPublishAssignment}
           onCopyAssignment={onCopyAssignment}
+          onViewAssignmentDetails={onViewAssignmentDetails}
           canEdit={canEdit}
           canPublishTasks={canPublishTasks}
           cars={cars}

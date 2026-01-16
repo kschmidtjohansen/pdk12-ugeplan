@@ -13,10 +13,13 @@ import UnassignedResourcesSection from './UnassignedResourcesSection';
 import { DutyWeekWidget } from './DutyWeekWidget';
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
+import AssignmentDetailsDialog from '@/components/Dashboard/AssignmentDetailsDialog';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
   operationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
+  expandedDays: Record<string, boolean>;
+  onToggleExpansion: (date: string) => void;
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment: (assignmentId: string) => void;
@@ -32,6 +35,8 @@ interface PlannerContentProps {
 const PlannerContent: React.FC<PlannerContentProps> = ({
   weekAssignments = [],
   operationStates = {},
+  expandedDays,
+  onToggleExpansion,
   onEditAssignment,
   onDeleteAssignment,
   onPublishAssignment,
@@ -48,6 +53,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   
   const { employees, cars } = useUnifiedData();
   const { vacations } = useVacations();
+  
+  // State for assignment details dialog
+  const [detailsDialogAssignment, setDetailsDialogAssignment] = useState<Assignment | null>(null);
 
   console.log(`[PlannerContent] Displaying ${weekAssignments.length} assignments with ${employees.length} employees and ${cars.length} cars`);
 
@@ -67,30 +75,6 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       end: weekDates.end
     });
   }, [weekDates]);
-
-  // State to track which days are expanded - today and future days expanded by default
-  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const initial: Record<string, boolean> = {};
-    // Expand today and all future days
-    weekDateStrings.forEach(date => {
-      const dateObj = parseISO(date);
-      const todayObj = new Date();
-      todayObj.setHours(0, 0, 0, 0);
-      if (dateObj >= todayObj) {
-        initial[date] = true;
-      }
-    });
-    return initial;
-  });
-
-  // Toggle expansion of a day section
-  const handleToggleExpansion = (date: string) => {
-    setExpandedDays(prev => ({
-      ...prev,
-      [date]: !(prev[date] ?? false)
-    }));
-  };
 
   // Determine current date to split past and current/future days
   const today = new Date();
@@ -163,12 +147,13 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             groupedAssignments={groupedAssignments || {}}
             operationStates={operationStates}
             expandedDays={expandedDays}
-            onToggleExpansion={handleToggleExpansion}
+            onToggleExpansion={onToggleExpansion}
             onPublishDay={onPublishDay}
             onEditAssignment={onEditAssignment}
             onDeleteAssignment={onDeleteAssignment}
             onPublishAssignment={onPublishAssignment}
             onCopyAssignment={onCopyAssignment}
+            onViewAssignmentDetails={setDetailsDialogAssignment}
             canEdit={canEdit}
             canPublishTasks={canPublishTasks}
             cars={cars}
@@ -179,12 +164,13 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             groupedAssignments={groupedAssignments || {}}
             operationStates={operationStates}
             expandedDays={expandedDays}
-            onToggleExpansion={handleToggleExpansion}
+            onToggleExpansion={onToggleExpansion}
             onPublishDay={onPublishDay}
             onEditAssignment={onEditAssignment}
             onDeleteAssignment={onDeleteAssignment}
             onPublishAssignment={onPublishAssignment}
             onCopyAssignment={onCopyAssignment}
+            onViewAssignmentDetails={setDetailsDialogAssignment}
             canEdit={canEdit}
             canPublishTasks={canPublishTasks}
             cars={cars}
@@ -198,7 +184,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             allAssignments={weekAssignments}
             operationStates={operationStates}
             expandedDays={expandedDays}
-            onToggleExpansion={handleToggleExpansion}
+            onToggleExpansion={onToggleExpansion}
             onPublishDay={onPublishDay}
             onEditAssignment={onEditAssignment}
             onDeleteAssignment={onDeleteAssignment}
@@ -215,7 +201,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             allAssignments={weekAssignments}
             operationStates={operationStates}
             expandedDays={expandedDays}
-            onToggleExpansion={handleToggleExpansion}
+            onToggleExpansion={onToggleExpansion}
             onPublishDay={onPublishDay}
             onEditAssignment={onEditAssignment}
             onDeleteAssignment={onDeleteAssignment}
@@ -227,6 +213,14 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
           />
         </>
       )}
+      
+      {/* Assignment Details Dialog for compact view */}
+      <AssignmentDetailsDialog
+        assignment={detailsDialogAssignment}
+        isOpen={!!detailsDialogAssignment}
+        onClose={() => setDetailsDialogAssignment(null)}
+        cars={cars}
+      />
     </div>
   );
 };
