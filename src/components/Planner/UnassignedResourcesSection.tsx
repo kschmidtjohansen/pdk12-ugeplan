@@ -1,17 +1,18 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Car, Calendar, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Clock, AlertCircle } from 'lucide-react';
+import { Users, Car, Calendar, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Clock, AlertCircle, UserCheck, Wrench } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Car as CarType } from '@/types/car';
 import { Vacation } from '@/types/vacation';
-import { getEmployeeAvailabilityStatus, EmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
-import { format, parseISO, addDays, isSameDay, isWithinInterval } from 'date-fns';
+import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
+import { format, parseISO, addDays, isWithinInterval } from 'date-fns';
 import { da } from 'date-fns/locale';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface UnassignedResourcesSectionProps {
   assignments: Assignment[];
@@ -31,11 +32,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   vacations,
   weekDates
 }) => {
-  const {
-    t,
-    currentLanguage
-  } = useTranslation();
-  
+  const { t, currentLanguage } = useTranslation();
   const { user } = useAuth();
 
   // State for collapsible functionality
@@ -59,7 +56,6 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       });
       
       if (!isInCurrentWeek) {
-        // Default to today if it's in the current week, otherwise first day of the week
         const today = new Date();
         const defaultDate = isWithinInterval(today, {
           start: weekDates.start,
@@ -78,56 +74,15 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
   const targetDate = selectedDate;
   const targetDateObj = parseISO(targetDate);
-  
-  console.log('[UnassignedResourcesSection] Analyzing resources for date:', targetDate);
-
-  // Get assigned employee IDs for the target date using proper ID-based matching
-  const assignedEmployeeIds = useMemo(() => {
-    if (!assignments || !Array.isArray(assignments)) return new Set<string>();
-    const assigned = new Set<string>();
-    
-    assignments.filter(assignment => assignment.date === targetDate).forEach(assignment => {
-      // Handle assignedEmployees (new format with full employee objects)
-      if (assignment.assignedEmployees && Array.isArray(assignment.assignedEmployees)) {
-        assignment.assignedEmployees.forEach(emp => {
-          if (typeof emp === 'object' && emp.id) {
-            assigned.add(emp.id);
-          }
-        });
-      }
-
-      // Handle employees array (could be IDs or names - normalize first)
-      if (assignment.employees) {
-        const employeeIds = normalizeEmployees(assignment.employees);
-        employeeIds.forEach(id => {
-          // If it looks like a UUID, use it directly
-          if (typeof id === 'string' && (id.length === 36 || id.includes('-'))) {
-            assigned.add(id);
-          } else {
-            // Otherwise, try to find employee by name
-            const employee = employees.find(emp => emp.name === id);
-            if (employee) {
-              assigned.add(employee.id);
-            }
-          }
-        });
-      }
-    });
-    
-    return assigned;
-  }, [assignments, employees, targetDate]);
 
   // Get assigned car IDs for the target date
   const assignedCarIds = useMemo(() => {
     if (!assignments || !Array.isArray(assignments)) return new Set<string>();
     const assigned = new Set<string>();
     assignments.filter(assignment => assignment.date === targetDate).forEach(assignment => {
-      // Handle multiple cars
       if (assignment.cars && Array.isArray(assignment.cars)) {
         assignment.cars.forEach(carId => assigned.add(carId));
       }
-
-      // Handle single car
       if (assignment.car) {
         if (typeof assignment.car === 'string') {
           assigned.add(assignment.car);
@@ -139,7 +94,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     return assigned;
   }, [assignments, targetDate]);
 
-  // Calculate comprehensive employee availability using proper status logic
+  // Calculate comprehensive employee availability
   const employeeAvailabilityData = useMemo(() => {
     if (!employees || !Array.isArray(employees)) return {
       available: [],
@@ -149,9 +104,6 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       onVacation: []
     };
     
-    // Schema isolation handles data separation - no filtering needed
-    const filteredEmployees = employees;
-    
     const categorized = {
       available: [] as Array<Employee & { availabilityInfo?: any }>,
       partiallyBooked: [] as Array<Employee & { availabilityInfo?: any }>,
@@ -160,7 +112,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       onVacation: [] as Array<Employee & { availabilityInfo?: any }>
     };
     
-    filteredEmployees.forEach(employee => {
+    employees.forEach(employee => {
       const availabilityInfo = getEmployeeAvailabilityStatus(
         employee,
         targetDateObj,
@@ -192,19 +144,28 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     });
     
     return categorized;
-  }, [employees, assignments, vacations, targetDateObj, user?.email, t]);
+  }, [employees, assignments, vacations, targetDateObj, t]);
+
+  // Categorize available employees by role
+  const categorizedByRole = useMemo(() => {
+    const allAvailable = [...employeeAvailabilityData.available, ...employeeAvailabilityData.partiallyBooked];
+    
+    const skadeledere = allAvailable.filter(
+      emp => emp.role === 'skadeleder' || emp.role === 'administrator'
+    );
+    const servicemedarbejdere = allAvailable.filter(
+      emp => emp.role === 'servicemedarbejder' || emp.role === 'vikar'
+    );
+    
+    return { skadeledere, servicemedarbejdere };
+  }, [employeeAvailabilityData]);
 
   // Calculate available cars
   const availableCars = useMemo(() => {
     if (!cars || !Array.isArray(cars)) return [];
     return cars.filter(car => {
-      // Skip if not available
       if (!car.is_available) return false;
-
-      // Skip if not shown in planner
       if (car.show_in_planner === false) return false;
-
-      // Skip if assigned
       if (assignedCarIds.has(car.id)) return false;
       return true;
     });
@@ -226,18 +187,10 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     };
   }, [employeeAvailabilityData, availableCars.length, cars.length, assignedCarIds.size]);
 
-  console.log('[UnassignedResourcesSection] Resource analysis:', {
-    targetDate,
-    stats,
-    totalEmployees: employees.length
-  });
-
   const formatDate = (dateStr: string) => {
     const date = parseISO(dateStr);
     const locale = currentLanguage === 'da' ? da : undefined;
-    return format(date, 'EEE d. MMM', {
-      locale
-    });
+    return format(date, 'EEE d. MMM', { locale });
   };
 
   // Generate available dates from week range
@@ -269,7 +222,6 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Main Resource Overview Card */}
       <Card className="overflow-hidden border-2 border-primary/20">
         <CardHeader className="py-2 px-4 bg-gradient-to-r from-primary/5 to-primary/10">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -339,7 +291,6 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
         {/* Summary Statistics Row (Always Visible) */}
         <CardContent className="py-2 border-b">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {/* Available Employees */}
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Users className="h-4 w-4 text-emerald-600" />
@@ -350,7 +301,6 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
               <p className="text-xs text-muted-foreground">{t('planner.availableCount')} {t('employees.employees')}</p>
             </div>
 
-            {/* Available Cars */}
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Car className="h-4 w-4 text-blue-600" />
@@ -358,10 +308,9 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                   {stats.availableCars}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground">{t('planner.availableCount')} {t('planner.availableCars')}</p>
+              <p className="text-xs text-muted-foreground">{t('planner.availableCount')} {t('planner.cars')}</p>
             </div>
 
-            {/* On Vacation */}
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <AlertCircle className="h-4 w-4 text-orange-600" />
@@ -369,10 +318,9 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                   {stats.onVacationEmployees}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground">{t('planner.onVacationCount')} {t('employees.employees')}</p>
+              <p className="text-xs text-muted-foreground">{t('planner.onVacationCount')}</p>
             </div>
 
-            {/* Partially Available */}
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Clock className="h-4 w-4 text-amber-600" />
@@ -380,110 +328,161 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                   {stats.partiallyBookedEmployees}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground">{t('planner.partiallyBookedCount')} {t('employees.employees')}</p>
+              <p className="text-xs text-muted-foreground">{t('planner.partiallyBookedCount')}</p>
             </div>
           </div>
         </CardContent>
 
         {/* Detailed View (Collapsible) */}
         {!isCollapsed && (
-          <CardContent className="pt-2">
+          <CardContent className="pt-3">
             <div className="space-y-4">
-              {/* Fully Available Employees */}
-              {employeeAvailabilityData.available.length > 0 && (
+              {/* Employees by Role - Compact */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Skadeledere */}
                 <div>
-                  <h3 className="text-base font-semibold text-emerald-700 mb-2 flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    {t('planner.fullyAvailableEmployees')} ({employeeAvailabilityData.available.length})
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
-                    {employeeAvailabilityData.available.map(employee => (
-                      <div key={employee.id} className="flex items-center justify-between p-2 rounded-lg bg-emerald-50 border border-emerald-200">
-                        <span className="font-medium text-sm">{employee.name}</span>
-                        <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-300 text-xs">
-                          {t('planner.employeeStatusAvailable')}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
+                  <h4 className="text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-1.5">
+                    <UserCheck className="h-4 w-4" />
+                    {t('planner.skadeledere')} ({categorizedByRole.skadeledere.length})
+                  </h4>
+                  {categorizedByRole.skadeledere.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {categorizedByRole.skadeledere.map(emp => (
+                        <TooltipProvider key={emp.id} delayDuration={200}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge 
+                                variant="outline" 
+                                className={`text-xs cursor-default ${
+                                  emp.availabilityInfo?.status === 'partiallyBooked' 
+                                    ? 'bg-amber-50 border-amber-200 text-amber-700' 
+                                    : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                                }`}
+                              >
+                                {emp.name.split(' ')[0]}
+                                {emp.availabilityInfo?.status === 'partiallyBooked' && (
+                                  <Clock className="h-3 w-3 ml-1" />
+                                )}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-medium">{emp.name}</p>
+                              {emp.availabilityInfo?.text && (
+                                <p className="text-xs text-muted-foreground">{emp.availabilityInfo.text}</p>
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">{currentLanguage === 'da' ? 'Ingen tilgængelige' : 'None available'}</p>
+                  )}
                 </div>
-              )}
 
-              {/* Partially Available Employees */}
-              {employeeAvailabilityData.partiallyBooked.length > 0 && (
+                {/* Servicemedarbejdere */}
                 <div>
-                  <h3 className="text-base font-semibold text-amber-700 mb-2 flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    {t('planner.partiallyAvailableEmployees')} ({employeeAvailabilityData.partiallyBooked.length})
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
-                    {employeeAvailabilityData.partiallyBooked.map(employee => (
-                      <div key={employee.id} className="flex items-center justify-between p-2 rounded-lg bg-amber-50 border border-amber-200">
-                        <div className="flex flex-col">
-                          <span className="font-medium text-sm">{employee.name}</span>
-                          <span className="text-xs text-amber-700">
-                            {employee.availabilityInfo?.text}
-                          </span>
-                        </div>
-                        <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 text-xs">
-                          {t('planner.employeeStatusPartial')}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
+                  <h4 className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-1.5">
+                    <Wrench className="h-4 w-4" />
+                    {t('planner.servicemedarbejdere')} ({categorizedByRole.servicemedarbejdere.length})
+                  </h4>
+                  {categorizedByRole.servicemedarbejdere.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {categorizedByRole.servicemedarbejdere.map(emp => (
+                        <TooltipProvider key={emp.id} delayDuration={200}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge 
+                                variant="outline" 
+                                className={`text-xs cursor-default ${
+                                  emp.availabilityInfo?.status === 'partiallyBooked' 
+                                    ? 'bg-amber-50 border-amber-200 text-amber-700' 
+                                    : 'bg-blue-50 border-blue-200 text-blue-700'
+                                }`}
+                              >
+                                {emp.name.split(' ')[0]}
+                                {emp.availabilityInfo?.status === 'partiallyBooked' && (
+                                  <Clock className="h-3 w-3 ml-1" />
+                                )}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-medium">{emp.name}</p>
+                              {emp.availabilityInfo?.text && (
+                                <p className="text-xs text-muted-foreground">{emp.availabilityInfo.text}</p>
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">{currentLanguage === 'da' ? 'Ingen tilgængelige' : 'None available'}</p>
+                  )}
                 </div>
-              )}
+              </div>
 
-              {/* Available Cars */}
+              {/* Available Cars - Compact badges */}
               {availableCars.length > 0 && (
                 <div>
-                  <h3 className="text-base font-semibold text-blue-700 mb-2 flex items-center gap-2">
+                  <h4 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
                     <Car className="h-4 w-4" />
                     {t('planner.availableCars')} ({availableCars.length})
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
                     {availableCars.map(car => (
-                      <div key={car.id} className="flex items-center justify-between p-3 rounded-lg bg-blue-50 border border-blue-200">
-                        <div className="flex flex-col">
-                          <span className="font-medium">{car.name}</span>
-                          <span className="text-xs text-muted-foreground">{car.number_plate}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {car.has_trailer_hitch && (
-                            <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700">
-                              {t('planner.carWithTrailerLabel')}
+                      <TooltipProvider key={car.id} delayDuration={200}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge 
+                              variant="outline" 
+                              className="text-xs bg-slate-50 border-slate-200 cursor-default truncate max-w-[100px]"
+                            >
+                              {car.name}
+                              {car.has_trailer_hitch && <span className="ml-1">🚗</span>}
                             </Badge>
-                          )}
-                          <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
-                            {t('planner.carStatusAvailable')}
-                          </Badge>
-                        </div>
-                      </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="font-medium">{car.name}</p>
+                            <p className="text-xs text-muted-foreground">{car.number_plate}</p>
+                            {car.has_trailer_hitch && (
+                              <p className="text-xs text-orange-600">{t('planner.carWithTrailerLabel')}</p>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Employees on Vacation */}
+              {/* Employees on Vacation - Compact */}
               {employeeAvailabilityData.onVacation.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-orange-700 mb-3 flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5" />
+                  <h4 className="text-sm font-semibold text-orange-700 mb-2 flex items-center gap-1.5">
+                    <AlertCircle className="h-4 w-4" />
                     {t('planner.onVacationEmployees')} ({employeeAvailabilityData.onVacation.length})
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
                     {employeeAvailabilityData.onVacation.map(employee => (
-                      <div key={employee.id} className="flex items-center justify-between p-3 rounded-lg bg-orange-50 border border-orange-200">
-                        <div className="flex flex-col">
-                          <span className="font-medium text-orange-800">{employee.name}</span>
-                          <span className="text-xs text-orange-700">
-                            {employee.availabilityInfo?.text}
-                          </span>
-                        </div>
-                        <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300">
-                          {t('planner.employeeStatusVacation')}
-                        </Badge>
-                      </div>
+                      <TooltipProvider key={employee.id} delayDuration={200}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge 
+                              variant="outline" 
+                              className="text-xs bg-orange-50 border-orange-200 text-orange-700 cursor-default"
+                            >
+                              {employee.name.split(' ')[0]}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="font-medium">{employee.name}</p>
+                            {employee.availabilityInfo?.text && (
+                              <p className="text-xs text-muted-foreground">{employee.availabilityInfo.text}</p>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     ))}
                   </div>
                 </div>
@@ -491,12 +490,12 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
               {/* Empty State */}
               {stats.totalAvailableEmployees === 0 && stats.availableCars === 0 && (
-                <div className="text-center py-8">
-                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                <div className="text-center py-4">
+                  <Users className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-1">
                     {t('planner.noAvailableResources')}
                   </h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {t('planner.allResourcesAssigned')}
                   </p>
                 </div>

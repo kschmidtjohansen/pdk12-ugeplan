@@ -242,7 +242,19 @@ const planner = {
   confirmDoubleBooking: 'Do you still want to select this car?',
   useAnywayButton: 'Use anyway',
   until: 'until',
-  sharedWithOtherTasks: 'Shared with other tasks'
+  sharedWithOtherTasks: 'Shared with other tasks',
+  
+  // View modes
+  viewModeStandard: 'Standard',
+  viewModeCompact: 'Compact',
+  
+  // Employee role categories
+  skadeledere: 'Case Managers',
+  servicemedarbejdere: 'Service Workers',
+  
+  // Search
+  searchPlaceholder: 'Search by case no., address or employee...',
+  noSearchResults: 'No assignments match your search'
 };
 
 export default planner;

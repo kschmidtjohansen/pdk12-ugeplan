@@ -1,21 +1,18 @@
-
 import React, { useState, useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
 import { groupAssignmentsByDay } from '@/utils/dateUtils';
 import { format, parseISO } from 'date-fns';
 import { getAllWeekDays } from '@/utils/dates';
 import CurrentAndFutureDays from './CurrentAndFutureDays';
 import PastAssignments from './PastAssignments';
-import EmptyState from './EmptyState';
+import CompactCurrentAndFutureDays from './CompactCurrentAndFutureDays';
+import CompactPastAssignments from './CompactPastAssignments';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
 import { DutyWeekWidget } from './DutyWeekWidget';
-// Fix the import path
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
-import { Monitor } from 'lucide-react';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
@@ -29,7 +26,7 @@ interface PlannerContentProps {
   selectedWeek: number;
   selectedYear: number;
   weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
-  handleShowOnScreen: () => void;
+  viewMode?: 'standard' | 'compact';
 }
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
@@ -44,12 +41,11 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   selectedWeek,
   selectedYear,
   weekDates,
-  handleShowOnScreen
+  viewMode = 'compact'
 }) => {
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
   
-  // Use streamlined unified data service
   const { employees, cars } = useUnifiedData();
   const { vacations } = useVacations();
 
@@ -72,10 +68,20 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     });
   }, [weekDates]);
 
-  // State to track which days are expanded - only today should be expanded by default
+  // State to track which days are expanded - today and future days expanded by default
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() => {
     const today = format(new Date(), 'yyyy-MM-dd');
-    return { [today]: true };
+    const initial: Record<string, boolean> = {};
+    // Expand today and all future days
+    weekDateStrings.forEach(date => {
+      const dateObj = parseISO(date);
+      const todayObj = new Date();
+      todayObj.setHours(0, 0, 0, 0);
+      if (dateObj >= todayObj) {
+        initial[date] = true;
+      }
+    });
+    return initial;
   });
 
   // Toggle expansion of a day section
@@ -123,36 +129,22 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     <div className="space-y-6 pb-6">
       {/* Unassigned Resources and Duty Widget */}
       {(canEdit || canPublishTasks) && (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
-          <UnassignedResourcesSection
-            assignments={weekAssignments}
-            employees={employees}
-            cars={cars}
-            vacations={vacations}
-            weekDates={weekDates}
-          />
-        </div>
-        <div>
-          <DutyWeekWidget
-            selectedWeek={selectedWeek}
-            selectedYear={selectedYear}
-          />
-        </div>
-      </div>
-      )}
-      
-      {/* Show on Screen Button */}
-      {canPublishTasks && (
-        <div className="flex justify-center mb-4">
-          <Button 
-            onClick={handleShowOnScreen}
-            size="sm" 
-            className="flex items-center gap-2 text-white shadow-lg bg-polygon-blue"
-          >
-            <Monitor className="h-4 w-4" />
-            {t('planner.showOnScreen')}
-          </Button>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            <UnassignedResourcesSection
+              assignments={weekAssignments}
+              employees={employees}
+              cars={cars}
+              vacations={vacations}
+              weekDates={weekDates}
+            />
+          </div>
+          <div>
+            <DutyWeekWidget
+              selectedWeek={selectedWeek}
+              selectedYear={selectedYear}
+            />
+          </div>
         </div>
       )}
 
@@ -163,39 +155,78 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         </div>
       )}
       
-      <CurrentAndFutureDays 
-        dates={currentAndFutureDates || []}
-        groupedAssignments={groupedAssignments || {}}
-        allAssignments={weekAssignments}
-        operationStates={operationStates}
-        expandedDays={expandedDays}
-        onToggleExpansion={handleToggleExpansion}
-        onPublishDay={onPublishDay}
-        onEditAssignment={onEditAssignment}
-        onDeleteAssignment={onDeleteAssignment}
-        onPublishAssignment={onPublishAssignment}
-        onCopyAssignment={onCopyAssignment}
-        canEdit={canEdit}
-        canPublishTasks={canPublishTasks}
-        cars={cars}
-      />
-      
-      <PastAssignments 
-        pastDates={pastDates || []}
-        groupedAssignments={groupedAssignments || {}}
-        allAssignments={weekAssignments}
-        operationStates={operationStates}
-        expandedDays={expandedDays}
-        onToggleExpansion={handleToggleExpansion}
-        onPublishDay={onPublishDay}
-        onEditAssignment={onEditAssignment}
-        onDeleteAssignment={onDeleteAssignment}
-        onPublishAssignment={onPublishAssignment}
-        onCopyAssignment={onCopyAssignment}
-        canEdit={canEdit}
-        canPublishTasks={canPublishTasks}
-        cars={cars}
-      />
+      {/* Render view based on viewMode */}
+      {viewMode === 'compact' ? (
+        <>
+          <CompactCurrentAndFutureDays 
+            dates={currentAndFutureDates || []}
+            groupedAssignments={groupedAssignments || {}}
+            operationStates={operationStates}
+            expandedDays={expandedDays}
+            onToggleExpansion={handleToggleExpansion}
+            onPublishDay={onPublishDay}
+            onEditAssignment={onEditAssignment}
+            onDeleteAssignment={onDeleteAssignment}
+            onPublishAssignment={onPublishAssignment}
+            onCopyAssignment={onCopyAssignment}
+            canEdit={canEdit}
+            canPublishTasks={canPublishTasks}
+            cars={cars}
+          />
+          
+          <CompactPastAssignments 
+            pastDates={pastDates || []}
+            groupedAssignments={groupedAssignments || {}}
+            operationStates={operationStates}
+            expandedDays={expandedDays}
+            onToggleExpansion={handleToggleExpansion}
+            onPublishDay={onPublishDay}
+            onEditAssignment={onEditAssignment}
+            onDeleteAssignment={onDeleteAssignment}
+            onPublishAssignment={onPublishAssignment}
+            onCopyAssignment={onCopyAssignment}
+            canEdit={canEdit}
+            canPublishTasks={canPublishTasks}
+            cars={cars}
+          />
+        </>
+      ) : (
+        <>
+          <CurrentAndFutureDays 
+            dates={currentAndFutureDates || []}
+            groupedAssignments={groupedAssignments || {}}
+            allAssignments={weekAssignments}
+            operationStates={operationStates}
+            expandedDays={expandedDays}
+            onToggleExpansion={handleToggleExpansion}
+            onPublishDay={onPublishDay}
+            onEditAssignment={onEditAssignment}
+            onDeleteAssignment={onDeleteAssignment}
+            onPublishAssignment={onPublishAssignment}
+            onCopyAssignment={onCopyAssignment}
+            canEdit={canEdit}
+            canPublishTasks={canPublishTasks}
+            cars={cars}
+          />
+          
+          <PastAssignments 
+            pastDates={pastDates || []}
+            groupedAssignments={groupedAssignments || {}}
+            allAssignments={weekAssignments}
+            operationStates={operationStates}
+            expandedDays={expandedDays}
+            onToggleExpansion={handleToggleExpansion}
+            onPublishDay={onPublishDay}
+            onEditAssignment={onEditAssignment}
+            onDeleteAssignment={onDeleteAssignment}
+            onPublishAssignment={onPublishAssignment}
+            onCopyAssignment={onCopyAssignment}
+            canEdit={canEdit}
+            canPublishTasks={canPublishTasks}
+            cars={cars}
+          />
+        </>
+      )}
     </div>
   );
 };

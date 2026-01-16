@@ -248,7 +248,19 @@ const planner = {
   confirmDoubleBooking: 'Vil du alligevel vælge denne bil?',
   useAnywayButton: 'Brug alligevel',
   until: 'indtil',
-  sharedWithOtherTasks: 'Delt med andre opgaver'
+  sharedWithOtherTasks: 'Delt med andre opgaver',
+  
+  // View modes
+  viewModeStandard: 'Standard',
+  viewModeCompact: 'Kompakt',
+  
+  // Employee role categories
+  skadeledere: 'Skadeledere',
+  servicemedarbejdere: 'Servicemedarbejdere',
+  
+  // Search
+  searchPlaceholder: 'Søg efter sagsnr., adresse eller medarbejder...',
+  noSearchResults: 'Ingen opgaver matcher din søgning'
 };
 
 export default planner;
