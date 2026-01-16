@@ -150,6 +150,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
       <CurrentAndFutureDays 
         dates={[...todayDate, ...futureDates]}
         groupedAssignments={groupedAssignments}
+        allAssignments={visibleAssignments}
         operationStates={operationStates}
         expandedDays={expandedDays}
         onToggleExpansion={toggleDayExpansion}
@@ -167,6 +168,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
       <PastAssignments 
         pastDates={pastDates}
         groupedAssignments={groupedAssignments}
+        allAssignments={visibleAssignments}
         operationStates={operationStates}
         expandedDays={expandedDays}
         onToggleExpansion={toggleDayExpansion}

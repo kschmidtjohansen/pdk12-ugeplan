@@ -239,7 +239,16 @@ const planner = {
     processing: 'Behandler',
     success: 'Succes',
     failed: 'Fejlede'
-  }
+  },
+
+  // Car booking conflict dialog
+  carBookingConflict: 'Bil allerede i brug',
+  carAlreadyInUse: 'er allerede i brug på denne dag.',
+  conflictingTasks: 'Bruges til følgende opgaver',
+  confirmDoubleBooking: 'Vil du alligevel vælge denne bil?',
+  useAnywayButton: 'Brug alligevel',
+  until: 'indtil',
+  sharedWithOtherTasks: 'Delt med andre opgaver'
 };
 
 export default planner;

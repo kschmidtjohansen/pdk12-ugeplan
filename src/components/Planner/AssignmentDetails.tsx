@@ -1,55 +1,85 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Clock, UserCheck, Users, Car } from 'lucide-react';
+import { Clock, UserCheck, Users, Car, AlertTriangle } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { Assignment, getEmployeeNamesFromIds } from '../../types/assignment';
 import { Car as CarType } from '../../types/car';
 import { useEmployees } from '../../hooks/useEmployees';
 import { filterDisplayNames } from '../../utils/people';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+
 interface AssignmentDetailsProps {
   assignment: Assignment;
   cars: CarType[];
+  assignments?: Assignment[];
   showFullTeamDetails?: boolean;
 }
 const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
   assignment,
   cars,
+  assignments = [],
   showFullTeamDetails = false
 }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { employees } = useEmployees();
 
-  // Enhanced car name resolution with comprehensive fallbacks
-  const getCarNames = (assignment: Assignment): string[] => {
-    const carNames: string[] = [];
+  // Get car IDs from assignment
+  const getCarIds = (assignment: Assignment): string[] => {
     if (assignment.cars && Array.isArray(assignment.cars) && assignment.cars.length > 0) {
-      // New format: multiple cars array with IDs
-      assignment.cars.forEach(carId => {
-        if (carId) {
-          const car = cars.find(c => c.id === carId);
-          if (car) {
-            carNames.push(car.name);
-          }
-          // Skip unknown cars instead of showing UUID
-        }
-      });
+      return assignment.cars.filter(Boolean);
     } else if (assignment.car) {
-      // Old format: single car
       if (typeof assignment.car === 'string') {
-        const car = cars.find(c => c.id === assignment.car);
-        if (car) {
-          carNames.push(car.name);
-        }
-        // Skip unknown cars instead of showing UUID
-      } else if (typeof assignment.car === 'object' && assignment.car.name) {
-        carNames.push(assignment.car.name);
+        return [assignment.car];
+      } else if (typeof assignment.car === 'object' && assignment.car.id) {
+        return [assignment.car.id];
       }
     }
-    return carNames;
+    return [];
   };
-  const carNames = getCarNames(assignment);
+
+  // Check if a car is shared with other assignments on the same day
+  const getCarSharingInfo = (carId: string): { isShared: boolean; otherAssignments: string[] } => {
+    if (!assignments.length) return { isShared: false, otherAssignments: [] };
+    
+    const otherAssignments = assignments.filter(a => {
+      if (a.id === assignment.id) return false;
+      if (a.date !== assignment.date) return false;
+      
+      const assignmentCarIds = getCarIds(a);
+      return assignmentCarIds.includes(carId);
+    });
+    
+    return {
+      isShared: otherAssignments.length > 0,
+      otherAssignments: otherAssignments.map(a => a.title || a.case_number || t('planner.assignment'))
+    };
+  };
+
+  // Enhanced car data resolution with sharing info
+  const getCarData = (assignment: Assignment): { id: string; name: string; isShared: boolean; sharedWith: string[] }[] => {
+    const carData: { id: string; name: string; isShared: boolean; sharedWith: string[] }[] = [];
+    const carIds = getCarIds(assignment);
+    
+    carIds.forEach(carId => {
+      const car = cars.find(c => c.id === carId);
+      if (car) {
+        const sharingInfo = getCarSharingInfo(carId);
+        carData.push({
+          id: carId,
+          name: car.name,
+          isShared: sharingInfo.isShared,
+          sharedWith: sharingInfo.otherAssignments
+        });
+      }
+    });
+    
+    return carData;
+  };
+  
+  const carData = getCarData(assignment);
 
   // Enhanced employee data processing with improved UUID detection and fallbacks
   const getEmployeeData = (assignment: Assignment): {
@@ -100,15 +130,38 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
           </span>
         </div>
 
-        {/* Cars - enhanced display with comprehensive fallbacks */}
-        {carNames.length > 0 && <div className="flex items-center gap-2">
+        {/* Cars - enhanced display with sharing indicators */}
+        {carData.length > 0 && <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-200">
               <Car className="h-3.5 w-3.5 text-blue-600" />
             </div>
             <div className="flex flex-wrap gap-1">
-              {carNames.map((carName, index) => <Badge key={index} variant="outline" className="text-xs bg-blue-50">
-                  {carName}
-                </Badge>)}
+              <TooltipProvider delayDuration={100}>
+                {carData.map((car) => (
+                  <Tooltip key={car.id}>
+                    <TooltipTrigger asChild>
+                      <Badge 
+                        variant="outline" 
+                        className={cn(
+                          "text-xs cursor-default",
+                          car.isShared 
+                            ? "bg-yellow-50 border-yellow-300 text-yellow-700" 
+                            : "bg-blue-50"
+                        )}
+                      >
+                        {car.name}
+                        {car.isShared && <AlertTriangle className="h-3 w-3 ml-1" />}
+                      </Badge>
+                    </TooltipTrigger>
+                    {car.isShared && (
+                      <TooltipContent side="top" className="max-w-xs">
+                        <p className="font-medium">{t('planner.sharedWithOtherTasks')}</p>
+                        <p className="text-xs text-muted-foreground">{car.sharedWith.join(', ')}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                ))}
+              </TooltipProvider>
             </div>
           </div>}
       </div>

@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 interface AssignmentCardProps {
   assignment: Assignment;
   cars: Car[];
+  assignments?: Assignment[];
   canEdit: boolean;
   onEdit: (assignment: Assignment) => void;
   onDelete: () => void;
@@ -26,6 +27,7 @@ interface AssignmentCardProps {
 const AssignmentCard: React.FC<AssignmentCardProps> = ({
   assignment,
   cars,
+  assignments = [],
   canEdit,
   onEdit,
   onDelete,
@@ -232,7 +234,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <p className="text-gray-600 mb-3">{assignment.description}</p>
       )}
       
-      <AssignmentDetails assignment={assignment} cars={cars} showFullTeamDetails={true} />
+      <AssignmentDetails assignment={assignment} cars={cars} assignments={assignments} showFullTeamDetails={true} />
     </Card>
   );
 };
