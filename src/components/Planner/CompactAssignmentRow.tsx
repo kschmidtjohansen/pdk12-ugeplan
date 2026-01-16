@@ -72,15 +72,15 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
       onClick={onViewDetails}
     >
       {/* Time */}
-      <td className="py-2.5 px-3 text-sm font-medium whitespace-nowrap">
-        <div className="flex items-center gap-1.5 text-foreground">
+      <td className="py-2.5 px-3 text-sm font-medium whitespace-nowrap text-gray-900">
+        <div className="flex items-center gap-1.5">
           <Clock className="h-3.5 w-3.5 text-muted-foreground" />
           <span>{timeDisplay}</span>
         </div>
       </td>
       
       {/* Case Number / Title */}
-      <td className="py-2.5 px-3 text-sm">
+      <td className="py-2.5 px-3 text-sm text-gray-900">
         <TooltipProvider delayDuration={200}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -97,7 +97,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
       </td>
       
       {/* Location */}
-      <td className="py-2.5 px-3 text-sm text-foreground">
+      <td className="py-2.5 px-3 text-sm text-gray-900">
         <div className="flex items-center gap-1.5">
           <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
           <span>{assignment.location || '-'}</span>
@@ -111,7 +111,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
             <TooltipTrigger asChild>
               <div className="flex items-center gap-1">
                 <CarIcon className="h-3.5 w-3.5 text-blue-600" />
-                <span className="text-xs text-foreground truncate max-w-[80px]">{carDisplay}</span>
+                <span className="text-xs text-gray-900 truncate max-w-[80px]">{carDisplay}</span>
               </div>
             </TooltipTrigger>
             {carNames.length > 0 && (
@@ -130,7 +130,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
             <TooltipTrigger asChild>
               <div className="flex items-center gap-1">
                 <Users className="h-3.5 w-3.5 text-purple-600" />
-                <span className="text-xs text-foreground truncate max-w-[100px]">
+                <span className="text-xs text-gray-900 truncate max-w-[100px]">
                   {employeeDisplay}
                 </span>
               </div>
