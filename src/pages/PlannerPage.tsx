@@ -12,7 +12,7 @@ import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/spinner';
-import { getISOWeek, getISOWeekYear, startOfISOWeek, endOfISOWeek, addWeeks } from 'date-fns';
+import { getISOWeek, getISOWeekYear, startOfISOWeek, endOfISOWeek, addWeeks, format } from 'date-fns';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import PlannerSearchFilter from '@/components/Planner/PlannerSearchFilter';
 
@@ -64,6 +64,20 @@ const PlannerPage: React.FC = () => {
   
   // Search filter state
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Expanded days state - only today is expanded by default
+  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    return { [today]: true };
+  });
+  
+  // Handler to toggle day section expansion
+  const handleToggleExpansion = useCallback((date: string) => {
+    setExpandedDays(prev => ({
+      ...prev,
+      [date]: !(prev[date] ?? false)
+    }));
+  }, []);
   
   // Persist view mode
   useEffect(() => {
@@ -454,7 +468,9 @@ const PlannerPage: React.FC = () => {
         {/* Main Content */}
         <PlannerContent 
           weekAssignments={sortedWeekAssignments} 
-          operationStates={convertedOperationStates} 
+          operationStates={convertedOperationStates}
+          expandedDays={expandedDays}
+          onToggleExpansion={handleToggleExpansion}
           onEditAssignment={handleOpenEditDialog} 
           onDeleteAssignment={handleDeleteAssignment} 
           onPublishAssignment={handlePublishAssignment} 

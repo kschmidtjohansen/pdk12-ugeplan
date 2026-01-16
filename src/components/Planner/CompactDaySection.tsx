@@ -19,6 +19,7 @@ interface CompactDaySectionProps {
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
   onCopyAssignment?: (assignment: Assignment) => void;
+  onViewAssignmentDetails: (assignment: Assignment) => void;
   canEdit: boolean;
   canPublishTasks: boolean;
   cars?: Car[];
@@ -35,6 +36,7 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
   onDeleteAssignment,
   onPublishAssignment,
   onCopyAssignment,
+  onViewAssignmentDetails,
   canEdit,
   canPublishTasks,
   cars = []
@@ -121,6 +123,7 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
                     onDelete={() => onDeleteAssignment(assignment.id)}
                     onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
                     onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
+                    onViewDetails={() => onViewAssignmentDetails(assignment)}
                     operationState={operationStates[assignment.id]}
                   />
                 ))}

@@ -16,6 +16,7 @@ interface CompactAssignmentRowProps {
   onDelete: () => void;
   onPublish?: () => void;
   onCopy?: () => void;
+  onViewDetails: () => void;
   operationState?: 'publishing' | 'deleting' | 'updating' | null;
 }
 
@@ -27,6 +28,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
   onDelete,
   onPublish,
   onCopy,
+  onViewDetails,
   operationState
 }) => {
   const { t } = useTranslation();
@@ -65,7 +67,10 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
   const timeDisplay = `${assignment.fromTime?.substring(0, 5) || ''} - ${assignment.toTime?.substring(0, 5) || ''}`;
 
   return (
-    <tr className={`hover:bg-muted/50 border-b group transition-colors ${isLoading ? 'opacity-60' : ''}`}>
+    <tr 
+      className={`hover:bg-muted/50 border-b group transition-colors cursor-pointer ${isLoading ? 'opacity-60' : ''}`}
+      onClick={onViewDetails}
+    >
       {/* Time */}
       <td className="py-2.5 px-3 text-sm font-medium whitespace-nowrap">
         <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -157,7 +162,10 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
       
       {/* Actions - visible on hover */}
       <td className="py-2.5 px-3 text-right">
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-end gap-0.5">
+        <div 
+          className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-end gap-0.5"
+          onClick={(e) => e.stopPropagation()}
+        >
           {canEdit && (
             <Button variant="ghost" size="sm" onClick={onEdit} className="h-7 w-7 p-0" disabled={isLoading}>
               <Pencil className="h-3.5 w-3.5" />

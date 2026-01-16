@@ -15,6 +15,7 @@ interface CompactPastAssignmentsProps {
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
   onCopyAssignment?: (assignment: Assignment) => void;
+  onViewAssignmentDetails: (assignment: Assignment) => void;
   canEdit: boolean;
   canPublishTasks: boolean;
   cars?: Car[];
@@ -31,6 +32,7 @@ const CompactPastAssignments: React.FC<CompactPastAssignmentsProps> = ({
   onDeleteAssignment,
   onPublishAssignment,
   onCopyAssignment,
+  onViewAssignmentDetails,
   canEdit,
   canPublishTasks,
   cars = []
@@ -57,6 +59,7 @@ const CompactPastAssignments: React.FC<CompactPastAssignmentsProps> = ({
             onDeleteAssignment={onDeleteAssignment}
             onPublishAssignment={onPublishAssignment}
             onCopyAssignment={onCopyAssignment}
+            onViewAssignmentDetails={onViewAssignmentDetails}
             canEdit={canEdit}
             canPublishTasks={canPublishTasks}
             cars={cars}
