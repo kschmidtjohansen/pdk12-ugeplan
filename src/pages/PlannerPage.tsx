@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '../context/TranslationContext';
 import { useOptimizedAssignments } from '../hooks/useOptimizedAssignments';
 import { Assignment } from '../types/assignment';
@@ -8,11 +8,13 @@ import { useVacations } from '../hooks/useVacations';
 import { useAuth } from '../context/AuthContext';
 import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
-import { Clock, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/spinner';
 import { getISOWeek, getISOWeekYear, startOfISOWeek, endOfISOWeek, addWeeks } from 'date-fns';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import PlannerSearchFilter from '@/components/Planner/PlannerSearchFilter';
 
 const PlannerPage: React.FC = () => {
   const {
@@ -51,13 +53,27 @@ const PlannerPage: React.FC = () => {
   } = useOptimizedAssignments('all');
 
   // Simplified planner state management using ISO week numbers
-  const [selectedWeek, setSelectedWeek] = React.useState(() => getISOWeek(new Date()));
-  const [selectedYear, setSelectedYear] = React.useState(() => getISOWeekYear(new Date()));
+  const [selectedWeek, setSelectedWeek] = useState(() => getISOWeek(new Date()));
+  const [selectedYear, setSelectedYear] = useState(() => getISOWeekYear(new Date()));
   
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [currentAssignment, setCurrentAssignment] = React.useState<Assignment | null>(null);
-  const [selectedDay, setSelectedDay] = React.useState(new Date().toISOString().split('T')[0]);
-  const [formData, setFormData] = React.useState<Partial<Assignment>>({
+  // View mode state with localStorage persistence
+  const [viewMode, setViewMode] = useState<'standard' | 'compact'>(() => {
+    const saved = localStorage.getItem('plannerViewMode');
+    return (saved === 'compact' || saved === 'standard') ? saved : 'compact';
+  });
+  
+  // Search filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Persist view mode
+  useEffect(() => {
+    localStorage.setItem('plannerViewMode', viewMode);
+  }, [viewMode]);
+  
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
+  const [selectedDay, setSelectedDay] = useState(new Date().toISOString().split('T')[0]);
+  const [formData, setFormData] = useState<Partial<Assignment>>({
     title: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
@@ -70,8 +86,7 @@ const PlannerPage: React.FC = () => {
 
   // Week utilities using date-fns for accurate ISO week handling
   const getWeekDates = (week: number, year: number) => {
-    // Create a date in the target ISO week/year
-    const jan4 = new Date(year, 0, 4); // Jan 4 is always in week 1
+    const jan4 = new Date(year, 0, 4);
     const weekStart = startOfISOWeek(addWeeks(jan4, week - 1));
     const weekEnd = endOfISOWeek(weekStart);
     return { start: weekStart, end: weekEnd, weekNumber: week, year };
@@ -80,7 +95,7 @@ const PlannerPage: React.FC = () => {
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
   // Filter assignments by week using ISO week numbers
-  const weekAssignments = React.useMemo(() => {
+  const weekAssignments = useMemo(() => {
     if (!assignments || assignments.length === 0) return [];
     
     return assignments.filter(assignment => {
@@ -90,6 +105,31 @@ const PlannerPage: React.FC = () => {
       return assignmentWeek === selectedWeek && assignmentYear === selectedYear;
     });
   }, [assignments, selectedWeek, selectedYear]);
+
+  // Filter assignments by search query
+  const filteredWeekAssignments = useMemo(() => {
+    if (!searchQuery.trim()) return weekAssignments;
+    
+    const query = searchQuery.toLowerCase().trim();
+    
+    return weekAssignments.filter(assignment => {
+      // Search in case number
+      if (assignment.case_number?.toLowerCase().includes(query)) return true;
+      
+      // Search in title
+      if (assignment.title?.toLowerCase().includes(query)) return true;
+      
+      // Search in location
+      if (assignment.location?.toLowerCase().includes(query)) return true;
+      
+      // Search in employee names
+      if (assignment.assignedEmployees?.some(emp => 
+        (typeof emp === 'object' ? emp.name : emp)?.toLowerCase().includes(query)
+      )) return true;
+      
+      return false;
+    });
+  }, [weekAssignments, searchQuery]);
 
   // Handlers - use date-fns for proper week navigation
   const handlePreviousWeek = () => {
@@ -143,7 +183,6 @@ const PlannerPage: React.FC = () => {
         await updateAssignment(currentAssignment.id, data);
         console.log('[PlannerPage] Assignment updated successfully');
         setCurrentAssignment(null);
-        // Reset form data for next use
         setFormData({
           title: '',
           description: '',
@@ -155,13 +194,11 @@ const PlannerPage: React.FC = () => {
           employees: [],
           published: false
         });
-        // Close dialog after successful update
         setIsDialogOpen(false);
       } else {
         console.log('[PlannerPage] Creating new assignment');
         await createAssignment(data);
         console.log('[PlannerPage] Assignment created successfully');
-        // Reset form data for next use
         setFormData({
           title: '',
           description: '',
@@ -173,15 +210,10 @@ const PlannerPage: React.FC = () => {
           employees: [],
           published: false
         });
-        // Close dialog after successful creation
         setIsDialogOpen(false);
       }
-      
-      // Note: refetch is handled automatically by useOptimizedAssignments
-      
     } catch (error) {
       console.error('[PlannerPage] Operation failed:', error);
-      // Keep dialog open on error so user can retry
     }
   };
 
@@ -200,17 +232,17 @@ const PlannerPage: React.FC = () => {
     setIsDialogOpen(true);
   };
 
-  const sortedWeekAssignments = React.useMemo(() => {
-    if (!weekAssignments) return [];
-    return [...weekAssignments].sort((a, b) => {
+  const sortedWeekAssignments = useMemo(() => {
+    if (!filteredWeekAssignments) return [];
+    return [...filteredWeekAssignments].sort((a, b) => {
       if (a.date !== b.date) {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       }
       return a.fromTime.localeCompare(b.fromTime);
     });
-  }, [weekAssignments]);
+  }, [filteredWeekAssignments]);
 
-  // Define handlers that use the optimized hooks - MUST be before any conditional returns
+  // Define handlers that use the optimized hooks
   const handlePublishDay = useCallback(async (date: string) => {
     await publishAssignmentsByDate(date);
   }, [publishAssignmentsByDate]);
@@ -223,7 +255,6 @@ const PlannerPage: React.FC = () => {
     await publishAssignment(id);
   }, [publishAssignment]);
 
-  // Handle employee toggle (add/remove from array) - FIXED: Remove dependency on formData.employees
   const handleEmployeeToggle = useCallback((employeeId: string) => {
     console.log('[PlannerPage] Employee toggled:', employeeId);
     
@@ -253,7 +284,7 @@ const PlannerPage: React.FC = () => {
         employees: newEmployees
       };
     });
-  }, []); // FIXED: Remove formData.employees dependency to prevent stale closures
+  }, []);
 
   const handleShowOnScreen = () => {
     const today = new Date().toISOString().split('T')[0];
@@ -262,12 +293,10 @@ const PlannerPage: React.FC = () => {
   };
 
   // Convert operationStates format to match PlannerContent expectations
-  const convertedOperationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null> = React.useMemo(() => {
+  const convertedOperationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null> = useMemo(() => {
     const converted: Record<string, 'publishing' | 'deleting' | 'updating' | null> = {};
     Object.entries(operationStates).forEach(([key, value]) => {
       if (value === 'loading') {
-        // Map 'loading' to appropriate operation type based on context
-        // For simplicity, default to 'updating' since we can't determine the exact operation
         converted[key] = 'updating';
       } else {
         converted[key] = null;
@@ -277,24 +306,30 @@ const PlannerPage: React.FC = () => {
   }, [operationStates]);
 
   if (loading) {
-    return <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Spinner size="lg" />
           <p className="text-lg font-medium text-gray-600">{t('common.loading')}...</p>
         </div>
-      </div>;
+      </div>
+    );
   }
+  
   if (error) {
-    return <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-red-600 mb-2">{t('common.error')}</h2>
           <p className="text-gray-600">{typeof error === 'string' ? error : 'An error occurred'}</p>
         </div>
-      </div>;
+      </div>
+    );
   }
 
-  return <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
+  return (
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
         {/* Enhanced Header with Responsive Design */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 lg:p-8 text-white shadow-2xl animate-fade-in-up">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
@@ -315,11 +350,11 @@ const PlannerPage: React.FC = () => {
                   </h1>
                   <p className="text-blue-100 text-sm lg:text-lg font-medium">
                     {t('planner.weekView', {
-                    week: selectedWeek,
-                    year: selectedYear,
-                    start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
-                    end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
-                  })}
+                      week: selectedWeek,
+                      year: selectedYear,
+                      start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
+                      end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
+                    })}
                   </p>
                 </div>
               </div>
@@ -341,22 +376,115 @@ const PlannerPage: React.FC = () => {
                   </Button>
                 </div>
 
-                {/* Create Assignment Button */}
-                {canCreate && <Button onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} size="sm" className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm">
-                    <Plus className="h-4 w-4" />
-                    {t('planner.newAssignment')}
-                  </Button>}
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                  {canPublishTasks && (
+                    <Button 
+                      onClick={handleShowOnScreen} 
+                      size="sm" 
+                      className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                    >
+                      <Monitor className="h-4 w-4" />
+                      <span className="hidden sm:inline">{t('planner.showOnScreen')}</span>
+                    </Button>
+                  )}
+                  {canCreate && (
+                    <Button 
+                      onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} 
+                      size="sm" 
+                      className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                    >
+                      <Plus className="h-4 w-4" />
+                      {t('planner.newAssignment')}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Search and View Toggle Bar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card rounded-lg border p-3">
+          {/* Search Filter */}
+          <PlannerSearchFilter 
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          />
+          
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground hidden sm:inline">
+              {currentLanguage === 'da' ? 'Visning:' : 'View:'}
+            </span>
+            <ToggleGroup 
+              type="single" 
+              value={viewMode} 
+              onValueChange={(v) => v && setViewMode(v as 'standard' | 'compact')}
+              className="bg-muted/50 rounded-lg p-0.5"
+            >
+              <ToggleGroupItem value="compact" size="sm" className="h-8 px-3 data-[state=on]:bg-background">
+                <LayoutList className="h-4 w-4 mr-1.5" />
+                <span className="text-xs">{t('planner.viewModeCompact')}</span>
+              </ToggleGroupItem>
+              <ToggleGroupItem value="standard" size="sm" className="h-8 px-3 data-[state=on]:bg-background">
+                <LayoutGrid className="h-4 w-4 mr-1.5" />
+                <span className="text-xs">{t('planner.viewModeStandard')}</span>
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+        </div>
+
+        {/* Search results indicator */}
+        {searchQuery && (
+          <div className="text-sm text-muted-foreground">
+            {sortedWeekAssignments.length === 0 ? (
+              <span>{t('planner.noSearchResults')}</span>
+            ) : (
+              <span>
+                {currentLanguage === 'da' 
+                  ? `${sortedWeekAssignments.length} ${sortedWeekAssignments.length === 1 ? 'opgave' : 'opgaver'} fundet`
+                  : `${sortedWeekAssignments.length} ${sortedWeekAssignments.length === 1 ? 'assignment' : 'assignments'} found`
+                }
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Main Content */}
-        <PlannerContent weekAssignments={sortedWeekAssignments} operationStates={convertedOperationStates} onEditAssignment={handleOpenEditDialog} onDeleteAssignment={handleDeleteAssignment} onPublishAssignment={handlePublishAssignment} onPublishDay={handlePublishDay} onCreateAssignment={handleOpenCreateDialog} onCopyAssignment={handleCopyAssignment} selectedWeek={selectedWeek} selectedYear={selectedYear} weekDates={weekDates} handleShowOnScreen={handleShowOnScreen} />
+        <PlannerContent 
+          weekAssignments={sortedWeekAssignments} 
+          operationStates={convertedOperationStates} 
+          onEditAssignment={handleOpenEditDialog} 
+          onDeleteAssignment={handleDeleteAssignment} 
+          onPublishAssignment={handlePublishAssignment} 
+          onPublishDay={handlePublishDay} 
+          onCreateAssignment={handleOpenCreateDialog} 
+          onCopyAssignment={handleCopyAssignment} 
+          selectedWeek={selectedWeek} 
+          selectedYear={selectedYear} 
+          weekDates={weekDates}
+          viewMode={viewMode}
+        />
 
         {/* Assignment Dialog */}
-        <PlannerDialogContainer isDialogOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onSubmit={handleSubmit} currentAssignment={currentAssignment} selectedDay={selectedDay} formData={formData} setFormData={setFormData} employees={employees} cars={cars} vacations={vacations} assignments={sortedWeekAssignments} onEmployeeToggle={handleEmployeeToggle} />
+        <PlannerDialogContainer 
+          isDialogOpen={isDialogOpen} 
+          onClose={() => setIsDialogOpen(false)} 
+          onSubmit={handleSubmit} 
+          currentAssignment={currentAssignment} 
+          selectedDay={selectedDay} 
+          formData={formData} 
+          setFormData={setFormData} 
+          employees={employees} 
+          cars={cars} 
+          vacations={vacations} 
+          assignments={sortedWeekAssignments} 
+          onEmployeeToggle={handleEmployeeToggle} 
+        />
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default PlannerPage;
