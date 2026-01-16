@@ -59,7 +59,7 @@ const PlannerPage: React.FC = () => {
   // View mode state with localStorage persistence
   const [viewMode, setViewMode] = useState<'standard' | 'compact'>(() => {
     const saved = localStorage.getItem('plannerViewMode');
-    return (saved === 'compact' || saved === 'standard') ? saved : 'compact';
+    return (saved === 'compact' || saved === 'standard') ? saved : 'standard';
   });
   
   // Search filter state
@@ -437,13 +437,13 @@ const PlannerPage: React.FC = () => {
               onValueChange={(v) => v && setViewMode(v as 'standard' | 'compact')}
               className="bg-muted/50 rounded-lg p-0.5"
             >
-              <ToggleGroupItem value="compact" size="sm" className="h-8 px-3 data-[state=on]:bg-background">
-                <LayoutList className="h-4 w-4 mr-1.5" />
-                <span className="text-xs">{t('planner.viewModeCompact')}</span>
-              </ToggleGroupItem>
               <ToggleGroupItem value="standard" size="sm" className="h-8 px-3 data-[state=on]:bg-background">
                 <LayoutGrid className="h-4 w-4 mr-1.5" />
                 <span className="text-xs">{t('planner.viewModeStandard')}</span>
+              </ToggleGroupItem>
+              <ToggleGroupItem value="compact" size="sm" className="h-8 px-3 data-[state=on]:bg-background">
+                <LayoutList className="h-4 w-4 mr-1.5" />
+                <span className="text-xs">{t('planner.viewModeCompact')}</span>
               </ToggleGroupItem>
             </ToggleGroup>
           </div>
