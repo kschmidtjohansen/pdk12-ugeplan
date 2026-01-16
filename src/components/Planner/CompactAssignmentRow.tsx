@@ -73,8 +73,8 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
     >
       {/* Time */}
       <td className="py-2.5 px-3 text-sm font-medium whitespace-nowrap">
-        <div className="flex items-center gap-1.5 text-muted-foreground">
-          <Clock className="h-3.5 w-3.5" />
+        <div className="flex items-center gap-1.5 text-foreground">
+          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
           <span>{timeDisplay}</span>
         </div>
       </td>
@@ -111,7 +111,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
             <TooltipTrigger asChild>
               <div className="flex items-center gap-1">
                 <CarIcon className="h-3.5 w-3.5 text-blue-600" />
-                <span className="text-xs truncate max-w-[80px]">{carDisplay}</span>
+                <span className="text-xs text-foreground truncate max-w-[80px]">{carDisplay}</span>
               </div>
             </TooltipTrigger>
             {carNames.length > 0 && (
@@ -130,7 +130,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
             <TooltipTrigger asChild>
               <div className="flex items-center gap-1">
                 <Users className="h-3.5 w-3.5 text-purple-600" />
-                <span className="text-xs text-muted-foreground truncate max-w-[100px]">
+                <span className="text-xs text-foreground truncate max-w-[100px]">
                   {employeeDisplay}
                 </span>
               </div>
