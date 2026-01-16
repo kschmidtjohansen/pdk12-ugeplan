@@ -22,10 +22,20 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
   const locale = currentLanguage === 'da' ? da : enUS;
   const navigate = useNavigate();
 
+  // Main widget collapse state - defaults to collapsed
+  const [isWidgetCollapsed, setIsWidgetCollapsed] = useState(() => {
+    const saved = localStorage.getItem('dutyWeekWidgetCollapsed');
+    return saved ? JSON.parse(saved) : true;
+  });
+
   const [isRestOfWeekCollapsed, setIsRestOfWeekCollapsed] = useState(() => {
     const saved = localStorage.getItem('dutyWeekRestCollapsed');
     return saved ? JSON.parse(saved) : true;
   });
+
+  useEffect(() => {
+    localStorage.setItem('dutyWeekWidgetCollapsed', JSON.stringify(isWidgetCollapsed));
+  }, [isWidgetCollapsed]);
 
   useEffect(() => {
     localStorage.setItem('dutyWeekRestCollapsed', JSON.stringify(isRestOfWeekCollapsed));
@@ -104,26 +114,45 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
 
   return (
     <Card className="overflow-hidden border-2 border-primary/20">
-      <CardHeader className="py-2 px-4 bg-gradient-to-r from-primary/5 to-primary/10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Phone className="h-4 w-4 text-primary" />
-            <CardTitle className="text-lg font-semibold text-primary">
-              {t('duty.currentWeekDuty')}
-            </CardTitle>
-          </div>
-          <Button
-            variant="link"
-            size="sm"
-            onClick={() => navigate('/duty')}
-            className="text-sm text-primary hover:underline transition-colors h-auto p-0"
-          >
-            {t('duty.viewAll')}
-          </Button>
-        </div>
-    </CardHeader>
+      <Collapsible open={!isWidgetCollapsed} onOpenChange={() => setIsWidgetCollapsed(!isWidgetCollapsed)}>
+        <CardHeader className="py-2 px-4 bg-gradient-to-r from-primary/5 to-primary/10">
+          <CollapsibleTrigger asChild>
+            <div className="flex items-center justify-between cursor-pointer">
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-primary" />
+                <CardTitle className="text-lg font-semibold text-primary">
+                  {t('duty.currentWeekDuty')}
+                </CardTitle>
+                {isWidgetCollapsed && duties.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    {duties.length} {duties.length === 1 ? 'vagt' : 'vagter'}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/duty');
+                  }}
+                  className="text-sm text-primary hover:underline transition-colors h-auto p-0"
+                >
+                  {t('duty.viewAll')}
+                </Button>
+                {isWidgetCollapsed ? (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                )}
+              </div>
+            </div>
+          </CollapsibleTrigger>
+        </CardHeader>
 
-    <CardContent className="p-4 space-y-3">
+        <CollapsibleContent>
+          <CardContent className="p-4 space-y-3">
           {loading ? (
             <div className="text-sm text-muted-foreground">
               {t('common.loading')}...
@@ -407,6 +436,8 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
             </>
           )}
         </CardContent>
-      </Card>
+      </CollapsibleContent>
+    </Collapsible>
+  </Card>
   );
 };
