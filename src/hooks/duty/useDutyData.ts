@@ -89,13 +89,7 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
           employee: duty.employee || undefined
         }));
 
-        // Filter out demo user's duties from production view
-        const DEMO_USER_ID = '165cdbc9-6722-4c96-97d2-1a87185c8133';
-        const filteredDuties = dutiesWithProfiles.filter((duty: any) => 
-          duty.employee_id !== DEMO_USER_ID
-        );
-
-        setDuties(filteredDuties as Duty[]);
+        setDuties(dutiesWithProfiles as Duty[]);
       }
     } catch (err) {
       console.error('Error fetching duties:', err);

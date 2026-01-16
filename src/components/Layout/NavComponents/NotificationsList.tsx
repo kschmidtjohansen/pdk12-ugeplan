@@ -47,12 +47,12 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
           )}
           onClick={() => onNotificationClick(notification)}
         >
-          <div className="flex justify-between w-full items-start gap-2">
-            <span className="font-medium truncate flex-1 min-w-0">{notification.title}</span>
+          <div className="flex justify-between w-full">
+            <span className="font-medium">{notification.title}</span>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-5 w-5 flex-shrink-0" 
+              className="h-5 w-5" 
               onClick={(e) => {
                 e.stopPropagation();
                 onClearNotification(notification.id);
@@ -61,16 +61,16 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
               <X className="h-3 w-3" />
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground max-w-full whitespace-normal break-words leading-relaxed">{notification.message}</p>
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {format(notification.date, 'dd/MM/yy HH:mm')}
+          <span className="text-sm">{notification.message}</span>
+          <span className="text-xs text-muted-foreground">
+            {format(notification.date, 'PPpp')}
           </span>
         </div>
       ))}
       
       <div className="p-2 border-t flex justify-between items-center">
         <Link 
-          to="/notifications" 
+          to="/vacation" 
           className="text-xs text-polygon-purple hover:underline"
         >
           {t('notifications.viewAll')}

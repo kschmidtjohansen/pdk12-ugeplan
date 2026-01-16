@@ -41,7 +41,6 @@ const AdminPage = lazyWithRetry(() => import("./pages/AdminPage"));
 const PasswordResetPage = lazyWithRetry(() => import("./pages/PasswordResetPage"));
 const ScreenDisplayPage = lazyWithRetry(() => import("./pages/ScreenDisplayPage"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
-const NotificationsPage = lazyWithRetry(() => import("./pages/NotificationsPage"));
 
 // Optimized QueryClient configuration
 const queryClient = new QueryClient({
@@ -146,7 +145,6 @@ const AppContent = () => {
           <Route path="/warehouse" element={<MainLayout><WarehousePage /></MainLayout>} />
           <Route path="/changelog" element={<MainLayout><ChangeLogPage /></MainLayout>} />
           <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />
-          <Route path="/notifications" element={<MainLayout><NotificationsPage /></MainLayout>} />
           
           {/* Special routes */}
           <Route path="/screen-display" element={<ScreenDisplayPage />} />

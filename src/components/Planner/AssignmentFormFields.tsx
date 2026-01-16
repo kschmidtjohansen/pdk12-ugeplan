@@ -17,7 +17,6 @@ import { Vacation } from '@/types/vacation';
 import MultipleCarSelector from './MultipleCarSelector';
 import ResponsibleUserSelector from './ResponsibleUserSelector';
 import EmployeeSelector from './EmployeeSelector';
-import AddressAutocomplete, { RouteInfo } from './AddressAutocomplete';
 
 interface AssignmentFormFieldsProps {
   title: string;
@@ -38,7 +37,6 @@ interface AssignmentFormFieldsProps {
   setSelectedResponsibleUserId: (value: string) => void;
   selectedEmployees: string[]; // Now stores employee IDs instead of names
   onEmployeeToggle: (employeeId: string) => void;
-  onRouteInfoChange?: (info: RouteInfo | null) => void;
   cars: Car[];
   employees: Employee[];
   vacations: Vacation[];
@@ -66,7 +64,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   setSelectedResponsibleUserId,
   selectedEmployees,
   onEmployeeToggle,
-  onRouteInfoChange,
   cars,
   employees,
   vacations,
@@ -193,13 +190,16 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       </div>
 
-      {/* Location Field with Address Autocomplete */}
+      {/* Location Field - Updated to use enterLocation translation */}
       <div className="space-y-2">
         <Label htmlFor="location">{t('planner.location')}</Label>
-        <AddressAutocomplete
+        <Input
+          id="location"
           value={location}
-          onChange={setLocation}
-          onRouteInfoChange={onRouteInfoChange}
+          onChange={(e) => {
+            console.log('[AssignmentFormFields] Location changed:', e.target.value);
+            setLocation(e.target.value);
+          }}
           placeholder={t('planner.enterLocation')}
           required
         />

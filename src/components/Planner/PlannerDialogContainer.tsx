@@ -6,14 +6,12 @@ import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import AssignmentDialogManager from './AssignmentDialogManager';
 
-type SetFormDataFn = (data: Partial<Assignment> | ((prev: Partial<Assignment>) => Partial<Assignment>)) => void;
-
 interface PlannerDialogContainerProps {
   isDialogOpen: boolean;
   onClose: () => void;
   currentAssignment: Assignment | null;
   formData: Partial<Assignment>;
-  setFormData: SetFormDataFn;
+  setFormData: (data: Partial<Assignment>) => void;
   onSubmit: (data: Partial<Assignment>) => Promise<void>;
   assignments: Assignment[];
   cars: Car[];

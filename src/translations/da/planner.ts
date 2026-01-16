@@ -27,7 +27,7 @@ const planner = {
   editAssignment: 'Rediger Opgave',
   copyAssignment: 'Kopier Opgave',
   deleteAssignment: 'Slet Opgave',
-  publish: 'Udgiv',
+  publish: 'Publicer',
   publishDayTasks: 'Publicer Dagens Opgaver',
   showOnScreen: 'Vis på Skærm',
   newAssignment: 'Ny Opgave',
@@ -229,17 +229,6 @@ const planner = {
   carStatusAvailable: 'Ledig',
   carWithTrailerLabel: 'Trailer',
   
-  // Validation messages
-  validation: {
-    titleRequired: 'Titel er påkrævet',
-    locationRequired: 'Adresse er påkrævet',
-    dateRequired: 'Dato er påkrævet',
-    fromTimeRequired: 'Starttid er påkrævet',
-    toTimeRequired: 'Sluttid er påkrævet',
-    timeOrderRequired: 'Starttid skal være før sluttid',
-    carRequired: 'Du skal vælge mindst én bil'
-  },
-
   // Operation status messages
   operations: {
     creating: 'Opretter',
@@ -250,49 +239,6 @@ const planner = {
     processing: 'Behandler',
     success: 'Succes',
     failed: 'Fejlede'
-  },
-
-  // Car booking conflict dialog
-  carBookingConflict: 'Bil allerede i brug',
-  carAlreadyInUse: 'er allerede i brug på denne dag.',
-  conflictingTasks: 'Bruges til følgende opgaver',
-  confirmDoubleBooking: 'Vil du alligevel vælge denne bil?',
-  useAnywayButton: 'Brug alligevel',
-  until: 'indtil',
-  sharedWithOtherTasks: 'Delt med andre opgaver',
-
-  // Address autocomplete
-  routeDistance: '{distance} km · ca. {duration} kørsel',
-  calculatingRoute: 'Beregner kørerute...',
-  noAddressesFound: 'Ingen adresser fundet',
-  locationNotAvailable: 'Kunne ikke hente din placering',
-
-  // View toggle
-  kanbanView: 'Dagsplan',
-  listView: 'Ugeplan',
-  
-  // Drag and drop
-  movedSuccess: 'Opgave flyttet',
-  movedSuccessMsg: 'Opgaven er blevet flyttet til den nye dato',
-  moveError: 'Kunne ikke flytte opgave',
-  dragToMove: 'Træk for at flytte til en anden dag',
-
-  // Week overview widget
-  weekOverview: 'Uge oversigt',
-  
-  // Employee categories
-  skadeledere: 'Skadeledere',
-  servicemedarbejdere: 'Servicemedarbejdere',
-
-  // Kanban view
-  kanban: {
-    viewTitle: 'Uge oversigt',
-    noCase: 'Ingen sagsnr.',
-    draft: 'Kladde',
-    publishColumn: 'Udgiv alle',
-    addNew: 'Opret ny',
-    tasksCount: '{count} opgaver',
-    publishedCount: '{count} aftalt'
   }
 };
 

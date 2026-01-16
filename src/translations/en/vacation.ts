@@ -42,7 +42,6 @@ const vacation = {
   requestRejected: "Request Rejected",
   requestRejectedMsg: "Vacation request for {name} has been rejected",
   offFrom: "Off from {time}",
-  offUntil: "Off until {time}",
   vacationStatusChanged: "Vacation Status Changed",
   vacationApproved: "Vacation Approved",
   yourRequestApproved: "Your vacation request has been approved",
@@ -111,17 +110,6 @@ const vacation = {
   availableHours: "Available {startTime} - {endTime}",
   offHours: "Off {startTime} - {endTime}",
   returnsOn: "Returns on:",
-  
-  // Vacation history dialog
-  history: "Vacation History",
-  historyFor: "{name}'s Vacation History",
-  currentVacation: "Current Vacation",
-  upcomingVacations: "Upcoming Vacations",
-  pastVacations: "Past Vacations",
-  pendingRequests: "Pending Requests",
-  notOnVacation: "Not currently on vacation",
-  noUpcoming: "No upcoming vacations",
-  noPast: "No past vacations",
   
   // Nested status keys for better organization
   status: {

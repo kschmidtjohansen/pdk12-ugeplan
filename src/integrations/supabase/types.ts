@@ -29,8 +29,6 @@ export type Database = {
           onedrive_folder_id: string | null
           published: boolean | null
           responsible_user_id: string | null
-          route_distance_km: number | null
-          route_duration_min: number | null
           title: string
           to_time: string
           type: Database["public"]["Enums"]["assignment_type"] | null
@@ -50,8 +48,6 @@ export type Database = {
           onedrive_folder_id?: string | null
           published?: boolean | null
           responsible_user_id?: string | null
-          route_distance_km?: number | null
-          route_duration_min?: number | null
           title: string
           to_time: string
           type?: Database["public"]["Enums"]["assignment_type"] | null
@@ -71,8 +67,6 @@ export type Database = {
           onedrive_folder_id?: string | null
           published?: boolean | null
           responsible_user_id?: string | null
-          route_distance_km?: number | null
-          route_duration_min?: number | null
           title?: string
           to_time?: string
           type?: Database["public"]["Enums"]["assignment_type"] | null

@@ -1,7 +1,8 @@
+
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Vacation } from '@/types/vacation';
-import { getEmployeeAvailabilityStatus, VacationDetails } from '@/utils/employeeAvailability';
+import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { useTranslation } from '@/context/TranslationContext';
 
 interface UseEmployeeStatusProps {
@@ -12,21 +13,13 @@ interface UseEmployeeStatusProps {
   viewedDate: string;
 }
 
-interface EmployeeStatusResult {
-  status: string;
-  label: string;
-  color: string;
-  hasEndTimeAtSixteen: boolean;
-  vacationDetails?: VacationDetails;
-}
-
 export const useEmployeeStatus = ({
   employee,
   currentDate,
   assignments,
   vacations,
   viewedDate
-}: UseEmployeeStatusProps): EmployeeStatusResult => {
+}: UseEmployeeStatusProps) => {
   const { t } = useTranslation();
 
   console.log(`[EmployeeStatus] === CHECKING EMPLOYEE: ${employee.name} for ${viewedDate} ===`);
@@ -53,7 +46,7 @@ export const useEmployeeStatus = ({
     case 'partiallyBooked':
       return {
         status: 'partiallyAvailable',
-        label: availabilityInfo.statusText,
+        label: availabilityInfo.statusText, // This already contains the translated "Available after XX:XX" text
         color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
         hasEndTimeAtSixteen: false
       };
@@ -69,16 +62,14 @@ export const useEmployeeStatus = ({
         status: 'vacation',
         label: t('employees.status.onVacation'),
         color: 'bg-orange-100 text-orange-800 border-orange-200',
-        hasEndTimeAtSixteen: false,
-        vacationDetails: availabilityInfo.vacationDetails
+        hasEndTimeAtSixteen: false
       };
     case 'partialVacation':
       return {
         status: 'partialVacation',
-        label: availabilityInfo.statusText,
+        label: availabilityInfo.statusText, // This will show the translated partial vacation text
         color: 'bg-orange-100 text-orange-800 border-orange-200',
-        hasEndTimeAtSixteen: false,
-        vacationDetails: availabilityInfo.vacationDetails
+        hasEndTimeAtSixteen: false
       };
     case 'onLeave':
       return {

@@ -11,12 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Send, Trash2, Edit3 } from 'lucide-react';
 import { format } from 'date-fns';
 import AssignmentFormFields from './AssignmentFormFields';
-type SetFormDataFn = (data: Partial<Assignment> | ((prev: Partial<Assignment>) => Partial<Assignment>)) => void;
-
 interface AssignmentFormProps {
   currentAssignment: Assignment | null;
   formData: Partial<Assignment>;
-  setFormData: SetFormDataFn;
+  setFormData: (data: Partial<Assignment>) => void;
   onSubmit: (data: Partial<Assignment>) => void;
   onDelete: (assignmentId: string) => void;
   onPublish: (assignmentId: string) => void;
@@ -85,11 +83,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     }
     if (!formData.toTime) {
       validationErrors.push(t('planner.validation.toTimeRequired'));
-    }
-    
-    // Validate car selection - at least one car is required
-    if (!formData.cars || formData.cars.length === 0) {
-      validationErrors.push(t('planner.validation.carRequired'));
     }
 
     // Validate time logic
@@ -281,18 +274,18 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           title={formData.title || ''} 
           setTitle={value => {
             console.log('[AssignmentForm] Title updated:', value);
-            setFormData(prev => ({
-              ...prev,
+            setFormData({
+              ...formData,
               title: value
-            }));
+            });
           }} 
           location={formData.location || ''} 
           setLocation={value => {
-            console.log('[AssignmentForm] Location updated to:', value);
-            setFormData(prev => ({
-              ...prev,
+            console.log('[AssignmentForm] Location updated:', value);
+            setFormData({
+              ...formData,
               location: value
-            }));
+            });
           }} 
           selectedDates={(formData as any).dates?.map((d: string) => new Date(d)) || (formData.date ? [new Date(formData.date)] : [])} 
           setSelectedDates={handleDatesChange}
@@ -300,41 +293,33 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           fromTime={formData.fromTime || '08:00'} 
           setFromTime={value => {
             console.log('[AssignmentForm] From time updated:', value);
-            setFormData(prev => ({
-              ...prev,
+            setFormData({
+              ...formData,
               fromTime: value
-            }));
+            });
           }} 
           toTime={formData.toTime || '16:00'} 
           setToTime={value => {
             console.log('[AssignmentForm] To time updated:', value);
-            setFormData(prev => ({
-              ...prev,
+            setFormData({
+              ...formData,
               toTime: value
-            }));
+            });
           }} 
           description={formData.description || ''} 
           setDescription={value => {
             console.log('[AssignmentForm] Description updated:', value);
-            setFormData(prev => ({
-              ...prev,
+            setFormData({
+              ...formData,
               description: value
-            }));
+            });
           }} 
           selectedCarIds={formData.cars || []} 
           setSelectedCarIds={handleCarsChange} 
           selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)} 
           setSelectedResponsibleUserId={setResponsibleUserById} 
           selectedEmployees={normalizeEmployees(formData.employees)} 
-          onEmployeeToggle={onEmployeeToggle}
-          onRouteInfoChange={(info) => {
-            console.log('[AssignmentForm] Route info updated:', info);
-            setFormData(prev => ({
-              ...prev,
-              route_distance_km: info?.distanceKm ?? undefined,
-              route_duration_min: info?.durationMin ?? undefined
-            }));
-          }}
+          onEmployeeToggle={onEmployeeToggle} 
           cars={cars} 
           employees={employees} 
           vacations={vacations} 

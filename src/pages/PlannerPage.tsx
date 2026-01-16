@@ -8,7 +8,7 @@ import { useVacations } from '../hooks/useVacations';
 import { useAuth } from '../context/AuthContext';
 import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
-import { Clock, ChevronLeft, ChevronRight, Plus, Monitor } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/spinner';
@@ -346,26 +346,13 @@ const PlannerPage: React.FC = () => {
                     <Plus className="h-4 w-4" />
                     {t('planner.newAssignment')}
                   </Button>}
-                
-                {/* Show on Screen Button */}
-                {canPublishTasks && (
-                  <Button 
-                    onClick={handleShowOnScreen}
-                    variant="outline"
-                    size="sm" 
-                    className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                  >
-                    <Monitor className="h-4 w-4" />
-                    {t('planner.showOnScreen')}
-                  </Button>
-                )}
               </div>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <PlannerContent weekAssignments={sortedWeekAssignments} operationStates={convertedOperationStates} onEditAssignment={handleOpenEditDialog} onDeleteAssignment={handleDeleteAssignment} onPublishAssignment={handlePublishAssignment} onPublishDay={handlePublishDay} onCreateAssignment={handleOpenCreateDialog} onCopyAssignment={handleCopyAssignment} selectedWeek={selectedWeek} selectedYear={selectedYear} weekDates={weekDates} />
+        <PlannerContent weekAssignments={sortedWeekAssignments} operationStates={convertedOperationStates} onEditAssignment={handleOpenEditDialog} onDeleteAssignment={handleDeleteAssignment} onPublishAssignment={handlePublishAssignment} onPublishDay={handlePublishDay} onCreateAssignment={handleOpenCreateDialog} onCopyAssignment={handleCopyAssignment} selectedWeek={selectedWeek} selectedYear={selectedYear} weekDates={weekDates} handleShowOnScreen={handleShowOnScreen} />
 
         {/* Assignment Dialog */}
         <PlannerDialogContainer isDialogOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onSubmit={handleSubmit} currentAssignment={currentAssignment} selectedDay={selectedDay} formData={formData} setFormData={setFormData} employees={employees} cars={cars} vacations={vacations} assignments={sortedWeekAssignments} onEmployeeToggle={handleEmployeeToggle} />

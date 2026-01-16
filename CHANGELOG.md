@@ -39,30 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added - 2025-12-09
-- **Feriehistorik per medarbejder**: Ny dialog til at vise medarbejderes feriehistorik
-  - Viser nuværende, kommende og afventende ferieperioder
-  - Tilgængelig via nyt ikon på medarbejderlisten
-  - Kategoriseret visning med ikoner og farver
-  - Affects: `src/components/Employees/EmployeeVacationHistoryDialog.tsx`, `src/components/Employees/EmployeesTable.tsx`, `src/components/Employees/EmployeeTableRow.tsx`
-
-### Fixed - 2025-12-09
-- **Notifikationsvisning forbedret**: Fikset afkortede notifikationer med overflow
-  - Lange titler og beskeder vises nu korrekt med truncate
-  - "Ny" badge placeret korrekt uden at blive afskåret
-  - Responsivt layout der tilpasser sig indholdet
-  - Affects: `src/components/Notifications/NotificationItem.tsx`
-
-### Changed - 2025-12-09
-- **Feriehistorik dialog**: Fjernet "tidligere ferier" sektion
-  - Dialog viser nu kun aktuelle, kommende og afventende ferieperioder
-  - Renere og mere relevant information til brugeren
-  - Affects: `src/components/Employees/EmployeeVacationHistoryDialog.tsx`
-- **README.md opdateret**: Tilføjet nye funktioner til dokumentationen
-  - Feriehistorik per medarbejder
-  - Interaktive status-tooltips
-  - Optimeret notifikationsvisning
-
 ### Added - 2025-01-09
 - **Demo Mode Write Access**: Demo mode now supports full CRUD operations
   - Users can create, update, and delete assignments, cars, employees, and vacations in demo mode

@@ -83,23 +83,23 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
             {getIconComponent()}
           </div>
           <div className="flex-grow min-w-0">
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center justify-between gap-2">
               <h4 className={cn(
-                "font-medium text-sm truncate flex-1 min-w-0",
+                "font-medium text-sm",
                 !notification.read && "font-semibold"
               )}>
                 {notification.title}
+                {!notification.read && (
+                  <span className="ml-2 inline-flex items-center rounded-full bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700">
+                    {t('notifications.new')}
+                  </span>
+                )}
               </h4>
-              {!notification.read && (
-                <span className="flex-shrink-0 inline-flex items-center rounded-full bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700">
-                  {t('notifications.new')}
-                </span>
-              )}
-              <span className="flex-shrink-0 text-xs text-muted-foreground whitespace-nowrap">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {formattedDate}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground line-clamp-3 mt-1 break-words whitespace-normal">
+            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
               {notification.message}
             </p>
           </div>

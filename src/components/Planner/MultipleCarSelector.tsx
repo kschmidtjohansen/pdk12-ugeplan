@@ -1,22 +1,12 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { X, Car, AlertTriangle } from 'lucide-react';
+import { X, Car } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Car as CarType } from '../../types/car';
 import { Assignment } from '../../types/assignment';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 
 interface MultipleCarSelectorProps {
   cars: CarType[];
@@ -36,15 +26,6 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
   currentAssignmentId
 }) => {
   const { t } = useTranslation();
-  
-  // State for confirmation dialog
-  const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean;
-    carId: string;
-    carName: string;
-    conflictingAssignments: string[];
-    endTime?: string;
-  } | null>(null);
 
   // Check if a car is available for the current date and time
   const getCarBookingStatus = (carId: string): { isAvailable: boolean; endTime?: string } => {
@@ -97,47 +78,6 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     } else {
       return t('planner.carsSelected', { count: selectedCount });
     }
-  };
-
-  // Handle car click with confirmation for occupied cars
-  const handleCarClick = (car: CarType) => {
-    if (!car.is_available) return; // Generally unavailable
-    
-    const isSelected = selectedCarIds.includes(car.id);
-    
-    // If deselecting, allow without dialog
-    if (isSelected) {
-      onCarToggle(car.id);
-      return;
-    }
-    
-    // Check if car is in use
-    const bookingStatus = getCarBookingStatus(car.id);
-    
-    if (!bookingStatus.isAvailable) {
-      // Find conflicting assignments
-      const conflictingAssignments = assignments
-        .filter(a => {
-          if (a.id === currentAssignmentId) return false;
-          if (a.date !== currentDate) return false;
-          const carIds = a.cars || (a.car ? [typeof a.car === 'string' ? a.car : a.car.id] : []);
-          return carIds.includes(car.id);
-        })
-        .map(a => a.title || a.case_number || t('planner.assignment'));
-      
-      // Show confirmation dialog
-      setConfirmDialog({
-        isOpen: true,
-        carId: car.id,
-        carName: car.name,
-        conflictingAssignments,
-        endTime: bookingStatus.endTime
-      });
-      return;
-    }
-    
-    // No conflict - select directly
-    onCarToggle(car.id);
   };
 
   return (
@@ -217,13 +157,13 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                     className={`flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-200 ${
                       !canSelect ? 'opacity-60' : ''
                     }`}
-                    onClick={() => handleCarClick(car)}
+                    onClick={() => canSelect && onCarToggle(car.id)}
                   >
                     <input
                       type="checkbox"
                       id={`car-${car.id}`}
                       checked={isSelected}
-                      onChange={() => handleCarClick(car)}
+                      onChange={() => canSelect && onCarToggle(car.id)}
                       disabled={!canSelect}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
@@ -247,8 +187,10 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                               {t('cars.unavailable')}
                             </Badge>
                           ) : !isBookingAvailable ? (
-                            <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-300">
-                              {t('cars.unavailable')}
+                            <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                              {bookingStatus.endTime 
+                                ? t('cars.inUse', { time: bookingStatus.endTime })
+                                : t('planner.inUseToday')}
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
@@ -265,49 +207,6 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
           </div>
         </PopoverContent>
       </Popover>
-
-      {/* Confirmation dialog for occupied cars */}
-      <AlertDialog open={confirmDialog?.isOpen} onOpenChange={(open) => !open && setConfirmDialog(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
-              {t('planner.carBookingConflict')}
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3">
-                <p>
-                  <strong>{confirmDialog?.carName}</strong> {t('planner.carAlreadyInUse')}
-                  {confirmDialog?.endTime && ` ${t('planner.until')} ${confirmDialog.endTime}`}
-                </p>
-                <div>
-                  <p className="font-medium text-foreground mb-1">{t('planner.conflictingTasks')}:</p>
-                  <ul className="list-disc list-inside text-sm">
-                    {confirmDialog?.conflictingAssignments.map((task, i) => (
-                      <li key={i}>{task}</li>
-                    ))}
-                  </ul>
-                </div>
-                <p className="text-foreground">{t('planner.confirmDoubleBooking')}</p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={() => {
-                if (confirmDialog) {
-                  onCarToggle(confirmDialog.carId);
-                  setConfirmDialog(null);
-                }
-              }}
-              className="bg-yellow-600 hover:bg-yellow-700"
-            >
-              {t('planner.useAnywayButton')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

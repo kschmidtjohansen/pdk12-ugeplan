@@ -72,15 +72,9 @@ export class CarSecurityService {
         throw new Error('Fuel card code is required for administrators');
       }
 
-      // Sanitize car_number: uppercase, only A-Z, 0-9, and hyphens
-      const sanitizedCarNumber = (carData.car_number || '')
-        .toUpperCase()
-        .replace(/[^A-Z0-9-]/g, '')
-        .slice(0, 10);
-
       const insertData: any = {
         name: carData.name,
-        car_number: sanitizedCarNumber,
+        car_number: carData.car_number,
         number_plate: carData.number_plate,
         has_trailer_hitch: carData.has_trailer_hitch || false,
         is_available: carData.is_available !== undefined ? carData.is_available : true,
@@ -106,11 +100,6 @@ export class CarSecurityService {
         : await supabase.from('cars').insert(insertData).select().single();
 
       if (error) {
-        // Check for duplicate fuel card code error
-        if (error.message?.includes('unique_fuel_card_code') || error.code === '23505') {
-          throw new Error('DUPLICATE_FUEL_CARD_CODE');
-        }
-        
         // Log failed car creation attempt
         await supabase.rpc('log_security_event_safe', {
           event_type: 'car_creation_failure',
@@ -159,15 +148,9 @@ export class CarSecurityService {
       // Check database-level permissions
       const { data: canViewFuel } = await supabase.rpc('can_view_fuel_codes');
       
-      // Sanitize car_number: uppercase, only A-Z, 0-9, and hyphens
-      const sanitizedCarNumber = (carData.car_number || '')
-        .toUpperCase()
-        .replace(/[^A-Z0-9-]/g, '')
-        .slice(0, 10);
-
       const updateData: any = {
         name: carData.name,
-        car_number: sanitizedCarNumber,
+        car_number: carData.car_number,
         number_plate: carData.number_plate,
         has_trailer_hitch: carData.has_trailer_hitch,
         is_available: carData.is_available,
@@ -187,20 +170,10 @@ export class CarSecurityService {
       }
 
       const { data, error } = isDemoMode
-        ? await getSchemaClient(true).from('cars').update(updateData).eq('id', carId).select().maybeSingle()
-        : await supabase.from('cars').update(updateData).eq('id', carId).select().maybeSingle();
-
-      // Check if update was blocked by RLS (no rows returned)
-      if (!data && !error) {
-        throw new Error('Du har ikke tilladelse til at redigere køretøjer');
-      }
+        ? await getSchemaClient(true).from('cars').update(updateData).eq('id', carId).select().single()
+        : await supabase.from('cars').update(updateData).eq('id', carId).select().single();
 
       if (error) {
-        // Check for duplicate fuel card code error
-        if (error.message?.includes('unique_fuel_card_code') || error.code === '23505') {
-          throw new Error('DUPLICATE_FUEL_CARD_CODE');
-        }
-        
         // Log failed car update attempt
         await supabase.rpc('log_security_event_safe', {
           event_type: 'car_update_failure',

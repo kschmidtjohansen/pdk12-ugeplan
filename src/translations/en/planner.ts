@@ -220,8 +220,7 @@ const planner = {
     dateRequired: 'Date is required',
     fromTimeRequired: 'Start time is required',
     toTimeRequired: 'End time is required',
-    timeOrderRequired: 'Start time must be before end time',
-    carRequired: 'You must select at least one car'
+    timeOrderRequired: 'Start time must be before end time'
   },
   
   // Operation status messages
@@ -234,49 +233,6 @@ const planner = {
     processing: 'Processing',
     success: 'Success',
     failed: 'Failed'
-  },
-
-  // Car booking conflict dialog
-  carBookingConflict: 'Car already in use',
-  carAlreadyInUse: 'is already in use on this day.',
-  conflictingTasks: 'Used for the following tasks',
-  confirmDoubleBooking: 'Do you still want to select this car?',
-  useAnywayButton: 'Use anyway',
-  until: 'until',
-  sharedWithOtherTasks: 'Shared with other tasks',
-
-  // Address autocomplete
-  routeDistance: '{distance} km · approx. {duration} drive',
-  calculatingRoute: 'Calculating route...',
-  noAddressesFound: 'No addresses found',
-  locationNotAvailable: 'Could not get your location',
-
-  // View toggle
-  kanbanView: 'Day Plan',
-  listView: 'Week Plan',
-  
-  // Drag and drop
-  movedSuccess: 'Assignment moved',
-  movedSuccessMsg: 'The assignment has been moved to the new date',
-  moveError: 'Could not move assignment',
-  dragToMove: 'Drag to move to another day',
-
-  // Week overview widget
-  weekOverview: 'Week Overview',
-  
-  // Employee categories
-  skadeledere: 'Case Managers',
-  servicemedarbejdere: 'Service Workers',
-
-  // Kanban view
-  kanban: {
-    viewTitle: 'Week overview',
-    noCase: 'No case number',
-    draft: 'Draft',
-    publishColumn: 'Publish all',
-    addNew: 'Create new',
-    tasksCount: '{count} tasks',
-    publishedCount: '{count} published'
   }
 };
 

@@ -7,14 +7,12 @@ import { Vacation } from '@/types/vacation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import AssignmentForm from './AssignmentForm';
 
-type SetFormDataFn = (data: Partial<Assignment> | ((prev: Partial<Assignment>) => Partial<Assignment>)) => void;
-
 interface AssignmentDialogManagerProps {
   isDialogOpen: boolean;
   setIsDialogOpen: (open: boolean) => void;
   currentAssignment: Assignment | null;
   formData: Partial<Assignment>;
-  setFormData: SetFormDataFn;
+  setFormData: (data: Partial<Assignment>) => void;
   onSubmit: (data: Partial<Assignment>) => void;
   onDelete: (assignmentId: string) => void;
   onPublish: (assignmentId: string) => void;

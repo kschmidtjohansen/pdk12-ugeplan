@@ -8,7 +8,6 @@ import DaySection from './DaySection';
 interface PastAssignmentsProps {
   pastDates: string[];
   groupedAssignments: Record<string, Assignment[]>;
-  allAssignments?: Assignment[];
   operationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
   expandedDays: Record<string, boolean>;
   onToggleExpansion: (date: string) => void;
@@ -25,7 +24,6 @@ interface PastAssignmentsProps {
 const PastAssignments: React.FC<PastAssignmentsProps> = ({
   pastDates,
   groupedAssignments = {},
-  allAssignments = [],
   operationStates,
   expandedDays,
   onToggleExpansion,
@@ -53,7 +51,6 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
             key={dateKey}
             dateKey={dateKey}
             dayAssignments={groupedAssignments[dateKey] || []}
-            allAssignments={allAssignments}
             isExpanded={expandedDays[dateKey] === true}
             onToggleExpansion={onToggleExpansion}
             onPublishDay={onPublishDay}

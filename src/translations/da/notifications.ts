@@ -18,14 +18,7 @@ const notifications = {
   from: 'Fra',
   notifications: 'Notifikationer',
   dutyAssigned: 'Ny vagt tildelt',
-  dutyAssignedMessage: 'Du er blevet tildelt {dutyType} den {date}',
-  pageTitle: 'Alle notifikationer',
-  filterByType: 'Filtrer efter type',
-  allTypes: 'Alle typer',
-  searchPlaceholder: 'Søg i notifikationer...',
-  noResults: 'Ingen notifikationer fundet',
-  thisWeek: 'Denne uge',
-  older: 'Ældre'
+  dutyAssignedMessage: 'Du er blevet tildelt {dutyType} den {date}'
 };
 
 export default notifications;
