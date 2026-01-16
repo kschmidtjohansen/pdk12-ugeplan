@@ -8,7 +8,7 @@ import { useVacations } from '../hooks/useVacations';
 import { useAuth } from '../context/AuthContext';
 import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
-import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/spinner';
@@ -71,12 +71,26 @@ const PlannerPage: React.FC = () => {
     return { [today]: true };
   });
   
+  // Track if all days are expanded
+  const [allExpanded, setAllExpanded] = useState(false);
+  
   // Handler to toggle day section expansion
   const handleToggleExpansion = useCallback((date: string) => {
     setExpandedDays(prev => ({
       ...prev,
       [date]: !(prev[date] ?? false)
     }));
+  }, []);
+  
+  // Helper to get all week days as date strings
+  const getAllWeekDays = useCallback((dates: { start: Date; end: Date }) => {
+    const days: string[] = [];
+    const current = new Date(dates.start);
+    while (current <= dates.end) {
+      days.push(format(current, 'yyyy-MM-dd'));
+      current.setDate(current.getDate() + 1);
+    }
+    return days;
   }, []);
   
   // Persist view mode
@@ -107,6 +121,21 @@ const PlannerPage: React.FC = () => {
   };
 
   const weekDates = getWeekDates(selectedWeek, selectedYear);
+  
+  // Handler to expand/collapse all days
+  const handleToggleAllExpanded = useCallback(() => {
+    const newExpanded = !allExpanded;
+    setAllExpanded(newExpanded);
+    
+    // Set all days in the selected week to the new state
+    if (weekDates) {
+      const newExpandedDays: Record<string, boolean> = {};
+      getAllWeekDays(weekDates).forEach(dateStr => {
+        newExpandedDays[dateStr] = newExpanded;
+      });
+      setExpandedDays(newExpandedDays);
+    }
+  }, [allExpanded, weekDates, getAllWeekDays]);
   
   // Filter assignments by week using ISO week numbers
   const weekAssignments = useMemo(() => {
@@ -446,6 +475,22 @@ const PlannerPage: React.FC = () => {
                 <span className="text-xs">{t('planner.viewModeCompact')}</span>
               </ToggleGroupItem>
             </ToggleGroup>
+            
+            {/* Expand/Collapse all button - only visible in standard view */}
+            {viewMode === 'standard' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleToggleAllExpanded}
+                className="h-8 px-3 text-xs"
+              >
+                <ChevronsUpDown className="h-4 w-4 mr-1.5" />
+                {allExpanded 
+                  ? (currentLanguage === 'da' ? 'Fold sammen' : 'Collapse all')
+                  : (currentLanguage === 'da' ? 'Udvid alle' : 'Expand all')
+                }
+              </Button>
+            )}
           </div>
         </div>
 
