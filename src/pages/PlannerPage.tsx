@@ -52,9 +52,15 @@ const PlannerPage: React.FC = () => {
     publishAssignmentsByDate
   } = useOptimizedAssignments('all');
 
-  // Simplified planner state management using ISO week numbers
-  const [selectedWeek, setSelectedWeek] = useState(() => getISOWeek(new Date()));
-  const [selectedYear, setSelectedYear] = useState(() => getISOWeekYear(new Date()));
+  // Simplified planner state management using ISO week numbers with localStorage persistence
+  const [selectedWeek, setSelectedWeek] = useState(() => {
+    const saved = localStorage.getItem('plannerSelectedWeek');
+    return saved ? parseInt(saved, 10) : getISOWeek(new Date());
+  });
+  const [selectedYear, setSelectedYear] = useState(() => {
+    const saved = localStorage.getItem('plannerSelectedYear');
+    return saved ? parseInt(saved, 10) : getISOWeekYear(new Date());
+  });
   
   // View mode state with localStorage persistence
   const [viewMode, setViewMode] = useState<'standard' | 'compact'>(() => {
@@ -97,6 +103,12 @@ const PlannerPage: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('plannerViewMode', viewMode);
   }, [viewMode]);
+  
+  // Persist selected week and year
+  useEffect(() => {
+    localStorage.setItem('plannerSelectedWeek', selectedWeek.toString());
+    localStorage.setItem('plannerSelectedYear', selectedYear.toString());
+  }, [selectedWeek, selectedYear]);
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
