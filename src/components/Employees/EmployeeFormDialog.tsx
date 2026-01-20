@@ -249,8 +249,8 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           </div>
           
           {isAdmin && <>
-              {/* Temporary user checkbox - only show when editing or creating vikar */}
-              {creationType !== 'employee' && <div className="space-y-4">
+              {/* Temporary user checkbox - only show when creating vikar, not when editing */}
+              {creationType === 'vikar' && <div className="space-y-4">
                 <div className="flex items-center space-x-2">
                   <Checkbox id="is_temporary" checked={formData.is_temporary} onCheckedChange={checked => {
                 onCheckboxChange('is_temporary', checked as boolean);
