@@ -152,7 +152,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
       {/* Actions - visible on hover */}
       <td className="py-2.5 px-3 text-right">
         <div 
-          className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-end gap-0.5"
+          className="invisible group-hover:visible flex items-center justify-end gap-0.5"
           onClick={(e) => e.stopPropagation()}
         >
           {canEdit && (
