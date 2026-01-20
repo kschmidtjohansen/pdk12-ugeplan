@@ -5,6 +5,11 @@ import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
+
+// Demo user constants for filtering
+const DEMO_USER_EMAIL = 'test@polygongroup.com';
+const DEMO_USER_ID = '165cdbc9-6722-4c96-97d2-1a87185c8133';
 
 interface UseUnifiedDataResult {
   employees: Employee[];
@@ -16,13 +21,14 @@ interface UseUnifiedDataResult {
 }
 
 export const useUnifiedData = (): UseUnifiedDataResult => {
+  const { isDemoMode } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [cars, setCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAllData = async () => {
+  const fetchAllData = async (filterDemoUser: boolean) => {
     try {
       setLoading(true);
       setError(null);
@@ -40,7 +46,15 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
         throw new Error(errors);
       }
 
-      setEmployees(employeesResult.data);
+      // Filter out demo user when not in demo mode
+      let filteredEmployees = employeesResult.data;
+      if (filterDemoUser) {
+        filteredEmployees = employeesResult.data.filter(emp => 
+          emp.email !== DEMO_USER_EMAIL && emp.id !== DEMO_USER_ID
+        );
+      }
+
+      setEmployees(filteredEmployees);
       setAssignments(assignmentsResult.data);
       setCars(carsResult.data);
 
@@ -55,15 +69,16 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
 
   const refetch = async () => {
     unifiedDataService.clearCache();
-    await fetchAllData();
+    await fetchAllData(!isDemoMode);
   };
 
   useEffect(() => {
     let isMounted = true;
+    const filterDemoUser = !isDemoMode;
     
     const loadData = async () => {
       if (isMounted) {
-        await fetchAllData();
+        await fetchAllData(filterDemoUser);
       }
     };
 
@@ -94,7 +109,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
       isMounted = false;
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [isDemoMode]);
 
   return {
     employees,

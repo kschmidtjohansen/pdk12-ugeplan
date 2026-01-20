@@ -156,22 +156,22 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           {canEdit && (
-            <Button variant="ghost" size="sm" onClick={onEdit} className="h-7 w-7 p-0" disabled={isLoading}>
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEdit(); }} className="h-7 w-7 p-0" disabled={isLoading}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
           )}
           {onCopy && (
-            <Button variant="ghost" size="sm" onClick={onCopy} className="h-7 w-7 p-0" disabled={isLoading}>
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onCopy(); }} className="h-7 w-7 p-0" disabled={isLoading}>
               <Copy className="h-3.5 w-3.5 text-blue-600" />
             </Button>
           )}
           {!assignment.published && onPublish && (
-            <Button variant="ghost" size="sm" onClick={onPublish} className="h-7 w-7 p-0" disabled={isLoading}>
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onPublish(); }} className="h-7 w-7 p-0" disabled={isLoading}>
               <Send className="h-3.5 w-3.5 text-green-600" />
             </Button>
           )}
           {canEdit && (
-            <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 p-0" disabled={isLoading}>
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onDelete(); }} className="h-7 w-7 p-0" disabled={isLoading}>
               <Trash2 className="h-3.5 w-3.5 text-red-500" />
             </Button>
           )}
