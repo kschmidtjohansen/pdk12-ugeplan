@@ -245,17 +245,6 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                   {t('employees.hasForkliftLicense')}
                 </Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="has_drivers_license" 
-                  checked={formData.has_drivers_license} 
-                  onCheckedChange={checked => onCheckboxChange('has_drivers_license', checked as boolean)} 
-                  disabled={isSubmitting} 
-                />
-                <Label htmlFor="has_drivers_license" className="text-sm font-normal cursor-pointer">
-                  {t('employees.hasDriversLicense')}
-                </Label>
-              </div>
             </div>
           </div>
           
