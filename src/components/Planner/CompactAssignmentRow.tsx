@@ -63,7 +63,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
     ? employeeNames.slice(0, 2).map(n => n.split(' ')[0]).join(', ') + (employeeNames.length > 2 ? ` +${employeeNames.length - 2}` : '')
     : '-';
 
-  const isLoading = operationState !== null;
+  const isLoading = operationState != null;
   const timeDisplay = `${assignment.fromTime?.substring(0, 5) || ''} - ${assignment.toTime?.substring(0, 5) || ''}`;
 
   return (

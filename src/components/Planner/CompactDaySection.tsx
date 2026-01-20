@@ -124,7 +124,7 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
                     onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
                     onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
                     onViewDetails={() => onViewAssignmentDetails(assignment)}
-                    operationState={operationStates[assignment.id]}
+                    operationState={operationStates[assignment.id] ?? null}
                   />
                 ))}
               </tbody>

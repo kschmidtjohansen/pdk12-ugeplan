@@ -8,6 +8,7 @@ const employees = {
   email: 'Email',
   phone: 'Phone',
   jobTitle: 'Job Title',
+  jobTitlePlaceholder: 'e.g. Service Worker, Project Manager...',
   role: 'Role',
   statusLabel: 'Status',
   notes: 'Notes',

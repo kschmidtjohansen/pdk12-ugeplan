@@ -222,7 +222,11 @@ serve(async (req) => {
           job_title: userData?.job_title || null,
           status: 'active',
           is_temporary: userData?.is_temporary || false,
-          expires_at: userData?.is_temporary && userData?.expires_at ? userData.expires_at : null
+          expires_at: userData?.is_temporary && userData?.expires_at ? userData.expires_at : null,
+          has_asbestos_certificate: !!userData?.has_asbestos_certificate,
+          has_trailer_license: !!userData?.has_trailer_license,
+          has_forklift_license: !!userData?.has_forklift_license,
+          has_drivers_license: !!userData?.has_drivers_license
         });
 
       if (profileError) {

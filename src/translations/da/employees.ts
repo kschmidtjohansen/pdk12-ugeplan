@@ -9,6 +9,7 @@ const employees = {
   phone: 'Telefon',
   selected: 'valgte',
   jobTitle: 'Stilling',
+  jobTitlePlaceholder: 'f.eks. Servicemedarbejder, Projektleder...',
   role: 'Rolle',
   statusLabel: 'Status',
   notes: 'Noter',
