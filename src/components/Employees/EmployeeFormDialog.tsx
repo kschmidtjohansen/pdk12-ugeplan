@@ -195,8 +195,15 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           </div>
           
           <div className="grid gap-2">
-            
-            
+            <Label htmlFor="jobTitle">{t("employees.jobTitle")}</Label>
+            <Input 
+              id="jobTitle" 
+              name="jobTitle" 
+              value={formData.jobTitle} 
+              onChange={handleInputChange} 
+              disabled={isSubmitting}
+              placeholder={t("employees.jobTitlePlaceholder")}
+            />
           </div>
           
           {/* Certificates Section */}
@@ -236,6 +243,17 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                 />
                 <Label htmlFor="has_forklift_license" className="text-sm font-normal cursor-pointer">
                   {t('employees.hasForkliftLicense')}
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="has_drivers_license" 
+                  checked={formData.has_drivers_license} 
+                  onCheckedChange={checked => onCheckboxChange('has_drivers_license', checked as boolean)} 
+                  disabled={isSubmitting} 
+                />
+                <Label htmlFor="has_drivers_license" className="text-sm font-normal cursor-pointer">
+                  {t('employees.hasDriversLicense')}
                 </Label>
               </div>
             </div>

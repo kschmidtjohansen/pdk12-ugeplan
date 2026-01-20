@@ -61,7 +61,11 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           on_leave: userData.onLeave || false,
           notes: userData.notes || null,
           is_temporary: userData.is_temporary || false,
-          expires_at: userData.is_temporary && userData.expires_at ? userData.expires_at : null
+          expires_at: userData.is_temporary && userData.expires_at ? userData.expires_at : null,
+          has_asbestos_certificate: userData.has_asbestos_certificate || false,
+          has_trailer_license: userData.has_trailer_license || false,
+          has_forklift_license: userData.has_forklift_license || false,
+          has_drivers_license: userData.has_drivers_license || false
         });
 
       if (profileError) {
@@ -145,7 +149,11 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
             phone: formData.phone,
             job_title: formData.jobTitle,
             is_temporary: formData.is_temporary || false,
-            expires_at: formData.is_temporary && formData.expires_at ? formData.expires_at : null
+            expires_at: formData.is_temporary && formData.expires_at ? formData.expires_at : null,
+            has_asbestos_certificate: formData.has_asbestos_certificate || false,
+            has_trailer_license: formData.has_trailer_license || false,
+            has_forklift_license: formData.has_forklift_license || false,
+            has_drivers_license: formData.has_drivers_license || false
           }
         };
         
@@ -218,6 +226,10 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
               notes: formData.notes || null,
               is_temporary: formData.is_temporary || false,
               expires_at: formData.is_temporary && formData.expires_at ? formData.expires_at : null,
+              has_asbestos_certificate: formData.has_asbestos_certificate || false,
+              has_trailer_license: formData.has_trailer_license || false,
+              has_forklift_license: formData.has_forklift_license || false,
+              has_drivers_license: formData.has_drivers_license || false,
               updated_at: new Date().toISOString()
             })
             .eq('id', userId);
