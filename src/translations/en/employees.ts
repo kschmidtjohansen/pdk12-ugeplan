@@ -151,6 +151,12 @@ const employees = {
   trailerLicense: 'Trailer License',
   driversLicense: "Driver's License",
   forkliftLicense: 'Forklift License',
+  
+  // Vikar conversion
+  convertToPermanent: 'Convert to permanent employee',
+  convertToPermanentNote: 'This will remove the expiration date and make the employee permanent',
+  currentlyVikar: 'This employee is registered as a temporary worker',
+  vikarExpiresInfo: 'Expires: {date}',
 };
 
 export default employees;

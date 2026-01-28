@@ -125,20 +125,32 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         has_forklift_license: formData.has_forklift_license ?? false
       });
       
+      // Prepare update payload
+      const updatePayload: Record<string, any> = {
+        name: formData.name,
+        email: formData.email,
+        phone: phoneValidation.sanitized,
+        job_title: formData.jobTitle || null,
+        on_leave: formData.onLeave || false,
+        notes: formData.notes || null,
+        has_asbestos_certificate: formData.has_asbestos_certificate ?? false,
+        has_trailer_license: formData.has_trailer_license ?? false,
+        has_forklift_license: formData.has_forklift_license ?? false,
+        updated_at: new Date().toISOString()
+      };
+
+      // Handle vikar to permanent conversion
+      if ('is_temporary' in formData) {
+        updatePayload.is_temporary = formData.is_temporary;
+        // If converting from temporary to permanent, clear expires_at
+        if (formData.is_temporary === false) {
+          updatePayload.expires_at = null;
+        }
+      }
+
       const { error: profileError } = await client
         .from('profiles')
-        .update({
-          name: formData.name,
-          email: formData.email,
-          phone: phoneValidation.sanitized,
-          job_title: formData.jobTitle || null,
-          on_leave: formData.onLeave || false,
-          notes: formData.notes || null,
-          has_asbestos_certificate: formData.has_asbestos_certificate ?? false,
-          has_trailer_license: formData.has_trailer_license ?? false,
-          has_forklift_license: formData.has_forklift_license ?? false,
-          updated_at: new Date().toISOString()
-        })
+        .update(updatePayload)
         .eq('id', employee.id);
       
       if (profileError) throw profileError;

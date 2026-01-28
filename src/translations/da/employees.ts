@@ -153,6 +153,12 @@ const employees = {
   trailerLicense: 'Trailerkørekort',
   driversLicense: 'Kørekort',
   forkliftLicense: 'Truckbevis',
+  
+  // Vikar conversion
+  convertToPermanent: 'Konverter til fast medarbejder',
+  convertToPermanentNote: 'Dette fjerner udløbsdatoen og gør medarbejderen permanent',
+  currentlyVikar: 'Denne medarbejder er registreret som vikar',
+  vikarExpiresInfo: 'Udløber: {date}',
 };
 
 export default employees;
