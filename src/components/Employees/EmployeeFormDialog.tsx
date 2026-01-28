@@ -11,8 +11,10 @@ import { Employee } from '@/types/employee';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Wifi, WifiOff, Calendar } from 'lucide-react';
+import { AlertTriangle, Wifi, WifiOff, Calendar, UserCheck } from 'lucide-react';
 import { validateAndSanitizePhone, getPhoneValidationError } from '@/utils/phoneValidation';
+import { format } from 'date-fns';
+import { da } from 'date-fns/locale';
 interface EmployeeFormDialogProps {
   currentEmployee: Employee | null;
   formData: any;
@@ -45,6 +47,10 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [creationMethod, setCreationMethod] = useState<'attempting' | 'edge-function' | 'direct-database' | 'failed'>('attempting');
+  const [convertToPermanent, setConvertToPermanent] = useState(false);
+
+  // Check if we're editing a temporary employee
+  const isEditingVikar = creationType === 'edit' && currentEmployee?.is_temporary === true;
 
   // Auto-set password validation to true for temporary users
   useEffect(() => {
@@ -52,6 +58,18 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
       setIsPasswordValid(true);
     }
   }, [formData.is_temporary]);
+
+  // When convert to permanent is toggled, update formData
+  useEffect(() => {
+    if (convertToPermanent && isEditingVikar) {
+      onCheckboxChange('is_temporary', false);
+      handleInputChange({
+        target: { name: 'expires_at', value: '' }
+      } as any);
+    } else if (!convertToPermanent && isEditingVikar) {
+      onCheckboxChange('is_temporary', true);
+    }
+  }, [convertToPermanent]);
 
   // Handle checkbox change if no specific handler is provided
   const onCheckboxChange = (field: string, checked: boolean) => {
@@ -174,9 +192,18 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           
           <div className="grid gap-2">
             <Label htmlFor="email">
-              {formData.is_temporary ? t('employees.emailOptional') : t("employees.email")}
+              {formData.is_temporary && !convertToPermanent ? t('employees.emailOptional') : t("employees.email")}
             </Label>
-            <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} required={!formData.is_temporary} disabled={isSubmitting || !!currentEmployee} placeholder={formData.is_temporary ? "vikar@firma.dk (valgfri)" : "medarbejder@firma.dk"} />
+            <Input 
+              id="email" 
+              name="email" 
+              type="email" 
+              value={formData.email} 
+              onChange={handleInputChange} 
+              required={!formData.is_temporary || convertToPermanent} 
+              disabled={isSubmitting || (!!currentEmployee && !isEditingVikar)} 
+              placeholder={formData.is_temporary && !convertToPermanent ? "vikar@firma.dk (valgfri)" : "medarbejder@firma.dk"} 
+            />
           </div>
           
           {!currentEmployee && !formData.is_temporary && <div className="grid gap-2">
@@ -249,6 +276,43 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           </div>
           
           {isAdmin && <>
+              {/* Vikar conversion section - only show when editing a vikar */}
+              {isEditingVikar && (
+                <div className="space-y-3 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md">
+                  <div className="flex items-start space-x-2">
+                    <UserCheck className="h-4 w-4 mt-0.5 text-amber-600 dark:text-amber-400" />
+                    <div className="space-y-1 flex-1">
+                      <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                        {t('employees.currentlyVikar')}
+                      </p>
+                      {currentEmployee?.expires_at && !convertToPermanent && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400">
+                          {t('employees.vikarExpiresInfo', { 
+                            date: format(new Date(currentEmployee.expires_at), 'd. MMMM yyyy', { locale: da })
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 pt-2 border-t border-amber-200 dark:border-amber-700">
+                    <Checkbox 
+                      id="convertToPermanent" 
+                      checked={convertToPermanent} 
+                      onCheckedChange={(checked) => setConvertToPermanent(checked as boolean)} 
+                      disabled={isSubmitting} 
+                    />
+                    <Label htmlFor="convertToPermanent" className="text-sm font-medium cursor-pointer">
+                      {t('employees.convertToPermanent')}
+                    </Label>
+                  </div>
+                  {convertToPermanent && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 pl-6">
+                      {t('employees.convertToPermanentNote')}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Temporary user checkbox - only show when creating vikar, not when editing */}
               {creationType === 'vikar' && <div className="space-y-4">
                 <div className="flex items-center space-x-2">
@@ -336,7 +400,12 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
 
               <div className="grid gap-2">
                 <Label htmlFor="role">{t("employees.role")}</Label>
-                <Select name="role" value={formData.is_temporary ? 'vikar' : formData.role} onValueChange={formData.is_temporary ? undefined : handleSelectChange} disabled={isSubmitting || formData.is_temporary}>
+                <Select 
+                  name="role" 
+                  value={formData.is_temporary && !convertToPermanent ? 'vikar' : formData.role} 
+                  onValueChange={(formData.is_temporary && !convertToPermanent) ? undefined : handleSelectChange} 
+                  disabled={isSubmitting || (formData.is_temporary && !convertToPermanent)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder={t("admin.userManagement.selectRole")} />
                   </SelectTrigger>
@@ -347,12 +416,12 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                     <SelectItem value="vikar">{t("employees.vikar")}</SelectItem>
                   </SelectContent>
                 </Select>
-                {formData.is_temporary && <p className="text-xs text-muted-foreground">
+                {formData.is_temporary && !convertToPermanent && <p className="text-xs text-muted-foreground">
                     {t('employees.vikarAutoRole')}
                   </p>}
               </div>
               
-              {!formData.is_temporary && <div className="flex items-center space-x-2 mt-4">
+              {(!formData.is_temporary || convertToPermanent) && <div className="flex items-center space-x-2 mt-4">
                   <Checkbox id="onLeave" checked={formData.onLeave} onCheckedChange={checked => onCheckboxChange('onLeave', checked === true)} disabled={isSubmitting} />
                   <Label htmlFor="onLeave">{t('employees.onLeave')}</Label>
                 </div>}
