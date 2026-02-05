@@ -28,6 +28,7 @@
    messages: AssignmentMessage[];
    loading: boolean;
   sendMessage: (message: string, replyToId?: string) => Promise<void>;
+  deleteMessage: (messageId: string) => Promise<void>;
    exportMessages: () => void;
    refetch: () => Promise<void>;
  }
@@ -216,6 +217,26 @@
      toast.success('Beskeder eksporteret');
    }, [messages, assignmentTitle]);
  
+  const deleteMessage = useCallback(async (messageId: string) => {
+    if (!assignmentId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('assignment_messages')
+        .delete()
+        .eq('id', messageId);
+        
+      if (error) throw error;
+      
+      // Refetch to update the list
+      await fetchMessages();
+      toast.success('Besked slettet');
+    } catch (error) {
+      console.error('[useAssignmentMessages] Error deleting message:', error);
+      toast.error('Kunne ikke slette besked');
+    }
+  }, [assignmentId, fetchMessages]);
+
    // Set up realtime subscription
    useEffect(() => {
      if (!assignmentId) return;
@@ -247,6 +268,7 @@
      messages,
      loading,
      sendMessage,
+    deleteMessage,
      exportMessages,
      refetch: fetchMessages
    };

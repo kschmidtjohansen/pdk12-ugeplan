@@ -276,7 +276,11 @@ const planner = {
     replyingTo: 'Replying to',
     cancelReply: 'Cancel reply',
     inReplyTo: 'In reply to',
-    writeReply: 'Write a reply...'
+    writeReply: 'Write a reply...',
+    deleteMessage: 'Delete message',
+    confirmDelete: 'Are you sure you want to delete this message? This action cannot be undone.',
+    messageDeleted: 'Message deleted',
+    errorDeletingMessage: 'Could not delete message'
   },
   
   // Files
