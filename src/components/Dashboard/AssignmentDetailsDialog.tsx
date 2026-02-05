@@ -7,10 +7,11 @@
 import { ScrollArea } from '@/components/ui/scroll-area';
  import { Assignment } from '@/types/assignment';
  import { Car as CarType } from '@/types/car';
-import { Calendar, Clock, MapPin, Car, Users, UserCheck, Pencil, MessageSquare, Files, Image, FileText, ChevronDown, ChevronUp } from 'lucide-react';
- import AssignmentMessagesPanel from '@/components/Assignment/AssignmentMessagesPanel';
- import AssignmentFilesPanel from '@/components/Assignment/AssignmentFilesPanel';
+import { Calendar, Clock, MapPin, Car, Users, UserCheck, Pencil, MessageSquare, Files, Image, FileText, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import AssignmentMessagesPanel from '@/components/Assignment/AssignmentMessagesPanel';
+import AssignmentFilesPanel from '@/components/Assignment/AssignmentFilesPanel';
 import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
+import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages';
  
  interface AssignmentDetailsDialogProps {
    assignment: Assignment | null;
@@ -27,16 +28,24 @@ import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
    cars,
    onEdit
  }) => {
-   const { t, currentLanguage } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const [showFiles, setShowFiles] = useState(false);
   const { imageCount, documentCount } = useAssignmentFiles(assignment?.id || null);
- 
-   if (!assignment) return null;
- 
-   // Get assigned employee IDs for messaging
-   const assignedEmployeeIds = assignment.assignedEmployees?.map(e => e.id) 
-     || assignment.employees 
-     || [];
+
+  if (!assignment) return null;
+
+  // Get assigned employee IDs for messaging
+  const assignedEmployeeIds = assignment.assignedEmployees?.map(e => e.id) 
+    || assignment.employees 
+    || [];
+
+  // Get messages hook for export functionality in header
+  const { messages, exportMessages } = useAssignmentMessages(
+    assignment.id,
+    assignment.title,
+    assignedEmployeeIds,
+    assignment.responsibleUserId
+  );
  
    // Helper to get car names from IDs
    const getCarNames = (): string[] => {
@@ -240,11 +249,24 @@ import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
           </div>
 
           {/* Right column: Messages sidebar */}
-           <div className="lg:w-2/5 flex flex-col min-h-0 bg-gradient-to-b from-muted/40 to-muted/20">
-             <div className="px-5 py-4 border-b bg-background/60 backdrop-blur-sm">
-               <div className="flex items-center gap-2.5 text-sm font-semibold">
-                <MessageSquare className="h-4 w-4 text-primary" />
-                {t('planner.tabs.messages')}
+          <div className="lg:w-2/5 flex flex-col min-h-0 bg-gradient-to-b from-muted/40 to-muted/20">
+            <div className="px-5 py-4 border-b bg-background/60 backdrop-blur-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5 text-sm font-semibold">
+                  <MessageSquare className="h-4 w-4 text-primary" />
+                  {t('planner.tabs.messages')}
+                </div>
+                {messages.length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={exportMessages}
+                    className="h-8 text-primary hover:text-primary hover:bg-primary/10"
+                  >
+                    <Download className="h-4 w-4 mr-1.5" />
+                    {t('planner.messages.exportMessages')}
+                  </Button>
+                )}
               </div>
             </div>
              <div className="flex-1 min-h-0 px-1">
