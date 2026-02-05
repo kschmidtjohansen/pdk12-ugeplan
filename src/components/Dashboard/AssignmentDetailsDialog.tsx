@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Assignment } from '@/types/assignment';
 import { Car as CarType } from '@/types/car';
-import { Calendar, Clock, MapPin, Car, Users, UserCheck, Pencil, MessageSquare, Files, Image, FileText, ChevronDown, ChevronUp, Download, Loader2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, Car, Users, UserCheck, Pencil, MessageSquare, Files, Image, FileText, ChevronDown, ChevronUp, Download, Loader2, FileImage, FolderDown } from 'lucide-react';
 import AssignmentMessagesPanel from '@/components/Assignment/AssignmentMessagesPanel';
 import AssignmentFilesPanel from '@/components/Assignment/AssignmentFilesPanel';
 import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
@@ -31,6 +31,7 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
   const { t, currentLanguage } = useTranslation();
   const [showFiles, setShowFiles] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
   
   // Get assigned employee IDs for messaging - compute before hooks
   const assignedEmployeeIds = assignment?.assignedEmployees?.map(e => e.id) 
@@ -38,7 +39,7 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
     || [];
   
   // ALL hooks must be called before any conditional return
-  const { imageCount, documentCount } = useAssignmentFiles(assignment?.id || null);
+  const { imageCount, documentCount, files, downloadAll, generateImagePdfWithComments } = useAssignmentFiles(assignment?.id || null);
   const { messages, exportMessages } = useAssignmentMessages(
     assignment?.id || null,
     assignment?.title,
@@ -49,7 +50,7 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
   // Safe to return early after all hooks are called
   if (!assignment) return null;
 
-  // Handler with loading animation
+  // Handler with loading animation for messages export
   const handleExport = async () => {
     setIsExporting(true);
     try {
@@ -57,6 +58,16 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
       await new Promise(resolve => setTimeout(resolve, 800));
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  // Handler with loading animation for PDF generation
+  const handleGeneratePdf = async () => {
+    setGeneratingPdf(true);
+    try {
+      await generateImagePdfWithComments(assignment?.title);
+    } finally {
+      setGeneratingPdf(false);
     }
   };
  
@@ -236,11 +247,11 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
 
             {/* Files section - collapsible at the bottom of left column */}
              <div className="border-t bg-muted/20">
-              <button
-                onClick={() => setShowFiles(!showFiles)}
-                 className="w-full flex items-center justify-between px-8 py-4 hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-2 text-sm font-medium">
+              <div className="flex items-center justify-between px-8 py-4">
+                <button
+                  onClick={() => setShowFiles(!showFiles)}
+                  className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
+                >
                   <Files className="h-4 w-4 text-primary" />
                   {t('planner.tabs.files')}
                   {(imageCount > 0 || documentCount > 0) && (
@@ -250,12 +261,52 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
                       {documentCount > 0 && <><FileText className="h-3 w-3 inline mr-0.5" />{documentCount}</>})
                     </span>
                   )}
+                  {showFiles ? <ChevronDown className="h-4 w-4 ml-1" /> : <ChevronUp className="h-4 w-4 ml-1" />}
+                </button>
+                
+                {/* Action buttons in header */}
+                <div className="flex items-center gap-2">
+                  {imageCount > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleGeneratePdf}
+                      disabled={generatingPdf}
+                      className="h-8 text-primary hover:text-primary hover:bg-primary/10"
+                    >
+                      {generatingPdf ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                          {t('planner.files.generatingPdf')}
+                        </>
+                      ) : (
+                        <>
+                          <FileImage className="h-4 w-4 mr-1.5" />
+                          {t('planner.files.downloadAsPdf')}
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  {files.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={downloadAll}
+                      className="h-8 text-primary hover:text-primary hover:bg-primary/10"
+                    >
+                      <FolderDown className="h-4 w-4 mr-1.5" />
+                      {t('planner.files.downloadAll')}
+                    </Button>
+                  )}
                 </div>
-                {showFiles ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-              </button>
+              </div>
               {showFiles && (
                  <div className="px-8 pb-6 max-h-72 overflow-y-auto">
-                  <AssignmentFilesPanel assignmentId={assignment.id} assignmentTitle={assignment.title || assignment.case_number || undefined} />
+                  <AssignmentFilesPanel 
+                    assignmentId={assignment.id} 
+                    assignmentTitle={assignment.title || assignment.case_number || undefined}
+                    hideHeader={true}
+                  />
                 </div>
               )}
             </div>
