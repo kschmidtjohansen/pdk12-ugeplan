@@ -1,13 +1,13 @@
- import React, { useState } from 'react';
- import { useTranslation } from '@/context/TranslationContext';
- import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
- import { Badge } from '@/components/ui/badge';
- import { Button } from '@/components/ui/button';
- import { Separator } from '@/components/ui/separator';
+import React, { useState } from 'react';
+import { useTranslation } from '@/context/TranslationContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
- import { Assignment } from '@/types/assignment';
- import { Car as CarType } from '@/types/car';
-import { Calendar, Clock, MapPin, Car, Users, UserCheck, Pencil, MessageSquare, Files, Image, FileText, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import { Assignment } from '@/types/assignment';
+import { Car as CarType } from '@/types/car';
+import { Calendar, Clock, MapPin, Car, Users, UserCheck, Pencil, MessageSquare, Files, Image, FileText, ChevronDown, ChevronUp, Download, Loader2 } from 'lucide-react';
 import AssignmentMessagesPanel from '@/components/Assignment/AssignmentMessagesPanel';
 import AssignmentFilesPanel from '@/components/Assignment/AssignmentFilesPanel';
 import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
@@ -30,22 +30,35 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
  }) => {
   const { t, currentLanguage } = useTranslation();
   const [showFiles, setShowFiles] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  
+  // Get assigned employee IDs for messaging - compute before hooks
+  const assignedEmployeeIds = assignment?.assignedEmployees?.map(e => e.id) 
+    || assignment?.employees 
+    || [];
+  
+  // ALL hooks must be called before any conditional return
   const { imageCount, documentCount } = useAssignmentFiles(assignment?.id || null);
+  const { messages, exportMessages } = useAssignmentMessages(
+    assignment?.id || null,
+    assignment?.title,
+    assignedEmployeeIds,
+    assignment?.responsibleUserId
+  );
 
+  // Safe to return early after all hooks are called
   if (!assignment) return null;
 
-  // Get assigned employee IDs for messaging
-  const assignedEmployeeIds = assignment.assignedEmployees?.map(e => e.id) 
-    || assignment.employees 
-    || [];
-
-  // Get messages hook for export functionality in header
-  const { messages, exportMessages } = useAssignmentMessages(
-    assignment.id,
-    assignment.title,
-    assignedEmployeeIds,
-    assignment.responsibleUserId
-  );
+  // Handler with loading animation
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      exportMessages();
+      await new Promise(resolve => setTimeout(resolve, 800));
+    } finally {
+      setIsExporting(false);
+    }
+  };
  
    // Helper to get car names from IDs
    const getCarNames = (): string[] => {
@@ -260,11 +273,21 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    onClick={exportMessages}
-                    className="h-8 text-primary hover:text-primary hover:bg-primary/10"
+                    onClick={handleExport}
+                    disabled={isExporting}
+                    className="h-8 text-primary hover:text-primary hover:bg-primary/10 disabled:opacity-70"
                   >
-                    <Download className="h-4 w-4 mr-1.5" />
-                    {t('planner.messages.exportMessages')}
+                    {isExporting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                        {t('planner.messages.exporting')}
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-1.5" />
+                        {t('planner.messages.exportMessages')}
+                      </>
+                    )}
                   </Button>
                 )}
               </div>

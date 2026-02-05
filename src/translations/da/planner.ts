@@ -276,6 +276,7 @@ const planner = {
     messagePlaceholder: 'Skriv en besked...',
     noMessages: 'Ingen beskeder endnu',
     exportMessages: 'Eksporter',
+    exporting: 'Eksporterer...',
     messagesExported: 'Beskeder eksporteret',
     newMessage: 'Ny besked',
     reply: 'Svar',
