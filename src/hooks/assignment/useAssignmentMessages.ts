@@ -11,17 +11,23 @@
    user_id: string;
    message: string;
    created_at: string;
+  reply_to_id?: string | null;
    sender?: {
      id: string;
      name: string;
      avatar_url?: string;
    };
+  reply_to?: {
+    id: string;
+    message: string;
+    sender_name: string;
+  } | null;
  }
  
  interface UseAssignmentMessagesReturn {
    messages: AssignmentMessage[];
    loading: boolean;
-   sendMessage: (message: string) => Promise<void>;
+  sendMessage: (message: string, replyToId?: string) => Promise<void>;
    exportMessages: () => void;
    refetch: () => Promise<void>;
  }
@@ -44,7 +50,7 @@
        // First fetch messages
        const { data: messagesData, error: messagesError } = await supabase
          .from('assignment_messages')
-         .select('*')
+        .select('*, reply_to_id')
          .eq('assignment_id', assignmentId)
          .order('created_at', { ascending: true });
  
@@ -69,11 +75,32 @@
          }
        }
  
+      // Build a map of message id -> message for reply lookups
+      const messagesMap = new Map<string, { message: string; user_id: string }>();
+      (messagesData || []).forEach(msg => {
+        messagesMap.set(msg.id, { message: msg.message, user_id: msg.user_id });
+      });
+
        // Combine messages with sender info
-       const messagesWithSenders = (messagesData || []).map(msg => ({
-         ...msg,
-         sender: profilesMap[msg.user_id] || { id: msg.user_id, name: 'Ukendt' }
-       }));
+      const messagesWithSenders = (messagesData || []).map(msg => {
+        let replyTo = null;
+        if (msg.reply_to_id) {
+          const parentMsg = messagesMap.get(msg.reply_to_id);
+          if (parentMsg) {
+            const parentSender = profilesMap[parentMsg.user_id];
+            replyTo = {
+              id: msg.reply_to_id,
+              message: parentMsg.message,
+              sender_name: parentSender?.name || 'Ukendt'
+            };
+          }
+        }
+        return {
+          ...msg,
+          sender: profilesMap[msg.user_id] || { id: msg.user_id, name: 'Ukendt' },
+          reply_to: replyTo
+        };
+      });
  
        setMessages(messagesWithSenders);
      } catch (error) {
@@ -83,7 +110,7 @@
      }
    }, [assignmentId]);
  
-   const sendMessage = useCallback(async (messageText: string) => {
+  const sendMessage = useCallback(async (messageText: string, replyToId?: string) => {
      if (!assignmentId || !messageText.trim()) return;
  
      try {
@@ -105,7 +132,8 @@
          .insert({
            assignment_id: assignmentId,
            user_id: user.id,
-           message: messageText.trim()
+          message: messageText.trim(),
+          reply_to_id: replyToId || null
          });
  
        if (error) throw error;
@@ -164,7 +192,12 @@
  
      messages.forEach(msg => {
        const timestamp = format(new Date(msg.created_at), 'dd-MM-yyyy HH:mm', { locale: da });
-       lines.push(`[${timestamp}] ${msg.sender?.name || 'Ukendt'}:`);
+        let prefix = '';
+        if (msg.reply_to) {
+          prefix = `  ↳ Svar på: "${msg.reply_to.message.substring(0, 30)}${msg.reply_to.message.length > 30 ? '...' : ''}"\n  `;
+        }
+        lines.push(`[${timestamp}] ${msg.sender?.name || 'Ukendt'}:`);
+        if (prefix) lines.push(prefix);
        lines.push(msg.message);
        lines.push('');
      });

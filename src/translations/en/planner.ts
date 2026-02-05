@@ -271,7 +271,12 @@ const planner = {
     noMessages: 'No messages yet',
     exportMessages: 'Export',
     messagesExported: 'Messages exported',
-    newMessage: 'New message'
+    newMessage: 'New message',
+    reply: 'Reply',
+    replyingTo: 'Replying to',
+    cancelReply: 'Cancel reply',
+    inReplyTo: 'In reply to',
+    writeReply: 'Write a reply...'
   },
   
   // Files
@@ -286,7 +291,10 @@ const planner = {
     deleteFile: 'Delete file',
     downloadAll: 'Download all',
     fileUploaded: 'File uploaded',
-    fileDeleted: 'File deleted'
+    fileDeleted: 'File deleted',
+    noFolder: 'No folder',
+    imagePreview: 'Preview',
+    closePreview: 'Close'
   }
 };
 
