@@ -20,6 +20,7 @@ interface DaySectionProps {
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment?: (assignmentId: string) => void;
   onCopyAssignment?: (assignment: Assignment) => void;
+  onViewDetails?: (assignment: Assignment) => void;
   canEdit: boolean;
   canPublishTasks: boolean;
   cars?: Car[];
@@ -37,6 +38,7 @@ const DaySection: React.FC<DaySectionProps> = ({
   onDeleteAssignment,
   onPublishAssignment,
   onCopyAssignment,
+  onViewDetails,
   canEdit,
   canPublishTasks,
   cars = []
@@ -117,6 +119,7 @@ const DaySection: React.FC<DaySectionProps> = ({
                 onDelete={() => onDeleteAssignment(assignment.id)}
                 onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
                 onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
+                onViewDetails={onViewDetails ? () => onViewDetails(assignment) : undefined}
                 operationState={operationStates[assignment.id]}
               />
             ))

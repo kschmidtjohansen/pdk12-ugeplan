@@ -3,6 +3,7 @@
  import { toast } from 'sonner';
  import { format } from 'date-fns';
  import { da } from 'date-fns/locale';
+import JSZip from 'jszip';
  
  export interface AssignmentFile {
    id: string;
@@ -29,8 +30,13 @@
    groupedFiles: GroupedFiles;
    folders: string[];
    loading: boolean;
+  imageCount: number;
+  documentCount: number;
    uploadFile: (file: File, folderName?: string) => Promise<void>;
    downloadFile: (file: AssignmentFile) => Promise<void>;
+  downloadFileAsBlob: (file: AssignmentFile) => Promise<Blob | null>;
+  downloadFolder: (folderName: string) => Promise<void>;
+  downloadAll: () => Promise<void>;
    deleteFile: (file: AssignmentFile) => Promise<void>;
    createFolder: (folderName: string) => void;
   getFilePreviewUrl: (file: AssignmentFile) => Promise<string | null>;
@@ -42,6 +48,10 @@
    const [folders, setFolders] = useState<string[]>([]);
    const [loading, setLoading] = useState(false);
  
+  // Calculate image and document counts
+  const imageCount = files.filter(f => f.mime_type?.startsWith('image/')).length;
+  const documentCount = files.filter(f => !f.mime_type?.startsWith('image/')).length;
+
    const fetchFiles = useCallback(async () => {
      if (!assignmentId) return;
  
@@ -164,6 +174,101 @@
      }
    }, []);
  
+  const downloadFileAsBlob = useCallback(async (file: AssignmentFile): Promise<Blob | null> => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('assignment-files')
+        .download(file.file_path);
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('[useAssignmentFiles] Error downloading file as blob:', error);
+      return null;
+    }
+  }, []);
+
+  const downloadFolder = useCallback(async (folderName: string) => {
+    const folderFiles = files.filter(f => 
+      folderName === '__uncategorized__' 
+        ? !f.folder_name 
+        : f.folder_name === folderName
+    );
+    
+    if (folderFiles.length === 0) {
+      toast.error('Ingen filer i mappen');
+      return;
+    }
+
+    toast.info('Forbereder download...');
+
+    try {
+      const zip = new JSZip();
+      
+      for (const file of folderFiles) {
+        const blob = await downloadFileAsBlob(file);
+        if (blob) {
+          zip.file(file.file_name, blob);
+        }
+      }
+
+      const content = await zip.generateAsync({ type: 'blob' });
+      const displayName = folderName === '__uncategorized__' ? 'Løse filer' : folderName;
+      
+      const url = URL.createObjectURL(content);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${displayName}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Download færdig');
+    } catch (error) {
+      console.error('[useAssignmentFiles] Error downloading folder:', error);
+      toast.error('Kunne ikke downloade mappe');
+    }
+  }, [files, downloadFileAsBlob]);
+
+  const downloadAll = useCallback(async () => {
+    if (files.length === 0) {
+      toast.error('Ingen filer at downloade');
+      return;
+    }
+
+    toast.info('Forbereder download af alle filer...');
+
+    try {
+      const zip = new JSZip();
+      
+      for (const file of files) {
+        const folderPath = file.folder_name || 'Løse filer';
+        const blob = await downloadFileAsBlob(file);
+        if (blob) {
+          const folder = zip.folder(folderPath);
+          folder?.file(file.file_name, blob);
+        }
+      }
+
+      const content = await zip.generateAsync({ type: 'blob' });
+      
+      const url = URL.createObjectURL(content);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `alle-filer.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Download færdig');
+    } catch (error) {
+      console.error('[useAssignmentFiles] Error downloading all files:', error);
+      toast.error('Kunne ikke downloade filer');
+    }
+  }, [files, downloadFileAsBlob]);
+
    const deleteFile = useCallback(async (file: AssignmentFile) => {
      try {
        // Delete from storage
@@ -263,8 +368,13 @@
      groupedFiles,
      folders,
      loading,
+    imageCount,
+    documentCount,
      uploadFile,
      downloadFile,
+    downloadFileAsBlob,
+    downloadFolder,
+    downloadAll,
      deleteFile,
      createFolder,
     getFilePreviewUrl,

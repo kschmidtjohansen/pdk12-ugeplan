@@ -1,15 +1,16 @@
- import React from 'react';
+ import React, { useState } from 'react';
  import { useTranslation } from '@/context/TranslationContext';
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
  import { Badge } from '@/components/ui/badge';
  import { Button } from '@/components/ui/button';
  import { Separator } from '@/components/ui/separator';
- import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
  import { Assignment } from '@/types/assignment';
  import { Car as CarType } from '@/types/car';
- import { Calendar, Clock, MapPin, Car, Users, UserCheck, Pencil, MessageSquare, Files } from 'lucide-react';
+import { Calendar, Clock, MapPin, Car, Users, UserCheck, Pencil, MessageSquare, Files, Image, FileText, ChevronDown, ChevronUp } from 'lucide-react';
  import AssignmentMessagesPanel from '@/components/Assignment/AssignmentMessagesPanel';
  import AssignmentFilesPanel from '@/components/Assignment/AssignmentFilesPanel';
+import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
  
  interface AssignmentDetailsDialogProps {
    assignment: Assignment | null;
@@ -27,6 +28,8 @@
    onEdit
  }) => {
    const { t, currentLanguage } = useTranslation();
+  const [showFiles, setShowFiles] = useState(false);
+  const { imageCount, documentCount } = useAssignmentFiles(assignment?.id || null);
  
    if (!assignment) return null;
  
@@ -71,9 +74,9 @@
  
    return (
      <Dialog open={isOpen} onOpenChange={onClose}>
-       <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
-         <DialogHeader>
-           <DialogTitle className="flex items-center justify-between gap-2 text-lg">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b">
+          <DialogTitle className="flex items-center justify-between gap-2 text-lg pr-8">
              <div className="flex items-center gap-2">
                <MapPin className="h-5 w-5 text-primary" />
                {assignment.location}
@@ -102,138 +105,158 @@
              {t('planner.assignmentDetails')}
            </DialogDescription>
          </DialogHeader>
-         
-         <Tabs defaultValue="details" className="flex-1 flex flex-col min-h-0">
-           <TabsList className="grid w-full grid-cols-3">
-             <TabsTrigger value="details" className="flex items-center gap-1">
-               <Calendar className="h-4 w-4" />
-               {t('planner.tabs.details')}
-             </TabsTrigger>
-             <TabsTrigger value="messages" className="flex items-center gap-1">
-               <MessageSquare className="h-4 w-4" />
-               {t('planner.tabs.messages')}
-             </TabsTrigger>
-             <TabsTrigger value="files" className="flex items-center gap-1">
-               <Files className="h-4 w-4" />
-               {t('planner.tabs.files')}
-             </TabsTrigger>
-           </TabsList>
-           
-           <TabsContent value="details" className="flex-1 overflow-y-auto mt-4">
-             <div className="space-y-5">
-               {/* Title */}
-               <div className="space-y-3">
-                 <h3 className="text-xl font-semibold">{assignment.title}</h3>
-                 
-                 {/* Description */}
-                 {assignment.description && (
-                   <div className="space-y-2">
-                     <h4 className="text-sm font-medium text-muted-foreground">{t('planner.description')}</h4>
-                     <p className="text-sm leading-relaxed">{assignment.description}</p>
-                   </div>
-                 )}
-               </div>
  
-               <Separator />
+        {/* Main content: 2-column layout */}
+        <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+          {/* Left column: Details */}
+          <div className="flex-1 lg:w-3/5 flex flex-col min-h-0 border-r">
+            <ScrollArea className="flex-1">
+              <div className="p-6 space-y-5">
+                {/* Title */}
+                <div className="space-y-3">
+                  <h3 className="text-xl font-semibold">{assignment.title}</h3>
+                  
+                  {/* Description */}
+                  {assignment.description && (
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-muted-foreground">{t('planner.description')}</h4>
+                      <p className="text-sm leading-relaxed">{assignment.description}</p>
+                    </div>
+                  )}
+                </div>
  
-               {/* Date and Time Section */}
-               <div className="space-y-3">
-                 <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                   {t('planner.dateAndTime') || 'Dato og tid'}
-                 </h4>
-                 <div className="grid gap-3">
-                   <div className="flex items-center gap-3">
-                     <Calendar className="h-4 w-4 text-primary" />
-                     <div className="text-sm">
-                       <span className="font-medium">{t('planner.date')}: </span>
-                       <span>{formatDate(assignment.date)}</span>
-                     </div>
-                   </div>
-                   
-                   <div className="flex items-center gap-3">
-                     <Clock className="h-4 w-4 text-primary" />
-                     <div className="text-sm">
-                       <span className="font-medium">{t('planner.time')}: </span>
-                       <span>{assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}</span>
+                <Separator />
+
+                {/* Date and Time Section */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    {t('planner.dateAndTime') || 'Dato og tid'}
+                  </h4>
+                  <div className="grid gap-3">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <div className="text-sm">
+                        <span className="font-medium">{t('planner.date')}: </span>
+                        <span>{formatDate(assignment.date)}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-4 w-4 text-primary" />
+                      <div className="text-sm">
+                        <span className="font-medium">{t('planner.time')}: </span>
+                        <span>{assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}</span>
+                      </div>
                      </div>
                    </div>
                  </div>
-               </div>
- 
-               <Separator />
- 
-               {/* Assignment Details Section */}
-               <div className="space-y-3">
-                 <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                   {t('planner.assignmentDetails') || 'Opgave detaljer'}
-                 </h4>
-                 <div className="grid gap-3">
-                   {/* Cars */}
-                   {carNames.length > 0 && (
-                     <div className="flex items-center gap-3">
-                       <Car className="h-4 w-4 text-primary" />
-                       <div className="flex items-center flex-wrap gap-2 text-sm">
-                         <span className="font-medium">{t('planner.car')}:</span>
-                         {carNames.map((carName, index) => (
-                           <Badge key={index} variant="outline" className="text-xs">
-                             {carName}
-                           </Badge>
-                         ))}
-                       </div>
-                     </div>
-                   )}
- 
-                   {/* Responsible User */}
-                   {assignment.responsibleUser && (
-                     <div className="flex items-center gap-3">
-                       <UserCheck className="h-4 w-4 text-primary" />
-                       <div className="text-sm">
-                         <span className="font-medium">{t('planner.responsibleUser')}: </span>
-                         <span>{assignment.responsibleUser.name}</span>
-                       </div>
-                     </div>
-                   )}
- 
-                   {/* Assigned Employees */}
-                   {((assignment.assignedEmployees && assignment.assignedEmployees.length > 0) || (assignment.employees && assignment.employees.length > 0)) && (
-                     <div className="flex items-center gap-3">
-                       <Users className="h-4 w-4 text-primary" />
-                       <div className="flex items-center flex-wrap gap-2 text-sm">
-                         <span className="font-medium">{t('planner.employees')}:</span>
-                         {assignment.assignedEmployees && assignment.assignedEmployees.length > 0 ? (
-                           assignment.assignedEmployees.map((employee) => (
-                             <Badge key={employee.id} variant="outline" className="text-xs">
-                               {employee.name}
-                             </Badge>
-                           ))
-                         ) : assignment.employees && assignment.employees.length > 0 ? (
-                           assignment.employees.map((employee, index) => (
-                             <Badge key={index} variant="outline" className="text-xs">
-                               {employee}
-                             </Badge>
-                           ))
-                         ) : null}
-                       </div>
-                     </div>
-                   )}
-                 </div>
-               </div>
-             </div>
-           </TabsContent>
-           
-           <TabsContent value="messages" className="flex-1 min-h-0 mt-4">
-             <AssignmentMessagesPanel
-               assignmentId={assignment.id}
-               assignmentTitle={assignment.title}
-               assignedEmployeeIds={assignedEmployeeIds}
-               responsibleUserId={assignment.responsibleUserId}
-             />
-           </TabsContent>
-           
-           <TabsContent value="files" className="flex-1 min-h-0 mt-4">
-             <AssignmentFilesPanel assignmentId={assignment.id} />
-           </TabsContent>
-         </Tabs>
+
+                <Separator />
+
+                {/* Assignment Details Section */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    {t('planner.assignmentDetails') || 'Opgave detaljer'}
+                  </h4>
+                  <div className="grid gap-3">
+                    {/* Cars */}
+                    {carNames.length > 0 && (
+                      <div className="flex items-center gap-3">
+                        <Car className="h-4 w-4 text-primary" />
+                        <div className="flex items-center flex-wrap gap-2 text-sm">
+                          <span className="font-medium">{t('planner.car')}:</span>
+                          {carNames.map((carName, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {carName}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Responsible User */}
+                    {assignment.responsibleUser && (
+                      <div className="flex items-center gap-3">
+                        <UserCheck className="h-4 w-4 text-primary" />
+                        <div className="text-sm">
+                          <span className="font-medium">{t('planner.responsibleUser')}: </span>
+                          <span>{assignment.responsibleUser.name}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Assigned Employees */}
+                    {((assignment.assignedEmployees && assignment.assignedEmployees.length > 0) || (assignment.employees && assignment.employees.length > 0)) && (
+                      <div className="flex items-center gap-3">
+                        <Users className="h-4 w-4 text-primary" />
+                        <div className="flex items-center flex-wrap gap-2 text-sm">
+                          <span className="font-medium">{t('planner.employees')}:</span>
+                          {assignment.assignedEmployees && assignment.assignedEmployees.length > 0 ? (
+                            assignment.assignedEmployees.map((employee) => (
+                              <Badge key={employee.id} variant="outline" className="text-xs">
+                                {employee.name}
+                              </Badge>
+                            ))
+                          ) : assignment.employees && assignment.employees.length > 0 ? (
+                            assignment.employees.map((employee, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {employee}
+                              </Badge>
+                            ))
+                          ) : null}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </ScrollArea>
+
+            {/* Files section - collapsible at the bottom of left column */}
+            <div className="border-t">
+              <button
+                onClick={() => setShowFiles(!showFiles)}
+                className="w-full flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Files className="h-4 w-4 text-primary" />
+                  {t('planner.tabs.files')}
+                  {(imageCount > 0 || documentCount > 0) && (
+                    <span className="text-muted-foreground">
+                      ({imageCount > 0 && <><Image className="h-3 w-3 inline mr-0.5" />{imageCount}</>}
+                      {imageCount > 0 && documentCount > 0 && ' • '}
+                      {documentCount > 0 && <><FileText className="h-3 w-3 inline mr-0.5" />{documentCount}</>})
+                    </span>
+                  )}
+                </div>
+                {showFiles ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+              </button>
+              {showFiles && (
+                <div className="px-6 pb-4 max-h-64 overflow-y-auto">
+                  <AssignmentFilesPanel assignmentId={assignment.id} />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right column: Messages sidebar */}
+          <div className="lg:w-2/5 flex flex-col min-h-0 bg-muted/30">
+            <div className="px-4 py-3 border-b bg-background/50">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <MessageSquare className="h-4 w-4 text-primary" />
+                {t('planner.tabs.messages')}
+              </div>
+            </div>
+            <div className="flex-1 min-h-0">
+              <AssignmentMessagesPanel
+                assignmentId={assignment.id}
+                assignmentTitle={assignment.title}
+                assignedEmployeeIds={assignedEmployeeIds}
+                responsibleUserId={assignment.responsibleUserId}
+              />
+            </div>
+          </div>
+        </div>
        </DialogContent>
      </Dialog>
    );

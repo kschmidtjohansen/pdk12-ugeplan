@@ -30,7 +30,9 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
    Folder,
   Files,
   X,
-  ZoomIn
+  ZoomIn,
+  FolderDown,
+  Filter
  } from 'lucide-react';
  import { format } from 'date-fns';
  import { da, enGB } from 'date-fns/locale';
@@ -47,6 +49,7 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
    const [showFolderDialog, setShowFolderDialog] = useState(false);
    const [newFolderName, setNewFolderName] = useState('');
    const [selectedFolder, setSelectedFolder] = useState<string>('');
+  const [filterFolder, setFilterFolder] = useState<string>('__all__');
    const [uploading, setUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<AssignmentFile | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -57,11 +60,15 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
      groupedFiles, 
      folders,
      loading, 
+    imageCount,
+    documentCount,
      uploadFile, 
      downloadFile, 
      deleteFile,
     createFolder,
-    getFilePreviewUrl
+    getFilePreviewUrl,
+    downloadFolder,
+    downloadAll
    } = useAssignmentFiles(assignmentId);
  
    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,6 +134,20 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
    const allFolders = [...new Set([...folders, ...Object.keys(groupedFiles).filter(f => f !== '__uncategorized__')])];
   
   const isImageFile = (mimeType: string | null) => mimeType?.startsWith('image/') || false;
+
+  // Get filtered files based on filter selection
+  const getFilteredContent = () => {
+    if (filterFolder === '__all__') {
+      // Show all files with their folder path
+      return { type: 'flat' as const, files: files };
+    } else if (filterFolder === '__uncategorized__') {
+      return { type: 'flat' as const, files: groupedFiles['__uncategorized__'] || [] };
+    } else {
+      return { type: 'flat' as const, files: groupedFiles[filterFolder] || [] };
+    }
+  };
+
+  const filteredContent = getFilteredContent();
  
    return (
      <div className="flex flex-col h-full">
@@ -135,8 +156,24 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
          <div className="flex items-center gap-2">
            <Files className="h-5 w-5 text-primary" />
            <h3 className="font-medium">{t('planner.files.title')}</h3>
+          {(imageCount > 0 || documentCount > 0) && (
+            <span className="text-xs text-muted-foreground">
+              ({imageCount > 0 && `📷 ${imageCount}`}{imageCount > 0 && documentCount > 0 && ' • '}{documentCount > 0 && `📄 ${documentCount}`})
+            </span>
+          )}
          </div>
          <div className="flex items-center gap-2">
+          {files.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={downloadAll}
+              className="flex items-center gap-1"
+            >
+              <FolderDown className="h-4 w-4" />
+              {t('planner.files.downloadAll')}
+            </Button>
+          )}
            <Button
              variant="outline"
              size="sm"
@@ -151,9 +188,29 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
  
        {/* Upload section */}
        <div className="py-3 border-b space-y-2">
-         <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Filter dropdown */}
+          <Select value={filterFolder} onValueChange={setFilterFolder}>
+            <SelectTrigger className="w-[160px]">
+              <Filter className="h-3 w-3 mr-1" />
+              <SelectValue placeholder="Filter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">Alle filer</SelectItem>
+              <SelectItem value="__uncategorized__">Løse filer</SelectItem>
+              {allFolders.map((folder) => (
+                <SelectItem key={folder} value={folder}>
+                  {folder}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="h-4 w-px bg-border" />
+
+          {/* Upload folder selector */}
             <Select value={selectedFolder || '__none__'} onValueChange={(val) => setSelectedFolder(val === '__none__' ? '' : val)}>
-             <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder={t('planner.files.noFolder')} />
              </SelectTrigger>
              <SelectContent>
@@ -195,17 +252,70 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
              <Files className="h-8 w-8 mb-2 opacity-50" />
              <p className="text-sm">{t('planner.files.noFiles')}</p>
            </div>
+        ) : filterFolder !== '__all__' ? (
+          /* Filtered view - flat list */
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Folder className="h-4 w-4" />
+                {filterFolder === '__uncategorized__' ? 'Løse filer' : filterFolder}
+              </div>
+              {filteredContent.files.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => downloadFolder(filterFolder)}
+                  className="h-7 text-xs"
+                >
+                  <Download className="h-3 w-3 mr-1" />
+                  Download mappe
+                </Button>
+              )}
+            </div>
+            <div className="ml-6 space-y-1">
+              {filteredContent.files.map((file) => (
+                <FileItem
+                  key={file.id}
+                  file={file}
+                  isImage={isImageFile(file.mime_type)}
+                  onDownload={downloadFile}
+                  onDelete={deleteFile}
+                  onPreview={handlePreviewImage}
+                  getFileIcon={getFileIcon}
+                  formatFileSize={formatFileSize}
+                  formatDate={formatDate}
+                  getFilePreviewUrl={getFilePreviewUrl}
+                />
+              ))}
+              {filteredContent.files.length === 0 && (
+                <p className="text-sm text-muted-foreground py-2">Ingen filer i denne mappe</p>
+              )}
+            </div>
+          </div>
          ) : (
-           <div className="space-y-4">
+          /* All files - grouped view */
+          <div className="space-y-3">
              {/* Files with folders */}
              {Object.entries(groupedFiles)
                .filter(([folder]) => folder !== '__uncategorized__')
                .sort(([a], [b]) => a.localeCompare(b))
                .map(([folder, folderFiles]) => (
                  <div key={folder} className="space-y-2">
-                   <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                     <Folder className="h-4 w-4" />
-                     {folder}
+                  <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Folder className="h-4 w-4" />
+                      {folder}
+                      <span className="text-xs">({folderFiles.length})</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => downloadFolder(folder)}
+                      className="h-7 text-xs opacity-0 group-hover:opacity-100 hover:opacity-100"
+                    >
+                      <Download className="h-3 w-3 mr-1" />
+                      Download
+                    </Button>
                    </div>
                    <div className="ml-6 space-y-1">
                      {folderFiles.map((file) => (
@@ -229,9 +339,21 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
              {/* Uncategorized files */}
              {groupedFiles['__uncategorized__'] && groupedFiles['__uncategorized__'].length > 0 && (
                <div className="space-y-2">
-                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                   <File className="h-4 w-4" />
-                   Løse filer
+                <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <File className="h-4 w-4" />
+                    Løse filer
+                    <span className="text-xs">({groupedFiles['__uncategorized__'].length})</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => downloadFolder('__uncategorized__')}
+                    className="h-7 text-xs"
+                  >
+                    <Download className="h-3 w-3 mr-1" />
+                    Download
+                  </Button>
                  </div>
                  <div className="ml-6 space-y-1">
                    {groupedFiles['__uncategorized__'].map((file) => (
