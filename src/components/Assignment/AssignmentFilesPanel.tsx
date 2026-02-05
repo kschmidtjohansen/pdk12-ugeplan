@@ -44,6 +44,7 @@ import { cn } from '@/lib/utils';
 interface AssignmentFilesPanelProps {
   assignmentId: string;
   assignmentTitle?: string;
+  hideHeader?: boolean;
 }
 
 interface PendingUpload {
@@ -54,7 +55,8 @@ interface PendingUpload {
 
 const AssignmentFilesPanel: React.FC<AssignmentFilesPanelProps> = ({
   assignmentId,
-  assignmentTitle
+  assignmentTitle,
+  hideHeader = false
 }) => {
   const { t, currentLanguage } = useTranslation();
   const [showFolderDialog, setShowFolderDialog] = useState(false);
@@ -223,55 +225,57 @@ const AssignmentFilesPanel: React.FC<AssignmentFilesPanelProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header with actions */}
-      <div className="flex items-center justify-between pb-3 border-b">
-        <div className="flex items-center gap-2">
-          <Files className="h-5 w-5 text-primary" />
-          <h3 className="font-medium">{t('planner.files.title')}</h3>
-          {(imageCount > 0 || documentCount > 0) && (
-            <span className="text-xs text-muted-foreground">
-              ({imageCount > 0 && `📷 ${imageCount}`}{imageCount > 0 && documentCount > 0 && ' • '}{documentCount > 0 && `📄 ${documentCount}`})
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {imageCount > 0 && (
+      {/* Header with actions - only show if not hidden */}
+      {!hideHeader && (
+        <div className="flex items-center justify-between pb-3 border-b">
+          <div className="flex items-center gap-2">
+            <Files className="h-5 w-5 text-primary" />
+            <h3 className="font-medium">{t('planner.files.title')}</h3>
+            {(imageCount > 0 || documentCount > 0) && (
+              <span className="text-xs text-muted-foreground">
+                ({imageCount > 0 && `📷 ${imageCount}`}{imageCount > 0 && documentCount > 0 && ' • '}{documentCount > 0 && `📄 ${documentCount}`})
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {imageCount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleGeneratePdf}
+                disabled={generatingPdf}
+                className="flex items-center gap-1"
+              >
+                <FileImage className="h-4 w-4" />
+                {generatingPdf ? t('planner.files.generatingPdf') : t('planner.files.downloadAsPdf')}
+              </Button>
+            )}
+            {files.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadAll}
+                className="flex items-center gap-1"
+              >
+                <FolderDown className="h-4 w-4" />
+                {t('planner.files.downloadAll')}
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
-              onClick={handleGeneratePdf}
-              disabled={generatingPdf}
+              onClick={() => setShowFolderDialog(true)}
               className="flex items-center gap-1"
             >
-              <FileImage className="h-4 w-4" />
-              {generatingPdf ? t('planner.files.generatingPdf') : t('planner.files.downloadAsPdf')}
+              <FolderPlus className="h-4 w-4" />
+              {t('planner.files.createFolder')}
             </Button>
-          )}
-          {files.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={downloadAll}
-              className="flex items-center gap-1"
-            >
-              <FolderDown className="h-4 w-4" />
-              {t('planner.files.downloadAll')}
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFolderDialog(true)}
-            className="flex items-center gap-1"
-          >
-            <FolderPlus className="h-4 w-4" />
-            {t('planner.files.createFolder')}
-          </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Upload section */}
-      <div className="py-3 border-b space-y-2">
+      <div className={cn("py-3 border-b space-y-2", hideHeader && "pt-0 border-t-0")}>
         <div className="flex items-center gap-2 flex-wrap">
           {/* Filter dropdown */}
           <Select value={filterFolder} onValueChange={setFilterFolder}>
