@@ -1,152 +1,171 @@
 
 
-## Opdatering: Dialog i standard view, download alle filer, besked-sidebar og fil-tællere
+## Forbedringer: Dialog-styling, luk-knap og sletning af beskeder
 
-Denne opdatering løser alle fire problemer og forbedrer brugeroplevelsen.
-
----
-
-### Problem 1: AssignmentDetailsDialog vises ikke i standard view
-
-**Årsag:** I standard view (`DaySection.tsx` → `AssignmentCard.tsx`) er der ingen `onViewDetails` callback - kun redigering åbnes direkte.
-
-**Løsning:**
-1. Tilføj `onViewDetails` callback til `DaySection` og `CurrentAndFutureDays` komponenterne
-2. Tilføj `onViewDetails` callback til `AssignmentCard` (gør kortet klikbart for detaljer)
-3. Brug samme `AssignmentDetailsDialog` som allerede bruges i compact view og MineOpgaver
-
-**Filer der ændres:**
-- `src/components/Planner/CurrentAndFutureDays.tsx` - tilføj `onViewDetails` prop
-- `src/components/Planner/PastAssignments.tsx` - tilføj `onViewDetails` prop
-- `src/components/Planner/DaySection.tsx` - tilføj `onViewDetails` prop og videregiv til AssignmentCard
-- `src/components/Planner/AssignmentCard.tsx` - gør card-body klikbart for at vise detaljer
+Denne opdatering forbedrer dialogboksens visuelle udtryk, løser problemet med luk-knappen og tilføjer mulighed for at slette beskeder.
 
 ---
 
-### Problem 2: Download alle filer og "vis alle" funktion
+### Problem 1: Dialogboksen er for komprimeret
 
-**Krav:**
-- Download alle filer fra én mappe
-- "Ingen mappe" filter viser alle filer med deres sti
-- Download alle mapper med filerne inde i dem (bevarer struktur)
+**Analyse af billedet:**
+- Teksten og elementerne er for tæt på hinanden
+- Beskeder-sidebaren mangler padding
+- Filer-sektionen fylder for meget vertikalt
+- Header-elementerne er for tæt sammen
 
-**Løsning i `AssignmentFilesPanel.tsx`:**
-1. Tilføj "Download mappe" knap ved hver mappe-header
-2. Tilføj filter-dropdown: "Alle filer" / vælg specifik mappe
-3. Tilføj "Download alle" knap i header der downloader alt
-4. Brug JSZip library til at skabe zip-filer med mappestruktur
+**Løsning i `AssignmentDetailsDialog.tsx`:**
+1. Øg padding fra `p-6` til `p-8` i detalje-sektionen
+2. Øg `space-y-5` til `space-y-6` for mere luft mellem sektioner
+3. Tilføj `leading-relaxed` til beskrivelser
+4. Giv sidebaren (beskeder) mere padding: `px-4` → `px-5 py-4`
+5. Øg minimumshøjde på dialogen for bedre proportioner
+6. Tilføj subtle baggrundsnuancer for at skabe visuel adskillelse
 
-**Ny dependency:**
-- `jszip` - til at oprette zip-filer med mappestruktur
+**CSS-forbedringer:**
+```css
+/* Header */
+className="px-6 pt-6 pb-4" → "px-8 pt-8 pb-6"
 
-**Filer der ændres:**
-- `src/components/Assignment/AssignmentFilesPanel.tsx` - ny UI og download-funktionalitet
-- `src/hooks/assignment/useAssignmentFiles.ts` - tilføj `downloadFolder` og `downloadAll` funktioner
+/* Detalje-sektion */
+className="p-6 space-y-5" → "p-8 space-y-6"
 
-**Translations:**
-- `downloadFolder`: 'Download mappe'
-- `downloadAllFiles`: 'Download alle filer'
-- `allFiles`: 'Alle filer'
-- `preparingDownload`: 'Forbereder download...'
+/* Separators */
+Tilføj className="my-2" for ekstra margin
 
----
-
-### Problem 3: Beskeder som sidebar i detaljer
-
-**Krav:** Beskeder skal være synlige sammen med detaljer (ikke i en separat tab).
-
-**Løsning:**
-- Omdanner dialog-layout til en 2-kolonne struktur
-- Venstre side: Detaljer (titel, dato, tid, biler, medarbejdere osv.)
-- Højre side: Besked-sidebar med kompakt input
-- Filer-tab bevares som separat tab under detaljer
-
-**Nyt layout:**
-```text
-┌────────────────────────────────────────────────────────────────────┐
-│ [Location]                                    [Status] [Rediger]  │
-├──────────────────────────────────────┬─────────────────────────────┤
-│  DETALJER                            │  BESKEDER                   │
-│  ─────────────────────               │  ─────────────────          │
-│  Titel: Sag 12345                    │  Søren (10:30):             │
-│  Beskrivelse: ...                    │  "Husk billeder"            │
-│                                      │                             │
-│  Dato: 5. feb 2026                   │  Peter (11:45):             │
-│  Tid: 08:00 - 16:00                  │  "Done"                     │
-│                                      │                             │
-│  Bil: VW Transporter                 │  ─────────────────          │
-│  Medarbejdere: Søren, Peter          │  [Skriv besked...]  [Send]  │
-│                                      │                             │
-├──────────────────────────────────────┴─────────────────────────────┤
-│  [Filer tab] - viser fil-panel som før                            │
-└────────────────────────────────────────────────────────────────────┘
+/* Sidebar */
+className="px-4 py-3" → "px-5 py-4"
 ```
 
-**Filer der ændres:**
-- `src/components/Dashboard/AssignmentDetailsDialog.tsx` - nyt 2-kolonne layout
+---
+
+### Problem 2: Luk-knappen (X) kan ikke trykkes på
+
+**Årsag:** I `dialog.tsx` har DialogTitle `pr-8` som padding-right, men dialogens lukning har `right-4 top-4` placering. Med den nye `max-w-5xl` dialog og `flex items-center justify-between` i DialogTitle overlapper header-indholdet med luk-knappen.
+
+**Løsning i `AssignmentDetailsDialog.tsx`:**
+1. Øg `pr-8` i DialogTitle til `pr-14` for at give mere plads til luk-knappen
+2. Alternativt tilføj `z-50` til luk-knappen i dialog.tsx for at sikre den er klikbar
+
+**Løsning i `dialog.tsx`:**
+1. Tilføj `z-50` til DialogPrimitive.Close knappen for at sikre den altid er over andre elementer
+2. Øg størrelsen på hit-area lidt: `h-10 w-10` er allerede godt
 
 ---
 
-### Problem 4: Vis antal billeder og filer
+### Problem 3: Sletning af egne beskeder + admin-rettigheder
 
-**Krav:** Vis antal billeder og dokumenter i dialogen og eventuelt på kortene.
+**Database-tilføjelse:**
+Ingen ny migration nødvendig - bruger eksisterende RLS policies.
 
-**Løsning:**
-1. Tilføj en ny hook `useAssignmentFileCounts` eller udvid `useAssignmentFiles` til at returnere counts
-2. Vis fil-tællere i dialog-header eller ved Filer-tab
-3. Kategoriser i billeder (image/*) og dokumenter (resten)
+**Hook-ændringer i `useAssignmentMessages.ts`:**
+1. Tilføj `deleteMessage(messageId: string)` funktion
+2. Tjek om bruger er ejer ELLER har skadeleder/admin rolle
+3. Returner `canDelete(message)` helper-funktion
 
-**Visning:**
-```text
-📷 3 billeder • 📄 2 dokumenter
+**UI-ændringer i `AssignmentMessagesPanel.tsx`:**
+1. Tilføj slet-knap ved hover (som svar-knappen)
+2. Vis slet-knap kun for:
+   - Egne beskeder (altid)
+   - Alle beskeder (hvis bruger er skadeleder/administrator)
+3. Tilføj bekræftelsesdialog før sletning
+
+**Nye translations:**
+```typescript
+messages: {
+  // Eksisterende...
+  deleteMessage: 'Slet besked',
+  confirmDelete: 'Er du sikker på, at du vil slette denne besked?',
+  messageDeleted: 'Besked slettet',
+  errorDeletingMessage: 'Kunne ikke slette besked'
+}
 ```
 
-**Filer der ændres:**
-- `src/hooks/assignment/useAssignmentFiles.ts` - tilføj `imageCount` og `documentCount`
-- `src/components/Dashboard/AssignmentDetailsDialog.tsx` - vis tællere ved Filer-tab
-- `src/translations/da/planner.ts` - tilføj `imageCount`, `documentCount` oversættelser
+---
+
+### Filer der ændres
+
+| Fil | Handling | Beskrivelse |
+|-----|----------|-------------|
+| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | ÆNDRES | Mere padding, luftigt layout |
+| `src/components/ui/dialog.tsx` | ÆNDRES | z-index på luk-knap |
+| `src/components/Assignment/AssignmentMessagesPanel.tsx` | ÆNDRES | Tilføj slet-knap + styling |
+| `src/hooks/assignment/useAssignmentMessages.ts` | ÆNDRES | Tilføj deleteMessage funktion |
+| `src/translations/da/planner.ts` | ÆNDRES | Nye oversættelser |
+| `src/translations/en/planner.ts` | ÆNDRES | Nye oversættelser |
 
 ---
 
-### Opsummering af ændringer
+### Detaljeret layout-forbedring
 
-| Fil | Handling |
-|-----|----------|
-| `package.json` | Tilføj `jszip` dependency |
-| `src/components/Planner/CurrentAndFutureDays.tsx` | Tilføj `onViewDetails` prop |
-| `src/components/Planner/PastAssignments.tsx` | Tilføj `onViewDetails` prop |
-| `src/components/Planner/DaySection.tsx` | Tilføj `onViewDetails` prop + videregiv |
-| `src/components/Planner/AssignmentCard.tsx` | Gør klikbart for detaljer |
-| `src/components/Assignment/AssignmentFilesPanel.tsx` | Download alle + filter |
-| `src/hooks/assignment/useAssignmentFiles.ts` | Download funktioner + counts |
-| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | 2-kolonne layout med sidebar |
-| `src/translations/da/planner.ts` | Nye oversættelser |
-| `src/translations/en/planner.ts` | Nye oversættelser |
+**Før (komprimeret):**
+```text
+┌─────────────────────────────────────────────────────────┐
+│⊙ Adresse                                    [Aftalt] X│  <- X overlapper
+├─────────────────────────────────────────────────────────┤
+│12-013517                        │Beskeder            │
+│Beskrivelse                      │...                  │
+│Tekst...                         │                     │
+│DATO OG TIDSPUNKT                │                     │  <- For kompakt
+```
+
+**Efter (luftigt):**
+```text
+┌──────────────────────────────────────────────────────────────┐
+│                                                            X │  <- Mere plads
+│ ⊙ Adresse                                         [Aftalt]  │
+├──────────────────────────────────────────────────────────────┤
+│                                   │                          │
+│  12-013517                        │   💬 Beskeder            │
+│                                   │                          │
+│  Beskrivelse                      │   ┌──────────────────┐   │
+│  Tekst med god linjeafstand...    │   │ Kasper (09:01)   │   │
+│                                   │   │ Test             │   │
+│  ─────────────────────────────    │   │         [Svar]🗑│   │
+│                                   │   └──────────────────┘   │
+│  DATO OG TIDSPUNKT                │                          │
+│  ─────────────────────────────    │   ┌──────────────────┐   │
+│  📅 Torsdag 5. februar 2026       │   │ Skriv besked...  │   │
+│  🕐 08:00 - 16:00                 │   └──────────────────┘   │
+│                                   │                          │
+│  DETALJER                         │                          │
+│  ─────────────────────────────    │                          │
+│  🚗 Service-Crafter               │                          │
+│  👤 Kasper Johansen               │                          │
+│  👥 Nicolai, Petrie, Mark         │                          │
+│                                   │                          │
+├───────────────────────────────────┴──────────────────────────┤
+│  📁 Filer (📷 4)                                        ▼   │
+└──────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ### Tekniske detaljer
 
-**JSZip integration:**
+**Sletning af beskeder - sikkerhedstjek:**
 ```typescript
-import JSZip from 'jszip';
-
-const downloadAllAsZip = async () => {
-  const zip = new JSZip();
+const canDeleteMessage = (message: AssignmentMessage): boolean => {
+  if (!currentUser) return false;
   
-  for (const file of files) {
-    const folder = file.folder_name || 'Løse filer';
-    const folderZip = zip.folder(folder);
-    const blob = await downloadFileAsBlob(file);
-    folderZip?.file(file.file_name, blob);
-  }
+  // Ejeren kan altid slette
+  if (message.user_id === currentUser.id) return true;
   
-  const content = await zip.generateAsync({ type: 'blob' });
-  // Download zip file
+  // Skadeleder og administrator kan slette alle
+  return ['administrator', 'skadeleder'].includes(currentUser.role);
 };
 ```
 
-**Responsive sidebar:**
-- På desktop: 2-kolonne layout (60/40 split)
-- På mobil: Beskeder vises under detaljer (stacked)
+**Database-sletning:**
+```typescript
+const deleteMessage = async (messageId: string) => {
+  const { error } = await supabase
+    .from('assignment_messages')
+    .delete()
+    .eq('id', messageId);
+    
+  if (error) throw error;
+  toast.success(t('planner.messages.messageDeleted'));
+};
+```
 
