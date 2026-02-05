@@ -1,171 +1,227 @@
 
 
-## Forbedringer: Dialog-styling, luk-knap og sletning af beskeder
+## Billedkommentarer og PDF-eksport med billeder
 
-Denne opdatering forbedrer dialogboksens visuelle udtryk, løser problemet med luk-knappen og tilføjer mulighed for at slette beskeder.
+Denne opdatering tilføjer mulighed for at knytte kommentarer til billeder ved upload og generere en PDF med alle billeder og deres kommentarer.
 
 ---
 
-### Problem 1: Dialogboksen er for komprimeret
+### Del 1: Database - Tilføj kommentar-felt til assignment_files
 
-**Analyse af billedet:**
-- Teksten og elementerne er for tæt på hinanden
-- Beskeder-sidebaren mangler padding
-- Filer-sektionen fylder for meget vertikalt
-- Header-elementerne er for tæt sammen
+**Ny migration:**
+Tilføj en `comment` kolonne til `assignment_files` tabellen for at gemme billedkommentarer.
 
-**Løsning i `AssignmentDetailsDialog.tsx`:**
-1. Øg padding fra `p-6` til `p-8` i detalje-sektionen
-2. Øg `space-y-5` til `space-y-6` for mere luft mellem sektioner
-3. Tilføj `leading-relaxed` til beskrivelser
-4. Giv sidebaren (beskeder) mere padding: `px-4` → `px-5 py-4`
-5. Øg minimumshøjde på dialogen for bedre proportioner
-6. Tilføj subtle baggrundsnuancer for at skabe visuel adskillelse
-
-**CSS-forbedringer:**
-```css
-/* Header */
-className="px-6 pt-6 pb-4" → "px-8 pt-8 pb-6"
-
-/* Detalje-sektion */
-className="p-6 space-y-5" → "p-8 space-y-6"
-
-/* Separators */
-Tilføj className="my-2" for ekstra margin
-
-/* Sidebar */
-className="px-4 py-3" → "px-5 py-4"
+```sql
+ALTER TABLE public.assignment_files 
+ADD COLUMN comment TEXT NULL;
 ```
 
 ---
 
-### Problem 2: Luk-knappen (X) kan ikke trykkes på
+### Del 2: Hook-ændringer i useAssignmentFiles.ts
 
-**Årsag:** I `dialog.tsx` har DialogTitle `pr-8` som padding-right, men dialogens lukning har `right-4 top-4` placering. Med den nye `max-w-5xl` dialog og `flex items-center justify-between` i DialogTitle overlapper header-indholdet med luk-knappen.
+**Opdater AssignmentFile interface:**
+```typescript
+export interface AssignmentFile {
+  // Eksisterende felter...
+  comment: string | null;  // NY
+}
+```
 
-**Løsning i `AssignmentDetailsDialog.tsx`:**
-1. Øg `pr-8` i DialogTitle til `pr-14` for at give mere plads til luk-knappen
-2. Alternativt tilføj `z-50` til luk-knappen i dialog.tsx for at sikre den er klikbar
+**Opdater uploadFile:**
+- Tilføj optional `comment` parameter
+- Gem kommentar i database ved upload
 
-**Løsning i `dialog.tsx`:**
-1. Tilføj `z-50` til DialogPrimitive.Close knappen for at sikre den altid er over andre elementer
-2. Øg størrelsen på hit-area lidt: `h-10 w-10` er allerede godt
+**Tilføj updateFileComment:**
+- Ny funktion til at redigere kommentar på eksisterende filer
+
+**Tilføj generateImagePdfWithComments:**
+- Ny funktion der bruger `pdf-lib` til at generere PDF
+- Henter alle billeder og inkluderer dem med kommentarer
 
 ---
 
-### Problem 3: Sletning af egne beskeder + admin-rettigheder
+### Del 3: UI - Upload med kommentar
 
-**Database-tilføjelse:**
-Ingen ny migration nødvendig - bruger eksisterende RLS policies.
+**Workflow for upload med kommentar:**
 
-**Hook-ændringer i `useAssignmentMessages.ts`:**
-1. Tilføj `deleteMessage(messageId: string)` funktion
-2. Tjek om bruger er ejer ELLER har skadeleder/admin rolle
-3. Returner `canDelete(message)` helper-funktion
+1. Bruger vælger fil(er) → åbner en dialog
+2. For hvert billede vises et preview med et tekstfelt til kommentar
+3. Bruger kan skrive kommentar og trykke "Upload"
 
-**UI-ændringer i `AssignmentMessagesPanel.tsx`:**
-1. Tilføj slet-knap ved hover (som svar-knappen)
-2. Vis slet-knap kun for:
-   - Egne beskeder (altid)
-   - Alle beskeder (hvis bruger er skadeleder/administrator)
-3. Tilføj bekræftelsesdialog før sletning
+**Ny dialog: `ImageUploadWithCommentDialog`**
+```text
+┌──────────────────────────────────────────────────────────┐
+│  Upload billeder                                    [X]  │
+├──────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌────────────┐                                          │
+│  │   🖼️      │  IMG_001.jpg                             │
+│  │  Preview   │  ────────────────────────────────────    │
+│  └────────────┘  [ Tilføj kommentar til dette billede ]  │
+│                                                          │
+│  ┌────────────┐                                          │
+│  │   🖼️      │  IMG_002.jpg                             │
+│  │  Preview   │  ────────────────────────────────────    │
+│  └────────────┘  [ Tilføj kommentar til dette billede ]  │
+│                                                          │
+│  Vælg mappe: [Dropdown ▼]                                │
+│                                                          │
+├──────────────────────────────────────────────────────────┤
+│                            [Annuller]  [Upload billeder] │
+└──────────────────────────────────────────────────────────┘
+```
 
-**Nye translations:**
+---
+
+### Del 4: UI - Vis og rediger kommentar
+
+**I FileItem-komponenten:**
+- Vis kommentar under filnavn hvis den findes
+- Tilføj en lille edit-knap til at redigere kommentar
+
+**Layout:**
+```text
+┌────────────┐ IMG_001.jpg                    [📥] [✏️] [🗑️]
+│   🖼️      │ 1.2 MB • 05 feb • Kasper
+│  Preview   │ 💬 "Skade på venstre hjørne"
+└────────────┘
+```
+
+---
+
+### Del 5: PDF-generering med billeder og kommentarer
+
+**Ny knap i header:**
+"Download billeder som PDF" - kun synlig hvis der er billeder
+
+**PDF-layout pr. side:**
+```text
+┌─────────────────────────────────────────┐
+│            [Sagsnummer/Titel]           │  <- Header
+│                                         │
+│  ┌─────────────────────────────────┐    │
+│  │                                 │    │
+│  │         BILLEDE                 │    │
+│  │                                 │    │
+│  └─────────────────────────────────┘    │
+│                                         │
+│  Kommentar: Skade på venstre hjørne     │
+│  Uploadet: 05. feb 2026 • Kasper        │
+│                                         │
+│  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─   │
+│                                         │
+│  ┌─────────────────────────────────┐    │
+│  │                                 │    │
+│  │         BILLEDE 2               │    │
+│  │                                 │    │
+│  └─────────────────────────────────┘    │
+│                                         │
+│  Kommentar: Fugtskade på loft           │
+│  Uploadet: 05. feb 2026 • Kasper        │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Teknisk implementering med pdf-lib:**
 ```typescript
-messages: {
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+
+const generateImagePdfWithComments = async () => {
+  const pdfDoc = await PDFDocument.create();
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  
+  const imageFiles = files.filter(f => f.mime_type?.startsWith('image/'));
+  
+  for (const file of imageFiles) {
+    const page = pdfDoc.addPage([595, 842]); // A4
+    
+    // Download og embed billedet
+    const imageBlob = await downloadFileAsBlob(file);
+    const imageBytes = await imageBlob.arrayBuffer();
+    
+    // Detect image type og embed
+    if (file.mime_type?.includes('png')) {
+      const image = await pdfDoc.embedPng(imageBytes);
+      // Tegn billede centreret
+      page.drawImage(image, { x, y, width, height });
+    } else if (file.mime_type?.includes('jpeg') || file.mime_type?.includes('jpg')) {
+      const image = await pdfDoc.embedJpg(imageBytes);
+      page.drawImage(image, { x, y, width, height });
+    }
+    
+    // Tilføj kommentar og metadata
+    page.drawText(file.comment || 'Ingen kommentar', { x, y, font });
+    page.drawText(`Uploadet: ${formatDate(file.created_at)} • ${file.uploader?.name}`, {...});
+  }
+  
+  const pdfBytes = await pdfDoc.save();
+  // Download PDF
+};
+```
+
+---
+
+### Del 6: Nye translations
+
+**`src/translations/da/planner.ts` - files sektion:**
+```typescript
+files: {
   // Eksisterende...
-  deleteMessage: 'Slet besked',
-  confirmDelete: 'Er du sikker på, at du vil slette denne besked?',
-  messageDeleted: 'Besked slettet',
-  errorDeletingMessage: 'Kunne ikke slette besked'
+  addComment: 'Tilføj kommentar',
+  editComment: 'Rediger kommentar',
+  commentPlaceholder: 'Tilføj kommentar til dette billede...',
+  noComment: 'Ingen kommentar',
+  downloadAsPdf: 'Download billeder som PDF',
+  generatingPdf: 'Genererer PDF...',
+  pdfGenerated: 'PDF genereret',
+  uploadWithComment: 'Upload billeder',
+  uploadImages: 'Upload billeder'
+}
+```
+
+**`src/translations/en/planner.ts` - files sektion:**
+```typescript
+files: {
+  // Eksisterende...
+  addComment: 'Add comment',
+  editComment: 'Edit comment',
+  commentPlaceholder: 'Add a comment to this image...',
+  noComment: 'No comment',
+  downloadAsPdf: 'Download images as PDF',
+  generatingPdf: 'Generating PDF...',
+  pdfGenerated: 'PDF generated',
+  uploadWithComment: 'Upload images',
+  uploadImages: 'Upload images'
 }
 ```
 
 ---
 
-### Filer der ændres
+### Del 7: Filer der ændres
 
 | Fil | Handling | Beskrivelse |
 |-----|----------|-------------|
-| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | ÆNDRES | Mere padding, luftigt layout |
-| `src/components/ui/dialog.tsx` | ÆNDRES | z-index på luk-knap |
-| `src/components/Assignment/AssignmentMessagesPanel.tsx` | ÆNDRES | Tilføj slet-knap + styling |
-| `src/hooks/assignment/useAssignmentMessages.ts` | ÆNDRES | Tilføj deleteMessage funktion |
+| `supabase/migrations/XXXX.sql` | NY | Tilføj comment kolonne |
+| `src/integrations/supabase/types.ts` | AUTO | Opdateret fra migration |
+| `src/hooks/assignment/useAssignmentFiles.ts` | ÆNDRES | Upload med kommentar, updateComment, generatePDF |
+| `src/components/Assignment/AssignmentFilesPanel.tsx` | ÆNDRES | Upload-dialog, vis kommentar, PDF-knap |
 | `src/translations/da/planner.ts` | ÆNDRES | Nye oversættelser |
 | `src/translations/en/planner.ts` | ÆNDRES | Nye oversættelser |
 
 ---
 
-### Detaljeret layout-forbedring
+### Tekniske overvejelser
 
-**Før (komprimeret):**
-```text
-┌─────────────────────────────────────────────────────────┐
-│⊙ Adresse                                    [Aftalt] X│  <- X overlapper
-├─────────────────────────────────────────────────────────┤
-│12-013517                        │Beskeder            │
-│Beskrivelse                      │...                  │
-│Tekst...                         │                     │
-│DATO OG TIDSPUNKT                │                     │  <- For kompakt
-```
+**Billedtyper understøttet i pdf-lib:**
+- JPEG/JPG ✅
+- PNG ✅
+- Andre formater (WebP, HEIC, etc.) - skal konverteres først eller springes over
 
-**Efter (luftigt):**
-```text
-┌──────────────────────────────────────────────────────────────┐
-│                                                            X │  <- Mere plads
-│ ⊙ Adresse                                         [Aftalt]  │
-├──────────────────────────────────────────────────────────────┤
-│                                   │                          │
-│  12-013517                        │   💬 Beskeder            │
-│                                   │                          │
-│  Beskrivelse                      │   ┌──────────────────┐   │
-│  Tekst med god linjeafstand...    │   │ Kasper (09:01)   │   │
-│                                   │   │ Test             │   │
-│  ─────────────────────────────    │   │         [Svar]🗑│   │
-│                                   │   └──────────────────┘   │
-│  DATO OG TIDSPUNKT                │                          │
-│  ─────────────────────────────    │   ┌──────────────────┐   │
-│  📅 Torsdag 5. februar 2026       │   │ Skriv besked...  │   │
-│  🕐 08:00 - 16:00                 │   └──────────────────┘   │
-│                                   │                          │
-│  DETALJER                         │                          │
-│  ─────────────────────────────    │                          │
-│  🚗 Service-Crafter               │                          │
-│  👤 Kasper Johansen               │                          │
-│  👥 Nicolai, Petrie, Mark         │                          │
-│                                   │                          │
-├───────────────────────────────────┴──────────────────────────┤
-│  📁 Filer (📷 4)                                        ▼   │
-└──────────────────────────────────────────────────────────────┘
-```
+**PDF-størrelse:**
+- Billeder skaleres ned til max 500x400 px for at holde filstørrelsen nede
+- Bevarer aspect ratio
 
----
-
-### Tekniske detaljer
-
-**Sletning af beskeder - sikkerhedstjek:**
-```typescript
-const canDeleteMessage = (message: AssignmentMessage): boolean => {
-  if (!currentUser) return false;
-  
-  // Ejeren kan altid slette
-  if (message.user_id === currentUser.id) return true;
-  
-  // Skadeleder og administrator kan slette alle
-  return ['administrator', 'skadeleder'].includes(currentUser.role);
-};
-```
-
-**Database-sletning:**
-```typescript
-const deleteMessage = async (messageId: string) => {
-  const { error } = await supabase
-    .from('assignment_messages')
-    .delete()
-    .eq('id', messageId);
-    
-  if (error) throw error;
-  toast.success(t('planner.messages.messageDeleted'));
-};
-```
+**Håndtering af ikke-understøttede formater:**
+- WebP og andre formater vil blive sprunget over med en advarsel i toast
 
