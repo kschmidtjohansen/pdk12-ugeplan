@@ -5,7 +5,7 @@
  import { Textarea } from '@/components/ui/textarea';
  import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
  import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Download, MessageSquare, Reply, X, CornerDownRight, Trash2 } from 'lucide-react';
+import { Send, Reply, X, CornerDownRight, Trash2, MessageSquare } from 'lucide-react';
  import { format } from 'date-fns';
  import { da, enGB } from 'date-fns/locale';
  import { cn } from '@/lib/utils';
@@ -118,29 +118,10 @@ import {
     setDeleteTarget(null);
   };
 
-   return (
+  return (
     <TooltipProvider>
-    <div className="flex flex-col h-full px-4 py-3">
-       {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b">
-         <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-primary" />
-           <h3 className="font-medium">{t('planner.messages.title')}</h3>
-         </div>
-         {messages.length > 0 && (
-           <Button
-             variant="outline"
-             size="sm"
-             onClick={exportMessages}
-             className="flex items-center gap-1"
-           >
-             <Download className="h-4 w-4" />
-             {t('planner.messages.exportMessages')}
-           </Button>
-         )}
-       </div>
- 
-       {/* Messages List */}
+    <div className="flex flex-col h-full px-4 pt-2 pb-3">
+      {/* Messages List */}
       <ScrollArea className="flex-1 py-5" ref={scrollRef}>
          {loading ? (
           <div className="flex items-center justify-center h-40">
