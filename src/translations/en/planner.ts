@@ -270,6 +270,7 @@ const planner = {
     messagePlaceholder: 'Write a message...',
     noMessages: 'No messages yet',
     exportMessages: 'Export',
+    exporting: 'Exporting...',
     messagesExported: 'Messages exported',
     newMessage: 'New message',
     reply: 'Reply',
