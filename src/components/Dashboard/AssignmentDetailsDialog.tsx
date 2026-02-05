@@ -74,9 +74,9 @@ import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
  
    return (
      <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b">
-          <DialogTitle className="flex items-center justify-between gap-2 text-lg pr-8">
+       <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+         <DialogHeader className="px-8 pt-8 pb-6 border-b bg-gradient-to-b from-muted/30 to-transparent">
+           <DialogTitle className="flex items-center justify-between gap-3 text-lg pr-14">
              <div className="flex items-center gap-2">
                <MapPin className="h-5 w-5 text-primary" />
                {assignment.location}
@@ -101,39 +101,39 @@ import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
                )}
              </div>
            </DialogTitle>
-           <DialogDescription className="sr-only">
+           <DialogDescription className="sr-only mt-1">
              {t('planner.assignmentDetails')}
            </DialogDescription>
          </DialogHeader>
  
         {/* Main content: 2-column layout */}
-        <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+         <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden" style={{ minHeight: '500px' }}>
           {/* Left column: Details */}
-          <div className="flex-1 lg:w-3/5 flex flex-col min-h-0 border-r">
+           <div className="flex-1 lg:w-3/5 flex flex-col min-h-0 lg:border-r">
             <ScrollArea className="flex-1">
-              <div className="p-6 space-y-5">
+               <div className="p-8 space-y-6">
                 {/* Title */}
-                <div className="space-y-3">
-                  <h3 className="text-xl font-semibold">{assignment.title}</h3>
+                 <div className="space-y-4">
+                   <h3 className="text-2xl font-semibold tracking-tight">{assignment.title}</h3>
                   
                   {/* Description */}
                   {assignment.description && (
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-muted-foreground">{t('planner.description')}</h4>
-                      <p className="text-sm leading-relaxed">{assignment.description}</p>
+                     <div className="space-y-2.5">
+                       <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('planner.description')}</h4>
+                       <p className="text-sm leading-relaxed text-foreground/90">{assignment.description}</p>
                     </div>
                   )}
                 </div>
  
-                <Separator />
+                 <Separator className="my-2" />
 
                 {/* Date and Time Section */}
-                <div className="space-y-3">
-                  <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                 <div className="space-y-4">
+                   <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     {t('planner.dateAndTime') || 'Dato og tid'}
                   </h4>
-                  <div className="grid gap-3">
-                    <div className="flex items-center gap-3">
+                   <div className="grid gap-4">
+                     <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                       <Calendar className="h-4 w-4 text-primary" />
                       <div className="text-sm">
                         <span className="font-medium">{t('planner.date')}: </span>
@@ -141,7 +141,7 @@ import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-3">
+                     <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                       <Clock className="h-4 w-4 text-primary" />
                       <div className="text-sm">
                         <span className="font-medium">{t('planner.time')}: </span>
@@ -151,17 +151,17 @@ import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
                    </div>
                  </div>
 
-                <Separator />
+                 <Separator className="my-2" />
 
                 {/* Assignment Details Section */}
-                <div className="space-y-3">
-                  <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                 <div className="space-y-4">
+                   <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     {t('planner.assignmentDetails') || 'Opgave detaljer'}
                   </h4>
-                  <div className="grid gap-3">
+                   <div className="grid gap-4">
                     {/* Cars */}
                     {carNames.length > 0 && (
-                      <div className="flex items-center gap-3">
+                       <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                         <Car className="h-4 w-4 text-primary" />
                         <div className="flex items-center flex-wrap gap-2 text-sm">
                           <span className="font-medium">{t('planner.car')}:</span>
@@ -176,7 +176,7 @@ import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
 
                     {/* Responsible User */}
                     {assignment.responsibleUser && (
-                      <div className="flex items-center gap-3">
+                       <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                         <UserCheck className="h-4 w-4 text-primary" />
                         <div className="text-sm">
                           <span className="font-medium">{t('planner.responsibleUser')}: </span>
@@ -187,7 +187,7 @@ import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
 
                     {/* Assigned Employees */}
                     {((assignment.assignedEmployees && assignment.assignedEmployees.length > 0) || (assignment.employees && assignment.employees.length > 0)) && (
-                      <div className="flex items-center gap-3">
+                       <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                         <Users className="h-4 w-4 text-primary" />
                         <div className="flex items-center flex-wrap gap-2 text-sm">
                           <span className="font-medium">{t('planner.employees')}:</span>
@@ -213,10 +213,10 @@ import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
             </ScrollArea>
 
             {/* Files section - collapsible at the bottom of left column */}
-            <div className="border-t">
+             <div className="border-t bg-muted/20">
               <button
                 onClick={() => setShowFiles(!showFiles)}
-                className="w-full flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors"
+                 className="w-full flex items-center justify-between px-8 py-4 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Files className="h-4 w-4 text-primary" />
@@ -232,7 +232,7 @@ import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
                 {showFiles ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
               </button>
               {showFiles && (
-                <div className="px-6 pb-4 max-h-64 overflow-y-auto">
+                 <div className="px-8 pb-6 max-h-72 overflow-y-auto">
                   <AssignmentFilesPanel assignmentId={assignment.id} />
                 </div>
               )}
@@ -240,14 +240,14 @@ import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
           </div>
 
           {/* Right column: Messages sidebar */}
-          <div className="lg:w-2/5 flex flex-col min-h-0 bg-muted/30">
-            <div className="px-4 py-3 border-b bg-background/50">
-              <div className="flex items-center gap-2 text-sm font-medium">
+           <div className="lg:w-2/5 flex flex-col min-h-0 bg-gradient-to-b from-muted/40 to-muted/20">
+             <div className="px-5 py-4 border-b bg-background/60 backdrop-blur-sm">
+               <div className="flex items-center gap-2.5 text-sm font-semibold">
                 <MessageSquare className="h-4 w-4 text-primary" />
                 {t('planner.tabs.messages')}
               </div>
             </div>
-            <div className="flex-1 min-h-0">
+             <div className="flex-1 min-h-0 px-1">
               <AssignmentMessagesPanel
                 assignmentId={assignment.id}
                 assignmentTitle={assignment.title}

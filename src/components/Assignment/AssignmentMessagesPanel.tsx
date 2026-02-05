@@ -5,10 +5,27 @@
  import { Textarea } from '@/components/ui/textarea';
  import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
  import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Download, MessageSquare, Reply, X, CornerDownRight } from 'lucide-react';
+import { Send, Download, MessageSquare, Reply, X, CornerDownRight, Trash2 } from 'lucide-react';
  import { format } from 'date-fns';
  import { da, enGB } from 'date-fns/locale';
  import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
  
  interface AssignmentMessagesPanelProps {
    assignmentId: string;
@@ -27,12 +44,14 @@ import { Send, Download, MessageSquare, Reply, X, CornerDownRight } from 'lucide
    const [newMessage, setNewMessage] = useState('');
    const [sending, setSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState<AssignmentMessage | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AssignmentMessage | null>(null);
    const scrollRef = useRef<HTMLDivElement>(null);
  
    const { 
      messages, 
      loading, 
      sendMessage, 
+    deleteMessage,
      exportMessages 
    } = useAssignmentMessages(
      assignmentId,
@@ -41,6 +60,19 @@ import { Send, Download, MessageSquare, Reply, X, CornerDownRight } from 'lucide
      responsibleUserId
    );
  
+  const { user } = useAuth();
+
+  // Permission check: owner can delete own messages, admin/skadeleder can delete all
+  const canDeleteMessage = (message: AssignmentMessage): boolean => {
+    if (!user) return false;
+    
+    // Owner can always delete their own messages
+    if (message.user_id === user.id) return true;
+    
+    // Skadeleder and administrator can delete any message
+    return ['administrator', 'skadeleder'].includes(user.role || '');
+  };
+
    // Auto-scroll to bottom when new messages arrive
    useEffect(() => {
      if (scrollRef.current) {
@@ -80,12 +112,19 @@ import { Send, Download, MessageSquare, Reply, X, CornerDownRight } from 'lucide
        .substring(0, 2);
    };
  
+  const handleDeleteMessage = async () => {
+    if (!deleteTarget) return;
+    await deleteMessage(deleteTarget.id);
+    setDeleteTarget(null);
+  };
+
    return (
-     <div className="flex flex-col h-full">
+    <TooltipProvider>
+    <div className="flex flex-col h-full px-4 py-3">
        {/* Header */}
-       <div className="flex items-center justify-between pb-3 border-b">
+      <div className="flex items-center justify-between pb-4 border-b">
          <div className="flex items-center gap-2">
-           <MessageSquare className="h-5 w-5 text-primary" />
+          <MessageSquare className="h-4 w-4 text-primary" />
            <h3 className="font-medium">{t('planner.messages.title')}</h3>
          </div>
          {messages.length > 0 && (
@@ -102,23 +141,23 @@ import { Send, Download, MessageSquare, Reply, X, CornerDownRight } from 'lucide
        </div>
  
        {/* Messages List */}
-       <ScrollArea className="flex-1 py-4" ref={scrollRef}>
+      <ScrollArea className="flex-1 py-5" ref={scrollRef}>
          {loading ? (
-           <div className="flex items-center justify-center h-32">
+          <div className="flex items-center justify-center h-40">
              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
            </div>
          ) : messages.length === 0 ? (
-           <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
+          <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
              <MessageSquare className="h-8 w-8 mb-2 opacity-50" />
              <p className="text-sm">{t('planner.messages.noMessages')}</p>
            </div>
          ) : (
-           <div className="space-y-4">
+          <div className="space-y-5">
              {messages.map((msg) => (
                 <div key={msg.id} className="group">
                   {/* Reply reference */}
                   {msg.reply_to && (
-                    <div className="flex items-center gap-2 ml-10 mb-1 text-xs text-muted-foreground">
+                   <div className="flex items-center gap-2 ml-11 mb-1.5 text-xs text-muted-foreground">
                       <CornerDownRight className="h-3 w-3" />
                       <span className="truncate max-w-[200px]">
                         {t('planner.messages.inReplyTo')}: "{msg.reply_to.message.substring(0, 40)}{msg.reply_to.message.length > 40 ? '...' : ''}"
@@ -127,33 +166,59 @@ import { Send, Download, MessageSquare, Reply, X, CornerDownRight } from 'lucide
                   )}
                   
                   <div className="flex gap-3">
-                    <Avatar className="h-8 w-8 flex-shrink-0">
+                   <Avatar className="h-9 w-9 flex-shrink-0 ring-2 ring-background shadow-sm">
                    <AvatarImage src={msg.sender?.avatar_url} />
                    <AvatarFallback className="text-xs">
                      {getInitials(msg.sender?.name || 'U')}
                    </AvatarFallback>
                  </Avatar>
                     <div className="flex-1 min-w-0">
-                   <div className="flex items-baseline gap-2">
-                     <span className="font-medium text-sm">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm">
                        {msg.sender?.name || 'Ukendt'}
                      </span>
-                     <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground/70">
                        {formatMessageTime(msg.created_at)}
                      </span>
                         
                         {/* Reply button */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => setReplyingTo(msg)}
-                        >
-                          <Reply className="h-3 w-3 mr-1" />
-                          <span className="text-xs">{t('planner.messages.reply')}</span>
-                        </Button>
+                       <div className="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                         <Tooltip>
+                           <TooltipTrigger asChild>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               className="h-7 px-2"
+                               onClick={() => setReplyingTo(msg)}
+                             >
+                               <Reply className="h-3.5 w-3.5" />
+                             </Button>
+                           </TooltipTrigger>
+                           <TooltipContent side="top">
+                             <p>{t('planner.messages.reply')}</p>
+                           </TooltipContent>
+                         </Tooltip>
+                         
+                         {canDeleteMessage(msg) && (
+                           <Tooltip>
+                             <TooltipTrigger asChild>
+                               <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                 onClick={() => setDeleteTarget(msg)}
+                               >
+                                 <Trash2 className="h-3.5 w-3.5" />
+                               </Button>
+                             </TooltipTrigger>
+                             <TooltipContent side="top">
+                               <p>{t('planner.messages.deleteMessage')}</p>
+                             </TooltipContent>
+                           </Tooltip>
+                         )}
+                       </div>
                    </div>
-                   <p className="text-sm mt-1 whitespace-pre-wrap break-words">
+                  <p className="text-sm mt-1.5 whitespace-pre-wrap break-words leading-relaxed text-foreground/90">
                      {msg.message}
                    </p>
                  </div>
@@ -165,10 +230,10 @@ import { Send, Download, MessageSquare, Reply, X, CornerDownRight } from 'lucide
        </ScrollArea>
  
        {/* Input Area */}
-       <div className="pt-3 border-t">
+      <div className="pt-4 border-t">
           {/* Reply indicator */}
           {replyingTo && (
-            <div className="flex items-center gap-2 mb-2 p-2 bg-muted rounded-md text-sm">
+           <div className="flex items-center gap-2 mb-3 p-2.5 bg-muted/60 rounded-lg text-sm border border-border/50">
               <Reply className="h-4 w-4 text-primary flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="text-muted-foreground">{t('planner.messages.replyingTo')}: </span>
@@ -177,7 +242,7 @@ import { Send, Download, MessageSquare, Reply, X, CornerDownRight } from 'lucide
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 flex-shrink-0"
+               className="h-7 w-7 flex-shrink-0"
                 onClick={() => setReplyingTo(null)}
               >
                 <X className="h-4 w-4" />
@@ -191,19 +256,42 @@ import { Send, Download, MessageSquare, Reply, X, CornerDownRight } from 'lucide
              onChange={(e) => setNewMessage(e.target.value)}
              onKeyDown={handleKeyDown}
               placeholder={replyingTo ? t('planner.messages.writeReply') : t('planner.messages.messagePlaceholder')}
-             className="min-h-[60px] max-h-[120px] resize-none"
+             className="min-h-[70px] max-h-[120px] resize-none text-sm"
              disabled={sending}
            />
            <Button
              onClick={handleSend}
              disabled={!newMessage.trim() || sending}
-             className="self-end"
+             className="self-end h-10 w-10"
+             size="icon"
            >
              <Send className="h-4 w-4" />
            </Button>
          </div>
        </div>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('planner.messages.deleteMessage')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('planner.messages.confirmDelete')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteMessage}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
      </div>
+    </TooltipProvider>
    );
  };
  

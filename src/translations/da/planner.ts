@@ -282,7 +282,11 @@ const planner = {
     replyingTo: 'Svarer på',
     cancelReply: 'Annuller svar',
     inReplyTo: 'Svar på',
-    writeReply: 'Skriv et svar...'
+    writeReply: 'Skriv et svar...',
+    deleteMessage: 'Slet besked',
+    confirmDelete: 'Er du sikker på, at du vil slette denne besked? Handlingen kan ikke fortrydes.',
+    messageDeleted: 'Besked slettet',
+    errorDeletingMessage: 'Kunne ikke slette besked'
   },
   
   // Files
