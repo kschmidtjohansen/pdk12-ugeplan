@@ -277,7 +277,12 @@ const planner = {
     noMessages: 'Ingen beskeder endnu',
     exportMessages: 'Eksporter',
     messagesExported: 'Beskeder eksporteret',
-    newMessage: 'Ny besked'
+    newMessage: 'Ny besked',
+    reply: 'Svar',
+    replyingTo: 'Svarer på',
+    cancelReply: 'Annuller svar',
+    inReplyTo: 'Svar på',
+    writeReply: 'Skriv et svar...'
   },
   
   // Files
@@ -292,7 +297,10 @@ const planner = {
     deleteFile: 'Slet fil',
     downloadAll: 'Download alle',
     fileUploaded: 'Fil uploadet',
-    fileDeleted: 'Fil slettet'
+    fileDeleted: 'Fil slettet',
+    noFolder: 'Ingen mappe',
+    imagePreview: 'Forhåndsvisning',
+    closePreview: 'Luk'
   }
 };
 

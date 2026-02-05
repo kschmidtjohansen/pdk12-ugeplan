@@ -33,6 +33,7 @@
    downloadFile: (file: AssignmentFile) => Promise<void>;
    deleteFile: (file: AssignmentFile) => Promise<void>;
    createFolder: (folderName: string) => void;
+  getFilePreviewUrl: (file: AssignmentFile) => Promise<string | null>;
    refetch: () => Promise<void>;
  }
  
@@ -197,6 +198,29 @@
      }
    }, [folders]);
  
+  const getFilePreviewUrl = useCallback(async (file: AssignmentFile): Promise<string | null> => {
+    try {
+      // Only generate URLs for images
+      if (!file.mime_type?.startsWith('image/')) {
+        return null;
+      }
+
+      const { data, error } = await supabase.storage
+        .from('assignment-files')
+        .createSignedUrl(file.file_path, 3600); // 1 hour expiry
+
+      if (error) {
+        console.error('[useAssignmentFiles] Error creating signed URL:', error);
+        return null;
+      }
+
+      return data.signedUrl;
+    } catch (error) {
+      console.error('[useAssignmentFiles] Error getting preview URL:', error);
+      return null;
+    }
+  }, []);
+
    // Group files by folder
    const groupedFiles = files.reduce((acc, file) => {
      const folder = file.folder_name || '__uncategorized__';
@@ -243,6 +267,7 @@
      downloadFile,
      deleteFile,
      createFolder,
+    getFilePreviewUrl,
      refetch: fetchFiles
    };
  };
