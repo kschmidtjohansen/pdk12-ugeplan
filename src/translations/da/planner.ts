@@ -260,7 +260,40 @@ const planner = {
   
   // Search
   searchPlaceholder: 'Søg efter sagsnr., adresse eller medarbejder...',
-  noSearchResults: 'Ingen opgaver matcher din søgning'
+  noSearchResults: 'Ingen opgaver matcher din søgning',
+  
+  // Tabs
+  tabs: {
+    details: 'Detaljer',
+    messages: 'Beskeder',
+    files: 'Filer'
+  },
+  
+  // Messages
+  messages: {
+    title: 'Beskeder',
+    sendMessage: 'Send besked',
+    messagePlaceholder: 'Skriv en besked...',
+    noMessages: 'Ingen beskeder endnu',
+    exportMessages: 'Eksporter',
+    messagesExported: 'Beskeder eksporteret',
+    newMessage: 'Ny besked'
+  },
+  
+  // Files
+  files: {
+    title: 'Filer',
+    uploadFile: 'Upload fil',
+    createFolder: 'Opret mappe',
+    folderName: 'Mappenavn',
+    folderPlaceholder: 'Fx: Demontering 05.02.2026',
+    noFiles: 'Ingen filer endnu',
+    downloadFile: 'Download fil',
+    deleteFile: 'Slet fil',
+    downloadAll: 'Download alle',
+    fileUploaded: 'Fil uploadet',
+    fileDeleted: 'Fil slettet'
+  }
 };
 
 export default planner;

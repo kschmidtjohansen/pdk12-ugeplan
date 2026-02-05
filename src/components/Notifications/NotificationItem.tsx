@@ -5,7 +5,7 @@ import { NotificationType } from '@/types/notification';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { formatNotificationDate, getNotificationIcon } from '@/utils/notifications';
-import { Check, Trash2, AlertCircle, Calendar, Bell, Info } from 'lucide-react';
+import { Check, Trash2, AlertCircle, Calendar, Bell, Info, MessageSquare } from 'lucide-react';
 import { TreePalm } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -44,6 +44,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
         return <Calendar className="h-5 w-5 text-blue-500" />;
       case 'vacation':
         return <TreePalm className="h-5 w-5 text-green-500" />;
+      case 'message':
+        return <MessageSquare className="h-5 w-5 text-purple-500" />;
       case 'system':
         return <Bell className="h-5 w-5 text-yellow-500" />;
       case 'alert':
@@ -99,7 +101,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
                 {formattedDate}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+            <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap break-words">
               {notification.message}
             </p>
           </div>
