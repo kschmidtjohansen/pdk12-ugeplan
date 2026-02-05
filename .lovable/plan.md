@@ -1,227 +1,151 @@
 
 
-## Billedkommentarer og PDF-eksport med billeder
+## Løsning: Fjern duplikeret titel og flyt eksporter-knap
 
-Denne opdatering tilføjer mulighed for at knytte kommentarer til billeder ved upload og generere en PDF med alle billeder og deres kommentarer.
-
----
-
-### Del 1: Database - Tilføj kommentar-felt til assignment_files
-
-**Ny migration:**
-Tilføj en `comment` kolonne til `assignment_files` tabellen for at gemme billedkommentarer.
-
-```sql
-ALTER TABLE public.assignment_files 
-ADD COLUMN comment TEXT NULL;
-```
+Billedet viser tydeligt problemet: Der er to "Beskeder" titler - én i den hvide header og én igen inde i besked-panelet. Eksporter-knappen skal flyttes op til headeren og styles i den blå temafarve.
 
 ---
 
-### Del 2: Hook-ændringer i useAssignmentFiles.ts
+### Problem
 
-**Opdater AssignmentFile interface:**
+1. `AssignmentDetailsDialog.tsx` (linje 244-249) viser "Beskeder" titel i header
+2. `AssignmentMessagesPanel.tsx` (linje 125-129) viser også sin egen "Beskeder" titel med eksporter-knap
+3. Dette resulterer i duplikeret tekst som vist på billedet
+
+---
+
+### Løsning
+
+**Fil 1: `src/components/Dashboard/AssignmentDetailsDialog.tsx`**
+
+Opdater højre kolonnens header til at inkludere eksporter-knappen:
+
 ```typescript
-export interface AssignmentFile {
-  // Eksisterende felter...
-  comment: string | null;  // NY
-}
+{/* Right column: Messages sidebar */}
+<div className="lg:w-2/5 flex flex-col min-h-0 bg-gradient-to-b from-muted/40 to-muted/20">
+  <div className="px-5 py-4 border-b bg-background/60 backdrop-blur-sm">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2.5 text-sm font-semibold">
+        <MessageSquare className="h-4 w-4 text-primary" />
+        {t('planner.tabs.messages')}
+      </div>
+      {/* Eksporter knap - flyttes hertil */}
+      <ExportButton /> {/* Ny prop eller callback fra AssignmentMessagesPanel */}
+    </div>
+  </div>
+  ...
+</div>
 ```
 
-**Opdater uploadFile:**
-- Tilføj optional `comment` parameter
-- Gem kommentar i database ved upload
+**Fil 2: `src/components/Assignment/AssignmentMessagesPanel.tsx`**
 
-**Tilføj updateFileComment:**
-- Ny funktion til at redigere kommentar på eksisterende filer
+1. Fjern hele header-sektionen (linje 124-141)
+2. Tilføj en `onExport` prop og `messageCount` for at lade parent-komponenten styre eksport-knappen
+3. Eller: Eksporter en `exportMessages` funktion som parent kan kalde
 
-**Tilføj generateImagePdfWithComments:**
-- Ny funktion der bruger `pdf-lib` til at generere PDF
-- Henter alle billeder og inkluderer dem med kommentarer
+**Enkleste løsning**: 
+- Fjern header i `AssignmentMessagesPanel` helt
+- Brug `useAssignmentMessages` hook direkte i `AssignmentDetailsDialog` for at få `exportMessages` funktion
 
 ---
 
-### Del 3: UI - Upload med kommentar
+### Ændringer i detaljer
 
-**Workflow for upload med kommentar:**
+**`src/components/Assignment/AssignmentMessagesPanel.tsx`:**
 
-1. Bruger vælger fil(er) → åbner en dialog
-2. For hvert billede vises et preview med et tekstfelt til kommentar
-3. Bruger kan skrive kommentar og trykke "Upload"
-
-**Ny dialog: `ImageUploadWithCommentDialog`**
-```text
-┌──────────────────────────────────────────────────────────┐
-│  Upload billeder                                    [X]  │
-├──────────────────────────────────────────────────────────┤
-│                                                          │
-│  ┌────────────┐                                          │
-│  │   🖼️      │  IMG_001.jpg                             │
-│  │  Preview   │  ────────────────────────────────────    │
-│  └────────────┘  [ Tilføj kommentar til dette billede ]  │
-│                                                          │
-│  ┌────────────┐                                          │
-│  │   🖼️      │  IMG_002.jpg                             │
-│  │  Preview   │  ────────────────────────────────────    │
-│  └────────────┘  [ Tilføj kommentar til dette billede ]  │
-│                                                          │
-│  Vælg mappe: [Dropdown ▼]                                │
-│                                                          │
-├──────────────────────────────────────────────────────────┤
-│                            [Annuller]  [Upload billeder] │
-└──────────────────────────────────────────────────────────┘
+```diff
+  return (
+    <TooltipProvider>
+-   <div className="flex flex-col h-full px-4 py-3">
+-     {/* Header */}
+-     <div className="flex items-center justify-between pb-4 border-b">
+-       <div className="flex items-center gap-2">
+-         <MessageSquare className="h-4 w-4 text-primary" />
+-         <h3 className="font-medium">{t('planner.messages.title')}</h3>
+-       </div>
+-       {messages.length > 0 && (
+-         <Button variant="outline" size="sm" onClick={exportMessages}>
+-           <Download className="h-4 w-4" />
+-           {t('planner.messages.exportMessages')}
+-         </Button>
+-       )}
+-     </div>
++   <div className="flex flex-col h-full px-4 pt-2 pb-3">
+      {/* Messages List */}
 ```
 
----
+**`src/components/Dashboard/AssignmentDetailsDialog.tsx`:**
 
-### Del 4: UI - Vis og rediger kommentar
+```diff
++ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages';
++ import { Download } from 'lucide-react';
 
-**I FileItem-komponenten:**
-- Vis kommentar under filnavn hvis den findes
-- Tilføj en lille edit-knap til at redigere kommentar
+// Inde i komponenten:
++ const { messages, exportMessages } = useAssignmentMessages(
++   assignment.id,
++   assignment.title,
++   assignedEmployeeIds,
++   assignment.responsibleUserId
++ );
 
-**Layout:**
-```text
-┌────────────┐ IMG_001.jpg                    [📥] [✏️] [🗑️]
-│   🖼️      │ 1.2 MB • 05 feb • Kasper
-│  Preview   │ 💬 "Skade på venstre hjørne"
-└────────────┘
-```
-
----
-
-### Del 5: PDF-generering med billeder og kommentarer
-
-**Ny knap i header:**
-"Download billeder som PDF" - kun synlig hvis der er billeder
-
-**PDF-layout pr. side:**
-```text
-┌─────────────────────────────────────────┐
-│            [Sagsnummer/Titel]           │  <- Header
-│                                         │
-│  ┌─────────────────────────────────┐    │
-│  │                                 │    │
-│  │         BILLEDE                 │    │
-│  │                                 │    │
-│  └─────────────────────────────────┘    │
-│                                         │
-│  Kommentar: Skade på venstre hjørne     │
-│  Uploadet: 05. feb 2026 • Kasper        │
-│                                         │
-│  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─   │
-│                                         │
-│  ┌─────────────────────────────────┐    │
-│  │                                 │    │
-│  │         BILLEDE 2               │    │
-│  │                                 │    │
-│  └─────────────────────────────────┘    │
-│                                         │
-│  Kommentar: Fugtskade på loft           │
-│  Uploadet: 05. feb 2026 • Kasper        │
-│                                         │
-└─────────────────────────────────────────┘
-```
-
-**Teknisk implementering med pdf-lib:**
-```typescript
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-
-const generateImagePdfWithComments = async () => {
-  const pdfDoc = await PDFDocument.create();
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  
-  const imageFiles = files.filter(f => f.mime_type?.startsWith('image/'));
-  
-  for (const file of imageFiles) {
-    const page = pdfDoc.addPage([595, 842]); // A4
-    
-    // Download og embed billedet
-    const imageBlob = await downloadFileAsBlob(file);
-    const imageBytes = await imageBlob.arrayBuffer();
-    
-    // Detect image type og embed
-    if (file.mime_type?.includes('png')) {
-      const image = await pdfDoc.embedPng(imageBytes);
-      // Tegn billede centreret
-      page.drawImage(image, { x, y, width, height });
-    } else if (file.mime_type?.includes('jpeg') || file.mime_type?.includes('jpg')) {
-      const image = await pdfDoc.embedJpg(imageBytes);
-      page.drawImage(image, { x, y, width, height });
-    }
-    
-    // Tilføj kommentar og metadata
-    page.drawText(file.comment || 'Ingen kommentar', { x, y, font });
-    page.drawText(`Uploadet: ${formatDate(file.created_at)} • ${file.uploader?.name}`, {...});
-  }
-  
-  const pdfBytes = await pdfDoc.save();
-  // Download PDF
-};
+{/* Right column: Messages sidebar */}
+<div className="lg:w-2/5 flex flex-col min-h-0 bg-gradient-to-b from-muted/40 to-muted/20">
+  <div className="px-5 py-4 border-b bg-background/60 backdrop-blur-sm">
+-   <div className="flex items-center gap-2.5 text-sm font-semibold">
+-     <MessageSquare className="h-4 w-4 text-primary" />
+-     {t('planner.tabs.messages')}
+-   </div>
++   <div className="flex items-center justify-between">
++     <div className="flex items-center gap-2.5 text-sm font-semibold">
++       <MessageSquare className="h-4 w-4 text-primary" />
++       {t('planner.tabs.messages')}
++     </div>
++     {messages.length > 0 && (
++       <Button 
++         variant="ghost" 
++         size="sm" 
++         onClick={exportMessages}
++         className="text-primary hover:text-primary hover:bg-primary/10"
++       >
++         <Download className="h-4 w-4" />
++         {t('planner.messages.exportMessages')}
++       </Button>
++     )}
++   </div>
+  </div>
 ```
 
 ---
 
-### Del 6: Nye translations
+### Filer der ændres
 
-**`src/translations/da/planner.ts` - files sektion:**
-```typescript
-files: {
-  // Eksisterende...
-  addComment: 'Tilføj kommentar',
-  editComment: 'Rediger kommentar',
-  commentPlaceholder: 'Tilføj kommentar til dette billede...',
-  noComment: 'Ingen kommentar',
-  downloadAsPdf: 'Download billeder som PDF',
-  generatingPdf: 'Genererer PDF...',
-  pdfGenerated: 'PDF genereret',
-  uploadWithComment: 'Upload billeder',
-  uploadImages: 'Upload billeder'
-}
-```
-
-**`src/translations/en/planner.ts` - files sektion:**
-```typescript
-files: {
-  // Eksisterende...
-  addComment: 'Add comment',
-  editComment: 'Edit comment',
-  commentPlaceholder: 'Add a comment to this image...',
-  noComment: 'No comment',
-  downloadAsPdf: 'Download images as PDF',
-  generatingPdf: 'Generating PDF...',
-  pdfGenerated: 'PDF generated',
-  uploadWithComment: 'Upload images',
-  uploadImages: 'Upload images'
-}
-```
+| Fil | Ændring |
+|-----|---------|
+| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Tilføj eksporter-knap i header med blå styling |
+| `src/components/Assignment/AssignmentMessagesPanel.tsx` | Fjern duplikeret header og eksporter-knap |
 
 ---
 
-### Del 7: Filer der ændres
+### Visuelt resultat
 
-| Fil | Handling | Beskrivelse |
-|-----|----------|-------------|
-| `supabase/migrations/XXXX.sql` | NY | Tilføj comment kolonne |
-| `src/integrations/supabase/types.ts` | AUTO | Opdateret fra migration |
-| `src/hooks/assignment/useAssignmentFiles.ts` | ÆNDRES | Upload med kommentar, updateComment, generatePDF |
-| `src/components/Assignment/AssignmentFilesPanel.tsx` | ÆNDRES | Upload-dialog, vis kommentar, PDF-knap |
-| `src/translations/da/planner.ts` | ÆNDRES | Nye oversættelser |
-| `src/translations/en/planner.ts` | ÆNDRES | Nye oversættelser |
+**Før:**
+```
+┌────────────────────────────┐
+│ 💬 Beskeder                │  <- Header i dialog
+├────────────────────────────┤
+│ 💬 Beskeder    [Eksporter] │  <- Duplikeret header i panel
+│                            │
+│ Kasper Johansen 05 feb     │
+│ Test                       │
+```
 
----
-
-### Tekniske overvejelser
-
-**Billedtyper understøttet i pdf-lib:**
-- JPEG/JPG ✅
-- PNG ✅
-- Andre formater (WebP, HEIC, etc.) - skal konverteres først eller springes over
-
-**PDF-størrelse:**
-- Billeder skaleres ned til max 500x400 px for at holde filstørrelsen nede
-- Bevarer aspect ratio
-
-**Håndtering af ikke-understøttede formater:**
-- WebP og andre formater vil blive sprunget over med en advarsel i toast
+**Efter:**
+```
+┌──────────────────────────────────────┐
+│ 💬 Beskeder           [⬇ Eksporter]  │  <- Kun én header med blå knap
+├──────────────────────────────────────┤
+│                                      │
+│ Kasper Johansen 05 feb               │
+│ Test                                 │
+```
 
