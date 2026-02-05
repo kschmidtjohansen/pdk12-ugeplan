@@ -233,7 +233,7 @@ import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
               </button>
               {showFiles && (
                  <div className="px-8 pb-6 max-h-72 overflow-y-auto">
-                  <AssignmentFilesPanel assignmentId={assignment.id} />
+                  <AssignmentFilesPanel assignmentId={assignment.id} assignmentTitle={assignment.title || assignment.case_number || undefined} />
                 </div>
               )}
             </div>

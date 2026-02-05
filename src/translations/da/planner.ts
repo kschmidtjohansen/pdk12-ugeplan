@@ -311,7 +311,15 @@ const planner = {
     imageCount: 'billeder',
     documentCount: 'dokumenter',
     looseFiles: 'Løse filer',
-    noFilesInFolder: 'Ingen filer i denne mappe'
+    noFilesInFolder: 'Ingen filer i denne mappe',
+    addComment: 'Tilføj kommentar',
+    editComment: 'Rediger kommentar',
+    commentPlaceholder: 'Tilføj kommentar til dette billede...',
+    noComment: 'Ingen kommentar',
+    downloadAsPdf: 'Download som PDF',
+    generatingPdf: 'Genererer PDF...',
+    pdfGenerated: 'PDF genereret',
+    uploadImages: 'Upload billeder'
   }
 };
 

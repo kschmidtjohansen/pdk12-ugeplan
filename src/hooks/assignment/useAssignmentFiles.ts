@@ -1,179 +1,201 @@
- import { useState, useEffect, useCallback } from 'react';
- import { supabase } from '@/integrations/supabase/client';
- import { toast } from 'sonner';
- import { format } from 'date-fns';
- import { da } from 'date-fns/locale';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { da } from 'date-fns/locale';
 import JSZip from 'jszip';
- 
- export interface AssignmentFile {
-   id: string;
-   assignment_id: string;
-   user_id: string;
-   file_name: string;
-   file_path: string;
-   folder_name: string | null;
-   file_size: number | null;
-   mime_type: string | null;
-   created_at: string;
-   uploader?: {
-     id: string;
-     name: string;
-   };
- }
- 
- interface GroupedFiles {
-   [folderName: string]: AssignmentFile[];
- }
- 
- interface UseAssignmentFilesReturn {
-   files: AssignmentFile[];
-   groupedFiles: GroupedFiles;
-   folders: string[];
-   loading: boolean;
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+
+export interface AssignmentFile {
+  id: string;
+  assignment_id: string;
+  user_id: string;
+  file_name: string;
+  file_path: string;
+  folder_name: string | null;
+  file_size: number | null;
+  mime_type: string | null;
+  created_at: string;
+  comment: string | null;
+  uploader?: {
+    id: string;
+    name: string;
+  };
+}
+
+interface GroupedFiles {
+  [folderName: string]: AssignmentFile[];
+}
+
+interface UseAssignmentFilesReturn {
+  files: AssignmentFile[];
+  groupedFiles: GroupedFiles;
+  folders: string[];
+  loading: boolean;
   imageCount: number;
   documentCount: number;
-   uploadFile: (file: File, folderName?: string) => Promise<void>;
-   downloadFile: (file: AssignmentFile) => Promise<void>;
+  uploadFile: (file: File, folderName?: string, comment?: string) => Promise<void>;
+  downloadFile: (file: AssignmentFile) => Promise<void>;
   downloadFileAsBlob: (file: AssignmentFile) => Promise<Blob | null>;
   downloadFolder: (folderName: string) => Promise<void>;
   downloadAll: () => Promise<void>;
-   deleteFile: (file: AssignmentFile) => Promise<void>;
-   createFolder: (folderName: string) => void;
+  deleteFile: (file: AssignmentFile) => Promise<void>;
+  createFolder: (folderName: string) => void;
   getFilePreviewUrl: (file: AssignmentFile) => Promise<string | null>;
-   refetch: () => Promise<void>;
- }
- 
- export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFilesReturn => {
-   const [files, setFiles] = useState<AssignmentFile[]>([]);
-   const [folders, setFolders] = useState<string[]>([]);
-   const [loading, setLoading] = useState(false);
- 
+  updateFileComment: (fileId: string, comment: string) => Promise<void>;
+  generateImagePdfWithComments: (assignmentTitle?: string) => Promise<void>;
+  refetch: () => Promise<void>;
+}
+
+export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFilesReturn => {
+  const [files, setFiles] = useState<AssignmentFile[]>([]);
+  const [folders, setFolders] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+
   // Calculate image and document counts
   const imageCount = files.filter(f => f.mime_type?.startsWith('image/')).length;
   const documentCount = files.filter(f => !f.mime_type?.startsWith('image/')).length;
 
-   const fetchFiles = useCallback(async () => {
-     if (!assignmentId) return;
- 
-     setLoading(true);
-     try {
-       const { data: filesData, error } = await supabase
-         .from('assignment_files')
-         .select('*')
-         .eq('assignment_id', assignmentId)
-         .order('folder_name', { ascending: true, nullsFirst: false })
-         .order('created_at', { ascending: false });
- 
-       if (error) throw error;
- 
-       // Get unique user IDs
-       const userIds = [...new Set(filesData?.map(f => f.user_id) || [])];
-       
-       // Fetch uploader profiles
-       let profilesMap: Record<string, { id: string; name: string }> = {};
-       if (userIds.length > 0) {
-         const { data: profiles } = await supabase
-           .from('profiles')
-           .select('id, name')
-           .in('id', userIds);
-         
-         if (profiles) {
-           profilesMap = profiles.reduce((acc, p) => {
-             acc[p.id] = p;
-             return acc;
-           }, {} as Record<string, { id: string; name: string }>);
-         }
-       }
- 
-       const filesWithUploaders = (filesData || []).map(f => ({
-         ...f,
-         uploader: profilesMap[f.user_id] || { id: f.user_id, name: 'Ukendt' }
-       }));
- 
-       setFiles(filesWithUploaders);
- 
-       // Extract unique folder names
-       const uniqueFolders = [...new Set(
-         filesWithUploaders
-           .map(f => f.folder_name)
-           .filter((name): name is string => !!name)
-       )];
-       setFolders(uniqueFolders);
-     } catch (error) {
-       console.error('[useAssignmentFiles] Error fetching files:', error);
-     } finally {
-       setLoading(false);
-     }
-   }, [assignmentId]);
- 
-   const uploadFile = useCallback(async (file: File, folderName?: string) => {
-     if (!assignmentId) return;
- 
-     try {
-       const { data: { user } } = await supabase.auth.getUser();
-       if (!user) {
-         toast.error('Du skal være logget ind for at uploade filer');
-         return;
-       }
- 
-       // Create a unique path for the file
-       const fileExt = file.name.split('.').pop();
-       const timestamp = Date.now();
-       const filePath = `${assignmentId}/${folderName || 'general'}/${timestamp}-${file.name}`;
- 
-       // Upload to storage
-       const { error: uploadError } = await supabase.storage
-         .from('assignment-files')
-         .upload(filePath, file);
- 
-       if (uploadError) throw uploadError;
- 
-       // Create database record
-       const { error: dbError } = await supabase
-         .from('assignment_files')
-         .insert({
-           assignment_id: assignmentId,
-           user_id: user.id,
-           file_name: file.name,
-           file_path: filePath,
-           folder_name: folderName || null,
-           file_size: file.size,
-           mime_type: file.type
-         });
- 
-       if (dbError) throw dbError;
- 
-       await fetchFiles();
-       toast.success('Fil uploadet');
-     } catch (error) {
-       console.error('[useAssignmentFiles] Error uploading file:', error);
-       toast.error('Kunne ikke uploade fil');
-     }
-   }, [assignmentId, fetchFiles]);
- 
-   const downloadFile = useCallback(async (file: AssignmentFile) => {
-     try {
-       const { data, error } = await supabase.storage
-         .from('assignment-files')
-         .download(file.file_path);
- 
-       if (error) throw error;
- 
-       // Create download link
-       const url = URL.createObjectURL(data);
-       const link = document.createElement('a');
-       link.href = url;
-       link.download = file.file_name;
-       document.body.appendChild(link);
-       link.click();
-       document.body.removeChild(link);
-       URL.revokeObjectURL(url);
-     } catch (error) {
-       console.error('[useAssignmentFiles] Error downloading file:', error);
-       toast.error('Kunne ikke downloade fil');
-     }
-   }, []);
- 
+  const fetchFiles = useCallback(async () => {
+    if (!assignmentId) return;
+
+    setLoading(true);
+    try {
+      const { data: filesData, error } = await supabase
+        .from('assignment_files')
+        .select('*')
+        .eq('assignment_id', assignmentId)
+        .order('folder_name', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Get unique user IDs
+      const userIds = [...new Set(filesData?.map(f => f.user_id) || [])];
+      
+      // Fetch uploader profiles
+      let profilesMap: Record<string, { id: string; name: string }> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .in('id', userIds);
+        
+        if (profiles) {
+          profilesMap = profiles.reduce((acc, p) => {
+            acc[p.id] = p;
+            return acc;
+          }, {} as Record<string, { id: string; name: string }>);
+        }
+      }
+
+      const filesWithUploaders = (filesData || []).map(f => ({
+        ...f,
+        uploader: profilesMap[f.user_id] || { id: f.user_id, name: 'Ukendt' }
+      }));
+
+      setFiles(filesWithUploaders);
+
+      // Extract unique folder names
+      const uniqueFolders = [...new Set(
+        filesWithUploaders
+          .map(f => f.folder_name)
+          .filter((name): name is string => !!name)
+      )];
+      setFolders(uniqueFolders);
+    } catch (error) {
+      console.error('[useAssignmentFiles] Error fetching files:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [assignmentId]);
+
+  const uploadFile = useCallback(async (file: File, folderName?: string, comment?: string) => {
+    if (!assignmentId) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Du skal være logget ind for at uploade filer');
+        return;
+      }
+
+      // Create a unique path for the file
+      const fileExt = file.name.split('.').pop();
+      const timestamp = Date.now();
+      const filePath = `${assignmentId}/${folderName || 'general'}/${timestamp}-${file.name}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('assignment-files')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Create database record with comment
+      const { error: dbError } = await supabase
+        .from('assignment_files')
+        .insert({
+          assignment_id: assignmentId,
+          user_id: user.id,
+          file_name: file.name,
+          file_path: filePath,
+          folder_name: folderName || null,
+          file_size: file.size,
+          mime_type: file.type,
+          comment: comment || null
+        });
+
+      if (dbError) throw dbError;
+
+      await fetchFiles();
+      toast.success('Fil uploadet');
+    } catch (error) {
+      console.error('[useAssignmentFiles] Error uploading file:', error);
+      toast.error('Kunne ikke uploade fil');
+    }
+  }, [assignmentId, fetchFiles]);
+
+  const updateFileComment = useCallback(async (fileId: string, comment: string) => {
+    try {
+      const { error } = await supabase
+        .from('assignment_files')
+        .update({ comment: comment || null })
+        .eq('id', fileId);
+
+      if (error) throw error;
+
+      await fetchFiles();
+      toast.success('Kommentar opdateret');
+    } catch (error) {
+      console.error('[useAssignmentFiles] Error updating comment:', error);
+      toast.error('Kunne ikke opdatere kommentar');
+    }
+  }, [fetchFiles]);
+
+  const downloadFile = useCallback(async (file: AssignmentFile) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('assignment-files')
+        .download(file.file_path);
+
+      if (error) throw error;
+
+      // Create download link
+      const url = URL.createObjectURL(data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.file_name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('[useAssignmentFiles] Error downloading file:', error);
+      toast.error('Kunne ikke downloade fil');
+    }
+  }, []);
+
   const downloadFileAsBlob = useCallback(async (file: AssignmentFile): Promise<Blob | null> => {
     try {
       const { data, error } = await supabase.storage
@@ -269,40 +291,220 @@ import JSZip from 'jszip';
     }
   }, [files, downloadFileAsBlob]);
 
-   const deleteFile = useCallback(async (file: AssignmentFile) => {
-     try {
-       // Delete from storage
-       const { error: storageError } = await supabase.storage
-         .from('assignment-files')
-         .remove([file.file_path]);
- 
-       if (storageError) {
-         console.warn('[useAssignmentFiles] Storage deletion warning:', storageError);
-       }
- 
-       // Delete database record
-       const { error: dbError } = await supabase
-         .from('assignment_files')
-         .delete()
-         .eq('id', file.id);
- 
-       if (dbError) throw dbError;
- 
-       await fetchFiles();
-       toast.success('Fil slettet');
-     } catch (error) {
-       console.error('[useAssignmentFiles] Error deleting file:', error);
-       toast.error('Kunne ikke slette fil');
-     }
-   }, [fetchFiles]);
- 
-   const createFolder = useCallback((folderName: string) => {
-     if (!folderName.trim()) return;
-     if (!folders.includes(folderName.trim())) {
-       setFolders(prev => [...prev, folderName.trim()]);
-     }
-   }, [folders]);
- 
+  const generateImagePdfWithComments = useCallback(async (assignmentTitle?: string) => {
+    const imageFiles = files.filter(f => 
+      f.mime_type?.startsWith('image/') && 
+      (f.mime_type?.includes('jpeg') || f.mime_type?.includes('jpg') || f.mime_type?.includes('png'))
+    );
+
+    if (imageFiles.length === 0) {
+      toast.error('Ingen billeder at eksportere');
+      return;
+    }
+
+    toast.info('Genererer PDF...');
+
+    try {
+      const pdfDoc = await PDFDocument.create();
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+      const pageWidth = 595;
+      const pageHeight = 842;
+      const margin = 50;
+      const contentWidth = pageWidth - (margin * 2);
+
+      let skippedCount = 0;
+
+      for (const file of imageFiles) {
+        try {
+          const blob = await downloadFileAsBlob(file);
+          if (!blob) {
+            skippedCount++;
+            continue;
+          }
+
+          const imageBytes = await blob.arrayBuffer();
+          
+          let image;
+          try {
+            if (file.mime_type?.includes('png')) {
+              image = await pdfDoc.embedPng(imageBytes);
+            } else {
+              image = await pdfDoc.embedJpg(imageBytes);
+            }
+          } catch (embedError) {
+            console.warn('[useAssignmentFiles] Could not embed image:', file.file_name, embedError);
+            skippedCount++;
+            continue;
+          }
+
+          const page = pdfDoc.addPage([pageWidth, pageHeight]);
+
+          // Title at top
+          if (assignmentTitle) {
+            page.drawText(assignmentTitle, {
+              x: margin,
+              y: pageHeight - margin,
+              size: 14,
+              font: fontBold,
+              color: rgb(0.2, 0.2, 0.2),
+            });
+          }
+
+          // Calculate image dimensions to fit
+          const maxImageWidth = contentWidth;
+          const maxImageHeight = 450;
+          
+          const imageAspectRatio = image.width / image.height;
+          let drawWidth = maxImageWidth;
+          let drawHeight = drawWidth / imageAspectRatio;
+          
+          if (drawHeight > maxImageHeight) {
+            drawHeight = maxImageHeight;
+            drawWidth = drawHeight * imageAspectRatio;
+          }
+
+          const imageX = margin + (contentWidth - drawWidth) / 2;
+          const imageY = pageHeight - margin - 30 - drawHeight;
+
+          // Draw image
+          page.drawImage(image, {
+            x: imageX,
+            y: imageY,
+            width: drawWidth,
+            height: drawHeight,
+          });
+
+          // Draw comment below image
+          const commentY = imageY - 25;
+          const commentText = file.comment || 'Ingen kommentar';
+          
+          page.drawText('Kommentar:', {
+            x: margin,
+            y: commentY,
+            size: 10,
+            font: fontBold,
+            color: rgb(0.3, 0.3, 0.3),
+          });
+
+          // Wrap comment text if needed
+          const maxCharsPerLine = 80;
+          const commentLines = [];
+          let currentLine = '';
+          const words = commentText.split(' ');
+          
+          for (const word of words) {
+            if ((currentLine + ' ' + word).trim().length <= maxCharsPerLine) {
+              currentLine = (currentLine + ' ' + word).trim();
+            } else {
+              if (currentLine) commentLines.push(currentLine);
+              currentLine = word;
+            }
+          }
+          if (currentLine) commentLines.push(currentLine);
+
+          commentLines.slice(0, 4).forEach((line, idx) => {
+            page.drawText(line, {
+              x: margin + 70,
+              y: commentY - (idx * 14),
+              size: 10,
+              font: font,
+              color: rgb(0.2, 0.2, 0.2),
+            });
+          });
+
+          // Draw metadata
+          const metaY = commentY - (Math.min(commentLines.length, 4) * 14) - 20;
+          const uploadDate = format(new Date(file.created_at), 'dd. MMM yyyy', { locale: da });
+          const metaText = `Uploadet: ${uploadDate} • ${file.uploader?.name || 'Ukendt'}`;
+          
+          page.drawText(metaText, {
+            x: margin,
+            y: metaY,
+            size: 9,
+            font: font,
+            color: rgb(0.5, 0.5, 0.5),
+          });
+
+          // File name
+          page.drawText(file.file_name, {
+            x: margin,
+            y: metaY - 14,
+            size: 9,
+            font: font,
+            color: rgb(0.5, 0.5, 0.5),
+          });
+
+        } catch (fileError) {
+          console.error('[useAssignmentFiles] Error processing file:', file.file_name, fileError);
+          skippedCount++;
+        }
+      }
+
+      if (pdfDoc.getPageCount() === 0) {
+        toast.error('Ingen billeder kunne eksporteres');
+        return;
+      }
+
+      const pdfBytes = await pdfDoc.save();
+      
+      // Create blob from Uint8Array using spread to avoid TypeScript buffer issues
+      const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `billeder-${assignmentTitle || 'eksport'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      if (skippedCount > 0) {
+        toast.success(`PDF genereret (${skippedCount} billede(r) sprunget over)`);
+      } else {
+        toast.success('PDF genereret');
+      }
+    } catch (error) {
+      console.error('[useAssignmentFiles] Error generating PDF:', error);
+      toast.error('Kunne ikke generere PDF');
+    }
+  }, [files, downloadFileAsBlob]);
+
+  const deleteFile = useCallback(async (file: AssignmentFile) => {
+    try {
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('assignment-files')
+        .remove([file.file_path]);
+
+      if (storageError) {
+        console.warn('[useAssignmentFiles] Storage deletion warning:', storageError);
+      }
+
+      // Delete database record
+      const { error: dbError } = await supabase
+        .from('assignment_files')
+        .delete()
+        .eq('id', file.id);
+
+      if (dbError) throw dbError;
+
+      await fetchFiles();
+      toast.success('Fil slettet');
+    } catch (error) {
+      console.error('[useAssignmentFiles] Error deleting file:', error);
+      toast.error('Kunne ikke slette fil');
+    }
+  }, [fetchFiles]);
+
+  const createFolder = useCallback((folderName: string) => {
+    if (!folderName.trim()) return;
+    if (!folders.includes(folderName.trim())) {
+      setFolders(prev => [...prev, folderName.trim()]);
+    }
+  }, [folders]);
+
   const getFilePreviewUrl = useCallback(async (file: AssignmentFile): Promise<string | null> => {
     try {
       // Only generate URLs for images
@@ -326,58 +528,60 @@ import JSZip from 'jszip';
     }
   }, []);
 
-   // Group files by folder
-   const groupedFiles = files.reduce((acc, file) => {
-     const folder = file.folder_name || '__uncategorized__';
-     if (!acc[folder]) {
-       acc[folder] = [];
-     }
-     acc[folder].push(file);
-     return acc;
-   }, {} as GroupedFiles);
- 
-   // Set up realtime subscription
-   useEffect(() => {
-     if (!assignmentId) return;
- 
-     fetchFiles();
- 
-     const channel = supabase
-       .channel(`assignment-files-${assignmentId}`)
-       .on(
-         'postgres_changes',
-         {
-           event: '*',
-           schema: 'public',
-           table: 'assignment_files',
-           filter: `assignment_id=eq.${assignmentId}`
-         },
-         () => {
-           fetchFiles();
-         }
-       )
-       .subscribe();
- 
-     return () => {
-       supabase.removeChannel(channel);
-     };
-   }, [assignmentId, fetchFiles]);
- 
-   return {
-     files,
-     groupedFiles,
-     folders,
-     loading,
+  // Group files by folder
+  const groupedFiles = files.reduce((acc, file) => {
+    const folder = file.folder_name || '__uncategorized__';
+    if (!acc[folder]) {
+      acc[folder] = [];
+    }
+    acc[folder].push(file);
+    return acc;
+  }, {} as GroupedFiles);
+
+  // Set up realtime subscription
+  useEffect(() => {
+    if (!assignmentId) return;
+
+    fetchFiles();
+
+    const channel = supabase
+      .channel(`assignment-files-${assignmentId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'assignment_files',
+          filter: `assignment_id=eq.${assignmentId}`
+        },
+        () => {
+          fetchFiles();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [assignmentId, fetchFiles]);
+
+  return {
+    files,
+    groupedFiles,
+    folders,
+    loading,
     imageCount,
     documentCount,
-     uploadFile,
-     downloadFile,
+    uploadFile,
+    downloadFile,
     downloadFileAsBlob,
     downloadFolder,
     downloadAll,
-     deleteFile,
-     createFolder,
+    deleteFile,
+    createFolder,
     getFilePreviewUrl,
-     refetch: fetchFiles
-   };
- };
+    updateFileComment,
+    generateImagePdfWithComments,
+    refetch: fetchFiles
+  };
+};
