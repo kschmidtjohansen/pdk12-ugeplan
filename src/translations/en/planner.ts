@@ -254,7 +254,40 @@ const planner = {
   
   // Search
   searchPlaceholder: 'Search by case no., address or employee...',
-  noSearchResults: 'No assignments match your search'
+  noSearchResults: 'No assignments match your search',
+  
+  // Tabs
+  tabs: {
+    details: 'Details',
+    messages: 'Messages',
+    files: 'Files'
+  },
+  
+  // Messages
+  messages: {
+    title: 'Messages',
+    sendMessage: 'Send message',
+    messagePlaceholder: 'Write a message...',
+    noMessages: 'No messages yet',
+    exportMessages: 'Export',
+    messagesExported: 'Messages exported',
+    newMessage: 'New message'
+  },
+  
+  // Files
+  files: {
+    title: 'Files',
+    uploadFile: 'Upload file',
+    createFolder: 'Create folder',
+    folderName: 'Folder name',
+    folderPlaceholder: 'E.g.: Demolition 05.02.2026',
+    noFiles: 'No files yet',
+    downloadFile: 'Download file',
+    deleteFile: 'Delete file',
+    downloadAll: 'Download all',
+    fileUploaded: 'File uploaded',
+    fileDeleted: 'File deleted'
+  }
 };
 
 export default planner;

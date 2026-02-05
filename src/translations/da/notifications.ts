@@ -1,6 +1,7 @@
 
 const notifications = {
   title: 'Notifikationer',
+  notifications: 'Notifikationer',
   noNotifications: 'Du har ingen notifikationer',
   viewAll: 'Se alle',
   markAllAsRead: 'Markér alle som læst',
@@ -16,9 +17,10 @@ const notifications = {
   vacationRejected: 'Din friansøgning er blevet afvist: {reason}',
   new: 'Ny',
   from: 'Fra',
-  notifications: 'Notifikationer',
   dutyAssigned: 'Ny vagt tildelt',
-  dutyAssignedMessage: 'Du er blevet tildelt {dutyType} den {date}'
+  dutyAssignedMessage: 'Du er blevet tildelt {dutyType} den {date}',
+  newMessage: 'Ny besked på sag',
+  newMessageDescription: '{sender} skrev: "{preview}"'
 };
 
 export default notifications;

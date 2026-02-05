@@ -17,7 +17,9 @@ const notifications = {
   new: 'New',
   from: 'From',
   dutyAssigned: 'New duty assigned',
-  dutyAssignedMessage: 'You have been assigned to {dutyType} on {date}'
+  dutyAssignedMessage: 'You have been assigned to {dutyType} on {date}',
+  newMessage: 'New message on assignment',
+  newMessageDescription: '{sender} wrote: "{preview}"'
 };
 
 export default notifications;
