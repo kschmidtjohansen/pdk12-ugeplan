@@ -300,7 +300,14 @@ const planner = {
     fileDeleted: 'Fil slettet',
     noFolder: 'Ingen mappe',
     imagePreview: 'Forhåndsvisning',
-    closePreview: 'Luk'
+    closePreview: 'Luk',
+    downloadFolder: 'Download mappe',
+    allFiles: 'Alle filer',
+    preparingDownload: 'Forbereder download...',
+    imageCount: 'billeder',
+    documentCount: 'dokumenter',
+    looseFiles: 'Løse filer',
+    noFilesInFolder: 'Ingen filer i denne mappe'
   }
 };
 

@@ -190,6 +190,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             onDeleteAssignment={onDeleteAssignment}
             onPublishAssignment={onPublishAssignment}
             onCopyAssignment={onCopyAssignment}
+            onViewDetails={setDetailsDialogAssignment}
             canEdit={canEdit}
             canPublishTasks={canPublishTasks}
             cars={cars}
@@ -207,6 +208,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             onDeleteAssignment={onDeleteAssignment}
             onPublishAssignment={onPublishAssignment}
             onCopyAssignment={onCopyAssignment}
+            onViewDetails={setDetailsDialogAssignment}
             canEdit={canEdit}
             canPublishTasks={canPublishTasks}
             cars={cars}
@@ -215,6 +217,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       )}
       
       {/* Assignment Details Dialog for compact view */}
+      {/* Assignment Details Dialog for both views */}
       <AssignmentDetailsDialog
         assignment={detailsDialogAssignment}
         isOpen={!!detailsDialogAssignment}

@@ -294,7 +294,14 @@ const planner = {
     fileDeleted: 'File deleted',
     noFolder: 'No folder',
     imagePreview: 'Preview',
-    closePreview: 'Close'
+    closePreview: 'Close',
+    downloadFolder: 'Download folder',
+    allFiles: 'All files',
+    preparingDownload: 'Preparing download...',
+    imageCount: 'images',
+    documentCount: 'documents',
+    looseFiles: 'Loose files',
+    noFilesInFolder: 'No files in this folder'
   }
 };
 

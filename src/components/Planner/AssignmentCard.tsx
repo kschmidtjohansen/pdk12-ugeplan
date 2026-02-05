@@ -21,6 +21,7 @@ interface AssignmentCardProps {
   onDelete: () => void;
   onPublish?: () => void;
   onCopy?: () => void;
+  onViewDetails?: () => void;
   operationState?: 'publishing' | 'deleting' | 'updating' | null;
 }
 
@@ -33,6 +34,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   onDelete,
   onPublish,
   onCopy,
+  onViewDetails,
   operationState = null
 }) => {
   const { t } = useTranslation();
@@ -156,8 +158,22 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     }
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger if clicking on buttons or interactive elements
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('a') || target.closest('[role="button"]')) {
+      return;
+    }
+    if (onViewDetails) {
+      onViewDetails();
+    }
+  };
+
   return (
-    <Card className={`relative w-full p-4 bg-white hover:border-polygon-purple transition-colors ${isLoading ? 'opacity-75' : ''}`}>
+    <Card 
+      className={`relative w-full p-4 bg-white hover:border-polygon-purple transition-colors ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
+      onClick={handleCardClick}
+    >
       {/* Warehouse indicator badge - positioned at bottom right */}
       {warehouseItemCount > 0 && (
         <TooltipProvider delayDuration={100}>
