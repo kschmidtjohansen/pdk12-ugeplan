@@ -1,151 +1,152 @@
 
 
-## Forbedringer til beskedsystem, filpanel og billedepreviews
+## Opdatering: Dialog i standard view, download alle filer, besked-sidebar og fil-tællere
 
-Denne opdatering løser fejlen i fil-dropdown, tilføjer svar-funktionalitet til beskeder og tilføjer billedepreviews.
-
----
-
-### Del 1: Fix Select-fejlen i filpanelet
-
-**Problem:** `<SelectItem value="">` er ikke tilladt i Radix UI Select - tom streng udløser fejl.
-
-**Løsning i `src/components/Assignment/AssignmentFilesPanel.tsx`:**
-- Brug en speciel værdi som `"__none__"` i stedet for tom streng
-- Opdater `handleFileSelect` til at konvertere `"__none__"` tilbage til `undefined`
-- Opdater `onValueChange` til at håndtere denne konvertering
-
-```typescript
-// Før
-<SelectItem value="">Ingen mappe</SelectItem>
-
-// Efter
-<SelectItem value="__none__">Ingen mappe</SelectItem>
-```
+Denne opdatering løser alle fire problemer og forbedrer brugeroplevelsen.
 
 ---
 
-### Del 2: Tilføj svar-funktionalitet til beskeder
+### Problem 1: AssignmentDetailsDialog vises ikke i standard view
 
-**Database-migration:**
-- Tilføj `reply_to_id` kolonne til `assignment_messages` tabellen
-- Reference til en anden besked (nullable)
+**Årsag:** I standard view (`DaySection.tsx` → `AssignmentCard.tsx`) er der ingen `onViewDetails` callback - kun redigering åbnes direkte.
 
-**Ændringer i `src/hooks/assignment/useAssignmentMessages.ts`:**
-- Udvid `AssignmentMessage` interface med `reply_to_id` og `reply_to` (reference til parent besked)
-- Udvid `sendMessage` til at tage en optional `replyToId` parameter
-- Hent parent besked-info når beskeder hentes
+**Løsning:**
+1. Tilføj `onViewDetails` callback til `DaySection` og `CurrentAndFutureDays` komponenterne
+2. Tilføj `onViewDetails` callback til `AssignmentCard` (gør kortet klikbart for detaljer)
+3. Brug samme `AssignmentDetailsDialog` som allerede bruges i compact view og MineOpgaver
 
-**Ændringer i `src/components/Assignment/AssignmentMessagesPanel.tsx`:**
-- Tilføj state for `replyingTo` (hvilken besked man svarer på)
-- Vis "Svar"-knap på hver besked ved hover
-- Vis en "Svarer på: [besked-preview]" over tekstfeltet når man svarer
-- Vis reference til parent-besked i besked-visningen (indrykning eller quote)
+**Filer der ændres:**
+- `src/components/Planner/CurrentAndFutureDays.tsx` - tilføj `onViewDetails` prop
+- `src/components/Planner/PastAssignments.tsx` - tilføj `onViewDetails` prop
+- `src/components/Planner/DaySection.tsx` - tilføj `onViewDetails` prop og videregiv til AssignmentCard
+- `src/components/Planner/AssignmentCard.tsx` - gør card-body klikbart for at vise detaljer
 
-**UI-flow:**
+---
+
+### Problem 2: Download alle filer og "vis alle" funktion
+
+**Krav:**
+- Download alle filer fra én mappe
+- "Ingen mappe" filter viser alle filer med deres sti
+- Download alle mapper med filerne inde i dem (bevarer struktur)
+
+**Løsning i `AssignmentFilesPanel.tsx`:**
+1. Tilføj "Download mappe" knap ved hver mappe-header
+2. Tilføj filter-dropdown: "Alle filer" / vælg specifik mappe
+3. Tilføj "Download alle" knap i header der downloader alt
+4. Brug JSZip library til at skabe zip-filer med mappestruktur
+
+**Ny dependency:**
+- `jszip` - til at oprette zip-filer med mappestruktur
+
+**Filer der ændres:**
+- `src/components/Assignment/AssignmentFilesPanel.tsx` - ny UI og download-funktionalitet
+- `src/hooks/assignment/useAssignmentFiles.ts` - tilføj `downloadFolder` og `downloadAll` funktioner
+
+**Translations:**
+- `downloadFolder`: 'Download mappe'
+- `downloadAllFiles`: 'Download alle filer'
+- `allFiles`: 'Alle filer'
+- `preparingDownload`: 'Forbereder download...'
+
+---
+
+### Problem 3: Beskeder som sidebar i detaljer
+
+**Krav:** Beskeder skal være synlige sammen med detaljer (ikke i en separat tab).
+
+**Løsning:**
+- Omdanner dialog-layout til en 2-kolonne struktur
+- Venstre side: Detaljer (titel, dato, tid, biler, medarbejdere osv.)
+- Højre side: Besked-sidebar med kompakt input
+- Filer-tab bevares som separat tab under detaljer
+
+**Nyt layout:**
 ```text
-┌─────────────────────────────────────────────────────────┐
-│ Søren Jensen (10:30)                        [Svar 💬]  │
-│ "Husk at tage billeder af skaden"                      │
-│                                                         │
-│   ↳ Peter Nielsen (11:45)                   [Svar 💬]  │
-│     Svarer på: "Husk at tage billeder..."              │
-│     "Billeder er taget og uploadet"                    │
-└─────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────┐
-│ Svarer på: "Husk at tage billeder af skaden"    [×]    │
-├─────────────────────────────────────────────────────────┤
-│ [Skriv svar...                          ] [Send 📤]   │
-└─────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│ [Location]                                    [Status] [Rediger]  │
+├──────────────────────────────────────┬─────────────────────────────┤
+│  DETALJER                            │  BESKEDER                   │
+│  ─────────────────────               │  ─────────────────          │
+│  Titel: Sag 12345                    │  Søren (10:30):             │
+│  Beskrivelse: ...                    │  "Husk billeder"            │
+│                                      │                             │
+│  Dato: 5. feb 2026                   │  Peter (11:45):             │
+│  Tid: 08:00 - 16:00                  │  "Done"                     │
+│                                      │                             │
+│  Bil: VW Transporter                 │  ─────────────────          │
+│  Medarbejdere: Søren, Peter          │  [Skriv besked...]  [Send]  │
+│                                      │                             │
+├──────────────────────────────────────┴─────────────────────────────┤
+│  [Filer tab] - viser fil-panel som før                            │
+└────────────────────────────────────────────────────────────────────┘
 ```
+
+**Filer der ændres:**
+- `src/components/Dashboard/AssignmentDetailsDialog.tsx` - nyt 2-kolonne layout
 
 ---
 
-### Del 3: Tilføj billedepreviews i fil-oversigten
+### Problem 4: Vis antal billeder og filer
 
-**Ændringer i `src/hooks/assignment/useAssignmentFiles.ts`:**
-- Tilføj `getFilePreviewUrl` funktion der genererer en signed URL for billeder
-- Returner preview URLs sammen med fil-data
+**Krav:** Vis antal billeder og dokumenter i dialogen og eventuelt på kortene.
 
-**Ændringer i `src/components/Assignment/AssignmentFilesPanel.tsx`:**
-- Tilføj `ImagePreviewDialog` sub-komponent til at vise billeder i fuld størrelse
-- Opdater `FileItem` komponenten:
-  - Vis thumbnail preview for billeder (aspect-ratio container)
-  - Gør billedet klikbart for at åbne fuldskærms-preview
-- Tilføj state for valgt billede til preview
+**Løsning:**
+1. Tilføj en ny hook `useAssignmentFileCounts` eller udvid `useAssignmentFiles` til at returnere counts
+2. Vis fil-tællere i dialog-header eller ved Filer-tab
+3. Kategoriser i billeder (image/*) og dokumenter (resten)
 
-**UI-eksempel:**
+**Visning:**
 ```text
-📁 Demontering 05.02.2026
-├── ┌────────┐ IMG_001.jpg    [📥] [🗑️]
-│   │  🖼️   │ 1.2 MB • 05 feb
-│   └────────┘
-├── ┌────────┐ IMG_002.jpg    [📥] [🗑️]
-│   │  🖼️   │ 0.8 MB • 05 feb
-│   └────────┘
-└── 📄 Noter.pdf              [📥] [🗑️]
-    256 KB • 05 feb
+📷 3 billeder • 📄 2 dokumenter
 ```
+
+**Filer der ændres:**
+- `src/hooks/assignment/useAssignmentFiles.ts` - tilføj `imageCount` og `documentCount`
+- `src/components/Dashboard/AssignmentDetailsDialog.tsx` - vis tællere ved Filer-tab
+- `src/translations/da/planner.ts` - tilføj `imageCount`, `documentCount` oversættelser
 
 ---
 
-### Del 4: Nye translations
+### Opsummering af ændringer
 
-**`src/translations/da/planner.ts` - messages sektion:**
-```typescript
-messages: {
-  // Eksisterende...
-  reply: 'Svar',
-  replyingTo: 'Svarer på',
-  cancelReply: 'Annuller svar',
-  inReplyTo: 'Svar på'
-}
-```
-
-**`src/translations/da/planner.ts` - files sektion:**
-```typescript
-files: {
-  // Eksisterende...
-  noFolder: 'Ingen mappe',
-  imagePreview: 'Forhåndsvisning',
-  closePreview: 'Luk'
-}
-```
-
----
-
-### Del 5: Filer der ændres
-
-| Fil | Ændring |
-|-----|---------|
-| `supabase/migrations/XXXX.sql` | NY - tilføj reply_to_id kolonne |
-| `src/integrations/supabase/types.ts` | AUTO - opdateret fra migration |
-| `src/hooks/assignment/useAssignmentMessages.ts` | ÆNDRES - tilføj reply support |
-| `src/hooks/assignment/useAssignmentFiles.ts` | ÆNDRES - tilføj preview URL |
-| `src/components/Assignment/AssignmentMessagesPanel.tsx` | ÆNDRES - tilføj svar UI |
-| `src/components/Assignment/AssignmentFilesPanel.tsx` | ÆNDRES - fix Select + preview |
-| `src/translations/da/planner.ts` | ÆNDRES - nye oversættelser |
-| `src/translations/en/planner.ts` | ÆNDRES - nye oversættelser |
+| Fil | Handling |
+|-----|----------|
+| `package.json` | Tilføj `jszip` dependency |
+| `src/components/Planner/CurrentAndFutureDays.tsx` | Tilføj `onViewDetails` prop |
+| `src/components/Planner/PastAssignments.tsx` | Tilføj `onViewDetails` prop |
+| `src/components/Planner/DaySection.tsx` | Tilføj `onViewDetails` prop + videregiv |
+| `src/components/Planner/AssignmentCard.tsx` | Gør klikbart for detaljer |
+| `src/components/Assignment/AssignmentFilesPanel.tsx` | Download alle + filter |
+| `src/hooks/assignment/useAssignmentFiles.ts` | Download funktioner + counts |
+| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | 2-kolonne layout med sidebar |
+| `src/translations/da/planner.ts` | Nye oversættelser |
+| `src/translations/en/planner.ts` | Nye oversættelser |
 
 ---
 
 ### Tekniske detaljer
 
-**Database-migration:**
-```sql
--- Tilføj reply_to_id til assignment_messages
-ALTER TABLE public.assignment_messages 
-ADD COLUMN reply_to_id UUID REFERENCES public.assignment_messages(id) ON DELETE SET NULL;
+**JSZip integration:**
+```typescript
+import JSZip from 'jszip';
 
--- Index for performance
-CREATE INDEX idx_assignment_messages_reply_to_id 
-ON public.assignment_messages(reply_to_id);
+const downloadAllAsZip = async () => {
+  const zip = new JSZip();
+  
+  for (const file of files) {
+    const folder = file.folder_name || 'Løse filer';
+    const folderZip = zip.folder(folder);
+    const blob = await downloadFileAsBlob(file);
+    folderZip?.file(file.file_name, blob);
+  }
+  
+  const content = await zip.generateAsync({ type: 'blob' });
+  // Download zip file
+};
 ```
 
-**Billedepreviews:**
-- Bruger Supabase Storage `createSignedUrl` for at generere midlertidige URLs
-- Thumbnail vises inline med max højde 60px
-- Klik åbner dialog med fuldt billede
-- Kun for MIME-types der starter med `image/`
+**Responsive sidebar:**
+- På desktop: 2-kolonne layout (60/40 split)
+- På mobil: Beskeder vises under detaljer (stacked)
 
