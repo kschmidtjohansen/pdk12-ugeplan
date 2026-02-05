@@ -305,7 +305,15 @@ const planner = {
     imageCount: 'images',
     documentCount: 'documents',
     looseFiles: 'Loose files',
-    noFilesInFolder: 'No files in this folder'
+    noFilesInFolder: 'No files in this folder',
+    addComment: 'Add comment',
+    editComment: 'Edit comment',
+    commentPlaceholder: 'Add a comment to this image...',
+    noComment: 'No comment',
+    downloadAsPdf: 'Download as PDF',
+    generatingPdf: 'Generating PDF...',
+    pdfGenerated: 'PDF generated',
+    uploadImages: 'Upload images'
   }
 };
 

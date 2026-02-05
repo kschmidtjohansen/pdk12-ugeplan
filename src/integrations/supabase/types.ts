@@ -17,6 +17,7 @@ export type Database = {
       assignment_files: {
         Row: {
           assignment_id: string
+          comment: string | null
           created_at: string
           file_name: string
           file_path: string
@@ -28,6 +29,7 @@ export type Database = {
         }
         Insert: {
           assignment_id: string
+          comment?: string | null
           created_at?: string
           file_name: string
           file_path: string
@@ -39,6 +41,7 @@ export type Database = {
         }
         Update: {
           assignment_id?: string
+          comment?: string | null
           created_at?: string
           file_name?: string
           file_path?: string
