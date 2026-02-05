@@ -1,118 +1,150 @@
 
 
-## Løsning: Fjern duplikeret titel og flyt eksporter-knap
+## Løsning: Hooks-fejl og eksportknap-animation
 
-Billedet viser tydeligt problemet: Der er to "Beskeder" titler - én i den hvide header og én igen inde i besked-panelet. Eksporter-knappen skal flyttes op til headeren og styles i den blå temafarve.
-
----
-
-### Problem
-
-1. `AssignmentDetailsDialog.tsx` (linje 244-249) viser "Beskeder" titel i header
-2. `AssignmentMessagesPanel.tsx` (linje 125-129) viser også sin egen "Beskeder" titel med eksporter-knap
-3. Dette resulterer i duplikeret tekst som vist på billedet
+Denne opdatering løser den kritiske hooks-fejl og tilføjer en loading-animation til eksport-knappen.
 
 ---
 
-### Løsning
+### Problem 1: "Rendered more hooks than during the previous render"
 
-**Fil 1: `src/components/Dashboard/AssignmentDetailsDialog.tsx`**
+**Årsag:**
+I `AssignmentDetailsDialog.tsx` er der en tidlig `return null` (linje 35) der opstår **efter** `useAssignmentFiles` men **før** `useAssignmentMessages`. Dette betyder:
 
-Opdater højre kolonnens header til at inkludere eksporter-knappen:
+- Når `assignment = null`: 2 hooks køres (useTranslation, useAssignmentFiles)
+- Når `assignment` har en værdi: 3 hooks køres (tilføjer useAssignmentMessages)
+
+React kræver at antallet af hooks er det samme ved hver render.
+
+**Løsning:**
+Flyt alle hooks til **før** den betingede return statement. Brug `assignment?.id || null` som parameter til hooks.
 
 ```typescript
-{/* Right column: Messages sidebar */}
-<div className="lg:w-2/5 flex flex-col min-h-0 bg-gradient-to-b from-muted/40 to-muted/20">
-  <div className="px-5 py-4 border-b bg-background/60 backdrop-blur-sm">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2.5 text-sm font-semibold">
-        <MessageSquare className="h-4 w-4 text-primary" />
-        {t('planner.tabs.messages')}
-      </div>
-      {/* Eksporter knap - flyttes hertil */}
-      <ExportButton /> {/* Ny prop eller callback fra AssignmentMessagesPanel */}
-    </div>
-  </div>
-  ...
-</div>
+// FØR (fejl):
+const { imageCount, documentCount } = useAssignmentFiles(assignment?.id || null);
+if (!assignment) return null;
+const { messages, exportMessages } = useAssignmentMessages(...);
+
+// EFTER (korrekt):
+const { imageCount, documentCount } = useAssignmentFiles(assignment?.id || null);
+const { messages, exportMessages } = useAssignmentMessages(
+  assignment?.id || null,
+  assignment?.title,
+  assignment?.assignedEmployees?.map(e => e.id) || [],
+  assignment?.responsibleUserId
+);
+if (!assignment) return null;
 ```
-
-**Fil 2: `src/components/Assignment/AssignmentMessagesPanel.tsx`**
-
-1. Fjern hele header-sektionen (linje 124-141)
-2. Tilføj en `onExport` prop og `messageCount` for at lade parent-komponenten styre eksport-knappen
-3. Eller: Eksporter en `exportMessages` funktion som parent kan kalde
-
-**Enkleste løsning**: 
-- Fjern header i `AssignmentMessagesPanel` helt
-- Brug `useAssignmentMessages` hook direkte i `AssignmentDetailsDialog` for at få `exportMessages` funktion
 
 ---
 
-### Ændringer i detaljer
+### Problem 2: Eksportknap mangler loading-animation
 
-**`src/components/Assignment/AssignmentMessagesPanel.tsx`:**
+**Løsning:**
+1. Tilføj en `isExporting` state
+2. Wrap `exportMessages` i en handler der sætter loading state
+3. Vis en spinner-animation mens eksport er i gang
 
-```diff
-  return (
-    <TooltipProvider>
--   <div className="flex flex-col h-full px-4 py-3">
--     {/* Header */}
--     <div className="flex items-center justify-between pb-4 border-b">
--       <div className="flex items-center gap-2">
--         <MessageSquare className="h-4 w-4 text-primary" />
--         <h3 className="font-medium">{t('planner.messages.title')}</h3>
--       </div>
--       {messages.length > 0 && (
--         <Button variant="outline" size="sm" onClick={exportMessages}>
--           <Download className="h-4 w-4" />
--           {t('planner.messages.exportMessages')}
--         </Button>
--       )}
--     </div>
-+   <div className="flex flex-col h-full px-4 pt-2 pb-3">
-      {/* Messages List */}
-```
+**Visual indikation:**
+- Knappen viser et roterende ikon (spinner) mens eksport kører
+- Teksten ændres til "Eksporterer..."
+- Knappen disables under eksport
+
+---
+
+### Ændringer i koden
 
 **`src/components/Dashboard/AssignmentDetailsDialog.tsx`:**
 
-```diff
-+ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages';
-+ import { Download } from 'lucide-react';
+```typescript
+const AssignmentDetailsDialog: React.FC<AssignmentDetailsDialogProps> = ({
+  assignment,
+  isOpen,
+  onClose,
+  cars,
+  onEdit
+}) => {
+  const { t, currentLanguage } = useTranslation();
+  const [showFiles, setShowFiles] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);  // NY: Export state
+  
+  // ALLE hooks før betinget return
+  const { imageCount, documentCount } = useAssignmentFiles(assignment?.id || null);
+  
+  // Beregn assignedEmployeeIds før hook-kaldet
+  const assignedEmployeeIds = assignment?.assignedEmployees?.map(e => e.id) 
+    || assignment?.employees 
+    || [];
+  
+  const { messages, exportMessages } = useAssignmentMessages(
+    assignment?.id || null,  // Kan være null
+    assignment?.title,
+    assignedEmployeeIds,
+    assignment?.responsibleUserId
+  );
+  
+  // Nu er det sikkert at returnere tidligt
+  if (!assignment) return null;
 
-// Inde i komponenten:
-+ const { messages, exportMessages } = useAssignmentMessages(
-+   assignment.id,
-+   assignment.title,
-+   assignedEmployeeIds,
-+   assignment.responsibleUserId
-+ );
+  // Handler med loading animation
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      exportMessages();
+      // Kort delay for at vise animation
+      await new Promise(resolve => setTimeout(resolve, 800));
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
-{/* Right column: Messages sidebar */}
-<div className="lg:w-2/5 flex flex-col min-h-0 bg-gradient-to-b from-muted/40 to-muted/20">
-  <div className="px-5 py-4 border-b bg-background/60 backdrop-blur-sm">
--   <div className="flex items-center gap-2.5 text-sm font-semibold">
--     <MessageSquare className="h-4 w-4 text-primary" />
--     {t('planner.tabs.messages')}
--   </div>
-+   <div className="flex items-center justify-between">
-+     <div className="flex items-center gap-2.5 text-sm font-semibold">
-+       <MessageSquare className="h-4 w-4 text-primary" />
-+       {t('planner.tabs.messages')}
-+     </div>
-+     {messages.length > 0 && (
-+       <Button 
-+         variant="ghost" 
-+         size="sm" 
-+         onClick={exportMessages}
-+         className="text-primary hover:text-primary hover:bg-primary/10"
-+       >
-+         <Download className="h-4 w-4" />
-+         {t('planner.messages.exportMessages')}
-+       </Button>
-+     )}
-+   </div>
-  </div>
+  // Resten af komponenten...
+```
+
+**Eksportknappen med animation:**
+
+```tsx
+{messages.length > 0 && (
+  <Button 
+    variant="ghost" 
+    size="sm" 
+    onClick={handleExport}
+    disabled={isExporting}
+    className="h-8 text-primary hover:text-primary hover:bg-primary/10"
+  >
+    {isExporting ? (
+      <>
+        <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+        {t('planner.messages.exporting')}
+      </>
+    ) : (
+      <>
+        <Download className="h-4 w-4 mr-1.5" />
+        {t('planner.messages.exportMessages')}
+      </>
+    )}
+  </Button>
+)}
+```
+
+---
+
+### Nye translations
+
+**`src/translations/da/planner.ts`:**
+```typescript
+messages: {
+  // Eksisterende...
+  exporting: 'Eksporterer...',
+}
+```
+
+**`src/translations/en/planner.ts`:**
+```typescript
+messages: {
+  // Eksisterende...
+  exporting: 'Exporting...',
+}
 ```
 
 ---
@@ -121,31 +153,21 @@ Opdater højre kolonnens header til at inkludere eksporter-knappen:
 
 | Fil | Ændring |
 |-----|---------|
-| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Tilføj eksporter-knap i header med blå styling |
-| `src/components/Assignment/AssignmentMessagesPanel.tsx` | Fjern duplikeret header og eksporter-knap |
+| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Flyt hooks før betinget return, tilføj export animation |
+| `src/translations/da/planner.ts` | Tilføj "exporting" oversættelse |
+| `src/translations/en/planner.ts` | Tilføj "exporting" oversættelse |
 
 ---
 
-### Visuelt resultat
+### Teknisk forklaring
 
-**Før:**
-```
-┌────────────────────────────┐
-│ 💬 Beskeder                │  <- Header i dialog
-├────────────────────────────┤
-│ 💬 Beskeder    [Eksporter] │  <- Duplikeret header i panel
-│                            │
-│ Kasper Johansen 05 feb     │
-│ Test                       │
-```
+**Reacts regler for hooks:**
+1. Hooks skal altid kaldes i samme rækkefølge
+2. Hooks må ikke kaldes betinget (efter if/return)
+3. Hooks skal kaldes på top-level af komponenten
 
-**Efter:**
-```
-┌──────────────────────────────────────┐
-│ 💬 Beskeder           [⬇ Eksporter]  │  <- Kun én header med blå knap
-├──────────────────────────────────────┤
-│                                      │
-│ Kasper Johansen 05 feb               │
-│ Test                                 │
-```
+Ved at flytte `useAssignmentMessages` op før `if (!assignment) return null`, sikrer vi at:
+- Hooken altid kaldes (med `null` som ID hvis ingen assignment)
+- Hooken internt håndterer `null` og returnerer tomme data
+- React ser altid det samme antal hooks
 
