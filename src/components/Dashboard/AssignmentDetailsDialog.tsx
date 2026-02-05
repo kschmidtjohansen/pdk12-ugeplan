@@ -108,43 +108,43 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
    return (
      <Dialog open={isOpen} onOpenChange={onClose}>
        <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0">
-         <DialogHeader className="px-8 pt-8 pb-6 border-b bg-gradient-to-b from-muted/30 to-transparent">
-           <DialogTitle className="flex items-center justify-between gap-3 text-lg pr-14">
-             <div className="flex items-center gap-2">
-               <MapPin className="h-5 w-5 text-primary" />
-               {assignment.location}
-             </div>
-             <div className="flex items-center gap-2">
-               <Badge variant={assignment.published ? "default" : "secondary"}>
-                 {assignment.published ? t('planner.published') : t('planner.notPublished')}
-               </Badge>
-               {onEdit && (
-                 <Button 
-                   variant="outline" 
-                   size="sm" 
-                   onClick={() => {
-                     onEdit(assignment);
-                     onClose();
-                   }}
-                   className="flex items-center gap-1"
-                 >
-                   <Pencil className="h-3.5 w-3.5" />
-                   {t('common.edit')}
-                 </Button>
-               )}
-             </div>
-           </DialogTitle>
+        <DialogHeader className="px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b bg-gradient-to-b from-muted/30 to-transparent">
+            <DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 text-lg pr-14">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-primary shrink-0" />
+                <span className="break-words">{assignment.location}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={assignment.published ? "default" : "secondary"}>
+                  {assignment.published ? t('planner.published') : t('planner.notPublished')}
+                </Badge>
+                {onEdit && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      onEdit(assignment);
+                      onClose();
+                    }}
+                    className="flex items-center gap-1"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">{t('common.edit')}</span>
+                  </Button>
+                )}
+              </div>
+            </DialogTitle>
            <DialogDescription className="sr-only mt-1">
              {t('planner.assignmentDetails')}
            </DialogDescription>
          </DialogHeader>
  
         {/* Main content: 2-column layout */}
-         <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden" style={{ minHeight: '500px' }}>
+         <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden min-h-[400px] lg:min-h-[500px]">
           {/* Left column: Details */}
            <div className="flex-1 lg:w-3/5 flex flex-col min-h-0 lg:border-r">
-            <ScrollArea className="flex-1">
-               <div className="p-8 space-y-6">
+             <ScrollArea className="flex-1">
+                <div className="p-4 sm:p-8 space-y-6">
                 {/* Title */}
                  <div className="space-y-4">
                    <h3 className="text-2xl font-semibold tracking-tight">{assignment.title}</h3>
@@ -246,62 +246,65 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
             </ScrollArea>
 
             {/* Files section - collapsible at the bottom of left column */}
-             <div className="border-t bg-muted/20">
-              <div className="flex items-center justify-between px-8 py-4">
-                <button
-                  onClick={() => setShowFiles(!showFiles)}
-                  className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
-                >
-                  <Files className="h-4 w-4 text-primary" />
-                  {t('planner.tabs.files')}
-                  {(imageCount > 0 || documentCount > 0) && (
-                    <span className="text-muted-foreground">
-                      ({imageCount > 0 && <><Image className="h-3 w-3 inline mr-0.5" />{imageCount}</>}
-                      {imageCount > 0 && documentCount > 0 && ' • '}
-                      {documentCount > 0 && <><FileText className="h-3 w-3 inline mr-0.5" />{documentCount}</>})
-                    </span>
-                  )}
-                  {showFiles ? <ChevronDown className="h-4 w-4 ml-1" /> : <ChevronUp className="h-4 w-4 ml-1" />}
-                </button>
-                
-                {/* Action buttons in header */}
-                <div className="flex items-center gap-2">
-                  {imageCount > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleGeneratePdf}
-                      disabled={generatingPdf}
-                      className="h-8 text-primary hover:text-primary hover:bg-primary/10"
-                    >
-                      {generatingPdf ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                          {t('planner.files.generatingPdf')}
-                        </>
-                      ) : (
-                        <>
-                          <FileImage className="h-4 w-4 mr-1.5" />
-                          {t('planner.files.downloadAsPdf')}
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  {files.length > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={downloadAll}
-                      className="h-8 text-primary hover:text-primary hover:bg-primary/10"
-                    >
-                      <FolderDown className="h-4 w-4 mr-1.5" />
-                      {t('planner.files.downloadAll')}
-                    </Button>
-                  )}
-                </div>
-              </div>
-              {showFiles && (
-                 <div className="px-8 pb-6 max-h-72 overflow-y-auto">
+              <div className="border-t bg-muted/20">
+               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-8 py-4 gap-3">
+                 <button
+                   onClick={() => setShowFiles(!showFiles)}
+                   className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
+                 >
+                   <Files className="h-4 w-4 text-primary shrink-0" />
+                   {t('planner.tabs.files')}
+                   {(imageCount > 0 || documentCount > 0) && (
+                     <span className="text-muted-foreground">
+                       ({imageCount > 0 && <><Image className="h-3 w-3 inline mr-0.5" />{imageCount}</>}
+                       {imageCount > 0 && documentCount > 0 && ' • '}
+                       {documentCount > 0 && <><FileText className="h-3 w-3 inline mr-0.5" />{documentCount}</>})
+                     </span>
+                   )}
+                   {showFiles ? <ChevronDown className="h-4 w-4 ml-1" /> : <ChevronUp className="h-4 w-4 ml-1" />}
+                 </button>
+                 
+                 {/* Action buttons in header */}
+                 <div className="flex flex-wrap items-center gap-2">
+                   {imageCount > 0 && (
+                     <Button
+                       variant="ghost"
+                       size="sm"
+                       onClick={handleGeneratePdf}
+                       disabled={generatingPdf}
+                       className="h-8 text-primary hover:text-primary hover:bg-primary/10"
+                     >
+                       {generatingPdf ? (
+                         <>
+                           <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                           <span className="hidden sm:inline">{t('planner.files.generatingPdf')}</span>
+                           <span className="sm:hidden">...</span>
+                         </>
+                       ) : (
+                         <>
+                           <FileImage className="h-4 w-4 mr-1.5" />
+                           <span className="hidden sm:inline">{t('planner.files.downloadAsPdf')}</span>
+                           <span className="sm:hidden">PDF</span>
+                         </>
+                       )}
+                     </Button>
+                   )}
+                   {files.length > 0 && (
+                     <Button
+                       variant="ghost"
+                       size="sm"
+                       onClick={downloadAll}
+                       className="h-8 text-primary hover:text-primary hover:bg-primary/10"
+                     >
+                       <FolderDown className="h-4 w-4 mr-1.5" />
+                       <span className="hidden sm:inline">{t('planner.files.downloadAll')}</span>
+                       <span className="sm:hidden">Alle</span>
+                     </Button>
+                   )}
+                 </div>
+               </div>
+               {showFiles && (
+                  <div className="px-4 sm:px-8 pb-6 max-h-72 overflow-y-auto">
                   <AssignmentFilesPanel 
                     assignmentId={assignment.id} 
                     assignmentTitle={assignment.title || assignment.case_number || undefined}
@@ -313,36 +316,38 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
           </div>
 
           {/* Right column: Messages sidebar */}
-          <div className="lg:w-2/5 flex flex-col min-h-0 bg-gradient-to-b from-muted/40 to-muted/20">
-            <div className="px-5 py-4 border-b bg-background/60 backdrop-blur-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5 text-sm font-semibold">
-                  <MessageSquare className="h-4 w-4 text-primary" />
-                  {t('planner.tabs.messages')}
-                </div>
-                {messages.length > 0 && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleExport}
-                    disabled={isExporting}
-                    className="h-8 text-primary hover:text-primary hover:bg-primary/10 disabled:opacity-70"
-                  >
-                    {isExporting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                        {t('planner.messages.exporting')}
-                      </>
-                    ) : (
-                      <>
-                        <Download className="h-4 w-4 mr-1.5" />
-                        {t('planner.messages.exportMessages')}
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
+           <div className="lg:w-2/5 flex flex-col min-h-0 bg-gradient-to-b from-muted/40 to-muted/20">
+             <div className="px-3 sm:px-5 py-4 border-b bg-background/60 backdrop-blur-sm">
+               <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-2.5 text-sm font-semibold">
+                   <MessageSquare className="h-4 w-4 text-primary" />
+                   {t('planner.tabs.messages')}
+                 </div>
+                 {messages.length > 0 && (
+                   <Button 
+                     variant="ghost" 
+                     size="sm" 
+                     onClick={handleExport}
+                     disabled={isExporting}
+                     className="h-8 text-primary hover:text-primary hover:bg-primary/10 disabled:opacity-70"
+                   >
+                     {isExporting ? (
+                       <>
+                         <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                         <span className="hidden sm:inline">{t('planner.messages.exporting')}</span>
+                         <span className="sm:hidden">...</span>
+                       </>
+                     ) : (
+                       <>
+                         <Download className="h-4 w-4 mr-1.5" />
+                         <span className="hidden sm:inline">{t('planner.messages.exportMessages')}</span>
+                         <span className="sm:hidden">Eksport</span>
+                       </>
+                     )}
+                   </Button>
+                 )}
+               </div>
+             </div>
              <div className="flex-1 min-h-0 px-1">
               <AssignmentMessagesPanel
                 assignmentId={assignment.id}
