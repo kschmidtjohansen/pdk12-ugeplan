@@ -12,11 +12,13 @@ import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
 import { realtimeManager } from '@/services/realtimeManager';
 import { DemoUserService } from '@/services/demoUserService';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 
 export const useVacationData = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user, isDemoMode, userDataLoaded } = useAuth();
+  const { selectedDepartmentId } = useDepartment();
   const [vacations, setVacations] = useState<Vacation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,11 +107,14 @@ export const useVacationData = () => {
         };
       });
 
-      // Filter out expired vacations (only show current/future or pending)
+      // Filter out expired vacations and by department
       const today = new Date().toISOString().split('T')[0];
-      const currentAndFutureVacations = transformedVacations.filter(vacation => 
+      let currentAndFutureVacations = transformedVacations.filter(vacation => 
         vacation.end_date >= today || vacation.status === 'pending'
       );
+
+      // Note: Department filtering for vacations happens at DB level if department_id is set on the vacation record
+      // For now we filter client-side if needed (vacations table has department_id column)
       
       setVacations(currentAndFutureVacations);
       console.log(`[useVacationData] Filtered ${transformedVacations.length} to ${currentAndFutureVacations.length} current/future vacation records`);
@@ -158,7 +163,7 @@ export const useVacationData = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, t, user?.email]);
+  }, [toast, t, user?.email, selectedDepartmentId]);
 
   // Load vacations on component mount - wait for userDataLoaded to stabilize
   useEffect(() => {

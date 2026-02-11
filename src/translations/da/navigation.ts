@@ -14,7 +14,11 @@ const navigation = {
   settings: "Indstillinger",
   language: "Sprog",
   english: "Engelsk",
-  danish: "Dansk"
+  danish: "Dansk",
+  department: "Afdeling",
+  selectDepartment: "Vælg afdeling",
+  allDepartments: "Alle afdelinger",
+  switchDepartment: "Skift afdeling"
 };
 
 export default navigation;

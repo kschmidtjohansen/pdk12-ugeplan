@@ -1,0 +1,1 @@
+UPDATE public.departments SET name = '12-Fredericia' WHERE name = 'Fredericia';

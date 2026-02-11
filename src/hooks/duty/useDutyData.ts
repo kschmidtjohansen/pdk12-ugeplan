@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import type { Duty } from '@/types/duty';
 
 export const useDutyData = (startDate?: Date, endDate?: Date) => {
   const { user } = useAuth();
+  const { selectedDepartmentId } = useDepartment();
   const [duties, setDuties] = useState<Duty[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefetching, setIsRefetching] = useState(false);
@@ -71,6 +73,9 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
           `)
           .order('duty_date', { ascending: true });
 
+        if (selectedDepartmentId) {
+          query = query.eq('department_id', selectedDepartmentId);
+        }
         if (startDateStr) {
           query = query.gte('duty_date', startDateStr);
         }
@@ -129,7 +134,7 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.email, startDateStr, endDateStr]);
+  }, [user?.email, startDateStr, endDateStr, selectedDepartmentId]);
 
   return {
     duties,

@@ -6,6 +6,7 @@ import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 
 // Demo user constants for filtering
 const DEMO_USER_EMAIL = 'test@polygongroup.com';
@@ -22,20 +23,23 @@ interface UseUnifiedDataResult {
 
 export const useUnifiedData = (): UseUnifiedDataResult => {
   const { isDemoMode } = useAuth();
+  const { selectedDepartmentId } = useDepartment();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [cars, setCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAllData = async (filterDemoUser: boolean) => {
+  const fetchAllData = async (filterDemoUser: boolean, departmentId: string | null) => {
     try {
       setLoading(true);
       setError(null);
 
+      const deptId = departmentId || undefined;
+
       const [employeesResult, assignmentsResult, carsResult] = await Promise.all([
-        unifiedDataService.fetchEmployees(),
-        unifiedDataService.fetchAssignments(),
+        unifiedDataService.fetchEmployees(deptId),
+        unifiedDataService.fetchAssignments(deptId),
         unifiedDataService.fetchCars()
       ]);
 
@@ -69,7 +73,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
 
   const refetch = async () => {
     unifiedDataService.clearCache();
-    await fetchAllData(!isDemoMode);
+    await fetchAllData(!isDemoMode, selectedDepartmentId);
   };
 
   useEffect(() => {
@@ -78,7 +82,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
     
     const loadData = async () => {
       if (isMounted) {
-        await fetchAllData(filterDemoUser);
+        await fetchAllData(filterDemoUser, selectedDepartmentId);
       }
     };
 
@@ -109,7 +113,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
       isMounted = false;
       supabase.removeChannel(channel);
     };
-  }, [isDemoMode]);
+  }, [isDemoMode, selectedDepartmentId]);
 
   return {
     employees,
