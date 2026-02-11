@@ -14,7 +14,11 @@ const navigation = {
   settings: "Settings",
   language: "Language",
   english: "English",
-  danish: "Danish"
+  danish: "Danish",
+  department: "Department",
+  selectDepartment: "Select department",
+  allDepartments: "All departments",
+  switchDepartment: "Switch department"
 };
 
 export default navigation;

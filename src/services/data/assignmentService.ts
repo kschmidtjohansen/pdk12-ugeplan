@@ -8,16 +8,22 @@ export class AssignmentService {
     return DemoUserService.getInstance();
   }
 
-  static async fetchAllPublishedAssignments(currentUserEmail?: string): Promise<Assignment[]> {
-    const { data: assignmentsData, error } = await supabase
+  static async fetchAllPublishedAssignments(currentUserEmail?: string, departmentId?: string): Promise<Assignment[]> {
+    let query = supabase
       .from('assignments')
       .select(`
         id, title, description, assignment_date, from_time, to_time,
         location, car_id, car_ids, published, responsible_user_id,
-        created_at, updated_at
+        created_at, updated_at, department_id
       `)
       .eq('published', true)
       .order('assignment_date', { ascending: true });
+
+    if (departmentId) {
+      query = query.eq('department_id', departmentId);
+    }
+
+    const { data: assignmentsData, error } = await query;
 
     if (error) {
       throw new Error(`Failed to fetch assignments: ${error.message}`);
@@ -26,7 +32,7 @@ export class AssignmentService {
     return this.transformAssignments(assignmentsData || [], currentUserEmail);
   }
 
-  static async fetchUserAssignments(userId: string, currentUserEmail?: string): Promise<Assignment[]> {
+  static async fetchUserAssignments(userId: string, currentUserEmail?: string, departmentId?: string): Promise<Assignment[]> {
     const { data: userAssignments, error: userError } = await supabase
       .from('assignments_employees')
       .select('assignment_id')
@@ -42,16 +48,22 @@ export class AssignmentService {
 
     const assignmentIds = userAssignments.map(ua => ua.assignment_id);
 
-    const { data: assignmentsData, error: assignmentsError } = await supabase
+    let query = supabase
       .from('assignments')
       .select(`
         id, title, description, assignment_date, from_time, to_time,
         location, car_id, car_ids, published, responsible_user_id,
-        created_at, updated_at
+        created_at, updated_at, department_id
       `)
       .in('id', assignmentIds)
       .eq('published', true)
       .order('assignment_date', { ascending: true });
+
+    if (departmentId) {
+      query = query.eq('department_id', departmentId);
+    }
+
+    const { data: assignmentsData, error: assignmentsError } = await query;
 
     if (assignmentsError) {
       throw new Error(`Failed to fetch assignments: ${assignmentsError.message}`);

@@ -15,8 +15,8 @@ class UnifiedDataService {
   private cache = new Map<string, { data: any[]; timestamp: number; ttl: number }>();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-  private getCacheKey(operation: string): string {
-    return `unified_${operation}`;
+  private getCacheKey(operation: string, departmentId?: string): string {
+    return departmentId ? `unified_${operation}_${departmentId}` : `unified_${operation}`;
   }
 
   private getFromCache<T>(key: string): T[] | null {
@@ -39,8 +39,8 @@ class UnifiedDataService {
     });
   }
 
-  async fetchEmployees(): Promise<DataFetchResult<Employee>> {
-    const cacheKey = this.getCacheKey('employees');
+  async fetchEmployees(departmentId?: string): Promise<DataFetchResult<Employee>> {
+    const cacheKey = this.getCacheKey('employees', departmentId);
     
     const cachedData = this.getFromCache<Employee>(cacheKey);
     if (cachedData) {
@@ -48,10 +48,16 @@ class UnifiedDataService {
     }
 
     try {
-      const { data: profilesData, error: profilesError } = await supabase
+      let query = supabase
         .from('profiles')
-        .select('id, name, email, phone, job_title, on_leave, notes, avatar_url, status')
+        .select('id, name, email, phone, job_title, on_leave, notes, avatar_url, status, home_department_id')
         .order('name', { ascending: true });
+
+      if (departmentId) {
+        query = query.eq('home_department_id', departmentId);
+      }
+
+      const { data: profilesData, error: profilesError } = await query;
 
       if (profilesError) {
         throw new Error(`Profiles fetch failed: ${profilesError.message}`);
@@ -92,8 +98,8 @@ class UnifiedDataService {
     }
   }
 
-  async fetchAssignments(): Promise<DataFetchResult<Assignment>> {
-    const cacheKey = this.getCacheKey('assignments');
+  async fetchAssignments(departmentId?: string): Promise<DataFetchResult<Assignment>> {
+    const cacheKey = this.getCacheKey('assignments', departmentId);
     
     const cachedData = this.getFromCache<Assignment>(cacheKey);
     if (cachedData) {
@@ -101,14 +107,20 @@ class UnifiedDataService {
     }
 
     try {
-      const { data: assignmentsData, error: assignmentsError } = await supabase
+      let query = supabase
         .from('assignments')
         .select(`
           id, title, description, assignment_date, from_time, to_time,
           location, car_id, car_ids, published, responsible_user_id,
-          created_at, updated_at
+          created_at, updated_at, department_id
         `)
         .order('assignment_date', { ascending: true });
+
+      if (departmentId) {
+        query = query.eq('department_id', departmentId);
+      }
+
+      const { data: assignmentsData, error: assignmentsError } = await query;
 
       if (assignmentsError) {
         throw new Error(`Assignments fetch failed: ${assignmentsError.message}`);
@@ -179,8 +191,8 @@ class UnifiedDataService {
     }
   }
 
-  async fetchCars(): Promise<DataFetchResult<Car>> {
-    const cacheKey = this.getCacheKey('cars');
+  async fetchCars(departmentId?: string): Promise<DataFetchResult<Car>> {
+    const cacheKey = this.getCacheKey('cars', departmentId);
     
     const cachedData = this.getFromCache<Car>(cacheKey);
     if (cachedData) {

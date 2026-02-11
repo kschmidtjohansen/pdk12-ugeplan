@@ -11,6 +11,7 @@ import { NavigationItem } from '../../../types/navigation';
 import { useTranslation } from '@/context/TranslationContext';
 import { NotificationType } from '../../../types/notification';
 import { languageNames } from '../../../translations';
+import DepartmentSelector from './DepartmentSelector';
 
 interface MobileNavigationProps {
   items: NavigationItem[];
@@ -75,6 +76,10 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
   return (
     <div className="md:hidden bg-white">
       <div className="px-2 pt-2 pb-3 space-y-1">
+        {/* Department Selector in mobile */}
+        <div className="px-3 py-2 border-b border-gray-100 mb-2">
+          <DepartmentSelector />
+        </div>
         {items.map((item) => {
           const hasChildren = item.children && item.children.length > 0;
           const isExpanded = expandedItems.includes(item.path);
