@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import { SecurityProvider } from "./context/SecurityContext";
 import { AuthProvider } from "./context/AuthContext";
+import { DepartmentProvider } from "./context/DepartmentContext";
 import { TranslationProvider, useTranslation } from "./context/TranslationContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { ChangeLogProvider } from "./context/ChangeLogContext";
@@ -74,13 +75,15 @@ const App = () => {
         <TranslationProvider>
           <SecurityProvider>
             <AuthProvider>
-              <NotificationProvider>
-                <ChangeLogProvider>
-                  <TooltipProvider>
-                    <AppContent />
-                  </TooltipProvider>
-                </ChangeLogProvider>
-              </NotificationProvider>
+              <DepartmentProvider>
+                <NotificationProvider>
+                  <ChangeLogProvider>
+                    <TooltipProvider>
+                      <AppContent />
+                    </TooltipProvider>
+                  </ChangeLogProvider>
+                </NotificationProvider>
+              </DepartmentProvider>
             </AuthProvider>
           </SecurityProvider>
         </TranslationProvider>

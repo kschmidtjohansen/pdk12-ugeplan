@@ -51,7 +51,14 @@ const login = {
   lockedMessage: 'Konto midlertidigt låst på grund af for mange mislykkede forsøg. Prøv venligst igen senere.',
   refreshPage: 'Opdater side',
   tooManyAttemptsLock: 'Konto midlertidigt låst på grund af for mange mislykkede login-forsøg. Vent venligst 15 minutter før du prøver igen.',
-  timeoutMessage: 'Login tager længere tid end forventet. Dette kan være et forbindelsesproblem.'
+  timeoutMessage: 'Login tager længere tid end forventet. Dette kan være et forbindelsesproblem.',
+  
+  // Department selector
+  selectDepartment: 'Vælg hovedafdeling',
+  selectDepartmentPlaceholder: 'Vælg afdeling...',
+  departmentRequired: 'Vælg venligst en hovedafdeling før du logger ind.',
+  departmentAccessDenied: 'Adgang nægtet. Du er ikke tilknyttet denne afdeling. Vælg venligst den korrekte afdeling og prøv igen.',
+  loadingDepartments: 'Indlæser afdelinger...'
 };
 
 export default login;
