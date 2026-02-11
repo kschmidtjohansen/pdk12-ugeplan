@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   DialogContent,
   DialogDescription,
@@ -11,8 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useTranslation } from '@/context/TranslationContext';
-import { UserRole } from '@/context/AuthContext';
+import { UserRole, useAuth } from '@/context/AuthContext';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { PasswordInput } from '@/components/ui/password-input';
@@ -44,6 +45,17 @@ interface UserFormDialogProps {
   onClose: () => void;
 }
 
+interface Department {
+  id: string;
+  name: string;
+}
+
+interface SubDepartment {
+  id: string;
+  name: string;
+  department_id: string;
+}
+
 const UserFormDialog: React.FC<UserFormDialogProps> = ({
   currentUser,
   formData,
@@ -58,8 +70,112 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
   const [phoneError, setPhoneError] = useState('');
   
+  // Department/sub-department state
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [subDepartments, setSubDepartments] = useState<SubDepartment[]>([]);
+  const [selectedDeptId, setSelectedDeptId] = useState<string>('');
+  const [selectedSubDeptIds, setSelectedSubDeptIds] = useState<string[]>([]);
+  
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { user: authUser } = useAuth();
+  const isSuperAdmin = authUser?.role === 'super_admin';
+
+  // Load departments
+  useEffect(() => {
+    const fetchDepts = async () => {
+      let query = supabase.from('departments').select('id, name').order('name');
+      
+      if (!isSuperAdmin) {
+        const { data: access } = await supabase
+          .from('user_access')
+          .select('department_id')
+          .eq('user_id', authUser?.id || '');
+        
+        const deptIds = access?.map(a => a.department_id) || [];
+        if (deptIds.length > 0) {
+          query = query.in('id', deptIds);
+        }
+      }
+
+      const { data } = await query;
+      setDepartments(data || []);
+    };
+    fetchDepts();
+  }, [authUser?.id, isSuperAdmin]);
+
+  // Load sub-departments when dept changes
+  useEffect(() => {
+    if (!selectedDeptId) {
+      setSubDepartments([]);
+      return;
+    }
+    const fetchSubs = async () => {
+      const { data } = await supabase
+        .from('sub_departments')
+        .select('id, name, department_id')
+        .eq('department_id', selectedDeptId)
+        .order('name');
+      setSubDepartments(data || []);
+    };
+    fetchSubs();
+  }, [selectedDeptId]);
+
+  // Load existing user access when editing
+  useEffect(() => {
+    if (!currentUser) return;
+    const fetchAccess = async () => {
+      const { data } = await supabase
+        .from('user_access')
+        .select('department_id, sub_department_id')
+        .eq('user_id', currentUser.id);
+      
+      if (data && data.length > 0) {
+        setSelectedDeptId(data[0].department_id);
+        setSelectedSubDeptIds(
+          data
+            .filter(a => a.sub_department_id)
+            .map(a => a.sub_department_id!)
+        );
+      }
+    };
+    fetchAccess();
+  }, [currentUser?.id]);
+
+  const toggleSubDept = (subId: string) => {
+    setSelectedSubDeptIds(prev =>
+      prev.includes(subId) ? prev.filter(id => id !== subId) : [...prev, subId]
+    );
+  };
+
+  const saveUserAccess = async (userId: string) => {
+    if (!selectedDeptId) return;
+
+    // Delete existing access
+    await supabase.from('user_access').delete().eq('user_id', userId);
+
+    // Insert new access records
+    if (selectedSubDeptIds.length > 0) {
+      const records = selectedSubDeptIds.map(subId => ({
+        user_id: userId,
+        department_id: selectedDeptId,
+        sub_department_id: subId,
+      }));
+      await supabase.from('user_access').insert(records);
+    } else {
+      // Just department access, no sub-departments
+      await supabase.from('user_access').insert({
+        user_id: userId,
+        department_id: selectedDeptId,
+      });
+    }
+
+    // Also update home_department_id on profile
+    await supabase
+      .from('profiles')
+      .update({ home_department_id: selectedDeptId })
+      .eq('id', userId);
+  };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,8 +184,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
     setPhoneError('');
     
     try {
-      console.log('[UserFormDialog] Starting form submission');
-      
       // Validate phone number first
       const phoneValidation = validateAndSanitizePhone(formData.phone);
       if (!phoneValidation.valid) {
@@ -79,16 +193,13 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       }
       
       if (!currentUser) {
-        // Creating a new user - validate password
+        // Creating a new user
         if (!isPasswordValid) {
           setErrorMessage('Password must meet all requirements: at least 8 characters with uppercase, lowercase, and number');
           setIsSubmitting(false);
           return;
         }
         
-        console.log('[UserFormDialog] Calling admin-create-user function');
-        
-        // Use validated and sanitized phone
         const sanitizedPhone = phoneValidation.sanitized;
         
         const { data, error } = await supabase.functions.invoke('admin-create-user', {
@@ -104,42 +215,20 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           }
         });
         
-        if (error) {
-          console.error('[UserFormDialog] Function error:', error);
-          throw new Error(error.message || "Failed to create user");
-        }
+        if (error) throw new Error(error.message || "Failed to create user");
+        if (data?.error) throw new Error(data.error);
+        if (!data?.user) throw new Error("No user data returned from creation");
         
-        if (data?.error) {
-          console.error('[UserFormDialog] Function returned error:', data.error);
-          throw new Error(data.error);
-        }
-        
-        if (!data?.user) {
-          console.error('[UserFormDialog] No user returned from function:', data);
-          throw new Error("No user data returned from creation");
-        }
-        
-        console.log('[UserFormDialog] User created successfully:', data.user.id);
-        
-        // Wait a brief moment for the user to be created and the trigger to run
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Update the user's role if it's not the default
         if (formData.role !== 'servicemedarbejder') {
-          console.log('[UserFormDialog] Updating user role to:', formData.role);
           const { error: roleError } = await supabase
             .from('user_roles')
             .update({ role: formData.role })
             .eq('user_id', data.user.id);
-            
-          if (roleError) {
-            console.error('[UserFormDialog] Role update error:', roleError);
-            throw new Error('User created but role update failed');
-          }
+          if (roleError) throw new Error('User created but role update failed');
         }
 
-        // Update profile with additional fields
-        console.log('[UserFormDialog] Updating profile with additional data');
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
@@ -148,12 +237,11 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           })
           .eq('id', data.user.id);
 
-        if (profileError) {
-          console.warn('[UserFormDialog] Profile update warning:', profileError);
-          // Don't fail the entire operation for profile updates
-        }
+        if (profileError) console.warn('[UserFormDialog] Profile update warning:', profileError);
+
+        // Save department access
+        await saveUserAccess(data.user.id);
         
-        // Success: notify, close, and stop here (avoid double-invocation)
         toast({
           title: t('common.success'),
           description: t('admin.userManagement.createSuccess')
@@ -161,13 +249,11 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         onClose();
         setIsSubmitting(false);
         return;
-        // This will be handled by the parent component's handleSubmit
-        // which calls updateUserWithFallback
-        console.log('[UserFormDialog] Updating existing user via parent handler');
       }
       
-      // Call parent submit handler only for updates
+      // Update existing user - save access then call parent handler
       if (currentUser) {
+        await saveUserAccess(currentUser.id);
         await handleSubmit(e);
       }
       
@@ -175,11 +261,8 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       console.error('[UserFormDialog] Error saving user:', error);
       
       let errorMsg = 'An unexpected error occurred';
-      if (error instanceof Error) {
-        errorMsg = error.message;
-      }
+      if (error instanceof Error) errorMsg = error.message;
       
-      // Map common errors to user-friendly messages
       if (errorMsg.includes('User already registered') || errorMsg.includes('email address has already been registered')) {
         errorMsg = 'A user with this email already exists';
       } else if (errorMsg.includes('Invalid email')) {
@@ -187,17 +270,14 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       } else if (errorMsg.includes('Password')) {
         errorMsg = 'Password does not meet requirements';
       } else if (errorMsg.includes('phone') || errorMsg.includes('check_phone_format')) {
-        errorMsg = 'Phone number format is invalid. Please use a valid phone number.';
+        errorMsg = 'Phone number format is invalid.';
       } else if (errorMsg.includes('rate limit')) {
         errorMsg = 'Too many requests. Please wait a moment and try again.';
-      } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+      } else if (errorMsg.includes('network') || errorMsg.includes('fetch') || errorMsg.includes('Failed to send a request')) {
         errorMsg = 'Network error. Please check your connection and try again.';
-      } else if (errorMsg.includes('Failed to send a request')) {
-        errorMsg = 'Unable to connect to server. Please check your connection and try again.';
       }
       
       setErrorMessage(errorMsg);
-      
       toast({
         title: t('common.error'),
         description: errorMsg,
@@ -209,7 +289,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   };
 
   return (
-    <DialogContent className="sm:max-w-[425px]">
+    <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>
           {currentUser ? t('admin.userManagement.editUser') : t('admin.userManagement.addNewUser')}
@@ -226,89 +306,47 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           {errorMessage && (
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                {errorMessage}
-              </AlertDescription>
+              <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
           )}
           
           {phoneError && (
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                {phoneError}
-              </AlertDescription>
+              <AlertDescription>{phoneError}</AlertDescription>
             </Alert>
           )}
           
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              {t('admin.userManagement.fullName')}
-            </Label>
-            <Input
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className="col-span-3"
-              required
-            />
+            <Label htmlFor="name" className="text-right">{t('admin.userManagement.fullName')}</Label>
+            <Input id="name" name="name" value={formData.name} onChange={handleInputChange} className="col-span-3" required />
           </div>
           
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="email" className="text-right">
-              {t('admin.userManagement.email')}
-            </Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="col-span-3"
-              required
-              disabled={!!currentUser} // Can't change email for existing users
-            />
+            <Label htmlFor="email" className="text-right">{t('admin.userManagement.email')}</Label>
+            <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} className="col-span-3" required disabled={!!currentUser} />
           </div>
           
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="phone" className="text-right">
-              {t('admin.userManagement.phone')}
-            </Label>
+            <Label htmlFor="phone" className="text-right">{t('admin.userManagement.phone')}</Label>
             <Input
               id="phone"
               name="phone"
               value={formData.phone}
-              onChange={(e) => {
-                handleInputChange(e);
-                setPhoneError(''); // Clear error on change
-              }}
+              onChange={(e) => { handleInputChange(e); setPhoneError(''); }}
               className="col-span-3"
               placeholder="e.g., +45 12 34 56 78"
             />
           </div>
           
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="jobTitle" className="text-right">
-              {t('admin.userManagement.position')}
-            </Label>
-            <Input
-              id="jobTitle"
-              name="jobTitle"
-              value={formData.jobTitle}
-              onChange={handleInputChange}
-              className="col-span-3"
-            />
+            <Label htmlFor="jobTitle" className="text-right">{t('admin.userManagement.position')}</Label>
+            <Input id="jobTitle" name="jobTitle" value={formData.jobTitle} onChange={handleInputChange} className="col-span-3" />
           </div>
           
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="role" className="text-right">
-              {t('admin.userManagement.role')}
-            </Label>
-            <Select 
-              value={formData.role} 
-              onValueChange={handleRoleChange}
-            >
+            <Label htmlFor="role" className="text-right">{t('admin.userManagement.role')}</Label>
+            <Select value={formData.role} onValueChange={handleRoleChange}>
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder={t('admin.userManagement.selectRole')} />
               </SelectTrigger>
@@ -321,12 +359,46 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
               </SelectContent>
             </Select>
           </div>
+
+          {/* Hovedafdeling */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">{t('admin.userManagement.department')}</Label>
+            <Select value={selectedDeptId} onValueChange={(val) => { setSelectedDeptId(val); setSelectedSubDeptIds([]); }}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder={t('admin.userManagement.selectDepartment')} />
+              </SelectTrigger>
+              <SelectContent>
+                {departments.map(d => (
+                  <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Underafdelinger */}
+          {selectedDeptId && subDepartments.length > 0 && (
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label className="text-right pt-1">{t('admin.userManagement.subDepartments')}</Label>
+              <div className="col-span-3 space-y-2">
+                {subDepartments.map(sub => (
+                  <div key={sub.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`sub-${sub.id}`}
+                      checked={selectedSubDeptIds.includes(sub.id)}
+                      onCheckedChange={() => toggleSubDept(sub.id)}
+                    />
+                    <Label htmlFor={`sub-${sub.id}`} className="font-normal cursor-pointer">
+                      {sub.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           
           {!currentUser && (
             <div className="grid grid-cols-4 items-start gap-4">
-              <Label htmlFor="password" className="text-right pt-2">
-                {t('common.password')}
-              </Label>
+              <Label htmlFor="password" className="text-right pt-2">{t('common.password')}</Label>
               <div className="col-span-3">
                 <PasswordInput
                   id="password"
@@ -343,19 +415,9 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         </div>
         
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            {t('common.cancel')}
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={isSubmitting || (!currentUser && !isPasswordValid)}
-          >
-            {isSubmitting 
-              ? t('common.loading') 
-              : currentUser
-                ? t('common.save')
-                : t('common.create')
-            }
+          <Button type="button" variant="outline" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button type="submit" disabled={isSubmitting || (!currentUser && !isPasswordValid)}>
+            {isSubmitting ? t('common.loading') : currentUser ? t('common.save') : t('common.create')}
           </Button>
         </DialogFooter>
       </form>

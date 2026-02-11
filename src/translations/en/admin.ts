@@ -24,6 +24,31 @@ export const admin = {
     healthMonitoring: 'Health Monitoring',
     clearCache: 'Clear Cache'
   },
+  departments: {
+    title: 'Main Departments (Cities)',
+    description: 'Create and manage main departments',
+    name: 'City name',
+    create: 'Create city',
+    created: 'City created',
+    delete: 'Delete city',
+    deleted: 'City deleted',
+    deleteConfirm: 'Are you sure you want to delete this city?',
+    deleteWarning: 'All sub-departments and user assignments for this city will also be deleted.',
+    empty: 'No main departments created yet.',
+    selectCity: 'Select city'
+  },
+  subDepartments: {
+    title: 'Sub-departments',
+    description: 'Create and manage sub-departments for the selected city',
+    name: 'Sub-department name',
+    create: 'Create sub-department',
+    created: 'Sub-department created',
+    delete: 'Delete sub-department',
+    deleted: 'Sub-department deleted',
+    deleteConfirm: 'Are you sure you want to delete this sub-department?',
+    deleteWarning: 'User assignments to this sub-department will also be removed.',
+    empty: 'No sub-departments created yet.'
+  },
   security: {
     title: 'Security Monitoring',
     description: 'Monitor security events and access logs'
@@ -223,7 +248,11 @@ export const admin = {
     activateUser: 'Activate User',
     deactivateUser: 'Deactivate User',
     activateError: 'Error activating user',
-    deactivateError: 'Error deactivating user'
+    deactivateError: 'Error deactivating user',
+    department: 'Main Department',
+    subDepartments: 'Sub-departments',
+    selectDepartment: 'Select main department',
+    selectSubDepartments: 'Select sub-departments'
   },
   passwords: {
     changePassword: 'Change password',

@@ -24,6 +24,31 @@ export const admin = {
     healthMonitoring: 'Sundhedsovervågning',
     clearCache: 'Ryd Cache'
   },
+  departments: {
+    title: 'Hovedafdelinger (Byer)',
+    description: 'Opret og administrer hovedafdelinger',
+    name: 'Bynavn',
+    create: 'Opret by',
+    created: 'By oprettet',
+    delete: 'Slet by',
+    deleted: 'By slettet',
+    deleteConfirm: 'Er du sikker på at du vil slette denne by?',
+    deleteWarning: 'Alle underafdelinger og brugertilknytninger til denne by vil også blive slettet.',
+    empty: 'Ingen hovedafdelinger oprettet endnu.',
+    selectCity: 'Vælg by'
+  },
+  subDepartments: {
+    title: 'Underafdelinger',
+    description: 'Opret og administrer underafdelinger for den valgte by',
+    name: 'Underafdelingsnavn',
+    create: 'Opret underafdeling',
+    created: 'Underafdeling oprettet',
+    delete: 'Slet underafdeling',
+    deleted: 'Underafdeling slettet',
+    deleteConfirm: 'Er du sikker på at du vil slette denne underafdeling?',
+    deleteWarning: 'Brugertilknytninger til denne underafdeling vil også blive fjernet.',
+    empty: 'Ingen underafdelinger oprettet endnu.'
+  },
   security: {
     title: 'Sikkerhedsovervågning',
     description: 'Overvåg sikkerhedshændelser og adgangslogfiler'
@@ -227,7 +252,11 @@ export const admin = {
     deactivateUser: 'Deaktiver bruger',
     activateError: 'Fejl ved aktivering af bruger',
     deactivateError: 'Fejl ved deaktivering af bruger',
-    inactive: 'inaktiv'
+    inactive: 'inaktiv',
+    department: 'Hovedafdeling',
+    subDepartments: 'Underafdelinger',
+    selectDepartment: 'Vælg hovedafdeling',
+    selectSubDepartments: 'Vælg underafdelinger'
   },
   passwords: {
     changePassword: 'Skift adgangskode',
