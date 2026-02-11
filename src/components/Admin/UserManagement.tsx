@@ -55,23 +55,31 @@ const UserManagement: React.FC = () => {
   const isAdmin = authUser?.role === 'administrator';
   const canSeeUnassigned = isSuperAdmin || isAdmin;
 
-  // Filter users by department
+  // Demo user constants
+  const DEMO_USER_EMAIL = 'test@polygongroup.com';
+  const DEMO_USER_ID = '165cdbc9-6722-4c96-97d2-1a87185c8133';
+
+  // Filter users by department + hide demo user for non-demo users
   const filteredUsers = useMemo(() => {
     if (!users.length) return [];
     
-    if (departmentFilter === 'unassigned') {
-      // Show users that have NO user_access records at all
-      const usersWithAccess = new Set(userAccessData.map(ua => ua.user_id));
-      return users.filter(u => !usersWithAccess.has(u.id));
+    // First: remove demo user from list if current user is NOT the demo user
+    let baseUsers = users;
+    if (!isDemoMode) {
+      baseUsers = users.filter(u => u.email !== DEMO_USER_EMAIL && u.id !== DEMO_USER_ID);
     }
     
-    // Filter by current department
-    if (!selectedDepartmentId) return users;
+    if (departmentFilter === 'unassigned') {
+      const usersWithAccess = new Set(userAccessData.map(ua => ua.user_id));
+      return baseUsers.filter(u => !usersWithAccess.has(u.id));
+    }
+    
+    if (!selectedDepartmentId) return baseUsers;
     const usersInDept = new Set(
       userAccessData.filter(ua => ua.department_id === selectedDepartmentId).map(ua => ua.user_id)
     );
-    return users.filter(u => usersInDept.has(u.id));
-  }, [users, userAccessData, departmentFilter, selectedDepartmentId]);
+    return baseUsers.filter(u => usersInDept.has(u.id));
+  }, [users, userAccessData, departmentFilter, selectedDepartmentId, isDemoMode]);
 
   // Calculate role statistics from filtered users
   const roleCounts = filteredUsers.reduce((acc, user) => {
