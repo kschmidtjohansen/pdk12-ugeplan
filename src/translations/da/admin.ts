@@ -10,7 +10,9 @@ export const admin = {
     performance: 'Ydeevne',
     security: 'Sikkerhed',
     system: 'System',
-    cleanup: 'Oprydning'
+    cleanup: 'Oprydning',
+    departments: 'Hovedafdelinger',
+    subDepartments: 'Underafdelinger'
   },
   dashboard: {
     title: 'Administrationspanel',
@@ -35,7 +37,9 @@ export const admin = {
     deleteConfirm: 'Er du sikker på at du vil slette denne by?',
     deleteWarning: 'Alle underafdelinger og brugertilknytninger til denne by vil også blive slettet.',
     empty: 'Ingen hovedafdelinger oprettet endnu.',
-    selectCity: 'Vælg by'
+    selectCity: 'Vælg by',
+    renamed: 'Afdelingsnavn opdateret',
+    editName: 'Rediger navn'
   },
   subDepartments: {
     title: 'Underafdelinger',
@@ -47,8 +51,12 @@ export const admin = {
     deleted: 'Underafdeling slettet',
     deleteConfirm: 'Er du sikker på at du vil slette denne underafdeling?',
     deleteWarning: 'Brugertilknytninger til denne underafdeling vil også blive fjernet.',
-    empty: 'Ingen underafdelinger oprettet endnu.'
+    empty: 'Ingen underafdelinger oprettet endnu.',
+    renamed: 'Underafdelingsnavn opdateret',
+    editName: 'Rediger navn',
+    hasData: 'Kan ikke slettes – har tilknyttede brugere eller data'
   },
+  departmentSwitched: 'Skiftet til {name}',
   security: {
     title: 'Sikkerhedsovervågning',
     description: 'Overvåg sikkerhedshændelser og adgangslogfiler'

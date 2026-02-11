@@ -3,7 +3,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Users } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Shield, Users, Building2, Layers } from 'lucide-react';
 import UserManagement from '@/components/Admin/UserManagement';
 import DepartmentManagement from '@/components/Admin/DepartmentManagement';
 import SubDepartmentManagement from '@/components/Admin/SubDepartmentManagement';
@@ -35,6 +36,8 @@ const AdminPage: React.FC = () => {
     );
   }
 
+  const defaultTab = isSuperAdmin ? 'departments' : 'users';
+
   return (
     <div className="container mx-auto px-4 py-8">
       <VacationCleanupHandler />
@@ -45,22 +48,46 @@ const AdminPage: React.FC = () => {
           <h1 className="text-3xl font-bold">{t('admin.title')}</h1>
         </div>
 
-        {/* By-administration - kun Super Admin */}
-        {isSuperAdmin && <DepartmentManagement />}
+        <Tabs defaultValue={defaultTab} className="w-full">
+          <TabsList className="w-full justify-start flex-wrap h-auto gap-1 p-1">
+            {isSuperAdmin && (
+              <TabsTrigger value="departments" className="gap-2">
+                <Building2 className="h-4 w-4" />
+                {t('admin.tabs.departments')}
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="subdepartments" className="gap-2">
+              <Layers className="h-4 w-4" />
+              {t('admin.tabs.subDepartments')}
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-2">
+              <Users className="h-4 w-4" />
+              {t('admin.tabs.users')}
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Underafdelinger - Super Admin og Administrator */}
-        <SubDepartmentManagement />
+          {isSuperAdmin && (
+            <TabsContent value="departments" className="animate-fade-in">
+              <DepartmentManagement />
+            </TabsContent>
+          )}
 
-        {/* Brugerstyring */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('admin.userManagement.title')}</CardTitle>
-            <CardDescription>{t('admin.userManagement.description')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <UserManagement />
-          </CardContent>
-        </Card>
+          <TabsContent value="subdepartments" className="animate-fade-in">
+            <SubDepartmentManagement />
+          </TabsContent>
+
+          <TabsContent value="users" className="animate-fade-in">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('admin.userManagement.title')}</CardTitle>
+                <CardDescription>{t('admin.userManagement.description')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <UserManagement />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

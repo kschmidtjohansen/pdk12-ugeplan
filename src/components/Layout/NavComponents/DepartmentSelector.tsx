@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Building2, ChevronDown } from 'lucide-react';
 import { useDepartment } from '@/context/DepartmentContext';
+import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/context/TranslationContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,10 +14,26 @@ import { cn } from '@/lib/utils';
 
 const DepartmentSelector: React.FC = () => {
   const { userDepartments, selectedDepartment, switchDepartment, loading } = useDepartment();
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const [animating, setAnimating] = useState(false);
+  const prevDeptId = useRef(selectedDepartment?.id);
+
+  useEffect(() => {
+    if (selectedDepartment?.id && prevDeptId.current && selectedDepartment.id !== prevDeptId.current) {
+      setAnimating(true);
+      toast({
+        title: t('admin.departmentSwitched').replace('{name}', selectedDepartment.name),
+      });
+      const timer = setTimeout(() => setAnimating(false), 600);
+      prevDeptId.current = selectedDepartment.id;
+      return () => clearTimeout(timer);
+    }
+    prevDeptId.current = selectedDepartment?.id;
+  }, [selectedDepartment?.id]);
 
   if (loading || userDepartments.length === 0) return null;
 
-  // If only one department, show it as a static label
   if (userDepartments.length === 1) {
     return (
       <div className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-muted-foreground">
@@ -30,7 +48,10 @@ const DepartmentSelector: React.FC = () => {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="flex items-center gap-2 px-3 py-1.5 h-auto text-sm font-medium hover:bg-muted/50"
+          className={cn(
+            "flex items-center gap-2 px-3 py-1.5 h-auto text-sm font-medium hover:bg-muted/50 transition-all duration-300",
+            animating && "animate-fade-in ring-2 ring-primary/40 rounded-lg"
+          )}
         >
           <Building2 className="h-4 w-4" />
           <span>{selectedDepartment?.name || 'Vælg afdeling'}</span>
