@@ -1,35 +1,113 @@
 
 
-## Fix: RPC-overload fejl på ugeplanen (PGRST203)
+## Brugerstyring opdelt i hovedafdelinger
 
-### Problem
+### Overblik
 
-Fejlen er: **"Could not choose the best candidate function between: public.list_accessible_assignments_with_team(), public.list_accessible_assignments_with_team(p_department_id => uuid)"**
+Brugerstyringen i admin-panelet skal filtreres efter den valgte hovedafdeling, med et ekstra filter til at se brugere uden afdeling.
 
-Der er to problemer:
+### Aendringer
 
-1. **Database**: Den forrige migration brugte `CREATE OR REPLACE`, som kun erstatter funktioner med samme signatur. Den gamle funktion uden parametre eksisterer stadig ved siden af den nye med `p_department_id`. PostgreSQL kan ikke vaelge mellem dem.
+---
 
-2. **Frontend**: `src/services/enhancedDataFetching.ts` (linje 424) kalder RPC'en **uden** `p_department_id`-parameteren, hvilket udloeser tvetydigheden.
+### Del 1: Frontend -- Filtrer brugerlisten efter afdeling
 
-### Loesning
+**Fil**: `src/components/Admin/UserManagement.tsx`
 
-**Fil 1: Ny migration SQL**
-- Drop den gamle funktion uden parametre: `DROP FUNCTION IF EXISTS public.list_accessible_assignments_with_team();`
-- Dette efterlader kun versionen med `p_department_id` (som har `DEFAULT NULL`, saa den ogsaa virker uden parameter)
+- Importer `useDepartment` fra `DepartmentContext` og `useAuth` for rolletjek
+- Tilfoej en ny state `departmentFilter` med vaerdierne: `'current'` (valgt afdeling) eller `'unassigned'` (ingen afdeling)
+- Vis en dropdown/select oeverst med:
+  - Den valgte bys navn (standard)
+  - "Uden afdeling" -- viser brugere der ikke har nogen `user_access`-raekke
+- Efter brugere er hentet (baade via edge function og fallback), filtrer dem:
+  1. Hent `user_access` data for alle brugere med `department_id = selectedDepartmentId`
+  2. Hvis filter er `'current'`: vis kun brugere med adgang til den valgte afdeling
+  3. Hvis filter er `'unassigned'`: vis kun brugere der ikke har nogen raekke i `user_access`
+- Kun Super Admin og Administrator kan se "Uden afdeling"-filteret
 
-**Fil 2: `src/services/enhancedDataFetching.ts`**
-- Opdater linje 424 til at sende `p_department_id` parameteren eksplicit (kan vaere `null`):
-  ```typescript
-  .rpc('list_accessible_assignments_with_team', { p_department_id: null })
-  ```
+---
+
+### Del 2: Edge Function -- Tilfoej department_id parameter (valgfrit)
+
+**Fil**: `supabase/functions/admin-list-users/index.ts`
+
+- Tilfoej valgfri `department_id` og `filter_type` parametre (via POST body eller query params)
+- Naar `department_id` er sat og `filter_type` er `'department'`:
+  - Hent `user_id`-liste fra `user_access` WHERE `department_id = department_id`
+  - Filtrer profiles til kun de IDs
+- Naar `filter_type` er `'unassigned'`:
+  - Hent alle `user_id` fra `user_access`
+  - Filtrer profiles til dem der IKKE er i listen
+- Naar ingen parameter: returner alle (bagudkompatibelt)
+- Admin-brugere (ikke super_admin) kan kun filtrere paa afdelinger de selv har adgang til
+
+---
+
+### Del 3: Fallback-metoden -- Samme filtrering
+
+**Fil**: `src/components/Admin/UserManagement.tsx` (i `fetchUsersDirectly`)
+
+- Tilfoej samme filtrering i fallback-metoden:
+  - Hent `user_access` data
+  - Filtrer brugere baseret paa `departmentFilter` state
+  - Admin kan kun se sin egen afdelings brugere + uassignerede
+
+---
+
+### Del 4: Tildeling af afdeling -- Begraens baseret paa rolle
+
+**Fil**: `src/components/Admin/UserFormDialog.tsx`
+
+- For Super Admin: Afdelingsvaelgeren viser alle hovedafdelinger (allerede implementeret)
+- For Admin: Afdelingsvaelgeren viser kun den aktuelle brugers afdeling (allerede implementeret via `user_access`-tjek)
+- Ingen aendringer nødvendige her -- den eksisterende logik i `UserFormDialog` haandterer allerede dette korrekt
+
+---
+
+### Del 5: Oversaettelser
+
+**Filer**: `src/translations/da/admin.ts`, `src/translations/en/admin.ts`
+
+- Tilfoej nye nogler:
+  - `filterByDepartment`: "Filtrer efter afdeling" / "Filter by department"
+  - `unassignedUsers`: "Uden afdeling" / "Unassigned"
+  - `allDepartments`: "Alle afdelinger" / "All departments"
+  - `showingUsersFor`: "Viser brugere for" / "Showing users for"
+
+---
 
 ### Tekniske detaljer
 
+**Filer der aendres**:
+
 | Fil | Type | Beskrivelse |
 |-----|------|-------------|
-| Migration SQL | NY | Drop gammel funktion uden parametre |
-| `src/services/enhancedDataFetching.ts` | OPDATER | Send `p_department_id: null` eksplicit |
+| `supabase/functions/admin-list-users/index.ts` | OPDATER | Tilfoej department_id filtrering |
+| `src/components/Admin/UserManagement.tsx` | OPDATER | Tilfoej afdelingsfilter-dropdown og filtreringslogik |
+| `src/translations/da/admin.ts` | OPDATER | Danske oversaettelser |
+| `src/translations/en/admin.ts` | OPDATER | Engelske oversaettelser |
 
-Rettelsen er minimal og loser begge fejlmeddelelser paa planner-siden.
+**Dataflow**:
+
+```text
+Admin-side -> Vaelg afdelingsfilter (dropdown)
+                    |
+        +-----------+-----------+
+        |                       |
+  "Valgt afdeling"        "Uden afdeling"
+        |                       |
+  Hent user_access         Hent ALLE user_access
+  WHERE dept = X           Find brugere IKKE i listen
+        |                       |
+  Filtrer brugere          Filtrer brugere
+        |                       |
+        +----------+------------+
+                   |
+            Vis i UserTable
+```
+
+**Rollebegraensninger**:
+- Super Admin: Kan se alle afdelinger + "Uden afdeling"
+- Administrator: Kan kun se sin egen afdeling + "Uden afdeling"
+- Skadeleder: Kan kun se sin egen afdeling (ingen "Uden afdeling")
 
