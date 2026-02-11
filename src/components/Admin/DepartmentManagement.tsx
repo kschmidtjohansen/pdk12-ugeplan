@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Building2, Plus, Trash2 } from 'lucide-react';
+import { Building2, Plus, Trash2, Pencil, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -22,6 +22,8 @@ const DepartmentManagement: React.FC = () => {
   const [creating, setCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Department | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
   const { toast } = useToast();
   const { t } = useTranslation();
 
@@ -59,11 +61,26 @@ const DepartmentManagement: React.FC = () => {
     setCreating(false);
   };
 
+  const handleRename = async (id: string) => {
+    if (!editingName.trim()) return;
+    const { error } = await supabase
+      .from('departments')
+      .update({ name: editingName.trim() })
+      .eq('id', id);
+
+    if (error) {
+      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: t('common.success'), description: t('admin.departments.renamed') });
+      setEditingId(null);
+      fetchDepartments();
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
 
-    // Delete sub_departments and user_access first
     await supabase.from('user_access').delete().eq('department_id', deleteTarget.id);
     await supabase.from('sub_departments').delete().eq('department_id', deleteTarget.id);
 
@@ -93,7 +110,6 @@ const DepartmentManagement: React.FC = () => {
           <CardDescription>{t('admin.departments.description')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Create new department */}
           <div className="flex gap-2">
             <div className="flex-1">
               <Label htmlFor="new-dept" className="sr-only">{t('admin.departments.name')}</Label>
@@ -111,7 +127,6 @@ const DepartmentManagement: React.FC = () => {
             </Button>
           </div>
 
-          {/* Department list */}
           {loading ? (
             <p className="text-muted-foreground text-sm">{t('common.loading')}</p>
           ) : departments.length === 0 ? (
@@ -120,15 +135,48 @@ const DepartmentManagement: React.FC = () => {
             <div className="divide-y divide-border rounded-lg border">
               {departments.map((dept) => (
                 <div key={dept.id} className="flex items-center justify-between px-4 py-3">
-                  <span className="font-medium">{dept.name}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => setDeleteTarget(dept)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {editingId === dept.id ? (
+                    <div className="flex items-center gap-2 flex-1 mr-2">
+                      <Input
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleRename(dept.id);
+                          if (e.key === 'Escape') setEditingId(null);
+                        }}
+                        className="h-8"
+                        autoFocus
+                      />
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => handleRename(dept.id)}>
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingId(null)}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="font-medium">{dept.name}</span>
+                  )}
+                  {editingId !== dept.id && (
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={t('admin.departments.editName')}
+                        onClick={() => { setEditingId(dept.id); setEditingName(dept.name); }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setDeleteTarget(dept)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -136,14 +184,11 @@ const DepartmentManagement: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Delete confirmation */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('admin.departments.deleteConfirm')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('admin.departments.deleteWarning')}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{t('admin.departments.deleteWarning')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>

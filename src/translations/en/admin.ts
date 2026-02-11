@@ -10,7 +10,9 @@ export const admin = {
     performance: 'Performance',
     security: 'Security',
     system: 'System',
-    cleanup: 'Cleanup'
+    cleanup: 'Cleanup',
+    departments: 'Main Departments',
+    subDepartments: 'Sub-departments'
   },
   dashboard: {
     title: 'Admin Dashboard',
@@ -35,7 +37,9 @@ export const admin = {
     deleteConfirm: 'Are you sure you want to delete this city?',
     deleteWarning: 'All sub-departments and user assignments for this city will also be deleted.',
     empty: 'No main departments created yet.',
-    selectCity: 'Select city'
+    selectCity: 'Select city',
+    renamed: 'Department name updated',
+    editName: 'Edit name'
   },
   subDepartments: {
     title: 'Sub-departments',
@@ -47,8 +51,12 @@ export const admin = {
     deleted: 'Sub-department deleted',
     deleteConfirm: 'Are you sure you want to delete this sub-department?',
     deleteWarning: 'User assignments to this sub-department will also be removed.',
-    empty: 'No sub-departments created yet.'
+    empty: 'No sub-departments created yet.',
+    renamed: 'Sub-department name updated',
+    editName: 'Edit name',
+    hasData: 'Cannot delete – has associated users or data'
   },
+  departmentSwitched: 'Switched to {name}',
   security: {
     title: 'Security Monitoring',
     description: 'Monitor security events and access logs'
