@@ -1302,51 +1302,28 @@ export type Database = {
         Args: { secret: string; token: string }
         Returns: Json
       }
-      list_accessible_assignments_with_team:
-        | {
-            Args: never
-            Returns: {
-              assignment_date: string
-              car_id: string
-              car_ids: string[]
-              case_number: string
-              created_at: string
-              description: string
-              from_time: string
-              id: string
-              location: string
-              published: boolean
-              responsible_user: Json
-              responsible_user_id: string
-              team: Json
-              title: string
-              to_time: string
-              type: Database["public"]["Enums"]["assignment_type"]
-              updated_at: string
-            }[]
-          }
-        | {
-            Args: { p_department_id?: string }
-            Returns: {
-              assignment_date: string
-              car_id: string
-              car_ids: string[]
-              case_number: string
-              created_at: string
-              description: string
-              from_time: string
-              id: string
-              location: string
-              published: boolean
-              responsible_user: Json
-              responsible_user_id: string
-              team: Json
-              title: string
-              to_time: string
-              type: Database["public"]["Enums"]["assignment_type"]
-              updated_at: string
-            }[]
-          }
+      list_accessible_assignments_with_team: {
+        Args: { p_department_id?: string }
+        Returns: {
+          assignment_date: string
+          car_id: string
+          car_ids: string[]
+          case_number: string
+          created_at: string
+          description: string
+          from_time: string
+          id: string
+          location: string
+          published: boolean
+          responsible_user: Json
+          responsible_user_id: string
+          team: Json
+          title: string
+          to_time: string
+          type: Database["public"]["Enums"]["assignment_type"]
+          updated_at: string
+        }[]
+      }
       list_demo_assignments_with_team: {
         Args: never
         Returns: {
