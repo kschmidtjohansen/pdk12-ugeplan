@@ -1,148 +1,113 @@
 
 
-## Løsning: Optimer mobilvisning af AssignmentDetailsDialog
+## Database-migration: Afdelingshierarki og dataisolering
 
-Baseret på billedet kan jeg identificere flere problemer med mobilversionen af dialogen:
-
----
-
-### Identificerede problemer
-
-1. **Filer-sektionens knapper er afskåret** - "Download som PDF" og andre knapper er skåret af på højre side fordi de ligger vandret
-2. **Knapper for mærkater overskygger layoutet** - Knapperne i Files-headeren har ikke plads på smalle skærme
-3. **Header layout er for bredt** - Lokation + badge + rediger-knap fylder for meget på én linje
-4. **Beskeder-sektionen har ikke nok højde på mobil** - Dialogen bruger et 2-kolonne layout der ikke fungerer godt på mobil
-5. **Padding er for stor på mobil** - `px-8` (32px) er for meget på smalle skærme
+Denne migration tilfojer et komplet afdelingssystem med byer (hovedafdelinger), underafdelinger og rollebaseret adgangsstyring.
 
 ---
 
-### Løsning
+### Nuvaerende tilstand
 
-**1. Reducer padding på mobil**
+- **Roller**: `administrator`, `skadeleder`, `servicemedarbejder`, `vikar`
+- **Profiler**: 19 brugere, ingen afdelingstilknytning
+- **Data-tabeller**: `assignments`, `vacations`, `on_call_duties` - ingen `department_id` kolonner
+- **Funktioner**: `is_admin_user()`, `is_admin_or_skadeleder()`, `get_current_user_role()` - kender ikke til `super_admin`
 
-Brug responsive padding: `px-4 sm:px-8` i stedet for `px-8`
+---
 
-**2. Header layout - stak elementer vertikalt på mobil**
+### SQL Migration (koeres som en samlet migration)
 
-```tsx
-<DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-lg pr-14">
-  <div className="flex items-center gap-2">
-    <MapPin className="h-5 w-5 text-primary shrink-0" />
-    <span className="break-words">{assignment.location}</span>
-  </div>
-  <div className="flex items-center gap-2">
-    <Badge variant={...}>...</Badge>
-    {onEdit && <Button ...>Rediger</Button>}
-  </div>
-</DialogTitle>
-```
+**Del 1 - Ny rolle**
 
-**3. Filer-header - stak knapper under på mobil**
+Tilfoej `super_admin` til den eksisterende `user_role` enum.
 
-```tsx
-<div className="border-t bg-muted/20">
-  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-8 py-4 gap-3">
-    {/* Toggle button */}
-    <button ...>
-      <Files className="h-4 w-4 text-primary shrink-0" />
-      ...
-    </button>
-    
-    {/* Action buttons - wrap på mobil */}
-    <div className="flex flex-wrap items-center gap-2">
-      {imageCount > 0 && (
-        <Button className="text-sm">
-          <FileImage className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">{t('planner.files.downloadAsPdf')}</span>
-          <span className="sm:hidden">PDF</span>
-        </Button>
-      )}
-      ...
-    </div>
-  </div>
-</div>
-```
+**Del 2 - Nye tabeller**
 
-**4. Beskeder-header - kortere knaptekst på mobil**
+| Tabel | Kolonner | Formaal |
+|-------|----------|---------|
+| `departments` | id, name, created_at, updated_at | Byer: Fredericia, Hilleroed, Koebenhavn |
+| `sub_departments` | id, department_id (FK), name, created_at, updated_at | Fugt, Miljoe osv. |
+| `user_access` | id, user_id (FK auth.users), department_id (FK), sub_department_id (FK, nullable), created_at | Styrer hvem der ser hvad |
 
-```tsx
-<Button ...>
-  <Download className="h-4 w-4 mr-1" />
-  <span className="hidden sm:inline">{t('planner.messages.exportMessages')}</span>
-  <span className="sm:hidden">{t('common.export')}</span>
-</Button>
-```
+Alle tabeller faar RLS aktiveret.
 
-**5. Juster minHeight for mobil**
+**Del 3 - Udvid eksisterende tabeller**
 
-```tsx
-<div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden" 
-     style={{ minHeight: window.innerWidth < 768 ? '400px' : '500px' }}>
-```
+| Tabel | Nye kolonner |
+|-------|-------------|
+| `profiles` | `home_department_id` (UUID, FK, nullable), `is_visible_in_planning` (boolean, default true) |
+| `assignments` | `department_id` (UUID, FK, nullable), `sub_department_id` (UUID, FK, nullable) |
+| `vacations` | `department_id` (UUID, FK, nullable), `sub_department_id` (UUID, FK, nullable) |
+| `on_call_duties` | `department_id` (UUID, FK, nullable), `sub_department_id` (UUID, FK, nullable) |
 
-Eller brug CSS:
-```tsx
-className="... min-h-[400px] lg:min-h-[500px]"
+**Del 4 - Hjaelpefunktioner (SECURITY DEFINER)**
+
+- `is_super_admin()` - returnerer true hvis bruger har rollen super_admin
+- `get_user_department_ids()` - returnerer array af brugerens afdelings-IDer
+- `can_access_department_data(dept_id, sub_dept_id)` - samlet adgangstjek:
+  - super_admin: altid true
+  - administrator: true hvis dept_id matcher brugerens afdelinger
+  - skadeleder/servicemedarbejder: true hvis specifik sub_department matcher
+
+**Del 5 - Opdater eksisterende funktioner**
+
+- `is_admin_user()` - inkluder `super_admin`
+- `is_admin_or_skadeleder()` - inkluder `super_admin`
+
+**Del 6 - RLS policies**
+
+- `departments`: Alle autenticerede kan laese, kun super_admin kan oprette/aendre/slette
+- `sub_departments`: Alle autenticerede kan laese, super_admin + admin (i afdelingen) kan skrive
+- `user_access`: Brugere ser egen adgang, super_admin + admin (i afdelingen) kan styre
+
+**Del 7 - Seed Fredericia som standardafdeling**
+
+```sql
+INSERT INTO departments (name) VALUES ('Fredericia');
+
+-- Tildel alle 19 profiler til Fredericia
+UPDATE profiles SET home_department_id = (SELECT id FROM departments WHERE name = 'Fredericia');
+
+-- Giv alle brugere adgang til Fredericia
+INSERT INTO user_access (user_id, department_id)
+  SELECT id, (SELECT id FROM departments WHERE name = 'Fredericia') FROM profiles;
+
+-- Tildel eksisterende data til Fredericia
+UPDATE assignments SET department_id = (SELECT id FROM departments WHERE name = 'Fredericia');
+UPDATE vacations SET department_id = (SELECT id FROM departments WHERE name = 'Fredericia');
+UPDATE on_call_duties SET department_id = (SELECT id FROM departments WHERE name = 'Fredericia');
 ```
 
 ---
 
-### Filer der ændres
+### Hvad sker med eksisterende data?
 
-| Fil | Ændring |
+- Alle 19 profiler faar `home_department_id = Fredericia`
+- Alle opgaver, ferier og vagter faar `department_id = Fredericia`
+- Alle brugere faar en `user_access` raekke til Fredericia
+- Nye kolonner er nullable, saa intet eksisterende data gaar tabt
+- Eksisterende roller og RLS policies virker stadig
+
+---
+
+### Frontend-opdateringer (efter SQL)
+
+Disse TypeScript-filer skal opdateres efterfoelgende:
+
+| Fil | AEndring |
 |-----|---------|
-| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Tilføj responsive classes og mobil-optimeret layout |
+| `src/types/employee.ts` | Tilfoej `home_department_id`, `is_visible_in_planning` |
+| `src/types/assignment.ts` | Tilfoej `department_id`, `sub_department_id` |
+| `src/types/duty.ts` | Tilfoej `department_id`, `sub_department_id` |
+| `src/types/vacation.ts` | Tilfoej `department_id`, `sub_department_id` |
+| `src/context/AuthContext.tsx` | Tilfoej department-info til user context |
+| Hooks for data-hentning | Filter baseret paa brugerens afdeling |
 
 ---
 
-### Detaljerede ændringer
+### Udrulningsorden
 
-**Header (linje 111-140):**
-- Reducer padding: `px-4 sm:px-8`
-- Stak header-elementer på mobil: `flex-col sm:flex-row`
-- Tilføj `shrink-0` til ikoner og `break-words` til tekst
-
-**Filer-sektion (linje 249-312):**
-- Reducer padding: `px-4 sm:px-8`
-- Stak layout: `flex-col sm:flex-row sm:items-center sm:justify-between`
-- Kortere knaptekst på mobil (vis kun ikon + kort tekst)
-- Tilføj `gap-3` for at skabe luft mellem elementer
-
-**Beskeder-header (linje 317-345):**
-- Reducer padding: `px-3 sm:px-5`
-- Kortere eksportknap-tekst på mobil
-
-**Main content container (linje 143):**
-- Brug CSS-baseret minHeight i stedet for inline style
-- `className="min-h-[400px] lg:min-h-[500px]"`
-
-**ScrollArea indhold (linje 147):**
-- Reducer padding: `p-4 sm:p-8`
-
----
-
-### Visuelt resultat
-
-**Før (mobil):**
-```
-┌─────────────────────────────────┐
-│ Abelonelundvej 20...  [Aftalt] X │  <- Afskåret
-├─────────────────────────────────┤
-│ 📁 Filer (4)  [Download som PDF | [D... <- Afskåret
-├─────────────────────────────────┤
-│ 💬 Beskeder        [Eksporter]   │
-```
-
-**Efter (mobil):**
-```
-┌─────────────────────────────────┐
-│ Abelonelundvej 20,            X │
-│ 5500 Middelfart                 │
-│ [Aftalt]                        │
-├─────────────────────────────────┤
-│ 📁 Filer (📷 4)              [▼] │
-│ [PDF] [Download alle]           │  <- Knapper på ny linje
-├─────────────────────────────────┤
-│ 💬 Beskeder        [⬇ Eksport]  │  <- Kort tekst
-```
+1. Koer SQL-migrationen (alt i en migration)
+2. Opdater frontend-typer og hooks (separat trin)
+3. Byg admin-UI til at styre afdelinger og bruger-tilknytning (separat trin)
 
