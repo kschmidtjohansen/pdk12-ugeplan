@@ -1,95 +1,80 @@
 
 
-## Demo-bruger: Usynlig i afdelinger + fuld adgang + midlertidig data
+## Afdelingsswitch-animation + Admin-undersider
 
-### Overblik
+### Del 1: Animation ved afdelingsskift
 
-Demo-brugeren (`test@polygongroup.com`) skal:
-1. Kunne se og afproeve alle funktioner paa tvaers af alle afdelinger
-2. Vaere fuldstaendig usynlig for andre brugere overalt i systemet
-3. Al demo-data slettes automatisk efter 15 minutter eller ved tryk paa "Ryd demo data"-knappen (allerede implementeret -- bevares uaendret)
+**Fil: `src/components/Layout/NavComponents/DepartmentSelector.tsx`**
 
-### Nuvaerende status
-
-| Omraade | Demo-bruger skjult? | Demo data midlertidig? |
-|---------|---------------------|------------------------|
-| Medarbejderliste | Ja (allerede filtreret) | Ja |
-| Brugerstyring (Admin) | **Nej** | Ja |
-| Opgaver (assignments) | Delvist | Ja (15 min auto-cleanup) |
-| Ferier | Delvist | Ja (15 min auto-cleanup) |
-| Vagter (duties) | **Nej** | Ja (15 min auto-cleanup) |
-| Auto-cleanup system | N/A | Ja (allerede implementeret) |
-
-### Hvad aendres
+- Tilfoej en visuel animation naar brugeren skifter afdeling i dropdown'en
+- Vis en kort toast-besked med den nye afdelings navn (f.eks. "Skiftet til 12-Fredericia")
+- Tilfoej en fade-in animation paa DepartmentSelector-knappen naar vaerdien skifter (kort flash/highlight-effekt med `animate-fade-in` fra eksisterende keyframes)
 
 ---
 
-**Fil 1: `src/components/Admin/UserManagement.tsx`**
+### Del 2: Admin-side opdelt i undersider med Tabs
 
-- I `filteredUsers` useMemo: Filtrer demo-brugeren (`test@polygongroup.com` / `165cdbc9-...`) ud af listen naar den aktuelle bruger IKKE er demo-brugeren
-- Demo-brugeren vises hverken under en afdeling eller under "Uden afdeling"
+**Fil: `src/pages/AdminPage.tsx`**
 
----
-
-**Fil 2: `src/services/enhancedDataFetching.ts`**
-
-- I `fetchEmployees`: Fjern demo-brugerens profil fra resultatet naar `isDemoMode` er `false`
-- I `fetchAssignments`: Filtrer opgaver oprettet af eller tildelt demo-brugeren naar `isDemoMode` er `false`
-- Naar demo-bruger er logget ind: Send IKKE `p_department_id` til RPC-kald, saa data fra alle afdelinger returneres
-
----
-
-**Fil 3: `src/hooks/duty/useDutyData.ts`**
-
-- Naar brugeren IKKE er demo-bruger: Filtrer vagter tildelt demo-brugeren ud
-- Naar demo-bruger er logget ind: Hent vagter uden afdelingsfilter (alle afdelinger)
+- Erstat den nuvaerende lineaere layout med Radix UI Tabs-komponent (allerede installeret)
+- Tre tabs:
+  1. **Hovedafdelinger** (kun synlig for Super Admin) -- viser `DepartmentManagement`
+  2. **Underafdelinger** -- viser `SubDepartmentManagement`
+  3. **Brugerstyring** -- viser `UserManagement` (indkapslet i Card)
+- Standard-tab: "Brugerstyring" for alle, "Hovedafdelinger" for Super Admin
+- Hvert tab-indhold faar `animate-fade-in` animation ved skift
 
 ---
 
-**Fil 4: `src/hooks/employee/useEmployeeData.ts`**
+### Del 3: Redigering af hovedafdelingsnavn
 
-- Naar `isDemoMode` er true: Spring afdelingsfiltrering over (vis alle medarbejdere fra alle afdelinger)
+**Fil: `src/components/Admin/DepartmentManagement.tsx`**
+
+- Tilfoej inline-redigering: klik paa afdelingsnavnet -> det bliver et inputfelt
+- Tilfoej en "Gem"-knap (checkmark-ikon) og "Annuller"-knap (X-ikon)
+- Kald `supabase.from('departments').update({ name }).eq('id', dept.id)` ved gem
+- Vis toast ved succes/fejl
 
 ---
 
-### Hvad aendres IKKE (allerede implementeret)
+### Del 4: Redigering af underafdelingsnavn + sikker sletning
 
-Den eksisterende auto-cleanup-mekanisme bevares fuldstaendig som den er:
+**Fil: `src/components/Admin/SubDepartmentManagement.tsx`**
 
-- **15 minutters timer**: `useDemoAutoCleanup.ts` taeller ned og sletter automatisk al demo-data (opgaver, notifikationer, ferier, medarbejder-tilknytninger)
-- **Manuel "Ryd demo data"-knap**: I `DemoDashboard.tsx` -- sletter al demo-data med det samme
-- **Session-end cleanup**: Data slettes ogsaa naar fanebladet lukkes eller skjules
-- **1 minuts advarsel**: Vises foer automatisk sletning
-- **Forlaeeng session**: Mulighed for at tilfoeje 15 minutter mere
+- Tilfoej inline-redigering af underafdelingsnavn (samme moenster som hovedafdelinger)
+- Ved sletning: Foer sletning, tjek om underafdelingen har tilknyttede data:
+  - Tjek `user_access` WHERE `sub_department_id = id`
+  - Tjek `assignments` WHERE `sub_department_id = id` (hvis kolonnen findes)
+  - Hvis data findes: vis advarsel "Denne underafdeling har tilknyttede brugere/data og kan ikke slettes"
+  - Hvis ingen data: tillad sletning som nu
+- Tilfoej "Rediger"-knap (blyant-ikon) ved siden af sletknappen
 
-Alt dette sikrer at demo-data aldrig paavirker live-versionen.
+---
+
+### Del 5: Oversaettelser
+
+**Filer: `src/translations/da/admin.ts`, `src/translations/en/admin.ts`**
+
+Nye noegler:
+- `departments.rename` / `departments.renamed`: "Omdoeb" / "Afdelingsnavn opdateret"
+- `departments.editName`: "Rediger navn" / "Edit name"
+- `subDepartments.rename` / `subDepartments.renamed`: "Omdoeb" / "Underafdelingsnavn opdateret"
+- `subDepartments.editName`: "Rediger navn" / "Edit name"
+- `subDepartments.hasData`: "Kan ikke slettes - har tilknyttede data" / "Cannot delete - has associated data"
+- `tabs.departments`: "Hovedafdelinger" / "Main Departments"
+- `tabs.subDepartments`: "Underafdelinger" / "Sub-departments"
+- `departmentSwitched`: "Skiftet til {name}" / "Switched to {name}"
 
 ---
 
 ### Tekniske detaljer
 
-**Filer der aendres**:
-
 | Fil | Type | Beskrivelse |
 |-----|------|-------------|
-| `src/components/Admin/UserManagement.tsx` | OPDATER | Filtrer demo-bruger fra brugerlisten |
-| `src/services/enhancedDataFetching.ts` | OPDATER | Filtrer demo-data + bypass afdelingsfilter for demo |
-| `src/hooks/duty/useDutyData.ts` | OPDATER | Filtrer demo-vagter + bypass afdelingsfilter |
-| `src/hooks/employee/useEmployeeData.ts` | OPDATER | Bypass afdelingsfilter for demo-bruger |
-
-**Filtreringslogik**:
-
-```text
-For ALLE datahentninger:
-  HVIS aktuel bruger ER demo-bruger:
-    -> Vis ALLE data fra ALLE afdelinger (ingen afdelingsfilter)
-    -> Inkluder demo-brugerens egne data
-    -> Data slettes automatisk efter 15 min (eksisterende logik)
-  ELLERS (normal bruger):
-    -> Anvend afdelingsfilter som normalt
-    -> Fjern demo-brugerens data fra resultatet
-    -> Demo-data ses aldrig af andre brugere
-```
-
-**Ingen databaseaendringer er noedvendige** -- al filtrering sker i frontend, og auto-cleanup er allerede paa plads.
+| `src/pages/AdminPage.tsx` | OPDATER | Tabs-layout med tre undersider |
+| `src/components/Admin/DepartmentManagement.tsx` | OPDATER | Tilfoej inline-redigering af navn |
+| `src/components/Admin/SubDepartmentManagement.tsx` | OPDATER | Tilfoej redigering + sikker sletning |
+| `src/components/Layout/NavComponents/DepartmentSelector.tsx` | OPDATER | Animation + toast ved skift |
+| `src/translations/da/admin.ts` | OPDATER | Nye danske oversaettelser |
+| `src/translations/en/admin.ts` | OPDATER | Nye engelske oversaettelser |
 
