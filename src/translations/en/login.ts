@@ -51,7 +51,14 @@ const login = {
   lockedMessage: 'Account temporarily locked due to too many failed attempts. Please try again later.',
   refreshPage: 'Refresh page',
   tooManyAttemptsLock: 'Account temporarily locked due to too many failed login attempts. Please wait 15 minutes before trying again.',
-  timeoutMessage: 'Login is taking longer than expected. This might be a connectivity issue.'
+  timeoutMessage: 'Login is taking longer than expected. This might be a connectivity issue.',
+  
+  // Department selector
+  selectDepartment: 'Select main department',
+  selectDepartmentPlaceholder: 'Select department...',
+  departmentRequired: 'Please select a main department before logging in.',
+  departmentAccessDenied: 'Access denied. You are not assigned to this department. Please select the correct department and try again.',
+  loadingDepartments: 'Loading departments...'
 };
 
 export default login;
