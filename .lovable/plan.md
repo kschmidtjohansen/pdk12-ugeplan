@@ -1,113 +1,104 @@
+## Afdelingsvælger i Topbar + Data-synkronisering + "12-Fredericia" som standard
 
+### Del 0: Omdoeb Fredericia til "12-Fredericia" i databasen
 
-## Database-migration: Afdelingshierarki og dataisolering
-
-Denne migration tilfojer et komplet afdelingssystem med byer (hovedafdelinger), underafdelinger og rollebaseret adgangsstyring.
-
----
-
-### Nuvaerende tilstand
-
-- **Roller**: `administrator`, `skadeleder`, `servicemedarbejder`, `vikar`
-- **Profiler**: 19 brugere, ingen afdelingstilknytning
-- **Data-tabeller**: `assignments`, `vacations`, `on_call_duties` - ingen `department_id` kolonner
-- **Funktioner**: `is_admin_user()`, `is_admin_or_skadeleder()`, `get_current_user_role()` - kender ikke til `super_admin`
-
----
-
-### SQL Migration (koeres som en samlet migration)
-
-**Del 1 - Ny rolle**
-
-Tilfoej `super_admin` til den eksisterende `user_role` enum.
-
-**Del 2 - Nye tabeller**
-
-| Tabel | Kolonner | Formaal |
-|-------|----------|---------|
-| `departments` | id, name, created_at, updated_at | Byer: Fredericia, Hilleroed, Koebenhavn |
-| `sub_departments` | id, department_id (FK), name, created_at, updated_at | Fugt, Miljoe osv. |
-| `user_access` | id, user_id (FK auth.users), department_id (FK), sub_department_id (FK, nullable), created_at | Styrer hvem der ser hvad |
-
-Alle tabeller faar RLS aktiveret.
-
-**Del 3 - Udvid eksisterende tabeller**
-
-| Tabel | Nye kolonner |
-|-------|-------------|
-| `profiles` | `home_department_id` (UUID, FK, nullable), `is_visible_in_planning` (boolean, default true) |
-| `assignments` | `department_id` (UUID, FK, nullable), `sub_department_id` (UUID, FK, nullable) |
-| `vacations` | `department_id` (UUID, FK, nullable), `sub_department_id` (UUID, FK, nullable) |
-| `on_call_duties` | `department_id` (UUID, FK, nullable), `sub_department_id` (UUID, FK, nullable) |
-
-**Del 4 - Hjaelpefunktioner (SECURITY DEFINER)**
-
-- `is_super_admin()` - returnerer true hvis bruger har rollen super_admin
-- `get_user_department_ids()` - returnerer array af brugerens afdelings-IDer
-- `can_access_department_data(dept_id, sub_dept_id)` - samlet adgangstjek:
-  - super_admin: altid true
-  - administrator: true hvis dept_id matcher brugerens afdelinger
-  - skadeleder/servicemedarbejder: true hvis specifik sub_department matcher
-
-**Del 5 - Opdater eksisterende funktioner**
-
-- `is_admin_user()` - inkluder `super_admin`
-- `is_admin_or_skadeleder()` - inkluder `super_admin`
-
-**Del 6 - RLS policies**
-
-- `departments`: Alle autenticerede kan laese, kun super_admin kan oprette/aendre/slette
-- `sub_departments`: Alle autenticerede kan laese, super_admin + admin (i afdelingen) kan skrive
-- `user_access`: Brugere ser egen adgang, super_admin + admin (i afdelingen) kan styre
-
-**Del 7 - Seed Fredericia som standardafdeling**
+En SQL-migration der opdaterer det eksisterende department-navn:
 
 ```sql
-INSERT INTO departments (name) VALUES ('Fredericia');
-
--- Tildel alle 19 profiler til Fredericia
-UPDATE profiles SET home_department_id = (SELECT id FROM departments WHERE name = 'Fredericia');
-
--- Giv alle brugere adgang til Fredericia
-INSERT INTO user_access (user_id, department_id)
-  SELECT id, (SELECT id FROM departments WHERE name = 'Fredericia') FROM profiles;
-
--- Tildel eksisterende data til Fredericia
-UPDATE assignments SET department_id = (SELECT id FROM departments WHERE name = 'Fredericia');
-UPDATE vacations SET department_id = (SELECT id FROM departments WHERE name = 'Fredericia');
-UPDATE on_call_duties SET department_id = (SELECT id FROM departments WHERE name = 'Fredericia');
+UPDATE public.departments SET name = '12-Fredericia' WHERE name = 'Fredericia';
 ```
 
 ---
 
-### Hvad sker med eksisterende data?
+### Del 1: Ny komponent - DepartmentSelector
 
-- Alle 19 profiler faar `home_department_id = Fredericia`
-- Alle opgaver, ferier og vagter faar `department_id = Fredericia`
-- Alle brugere faar en `user_access` raekke til Fredericia
-- Nye kolonner er nullable, saa intet eksisterende data gaar tabt
-- Eksisterende roller og RLS policies virker stadig
+**Ny fil**: `src/components/Layout/NavComponents/DepartmentSelector.tsx`
 
----
+En dropdown-komponent til topnavigationen:
 
-### Frontend-opdateringer (efter SQL)
-
-Disse TypeScript-filer skal opdateres efterfoelgende:
-
-| Fil | AEndring |
-|-----|---------|
-| `src/types/employee.ts` | Tilfoej `home_department_id`, `is_visible_in_planning` |
-| `src/types/assignment.ts` | Tilfoej `department_id`, `sub_department_id` |
-| `src/types/duty.ts` | Tilfoej `department_id`, `sub_department_id` |
-| `src/types/vacation.ts` | Tilfoej `department_id`, `sub_department_id` |
-| `src/context/AuthContext.tsx` | Tilfoej department-info til user context |
-| Hooks for data-hentning | Filter baseret paa brugerens afdeling |
+- Viser den aktuelle afdelings navn med et Building2-ikon
+- For **super_admin**: Henter alle afdelinger fra `departments`-tabellen
+- For **andre roller**: Henter kun afdelinger fra brugerens `user_access`-raekker
+- Ved skift ryddes cache og data genindlaeses
+- Alt UI paa dansk
 
 ---
 
-### Udrulningsorden
+### Del 2: Udvid DepartmentContext
 
-1. Koer SQL-migrationen (alt i en migration)
-2. Opdater frontend-typer og hooks (separat trin)
-3. Byg admin-UI til at styre afdelinger og bruger-tilknytning (separat trin)
+**Fil**: `src/context/DepartmentContext.tsx`
 
+Tilfoejelser:
+
+- `userDepartments` state: afdelinger brugeren har adgang til (baseret paa rolle)
+- Fetch-logik der koerer naar brugeren er logget ind:
+  - super_admin: hent alle fra `departments`
+  - andre: hent kun fra `user_access` JOIN `departments`
+- `switchDepartment(id)` funktion der rydder `unifiedDataService` cache og opdaterer `selectedDepartmentId`
+- Auto-select: Hvis kun een afdeling er tilgaengelig, vaelg den automatisk
+
+---
+
+### Del 3: Integrer DepartmentSelector i navigation
+
+**TopNavbar.tsx**: Tilfoej `DepartmentSelector` i desktop-omraadet mellem logo og navigation-items.
+
+**MobileNavigation.tsx**: Tilfoej `DepartmentSelector` oeverst i mobilmenuen.
+
+---
+
+### Del 4: Data-synkronisering med afdelingsfilter
+
+**unifiedDataService.ts**:
+
+- Tilfoej valgfrit `departmentId` parameter til `fetchEmployees()`, `fetchAssignments()`, `fetchCars()`
+- Naar `departmentId` er sat, tilfoej `.eq('department_id', departmentId)` til queries
+- Employees filtreres via `home_department_id` i stedet
+- Inkluder `departmentId` i cache-noeglen
+
+**useUnifiedData.ts**:
+
+- Importer `useDepartment` og brug `selectedDepartmentId`
+- Send `departmentId` til alle service-kald
+- Tilfoej `selectedDepartmentId` som dependency i useEffect
+
+**assignmentService.ts**:
+
+- Tilfoej valgfrit `departmentId` filter til `fetchAllPublishedAssignments()` og `fetchUserAssignments()`
+- Naar sat, tilfoej `.eq('department_id', departmentId)`
+
+**useVacationData.ts**:
+
+- Tilfoej `useDepartment` og filtrer med `.eq('department_id', selectedDepartmentId)` i enhancedDataFetching-kaldet
+
+**useDutyData.ts**:
+
+- Tilfoej `useDepartment` og filtrer med `.eq('department_id', selectedDepartmentId)` i duty-queryen
+
+---
+
+### Del 5: Oversaettelser
+
+**da/navigation.ts**: Tilfoej `department: "Afdeling"`, `selectDepartment: "Vælg afdeling"`, `allDepartments: "Alle afdelinger"`, `switchDepartment: "Skift afdeling"`
+
+**en/navigation.ts**: Tilfoej tilsvarende engelske tekster
+
+---
+
+### Filliste
+
+
+| Fil                                    | Type    | AEndring                                                       |
+| -------------------------------------- | ------- | -------------------------------------------------------------- |
+| SQL migration                          | NY      | Omdoeb "Fredericia" til "12-Fredericia"                        |
+| `NavComponents/DepartmentSelector.tsx` | NY      | Dropdown-komponent                                             |
+| `DepartmentContext.tsx`                | OPDATER | Tilfoej userDepartments, rolle-baseret fetch, switchDepartment |
+| `TopNavbar.tsx`                        | OPDATER | Tilfoej DepartmentSelector i desktop                           |
+| `MobileNavigation.tsx`                 | OPDATER | Tilfoej DepartmentSelector i mobilmenu                         |
+| `unifiedDataService.ts`                | OPDATER | departmentId-filter paa alle queries                           |
+| `useUnifiedData.ts`                    | OPDATER | Brug selectedDepartmentId fra context                          |
+| `assignmentService.ts`                 | OPDATER | departmentId-filter                                            |
+| `useVacationData.ts`                   | OPDATER | departmentId-filter                                            |
+| `useDutyData.ts`                       | OPDATER | departmentId-filter                                            |
+| `da/navigation.ts`                     | OPDATER | Nye afdelingstekster                                           |
+| `en/navigation.ts`                     | OPDATER | Nye afdelingstekster                                           |
