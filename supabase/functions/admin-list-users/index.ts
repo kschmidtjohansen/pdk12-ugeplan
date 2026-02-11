@@ -144,12 +144,12 @@ serve(async (req) => {
     }
 
     // FIXED: Allow both administrator and skadeleder roles
-    if (!['administrator', 'skadeleder'].includes(roleData.role)) {
+    if (!['administrator', 'skadeleder', 'super_admin'].includes(roleData.role)) {
       console.error(`[${requestId}] User not authorized. Role: ${roleData.role}, User: ${user.email}`);
       return new Response(
         JSON.stringify({ 
-          error: 'Administrator or Skadeleder access required. Current role: ' + roleData.role,
-          allowedRoles: ['administrator', 'skadeleder'],
+          error: 'Administrator, Skadeleder or Super Admin access required. Current role: ' + roleData.role,
+          allowedRoles: ['administrator', 'skadeleder', 'super_admin'],
           currentRole: roleData.role
         }),
         { 

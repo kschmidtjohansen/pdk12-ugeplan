@@ -100,7 +100,7 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .maybeSingle();
 
-    if (roleError || !roleData || roleData.role !== 'administrator') {
+    if (roleError || !roleData || !['administrator', 'super_admin'].includes(roleData.role)) {
       console.error(`[${requestId}] User not admin. Role: ${roleData?.role}, User: ${user.email}`);
       return new Response(
         JSON.stringify({ error: 'Administrator access required' }),

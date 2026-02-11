@@ -120,7 +120,7 @@ serve(async (req) => {
       );
     }
 
-    if (!roleData || roleData.role !== 'administrator') {
+    if (!roleData || !['administrator', 'super_admin'].includes(roleData.role)) {
       console.error(`[${requestId}] User not admin. Role: ${roleData?.role || 'none'}, User: ${user.email}`);
       return new Response(
         JSON.stringify({ 
@@ -154,7 +154,7 @@ serve(async (req) => {
     }
 
     // Validate role value
-    const validRoles = ['administrator', 'skadeleder', 'servicemedarbejder'];
+    const validRoles = ['administrator', 'skadeleder', 'servicemedarbejder', 'super_admin', 'vikar'];
     if (!validRoles.includes(role)) {
       return new Response(
         JSON.stringify({ error: 'Invalid role specified', validRoles }),

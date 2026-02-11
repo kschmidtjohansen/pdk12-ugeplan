@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
       .single();
     
     const userRole = roleData?.role || 'servicemedarbejder';
-    const isAdminOrSkadeleder = userRole === 'administrator' || userRole === 'skadeleder';
+    const isAdminOrSkadeleder = userRole === 'administrator' || userRole === 'skadeleder' || userRole === 'super_admin';
 
     // Parse request body
     const { duty1Id, duty2Id, requestedBy }: SwapDutiesRequest = await req.json();
