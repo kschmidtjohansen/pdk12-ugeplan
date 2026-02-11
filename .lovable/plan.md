@@ -1,78 +1,68 @@
 
 
-## Brugerstyring opdelt i hovedafdelinger
+## Demo-bruger: Usynlig i afdelinger + fuld adgang + midlertidig data
 
 ### Overblik
 
-Brugerstyringen i admin-panelet skal filtreres efter den valgte hovedafdeling, med et ekstra filter til at se brugere uden afdeling.
+Demo-brugeren (`test@polygongroup.com`) skal:
+1. Kunne se og afproeve alle funktioner paa tvaers af alle afdelinger
+2. Vaere fuldstaendig usynlig for andre brugere overalt i systemet
+3. Al demo-data slettes automatisk efter 15 minutter eller ved tryk paa "Ryd demo data"-knappen (allerede implementeret -- bevares uaendret)
 
-### Aendringer
+### Nuvaerende status
 
----
+| Omraade | Demo-bruger skjult? | Demo data midlertidig? |
+|---------|---------------------|------------------------|
+| Medarbejderliste | Ja (allerede filtreret) | Ja |
+| Brugerstyring (Admin) | **Nej** | Ja |
+| Opgaver (assignments) | Delvist | Ja (15 min auto-cleanup) |
+| Ferier | Delvist | Ja (15 min auto-cleanup) |
+| Vagter (duties) | **Nej** | Ja (15 min auto-cleanup) |
+| Auto-cleanup system | N/A | Ja (allerede implementeret) |
 
-### Del 1: Frontend -- Filtrer brugerlisten efter afdeling
-
-**Fil**: `src/components/Admin/UserManagement.tsx`
-
-- Importer `useDepartment` fra `DepartmentContext` og `useAuth` for rolletjek
-- Tilfoej en ny state `departmentFilter` med vaerdierne: `'current'` (valgt afdeling) eller `'unassigned'` (ingen afdeling)
-- Vis en dropdown/select oeverst med:
-  - Den valgte bys navn (standard)
-  - "Uden afdeling" -- viser brugere der ikke har nogen `user_access`-raekke
-- Efter brugere er hentet (baade via edge function og fallback), filtrer dem:
-  1. Hent `user_access` data for alle brugere med `department_id = selectedDepartmentId`
-  2. Hvis filter er `'current'`: vis kun brugere med adgang til den valgte afdeling
-  3. Hvis filter er `'unassigned'`: vis kun brugere der ikke har nogen raekke i `user_access`
-- Kun Super Admin og Administrator kan se "Uden afdeling"-filteret
+### Hvad aendres
 
 ---
 
-### Del 2: Edge Function -- Tilfoej department_id parameter (valgfrit)
+**Fil 1: `src/components/Admin/UserManagement.tsx`**
 
-**Fil**: `supabase/functions/admin-list-users/index.ts`
-
-- Tilfoej valgfri `department_id` og `filter_type` parametre (via POST body eller query params)
-- Naar `department_id` er sat og `filter_type` er `'department'`:
-  - Hent `user_id`-liste fra `user_access` WHERE `department_id = department_id`
-  - Filtrer profiles til kun de IDs
-- Naar `filter_type` er `'unassigned'`:
-  - Hent alle `user_id` fra `user_access`
-  - Filtrer profiles til dem der IKKE er i listen
-- Naar ingen parameter: returner alle (bagudkompatibelt)
-- Admin-brugere (ikke super_admin) kan kun filtrere paa afdelinger de selv har adgang til
+- I `filteredUsers` useMemo: Filtrer demo-brugeren (`test@polygongroup.com` / `165cdbc9-...`) ud af listen naar den aktuelle bruger IKKE er demo-brugeren
+- Demo-brugeren vises hverken under en afdeling eller under "Uden afdeling"
 
 ---
 
-### Del 3: Fallback-metoden -- Samme filtrering
+**Fil 2: `src/services/enhancedDataFetching.ts`**
 
-**Fil**: `src/components/Admin/UserManagement.tsx` (i `fetchUsersDirectly`)
-
-- Tilfoej samme filtrering i fallback-metoden:
-  - Hent `user_access` data
-  - Filtrer brugere baseret paa `departmentFilter` state
-  - Admin kan kun se sin egen afdelings brugere + uassignerede
+- I `fetchEmployees`: Fjern demo-brugerens profil fra resultatet naar `isDemoMode` er `false`
+- I `fetchAssignments`: Filtrer opgaver oprettet af eller tildelt demo-brugeren naar `isDemoMode` er `false`
+- Naar demo-bruger er logget ind: Send IKKE `p_department_id` til RPC-kald, saa data fra alle afdelinger returneres
 
 ---
 
-### Del 4: Tildeling af afdeling -- Begraens baseret paa rolle
+**Fil 3: `src/hooks/duty/useDutyData.ts`**
 
-**Fil**: `src/components/Admin/UserFormDialog.tsx`
-
-- For Super Admin: Afdelingsvaelgeren viser alle hovedafdelinger (allerede implementeret)
-- For Admin: Afdelingsvaelgeren viser kun den aktuelle brugers afdeling (allerede implementeret via `user_access`-tjek)
-- Ingen aendringer nødvendige her -- den eksisterende logik i `UserFormDialog` haandterer allerede dette korrekt
+- Naar brugeren IKKE er demo-bruger: Filtrer vagter tildelt demo-brugeren ud
+- Naar demo-bruger er logget ind: Hent vagter uden afdelingsfilter (alle afdelinger)
 
 ---
 
-### Del 5: Oversaettelser
+**Fil 4: `src/hooks/employee/useEmployeeData.ts`**
 
-**Filer**: `src/translations/da/admin.ts`, `src/translations/en/admin.ts`
+- Naar `isDemoMode` er true: Spring afdelingsfiltrering over (vis alle medarbejdere fra alle afdelinger)
 
-- Tilfoej nye nogler:
-  - `filterByDepartment`: "Filtrer efter afdeling" / "Filter by department"
-  - `unassignedUsers`: "Uden afdeling" / "Unassigned"
-  - `allDepartments`: "Alle afdelinger" / "All departments"
-  - `showingUsersFor`: "Viser brugere for" / "Showing users for"
+---
+
+### Hvad aendres IKKE (allerede implementeret)
+
+Den eksisterende auto-cleanup-mekanisme bevares fuldstaendig som den er:
+
+- **15 minutters timer**: `useDemoAutoCleanup.ts` taeller ned og sletter automatisk al demo-data (opgaver, notifikationer, ferier, medarbejder-tilknytninger)
+- **Manuel "Ryd demo data"-knap**: I `DemoDashboard.tsx` -- sletter al demo-data med det samme
+- **Session-end cleanup**: Data slettes ogsaa naar fanebladet lukkes eller skjules
+- **1 minuts advarsel**: Vises foer automatisk sletning
+- **Forlaeeng session**: Mulighed for at tilfoeje 15 minutter mere
+
+Alt dette sikrer at demo-data aldrig paavirker live-versionen.
 
 ---
 
@@ -82,32 +72,24 @@ Brugerstyringen i admin-panelet skal filtreres efter den valgte hovedafdeling, m
 
 | Fil | Type | Beskrivelse |
 |-----|------|-------------|
-| `supabase/functions/admin-list-users/index.ts` | OPDATER | Tilfoej department_id filtrering |
-| `src/components/Admin/UserManagement.tsx` | OPDATER | Tilfoej afdelingsfilter-dropdown og filtreringslogik |
-| `src/translations/da/admin.ts` | OPDATER | Danske oversaettelser |
-| `src/translations/en/admin.ts` | OPDATER | Engelske oversaettelser |
+| `src/components/Admin/UserManagement.tsx` | OPDATER | Filtrer demo-bruger fra brugerlisten |
+| `src/services/enhancedDataFetching.ts` | OPDATER | Filtrer demo-data + bypass afdelingsfilter for demo |
+| `src/hooks/duty/useDutyData.ts` | OPDATER | Filtrer demo-vagter + bypass afdelingsfilter |
+| `src/hooks/employee/useEmployeeData.ts` | OPDATER | Bypass afdelingsfilter for demo-bruger |
 
-**Dataflow**:
+**Filtreringslogik**:
 
 ```text
-Admin-side -> Vaelg afdelingsfilter (dropdown)
-                    |
-        +-----------+-----------+
-        |                       |
-  "Valgt afdeling"        "Uden afdeling"
-        |                       |
-  Hent user_access         Hent ALLE user_access
-  WHERE dept = X           Find brugere IKKE i listen
-        |                       |
-  Filtrer brugere          Filtrer brugere
-        |                       |
-        +----------+------------+
-                   |
-            Vis i UserTable
+For ALLE datahentninger:
+  HVIS aktuel bruger ER demo-bruger:
+    -> Vis ALLE data fra ALLE afdelinger (ingen afdelingsfilter)
+    -> Inkluder demo-brugerens egne data
+    -> Data slettes automatisk efter 15 min (eksisterende logik)
+  ELLERS (normal bruger):
+    -> Anvend afdelingsfilter som normalt
+    -> Fjern demo-brugerens data fra resultatet
+    -> Demo-data ses aldrig af andre brugere
 ```
 
-**Rollebegraensninger**:
-- Super Admin: Kan se alle afdelinger + "Uden afdeling"
-- Administrator: Kan kun se sin egen afdeling + "Uden afdeling"
-- Skadeleder: Kan kun se sin egen afdeling (ingen "Uden afdeling")
+**Ingen databaseaendringer er noedvendige** -- al filtrering sker i frontend, og auto-cleanup er allerede paa plads.
 
