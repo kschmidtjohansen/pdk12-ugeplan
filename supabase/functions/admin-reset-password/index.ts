@@ -215,7 +215,7 @@ serve(async (req) => {
 
       console.log(`[admin-reset-password:${requestId}] Role check result - error: ${!!roleError}, role: ${roleData?.role}`);
 
-      if (roleError || !roleData || roleData.role !== 'administrator') {
+      if (roleError || !roleData || !['administrator', 'super_admin'].includes(roleData.role)) {
         console.error(`[admin-reset-password:${requestId}] Access denied for user ${user.email}, role: ${roleData?.role}`);
         
         // Log security event using service client

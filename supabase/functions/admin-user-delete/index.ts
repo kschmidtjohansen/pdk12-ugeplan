@@ -48,7 +48,7 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .single()
 
-    if (userRole?.role !== 'administrator') {
+    if (!['administrator', 'super_admin'].includes(userRole?.role)) {
       return new Response(
         JSON.stringify({ error: 'Insufficient permissions' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
