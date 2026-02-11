@@ -1,104 +1,90 @@
-## Afdelingsvælger i Topbar + Data-synkronisering + "12-Fredericia" som standard
 
-### Del 0: Omdoeb Fredericia til "12-Fredericia" i databasen
+## Udvid Admin-siden med By-administration, Underafdelinger og Brugertildeling
 
-En SQL-migration der opdaterer det eksisterende department-navn:
+### Del 1: By-administration (Kun Super Admin)
 
-```sql
-UPDATE public.departments SET name = '12-Fredericia' WHERE name = 'Fredericia';
-```
+**Ny fil**: `src/components/Admin/DepartmentManagement.tsx`
 
----
+En ny sektion paa admin-siden der kun vises for `super_admin`:
+- Viser liste over alle hovedafdelinger (byer) fra `departments`-tabellen
+- Formular til at oprette nye byer (Input + knap)
+- Mulighed for at slette byer (med bekraeftelsesdialog)
+- Alt UI paa dansk: "Hovedafdelinger (Byer)", "Opret ny by", "Slet"
 
-### Del 1: Ny komponent - DepartmentSelector
+### Del 2: Underafdelings-administration
 
-**Ny fil**: `src/components/Layout/NavComponents/DepartmentSelector.tsx`
+**Ny fil**: `src/components/Admin/SubDepartmentManagement.tsx`
 
-En dropdown-komponent til topnavigationen:
-
-- Viser den aktuelle afdelings navn med et Building2-ikon
-- For **super_admin**: Henter alle afdelinger fra `departments`-tabellen
-- For **andre roller**: Henter kun afdelinger fra brugerens `user_access`-raekker
-- Ved skift ryddes cache og data genindlaeses
+Vises for baade `super_admin` og `administrator`:
+- Viser underafdelinger grupperet under den valgte hovedafdeling
+- Administratorer ser kun underafdelinger for den by de er tilknyttet
+- Super Admins kan vaelge hvilken by de vil administrere underafdelinger for
+- Formular til at oprette nye underafdelinger (f.eks. "Asbest", "Skimmel")
+- Mulighed for at slette underafdelinger
 - Alt UI paa dansk
 
----
+### Del 3: Brugertildeling til afdeling i UserFormDialog
 
-### Del 2: Udvid DepartmentContext
+**Opdater**: `src/components/Admin/UserFormDialog.tsx`
 
-**Fil**: `src/context/DepartmentContext.tsx`
+Tilfoej to nye felter i bruger-editoren:
+- **Hovedafdeling**: Dropdown med tilgaengelige byer (baseret paa admins rolle)
+- **Underafdelinger**: Multi-select checkboxes med underafdelinger under den valgte by
+- Ved oprettelse/opdatering: Opret/opdater raekker i `user_access`-tabellen med valgt `department_id` og `sub_department_id`
+- Ved redigering: Forhaandsindlaes brugerens eksisterende tildelinger fra `user_access`
 
-Tilfoejelser:
+### Del 4: Opdater AdminPage layout
 
-- `userDepartments` state: afdelinger brugeren har adgang til (baseret paa rolle)
-- Fetch-logik der koerer naar brugeren er logget ind:
-  - super_admin: hent alle fra `departments`
-  - andre: hent kun fra `user_access` JOIN `departments`
-- `switchDepartment(id)` funktion der rydder `unifiedDataService` cache og opdaterer `selectedDepartmentId`
-- Auto-select: Hvis kun een afdeling er tilgaengelig, vaelg den automatisk
+**Opdater**: `src/pages/AdminPage.tsx`
 
----
+- Tilfoej `DepartmentManagement` som ny Card-sektion (kun synlig for super_admin)
+- Tilfoej `SubDepartmentManagement` som ny Card-sektion (synlig for super_admin og administrator)
+- Bevar eksisterende `UserManagement`-sektion
+- Tilfoej rolletjek: `user.role === 'super_admin'` for by-administration
+- Udvid adgangstjekket saa baade `administrator` og `super_admin` kan tilgaa admin-siden
 
-### Del 3: Integrer DepartmentSelector i navigation
+### Del 5: Quick-switch i topbar (allerede implementeret)
 
-**TopNavbar.tsx**: Tilfoej `DepartmentSelector` i desktop-omraadet mellem logo og navigation-items.
+`DepartmentSelector.tsx` er allerede implementeret i topbaren og fungerer som quick-switch for Super Admins. Ingen yderligere aendringer nødvendige.
 
-**MobileNavigation.tsx**: Tilfoej `DepartmentSelector` oeverst i mobilmenuen.
+### Del 6: Oversaettelser
 
----
+**Opdater**: `src/translations/da/admin.ts` og `src/translations/en/admin.ts`
 
-### Del 4: Data-synkronisering med afdelingsfilter
-
-**unifiedDataService.ts**:
-
-- Tilfoej valgfrit `departmentId` parameter til `fetchEmployees()`, `fetchAssignments()`, `fetchCars()`
-- Naar `departmentId` er sat, tilfoej `.eq('department_id', departmentId)` til queries
-- Employees filtreres via `home_department_id` i stedet
-- Inkluder `departmentId` i cache-noeglen
-
-**useUnifiedData.ts**:
-
-- Importer `useDepartment` og brug `selectedDepartmentId`
-- Send `departmentId` til alle service-kald
-- Tilfoej `selectedDepartmentId` som dependency i useEffect
-
-**assignmentService.ts**:
-
-- Tilfoej valgfrit `departmentId` filter til `fetchAllPublishedAssignments()` og `fetchUserAssignments()`
-- Naar sat, tilfoej `.eq('department_id', departmentId)`
-
-**useVacationData.ts**:
-
-- Tilfoej `useDepartment` og filtrer med `.eq('department_id', selectedDepartmentId)` i enhancedDataFetching-kaldet
-
-**useDutyData.ts**:
-
-- Tilfoej `useDepartment` og filtrer med `.eq('department_id', selectedDepartmentId)` i duty-queryen
+Tilfoej nye noegeler:
+- `departments.title`: "Hovedafdelinger (Byer)"
+- `departments.create`: "Opret ny by"
+- `departments.name`: "Bynavn"
+- `departments.delete`: "Slet by"
+- `departments.deleteConfirm`: "Er du sikker paa at du vil slette denne by?"
+- `departments.deleteWarning`: "Alle underafdelinger og brugertilknytninger til denne by vil ogsaa blive slettet."
+- `subDepartments.title`: "Underafdelinger"
+- `subDepartments.create`: "Opret underafdeling"
+- `subDepartments.name`: "Underafdelingsnavn"
+- `subDepartments.delete`: "Slet underafdeling"
+- `userManagement.department`: "Hovedafdeling"
+- `userManagement.subDepartments`: "Underafdelinger"
+- `userManagement.selectDepartment`: "Vælg hovedafdeling"
+- `userManagement.selectSubDepartments`: "Vælg underafdelinger"
 
 ---
 
-### Del 5: Oversaettelser
+### Tekniske detaljer
 
-**da/navigation.ts**: Tilfoej `department: "Afdeling"`, `selectDepartment: "Vælg afdeling"`, `allDepartments: "Alle afdelinger"`, `switchDepartment: "Skift afdeling"`
+**Database**: Ingen nye tabeller - bruger eksisterende `departments`, `sub_departments` og `user_access` tabeller.
 
-**en/navigation.ts**: Tilfoej tilsvarende engelske tekster
+**RLS-politikker**: Allerede paa plads:
+- `departments`: Super admins kan oprette/slette, alle kan laese
+- `sub_departments`: Super admins og afdelingsadmins kan CRUD, alle kan laese
+- `user_access`: Super admins og afdelingsadmins kan CRUD, brugere kan se egne
 
----
+**Filliste**:
 
-### Filliste
-
-
-| Fil                                    | Type    | AEndring                                                       |
-| -------------------------------------- | ------- | -------------------------------------------------------------- |
-| SQL migration                          | NY      | Omdoeb "Fredericia" til "12-Fredericia"                        |
-| `NavComponents/DepartmentSelector.tsx` | NY      | Dropdown-komponent                                             |
-| `DepartmentContext.tsx`                | OPDATER | Tilfoej userDepartments, rolle-baseret fetch, switchDepartment |
-| `TopNavbar.tsx`                        | OPDATER | Tilfoej DepartmentSelector i desktop                           |
-| `MobileNavigation.tsx`                 | OPDATER | Tilfoej DepartmentSelector i mobilmenu                         |
-| `unifiedDataService.ts`                | OPDATER | departmentId-filter paa alle queries                           |
-| `useUnifiedData.ts`                    | OPDATER | Brug selectedDepartmentId fra context                          |
-| `assignmentService.ts`                 | OPDATER | departmentId-filter                                            |
-| `useVacationData.ts`                   | OPDATER | departmentId-filter                                            |
-| `useDutyData.ts`                       | OPDATER | departmentId-filter                                            |
-| `da/navigation.ts`                     | OPDATER | Nye afdelingstekster                                           |
-| `en/navigation.ts`                     | OPDATER | Nye afdelingstekster                                           |
+| Fil | Type | Beskrivelse |
+|-----|------|-------------|
+| `src/components/Admin/DepartmentManagement.tsx` | NY | By-administration UI |
+| `src/components/Admin/SubDepartmentManagement.tsx` | NY | Underafdelings-administration UI |
+| `src/components/Admin/UserFormDialog.tsx` | OPDATER | Tilfoej afdeling/underafdeling-felter |
+| `src/pages/AdminPage.tsx` | OPDATER | Tilfoej nye sektioner, udvid adgangstjek |
+| `src/translations/da/admin.ts` | OPDATER | Nye danske tekster |
+| `src/translations/en/admin.ts` | OPDATER | Nye engelske tekster |
