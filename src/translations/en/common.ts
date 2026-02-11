@@ -140,9 +140,11 @@ export const common = {
   
   // User roles
   roles: {
+    super_admin: "Super Admin",
     administrator: "Administrator",
-    skadeleder: "Damage Leader", 
-    servicemedarbejder: "Service Employee"
+    skadeleder: "Case Manager", 
+    servicemedarbejder: "Service Employee",
+    vikar: "Substitute"
   },
   and: "and",
   or: "or"

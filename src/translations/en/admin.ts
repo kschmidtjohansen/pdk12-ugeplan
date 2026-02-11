@@ -273,11 +273,15 @@ export const admin = {
     passwordsMustMatch: 'Passwords must match'
   },
   roles: {
+    super_admin: 'Super Admin',
     administrator: 'Administrator',
-    skadeleder: 'Damage Manager',
+    skadeleder: 'Case Manager',
     servicemedarbejder: 'Service Employee',
+    vikar: 'Substitute',
+    super_adminDesc: 'Full access to all cities and features',
     administratorDesc: 'Full access to all features',
     skadelederDesc: 'Can manage assignments and approve tasks',
-    servicemedarbejderDesc: 'Can view assigned tasks and request vacation'
+    servicemedarbejderDesc: 'Can view assigned tasks and request vacation',
+    vikarDesc: 'Temporary access for substitutes'
   }
 };
