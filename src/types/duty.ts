@@ -14,7 +14,7 @@ export interface Duty {
     name: string;
     email: string;
     avatar_url: string | null;
-    role?: 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'vikar';
+    role?: 'super_admin' | 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'vikar';
   };
 }
 
