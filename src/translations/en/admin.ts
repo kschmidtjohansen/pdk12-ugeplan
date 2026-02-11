@@ -211,6 +211,10 @@ export const admin = {
   userManagement: {
     title: 'User Management',
     description: 'Manage system users and their permissions',
+    filterByDepartment: 'Filter by department',
+    unassignedUsers: 'Unassigned',
+    showingUsersFor: 'Showing users for',
+    showingUnassigned: 'Showing users without department',
     addUser: 'Add User',
     name: 'Name',
     email: 'Email',

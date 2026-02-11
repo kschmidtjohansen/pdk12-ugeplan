@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole, useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowDownAZ, ArrowUpAZ, RefreshCw, AlertCircle, Wifi, WifiOff, Bug, Database, CheckCircle } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, RefreshCw, AlertCircle, Wifi, WifiOff, Bug, Database, CheckCircle, Filter } from 'lucide-react';
 
 // Import refactored components
 import UserTable from './UserTable';
@@ -19,8 +21,11 @@ import { AdminUser } from './UserTableRow';
 const UserManagement: React.FC = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { isDemoMode } = useAuth();
+  const { isDemoMode, user: authUser } = useAuth();
+  const { selectedDepartmentId, departments } = useDepartment();
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [userAccessData, setUserAccessData] = useState<{ user_id: string; department_id: string }[]>([]);
+  const [departmentFilter, setDepartmentFilter] = useState<'current' | 'unassigned'>('current');
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'error' | 'fallback'>('connected');
@@ -46,8 +51,30 @@ const UserManagement: React.FC = () => {
     role: 'servicemedarbejder' as UserRole
   });
 
-  // Calculate role statistics - moved to main component scope
-  const roleCounts = users.reduce((acc, user) => {
+  const isSuperAdmin = authUser?.role === 'super_admin';
+  const isAdmin = authUser?.role === 'administrator';
+  const canSeeUnassigned = isSuperAdmin || isAdmin;
+
+  // Filter users by department
+  const filteredUsers = useMemo(() => {
+    if (!users.length) return [];
+    
+    if (departmentFilter === 'unassigned') {
+      // Show users that have NO user_access records at all
+      const usersWithAccess = new Set(userAccessData.map(ua => ua.user_id));
+      return users.filter(u => !usersWithAccess.has(u.id));
+    }
+    
+    // Filter by current department
+    if (!selectedDepartmentId) return users;
+    const usersInDept = new Set(
+      userAccessData.filter(ua => ua.department_id === selectedDepartmentId).map(ua => ua.user_id)
+    );
+    return users.filter(u => usersInDept.has(u.id));
+  }, [users, userAccessData, departmentFilter, selectedDepartmentId]);
+
+  // Calculate role statistics from filtered users
+  const roleCounts = filteredUsers.reduce((acc, user) => {
     acc[user.role] = (acc[user.role] || 0) + 1;
     return acc;
   }, {} as Record<UserRole, number>);
@@ -285,7 +312,11 @@ const UserManagement: React.FC = () => {
       
       let data;
 
-      // Check for demo mode
+      // Fetch user_access data for department filtering
+      const { data: accessData } = await supabase
+        .from('user_access')
+        .select('user_id, department_id');
+      setUserAccessData(accessData || []);
       if (isDemoMode) {
         data = await fetchDemoUsers();
         setConnectionStatus('connected');
@@ -502,10 +533,10 @@ const UserManagement: React.FC = () => {
     await fetchUsers(true);
   };
 
-  // Load users on component mount
+  // Load users on component mount and when department changes
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [selectedDepartmentId]);
 
   // Set up realtime subscription or polling based on demo mode
   useEffect(() => {
@@ -757,6 +788,23 @@ const UserManagement: React.FC = () => {
                 </div>}
             </div>
             <div className="flex items-center space-x-2">
+              {/* Department filter dropdown */}
+              <div className="flex items-center space-x-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Select value={departmentFilter} onValueChange={(val) => setDepartmentFilter(val as 'current' | 'unassigned')}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="current">
+                      {departments?.find(d => d.id === selectedDepartmentId)?.name || t('admin.userManagement.filterByDepartment')}
+                    </SelectItem>
+                    {canSeeUnassigned && (
+                      <SelectItem value="unassigned">{t('admin.userManagement.unassignedUsers')}</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button variant="outline" size="icon" onClick={handleSmartRetry} title="Refresh users list with smart retry" disabled={loading}>
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
@@ -804,7 +852,7 @@ const UserManagement: React.FC = () => {
                     Smart retry attempts: {retryCount}
                   </div>}
               </div>
-              <UserTable users={users} onEditUser={handleEditUser} onDeleteUser={handleDeleteUser} onResetPassword={handleResetPassword} onToggleUserStatus={handleToggleUserStatus} getRoleLabel={getRoleLabel} getInitials={getInitials} />
+              <UserTable users={filteredUsers} onEditUser={handleEditUser} onDeleteUser={handleDeleteUser} onResetPassword={handleResetPassword} onToggleUserStatus={handleToggleUserStatus} getRoleLabel={getRoleLabel} getInitials={getInitials} />
             </div>}
         </CardContent>
       </Card>

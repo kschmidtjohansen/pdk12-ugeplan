@@ -214,6 +214,10 @@ export const admin = {
   userManagement: {
     title: 'Brugerstyring',
     description: 'Administrer systembrugere og deres tilladelser',
+    filterByDepartment: 'Filtrer efter afdeling',
+    unassignedUsers: 'Uden afdeling',
+    showingUsersFor: 'Viser brugere for',
+    showingUnassigned: 'Viser brugere uden afdeling',
     addUser: 'Tilføj bruger',
     name: 'Navn',
     email: 'Email',
