@@ -1,90 +1,136 @@
 
-## Udvid Admin-siden med By-administration, Underafdelinger og Brugertildeling
 
-### Del 1: By-administration (Kun Super Admin)
+## Tilpas Ugeplanen med By-filtrering, Super Admin-visning og Skadeleder-ferieadgang
 
-**Ny fil**: `src/components/Admin/DepartmentManagement.tsx`
+### Overblik
 
-En ny sektion paa admin-siden der kun vises for `super_admin`:
-- Viser liste over alle hovedafdelinger (byer) fra `departments`-tabellen
-- Formular til at oprette nye byer (Input + knap)
-- Mulighed for at slette byer (med bekraeftelsesdialog)
-- Alt UI paa dansk: "Hovedafdelinger (Byer)", "Opret ny by", "Slet"
+Der er fire hovedaendringer:
 
-### Del 2: Underafdelings-administration
+1. **By-filtrering af data** -- assignments, medarbejdere, biler og ferier skal filtreres efter den valgte hovedafdeling
+2. **Super Admin i personalelisten** -- vises kun i den by der matcher `home_department_id`
+3. **Skadeledere ser ferieonsker** -- for medarbejdere i deres tildelte underafdelinger
+4. **Sprog** -- alle nye fejlmeddelelser og labels paa dansk
 
-**Ny fil**: `src/components/Admin/SubDepartmentManagement.tsx`
+---
 
-Vises for baade `super_admin` og `administrator`:
-- Viser underafdelinger grupperet under den valgte hovedafdeling
-- Administratorer ser kun underafdelinger for den by de er tilknyttet
-- Super Admins kan vaelge hvilken by de vil administrere underafdelinger for
-- Formular til at oprette nye underafdelinger (f.eks. "Asbest", "Skimmel")
-- Mulighed for at slette underafdelinger
-- Alt UI paa dansk
+### Del 1: Database -- Opdater RPC-funktionen `list_accessible_assignments_with_team`
 
-### Del 3: Brugertildeling til afdeling i UserFormDialog
+**Migration**: Opdater den eksisterende RPC-funktion til at:
+- Acceptere en valgfri `p_department_id UUID` parameter
+- Filtrere assignments paa `a.department_id = p_department_id` (naar parameteren er sat)
+- Haandtere `super_admin`-rollen paa lige fod med `administrator`
 
-**Opdater**: `src/components/Admin/UserFormDialog.tsx`
+Dette sikrer at kun opgaver for den valgte by returneres fra databasen.
 
-Tilfoej to nye felter i bruger-editoren:
-- **Hovedafdeling**: Dropdown med tilgaengelige byer (baseret paa admins rolle)
-- **Underafdelinger**: Multi-select checkboxes med underafdelinger under den valgte by
-- Ved oprettelse/opdatering: Opret/opdater raekker i `user_access`-tabellen med valgt `department_id` og `sub_department_id`
-- Ved redigering: Forhaandsindlaes brugerens eksisterende tildelinger fra `user_access`
+---
 
-### Del 4: Opdater AdminPage layout
+### Del 2: Frontend -- Assignments filtreret efter afdeling
 
-**Opdater**: `src/pages/AdminPage.tsx`
+**Fil**: `src/services/optimizedAssignmentService.ts`
 
-- Tilfoej `DepartmentManagement` som ny Card-sektion (kun synlig for super_admin)
-- Tilfoej `SubDepartmentManagement` som ny Card-sektion (synlig for super_admin og administrator)
-- Bevar eksisterende `UserManagement`-sektion
-- Tilfoej rolletjek: `user.role === 'super_admin'` for by-administration
-- Udvid adgangstjekket saa baade `administrator` og `super_admin` kan tilgaa admin-siden
+- Opdater `fetchAllAssignments()` til at sende `selectedDepartmentId` som parameter til RPC-funktionen
+- Tilfoej `departmentId` parameter til metoden
 
-### Del 5: Quick-switch i topbar (allerede implementeret)
+**Fil**: `src/hooks/useOptimizedAssignments.ts`
 
-`DepartmentSelector.tsx` er allerede implementeret i topbaren og fungerer som quick-switch for Super Admins. Ingen yderligere aendringer nødvendige.
+- Importere `useDepartment` og videresende `selectedDepartmentId` til `OptimizedAssignmentService.fetchAllAssignments()`
+- Tilfoej `selectedDepartmentId` som dependency i `fetchAssignments` callback
 
-### Del 6: Oversaettelser
+---
 
-**Opdater**: `src/translations/da/admin.ts` og `src/translations/en/admin.ts`
+### Del 3: Frontend -- Medarbejdere filtreret efter afdeling
 
-Tilfoej nye noegeler:
-- `departments.title`: "Hovedafdelinger (Byer)"
-- `departments.create`: "Opret ny by"
-- `departments.name`: "Bynavn"
-- `departments.delete`: "Slet by"
-- `departments.deleteConfirm`: "Er du sikker paa at du vil slette denne by?"
-- `departments.deleteWarning`: "Alle underafdelinger og brugertilknytninger til denne by vil ogsaa blive slettet."
-- `subDepartments.title`: "Underafdelinger"
-- `subDepartments.create`: "Opret underafdeling"
-- `subDepartments.name`: "Underafdelingsnavn"
-- `subDepartments.delete`: "Slet underafdeling"
-- `userManagement.department`: "Hovedafdeling"
-- `userManagement.subDepartments`: "Underafdelinger"
-- `userManagement.selectDepartment`: "Vælg hovedafdeling"
-- `userManagement.selectSubDepartments`: "Vælg underafdelinger"
+**Fil**: `src/hooks/employee/useEmployeeData.ts`
+
+- Importere `useDepartment` og bruge `selectedDepartmentId`
+- For ikke-demo mode: Hent listen af `user_id`'er fra `user_access` tabellen hvor `department_id = selectedDepartmentId`, og filtrer kun de profiler der matcher
+- **Super Admin undtagelse**: Inkluder altid Super Admins i personalelisten hvis deres `home_department_id` matcher den valgte afdeling (tjek via `profiles.home_department_id`)
+- Tilfoej `selectedDepartmentId` som dependency
+
+---
+
+### Del 4: Frontend -- Biler filtreret efter afdeling
+
+**Fil**: `src/hooks/car/useCarData.ts`
+
+- Tjek om `cars`-tabellen har en `department_id`-kolonne
+- Hvis ja: Tilfoej filter `.eq('department_id', selectedDepartmentId)` til car-query
+- Hvis nej: Tilfoej `department_id` kolonne til `cars`-tabellen via migration
+
+---
+
+### Del 5: Frontend -- Ferier filtreret efter afdeling + Skadeleder-adgang
+
+**Fil**: `src/services/enhancedDataFetching.ts`
+
+- Opdater `fetchVacationsEnhanced()` til at filtrere paa `department_id` naar en afdeling er valgt
+
+**Fil**: `src/hooks/vacation/useVacationData.ts`
+
+- Send `selectedDepartmentId` til vacation-fetchen
+- For **skadeledere**: Hent brugerens tildelte `sub_department_id`'er fra `user_access`, og vis ferier for medarbejdere i disse underafdelinger (alle statusser: pending, approved, rejected)
+
+**Fil**: `src/hooks/vacation/useVacationSecurity.ts`
+
+- Opdater `canViewVacation()` saa skadeledere kan se ferier for medarbejdere i deres underafdelinger
+
+---
+
+### Del 6: Assignments -- Gem `department_id` ved oprettelse
+
+**Fil**: `src/hooks/useOptimizedAssignments.ts` og `src/services/optimizedAssignmentService.ts`
+
+- Naar en ny opgave oprettes, sæt `department_id` automatisk til den aktuelt valgte afdeling fra `DepartmentContext`
+- Dette sikrer at fremtidige opgaver korrekt er tilknyttet en by
+
+---
+
+### Del 7: Sprog
+
+**Filer**: `src/translations/da/planner.ts`, `src/translations/da/vacation.ts`
+
+- Tilfoej eventuelle nye valideringsfejl og labels paa dansk
+- Eksempler: "Ingen afdeling valgt", "Vælg en hovedafdeling for at se data"
 
 ---
 
 ### Tekniske detaljer
 
-**Database**: Ingen nye tabeller - bruger eksisterende `departments`, `sub_departments` og `user_access` tabeller.
+**Database-aendringer**:
+- Opdater RPC `list_accessible_assignments_with_team` med `p_department_id` parameter og `super_admin`-support
+- Muligvis tilfoej `department_id` til `cars`-tabellen (afhaenger af nuværende skema)
 
-**RLS-politikker**: Allerede paa plads:
-- `departments`: Super admins kan oprette/slette, alle kan laese
-- `sub_departments`: Super admins og afdelingsadmins kan CRUD, alle kan laese
-- `user_access`: Super admins og afdelingsadmins kan CRUD, brugere kan se egne
-
-**Filliste**:
+**Filer der aendres**:
 
 | Fil | Type | Beskrivelse |
 |-----|------|-------------|
-| `src/components/Admin/DepartmentManagement.tsx` | NY | By-administration UI |
-| `src/components/Admin/SubDepartmentManagement.tsx` | NY | Underafdelings-administration UI |
-| `src/components/Admin/UserFormDialog.tsx` | OPDATER | Tilfoej afdeling/underafdeling-felter |
-| `src/pages/AdminPage.tsx` | OPDATER | Tilfoej nye sektioner, udvid adgangstjek |
-| `src/translations/da/admin.ts` | OPDATER | Nye danske tekster |
-| `src/translations/en/admin.ts` | OPDATER | Nye engelske tekster |
+| Migration SQL | NY | Opdater RPC + evt. cars.department_id |
+| `src/services/optimizedAssignmentService.ts` | OPDATER | Tilfoej departmentId parameter til fetch |
+| `src/hooks/useOptimizedAssignments.ts` | OPDATER | Integrer DepartmentContext |
+| `src/hooks/employee/useEmployeeData.ts` | OPDATER | Filtrer medarbejdere efter afdeling + super_admin logik |
+| `src/hooks/car/useCarData.ts` | OPDATER | Filtrer biler efter afdeling |
+| `src/services/enhancedDataFetching.ts` | OPDATER | Filtrer ferier efter afdeling |
+| `src/hooks/vacation/useVacationData.ts` | OPDATER | Departmentfiltrering + skadeleder underafdeling-adgang |
+| `src/hooks/vacation/useVacationSecurity.ts` | OPDATER | Skadeleder-ferievisning |
+| `src/translations/da/planner.ts` | OPDATER | Danske tekster |
+| `src/translations/da/vacation.ts` | OPDATER | Danske tekster |
+
+**Dataflow**:
+
+```text
+Login -> Vaelg by -> DepartmentContext (selectedDepartmentId)
+                          |
+          +---------------+---------------+
+          |               |               |
+    Assignments     Medarbejdere      Ferier
+    (RPC filter)   (user_access)   (department_id)
+          |               |               |
+          |         Super Admin:          |
+          |     kun hvis home_dept        |
+          |     matcher valgt by     Skadeleder:
+          |               |         ser alle statusser
+          +-------+-------+         for egne sub_depts
+                  |
+            PlannerPage (ugeplanen)
+```
+
