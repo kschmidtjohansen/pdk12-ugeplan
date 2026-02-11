@@ -327,6 +327,16 @@ const planner = {
   noDepartmentSelected: 'Ingen afdeling valgt',
   selectDepartmentToViewData: 'Vælg en hovedafdeling for at se data',
   departmentFilterActive: 'Viser data for {department}',
+
+  // Validation
+  validation: {
+    titleRequired: 'Titel er påkrævet',
+    locationRequired: 'Adresse er påkrævet',
+    dateRequired: 'Dato er påkrævet',
+    fromTimeRequired: 'Starttid er påkrævet',
+    toTimeRequired: 'Sluttid er påkrævet',
+    timeOrderRequired: 'Starttid skal være før sluttid'
+  },
 };
 
 export default planner;

@@ -178,6 +178,7 @@ const planner = {
   carNotAvailable: 'Not available',
   
   // Employee-related translations
+  onVacation: 'On Vacation',
   employeeOnVacation: 'On vacation',
   employeeAvailable: 'Available',
   employeeUnavailable: 'Unavailable',

@@ -277,10 +277,12 @@ export const admin = {
     passwordsMustMatch: 'Adgangskoder skal være ens'
   },
   roles: {
+    super_admin: 'Super Admin',
     administrator: 'Administrator',
     skadeleder: 'Skadeleder',
     servicemedarbejder: 'Servicemedarbejder',
     vikar: 'Vikar',
+    super_adminDesc: 'Fuld adgang til alle byer og funktioner',
     administratorDesc: 'Fuld adgang til alle funktioner',
     skadelederDesc: 'Kan administrere opgaver og godkende opgaver',
     servicemedarbejderDesc: 'Kan se tildelte opgaver og anmode om ferie',
