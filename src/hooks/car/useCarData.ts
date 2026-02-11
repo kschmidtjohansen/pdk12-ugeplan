@@ -7,11 +7,13 @@ import { CarSecurityService } from '@/services/carSecurityService';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { DemoUserService } from '@/services/demoUserService';
 
 export const useCarData = (canViewFuelCardCode: boolean = false) => {
   const { isDemoMode, userDataLoaded, user } = useAuth();
+  const { selectedDepartmentId } = useDepartment();
   const [cars, setCars] = useState<CarData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,10 +45,13 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         console.log('[useCarData] Successfully fetched', merged.length, 'demo cars (baseline + local)');
         setCars(merged as CarData[]);
       } else {
-        // Use production service for production users
+        // Use production service for production users, filtered by department
         const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
-        console.log('[useCarData] Successfully fetched', data?.length || 0, 'cars');
-        setCars(data || []);
+        const filtered = selectedDepartmentId 
+          ? (data || []).filter((car: any) => !car.department_id || car.department_id === selectedDepartmentId)
+          : data;
+        console.log('[useCarData] Successfully fetched', filtered?.length || 0, 'cars (filtered by department)');
+        setCars(filtered || []);
       }
     } catch (err) {
       console.error('[useCarData] Error fetching cars:', err);
@@ -176,7 +181,10 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         } else {
           const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
           if (isMounted) {
-            setCars(data || []);
+            const filtered = selectedDepartmentId 
+              ? (data || []).filter((car: any) => !car.department_id || car.department_id === selectedDepartmentId)
+              : data;
+            setCars(filtered || []);
           }
         }
       } catch (err) {
@@ -257,7 +265,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         supabase.removeChannel(channel);
       };
     }
-  }, [t, toast, canViewFuelCardCode, isDemoMode, userDataLoaded, user?.id]);
+  }, [t, toast, canViewFuelCardCode, isDemoMode, userDataLoaded, user?.id, selectedDepartmentId]);
 
   return {
     cars,

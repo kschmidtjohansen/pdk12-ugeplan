@@ -137,6 +137,10 @@ const vacation = {
   availableHours: "Tilgængelig {startTime} - {endTime}",
   offHours: "Fri {startTime} - {endTime}",
   returnsOn: "Ferie/fri til:",
+  
+  // Department filtering
+  noDepartmentSelected: 'Ingen afdeling valgt',
+  selectDepartmentToViewVacations: 'Vælg en hovedafdeling for at se ferieanmodninger',
 };
 
 export default vacation;

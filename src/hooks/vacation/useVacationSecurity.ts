@@ -1,11 +1,49 @@
 
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { logSecurityEvent } from '@/utils/securityLogger';
 import { Vacation } from '@/types/vacation';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useVacationSecurity = () => {
   const { user, isAdmin, isSkadeleder } = useAuth();
+  const [skadelederSubDeptUserIds, setSkadelederSubDeptUserIds] = useState<Set<string>>(new Set());
+
+  // For skadeledere: fetch user_ids in their sub-departments
+  useEffect(() => {
+    if (!isSkadeleder || !user?.id) return;
+
+    const fetchSubDeptUsers = async () => {
+      try {
+        // Get skadeleder's sub_department_ids
+        const { data: accessData } = await supabase
+          .from('user_access')
+          .select('sub_department_id')
+          .eq('user_id', user.id)
+          .not('sub_department_id', 'is', null);
+
+        const subDeptIds = (accessData || []).map(a => a.sub_department_id).filter(Boolean) as string[];
+        if (subDeptIds.length === 0) {
+          setSkadelederSubDeptUserIds(new Set());
+          return;
+        }
+
+        // Get all user_ids in those sub-departments
+        const { data: usersInSubDepts } = await supabase
+          .from('user_access')
+          .select('user_id')
+          .in('sub_department_id', subDeptIds);
+
+        const userIds = new Set((usersInSubDepts || []).map(u => u.user_id));
+        setSkadelederSubDeptUserIds(userIds);
+        console.log(`[useVacationSecurity] Skadeleder has access to ${userIds.size} users in ${subDeptIds.length} sub-departments`);
+      } catch (error) {
+        console.error('[useVacationSecurity] Failed to fetch sub-department users:', error);
+      }
+    };
+
+    fetchSubDeptUsers();
+  }, [isSkadeleder, user?.id]);
 
   // Security logging for vacation operations
   const logVacationSecurityEvent = useCallback(async (
@@ -34,69 +72,42 @@ export const useVacationSecurity = () => {
   const canViewVacation = useCallback((vacation: Vacation): boolean => {
     if (!user) return false;
     
-    // User can view their own vacation or admin/skadeleder can view all
-    const canView = vacation.user_id === user.id || isAdmin || isSkadeleder;
+    // User can view their own vacation
+    if (vacation.user_id === user.id) return true;
     
-    if (!canView) {
-      logVacationSecurityEvent('unauthorized_view_attempt', vacation.id, {
-        attempted_vacation_user_id: vacation.user_id,
-        reason: 'User attempted to view vacation they do not own'
-      });
-    }
+    // Admin can view all
+    if (isAdmin) return true;
     
-    return canView;
-  }, [user, isAdmin, isSkadeleder, logVacationSecurityEvent]);
+    // Skadeleder can view vacations for users in their sub-departments
+    if (isSkadeleder && skadelederSubDeptUserIds.has(vacation.user_id)) return true;
+    
+    return false;
+  }, [user, isAdmin, isSkadeleder, skadelederSubDeptUserIds]);
 
   // Check if user can edit a specific vacation
   const canEditVacation = useCallback((vacation: Vacation): boolean => {
     if (!user) return false;
     
-    // User can edit their own pending vacation or admin/skadeleder can edit any
     const canEdit = (vacation.user_id === user.id && vacation.status === 'pending') || 
                     isAdmin || isSkadeleder;
     
-    if (!canEdit) {
-      logVacationSecurityEvent('unauthorized_edit_attempt', vacation.id, {
-        attempted_vacation_user_id: vacation.user_id,
-        vacation_status: vacation.status,
-        reason: 'User attempted to edit vacation without permission'
-      });
-    }
-    
     return canEdit;
-  }, [user, isAdmin, isSkadeleder, logVacationSecurityEvent]);
+  }, [user, isAdmin, isSkadeleder]);
 
   // Check if user can delete a specific vacation
   const canDeleteVacation = useCallback((vacation: Vacation): boolean => {
     if (!user) return false;
     
-    // User can delete their own pending vacation or admin/skadeleder can delete any
     const canDelete = (vacation.user_id === user.id && vacation.status === 'pending') || 
                       isAdmin || isSkadeleder;
     
-    if (!canDelete) {
-      logVacationSecurityEvent('unauthorized_delete_attempt', vacation.id, {
-        attempted_vacation_user_id: vacation.user_id,
-        vacation_status: vacation.status,
-        reason: 'User attempted to delete vacation without permission'
-      });
-    }
-    
     return canDelete;
-  }, [user, isAdmin, isSkadeleder, logVacationSecurityEvent]);
+  }, [user, isAdmin, isSkadeleder]);
 
   // Check if user can approve/reject vacations
   const canManageVacationStatus = useCallback((): boolean => {
-    const canManage = isAdmin || isSkadeleder;
-    
-    if (!canManage && user) {
-      logVacationSecurityEvent('unauthorized_manage_attempt', 'general', {
-        reason: 'User attempted to manage vacation status without admin/skadeleder role'
-      });
-    }
-    
-    return canManage;
-  }, [isAdmin, isSkadeleder, user, logVacationSecurityEvent]);
+    return isAdmin || isSkadeleder;
+  }, [isAdmin, isSkadeleder]);
 
   return {
     canViewVacation,

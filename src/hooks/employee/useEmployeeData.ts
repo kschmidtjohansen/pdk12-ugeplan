@@ -7,6 +7,7 @@ import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { supabase } from '@/integrations/supabase/client';
 import { DemoUserService } from '@/services/demoUserService';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 // DemoUserFiltering removed - schema isolation handles data separation
 
@@ -14,6 +15,7 @@ export const useEmployeeData = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user, isDemoMode, userDataLoaded } = useAuth();
+  const { selectedDepartmentId } = useDepartment();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -141,7 +143,8 @@ export const useEmployeeData = () => {
             has_asbestos_certificate,
             has_trailer_license,
             has_drivers_license,
-            has_forklift_license
+            has_forklift_license,
+            home_department_id
           `)
           .order('name', { ascending: true });
 
@@ -165,7 +168,6 @@ export const useEmployeeData = () => {
 
         if (rolesError) {
           console.error('[useEmployeeData] User roles fetch error:', rolesError);
-          // Don't throw here, use default roles
         } else {
           console.log(`[useEmployeeData] Successfully fetched ${userRoles?.length || 0} user roles`);
         }
@@ -205,20 +207,52 @@ export const useEmployeeData = () => {
           return employee;
         });
 
+        // Filter by department if selectedDepartmentId is set
+        let departmentFilteredEmployees = transformedEmployees;
+        if (selectedDepartmentId) {
+          // Get user_ids with access to the selected department
+          const { data: accessData, error: accessError } = await supabase
+            .from('user_access')
+            .select('user_id')
+            .eq('department_id', selectedDepartmentId);
+
+          if (accessError) {
+            console.error('[useEmployeeData] user_access fetch error:', accessError);
+          }
+
+          const departmentUserIds = new Set((accessData || []).map(a => a.user_id));
+
+          departmentFilteredEmployees = transformedEmployees.filter(emp => {
+            // Include if employee has access to this department
+            if (departmentUserIds.has(emp.id)) return true;
+            
+            // Super Admin exception: include if their home_department_id matches selected department
+            const empRole = rolesMap.get(emp.id);
+            if (empRole === 'super_admin') {
+              const profile = profiles.find((p: any) => p.id === emp.id);
+              return profile?.home_department_id === selectedDepartmentId;
+            }
+            
+            return false;
+          });
+
+          console.log(`[useEmployeeData] Filtered by department ${selectedDepartmentId}: ${transformedEmployees.length} -> ${departmentFilteredEmployees.length}`);
+        }
+
         // Schema isolation handles data separation - no filtering needed
-        const administrators = transformedEmployees.filter(emp => emp.role === 'administrator');
-        const skadeledere = transformedEmployees.filter(emp => emp.role === 'skadeleder');
+        const administrators = departmentFilteredEmployees.filter(emp => emp.role === 'administrator');
+        const skadeledere = departmentFilteredEmployees.filter(emp => emp.role === 'skadeleder');
 
         console.log('[useEmployeeData] Final distribution:');
         console.log('- Administrators:', administrators.length);
         console.log('- Skadeledere:', skadeledere.length);
-        console.log('- Total employees:', transformedEmployees.length);
+        console.log('- Total employees:', departmentFilteredEmployees.length);
 
         // Filter out demo user from production view (demo user is only for demo mode)
-        let finalEmployees = transformedEmployees;
+        let finalEmployees = departmentFilteredEmployees;
         if (!isDemoMode) {
-          const beforeCount = transformedEmployees.length;
-          finalEmployees = transformedEmployees.filter(emp => 
+          const beforeCount = departmentFilteredEmployees.length;
+          finalEmployees = departmentFilteredEmployees.filter(emp => 
             emp.email !== 'test@polygongroup.com' && 
             emp.id !== '165cdbc9-6722-4c96-97d2-1a87185c8133'
           );
@@ -284,7 +318,7 @@ export const useEmployeeData = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, t, isDemoMode, hasShownError]);
+  }, [toast, t, isDemoMode, hasShownError, selectedDepartmentId]);
 
   // Load employees on mount - wait for userDataLoaded to stabilize
   useEffect(() => {
@@ -295,7 +329,7 @@ export const useEmployeeData = () => {
     }, 50);
     
     return () => clearTimeout(timer);
-  }, [userDataLoaded, user?.id]);
+  }, [userDataLoaded, user?.id, selectedDepartmentId]);
 
   // Realtime subscription with proper debouncing and schema awareness
   useEffect(() => {

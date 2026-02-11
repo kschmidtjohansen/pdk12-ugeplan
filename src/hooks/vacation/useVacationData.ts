@@ -35,7 +35,7 @@ export const useVacationData = () => {
       console.log('[useVacationData] Starting enhanced vacation fetch...');
 
       // Use enhanced data fetching with better error handling
-      const vacationResult = await enhancedDataFetching.fetchVacationsEnhanced(user?.email);
+      const vacationResult = await enhancedDataFetching.fetchVacationsEnhanced(user?.email, selectedDepartmentId);
       
       if (vacationResult.error || !vacationResult.data) {
         throw vacationResult.error || new Error('No vacation data received');

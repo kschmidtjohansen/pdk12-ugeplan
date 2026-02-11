@@ -321,7 +321,12 @@ const planner = {
     generatingPdf: 'Genererer PDF...',
     pdfGenerated: 'PDF genereret',
     uploadImages: 'Upload billeder'
-  }
+  },
+  
+  // Department filtering
+  noDepartmentSelected: 'Ingen afdeling valgt',
+  selectDepartmentToViewData: 'Vælg en hovedafdeling for at se data',
+  departmentFilterActive: 'Viser data for {department}',
 };
 
 export default planner;

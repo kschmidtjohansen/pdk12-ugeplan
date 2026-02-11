@@ -315,7 +315,12 @@ const planner = {
     generatingPdf: 'Generating PDF...',
     pdfGenerated: 'PDF generated',
     uploadImages: 'Upload images'
-  }
+  },
+  
+  // Department filtering
+  noDepartmentSelected: 'No department selected',
+  selectDepartmentToViewData: 'Select a department to view data',
+  departmentFilterActive: 'Showing data for {department}',
 };
 
 export default planner;

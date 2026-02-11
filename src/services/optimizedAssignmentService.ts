@@ -293,7 +293,7 @@ export class OptimizedAssignmentService {
     });
   }
 
-  static async fetchAllAssignments(role: string, userEmail?: string): Promise<OptimizedAssignmentData[]> {
+  static async fetchAllAssignments(role: string, userEmail?: string, departmentId?: string | null): Promise<OptimizedAssignmentData[]> {
     try {
       // Check for demo mode - use userEmail as primary check for reliability
       const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
@@ -326,7 +326,9 @@ export class OptimizedAssignmentService {
       console.log(`[OptimizedAssignmentService] Using secure function for all assignments, role: ${role}`);
 
       try {
-        const { data, error } = await supabase.rpc('list_accessible_assignments_with_team');
+        const { data, error } = await supabase.rpc('list_accessible_assignments_with_team', {
+          p_department_id: departmentId || null
+        });
 
         if (error) {
           console.error('[OptimizedAssignmentService] RPC error:', error);
@@ -466,7 +468,7 @@ export class OptimizedAssignmentService {
     }
   }
 
-  static async fetchAllPublishedAssignments(userEmail?: string): Promise<OptimizedAssignmentData[]> {
+  static async fetchAllPublishedAssignments(userEmail?: string, departmentId?: string | null): Promise<OptimizedAssignmentData[]> {
     try {
       // Check for demo mode - use userEmail as primary check for reliability
       const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
@@ -497,7 +499,9 @@ export class OptimizedAssignmentService {
       
       console.log('[OptimizedAssignmentService] Using secure function for published assignments');
       
-      const { data, error } = await supabase.rpc('list_accessible_assignments_with_team');
+      const { data, error } = await supabase.rpc('list_accessible_assignments_with_team', {
+        p_department_id: departmentId || null
+      });
 
       if (error) {
         console.error('[OptimizedAssignmentService] Secure function error:', error);
@@ -768,7 +772,7 @@ export class OptimizedAssignmentService {
     }
   }
 
-  static async fetchUnpublishedAssignments(userId: string, userRole: string, userEmail?: string): Promise<OptimizedAssignmentData[]> {
+  static async fetchUnpublishedAssignments(userId: string, userRole: string, userEmail?: string, departmentId?: string | null): Promise<OptimizedAssignmentData[]> {
     const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
     if (isDemoMode) {
@@ -784,11 +788,11 @@ export class OptimizedAssignmentService {
       return [...baselineUnpublished, ...localUnpublished];
     }
     
-    const allAssignments = await this.fetchAllAssignments(userRole);
+    const allAssignments = await this.fetchAllAssignments(userRole, userEmail, departmentId);
     return allAssignments.filter(a => !a.published);
   }
 
-  static async fetchUserAssignments(userId: string, userRole: string, userEmail?: string): Promise<OptimizedAssignmentData[]> {
+  static async fetchUserAssignments(userId: string, userRole: string, userEmail?: string, departmentId?: string | null): Promise<OptimizedAssignmentData[]> {
     const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
     if (isDemoMode) {
@@ -809,7 +813,7 @@ export class OptimizedAssignmentService {
       return [...baselineConverted, ...localConverted];
     }
     
-    const allAssignments = await this.fetchAllAssignments(userRole, userEmail);
+    const allAssignments = await this.fetchAllAssignments(userRole, userEmail, departmentId);
     const filtered = allAssignments.filter(a =>
       a.responsible_user_id === userId || a.assignment_employees.some(e => e.user_id === userId)
     );
