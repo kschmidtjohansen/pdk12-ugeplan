@@ -129,7 +129,11 @@ const vacation = {
   // Admin notification for pending requests
   pendingRequestsTitle: "Pending Requests",
   pendingRequestsDescription: "vacation request(s) waiting for approval",
-  openVacationPage: "Open Vacation"
+  openVacationPage: "Open Vacation",
+  
+  // Department filtering
+  noDepartmentSelected: 'No department selected',
+  selectDepartmentToViewVacations: 'Select a department to view vacation requests',
 };
 
 export default vacation;

@@ -192,9 +192,9 @@ export class EnhancedDataFetching {
     };
   }
 
-  async fetchVacationsEnhanced(currentUserEmail?: string) {
+  async fetchVacationsEnhanced(currentUserEmail?: string, departmentId?: string | null) {
     const isDemoMode = DemoSchemaClient.isDemoMode(currentUserEmail);
-    const cacheKey = this.getCacheKey('vacations', 'enhanced', { currentUserEmail, isDemoMode });
+    const cacheKey = this.getCacheKey('vacations', 'enhanced', { currentUserEmail, isDemoMode, departmentId });
     const cached = this.getCache(cacheKey);
     
     if (cached) {
@@ -218,8 +218,8 @@ export class EnhancedDataFetching {
         // Production: Use direct table access
         const client = getSchemaClient(false);
         
-        // Enhanced vacation query with better error handling
-        const { data, error } = await client
+        // Enhanced vacation query with department filtering
+        let query = client
           .from('vacations')
           .select(`
             id,
@@ -234,12 +234,19 @@ export class EnhancedDataFetching {
             reason,
             notes,
             created_at,
-            updated_at
+            updated_at,
+            department_id
           `)
           .order('created_at', { ascending: false });
         
+        // Filter by department if provided
+        if (departmentId) {
+          query = query.or(`department_id.eq.${departmentId},department_id.is.null`);
+        }
+        
+        const { data, error } = await query;
+        
         if (error) {
-          // Enhanced error context for vacation queries
           throw Object.assign(error, {
             context: 'vacation_fetch',
             table: 'vacations',
@@ -251,9 +258,9 @@ export class EnhancedDataFetching {
         return { data, error: null };
       }
     }, 'fetchVacationsEnhanced', {
-      retries: 4, // More retries for critical vacation data
-      timeout: 15000, // Longer timeout for complex queries
-      skipRetryFor: ['auth', 'rls'] // Don't retry auth/permission errors
+      retries: 4,
+      timeout: 15000,
+      skipRetryFor: ['auth', 'rls']
     });
     
     if (result.data) {
