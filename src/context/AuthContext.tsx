@@ -9,7 +9,7 @@ import { TranslationContext } from './TranslationContext';
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 
 // Define user roles
-export type UserRole = 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'vikar';
+export type UserRole = 'super_admin' | 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'vikar';
 
 // Export the User type from supabase for components that need it
 export type { User };
