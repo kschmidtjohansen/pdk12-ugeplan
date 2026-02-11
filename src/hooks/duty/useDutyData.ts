@@ -6,7 +6,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 import type { Duty } from '@/types/duty';
 
 export const useDutyData = (startDate?: Date, endDate?: Date) => {
-  const { user } = useAuth();
+  const { user, isDemoMode } = useAuth();
   const { selectedDepartmentId } = useDepartment();
   const [duties, setDuties] = useState<Duty[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +73,8 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
           `)
           .order('duty_date', { ascending: true });
 
-        if (selectedDepartmentId) {
+        // Demo user sees all departments; normal users filter by selected department
+        if (selectedDepartmentId && !isDemoMode) {
           query = query.eq('department_id', selectedDepartmentId);
         }
         if (startDateStr) {
@@ -89,10 +90,17 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
         if (fetchError) throw fetchError;
 
         // Map the data with basic employee info (roles will be enriched in DutyPage)
-        const dutiesWithProfiles = (data || []).map((duty: any) => ({
+        let dutiesWithProfiles = (data || []).map((duty: any) => ({
           ...duty,
           employee: duty.employee || undefined
         }));
+
+        // Hide demo user's duties from non-demo users
+        if (!isDemoMode) {
+          dutiesWithProfiles = dutiesWithProfiles.filter((duty: any) => 
+            duty.employee_id !== '165cdbc9-6722-4c96-97d2-1a87185c8133'
+          );
+        }
 
         setDuties(dutiesWithProfiles as Duty[]);
       }

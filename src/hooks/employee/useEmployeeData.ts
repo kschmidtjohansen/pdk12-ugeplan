@@ -207,9 +207,9 @@ export const useEmployeeData = () => {
           return employee;
         });
 
-        // Filter by department if selectedDepartmentId is set
+        // Filter by department if selectedDepartmentId is set (demo user sees all departments)
         let departmentFilteredEmployees = transformedEmployees;
-        if (selectedDepartmentId) {
+        if (selectedDepartmentId && !isDemoMode) {
           // Get user_ids with access to the selected department
           const { data: accessData, error: accessError } = await supabase
             .from('user_access')
