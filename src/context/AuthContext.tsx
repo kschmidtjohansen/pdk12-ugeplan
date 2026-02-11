@@ -661,12 +661,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   // Permissions based on current user (with demo role override)
   const currentRole = isDemoMode && demoRole ? demoRole : user?.role;
-  const isAdmin = currentRole === 'administrator';
+  const isSuperAdmin = currentRole === 'super_admin';
+  const isAdmin = currentRole === 'administrator' || isSuperAdmin;
   const isSkadeleder = currentRole === 'skadeleder';  
   const isServicemedarbejder = currentRole === 'servicemedarbejder';
 
-  // Effective role permissions (considering demo mode)
-  const isEffectiveAdmin = currentRole === 'administrator';
+  // Effective role permissions (considering demo mode) - super_admin has all admin rights
+  const isEffectiveAdmin = currentRole === 'administrator' || currentRole === 'super_admin';
   const isEffectiveSkadeleder = currentRole === 'skadeleder';
   const isEffectiveServicemedarbejder = currentRole === 'servicemedarbejder';
 
@@ -679,7 +680,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Validation methods
   const validateAdminAccess = (): boolean => {
-    if (!user || user.role !== 'administrator') {
+    if (!user || (user.role !== 'administrator' && user.role !== 'super_admin')) {
       toast({
         title: t('auth.accessDenied') || "Access Denied",
         description: t('auth.adminRequired') || "You need administrator privileges for this action.",
@@ -691,7 +692,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const validateSkadelederAccess = (): boolean => {
-    if (!user || (user.role !== 'administrator' && user.role !== 'skadeleder')) {
+    if (!user || (user.role !== 'administrator' && user.role !== 'super_admin' && user.role !== 'skadeleder')) {
       toast({
         title: t('auth.accessDenied') || "Access Denied",
         description: t('auth.skadelederRequired') || "You need skadeleder or administrator privileges for this action.",
