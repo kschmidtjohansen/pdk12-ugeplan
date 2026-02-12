@@ -1,8 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AssignmentService } from '@/services/data/assignmentService';
 import { Assignment } from '@/types/assignment';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseAssignmentsResult {
   assignments: Assignment[];
@@ -53,6 +54,38 @@ export const useAssignments = (): UseAssignmentsResult => {
   useEffect(() => {
     fetchAssignments();
   }, [user?.id, user?.role, isAuthenticated]);
+
+  // Realtime subscription for assignments table
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) return;
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let isMounted = true;
+
+    const channel = supabase
+      .channel('data-assignments-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, () => {
+        if (!isMounted) return;
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          if (isMounted) {
+            console.log('[useAssignments] Realtime change detected, refetching...');
+            refetch().catch(err => console.error('[useAssignments] Realtime refetch error:', err));
+          }
+        }, 1000);
+      })
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.warn('[useAssignments] Realtime channel error, falling back to existing data');
+        }
+      });
+
+    return () => {
+      isMounted = false;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      supabase.removeChannel(channel);
+    };
+  }, [isAuthenticated, user?.id, refetch]);
 
   return {
     assignments,
