@@ -18,6 +18,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t, isInitialized } = useTranslation();
+  const handlePullRefresh = useCallback(async () => {
+    window.location.reload();
+  }, []);
   console.log('[MainLayout] SESSION EXPIRATION FIX - Render state:', {
     path: location.pathname,
     isAuthenticated,
@@ -89,9 +92,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
-  const handlePullRefresh = useCallback(async () => {
-    window.location.reload();
-  }, []);
 
   // Show main layout for authenticated users
   return (
