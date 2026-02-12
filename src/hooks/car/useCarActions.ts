@@ -167,17 +167,25 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
             return;
           }
         }
+
+        // Optimistic: remove car from UI immediately
+        const previousCars = [...cars];
+        console.log('[Optimistic] Removing car from UI:', currentCar.id);
+        setCars(cars.filter(car => car.id !== currentCar.id));
         
-        // Now delete the car
+        // Now delete the car from DB
         const client = getSchemaClient(isDemoMode);
         const { error } = await client
           .from('cars')
           .delete()
           .eq('id', currentCar.id);
         
-        if (error) throw error;
-        
-        setCars(cars.filter(car => car.id !== currentCar.id));
+        if (error) {
+          // Rollback on failure
+          console.log('[Optimistic] Rollback: restoring car', currentCar.id);
+          setCars(previousCars);
+          throw error;
+        }
         
         const successMessage = forceDelete && assignmentsAffected > 0
           ? t('cars.vehicleDeletedWithCleanup', { 
@@ -293,7 +301,16 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         return;
       }
 
-      // Update the car with both availability and notes
+      // Optimistic: update UI immediately
+      const previousCars = [...cars];
+      console.log('[Optimistic] Updating car availability in UI:', car.id, { isAvailable, notes });
+      setCars(cars.map(c => 
+        c.id === car.id 
+          ? { ...c, is_available: isAvailable, notes: notes }
+          : c
+      ));
+
+      // Persist to DB
       const client = getSchemaClient(isDemoMode);
       const { error, data } = await client
         .from('cars')
@@ -308,16 +325,12 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
       console.log("[useCarActions] Car update response:", { error, data });
       
       if (error) {
+        // Rollback on failure
+        console.log('[Optimistic] Rollback: restoring previous car state', car.id);
+        setCars(previousCars);
         console.error("[useCarActions] Error updating car:", error);
         throw error;
       }
-      
-      // Update local state with all data
-      setCars(cars.map(c => 
-        c.id === car.id 
-          ? { ...c, is_available: isAvailable, notes: notes }
-          : c
-      ));
       
       // Show success message
       if (isAvailable) {
