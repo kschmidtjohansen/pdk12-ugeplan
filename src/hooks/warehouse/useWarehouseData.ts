@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { supabase } from '@/integrations/supabase/client';
-import { WarehouseItem } from '@/types/warehouse';
+import { WarehouseItem, WarehouseItemFormData } from '@/types/warehouse';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 
@@ -19,18 +19,15 @@ export const useWarehouseData = () => {
       setError(null);
       
       if (isDemoMode) {
-        // Use demo RPC for demo users
         const { data, error: fetchError } = await supabase.rpc('get_demo_warehouse_items');
         if (fetchError) throw fetchError;
         
-        // Defensive client-side filter to ensure only demo items
         const demoItems = (data || []).filter((item: any) => 
           item.case_number?.startsWith('DEMO-') || item.address?.startsWith('Demo')
         );
         
         setItems(demoItems as any);
       } else {
-        // Use direct table access for production users, filtered by department
         let query = client
           .from('warehouse_items')
           .select('*');
@@ -52,21 +49,56 @@ export const useWarehouseData = () => {
     }
   };
 
+  // Local state mutation functions for demo mode persistence
+  const addLocalItem = useCallback((data: WarehouseItemFormData) => {
+    const newItem: WarehouseItem = {
+      id: crypto.randomUUID(),
+      address: data.address,
+      case_number: data.case_number || null,
+      is_cleaned: data.is_cleaned,
+      quantity: data.quantity,
+      hall: data.hall || null,
+      notes: data.notes || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      created_by: null,
+    };
+    setItems(prev => [newItem, ...prev]);
+  }, []);
+
+  const updateLocalItem = useCallback((id: string, data: WarehouseItemFormData) => {
+    setItems(prev => prev.map(item => 
+      item.id === id 
+        ? { 
+            ...item, 
+            address: data.address,
+            case_number: data.case_number || null,
+            is_cleaned: data.is_cleaned,
+            quantity: data.quantity,
+            hall: data.hall || null,
+            notes: data.notes || null,
+            updated_at: new Date().toISOString(),
+          } 
+        : item
+    ));
+  }, []);
+
+  const deleteLocalItem = useCallback((id: string) => {
+    setItems(prev => prev.filter(item => item.id !== id));
+  }, []);
+
   useEffect(() => {
-    // Wait for userDataLoaded to stabilize before fetching
     if (!userDataLoaded || !user) return;
     
     fetchItems();
 
     if (isDemoMode) {
-      // Demo mode: Use polling instead of realtime
       const pollInterval = setInterval(() => {
         fetchItems();
-      }, 45000); // Poll every 45 seconds
+      }, 45000);
 
       return () => clearInterval(pollInterval);
     } else {
-      // Production mode: Use realtime subscriptions
       const channel = supabase
         .channel(`warehouse_items_changes_public`)
         .on(
@@ -88,5 +120,5 @@ export const useWarehouseData = () => {
     }
   }, [isDemoMode, userDataLoaded, user?.id, selectedDepartmentId]);
 
-  return { items, loading, error, refetch: fetchItems };
+  return { items, loading, error, refetch: fetchItems, addLocalItem, updateLocalItem, deleteLocalItem };
 };

@@ -299,6 +299,16 @@ export const admin = {
     passwordTooShort: 'Password too short. Must contain 6 characters.',
     passwordsMustMatch: 'Passwords must match'
   },
+  locations: {
+    description: 'Manage warehouse locations and their names',
+    editName: 'Edit name',
+    delete: 'Delete location',
+    deleteConfirm: 'Delete location?',
+    deleteWarning: "All items assigned to this location will have their location set to 'None'. This action cannot be undone.",
+    deleted: 'Location deleted',
+    renamed: 'Location name updated',
+    noLocations: 'No locations',
+  },
   roles: {
     super_admin: 'Super Admin',
     administrator: 'Administrator',

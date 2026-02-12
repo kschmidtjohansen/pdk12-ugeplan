@@ -129,6 +129,7 @@ export const common = {
   // Demo role switching
   switchRole: "Skift Rolle",
   roleChanged: "Rolle Ændret",
+  roleChangedTo: "Skiftet til {role}",
   switchingToRole: "Skifter til {role}...",
   unknown: "Ukendt",
   
