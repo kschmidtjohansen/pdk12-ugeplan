@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { groupAssignmentsByDay } from '@/utils/dateUtils';
 import { format, parseISO } from 'date-fns';
 import { getAllWeekDays } from '@/utils/dates';
@@ -50,6 +51,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
 }) => {
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
+  const { isDutyEnabled } = useDepartment();
   
   const { employees, cars } = useUnifiedData();
   const { vacations } = useVacations();
@@ -123,12 +125,14 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
               weekDates={weekDates}
             />
           </div>
-          <div>
-            <DutyWeekWidget
-              selectedWeek={selectedWeek}
-              selectedYear={selectedYear}
-            />
-          </div>
+          {isDutyEnabled && (
+            <div>
+              <DutyWeekWidget
+                selectedWeek={selectedWeek}
+                selectedYear={selectedYear}
+              />
+            </div>
+          )}
         </div>
       )}
 

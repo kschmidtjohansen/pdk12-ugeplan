@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { Menu, X } from 'lucide-react';
@@ -118,9 +119,14 @@ const TopNavbar: React.FC = () => {
     timestamp: new Date().toISOString()
   });
   
-  const filteredNavItems = navigationItems.filter(
-    item => !item.adminOnly || isEffectiveAdmin
-  );
+  const { isDutyEnabled, isWarehouseEnabled } = useDepartment();
+  
+  const filteredNavItems = navigationItems.filter(item => {
+    if (item.adminOnly && !isEffectiveAdmin) return false;
+    if (item.path === '/duty' && !isDutyEnabled) return false;
+    if (item.path === '/warehouse' && !isWarehouseEnabled) return false;
+    return true;
+  });
 
   if (!isAuthenticated) {
     return null;

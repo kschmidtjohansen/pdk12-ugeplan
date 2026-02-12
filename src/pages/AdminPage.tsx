@@ -4,10 +4,11 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Users, Building2, Layers } from 'lucide-react';
+import { Shield, Users, Building2, Layers, Settings } from 'lucide-react';
 import UserManagement from '@/components/Admin/UserManagement';
 import DepartmentManagement from '@/components/Admin/DepartmentManagement';
 import SubDepartmentManagement from '@/components/Admin/SubDepartmentManagement';
+import FeatureToggleManagement from '@/components/Admin/FeatureToggleManagement';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
 
 const AdminPage: React.FC = () => {
@@ -64,6 +65,10 @@ const AdminPage: React.FC = () => {
               <Users className="h-4 w-4" />
               {t('admin.tabs.users')}
             </TabsTrigger>
+            <TabsTrigger value="features" className="gap-2">
+              <Settings className="h-4 w-4" />
+              {t('admin.tabs.features')}
+            </TabsTrigger>
           </TabsList>
 
           {isSuperAdmin && (
@@ -86,6 +91,10 @@ const AdminPage: React.FC = () => {
                 <UserManagement />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="features" className="animate-fade-in">
+            <FeatureToggleManagement />
           </TabsContent>
         </Tabs>
       </div>

@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentDataOptimized';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Clock } from 'lucide-react';
@@ -14,6 +15,7 @@ import { LastRefreshIndicator } from '@/components/shared/LastRefreshIndicator';
 const ServicemedarbejderDashboard: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { isDutyEnabled } = useDepartment();
   const { assignments, loading, fetchAssignments } = useAssignmentDataOptimized();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
@@ -151,7 +153,7 @@ const ServicemedarbejderDashboard: React.FC = () => {
         </CardContent>
       </Card>
 
-      <DutySummaryWidget />
+      {isDutyEnabled && <DutySummaryWidget />}
 
       <MineOpgaver />
     </div>

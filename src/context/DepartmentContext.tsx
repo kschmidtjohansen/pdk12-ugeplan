@@ -6,6 +6,8 @@ import { unifiedDataService } from '@/services/data/unifiedDataService';
 interface Department {
   id: string;
   name: string;
+  warehouse_enabled: boolean;
+  duty_enabled: boolean;
 }
 
 interface DepartmentContextType {
@@ -16,6 +18,9 @@ interface DepartmentContextType {
   setSelectedDepartmentId: (id: string | null) => void;
   switchDepartment: (id: string) => void;
   loading: boolean;
+  isWarehouseEnabled: boolean;
+  isDutyEnabled: boolean;
+  refetchDepartments: () => void;
 }
 
 const DepartmentContext = createContext<DepartmentContextType>({
@@ -26,18 +31,26 @@ const DepartmentContext = createContext<DepartmentContextType>({
   setSelectedDepartmentId: () => {},
   switchDepartment: () => {},
   loading: true,
+  isWarehouseEnabled: true,
+  isDutyEnabled: true,
+  refetchDepartments: () => {},
 });
 
 export const useDepartment = () => useContext(DepartmentContext);
 
 export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isDemoMode } = useAuth();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [userDepartments, setUserDepartments] = useState<Department[]>([]);
   const [selectedDepartmentId, setSelectedDepartmentIdState] = useState<string | null>(() => {
     return localStorage.getItem('selected_department_id');
   });
   const [loading, setLoading] = useState(true);
+  const [fetchCounter, setFetchCounter] = useState(0);
+
+  const refetchDepartments = useCallback(() => {
+    setFetchCounter(c => c + 1);
+  }, []);
 
   // Fetch all departments
   useEffect(() => {
@@ -45,13 +58,18 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
       try {
         const { data, error } = await supabase
           .from('departments')
-          .select('id, name')
+          .select('id, name, warehouse_enabled, duty_enabled')
           .order('name');
 
         if (error) {
           console.error('[DepartmentContext] Failed to fetch departments:', error);
         } else {
-          setDepartments(data || []);
+          setDepartments((data || []).map(d => ({
+            id: d.id,
+            name: d.name,
+            warehouse_enabled: (d as any).warehouse_enabled ?? true,
+            duty_enabled: (d as any).duty_enabled ?? true,
+          })));
         }
       } catch (err) {
         console.error('[DepartmentContext] Error fetching departments:', err);
@@ -59,7 +77,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     };
 
     fetchDepartments();
-  }, []);
+  }, [fetchCounter]);
 
   // Fetch user-specific departments based on role
   useEffect(() => {
@@ -75,25 +93,28 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
         const isSuperAdmin = user.role === 'super_admin';
 
         if (isSuperAdmin) {
-          // Super admin sees all departments
           const { data, error } = await supabase
             .from('departments')
-            .select('id, name')
+            .select('id, name, warehouse_enabled, duty_enabled')
             .order('name');
 
           if (!error && data) {
-            setUserDepartments(data);
-            // Auto-select if only one or if stored value matches
-            if (data.length === 1 && !selectedDepartmentId) {
-              setSelectedDepartmentIdState(data[0].id);
-              localStorage.setItem('selected_department_id', data[0].id);
+            const mapped = data.map(d => ({
+              id: d.id,
+              name: d.name,
+              warehouse_enabled: (d as any).warehouse_enabled ?? true,
+              duty_enabled: (d as any).duty_enabled ?? true,
+            }));
+            setUserDepartments(mapped);
+            if (mapped.length === 1 && !selectedDepartmentId) {
+              setSelectedDepartmentIdState(mapped[0].id);
+              localStorage.setItem('selected_department_id', mapped[0].id);
             }
           }
         } else {
-          // Other roles: fetch from user_access joined with departments
           const { data, error } = await supabase
             .from('user_access')
-            .select('department_id, departments:department_id(id, name)')
+            .select('department_id, departments:department_id(id, name, warehouse_enabled, duty_enabled)')
             .eq('user_id', user.id);
 
           if (!error && data) {
@@ -103,13 +124,17 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
               const dept = row.departments as any;
               if (dept && !seen.has(dept.id)) {
                 seen.add(dept.id);
-                depts.push({ id: dept.id, name: dept.name });
+                depts.push({
+                  id: dept.id,
+                  name: dept.name,
+                  warehouse_enabled: dept.warehouse_enabled ?? true,
+                  duty_enabled: dept.duty_enabled ?? true,
+                });
               }
             }
             depts.sort((a, b) => a.name.localeCompare(b.name));
             setUserDepartments(depts);
 
-            // Auto-select if only one
             if (depts.length === 1 && !selectedDepartmentId) {
               setSelectedDepartmentIdState(depts[0].id);
               localStorage.setItem('selected_department_id', depts[0].id);
@@ -124,7 +149,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     };
 
     fetchUserDepartments();
-  }, [isAuthenticated, user?.id, user?.role]);
+  }, [isAuthenticated, user?.id, user?.role, fetchCounter]);
 
   const setSelectedDepartmentId = useCallback((id: string | null) => {
     setSelectedDepartmentIdState(id);
@@ -138,13 +163,16 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
   const switchDepartment = useCallback((id: string) => {
     setSelectedDepartmentIdState(id);
     localStorage.setItem('selected_department_id', id);
-    // Clear cache so data is refetched for new department
     unifiedDataService.clearCache();
     console.log('[DepartmentContext] Switched department to:', id);
   }, []);
 
   const selectedDepartment = (userDepartments.length > 0 ? userDepartments : departments)
     .find(d => d.id === selectedDepartmentId) || null;
+
+  // Feature flags - default true, demo always true
+  const isWarehouseEnabled = isDemoMode ? true : (selectedDepartment?.warehouse_enabled ?? true);
+  const isDutyEnabled = isDemoMode ? true : (selectedDepartment?.duty_enabled ?? true);
 
   return (
     <DepartmentContext.Provider value={{
@@ -155,6 +183,9 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
       setSelectedDepartmentId,
       switchDepartment,
       loading,
+      isWarehouseEnabled,
+      isDutyEnabled,
+      refetchDepartments,
     }}>
       {children}
     </DepartmentContext.Provider>

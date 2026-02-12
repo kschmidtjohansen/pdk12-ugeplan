@@ -1,0 +1,4 @@
+
+ALTER TABLE public.departments
+  ADD COLUMN IF NOT EXISTS warehouse_enabled BOOLEAN NOT NULL DEFAULT true,
+  ADD COLUMN IF NOT EXISTS duty_enabled BOOLEAN NOT NULL DEFAULT true;
