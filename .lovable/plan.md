@@ -1,61 +1,83 @@
 
 
-## Plan: Login afdelingsvælger + Demo super_admin department-skift
+## Plan: Servicemedarbejder kan se alle medarbejdere i afdelingen
 
-### Problem 1: Login-formularen har en afdelingsvælger der skal fjernes
+### Problem
 
-**Årsag:** `EnhancedSecureLoginForm.tsx` viser en Select-komponent med alle afdelinger og kræver valg før login. Brugeren ønsker at afdelingen automatisk sættes baseret på `user_access`-tabellen efter login.
+En servicemedarbejder kan kun se sig selv i /employees. Aarsagen er RLS-policyen paa `user_access`-tabellen:
 
-**Rettelse i `src/components/Auth/EnhancedSecureLoginForm.tsx`:**
-- Fjern hele department selector UI-blokken (linje 183-211)
-- Fjern valideringen `if (!selectedDepartmentId)` (linje 48-51)
-- Fjern department-relaterede imports og state (`useDepartment`, `Building2`)
-- Fjern department access check efter login (linje 104-121) - dette håndteres nu af DepartmentContext automatisk
-- Behold al anden logik (email, password, attempts, timeout) uændret
+```sql
+-- Nuvaerende policy: "Users can view own access"
+user_id = auth.uid() OR is_super_admin() OR (is_admin_user() AND department_id = ANY(get_user_department_ids()))
+```
 
-### Problem 2: Auto-valg af afdeling efter login
+Naar `useEmployeeData.ts` (linje 214) henter `user_access`-records for den valgte afdeling, faar en servicemedarbejder kun sin egen record tilbage. Dermed filtreres medarbejderlisten ned til kun dem selv.
 
-**Årsag:** `DepartmentContext.tsx` auto-vælger kun afdeling når der er præcis 1 afdeling. Hvis brugeren har flere afdelinger og ingen er valgt i localStorage, forbliver `selectedDepartmentId` null.
+### Loesning
 
-**Rettelse i `src/context/DepartmentContext.tsx`:**
-- Ændr auto-select logikken (linje 114 og 144): Hvis ingen afdeling er valgt i localStorage, vælg den første tilgængelige afdeling automatisk (ikke kun når der er præcis 1)
-- Ændr `if (mapped.length === 1 && !selectedDepartmentId)` til `if (mapped.length > 0 && !selectedDepartmentId)`
-- Samme ændring for non-super_admin brugere (linje 144)
-
-### Problem 3: Demo mode super_admin kan ikke skifte afdeling
-
-**Årsag:** `DepartmentContext.tsx` linje 97 bruger `user.role` til at afgøre om brugeren er super_admin. I demo mode er `user.role` altid den base-rolle der er gemt i databasen (typisk `administrator`). Demo-rolleskiftet sker via `demoRole` i AuthContext, men DepartmentContext kender ikke til `demoRole` eller `effectiveRole`.
-
-**Rettelse i `src/context/DepartmentContext.tsx`:**
-- Importér `effectiveRole` (eller beregn det via `isDemoMode` + `demoRole`) fra AuthContext
-- I linje 97, ændr `const isSuperAdmin = user.role === 'super_admin'` til at bruge den effektive rolle:
-  ```
-  // Hent effectiveRole fra AuthContext (allerede tilgængelig)
-  // Brug det i stedet for user.role
-  ```
-- Da AuthContext allerede eksporterer `effectiveRole`, kan vi tilføje det til destructured values fra `useAuth()`
-- Ændr `useEffect` dependency array til også at inkludere effectiveRole, så department-listen genindlæses når demo-rollen skiftes
-
-### Header-visning (allerede korrekt)
-
-DepartmentSelector i TopNavbar og MobileNavigation fungerer allerede korrekt:
-- Viser afdelingsnavn statisk ved 1 afdeling
-- Viser dropdown ved flere afdelinger
-- Ingen ændringer nødvendige her
-
----
+Opdater RLS-policyen paa `user_access` saa alle autentificerede brugere kan se access-records for afdelinger de selv tilhoerer. Dette er sikkert fordi `user_access` kun indeholder `user_id`, `department_id` og `sub_department_id` - ingen foelsom data.
 
 ### Tekniske detaljer
 
-| Fil | Ændring |
-|-----|---------|
-| `src/components/Auth/EnhancedSecureLoginForm.tsx` | Fjern department selector UI, validation og access check |
-| `src/context/DepartmentContext.tsx` | Auto-vælg første afdeling + brug effectiveRole for demo super_admin |
+**1. Database migration: Opdater `user_access` SELECT policy**
+
+Erstat den eksisterende SELECT-policy med:
+
+```sql
+DROP POLICY "Users can view own access" ON public.user_access;
+
+CREATE POLICY "Users can view department access"
+ON public.user_access
+FOR SELECT
+TO authenticated
+USING (
+  user_id = auth.uid()
+  OR is_super_admin()
+  OR department_id = ANY(get_user_department_ids(auth.uid()))
+);
+```
+
+Dette tillader enhver bruger at se alle `user_access`-records for afdelinger de selv har adgang til - uanset rolle. Super admins kan se alt.
+
+**2. Ingen kodeaendringer noevendige i `useEmployeeData.ts`**
+
+Den eksisterende logik (linje 212-240) fungerer allerede korrekt - den henter `user_access` for den valgte afdeling og filtrerer medarbejdere derefter. Problemet er udelukkende at RLS blokerer visningen af andre brugeres records.
+
+**3. CHANGELOG.md opdatering**
+
+Tilfoej under `[Unreleased]`:
+
+```
+### Fixed - 2025-02-12
+- Servicemedarbejdere kan nu se alle medarbejdere i deres afdeling (ikke kun sig selv)
+
+### Changed - 2025-02-12
+- Login kræver ikke længere valg af afdeling (automatisk tildeling efter login)
+- Super Admin kan skifte afdeling i demo mode via header-selector
+```
+
+**4. README.md opdatering**
+
+Tilfoej i features-listen (baade dansk og engelsk):
+- Afdelingsbaseret login (automatisk tildeling)
+- Lokationsstyring i admin-panelet
+
+Opdater rolletabellen:
+- Servicemedarbejder: "Kan se alle medarbejdere i afdelingen, se egne opgaver, anmode om ferie" (i stedet for kun "se egne opgaver")
+
+---
+
+### Filer der aendres
+
+| Fil | Type | AEndring |
+|-----|------|---------|
+| `supabase/migrations/[timestamp]_fix_user_access_select.sql` | NY | Opdater RLS policy paa user_access |
+| `CHANGELOG.md` | OPDATER | Tilfoej fix + login-aendring |
+| `README.md` | OPDATER | Opdater rolle-beskrivelser og features |
 
 ### Sikkerhedsgarantier
-- Login-flowet forbliver sikkert (email/password validering, attempts, timeout uændret)
-- Department-adgang kontrolleres stadig via RLS og user_access tabellen
-- Super_admin adgang verificeres stadig server-side via user_roles tabellen
-- Alle props, interfaces og UI-layout forbliver uændrede
-- Oversættelser berøres ikke
+- `user_access` indeholder kun `user_id`, `department_id`, `sub_department_id` - ingen PII eller foelsom data
+- Brugere kan kun se records for afdelinger de selv tilhoerer
+- Super admin-adgang forbliver uaendret
+- Ingen aendringer i frontend-logik, kun databaselag
 
