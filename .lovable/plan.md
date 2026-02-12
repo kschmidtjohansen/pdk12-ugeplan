@@ -1,83 +1,78 @@
 
 
-## Plan: Servicemedarbejder kan se alle medarbejdere i afdelingen
+## Plan: Supabase Realtime-synkronisering for manglende hooks
 
-### Problem
+### Status nu
 
-En servicemedarbejder kan kun se sig selv i /employees. Aarsagen er RLS-policyen paa `user_access`-tabellen:
+Flere data-hooks har allerede realtime-abonnementer:
+- **useEmployeeData** - lytter paa `profiles` + `user_roles`
+- **useCarData** - lytter paa `cars`
+- **useDutyData** - lytter paa `on_call_duties`
+- **useVacationData** - lytter paa `vacations` (via realtimeManager)
+- **useWarehouseData** - lytter paa `warehouse_items`
 
-```sql
--- Nuvaerende policy: "Users can view own access"
-user_id = auth.uid() OR is_super_admin() OR (is_admin_user() AND department_id = ANY(get_user_department_ids()))
-```
+### Mangler realtime
 
-Naar `useEmployeeData.ts` (linje 214) henter `user_access`-records for den valgte afdeling, faar en servicemedarbejder kun sin egen record tilbage. Dermed filtreres medarbejderlisten ned til kun dem selv.
+| Hook | Brugt af | Mangler |
+|------|----------|---------|
+| `useOptimizedAssignments` | PlannerPage (Ugeplan) | Ingen realtime-lytning paa `assignments` |
+| `useUnifiedData` | PlannerContent, Dashboard | Lytter kun paa `cars`, mangler `assignments` og `profiles` |
+| `useAssignments` (data/) | Dashboard (MineOpgaver) | Ingen realtime overhovedet |
 
-### Loesning
+### AEndringer
 
-Opdater RLS-policyen paa `user_access` saa alle autentificerede brugere kan se access-records for afdelinger de selv tilhoerer. Dette er sikkert fordi `user_access` kun indeholder `user_id`, `department_id` og `sub_department_id` - ingen foelsom data.
+**1. `src/hooks/useOptimizedAssignments.ts`**
+
+Tilfoej realtime-abonnement i en ny `useEffect` efter den eksisterende mount-effect (linje 847-851):
+
+- Opret `supabase.channel()` der lytter paa `assignments` tabellen (INSERT, UPDATE, DELETE)
+- Debounce callbacks med 1 sekund for at undgaa rapid-fire refetches
+- Ryd op med `supabase.removeChannel()` ved unmount
+- Spring over i demo mode (bruger allerede optimistiske opdateringer)
+- Ved fejl: log til konsol, fald tilbage paa eksisterende data (ingen crash)
+
+**2. `src/hooks/data/useUnifiedData.ts`**
+
+Udvid det eksisterende channel (linje 90-108) til ogsaa at lytte paa `assignments` og `profiles`:
+
+- Tilfoej `.on('postgres_changes', ... table: 'assignments')` og `.on('postgres_changes', ... table: 'profiles')` til den eksisterende kanal
+- Behold den eksisterende debounce-logik (clear cache + refetch)
+- Ingen aendring i data-formatering eller visning
+
+**3. `src/hooks/data/useAssignments.ts`**
+
+Tilfoej realtime-abonnement:
+
+- Opret `supabase.channel()` der lytter paa `assignments`
+- Debounce med 1 sekund
+- Ryd op ved unmount
+- Fald tilbage paa eksisterende data ved fejl
+
+### Sikkerhedsgarantier
+
+- Eksisterende fetch-logik forbliver uaendret - realtime trigger kun en refetch
+- Ingen aendring i data-formatering eller visning
+- Alle channels ryddes op med `removeChannel()` ved unmount
+- Debounce forhindrer rapid-fire refetches
+- Ved channel-fejl: data forbliver i hukommelsen, ingen crash
+- `isMounted`-flag forhindrer state-opdateringer efter unmount
 
 ### Tekniske detaljer
 
-**1. Database migration: Opdater `user_access` SELECT policy**
-
-Erstat den eksisterende SELECT-policy med:
-
-```sql
-DROP POLICY "Users can view own access" ON public.user_access;
-
-CREATE POLICY "Users can view department access"
-ON public.user_access
-FOR SELECT
-TO authenticated
-USING (
-  user_id = auth.uid()
-  OR is_super_admin()
-  OR department_id = ANY(get_user_department_ids(auth.uid()))
-);
+```text
+Realtime flow:
+  DB aendring --> Supabase Realtime --> Channel callback
+                                           |
+                                    debounce (1s)
+                                           |
+                                    clearCache() + refetch()
+                                           |
+                                    setState (kun hvis mounted)
 ```
 
-Dette tillader enhver bruger at se alle `user_access`-records for afdelinger de selv har adgang til - uanset rolle. Super admins kan se alt.
-
-**2. Ingen kodeaendringer noevendige i `useEmployeeData.ts`**
-
-Den eksisterende logik (linje 212-240) fungerer allerede korrekt - den henter `user_access` for den valgte afdeling og filtrerer medarbejdere derefter. Problemet er udelukkende at RLS blokerer visningen af andre brugeres records.
-
-**3. CHANGELOG.md opdatering**
-
-Tilfoej under `[Unreleased]`:
-
-```
-### Fixed - 2025-02-12
-- Servicemedarbejdere kan nu se alle medarbejdere i deres afdeling (ikke kun sig selv)
-
-### Changed - 2025-02-12
-- Login kræver ikke længere valg af afdeling (automatisk tildeling efter login)
-- Super Admin kan skifte afdeling i demo mode via header-selector
-```
-
-**4. README.md opdatering**
-
-Tilfoej i features-listen (baade dansk og engelsk):
-- Afdelingsbaseret login (automatisk tildeling)
-- Lokationsstyring i admin-panelet
-
-Opdater rolletabellen:
-- Servicemedarbejder: "Kan se alle medarbejdere i afdelingen, se egne opgaver, anmode om ferie" (i stedet for kun "se egne opgaver")
-
----
-
-### Filer der aendres
-
-| Fil | Type | AEndring |
-|-----|------|---------|
-| `supabase/migrations/[timestamp]_fix_user_access_select.sql` | NY | Opdater RLS policy paa user_access |
-| `CHANGELOG.md` | OPDATER | Tilfoej fix + login-aendring |
-| `README.md` | OPDATER | Opdater rolle-beskrivelser og features |
-
-### Sikkerhedsgarantier
-- `user_access` indeholder kun `user_id`, `department_id`, `sub_department_id` - ingen PII eller foelsom data
-- Brugere kan kun se records for afdelinger de selv tilhoerer
-- Super admin-adgang forbliver uaendret
-- Ingen aendringer i frontend-logik, kun databaselag
+| Fil | AEndring |
+|-----|---------|
+| `src/hooks/useOptimizedAssignments.ts` | Ny useEffect med realtime paa `assignments` |
+| `src/hooks/data/useUnifiedData.ts` | Udvid kanal med `assignments` + `profiles` |
+| `src/hooks/data/useAssignments.ts` | Ny useEffect med realtime paa `assignments` |
 
