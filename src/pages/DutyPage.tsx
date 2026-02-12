@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions, useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -111,6 +112,7 @@ export default function DutyPage() {
   }
 
   return (
+    <DataFetchErrorBoundary>
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -236,5 +238,6 @@ export default function DutyPage() {
         onReassign={handleReassignment}
       />
     </div>
+    </DataFetchErrorBoundary>
   );
 }

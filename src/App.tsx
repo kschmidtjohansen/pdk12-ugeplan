@@ -1,7 +1,7 @@
 import React, { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, MutationCache } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import { SecurityProvider } from "./context/SecurityContext";
@@ -11,6 +11,7 @@ import { TranslationProvider, useTranslation } from "./context/TranslationContex
 import { NotificationProvider } from "./context/NotificationContext";
 import { ChangeLogProvider } from "./context/ChangeLogContext";
 import RouteLoadingFallback from "./components/shared/RouteLoadingFallback";
+import { GlobalErrorBoundary } from "./components/ErrorBoundary/GlobalErrorBoundary";
 import MainLayout from "./components/Layout/MainLayout";
 // Lazy load pages for better code splitting with retry logic
 const lazyWithRetry = (importFn: () => Promise<any>) => {
@@ -51,7 +52,12 @@ const queryClient = new QueryClient({
       retry: 1,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
     }
-  }
+  },
+  mutationCache: new MutationCache({
+    onError: (error) => {
+      console.error('[MutationCache] Unhandled mutation error:', error);
+    }
+  })
 });
 
 const App = () => {
@@ -78,7 +84,9 @@ const App = () => {
                 <NotificationProvider>
                   <ChangeLogProvider>
                     <TooltipProvider>
-                      <AppContent />
+                      <GlobalErrorBoundary>
+                        <AppContent />
+                      </GlobalErrorBoundary>
                     </TooltipProvider>
                   </ChangeLogProvider>
                 </NotificationProvider>

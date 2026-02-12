@@ -1,4 +1,5 @@
 import React from 'react';
+import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { Package, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
@@ -79,6 +80,7 @@ const WarehousePage = () => {
   }
 
   return (
+    <DataFetchErrorBoundary>
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b border-border/50 px-4 py-8">
         <div className="container mx-auto">
@@ -135,6 +137,7 @@ const WarehousePage = () => {
         />
       </div>
     </div>
+    </DataFetchErrorBoundary>
   );
 };
 

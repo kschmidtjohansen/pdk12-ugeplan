@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useTranslation } from '../context/TranslationContext';
 import { useOptimizedAssignments } from '../hooks/useOptimizedAssignments';
 import { Assignment } from '../types/assignment';
@@ -383,6 +384,7 @@ const PlannerPage: React.FC = () => {
   }
 
   return (
+    <DataFetchErrorBoundary>
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
         {/* Enhanced Header with Responsive Design */}
@@ -557,6 +559,7 @@ const PlannerPage: React.FC = () => {
         />
       </div>
     </div>
+    </DataFetchErrorBoundary>
   );
 };
 

@@ -51,8 +51,12 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      // Default fallback - just render children without the error
-      return this.props.children;
+      // Default fallback - show a simple error message instead of re-rendering children (which could cause infinite loop)
+      return (
+        <div className="p-4 text-center text-muted-foreground">
+          <p>Something went wrong. Please try refreshing the page.</p>
+        </div>
+      );
     }
 
     return this.props.children;

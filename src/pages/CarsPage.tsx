@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { usePermissions } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import CarsList from '@/components/Cars/CarsList';
@@ -42,6 +43,7 @@ const CarsPage: React.FC = () => {
   } = useCars();
 
   return (
+    <DataFetchErrorBoundary>
     <TooltipProvider>
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
@@ -136,6 +138,7 @@ const CarsPage: React.FC = () => {
         </div>
       </div>
     </TooltipProvider>
+    </DataFetchErrorBoundary>
   );
 };
 
