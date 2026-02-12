@@ -93,23 +93,38 @@ npm run build
 /src
   /components       → Reusable UI komponenter organiseret efter feature
     /Admin          → Brugeradministration, system health, sikkerhed
+    /Assignment     → Opgavedetaljer med filer og beskeder
     /Auth           → Login, password reset, sikkerhedsheaders
+    /AutoPublish    → Automatisk publicering af opgaver
     /Cars           → Bilhåndtering med dialogs og tabeller
     /Dashboard      → Dashboard widgets, metrics og oversigter
+    /Demo           → Demo-tilstand med rolleskift
+    /Duty           → Vagtplanlægning og -bytte
     /Employees      → Medarbejderhåndtering
+    /ErrorBoundary  → Fejlhåndtering på side- og dataniveau
     /Layout         → Navigation, topbar, sidebars
-    /Planner        → Ugeplanlægning med drag-drop (kommende)
+    /Notifications  → Notifikationskomponenter
+    /Planner        → Ugeplanlægning med opgavekort og filtre
+    /Profile        → Profilbillede og adgangskode
+    /ScreenDisplay  → Skærmvisning af ugeplaner
+    /Security       → Sikkerhedsstatus-panel
     /Vacation       → Ferieadministration med godkendelse
     /Warehouse      → Lagerstyring
+    /shared         → Genbrugelige komponenter (loading, empty states)
     /ui             → Shadcn UI komponenter (buttons, dialogs, etc.)
+  /config           → Konfigurationsfiler (sikkerhed)
   /context          → React contexts (Auth, Translation, Notifications, Security)
   /hooks            → Custom React hooks organiseret efter feature
     /assignment     → Hooks til opgavehåndtering
     /car            → Hooks til bilhåndtering
+    /data           → Hooks til samlet datahåndtering
+    /duty           → Hooks til vagthåndtering
     /employee       → Hooks til medarbejderhåndtering
+    /notifications  → Hooks til notifikationssystem
     /vacation       → Hooks til feriehåndtering
     /warehouse      → Hooks til lagerhåndtering
-    /notifications  → Hooks til notifikationssystem
+  /integrations     → Supabase client og RPC helpers
+  /lib              → Utility-funktioner (cn/tailwind-merge)
   /services         → Business logic og data services
   /translations     → i18n oversættelser (da/en)
   /types            → TypeScript type definitions
@@ -233,23 +248,38 @@ npm run build
 /src
   /components       → Reusable UI components organized by feature
     /Admin          → User management, system health, security
+    /Assignment     → Assignment details with files and messages
     /Auth           → Login, password reset, security headers
+    /AutoPublish    → Auto-publishing of assignments
     /Cars           → Vehicle management with dialogs and tables
     /Dashboard      → Dashboard widgets, metrics and overviews
+    /Demo           → Demo mode with role switching
+    /Duty           → Duty scheduling and swapping
     /Employees      → Employee management
+    /ErrorBoundary  → Page and data-level error boundaries
     /Layout         → Navigation, topbar, sidebars
-    /Planner        → Weekly planning with drag-drop (upcoming)
+    /Notifications  → Notification components
+    /Planner        → Weekly planning with task cards and filters
+    /Profile        → Profile picture and password
+    /ScreenDisplay  → Screen display of weekly plans
+    /Security       → Security status panel
     /Vacation       → Vacation management with approval
     /Warehouse      → Inventory management
+    /shared         → Reusable components (loading, empty states)
     /ui             → Shadcn UI components (buttons, dialogs, etc.)
+  /config           → Configuration files (security)
   /context          → React contexts (Auth, Translation, Notifications, Security)
   /hooks            → Custom React hooks organized by feature
     /assignment     → Hooks for assignment handling
     /car            → Hooks for vehicle handling
+    /data           → Hooks for unified data handling
+    /duty           → Hooks for duty handling
     /employee       → Hooks for employee handling
+    /notifications  → Hooks for notification system
     /vacation       → Hooks for vacation handling
     /warehouse      → Hooks for warehouse handling
-    /notifications  → Hooks for notification system
+  /integrations     → Supabase client and RPC helpers
+  /lib              → Utility functions (cn/tailwind-merge)
   /services         → Business logic and data services
   /translations     → i18n translations (da/en)
   /types            → TypeScript type definitions
