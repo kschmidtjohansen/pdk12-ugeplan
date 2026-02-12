@@ -16,10 +16,29 @@
     <link rel="dns-prefetch" href="https://www.polygongroup.com" />
     <link rel="dns-prefetch" href="https://cdn.gpteng.co" />
     
-    <!-- Optimized font loading -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" as="style" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" /></noscript>
+    <!-- Optimized font loading - non-blocking -->
+    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZ9hjQ.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" /></noscript>
+    
+    <!-- Inline critical CSS for loading spinner -->
+    <style>
+      #root:empty::after {
+        content: '';
+        display: block;
+        width: 48px;
+        height: 48px;
+        border: 2px solid transparent;
+        border-top-color: #00aeef;
+        border-radius: 50%;
+        animation: _spin 0.8s linear infinite;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      @keyframes _spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+    </style>
     
     <title>Polygon - Ugeplan</title>
     <meta name="description" content="Ugeplan Polygon Afdeling 12 Trekantsområdet" />
