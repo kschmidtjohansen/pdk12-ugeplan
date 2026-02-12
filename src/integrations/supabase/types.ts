@@ -379,6 +379,7 @@ export type Database = {
           duty_enabled: boolean
           id: string
           name: string
+          substitute_enabled: boolean
           updated_at: string
           warehouse_enabled: boolean
         }
@@ -387,6 +388,7 @@ export type Database = {
           duty_enabled?: boolean
           id?: string
           name: string
+          substitute_enabled?: boolean
           updated_at?: string
           warehouse_enabled?: boolean
         }
@@ -395,6 +397,7 @@ export type Database = {
           duty_enabled?: boolean
           id?: string
           name?: string
+          substitute_enabled?: boolean
           updated_at?: string
           warehouse_enabled?: boolean
         }

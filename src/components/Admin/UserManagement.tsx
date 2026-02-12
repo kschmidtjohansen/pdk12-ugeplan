@@ -22,7 +22,7 @@ const UserManagement: React.FC = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isDemoMode, user: authUser } = useAuth();
-  const { selectedDepartmentId, departments } = useDepartment();
+  const { selectedDepartmentId, departments, isSubstituteEnabled } = useDepartment();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [userAccessData, setUserAccessData] = useState<{ user_id: string; department_id: string }[]>([]);
   const [departmentFilter, setDepartmentFilter] = useState<'current' | 'unassigned'>('current');
@@ -822,9 +822,11 @@ const UserManagement: React.FC = () => {
               <Button onClick={handleCreateUser} className="bg-polygon-blue hover:bg-polygon-darkblue">
                 {t('admin.userManagement.addUser')}
               </Button>
-              <Button onClick={handleCreateVikar} variant="outline" className="border-polygon-blue text-polygon-blue hover:bg-polygon-blue/10">
-                {t('employees.addVikar')}
-              </Button>
+              {isSubstituteEnabled && (
+                <Button onClick={handleCreateVikar} variant="outline" className="border-polygon-blue text-polygon-blue hover:bg-polygon-blue/10">
+                  {t('employees.addVikar')}
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
