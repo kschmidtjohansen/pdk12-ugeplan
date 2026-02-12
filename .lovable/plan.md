@@ -1,57 +1,67 @@
 
 
-## Fix dobbelt-toast + side-opdatering ved feature-toggle + vikar-toggle
+## Tre forbedringer: Pull-to-refresh, Realtime-notifikationsbar og afdelingsfiltrering af biler/lager
 
-### Problem 1: Dobbelt toast ved afdelingsskift
+### Del 1: Global Pull-to-Refresh paa mobil
 
-Aarsag: `DepartmentSelector.tsx` bruger en `useEffect` der reagerer paa `selectedDepartment?.id`. Naar `switchDepartment` kaldes, opdateres state med det samme, men `refetchDepartments` (fra `fetchCounter`) trigger ogsaa en genindlaesning af `userDepartments`, som kan udloese effekten to gange.
+Der eksisterer allerede en `PullToRefresh`-komponent i `src/components/shared/PullToRefresh.tsx`. I stedet for at tilfoeje den individuelt paa hver side, integreres den i `MainLayout.tsx`, saa alle sider automatisk faar pull-to-refresh paa mobil.
 
-**Loesning**: Flyt toast-logikken ind i `switchDepartment`-handleren i stedet for `useEffect`, saa den kun koerer een gang ved klik.
-
-**Fil: `src/components/Layout/NavComponents/DepartmentSelector.tsx`**
-- Fjern `useEffect` der viser toast
-- Opret en lokal `handleSwitch(deptId)` funktion der kalder `switchDepartment(deptId)`, finder det nye afdelingsnavn, og viser toast een gang
-- Behold animationslogikken via `useEffect` (kun CSS, ingen toast)
+**Fil: `src/components/Layout/MainLayout.tsx`**
+- Wrap `{children}` i `<PullToRefresh onRefresh={...}>` inde i `<main>`
+- `onRefresh` kalder `window.location.reload()` for at genindlaese hele siden
+- Komponenten er allerede konfigureret til kun at aktiveres paa mobil
 
 ---
 
-### Problem 2: Siden opdateres ikke naar feature toggles aendres
+### Del 2: Realtime-aendringsbar naar andre brugere laver aendringer
 
-**Fil: `src/components/Admin/FeatureToggleManagement.tsx`**
-- Efter succesfuld toggle og `refetchDepartments()`: tilfoej `window.location.reload()` eller brug en React-key-baseret remount for at tvinge UI-opdatering
-- Alternativt: brug `navigate(0)` fra react-router for at genindlaese den aktuelle side
+Opret en ny komponent der lytter paa Supabase Realtime for aendringer paa de vigtigste tabeller. Naar en aendring registreres, vises en fast bar oeverst paa siden.
+
+**Ny fil: `src/components/shared/RealtimeChangeNotifier.tsx`**
+- Abonner paa `postgres_changes` for tabellerne: `assignments`, `cars`, `warehouse_items`, `profiles`, `duty_assignments`, `vacation_requests`
+- Naar en aendring modtages, vis en blaa/primaer bar fixed oeverst (under navbar) med tekst: "Der er sket aendringer. Opdater siden for at se dem."
+- En "Opdater"-knap der kalder `window.location.reload()`
+- En "Luk"-knap der skjuler baren
+- Baren vises IKKE i demo-mode
+- Baren vises IKKE hvis aendringen er lavet af den aktuelle bruger (sammenlign `payload.new.updated_by` eller ignorer via en kort debounce efter egne handlinger)
+
+**Fil: `src/components/Layout/MainLayout.tsx`**
+- Tilfoej `<RealtimeChangeNotifier />` lige efter `<TopNavbar />`
 
 ---
 
-### Problem 3: Tilfoej vikar-toggle
+### Del 3: Biler og lager filtreres korrekt per afdeling
 
-**Database migration**: Tilfoej `substitute_enabled BOOLEAN NOT NULL DEFAULT true` til `departments`-tabellen.
+#### Problem: Biler
+Alle biler har `department_id = NULL` i databasen. Filteret i `useCarData.ts` bruger `!car.department_id || car.department_id === selectedDepartmentId`, som lader alle biler uden department_id igennem til alle afdelinger.
 
-**Fil: `src/context/DepartmentContext.tsx`**
-- Udvid `Department` interface med `substitute_enabled: boolean`
-- Hent feltet i alle department-queries
-- Tilfoej `isSubstituteEnabled` til context (demo = altid true)
+**Loesning - Database migration:**
+- Opdater alle eksisterende biler til at faa `department_id` sat til Fredericia-afdelingens ID (`8c542620-9156-4155-b686-564b14a4ca62`), da alle nuvaerende biler tilhoerer den afdeling
+- Saet `department_id` som NOT NULL med default vaerdi (eller behold nullable men krae det i kode)
 
-**Fil: `src/components/Admin/FeatureToggleManagement.tsx`**
-- Tilfoej tredje Switch-rad for "Vikar" med `substitute_enabled`
-- Brug `UserPlus`-ikon fra lucide-react
+**Fil: `src/hooks/car/useCarData.ts`**
+- AEndr filteret fra `!car.department_id || car.department_id === selectedDepartmentId` til `car.department_id === selectedDepartmentId`
+- Flyt filtreringen til query-niveau i `CarSecurityService.fetchCars()` for bedre ydeevne
 
-**Fil: `src/pages/EmployeesPage.tsx`**
-- Importer `useDepartment` og brug `isSubstituteEnabled`
-- Skjul "Tilfoej Vikar"-knappen naar `isSubstituteEnabled === false`
-- Skjul vikar-sektionen i medarbejderlisten
+**Fil: `src/services/carSecurityService.ts`**
+- Tilfoej `selectedDepartmentId` som parameter til `fetchCars()`
+- Tilfoej `.eq('department_id', selectedDepartmentId)` til Supabase-queryen
+- Samme for `createCar()`: saet `department_id` automatisk paa nye biler
 
-**Fil: `src/components/Admin/UserManagement.tsx`**
-- Skjul "Tilfoej Vikar"-knappen naar `isSubstituteEnabled === false`
+**Fil: `src/components/Cars/CarFormDialog.tsx`**
+- Saet `department_id` automatisk til `selectedDepartmentId` ved oprettelse af ny bil
 
-**Fil: `src/components/Layout/TopNavbar.tsx`**
-- Ingen aendring nødvendig (vikar er ikke et menupunkt)
+#### Problem: Lager (Warehouse)
+`warehouse_items`-tabellen har INGEN `department_id`-kolonne. Alle lager-items vises for alle afdelinger.
 
-**Fil: `src/translations/da/admin.ts`**
-- Tilfoej: `features.substituteEnabled: 'Vikar'`
+**Loesning - Database migration:**
+- Tilfoej `department_id UUID REFERENCES departments(id)` til `warehouse_items`-tabellen
+- Opdater eksisterende warehouse items til at faa Fredericia-afdelingens ID
 
-**Fil: `src/translations/en/admin.ts`**
-- Tilfoej: `features.substituteEnabled: 'Substitute'`
+**Fil: `src/hooks/warehouse/useWarehouseData.ts`**
+- Importer `useDepartment` og brug `selectedDepartmentId`
+- Tilfoej `.eq('department_id', selectedDepartmentId)` til fetch-queryen
+- Saet `department_id` automatisk ved oprettelse af nye items
 
 ---
 
@@ -59,12 +69,11 @@ Aarsag: `DepartmentSelector.tsx` bruger en `useEffect` der reagerer paa `selecte
 
 | Fil | Type | Beskrivelse |
 |-----|------|-------------|
-| Supabase migration | NY | Tilfoej `substitute_enabled` kolonne |
-| `src/context/DepartmentContext.tsx` | OPDATER | Tilfoej `substitute_enabled` + `isSubstituteEnabled` |
-| `src/components/Layout/NavComponents/DepartmentSelector.tsx` | OPDATER | Fix dobbelt-toast |
-| `src/components/Admin/FeatureToggleManagement.tsx` | OPDATER | Tilfoej vikar-toggle + side-reload efter toggle |
-| `src/pages/EmployeesPage.tsx` | OPDATER | Skjul vikar-funktioner naar deaktiveret |
-| `src/components/Admin/UserManagement.tsx` | OPDATER | Skjul vikar-knap naar deaktiveret |
-| `src/translations/da/admin.ts` | OPDATER | Ny oversaettelse |
-| `src/translations/en/admin.ts` | OPDATER | Ny oversaettelse |
+| `src/components/Layout/MainLayout.tsx` | OPDATER | Tilfoej PullToRefresh + RealtimeChangeNotifier |
+| `src/components/shared/RealtimeChangeNotifier.tsx` | NY | Realtime-aendringsbar komponent |
+| Supabase migration | NY | Opdater biler department_id + tilfoej department_id til warehouse_items |
+| `src/hooks/car/useCarData.ts` | OPDATER | Fjern fallback for null department_id |
+| `src/services/carSecurityService.ts` | OPDATER | Tilfoej department_id filter til queries |
+| `src/hooks/warehouse/useWarehouseData.ts` | OPDATER | Tilfoej department_id filter |
+| `src/hooks/warehouse/useWarehouseActions.ts` | OPDATER | Saet department_id ved oprettelse |
 
