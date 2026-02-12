@@ -1,76 +1,80 @@
 
 
-## Performance-optimering: 6 punkter fra rapporten
+## Plan: Super Admin metrics + CHANGELOG/README opdatering
 
-### 1. First Contentful Paint (FCP)
+### Problem 1: Super Admin ser ikke Medarbejdere og Biler i Quick Access
 
-**Problem:** Fonten Inter indlæses med 7 vægtklasser (300-900), men kun 300-700 bruges i koden. Derudover blokerer font-preload parsing.
+**Aarsag:** `QuickAccessGrid.tsx` linje 48 tjekker kun for `administrator` og `skadeleder` - `super_admin` mangler.
 
-**Rettelse i `index.html`:**
-- Reducer Inter font-request til kun `wght@300;400;500;600;700` (fjern 800 og 900 som ikke bruges)
-- Tilfoej `font-display=swap` er allerede i Google Fonts URL (via `&display=swap`) - OK
-- Tilfoej inline kritisk CSS i `<head>` for loading-spinneren (den foerste ting brugeren ser), saa den vises FOER CSS er indlaest
+**Rettelse:** Tilfoej `super_admin` til betingelsen paa linje 48.
 
-**Rettelse i `src/components/Layout/NavComponents/Logo.tsx`:**
-- AEndr `loading="lazy"` til `loading="eager"` og tilfoej `fetchPriority="high"` - logoet er above-the-fold og skal ikke lazy-loades
+**Fil:** `src/components/Dashboard/QuickAccessGrid.tsx`
+- Linje 48: AEndr `if (userRole === 'administrator' || userRole === 'skadeleder')` til `if (userRole === 'super_admin' || userRole === 'administrator' || userRole === 'skadeleder')`
 
-### 2. Network Dependency Tree
+Bemærk: `DashboardPage.tsx` linje 37 inkluderer allerede `super_admin` i `shouldShowMetrics`, saa selve metric-kortene (medarbejdere, biler, fravaer) vises korrekt. Problemet er kun Quick Access genvejene.
 
-**Problem:** Sekventiel indlæsning: HTML -> font CSS -> font filer -> app JS. Font CSS-filen loader yderligere font-filer.
+---
 
-**Rettelse i `index.html`:**
-- Tilfoej `<link rel="preload">` for den mest brugte Inter font-fil (woff2, weight 400) direkte, saa browseren kan starte download parallelt med CSS
-- Behold eksisterende preconnect-hints (allerede godt sat op)
+### Problem 2: WarehousePage mangler super_admin i canEdit
 
-### 3. Unused CSS
+**Fil:** `src/pages/WarehousePage.tsx` linje 37
+- AEndr `user?.role === 'administrator' || user?.role === 'skadeleder'` til ogsaa at inkludere `super_admin`
 
-**Problem:** `src/App.css` indeholder Vite-default styling (`.logo`, `.read-the-docs`, `.card`, `logo-spin`) som IKKE importeres nogetsteds og aldrig bruges. Filen er 100% ubrugt.
+---
 
-**Rettelse:** Toem `App.css` (behold filen for at undgaa evt. build-fejl, men fjern alt indhold). Filen importeres ikke, saa den pavirker ikke bundlen direkte, men den rydder op i projektet.
+### Problem 3: ResponsibleUserSelector mangler super_admin
 
-**OBS:** `index.css` har en duplikeret `@media (prefers-reduced-motion: reduce)` blok (linje 487-496 og 548-556). Den ene kan fjernes for at reducere CSS-stoerrelsen en smule. Begge blokke goer det samme.
+**Fil:** `src/components/Planner/ResponsibleUserSelector.tsx` linje 31
+- Tilfoej `super_admin` til filter saa super_admins ogsaa kan vaelges som ansvarlige
 
-### 4. Unused JS
+---
 
-**Problem:** `performanceMonitor.ts` initialiserer Web Vitals observers globalt ved import. I produktion droppes console-logs via terser, men observer-koden koerer stadig.
+### Opdatering 4: CHANGELOG.md
 
-**Rettelse i `src/App.tsx`:**
-- Flyt `performanceMonitor` import ind i useEffect-blokken med dynamic import, saa den KUN loades i development mode
-- I produktion springes hele modulet over
+Tilfoej nye sektioner under `[Unreleased]` for alle aendringer siden sidst:
 
-### 5. Render Blocking Requests
+**Security - 2025-02-12:**
+- Fjernet hardkodet demo-adgangskode fra kildekoden (nu via environment variabel)
+- Haerdnet RLS-policies: on_call_duties UPDATE, assignment_messages/files SELECT, departments/sub_departments SELECT
 
-**Problem:** Font-stylesheetet i `<head>` er allerede optimeret med `media="print" onload` tricket - det er godt. Men `<link rel="preload" as="style">` paa linje 20 er reelt render-blocking fordi preload med `as="style"` har hoej prioritet.
+**Fixed - 2025-02-12:**
+- Lager-redigering i demo mode gemmes nu korrekt i hukommelsen
+- Rolle-skift toast bruger nu korrekte oversaettelsesnoegler
+- Super Admin ser nu samme dashboard-metrics og Quick Access som Administrator
 
-**Rettelse i `index.html`:**
-- Fjern `<link rel="preload">` linjen for font CSS (linje 20) - den er redundant med `media="print" onload` tricket paa linje 21 som allerede loader fonten non-blocking. Preload-linjen modvirker faktisk non-blocking strategien
+**Added - 2025-02-12:**
+- Lokationsstyring med inline-redigering og sletning i Admin-panelet
+- Admin locations oversaettelser (da/en)
 
-### 6. Cache Lifetimes
+**Performance - 2025-02-12:**
+- Reduceret Google Fonts vaegt (300-700 i stedet for 300-900)
+- Fjernet render-blocking font preload
+- Tilfojet inline kritisk CSS for loading spinner
+- Dynamic import af performanceMonitor (kun i development)
+- Fjernet ubrugt App.css indhold
+- Tilfojet cache-headers for statiske assets
 
-**Problem:** Vite genererer allerede hashed filnavne for JS/CSS chunks (god cache-busting). Men der er ingen eksplicit cache-konfiguration for statiske assets.
+---
 
-**Rettelse:** Tilfoej en `public/_headers` fil (Netlify/Vercel-kompatibel) eller konfigurer caching i Vite's build output. Da projektet deployes via Lovable Cloud, tilfoej cache-headers via en `public/_headers` fil:
-- Statiske assets (JS, CSS, fonts, billeder): `Cache-Control: public, max-age=31536000, immutable`
-- HTML: `Cache-Control: no-cache` (saa nye deployments altid hentes)
-- Alternativt, da Lovable Cloud haandterer headers automatisk for hashed assets, kan vi i stedet sikre at `vite.config.ts` har korrekte asset-naming med hashes (allerede tilfaeldet)
+### Opdatering 5: README.md
+
+Tilfoej `Super Admin` rolle i rolletabellen (baade dansk og engelsk sektion), da den mangler i dag:
+
+| Super Admin | Global adgang til alle afdelinger og funktioner |
+
+Tilfoej ogsaa en `Warehouse/Lager` feature-linje under features-listen.
 
 ---
 
 ### Tekniske detaljer
 
-| Fil | Type | AEndring |
-|-----|------|---------|
-| `index.html` | OPDATER | Reducer font-vaegt, fjern redundant preload, tilfoej inline kritisk CSS, preload woff2 |
-| `src/App.tsx` | OPDATER | Dynamic import af performanceMonitor kun i dev |
-| `src/components/Layout/NavComponents/Logo.tsx` | OPDATER | loading="eager" + fetchPriority="high" |
-| `src/App.css` | OPDATER | Toem indhold (ubrugt fil) |
-| `src/index.css` | OPDATER | Fjern duplikeret prefers-reduced-motion blok |
-| `public/_headers` | NY | Cache-headers for statiske assets |
+| Fil | AEndring |
+|-----|---------|
+| `src/components/Dashboard/QuickAccessGrid.tsx` | Tilfoej `super_admin` til linje 48 |
+| `src/pages/WarehousePage.tsx` | Tilfoej `super_admin` til canEdit |
+| `src/components/Planner/ResponsibleUserSelector.tsx` | Tilfoej `super_admin` til filter |
+| `CHANGELOG.md` | Tilfoej alle nye aendringer |
+| `README.md` | Tilfoej Super Admin rolle + lager feature |
 
-### Sikkerhedsgarantier
-- Ingen logik, state eller API-kald aendres
-- Ingen oversaettelser eller UI-layout pavirkes
-- Alle TypeScript interfaces og props forbliver uaendrede
-- Font forbliver Inter med alle de vaegt-klasser der faktisk bruges
-- Alle eksisterende funktioner (knapper, forms, navigation) er upaavirkede
+Alle aendringer er atomiske og pavirker ikke eksisterende logik, oversaettelser eller UI-layout.
 
