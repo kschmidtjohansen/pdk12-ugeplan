@@ -40,7 +40,8 @@ export const admin = {
     empty: 'Ingen hovedafdelinger oprettet endnu.',
     selectCity: 'Vælg by',
     renamed: 'Afdelingsnavn opdateret',
-    editName: 'Rediger navn'
+    editName: 'Rediger navn',
+    totalCount: '{count} afdelinger i alt'
   },
   subDepartments: {
     title: 'Underafdelinger',
@@ -280,7 +281,8 @@ export const admin = {
     department: 'Hovedafdeling',
     subDepartments: 'Underafdelinger',
     selectDepartment: 'Vælg hovedafdeling',
-    selectSubDepartments: 'Vælg underafdelinger'
+    selectSubDepartments: 'Vælg underafdelinger',
+    totalCount: '{count} brugere i alt'
   },
   passwords: {
     changePassword: 'Skift adgangskode',
