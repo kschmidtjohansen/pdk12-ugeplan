@@ -1,45 +1,46 @@
 
 
-## Fire rettelser: Super Admin i demo, mobil-layout, brugerstyring-actions og demo-opdateringsfejl
+## Tre rettelser: Mobil medarbejdervisning, oversaettelser og Super Admin demo-funktion
 
-### 1. Tilfoej Super Admin rolle i DemoRoleSwitcher
+### 1. Mobil medarbejdervisning - Card-baseret layout (som Biler)
 
-**Fil: `src/components/Demo/DemoRoleSwitcher.tsx`**
-- Tilfoej `super_admin` som foerste element i `roles`-arrayet med label "Super Admin" og beskrivelse
+**Fil: `src/components/Employees/MobileEmployeeCard.tsx`** (NY)
+- Opret en ny komponent inspireret af `MobileCarCard.tsx` og `MobileWarehouseCard.tsx`
+- Vis medarbejderens avatar, navn, kontaktinfo, certifikater, rolle og status i et Card-layout
+- Action-knapper (rediger, syg/rask, slet) vises i bunden af kortet - kun for admin
 
-### 2. Fix mobil-layout af DemoDashboard-baren
+**Fil: `src/components/Employees/EmployeesTable.tsx`** (OPDATER)
+- Tilfoej `useIsMobile()` hook
+- Paa mobil: vis `MobileEmployeeCard` for hver medarbejder i stedet for tabellen
+- Paa desktop: behold den eksisterende tabelvisning
+- Samme moenster som `CarsList.tsx` bruger (`md:hidden` / `hidden md:block`)
 
-**Fil: `src/components/Demo/DemoDashboard.tsx`**
-- AEndr layoutet fra en enkelt horizontal raekke til at wrappe paa mobil:
-  - Brug `flex-col sm:flex-row` og `flex-wrap gap-2` saa elementerne stacker paa smaa skaerme
-  - Sikrer at "Ryd demo data"-knappen og DemoRoleSwitcher er synlige uden horizontal scroll
+### 2. Super Admin virker ikke i demo mode
 
-### 3. Fix actions i Brugerstyring paa mobil
-
-Problemet er kun paa mobil - action-knapperne (4 stk) klippes eller er umulige at naa paa smaa skaerme.
-
-**Fil: `src/components/Admin/UserTableRow.tsx`**
-- Paa mobil (under md): erstat de individuelle ikon-knapper med en enkelt DropdownMenu ("..."-knap) der indeholder alle fire actions (aktivere/deaktivere, nulstil adgangskode, rediger, slet)
-- Paa desktop (md og op): behold de eksisterende ikon-knapper som de er
-- Brug `useIsMobile()` hook til at skifte mellem de to visninger
-
-**Fil: `src/components/Admin/UserTable.tsx`**
-- Fjern `overflow-hidden` fra tabel-containeren saa indholdet ikke klippes
-
-### 4. Fix employees.Update fejl i demo mode
-
-Problemet: Betingelsen `employee.id.startsWith('demo-') || (employee as any).isDemoData` fanger ikke rigtige medarbejdere i demo mode. Naar man redigerer en rigtig medarbejder i demo mode, forsoeges en reel database-opdatering som fejler.
-
-**Fil: `src/hooks/employee/useEmployeeActions.ts`**
-- I alle tre funktioner (`toggleEmployeeLeave`, `updateEmployee`, `deleteEmployee`): AEndr betingelsen fra:
+**Fil: `src/context/AuthContext.tsx`** (OPDATER)
+- Linje 611: Tilfoej `'super_admin'` til listen af gyldige demo-roller:
   ```
-  if (isDemoMode && (employee.id.startsWith('demo-') || (employee as any).isDemoData))
+  if (savedDemoRole && ['super_admin', 'administrator', 'skadeleder', 'servicemedarbejder'].includes(savedDemoRole))
   ```
-  til simpelthen:
-  ```
-  if (isDemoMode)
-  ```
-- Naar man er i demo mode skal ALLE medarbejder-aendringer virtualiseres lokalt, uanset om medarbejderen er fra demo-data eller ej
+- Uden dette ignoreres `super_admin` naar den hentes fra sessionStorage, og rollen falder tilbage til `administrator`
+
+### 3. Oversaettelser - gennemgang og rettelser
+
+Rolleskift-oversaettelserne i `DemoRoleSwitcher` bruger `t('admin.roles.superAdmin')` (camelCase) men oversaettelsesfilerne har `super_admin` (snake_case). Dog ser det ud til at vaere korrekt baseret paa koden. Lad mig verificere:
+
+- `admin.roles.superAdmin` -> findes IKKE i oversaettelserne (de bruger `super_admin`)
+- Rettelse: AEndr `DemoRoleSwitcher.tsx` til at bruge `t('admin.roles.super_admin')` osv.
+
+**Fil: `src/components/Demo/DemoRoleSwitcher.tsx`** (OPDATER)
+- Ret oversaettelsesnoegerne fra camelCase til snake_case for at matche oversaettelsesfilerne:
+  - `admin.roles.superAdmin` -> `admin.roles.super_admin`
+  - `admin.roles.superAdminDesc` -> `admin.roles.super_adminDesc`
+  - `admin.roles.administrator` forbliver (matcher allerede)
+  - `admin.roles.administratorDesc` forbliver (matcher allerede)
+  - `admin.roles.skadeleder` forbliver (matcher allerede)
+  - `admin.roles.skadelederDesc` forbliver (matcher allerede)
+  - `admin.roles.servicemedarbejder` forbliver (matcher allerede)
+  - `admin.roles.servicemedarbejderDesc` forbliver (matcher allerede)
 
 ---
 
@@ -47,9 +48,8 @@ Problemet: Betingelsen `employee.id.startsWith('demo-') || (employee as any).isD
 
 | Fil | Type | Beskrivelse |
 |-----|------|-------------|
-| `src/components/Demo/DemoRoleSwitcher.tsx` | OPDATER | Tilfoej super_admin til roles array |
-| `src/components/Demo/DemoDashboard.tsx` | OPDATER | Responsive layout med flex-col/flex-wrap |
-| `src/components/Admin/UserTable.tsx` | OPDATER | Fjern overflow-hidden |
-| `src/components/Admin/UserTableRow.tsx` | OPDATER | DropdownMenu paa mobil, ikon-knapper paa desktop |
-| `src/hooks/employee/useEmployeeActions.ts` | OPDATER | Virtualiser alle aendringer i demo mode |
+| `src/components/Employees/MobileEmployeeCard.tsx` | NY | Card-komponent til mobil medarbejdervisning |
+| `src/components/Employees/EmployeesTable.tsx` | OPDATER | Skift til cards paa mobil med `useIsMobile()` |
+| `src/context/AuthContext.tsx` | OPDATER | Tilfoej `super_admin` til gyldige demo-roller (linje 611) |
+| `src/components/Demo/DemoRoleSwitcher.tsx` | OPDATER | Ret oversaettelsesnoegler fra camelCase til snake_case |
 
