@@ -1,45 +1,45 @@
 
 
-## Aendringer i Admin-side og Dashboard
+## Fire rettelser: Super Admin i demo, mobil-layout, brugerstyring-actions og demo-opdateringsfejl
 
-### 1. Brugerstyring som foerste fane
+### 1. Tilfoej Super Admin rolle i DemoRoleSwitcher
 
-**Fil: `src/pages/AdminPage.tsx`**
-- AEndr `defaultTab` til altid vaere `'users'` (i stedet for `'departments'` for super_admin)
-- Flyt "Brugerstyring" TabsTrigger og TabsContent til foer "Hovedafdelinger" i rækkefølgen
+**Fil: `src/components/Demo/DemoRoleSwitcher.tsx`**
+- Tilfoej `super_admin` som foerste element i `roles`-arrayet med label "Super Admin" og beskrivelse
 
-### 2. Super Admin ser dashboard metrics
+### 2. Fix mobil-layout af DemoDashboard-baren
 
-**Fil: `src/pages/DashboardPage.tsx`**
-- Linje 37: AEndr betingelsen fra:
-  `effectiveRole === 'administrator' || effectiveRole === 'skadeleder'`
-  til:
-  `effectiveRole === 'super_admin' || effectiveRole === 'administrator' || effectiveRole === 'skadeleder'`
+**Fil: `src/components/Demo/DemoDashboard.tsx`**
+- AEndr layoutet fra en enkelt horizontal raekke til at wrappe paa mobil:
+  - Brug `flex-col sm:flex-row` og `flex-wrap gap-2` saa elementerne stacker paa smaa skaerme
+  - Sikrer at "Ryd demo data"-knappen og DemoRoleSwitcher er synlige uden horizontal scroll
 
-### 3. Vis antal brugere under Brugerstyring
+### 3. Fix actions i Brugerstyring paa mobil
 
-**Fil: `src/pages/AdminPage.tsx`**
-- Tilfoej en taellertekst i CardDescription for brugerstyring-fanen, f.eks. ved at lade `UserManagement` eksponere antallet, eller simplere: tilfoej en separat komponent der henter og viser antal brugere
-- Enkleste loesning: Opdater `CardDescription` til at inkludere en lille inline-komponent der querier `profiles`-tabellens raekkeantal og viser "X brugere i alt"
+Problemet er kun paa mobil - action-knapperne (4 stk) klippes eller er umulige at naa paa smaa skaerme.
 
-**Alternativ (renere):** Tilfoej en `totalUsers`-prop fra `UserManagement` via en callback, eller opret en simpel inline-query i AdminPage.
+**Fil: `src/components/Admin/UserTableRow.tsx`**
+- Paa mobil (under md): erstat de individuelle ikon-knapper med en enkelt DropdownMenu ("..."-knap) der indeholder alle fire actions (aktivere/deaktivere, nulstil adgangskode, rediger, slet)
+- Paa desktop (md og op): behold de eksisterende ikon-knapper som de er
+- Brug `useIsMobile()` hook til at skifte mellem de to visninger
 
-Konkret: I `AdminPage.tsx`, tilfoej en `useEffect` der henter antal profiler fra Supabase og vis det i CardDescription.
+**Fil: `src/components/Admin/UserTable.tsx`**
+- Fjern `overflow-hidden` fra tabel-containeren saa indholdet ikke klippes
 
-### 4. Vis antal afdelinger under Hovedafdelinger
+### 4. Fix employees.Update fejl i demo mode
 
-**Fil: `src/components/Admin/DepartmentManagement.tsx`**
-- Tilfoej en taeller-tekst i CardDescription der viser `departments.length` naar data er loadet, f.eks.: "Opret og administrer hovedafdelinger - {n} afdelinger i alt"
+Problemet: Betingelsen `employee.id.startsWith('demo-') || (employee as any).isDemoData` fanger ikke rigtige medarbejdere i demo mode. Naar man redigerer en rigtig medarbejder i demo mode, forsoeges en reel database-opdatering som fejler.
 
-### 5. Oversaettelser
-
-**Fil: `src/translations/da/admin.ts`**
-- Tilfoej: `userManagement.totalCount: '{count} brugere i alt'`
-- Tilfoej: `departments.totalCount: '{count} afdelinger i alt'`
-
-**Fil: `src/translations/en/admin.ts`**
-- Tilfoej: `userManagement.totalCount: '{count} users total'`
-- Tilfoej: `departments.totalCount: '{count} departments total'`
+**Fil: `src/hooks/employee/useEmployeeActions.ts`**
+- I alle tre funktioner (`toggleEmployeeLeave`, `updateEmployee`, `deleteEmployee`): AEndr betingelsen fra:
+  ```
+  if (isDemoMode && (employee.id.startsWith('demo-') || (employee as any).isDemoData))
+  ```
+  til simpelthen:
+  ```
+  if (isDemoMode)
+  ```
+- Naar man er i demo mode skal ALLE medarbejder-aendringer virtualiseres lokalt, uanset om medarbejderen er fra demo-data eller ej
 
 ---
 
@@ -47,9 +47,9 @@ Konkret: I `AdminPage.tsx`, tilfoej en `useEffect` der henter antal profiler fra
 
 | Fil | Type | Beskrivelse |
 |-----|------|-------------|
-| `src/pages/AdminPage.tsx` | OPDATER | Brugerstyring som foerste fane + vis brugerantal |
-| `src/pages/DashboardPage.tsx` | OPDATER | Tilfoej super_admin til metrics-betingelsen |
-| `src/components/Admin/DepartmentManagement.tsx` | OPDATER | Vis afdelingsantal i description |
-| `src/translations/da/admin.ts` | OPDATER | Nye oversaettelser for taellere |
-| `src/translations/en/admin.ts` | OPDATER | Nye oversaettelser for taellere |
+| `src/components/Demo/DemoRoleSwitcher.tsx` | OPDATER | Tilfoej super_admin til roles array |
+| `src/components/Demo/DemoDashboard.tsx` | OPDATER | Responsive layout med flex-col/flex-wrap |
+| `src/components/Admin/UserTable.tsx` | OPDATER | Fjern overflow-hidden |
+| `src/components/Admin/UserTableRow.tsx` | OPDATER | DropdownMenu paa mobil, ikon-knapper paa desktop |
+| `src/hooks/employee/useEmployeeActions.ts` | OPDATER | Virtualiser alle aendringer i demo mode |
 
