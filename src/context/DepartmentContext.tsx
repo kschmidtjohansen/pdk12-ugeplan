@@ -8,6 +8,7 @@ interface Department {
   name: string;
   warehouse_enabled: boolean;
   duty_enabled: boolean;
+  substitute_enabled: boolean;
 }
 
 interface DepartmentContextType {
@@ -20,6 +21,7 @@ interface DepartmentContextType {
   loading: boolean;
   isWarehouseEnabled: boolean;
   isDutyEnabled: boolean;
+  isSubstituteEnabled: boolean;
   refetchDepartments: () => void;
 }
 
@@ -33,6 +35,7 @@ const DepartmentContext = createContext<DepartmentContextType>({
   loading: true,
   isWarehouseEnabled: true,
   isDutyEnabled: true,
+  isSubstituteEnabled: true,
   refetchDepartments: () => {},
 });
 
@@ -58,7 +61,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
       try {
         const { data, error } = await supabase
           .from('departments')
-          .select('id, name, warehouse_enabled, duty_enabled')
+          .select('id, name, warehouse_enabled, duty_enabled, substitute_enabled')
           .order('name');
 
         if (error) {
@@ -69,6 +72,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
             name: d.name,
             warehouse_enabled: (d as any).warehouse_enabled ?? true,
             duty_enabled: (d as any).duty_enabled ?? true,
+            substitute_enabled: (d as any).substitute_enabled ?? true,
           })));
         }
       } catch (err) {
@@ -95,7 +99,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
         if (isSuperAdmin) {
           const { data, error } = await supabase
             .from('departments')
-            .select('id, name, warehouse_enabled, duty_enabled')
+            .select('id, name, warehouse_enabled, duty_enabled, substitute_enabled')
             .order('name');
 
           if (!error && data) {
@@ -104,6 +108,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
               name: d.name,
               warehouse_enabled: (d as any).warehouse_enabled ?? true,
               duty_enabled: (d as any).duty_enabled ?? true,
+              substitute_enabled: (d as any).substitute_enabled ?? true,
             }));
             setUserDepartments(mapped);
             if (mapped.length === 1 && !selectedDepartmentId) {
@@ -114,7 +119,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
         } else {
           const { data, error } = await supabase
             .from('user_access')
-            .select('department_id, departments:department_id(id, name, warehouse_enabled, duty_enabled)')
+            .select('department_id, departments:department_id(id, name, warehouse_enabled, duty_enabled, substitute_enabled)')
             .eq('user_id', user.id);
 
           if (!error && data) {
@@ -129,6 +134,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
                   name: dept.name,
                   warehouse_enabled: dept.warehouse_enabled ?? true,
                   duty_enabled: dept.duty_enabled ?? true,
+                  substitute_enabled: dept.substitute_enabled ?? true,
                 });
               }
             }
@@ -173,6 +179,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
   // Feature flags - default true, demo always true
   const isWarehouseEnabled = isDemoMode ? true : (selectedDepartment?.warehouse_enabled ?? true);
   const isDutyEnabled = isDemoMode ? true : (selectedDepartment?.duty_enabled ?? true);
+  const isSubstituteEnabled = isDemoMode ? true : (selectedDepartment?.substitute_enabled ?? true);
 
   return (
     <DepartmentContext.Provider value={{
@@ -185,6 +192,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
       loading,
       isWarehouseEnabled,
       isDutyEnabled,
+      isSubstituteEnabled,
       refetchDepartments,
     }}>
       {children}

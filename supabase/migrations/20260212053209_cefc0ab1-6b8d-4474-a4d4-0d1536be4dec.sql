@@ -1,0 +1,1 @@
+ALTER TABLE public.departments ADD COLUMN substitute_enabled BOOLEAN NOT NULL DEFAULT true;

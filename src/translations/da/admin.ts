@@ -63,6 +63,7 @@ export const admin = {
     description: 'Aktiver eller deaktiver funktioner for den valgte afdeling',
     warehouseEnabled: 'Lager',
     dutyEnabled: 'Vagt',
+    substituteEnabled: 'Vikar',
     enabled: 'Aktiveret',
     disabled: 'Deaktiveret',
     updated: 'Funktionsindstilling opdateret',

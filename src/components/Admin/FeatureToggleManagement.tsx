@@ -6,7 +6,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Package, Shield } from 'lucide-react';
+import { Settings, Package, Shield, UserPlus } from 'lucide-react';
 
 const FeatureToggleManagement: React.FC = () => {
   const { t } = useTranslation();
@@ -15,21 +15,24 @@ const FeatureToggleManagement: React.FC = () => {
 
   const [warehouseEnabled, setWarehouseEnabled] = useState(true);
   const [dutyEnabled, setDutyEnabled] = useState(true);
+  const [substituteEnabled, setSubstituteEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (selectedDepartment) {
       setWarehouseEnabled(selectedDepartment.warehouse_enabled);
       setDutyEnabled(selectedDepartment.duty_enabled);
+      setSubstituteEnabled(selectedDepartment.substitute_enabled);
     }
   }, [selectedDepartment]);
 
-  const handleToggle = async (field: 'warehouse_enabled' | 'duty_enabled', value: boolean) => {
+  const handleToggle = async (field: 'warehouse_enabled' | 'duty_enabled' | 'substitute_enabled', value: boolean) => {
     if (!selectedDepartmentId) return;
     setSaving(true);
 
     if (field === 'warehouse_enabled') setWarehouseEnabled(value);
-    else setDutyEnabled(value);
+    else if (field === 'duty_enabled') setDutyEnabled(value);
+    else setSubstituteEnabled(value);
 
     const { error } = await supabase
       .from('departments')
@@ -39,13 +42,17 @@ const FeatureToggleManagement: React.FC = () => {
     if (error) {
       // revert
       if (field === 'warehouse_enabled') setWarehouseEnabled(!value);
-      else setDutyEnabled(!value);
+      else if (field === 'duty_enabled') setDutyEnabled(!value);
+      else setSubstituteEnabled(!value);
       toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+      setSaving(false);
     } else {
       toast({ title: t('admin.features.updated') });
       refetchDepartments();
+      setSaving(false);
+      // Reload page so all components reflect the change
+      setTimeout(() => window.location.reload(), 500);
     }
-    setSaving(false);
   };
 
   if (!selectedDepartment) {
@@ -100,6 +107,23 @@ const FeatureToggleManagement: React.FC = () => {
           <Switch
             checked={dutyEnabled}
             onCheckedChange={(v) => handleToggle('duty_enabled', v)}
+            disabled={saving}
+          />
+        </div>
+
+        <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="flex items-center gap-3">
+            <UserPlus className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <Label className="text-base font-medium">{t('admin.features.substituteEnabled')}</Label>
+              <p className="text-sm text-muted-foreground">
+                {substituteEnabled ? t('admin.features.enabled') : t('admin.features.disabled')}
+              </p>
+            </div>
+          </div>
+          <Switch
+            checked={substituteEnabled}
+            onCheckedChange={(v) => handleToggle('substitute_enabled', v)}
             disabled={saving}
           />
         </div>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Building2, ChevronDown } from 'lucide-react';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useToast } from '@/hooks/use-toast';
@@ -17,20 +17,18 @@ const DepartmentSelector: React.FC = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const [animating, setAnimating] = useState(false);
-  const prevDeptId = useRef(selectedDepartment?.id);
 
-  useEffect(() => {
-    if (selectedDepartment?.id && prevDeptId.current && selectedDepartment.id !== prevDeptId.current) {
-      setAnimating(true);
+  const handleSwitch = (deptId: string) => {
+    const dept = userDepartments.find(d => d.id === deptId);
+    switchDepartment(deptId);
+    setAnimating(true);
+    setTimeout(() => setAnimating(false), 600);
+    if (dept) {
       toast({
-        title: t('admin.departmentSwitched').replace('{name}', selectedDepartment.name),
+        title: t('admin.departmentSwitched').replace('{name}', dept.name),
       });
-      const timer = setTimeout(() => setAnimating(false), 600);
-      prevDeptId.current = selectedDepartment.id;
-      return () => clearTimeout(timer);
     }
-    prevDeptId.current = selectedDepartment?.id;
-  }, [selectedDepartment?.id]);
+  };
 
   if (loading || userDepartments.length === 0) return null;
 
@@ -62,7 +60,7 @@ const DepartmentSelector: React.FC = () => {
         {userDepartments.map((dept) => (
           <DropdownMenuItem
             key={dept.id}
-            onClick={() => switchDepartment(dept.id)}
+            onClick={() => handleSwitch(dept.id)}
             className={cn(
               'cursor-pointer',
               dept.id === selectedDepartment?.id && 'bg-accent font-medium'

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { Button } from '@/components/ui/button';
 import { Plus, Users, UserPlus } from 'lucide-react';
 import EmployeesTable from '@/components/Employees/EmployeesTable';
@@ -20,6 +21,7 @@ import { da } from 'date-fns/locale';
 const EmployeesPage: React.FC = () => {
   const { isAdmin } = usePermissions();
   const { t } = useTranslation();
+  const { isSubstituteEnabled } = useDepartment();
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
@@ -111,10 +113,12 @@ const EmployeesPage: React.FC = () => {
                 <Plus className="h-4 w-4 mr-2" />
                 {t("employees.addEmployee")}
               </Button>
-              <Button onClick={handleCreateVikar} variant="outline">
-                <UserPlus className="h-4 w-4 mr-2" />
-                {t("employees.addVikar")}
-              </Button>
+              {isSubstituteEnabled && (
+                <Button onClick={handleCreateVikar} variant="outline">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  {t("employees.addVikar")}
+                </Button>
+              )}
             </div>
           )}
         </div>

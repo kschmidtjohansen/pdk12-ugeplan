@@ -63,6 +63,7 @@ export const admin = {
     description: 'Enable or disable features for the selected department',
     warehouseEnabled: 'Warehouse',
     dutyEnabled: 'Duty',
+    substituteEnabled: 'Substitute',
     enabled: 'Enabled',
     disabled: 'Disabled',
     updated: 'Feature setting updated',
