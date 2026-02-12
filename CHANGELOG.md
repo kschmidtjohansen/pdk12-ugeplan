@@ -39,6 +39,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed - 2026-02-12
+- Servicemedarbejdere kan nu se alle medarbejdere i deres afdeling (ikke kun sig selv)
+- RLS-policy på user_access opdateret til at tillade afdelingsbaseret visning
+
+### Changed - 2026-02-12
+- Login kræver ikke længere valg af afdeling — automatisk tildeling efter login
+- Super Admin kan nu skifte afdeling i demo mode via header-selector
+- DepartmentContext bruger nu effectiveRole i stedet for user.role til demo-rolleskift
+
 ### Security - 2025-02-12
 - Fjernet hardkodet demo-adgangskode fra kildekoden (nu via environment variabel)
 - Hærdnet RLS-policies: on_call_duties UPDATE, assignment_messages/files SELECT, departments/sub_departments SELECT
