@@ -1,6 +1,7 @@
 import React from 'react';
 import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EmployeeTableRow from './EmployeeTableRow';
+import MobileEmployeeCard from './MobileEmployeeCard';
 import EmployeeLoadingError from '@/components/ErrorBoundary/EmployeeLoadingError';
 interface EmployeesTableProps {
   employees: Employee[];
@@ -29,12 +31,9 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   loading,
   onRetry
 }) => {
-  const {
-    isAdmin
-  } = usePermissions();
-  const {
-    t
-  } = useTranslation();
+  const { isAdmin } = usePermissions();
+  const { t } = useTranslation();
+  const isMobile = useIsMobile();
 
   // Show error state with retry option
   if (error) {
@@ -106,11 +105,28 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
       </div>;
   }
 
-  // Show employees table
+  // Mobile: card layout
+  if (isMobile) {
+    return (
+      <div className="space-y-3 p-4">
+        {employees.map(employee => (
+          <MobileEmployeeCard
+            key={`${employee.id}-${employee.onLeave}-${employee.status}`}
+            employee={employee}
+            vacations={vacations}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onToggleLeave={onToggleLeave}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // Desktop: table layout
   return <div className="space-y-4">
       <div className="flex items-center gap-2 mb-4">
         <Users className="h-5 w-5 text-primary" />
-        
       </div>
       
       <div className="border rounded-md">

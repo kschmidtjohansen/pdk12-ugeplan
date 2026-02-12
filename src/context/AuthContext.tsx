@@ -608,7 +608,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (isDemoMode && user) {
       const savedDemoRole = sessionStorage.getItem('demo-role') as UserRole | null;
       
-      if (savedDemoRole && ['administrator', 'skadeleder', 'servicemedarbejder'].includes(savedDemoRole)) {
+      if (savedDemoRole && ['super_admin', 'administrator', 'skadeleder', 'servicemedarbejder'].includes(savedDemoRole)) {
         setDemoRole(savedDemoRole);
       } else {
         setDemoRole('administrator');
