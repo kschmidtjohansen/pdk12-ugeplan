@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface LocalItemHandlers {
   addLocalItem?: (data: WarehouseItemFormData) => void;
@@ -24,6 +25,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
   const { t } = useTranslation();
   const { isDemoMode } = useAuth();
   const { selectedDepartmentId } = useDepartment();
+  const queryClient = useQueryClient();
 
   const createItem = async (data: WarehouseItemFormData) => {
     try {
@@ -82,6 +84,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       }
 
       toast({ title: t('warehouse.messages.addSuccess') });
+      queryClient.invalidateQueries({ queryKey: ['warehouse-items'] });
       onSuccess?.();
     } catch (err) {
       console.error('Error creating warehouse item:', err);
@@ -139,6 +142,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       }
 
       toast({ title: t('warehouse.messages.updateSuccess') });
+      queryClient.invalidateQueries({ queryKey: ['warehouse-items'] });
       onSuccess?.();
     } catch (err) {
       console.error('Error updating warehouse item:', err);
@@ -185,6 +189,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       }
 
       toast({ title: t('warehouse.messages.deleteSuccess') });
+      queryClient.invalidateQueries({ queryKey: ['warehouse-items'] });
       onSuccess?.();
     } catch (err) {
       console.error('Error deleting warehouse item:', err);

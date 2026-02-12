@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Vacation } from '@/types/vacation';
 import { useNotifications } from '@/context/NotificationContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const useVacationApprovalActions = (
   fetchVacations: () => Promise<void>
@@ -14,6 +15,7 @@ export const useVacationApprovalActions = (
   const { user } = useAuth();
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
+  const queryClient = useQueryClient();
   
   const [isLoading, setIsLoading] = useState<boolean>(false);
   
@@ -37,6 +39,7 @@ export const useVacationApprovalActions = (
       if (error) throw error;
       
       // Refresh vacation data
+      queryClient.invalidateQueries({ queryKey: ['vacations'] });
       await fetchVacations();
       
       // Show success toast
@@ -88,6 +91,7 @@ export const useVacationApprovalActions = (
       if (error) throw error;
       
       // Refresh vacation data
+      queryClient.invalidateQueries({ queryKey: ['vacations'] });
       await fetchVacations();
       
       // Show success toast

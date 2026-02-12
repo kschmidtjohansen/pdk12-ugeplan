@@ -4,12 +4,14 @@ import { useTranslation } from '@/context/TranslationContext';
 import { CarData } from '@/components/Cars/types';
 import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
+import { useQueryClient } from '@tanstack/react-query';
 import { CarSecurityService } from '@/services/carSecurityService';
 import { usePermissions, useAuth } from '@/context/AuthContext';
 import { DemoUserService } from '@/services/demoUserService';
 
 export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.SetStateAction<CarData[]>>) => {
   const { canViewFuelCardCode } = usePermissions();
+  const queryClient = useQueryClient();
   const { isDemoMode } = useAuth();
   const [currentCar, setCurrentCar] = useState<CarData | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
@@ -198,6 +200,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
           title: t('cars.vehicleDeleted'),
           description: successMessage
         });
+        queryClient.invalidateQueries({ queryKey: ['cars'] });
       } catch (err) {
         console.error('Error deleting car:', err);
         
@@ -344,6 +347,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
           description: t('cars.vehicleUnavailableMsg', { name: car.name })
         });
       }
+      queryClient.invalidateQueries({ queryKey: ['cars'] });
     } catch (err) {
       console.error('Error updating car availability:', err);
       toast({

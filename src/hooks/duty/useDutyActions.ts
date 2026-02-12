@@ -7,6 +7,7 @@ import { useDutyNotifications } from '@/hooks/notifications/dutyNotifications';
 import { toast } from 'sonner';
 import { useTranslation } from '@/context/TranslationContext';
 import type { DutyType } from '@/types/duty';
+import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 
 export const useDutyActions = (onSuccess?: () => void) => {
@@ -14,6 +15,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
   const { createDutyAssignmentNotification } = useDutyNotifications(addNotification);
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
   // Helper to extract initials from name
@@ -67,6 +69,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       }
 
       toast.success(t('duty.assignSuccess'));
+      queryClient.invalidateQueries({ queryKey: ['duties'] });
       onSuccess?.();
       return true;
     } catch (err) {
@@ -103,6 +106,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       if (error) throw error;
 
       toast.success(t('duty.updateSuccess'));
+      queryClient.invalidateQueries({ queryKey: ['duties'] });
       onSuccess?.();
       return true;
     } catch (err) {
@@ -137,6 +141,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       if (error) throw error;
 
       toast.success(t('duty.removeSuccess'));
+      queryClient.invalidateQueries({ queryKey: ['duties'] });
       onSuccess?.();
       return true;
     } catch (err) {
@@ -164,6 +169,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       if (error) throw error;
 
       toast.success(t('duty.dutyReassigned'));
+      queryClient.invalidateQueries({ queryKey: ['duties'] });
       onSuccess?.();
       return true;
     } catch (err) {
@@ -197,6 +203,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       if (error) throw error;
 
       toast.success(t('duty.reassignSuccess'));
+      queryClient.invalidateQueries({ queryKey: ['duties'] });
       onSuccess?.();
       return true;
     } catch (error) {
@@ -227,6 +234,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       if (error) throw error;
 
       toast.success(t('duty.swapSuccess'));
+      queryClient.invalidateQueries({ queryKey: ['duties'] });
       onSuccess?.();
       return true;
     } catch (error) {
