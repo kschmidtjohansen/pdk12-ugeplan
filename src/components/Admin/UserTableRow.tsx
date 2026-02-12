@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Edit, Key, Trash, UserCheck, UserX } from 'lucide-react';
+import { Edit, Key, Trash, UserCheck, UserX, MoreHorizontal } from 'lucide-react';
 import {
   Avatar,
   AvatarFallback,
@@ -10,6 +10,8 @@ import {
 import { UserRole } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export interface AdminUser {
   id: string;
@@ -42,9 +44,83 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
   getInitials,
 }) => {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
 
-  // Check if user is inactive (banned_until is set to a future date)
   const isUserActive = !user.banned_until || new Date(user.banned_until) <= new Date();
+
+  const MobileActions = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="bg-white w-48">
+        <DropdownMenuItem onClick={() => onToggleUserStatus(user)}>
+          {isUserActive ? <UserX className="h-4 w-4 mr-2 text-red-600" /> : <UserCheck className="h-4 w-4 mr-2 text-green-600" />}
+          {isUserActive ? t('admin.userManagement.deactivateUser') : t('admin.userManagement.activateUser')}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onResetPassword(user)}>
+          <Key className="h-4 w-4 mr-2" />
+          {t('admin.passwords.resetPassword') || 'Nulstil adgangskode'}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onEditUser(user)}>
+          <Edit className="h-4 w-4 mr-2" />
+          {t('admin.userManagement.editUser')}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onDeleteUser(user)} className="text-destructive">
+          <Trash className="h-4 w-4 mr-2" />
+          {t('common.delete')}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const DesktopActions = () => (
+    <div className="flex justify-end gap-2">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={() => onToggleUserStatus(user)}
+              className={`h-8 w-8 ${isUserActive ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}`}>
+              {isUserActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent><p>{isUserActive ? t('admin.userManagement.deactivateUser') : t('admin.userManagement.activateUser')}</p></TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={() => onResetPassword(user)} className="h-8 w-8">
+              <Key className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent><p>{t('admin.passwords.resetPasswordFor', { name: user.name })}</p></TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={() => onEditUser(user)} className="h-8 w-8">
+              <Edit className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent><p>{t('admin.userManagement.editUser')}</p></TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={() => onDeleteUser(user)} className="h-8 w-8 text-destructive hover:text-destructive">
+              <Trash className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent><p>{t('common.delete')}</p></TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
 
   return (
     <tr className="border-b border-gray-200 hover:bg-gray-50">
@@ -69,84 +145,7 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
         {getRoleLabel(user.role)}
       </td>
       <td className="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 whitespace-nowrap">
-        <div className="flex justify-end gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onToggleUserStatus(user)}
-                  className={`h-8 w-8 ${isUserActive ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}`}
-                >
-                  {isUserActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  {isUserActive 
-                    ? t('admin.userManagement.deactivateUser')
-                    : t('admin.userManagement.activateUser')
-                  }
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onResetPassword(user)}
-                  className="h-8 w-8"
-                >
-                  <Key className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{t('admin.passwords.resetPasswordFor', { name: user.name })}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onEditUser(user)}
-                  className="h-8 w-8"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{t('admin.userManagement.editUser')}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDeleteUser(user)}
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{t('common.delete')}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+        {isMobile ? <MobileActions /> : <DesktopActions />}
       </td>
     </tr>
   );

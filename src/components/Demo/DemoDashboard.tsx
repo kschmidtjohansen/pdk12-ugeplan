@@ -53,15 +53,15 @@ export const DemoDashboard: React.FC = () => {
 
   return (
     <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-2 text-sm text-amber-700">
             <Activity className="h-4 w-4" />
             <span className="font-medium">{t('common.demoMode')}</span>
           </div>
           <DemoRoleSwitcher />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="text-xs text-amber-600 flex items-center gap-1">
             <Timer className="h-3 w-3" />
             {timeRemainingFormatted}

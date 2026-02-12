@@ -21,7 +21,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       });
       
       // Virtualize for demo mode
-      if (isDemoMode && (employee.id.startsWith('demo-') || (employee as any).isDemoData)) {
+      if (isDemoMode) {
         DemoUserService.getInstance().updateDemoEmployee(employee.id, {
           on_leave: setOnLeave,
           notes: notes || null,
@@ -90,7 +90,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       }
       
       // Virtualize for demo mode
-      if (isDemoMode && (employee.id.startsWith('demo-') || (employee as any).isDemoData)) {
+      if (isDemoMode) {
         DemoUserService.getInstance().updateDemoEmployee(employee.id, {
           name: formData.name,
           email: formData.email,
@@ -196,7 +196,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       console.log('[useEmployeeActions] Deleting employee:', employeeId);
       
       // Virtualize for demo mode
-      if (isDemoMode && (employeeId.startsWith('demo-') || (employee as any).isDemoData)) {
+      if (isDemoMode) {
         DemoUserService.getInstance().deleteDemoEmployee(employeeId);
         
         toast({
