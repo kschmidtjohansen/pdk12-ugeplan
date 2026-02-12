@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import { getDailyQuote } from '@/utils/dailyQuotes';
@@ -37,6 +38,7 @@ const DashboardPage: React.FC = () => {
   const shouldShowMetrics = effectiveRole === 'super_admin' || effectiveRole === 'administrator' || effectiveRole === 'skadeleder';
 
   return (
+    <DataFetchErrorBoundary>
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
@@ -72,6 +74,7 @@ const DashboardPage: React.FC = () => {
         </div>
       </div>
     </PullToRefresh>
+    </DataFetchErrorBoundary>
   );
 };
 

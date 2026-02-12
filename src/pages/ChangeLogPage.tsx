@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useTranslation } from '@/context/TranslationContext';
 import { useChangeLogs } from '@/context/ChangeLogContext';
 import { usePermissions } from '@/context/AuthContext';
@@ -145,6 +146,7 @@ const ChangeLogPage: React.FC = () => {
   }
 
   return (
+    <DataFetchErrorBoundary>
     <MainLayout>
       <div className="container mx-auto p-6 space-y-6">
         <Card>
@@ -245,6 +247,7 @@ const ChangeLogPage: React.FC = () => {
         </Card>
       </div>
     </MainLayout>
+    </DataFetchErrorBoundary>
   );
 };
 

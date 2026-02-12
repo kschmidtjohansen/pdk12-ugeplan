@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -95,6 +96,7 @@ const EmployeesPage: React.FC = () => {
   };
 
   return (
+    <DataFetchErrorBoundary>
     <div className="min-h-screen w-full bg-background">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Simple Header */}
@@ -162,6 +164,7 @@ const EmployeesPage: React.FC = () => {
         </AlertDialog>
       </div>
     </div>
+    </DataFetchErrorBoundary>
   );
 };
 

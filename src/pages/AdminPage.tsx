@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -54,6 +55,7 @@ const AdminPage: React.FC = () => {
   }
 
   return (
+    <DataFetchErrorBoundary>
     <div className="container mx-auto px-4 py-8">
       <VacationCleanupHandler />
 
@@ -132,6 +134,7 @@ const AdminPage: React.FC = () => {
         </Tabs>
       </div>
     </div>
+    </DataFetchErrorBoundary>
   );
 };
 
