@@ -1,92 +1,69 @@
 
 
-## 10 rettelser: Demo-toast, super admin funktioner, mobil-fixes, lager og biler
+## Tre rettelser: Lager demo-persistens, lokationsstyring med CRUD, og rolle-toast oversaettelse
 
-### 1. Fjern dobbelt toast ved rolleskift
+### 1. Lager-redigering gemmes ikke i demo mode
 
-**Problem:** Baade `DemoRoleSwitcher.tsx` (linje 47-50) og `AuthContext.tsx` (linje 630-633) viser en toast naar man skifter rolle.
+**Problem:** `useWarehouseActions.ts` virtualiserer korrekt (viser success-toast, kalder `onSuccess`), men `onSuccess` kalder kun `refetch()` som henter fra databasen igen. I demo mode hentes data via `get_demo_warehouse_items` RPC, saa den lokale aendring gaar tabt.
 
-**Fil: `src/components/Demo/DemoRoleSwitcher.tsx`**
-- Fjern toast-kaldet i `handleRoleSwitch` (linje 47-50). Behold kun den toast der vises fra `AuthContext.handleSetDemoRole`.
+**Loesning:** I `useWarehouseData.ts` - tilfoej lokal state-opdatering i demo mode saa aendringer persisterer i hukommelsen.
 
-### 2. Super Admin viser alle funktioner i demo
+**Fil: `src/hooks/warehouse/useWarehouseData.ts`** (OPDATER)
+- Tilfoej tre nye funktioner: `updateLocalItem`, `deleteLocalItem`, `addLocalItem` der opdaterer `items` state direkte
+- Eksporter disse funktioner saa `useWarehouseActions` kan kalde dem i demo mode
 
-**Problem:** Naar man skifter til super_admin ser man ikke Hovedafdelinger-fanen i Admin fordi `isSuperAdmin` tjekker `user?.role` i stedet for den effektive demo-rolle.
+**Fil: `src/hooks/warehouse/useWarehouseActions.ts`** (OPDATER)
+- I demo mode: kald de lokale state-opdateringsfunktioner i stedet for bare at vise toast
+- Modtag `updateLocalItem`/`deleteLocalItem`/`addLocalItem` som parametre (eller via en callback)
 
-**Fil: `src/pages/AdminPage.tsx`**
-- Importér `useAuth` og brug `demoRole` / `isDemoMode` til at bestemme `isSuperAdmin`:
-  ```
-  const effectiveRole = isDemoMode && demoRole ? demoRole : user?.role;
-  const isSuperAdmin = effectiveRole === 'super_admin';
-  const isAdmin = effectiveRole === 'administrator' || isSuperAdmin;
-  ```
+**Fil: `src/hooks/warehouse/index.ts`** (OPDATER)
+- Forbind de lokale state-funktioner fra `useWarehouseData` til `useWarehouseActions`
 
-### 3. Fix knapper i EmployeesPage paa mobil
+### 2. LocationManagement med redigering og sletning
 
-**Fil: `src/pages/EmployeesPage.tsx`**
-- Linje 101-124: AEndr header-layoutet til `flex-col sm:flex-row` saa titel og knapper stacker paa mobil
-- Goer knapperne mindre paa mobil med responsive klasser
+**Problem:** Komponenten er read-only og viser kun en statisk liste. Mangler ogsaa oversaettelser under `admin.locations`.
 
-### 4. Fix lager-opdateringsfejl i demo mode
+**Fil: `src/components/Admin/LocationManagement.tsx`** (OPDATER - komplet omskrivning)
+- Tilfoej inline-redigering af lokationsnavne (samme moenster som afdelingsstyring)
+- Tilfoej slet-knap med bekraeftelsesdialog
+- Naar en lokation slettes: vis en AlertDialog der advarer om at alle opbevaringer tilknyttet denne lokation vil faa deres lokation sat til "ingen"
+- I demo mode: virtualisere alle aendringer lokalt
+- I produktion: opdater via oversaettelserne (da `hall` er en enum i databasen, kan navnene kun aendres via oversaettelser - dette kommunikeres tydeligt)
 
-**Problem:** `useWarehouseActions` forsoeeger altid at lave database-kald, ogsaa i demo mode.
+Bemærk: Da `hall`-feltet er en database-enum (`hal_1` | `sort_hal`), kan man ikke dynamisk tilfoeje/slette lokationer uden en databaseaendring. Implementationen vil:
+- Tillade redigering af visningsnavnet (gemt lokalt i session/localStorage)
+- Tillade "sletning" som skjuler lokationen og nulstiller tilknyttede items
+- I produktion paavirkes warehouse_items tabellen (hall saettes til null)
 
-**Fil: `src/hooks/warehouse/useWarehouseActions.ts`**
-- I `updateItem` og `deleteItem`: Tilfoej en demo-check i starten der virtualiserer operationen (vis success-toast og kald `onSuccess` uden database-kald)
-- I `createItem`: Samme demo-virtualisering
+**Fil: `src/translations/da/admin.ts`** (OPDATER)
+- Tilfoej `admin.locations` objekt med:
+  - `description`: "Administrer lagerlokationer og deres navne"
+  - `editName`: "Rediger navn"
+  - `delete`: "Slet lokation"
+  - `deleteConfirm`: "Slet lokation?"
+  - `deleteWarning`: "Alle opbevaringer tilknyttet denne lokation vil faa deres lokation sat til 'Ingen'. Denne handling kan ikke fortrydes."
+  - `deleted`: "Lokation slettet"
+  - `renamed`: "Lokationsnavn opdateret"
+  - `noLocations`: "Ingen lokationer"
 
-### 5. Tilfoej Lokation-administration under Admin (ny fane)
+**Fil: `src/translations/en/admin.ts`** (OPDATER)
+- Tilfoej tilsvarende engelske oversaettelser for `admin.locations`
 
-**Fil: `src/pages/AdminPage.tsx`**
-- Tilfoej en ny fane "Lokationer" (kun synlig naar lager er aktiveret)
-- Fanen viser en liste over lokationer (hal_1, sort_hal osv.) med mulighed for at tilfoeje/redigere/slette
+### 3. Rolle-skift toast bruger forkerte oversaettelsesnoegler
 
-**Fil: `src/components/Admin/LocationManagement.tsx`** (NY)
-- Simpel komponent der viser og administrerer lokationer for lager
-- Foreloebigt baseret paa de eksisterende `hall`-vaerdier men med mulighed for at redigere navne
+**Problem:** `AuthContext.tsx` linje 631-632 bruger `t('auth.roleChanged')` og `t('auth.roleChangedTo')`, men disse noegler findes ikke i `auth.ts`. De findes i `common.ts` som `common.roleChanged`.
 
-Bemærk: Da `hall`-feltet i databasen er en fast enum ('hal_1' | 'sort_hal'), vil den initielle implementation vise de eksisterende lokationer med mulighed for at omdoebe dem via oversaettelser. Fuld dynamisk lokationsstyring kraever en ny database-tabel.
+**Fil: `src/context/AuthContext.tsx`** (OPDATER)
+- Linje 631: AEndr `t('auth.roleChanged')` til `t('common.roleChanged')`
+- Linje 632: AEndr `t('auth.roleChangedTo', { role })` til en korrekt oversaettelse
 
-### 6. Ret "Hal" til "Lokation" overalt
+**Fil: `src/translations/da/common.ts`** (OPDATER)
+- Tilfoej `roleChangedTo`: "Skiftet til {role}" (hvis den ikke allerede findes)
 
-**Fil: `src/translations/da/warehouse.ts`**
-- AEndr `fields.hall: "Hal"` til `fields.hall: "Lokation"`
-- AEndr `placeholders.selectHall` til `"Vaelg lokation..."`
-- AEndr `halls.hal1` til `"Hal 1"` (beholder navn)
-- AEndr `halls.sortHal` til `"Sort Hal"` (beholder navn)
+**Fil: `src/translations/en/common.ts`** (OPDATER)
+- Tilfoej `roleChangedTo`: "Switched to {role}" (hvis den ikke allerede findes)
 
-**Fil: `src/translations/en/warehouse.ts`**
-- AEndr `fields.hall: "Hall"` til `fields.hall: "Location"`
-- AEndr `placeholders.selectHall` til `"Select location..."`
-
-### 7. Klikbart bil-card paa mobil (vis traekkapacitet og noter)
-
-**Fil: `src/components/Cars/MobileCarCard.tsx`**
-- Tilfoej en expandable/collapsible sektion der vises naar man trykker paa kortet
-- I den udvidede sektion: vis traekkapacitet med/uden bremser, totalvaegt og noter
-- Brug Collapsible fra Radix eller simpel state-toggle
-
-### 8. Ret biler undertitel
-
-**Fil: `src/translations/da/cars.ts`**
-- AEndr `pageDescription` fra `'Administrer din koeretoejsflaade og tilgaengelighed'` til `'Ret biler og deres tilgængelighed'`
-
-**Fil: `src/translations/en/cars.ts`**
-- AEndr `pageDescription` til `'Edit cars and their availability'`
-
-### 9. Fix dobbelt header paa Vagt-siden i mobil
-
-**Problem:** `DutyPage` er wrappet i `MainLayout` som allerede giver en header/navbar, men siden har ogsaa sin egen header.
-
-**Fil: `src/pages/DutyPage.tsx`**
-- Fjern `MainLayout`-wrapperen da alle andre sider (Employees, Cars, Warehouse) ikke bruger den direkte - de faar den via routing
-- ELLER: Tjek om ruten allerede wrapper i MainLayout - hvis ja, fjern den fra DutyPage
-
-### 10. Fix vagt undertitel scaling paa mobil
-
-**Fil: `src/pages/DutyPage.tsx`**
-- Linje 119-148: AEndr header-layoutet til `flex-col sm:flex-row` med `gap-4`
-- Goer knapperne responsive med `flex-wrap`
+Desuden: i description skal rollenavnet oversaettes til det laesbare navn (f.eks. "Super Admin" i stedet for "super_admin"). Dette kraever at AuthContext slaar rolle-labelet op via `t('admin.roles.' + role)`.
 
 ---
 
@@ -94,15 +71,13 @@ Bemærk: Da `hall`-feltet i databasen er en fast enum ('hal_1' | 'sort_hal'), vi
 
 | Fil | Type | Beskrivelse |
 |-----|------|-------------|
-| `src/components/Demo/DemoRoleSwitcher.tsx` | OPDATER | Fjern dobbelt toast |
-| `src/pages/AdminPage.tsx` | OPDATER | Brug effektiv rolle for super_admin + ny Lokation-fane |
-| `src/pages/EmployeesPage.tsx` | OPDATER | Responsive header/knapper |
-| `src/hooks/warehouse/useWarehouseActions.ts` | OPDATER | Virtualiser demo-operationer |
-| `src/components/Admin/LocationManagement.tsx` | NY | Lokationsstyring for lager |
-| `src/translations/da/warehouse.ts` | OPDATER | Hal -> Lokation |
-| `src/translations/en/warehouse.ts` | OPDATER | Hall -> Location |
-| `src/components/Cars/MobileCarCard.tsx` | OPDATER | Klikbart card med detaljer |
-| `src/translations/da/cars.ts` | OPDATER | Ny undertitel |
-| `src/translations/en/cars.ts` | OPDATER | Ny undertitel |
-| `src/pages/DutyPage.tsx` | OPDATER | Fjern MainLayout wrapper + responsive header |
+| `src/hooks/warehouse/useWarehouseData.ts` | OPDATER | Tilfoej lokale state-opdateringsfunktioner for demo |
+| `src/hooks/warehouse/useWarehouseActions.ts` | OPDATER | Brug lokale funktioner i demo mode |
+| `src/hooks/warehouse/index.ts` | OPDATER | Forbind data og actions hooks |
+| `src/components/Admin/LocationManagement.tsx` | OPDATER | Fuld CRUD med inline-redigering og slet med advarsel |
+| `src/translations/da/admin.ts` | OPDATER | Tilfoej `admin.locations` oversaettelser |
+| `src/translations/en/admin.ts` | OPDATER | Tilfoej engelske `admin.locations` oversaettelser |
+| `src/context/AuthContext.tsx` | OPDATER | Ret oversaettelsesnoegler for rolle-toast |
+| `src/translations/da/common.ts` | OPDATER | Tilfoej `roleChangedTo` hvis mangler |
+| `src/translations/en/common.ts` | OPDATER | Tilfoej `roleChangedTo` hvis mangler |
 
