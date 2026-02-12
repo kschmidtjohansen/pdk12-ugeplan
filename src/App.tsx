@@ -12,8 +12,6 @@ import { NotificationProvider } from "./context/NotificationContext";
 import { ChangeLogProvider } from "./context/ChangeLogContext";
 import RouteLoadingFallback from "./components/shared/RouteLoadingFallback";
 import MainLayout from "./components/Layout/MainLayout";
-import { performanceMonitor } from "./utils/performanceMonitor";
-
 // Lazy load pages for better code splitting with retry logic
 const lazyWithRetry = (importFn: () => Promise<any>) => {
   return lazy(() =>
@@ -57,15 +55,16 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  // Initialize performance monitoring
+  // Initialize performance monitoring (dev only, dynamic import)
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Performance] Monitoring initialized');
-      // Log performance metrics after 10 seconds
-      setTimeout(() => {
-        const metrics = performanceMonitor.getAllMetrics();
-        console.log('[Performance] Current metrics:', metrics);
-      }, 10000);
+      import('./utils/performanceMonitor').then(({ performanceMonitor }) => {
+        console.log('[Performance] Monitoring initialized');
+        setTimeout(() => {
+          const metrics = performanceMonitor.getAllMetrics();
+          console.log('[Performance] Current metrics:', metrics);
+        }, 10000);
+      });
     }
   }, []);
 
