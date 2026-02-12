@@ -7,7 +7,13 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 
-export const useWarehouseActions = (onSuccess?: () => void) => {
+interface LocalItemHandlers {
+  addLocalItem?: (data: WarehouseItemFormData) => void;
+  updateLocalItem?: (id: string, data: WarehouseItemFormData) => void;
+  deleteLocalItem?: (id: string) => void;
+}
+
+export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: LocalItemHandlers) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -19,6 +25,7 @@ export const useWarehouseActions = (onSuccess?: () => void) => {
       setLoading(true);
       
       if (isDemoMode) {
+        localHandlers?.addLocalItem?.(data);
         toast({ title: t('warehouse.messages.addSuccess') });
         onSuccess?.();
         return;
@@ -42,17 +49,11 @@ export const useWarehouseActions = (onSuccess?: () => void) => {
 
       if (error) throw error;
 
-      toast({
-        title: t('warehouse.messages.addSuccess'),
-      });
-      
+      toast({ title: t('warehouse.messages.addSuccess') });
       onSuccess?.();
     } catch (err) {
       console.error('Error creating warehouse item:', err);
-      toast({
-        title: t('warehouse.messages.addError'),
-        variant: 'destructive',
-      });
+      toast({ title: t('warehouse.messages.addError'), variant: 'destructive' });
       throw err;
     } finally {
       setLoading(false);
@@ -64,6 +65,7 @@ export const useWarehouseActions = (onSuccess?: () => void) => {
       setLoading(true);
       
       if (isDemoMode) {
+        localHandlers?.updateLocalItem?.(id, data);
         toast({ title: t('warehouse.messages.updateSuccess') });
         onSuccess?.();
         return;
@@ -85,17 +87,11 @@ export const useWarehouseActions = (onSuccess?: () => void) => {
 
       if (error) throw error;
 
-      toast({
-        title: t('warehouse.messages.updateSuccess'),
-      });
-      
+      toast({ title: t('warehouse.messages.updateSuccess') });
       onSuccess?.();
     } catch (err) {
       console.error('Error updating warehouse item:', err);
-      toast({
-        title: t('warehouse.messages.updateError'),
-        variant: 'destructive',
-      });
+      toast({ title: t('warehouse.messages.updateError'), variant: 'destructive' });
       throw err;
     } finally {
       setLoading(false);
@@ -107,6 +103,7 @@ export const useWarehouseActions = (onSuccess?: () => void) => {
       setLoading(true);
       
       if (isDemoMode) {
+        localHandlers?.deleteLocalItem?.(id);
         toast({ title: t('warehouse.messages.deleteSuccess') });
         onSuccess?.();
         return;
@@ -121,17 +118,11 @@ export const useWarehouseActions = (onSuccess?: () => void) => {
 
       if (error) throw error;
 
-      toast({
-        title: t('warehouse.messages.deleteSuccess'),
-      });
-      
+      toast({ title: t('warehouse.messages.deleteSuccess') });
       onSuccess?.();
     } catch (err) {
       console.error('Error deleting warehouse item:', err);
-      toast({
-        title: t('warehouse.messages.deleteError'),
-        variant: 'destructive',
-      });
+      toast({ title: t('warehouse.messages.deleteError'), variant: 'destructive' });
       throw err;
     } finally {
       setLoading(false);

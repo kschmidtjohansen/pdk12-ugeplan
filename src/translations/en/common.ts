@@ -126,6 +126,7 @@ export const common = {
   // Demo role switching
   switchRole: "Switch Role",
   roleChanged: "Role Changed",
+  roleChangedTo: "Switched to {role}",
   switchingToRole: "Switching to {role}...",
   unknown: "Unknown",
   

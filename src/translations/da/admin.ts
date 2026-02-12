@@ -303,6 +303,16 @@ export const admin = {
     passwordTooShort: 'Adgangskode for kort. Skal indeholde 6 tegn.',
     passwordsMustMatch: 'Adgangskoder skal være ens'
   },
+  locations: {
+    description: 'Administrer lagerlokationer og deres navne',
+    editName: 'Rediger navn',
+    delete: 'Slet lokation',
+    deleteConfirm: 'Slet lokation?',
+    deleteWarning: "Alle opbevaringer tilknyttet denne lokation vil få deres lokation sat til 'Ingen'. Denne handling kan ikke fortrydes.",
+    deleted: 'Lokation slettet',
+    renamed: 'Lokationsnavn opdateret',
+    noLocations: 'Ingen lokationer',
+  },
   roles: {
     super_admin: 'Super Admin',
     administrator: 'Administrator',

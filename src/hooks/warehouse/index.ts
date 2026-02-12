@@ -4,11 +4,11 @@ import { useWarehouseFormState } from './useWarehouseFormState';
 
 export const useWarehouse = () => {
   const formState = useWarehouseFormState();
-  const { items, loading, error, refetch } = useWarehouseData();
+  const { items, loading, error, refetch, addLocalItem, updateLocalItem, deleteLocalItem } = useWarehouseData();
   const actions = useWarehouseActions(() => {
     formState.closeFormDialog();
     formState.closeDeleteDialog();
-  });
+  }, { addLocalItem, updateLocalItem, deleteLocalItem });
 
   return {
     items,

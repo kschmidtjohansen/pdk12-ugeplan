@@ -627,9 +627,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setDemoRole(role);
       sessionStorage.setItem('demo-role', role);
       
+      const roleLabel = t(`common.roles.${role}`) || role;
       toast({
-        title: t('auth.roleChanged') || "Rolle Ændret",
-        description: t('auth.roleChangedTo', { role }) || `Skiftet til ${role}`,
+        title: t('common.roleChanged') || "Rolle Ændret",
+        description: (t('common.roleChangedTo') || 'Skiftet til {role}').replace('{role}', roleLabel),
       });
     }
   };
