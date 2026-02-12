@@ -17,6 +17,11 @@ export const DemoRoleSwitcher: React.FC = () => {
 
   const roles: { role: UserRole; label: string; description: string }[] = [
     { 
+      role: 'super_admin', 
+      label: t('admin.roles.superAdmin') || 'Super Admin', 
+      description: t('admin.roles.superAdminDesc') || 'Full system access across all departments' 
+    },
+    { 
       role: 'administrator', 
       label: t('admin.roles.administrator') || 'Administrator', 
       description: t('admin.roles.administratorDesc') || 'Full access to all features' 
