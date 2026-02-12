@@ -34,7 +34,7 @@ const DashboardPage: React.FC = () => {
   const isServicemedarbejder = effectiveRole === 'servicemedarbejder';
   
   // Check if user should see metrics (administrators and skadeledere)
-  const shouldShowMetrics = effectiveRole === 'administrator' || effectiveRole === 'skadeleder';
+  const shouldShowMetrics = effectiveRole === 'super_admin' || effectiveRole === 'administrator' || effectiveRole === 'skadeleder';
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>

@@ -107,7 +107,14 @@ const DepartmentManagement: React.FC = () => {
             <Building2 className="h-5 w-5 text-primary" />
             <CardTitle>{t('admin.departments.title')}</CardTitle>
           </div>
-          <CardDescription>{t('admin.departments.description')}</CardDescription>
+          <CardDescription>
+            {t('admin.departments.description')}
+            {!loading && departments.length > 0 && (
+              <span className="ml-2 text-muted-foreground">
+                — {t('admin.departments.totalCount').replace('{count}', String(departments.length))}
+              </span>
+            )}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">

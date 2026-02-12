@@ -40,7 +40,8 @@ export const admin = {
     empty: 'No main departments created yet.',
     selectCity: 'Select city',
     renamed: 'Department name updated',
-    editName: 'Edit name'
+    editName: 'Edit name',
+    totalCount: '{count} departments total'
   },
   subDepartments: {
     title: 'Sub-departments',
@@ -276,7 +277,8 @@ export const admin = {
     department: 'Main Department',
     subDepartments: 'Sub-departments',
     selectDepartment: 'Select main department',
-    selectSubDepartments: 'Select sub-departments'
+    selectSubDepartments: 'Select sub-departments',
+    totalCount: '{count} users total'
   },
   passwords: {
     changePassword: 'Change password',
