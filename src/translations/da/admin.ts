@@ -13,7 +13,8 @@ export const admin = {
     cleanup: 'Oprydning',
     departments: 'Hovedafdelinger',
     subDepartments: 'Underafdelinger',
-    features: 'Funktioner'
+    features: 'Funktioner',
+    locations: 'Lokationer'
   },
   dashboard: {
     title: 'Administrationspanel',

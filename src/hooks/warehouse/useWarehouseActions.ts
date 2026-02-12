@@ -18,6 +18,12 @@ export const useWarehouseActions = (onSuccess?: () => void) => {
     try {
       setLoading(true);
       
+      if (isDemoMode) {
+        toast({ title: t('warehouse.messages.addSuccess') });
+        onSuccess?.();
+        return;
+      }
+      
       const { data: { user } } = await supabase.auth.getUser();
       const client = getSchemaClient(isDemoMode);
       
@@ -56,6 +62,13 @@ export const useWarehouseActions = (onSuccess?: () => void) => {
   const updateItem = async (id: string, data: WarehouseItemFormData) => {
     try {
       setLoading(true);
+      
+      if (isDemoMode) {
+        toast({ title: t('warehouse.messages.updateSuccess') });
+        onSuccess?.();
+        return;
+      }
+      
       const client = getSchemaClient(isDemoMode);
       
       const { error } = await client
@@ -92,6 +105,13 @@ export const useWarehouseActions = (onSuccess?: () => void) => {
   const deleteItem = async (id: string) => {
     try {
       setLoading(true);
+      
+      if (isDemoMode) {
+        toast({ title: t('warehouse.messages.deleteSuccess') });
+        onSuccess?.();
+        return;
+      }
+      
       const client = getSchemaClient(isDemoMode);
       
       const { error } = await client

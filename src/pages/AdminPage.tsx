@@ -1,24 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Users, Building2, Layers, Settings } from 'lucide-react';
+import { Shield, Users, Building2, Layers, Settings, MapPin } from 'lucide-react';
 import UserManagement from '@/components/Admin/UserManagement';
 import DepartmentManagement from '@/components/Admin/DepartmentManagement';
 import SubDepartmentManagement from '@/components/Admin/SubDepartmentManagement';
 import FeatureToggleManagement from '@/components/Admin/FeatureToggleManagement';
+import LocationManagement from '@/components/Admin/LocationManagement';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
 import { supabase } from '@/integrations/supabase/client';
 
 const AdminPage: React.FC = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, isDemoMode, demoRole } = useAuth();
   const { t } = useTranslation();
+  const { isWarehouseEnabled } = useDepartment();
   const [userCount, setUserCount] = useState<number | null>(null);
 
-  const isSuperAdmin = user?.role === 'super_admin';
-  const isAdmin = user?.role === 'administrator';
+  const effectiveRole = isDemoMode && demoRole ? demoRole : user?.role;
+  const isSuperAdmin = effectiveRole === 'super_admin';
+  const isAdmin = effectiveRole === 'administrator' || isSuperAdmin;
 
   useEffect(() => {
     const fetchUserCount = async () => {
@@ -79,6 +83,12 @@ const AdminPage: React.FC = () => {
               <Settings className="h-4 w-4" />
               {t('admin.tabs.features')}
             </TabsTrigger>
+            {isWarehouseEnabled && (isSuperAdmin || isAdmin) && (
+              <TabsTrigger value="locations" className="gap-2">
+                <MapPin className="h-4 w-4" />
+                {t('admin.tabs.locations') || 'Lokationer'}
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="users" className="animate-fade-in">
@@ -113,6 +123,12 @@ const AdminPage: React.FC = () => {
           <TabsContent value="features" className="animate-fade-in">
             <FeatureToggleManagement />
           </TabsContent>
+
+          {isWarehouseEnabled && (isSuperAdmin || isAdmin) && (
+            <TabsContent value="locations" className="animate-fade-in">
+              <LocationManagement />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>

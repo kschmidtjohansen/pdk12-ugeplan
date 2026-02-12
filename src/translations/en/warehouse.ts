@@ -9,7 +9,7 @@ export const warehouse = {
     caseNumber: "Case Number",
     isCleaned: "Is Cleaned?",
     quantity: "Quantity",
-    hall: "Hall",
+    hall: "Location",
     notes: "Notes",
     createdAt: "Created",
     updatedAt: "Updated"
@@ -19,7 +19,7 @@ export const warehouse = {
     address: "Enter address...",
     caseNumber: "Enter case number...",
     quantity: "Enter quantity...",
-    selectHall: "Select hall...",
+    selectHall: "Select location...",
     notes: "Add any notes..."
   },
   

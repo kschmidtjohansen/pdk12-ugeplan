@@ -71,7 +71,7 @@ const cars = {
   deleteError: 'Kunne ikke slette køretøj. Prøv igen.',
   
   // Page content
-  pageDescription: 'Administrer din køretøjsflåde og tilgængelighed',
+  pageDescription: 'Ret biler og deres tilgængelighed',
   addNewCar: 'Tilføj Nyt Køretøj',
   
   // Error messages for fetching

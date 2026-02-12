@@ -43,11 +43,6 @@ export const DemoRoleSwitcher: React.FC = () => {
     if (newRole === currentRole) return;
     
     setDemoRole(newRole);
-    
-    toast({
-      title: t('common.roleChanged') || "Demo Role Switched",
-      description: t('common.switchingToRole', { role: roles.find(r => r.role === newRole)?.label }) || `Switched to ${roles.find(r => r.role === newRole)?.label}`,
-    });
 
     // Navigate to dashboard instead of home to maintain context
     setTimeout(() => {

@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info, Truck, Recycle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info, Truck, Recycle, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CarData } from './types';
@@ -30,17 +30,28 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
   onToggleAvailability
 }) => {
   const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+
+  const hasDetails = car.has_trailer_hitch && (car.towing_capacity_with_brakes || car.towing_capacity_without_brakes || car.total_weight) || (car.notes && car.notes.trim() !== '');
   
   return (
     <Card className="overflow-hidden border-gray-100 hover:shadow-md transition-all">
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-3">
-          <div className="flex items-center">
+          <div 
+            className={`flex items-center flex-1 ${hasDetails ? 'cursor-pointer' : ''}`}
+            onClick={() => hasDetails && setExpanded(!expanded)}
+          >
             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 mr-3">
               <Car className="h-5 w-5 text-primary" />
             </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">{car.car_number}</h3>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-gray-900">{car.car_number}</h3>
+                {hasDetails && (
+                  expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                )}
+              </div>
               <p className="text-sm text-gray-600">{car.name}</p>
             </div>
           </div>
@@ -115,24 +126,10 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
               <div className="flex items-center gap-2">
                 <p className="text-gray-900 font-medium">{car.number_plate}</p>
                 {car.number_plate.toLowerCase().includes('trailer') && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Truck className="h-4 w-4 text-orange-500" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Trailer</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <Truck className="h-4 w-4 text-orange-500" />
                 )}
                 {car.number_plate.toLowerCase().includes('miljø') && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Recycle className="h-4 w-4 text-green-600" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Miljøvogn</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <Recycle className="h-4 w-4 text-green-600" />
                 )}
               </div>
             </div>
@@ -143,26 +140,6 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                   <>
                     <Check className="h-4 w-4 text-green-500" />
                     <span className="text-gray-900">{t('common.yes')}</span>
-                    {(car.towing_capacity_with_brakes || car.towing_capacity_without_brakes || car.total_weight) && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 text-blue-500 cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <div className="text-xs space-y-1">
-                            {car.towing_capacity_with_brakes && (
-                              <p>Med bremser: {car.towing_capacity_with_brakes} kg</p>
-                            )}
-                            {car.towing_capacity_without_brakes && (
-                              <p>Uden bremser: {car.towing_capacity_without_brakes} kg</p>
-                            )}
-                            {car.total_weight && (
-                              <p>Totalvægt: {car.total_weight} kg</p>
-                            )}
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
                   </>
                 ) : (
                   <>
@@ -181,6 +158,32 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
             </div>
           )}
 
+          {/* Expandable details section */}
+          {expanded && hasDetails && (
+            <div className="border-t border-gray-100 pt-3 space-y-2 animate-fade-in">
+              {car.has_trailer_hitch && (car.towing_capacity_with_brakes || car.towing_capacity_without_brakes || car.total_weight) && (
+                <div className="bg-blue-50 rounded-lg p-3 space-y-1 text-sm">
+                  <p className="font-medium text-blue-900">{t('cars.hasTrailerHitch')}</p>
+                  {car.towing_capacity_with_brakes && (
+                    <p className="text-blue-800">{t('cars.towingCapacityWithBrakes')}: {car.towing_capacity_with_brakes} kg</p>
+                  )}
+                  {car.towing_capacity_without_brakes && (
+                    <p className="text-blue-800">{t('cars.towingCapacityWithoutBrakes')}: {car.towing_capacity_without_brakes} kg</p>
+                  )}
+                  {car.total_weight && (
+                    <p className="text-blue-800">{t('cars.totalWeight')}: {car.total_weight} kg</p>
+                  )}
+                </div>
+              )}
+              {car.notes && car.notes.trim() !== '' && (
+                <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                  <p className="font-medium text-gray-700 mb-1">{t('cars.notes')}</p>
+                  <p className="text-gray-600 whitespace-pre-wrap">{car.notes}</p>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex items-center justify-between pt-2 border-t border-gray-100">
             <div className="flex items-center gap-2">
               {car.is_available ? (
@@ -195,15 +198,13 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                 </>
               )}
             </div>
-            {car.notes && car.notes.trim() !== '' && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-blue-500 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs whitespace-pre-wrap">{car.notes}</p>
-                </TooltipContent>
-              </Tooltip>
+            {hasDetails && !expanded && (
+              <button 
+                onClick={() => setExpanded(true)}
+                className="text-xs text-blue-600 hover:text-blue-800"
+              >
+                {t('common.showMore') || 'Vis detaljer'}
+              </button>
             )}
           </div>
         </div>

@@ -98,25 +98,27 @@ const EmployeesPage: React.FC = () => {
     <div className="min-h-screen w-full bg-background">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Simple Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
               {regularEmployees.length} {t("employees.title")} - {vikarer.length} Vikarer
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm text-gray-600">
               {t("employees.description")}
             </p>
           </div>
           {isAdmin && (
-            <div className="flex gap-2">
-              <Button onClick={handleCreateNew}>
-                <Plus className="h-4 w-4 mr-2" />
-                {t("employees.addEmployee")}
+            <div className="flex gap-2 flex-shrink-0">
+              <Button onClick={handleCreateNew} size="sm" className="sm:size-default">
+                <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">{t("employees.addEmployee")}</span>
+                <span className="sm:hidden">Tilføj</span>
               </Button>
               {isSubstituteEnabled && (
-                <Button onClick={handleCreateVikar} variant="outline">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  {t("employees.addVikar")}
+                <Button onClick={handleCreateVikar} variant="outline" size="sm" className="sm:size-default">
+                  <UserPlus className="h-4 w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">{t("employees.addVikar")}</span>
+                  <span className="sm:hidden">Vikar</span>
                 </Button>
               )}
             </div>
