@@ -1,46 +1,25 @@
 
 
-## Plan: Opdater mappestruktur i README.md
+## Opret LICENSE fil
 
-README'ens mappestruktur mangler flere mapper der reelt eksisterer. Her er de konkrete afvigelser og rettelser:
+### Hvad der sker
 
-### Manglende mapper under `/src/components`
+En ny fil `LICENSE` oprettes i projektets rodmappe med den standard MIT-licenstekst, aar 2026 og ophavsretindehaver **Kasper Schmidt Johansen**.
 
-| Mappe | Beskrivelse (DK) | Beskrivelse (EN) |
-|-------|-------------------|-------------------|
-| `/Assignment` | Opgavedetaljer med filer og beskeder | Assignment details with files and messages |
-| `/AutoPublish` | Automatisk publicering af opgaver | Auto-publishing of assignments |
-| `/Demo` | Demo-tilstand med rolleskift | Demo mode with role switching |
-| `/Duty` | Vagtplanlægning og -bytte | Duty scheduling and swapping |
-| `/ErrorBoundary` | Fejlhåndtering på side- og dataniveau | Page and data-level error boundaries |
-| `/Notifications` | Notifikationskomponenter | Notification components |
-| `/Profile` | Profilbillede og adgangskode | Profile picture and password |
-| `/ScreenDisplay` | Skærmvisning af ugeplaner | Screen display of weekly plans |
-| `/Security` | Sikkerhedsstatus-panel | Security status panel |
-| `/shared` | Genbrugelige komponenter (loading, empty states) | Reusable components (loading, empty states) |
+### Fil der oprettes
 
-### Manglende mapper under `/src/hooks`
-
-| Mappe | Beskrivelse (DK) | Beskrivelse (EN) |
-|-------|-------------------|-------------------|
-| `/data` | Hooks til samlet datahåndtering | Hooks for unified data handling |
-| `/duty` | Hooks til vagthåndtering | Hooks for duty handling |
-
-### Manglende mapper under `/src`
-
-| Mappe | Beskrivelse (DK) | Beskrivelse (EN) |
-|-------|-------------------|-------------------|
-| `/config` | Konfigurationsfiler (sikkerhed) | Configuration files (security) |
-| `/integrations` | Supabase client og RPC helpers | Supabase client and RPC helpers |
-| `/lib` | Utility-funktioner (cn/tailwind-merge) | Utility functions (cn/tailwind-merge) |
-
-### Tekniske detaljer
-
-Begge mappestruktur-sektioner (dansk linje 92-121, engelsk linje 232-261) opdateres med den komplette liste. Rækkefølgen følger den faktiske filsystem-sortering (alfabetisk).
-
-### Filer der ændres
-
-| Fil | Ændring |
+| Fil | Handling |
 |-----|---------|
-| `README.md` | Opdater begge mappestruktur-sektioner (dansk + engelsk) med alle manglende mapper |
+| `LICENSE` | Ny fil med MIT-licens |
+
+### Indhold
+
+Standard MIT-licenstekst med:
+- Copyright (c) 2026 Kasper Schmidt Johansen
+- Fuld MIT-licenstekst (tilladelse, ansvarsfraskrivelse)
+
+### Sikkerhed
+
+- Ingen eksisterende filer aendres eller slettes
+- Kun en enkelt ny fil oprettes i roden
 
