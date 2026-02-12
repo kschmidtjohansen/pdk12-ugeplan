@@ -39,7 +39,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - 2026-02-12
+- Global ErrorBoundary med brugervenlig fejlside (dansk/engelsk) - forhindrer hvid skærm ved uhåndterede fejl
+- Page-level DataFetchErrorBoundary på alle 9 hovedsider (Dashboard, Planner, Employees, Cars, Vacation, Duty, Warehouse, ChangeLog, Admin)
+- Global MutationCache error handler i QueryClient til automatisk fejlhåndtering af mutations
+- Optimistic UI opdateringer for bil-handlinger (toggle tilgængelighed, sletning) med automatisk rollback
+- Optimistic UI opdateringer for lager-handlinger (opret, opdater, slet) med automatisk rollback
+- TanStack Query (React Query) caching på alle 5 hoved-data-hooks (biler, medarbejdere, vagter, lager, ferie)
+- Cache invalidation via `queryClient.invalidateQueries` i 9 action/mutation hooks
+
+### Changed - 2026-02-12
+- Data-fetching konverteret fra manuelt useState/useEffect til useQuery med 5 minutters staleTime
+- Realtime-subscriptions kalder nu invalidateQueries i stedet for manuelle fetch-funktioner
+- Optimistic UI bruger queryClient.setQueryData som kompatibilitetslag
+
 ### Fixed - 2026-02-12
+- Generisk ErrorBoundary default fallback fikseret - viste før children igen (uendelig loop-risiko)
 - Servicemedarbejdere kan nu se alle medarbejdere i deres afdeling (ikke kun sig selv)
 - RLS-policy på user_access opdateret til at tillade afdelingsbaseret visning
 

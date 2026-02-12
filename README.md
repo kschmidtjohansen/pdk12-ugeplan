@@ -36,6 +36,9 @@
 - 🔄 **Automatisk cleanup** af demo data og udløbne brugere
 - 🔑 **Automatisk afdelingstildeling** ved login (ingen manuel vælger)
 - 📍 **Lokationsstyring** med inline-redigering i Admin-panelet
+- ⚡ **Optimistic UI** med automatisk rollback ved fejl
+- 🛡️ **Robust fejlhåndtering** med Error Boundaries på alle sider
+- 💾 **Intelligent caching** med TanStack Query og 5-minutters staleTime
 
 ---
 
@@ -173,6 +176,9 @@ Projektet er under privat licens. Kontakt udvikleren for brug og samarbejde.
 - 🔄 **Automatic Cleanup** of demo data and expired users
 - 🔑 **Automatic Department Assignment** on login (no manual selector)
 - 📍 **Location Management** with inline editing in Admin panel
+- ⚡ **Optimistic UI** with automatic rollback on failure
+- 🛡️ **Robust Error Handling** with Error Boundaries on all pages
+- 💾 **Intelligent Caching** with TanStack Query and 5-minute staleTime
 
 ---
 
