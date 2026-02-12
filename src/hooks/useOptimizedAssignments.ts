@@ -850,6 +850,38 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     }
   }, [fetchAssignments, authReady, isAuthenticated, user?.id, user?.role]);
 
+  // Realtime subscription for assignments table
+  useEffect(() => {
+    if (user?.email === 'test@polygongroup.com' || !isAuthenticated || !user?.id) return;
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let isMounted = true;
+
+    const channel = supabase
+      .channel('optimized-assignments-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, () => {
+        if (!isMounted) return;
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          if (isMounted) {
+            console.log('[useOptimizedAssignments] Realtime change detected, refetching...');
+            refetch().catch(err => console.error('[useOptimizedAssignments] Realtime refetch error:', err));
+          }
+        }, 1000);
+      })
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.warn('[useOptimizedAssignments] Realtime channel error, falling back to existing data');
+        }
+      });
+
+    return () => {
+      isMounted = false;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      supabase.removeChannel(channel);
+    };
+  }, [isAuthenticated, user?.id, user?.email, refetch]);
+
   return {
     assignments,
     loading,

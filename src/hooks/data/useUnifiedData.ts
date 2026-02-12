@@ -87,30 +87,36 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
     };
 
     // Set up realtime subscription for cars to get immediate updates
-    const channel = supabase
-      .channel('unified-cars-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'cars'
-        },
-        (payload) => {
-          console.log('[useUnifiedData] Car realtime update received:', payload);
-          // Clear cache and refetch when cars change
-          if (isMounted) {
-            unifiedDataService.clearCache();
-            loadData().catch(console.error);
-          }
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const handleRealtimeChange = (table: string) => {
+      if (!isMounted) return;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (isMounted) {
+          console.log(`[useUnifiedData] Realtime change on ${table}, refetching...`);
+          unifiedDataService.clearCache();
+          loadData().catch(console.error);
         }
-      )
-      .subscribe();
+      }, 1000);
+    };
+
+    const channel = supabase
+      .channel('unified-data-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cars' }, () => handleRealtimeChange('cars'))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, () => handleRealtimeChange('assignments'))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => handleRealtimeChange('profiles'))
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.warn('[useUnifiedData] Realtime channel error, falling back to existing data');
+        }
+      });
 
     loadData();
 
     return () => {
       isMounted = false;
+      if (debounceTimer) clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, [isDemoMode, selectedDepartmentId]);
