@@ -1,80 +1,131 @@
 
 
-## Plan: Optimistic UI opdateringer
+## Plan: TanStack Query caching for data hooks
 
-### Analyse
+### Nuvaerende tilstand
 
-Optimistic UI giver mening hvor:
-1. Handlingen har direkte lokal state (`setCars`, `setItems`)
-2. Rollback er simpel (gem tidligere state, gendant ved fejl)
-3. Brugeren faar ojeblikkelig feedback
+- QueryClient er allerede konfigureret med `staleTime: 5 min`, `gcTime: 10 min`, `retry: 1`
+- Kun 1 hook bruger `useQuery` (`useWarehouseIndicators`)
+- Alle 5 hoved-hooks bruger manuelt `useState` + `useEffect` + `fetchData()`
+- `invalidateQueries` bruges ingen steder
+- Optimistic updates i car/warehouse bruger direkte `setCars`/`setItems`
 
-### Hooks der faar optimistic updates
+### Hooks der konverteres
 
-| Hook | Handling | Nuvaerende adfaerd | Optimistic aendring |
-|------|----------|-------------------|---------------------|
-| `useCarActions` | Toggle tilgaengelighed | DB kald -> derefter setCars | setCars foerst -> DB kald -> rollback ved fejl |
-| `useCarActions` | Slet bil | DB kald -> derefter setCars | setCars foerst -> DB kald -> rollback ved fejl |
-| `useWarehouseActions` | Opret/opdater/slet | DB kald -> derefter onSuccess callback | Kald local handlers foerst -> DB kald -> rollback ved fejl |
-| `useEmployeeActions` | Toggle fravaar | DB kald -> derefter refreshEmployees | Ikke kandidat (kræver fuld refetch pga. kompleks data) |
+| Hook | queryKey | Kompleksitet |
+|------|----------|-------------|
+| `useCarData` | `['cars', isDemoMode, departmentId]` | Medium - har setCars for optimistic |
+| `useEmployeeData` | `['employees', isDemoMode, departmentId]` | Medium - har haveEmployeesChanged |
+| `useDutyData` | `['duties', startDateStr, endDateStr, departmentId]` | Lav |
+| `useWarehouseData` | `['warehouse-items', isDemoMode, departmentId]` | Medium - har setItems for optimistic |
+| `useVacationData` | `['vacations', userEmail, departmentId]` | Medium - bruger realtimeManager |
 
-**Fravalgt:**
-- `useAssignmentActions`: For kompleks (multi-date, employee linking, validering). Risiko for inkonsistent state er for hoej.
-- `useVacationActions`: Kræver server-genererede felter (id, timestamps) og security logging foer UI-opdatering.
-- `useDutyActions`: Ingen lokal state - bruger kun `onSuccess` callback til refetch.
-- `useEmployeeActions`: Data-modellen er for kompleks med roller, certifikater og cross-table relationer.
+### Hooks der IKKE konverteres
 
-### Tekniske detaljer
+- `useOptimizedAssignments` (900 linjer, ekstremt kompleks med inline CRUD, for hoej risiko)
+- `useUnifiedData` (har eget cache-lag via unifiedDataService, ville skabe konflikt)
+- `useAssignments` (data/) (bruges sammen med useOptimizedAssignments)
 
-**1. `src/hooks/car/useCarActions.ts` - Toggle tilgaengelighed**
+### Aendringer per fil
 
-I `updateAvailabilityStatus` (linje 252-342):
-- Gem snapshot: `const previousCars = [...cars]`
-- Opdater UI med det samme: `setCars(cars.map(c => c.id === car.id ? { ...c, is_available: isAvailable, notes } : c))`
-- Udfoesr DB-kald
-- Ved fejl: `setCars(previousCars)` + vis error toast
-- Succes-logik (toast-beskeder) forbliver uaendret
+**1. `src/hooks/car/useCarData.ts`**
 
-**2. `src/hooks/car/useCarActions.ts` - Slet bil**
+- Flyt fetch-logikken ind i en `queryFn` (ingen aendring i selve SQL/Supabase kaldene)
+- Brug `useQuery` med `queryKey: ['cars', isDemoMode, selectedDepartmentId, canViewFuelCardCode]`
+- `enabled: userDataLoaded && !!user` (erstat useEffect-guarden)
+- Behold realtime-subscription i separat useEffect, men kald `queryClient.invalidateQueries({ queryKey: ['cars'] })` i stedet for `loadCars()`
+- Eksporter `setCars` som wrapper: `(updater) => queryClient.setQueryData(['cars', ...], updater)` saa useCarActions og useCarFormState fortsat virker uden aendring
+- `loading` mappes til `isLoading` fra useQuery (foerste load) - bevarer eksisterende spinners
+- `fetchCars` mappes til `refetch` fra useQuery
 
-I `confirmDelete` (linje 32-215), kun for den simple delete-path (ikke forceDelete):
-- Gem snapshot: `const previousCars = [...cars]`
-- Fjern bilen fra UI med det samme: `setCars(cars.filter(c => c.id !== currentCar.id))`
-- Udfoesr DB-kald
-- Ved fejl: `setCars(previousCars)` + vis error toast
-- ForceDelete-logikken forbliver uaendret (for kompleks til optimistic)
+**2. `src/hooks/employee/useEmployeeData.ts`**
 
-**3. `src/hooks/warehouse/useWarehouseActions.ts` - Opret/opdater/slet**
+- Flyt fetch-logikken ind i `queryFn`
+- `queryKey: ['employees', isDemoMode, selectedDepartmentId]`
+- `enabled: userDataLoaded && !!user`
+- Realtime-subscription kalder `invalidateQueries` i stedet for `fetchEmployees()`
+- Fjern manuelt `haveEmployeesChanged` tjek (useQuery haandterer dette via `structuralSharing`)
+- Eksporter `fetchEmployees` som `refetch`
 
-For alle tre operationer:
-- Modtag `items` og `setItems` som nye parametre (fra useWarehouseData)
-- **createItem**: Opret temp item med `crypto.randomUUID()`, tilfoej til state, DB insert, ved fejl fjern temp item
-- **updateItem**: Gem snapshot af item, opdater i state, DB update, ved fejl gendant snapshot
-- **deleteItem**: Gem snapshot, fjern fra state, DB delete, ved fejl gendant
+**3. `src/hooks/duty/useDutyData.ts`**
 
-**4. Sortering bevares**
+- Flyt fetch-logikken ind i `queryFn`
+- `queryKey: ['duties', user?.email, startDateStr, endDateStr, selectedDepartmentId]`
+- Realtime-subscription kalder `invalidateQueries`
+- `isRefetching` mappes til useQuerys `isFetching && !isLoading`
 
-- Car-listen er ikke sorteret i state (sorteres i UI-komponent) - ingen aendring noevendigt
-- Warehouse items sorteres by `created_at desc` - nye items tilfoekjes i starten af listen (`[newItem, ...prev]`)
-- Ingen aendring i sorteringslogik
+**4. `src/hooks/warehouse/useWarehouseData.ts`**
 
-**5. Ingen side-refreshes**
+- Flyt fetch-logikken ind i `queryFn`
+- `queryKey: ['warehouse-items', isDemoMode, selectedDepartmentId]`
+- `enabled: userDataLoaded && !!user`
+- Eksporter `setItems` som wrapper: `(updater) => queryClient.setQueryData(...)` saa optimistic updates i useWarehouseActions fortsat virker
+- Realtime/polling kalder `invalidateQueries`
+- Behold `addLocalItem`, `updateLocalItem`, `deleteLocalItem` for demo mode
 
-- Alle rollbacks bruger `setCars`/`setItems` direkte - ingen `window.location.reload()` eller `refetch()` ved fejl
-- Ved succes beholdes den optimistiske state (DB-data matcher allerede)
+**5. `src/hooks/vacation/useVacationData.ts`**
+
+- Flyt `fetchVacations` ind i `queryFn`
+- `queryKey: ['vacations', user?.email, selectedDepartmentId]`
+- `enabled: userDataLoaded && !!user`
+- Realtime (via realtimeManager) og polling kalder `invalidateQueries`
+
+**6. Mutations: `invalidateQueries` ved alle opdateringer**
+
+Tilfoej `queryClient.invalidateQueries` efter succesfulde mutations i:
+
+| Fil | invaliderer |
+|-----|------------|
+| `src/hooks/car/useCarActions.ts` | `['cars']` efter delete, toggle availability |
+| `src/hooks/car/useCarFormState.ts` | `['cars']` efter create/update |
+| `src/hooks/warehouse/useWarehouseActions.ts` | `['warehouse-items']` efter create/update/delete |
+| `src/hooks/employee/useEmployeeActions.ts` | `['employees']` efter toggle leave, delete |
+| `src/hooks/employee/useEmployeeCreation.ts` | `['employees']` efter create |
+| `src/hooks/duty/useDutyActions.ts` | `['duties']` efter create/update/delete |
+| `src/hooks/vacation/useVacationActions.ts` | `['vacations']` efter actions |
+| `src/hooks/vacation/useVacationApprovalActions.ts` | `['vacations']` efter approve/reject |
+| `src/hooks/vacation/useVacationRequestActions.ts` | `['vacations']` efter request |
+
+### Teknisk moenter: setCars/setItems kompatibilitet
+
+Fordi `useCarActions` og `useWarehouseActions` modtager `setCars`/`setItems` som parameter til optimistic updates, eksporterer data-hookene en wrapper-funktion:
+
+```text
+// useCarData returnerer:
+setCars: (updater) => {
+  queryClient.setQueryData(queryKey, (old) => {
+    return typeof updater === 'function' ? updater(old || []) : updater;
+  });
+}
+```
+
+Dette sikrer at alle eksisterende optimistic updates (fra forrige opgave) fortsat virker uden aendringer i action-hooks.
 
 ### Sikkerhedsgarantier
 
-- ID-generering: Warehouse bruger `crypto.randomUUID()` som allerede eksisterer i koden (linje 55 i useWarehouseData). Ingen aendring i ID-format
-- Timestamps: Bruger `new Date().toISOString()` som allerede eksisterer. Ingen aendring
-- Succes-logik: Toast-beskeder og callbacks forbliver identiske
-- Console.log: Alle eksisterende logs bevares, nye `[Optimistic]` prefix logs tilfoekjes
-- Demo mode: Eksisterende demo-logik er allerede optimistisk - forbliver uaendret
+- Ingen aendring i Supabase-queries (SQL forbliver identisk)
+- Loading states bevares: `isLoading` (foerste load) viser spinners/skeletons
+- Internationalisering paavirkes ikke (useQuery cacher data, ikke UI-rendering)
+- Succes-logik uaendret i alle action-hooks
+- Alle console.log og debugging bevares
+- Demo mode logik forbliver identisk (flyttes bare ind i queryFn)
 
 ### Filer der aendres
 
-| Fil | AEndring |
-|-----|---------|
-| `src/hooks/car/useCarActions.ts` | Optimistic toggle + delete med rollback |
-| `src/hooks/warehouse/useWarehouseActions.ts` | Optimistic create/update/delete med rollback |
+| Fil | Type |
+|-----|------|
+| `src/hooks/car/useCarData.ts` | Konverter til useQuery |
+| `src/hooks/employee/useEmployeeData.ts` | Konverter til useQuery |
+| `src/hooks/duty/useDutyData.ts` | Konverter til useQuery |
+| `src/hooks/warehouse/useWarehouseData.ts` | Konverter til useQuery |
+| `src/hooks/vacation/useVacationData.ts` | Konverter til useQuery |
+| `src/hooks/car/useCarActions.ts` | Tilfoej invalidateQueries |
+| `src/hooks/car/useCarFormState.ts` | Tilfoej invalidateQueries |
+| `src/hooks/warehouse/useWarehouseActions.ts` | Tilfoej invalidateQueries |
+| `src/hooks/employee/useEmployeeActions.ts` | Tilfoej invalidateQueries |
+| `src/hooks/employee/useEmployeeCreation.ts` | Tilfoej invalidateQueries |
+| `src/hooks/duty/useDutyActions.ts` | Tilfoej invalidateQueries |
+| `src/hooks/vacation/useVacationActions.ts` | Tilfoej invalidateQueries |
+| `src/hooks/vacation/useVacationApprovalActions.ts` | Tilfoej invalidateQueries |
+| `src/hooks/vacation/useVacationRequestActions.ts` | Tilfoej invalidateQueries |
 
