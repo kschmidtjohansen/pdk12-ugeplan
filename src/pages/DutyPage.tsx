@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions, useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 import { useDutyActions } from '@/hooks/duty/useDutyActions';
@@ -14,7 +15,7 @@ import { DutyMonthCalendar } from '@/components/Duty/DutyMonthCalendar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw, Shield } from 'lucide-react';
 import { startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import type { Duty } from '@/types/duty';
 
@@ -22,6 +23,7 @@ export default function DutyPage() {
   const { t } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
   const { user } = useAuth();
+  const { isDutyEnabled } = useDepartment();
   const canManage = isAdmin || isSkadeleder;
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -99,6 +101,17 @@ export default function DutyPage() {
     }
     return success;
   };
+
+  if (!isDutyEnabled) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto py-16 text-center">
+          <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-lg text-muted-foreground">{t('admin.features.featureDisabled')}</p>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>

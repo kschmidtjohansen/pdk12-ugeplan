@@ -3,6 +3,7 @@ import { Package, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { useWarehouse } from '@/hooks/warehouse';
 import WarehouseList from '@/components/Warehouse/WarehouseList';
 import WarehouseFormDialog from '@/components/Warehouse/WarehouseFormDialog';
@@ -13,6 +14,7 @@ import EmptyState from '@/components/shared/EmptyState';
 const WarehousePage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { isWarehouseEnabled } = useDepartment();
   const {
     items,
     loading,
@@ -47,6 +49,15 @@ const WarehousePage = () => {
       await deleteItem(deletingItem.id);
     }
   };
+
+  if (!isWarehouseEnabled) {
+    return (
+      <div className="container mx-auto py-16 text-center">
+        <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <p className="text-lg text-muted-foreground">{t('admin.features.featureDisabled')}</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

@@ -12,7 +12,8 @@ export const admin = {
     system: 'System',
     cleanup: 'Oprydning',
     departments: 'Hovedafdelinger',
-    subDepartments: 'Underafdelinger'
+    subDepartments: 'Underafdelinger',
+    features: 'Funktioner'
   },
   dashboard: {
     title: 'Administrationspanel',
@@ -57,6 +58,16 @@ export const admin = {
     hasData: 'Kan ikke slettes – har tilknyttede brugere eller data'
   },
   departmentSwitched: 'Skiftet til {name}',
+  features: {
+    title: 'Funktionsstyring',
+    description: 'Aktiver eller deaktiver funktioner for den valgte afdeling',
+    warehouseEnabled: 'Lager',
+    dutyEnabled: 'Vagt',
+    enabled: 'Aktiveret',
+    disabled: 'Deaktiveret',
+    updated: 'Funktionsindstilling opdateret',
+    featureDisabled: 'Denne funktion er ikke aktiveret for din afdeling'
+  },
   security: {
     title: 'Sikkerhedsovervågning',
     description: 'Overvåg sikkerhedshændelser og adgangslogfiler'

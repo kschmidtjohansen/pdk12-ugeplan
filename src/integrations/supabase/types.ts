@@ -376,21 +376,27 @@ export type Database = {
       departments: {
         Row: {
           created_at: string
+          duty_enabled: boolean
           id: string
           name: string
           updated_at: string
+          warehouse_enabled: boolean
         }
         Insert: {
           created_at?: string
+          duty_enabled?: boolean
           id?: string
           name: string
           updated_at?: string
+          warehouse_enabled?: boolean
         }
         Update: {
           created_at?: string
+          duty_enabled?: boolean
           id?: string
           name?: string
           updated_at?: string
+          warehouse_enabled?: boolean
         }
         Relationships: []
       }

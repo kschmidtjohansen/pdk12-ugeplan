@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Users, Car, UserX, Package, AlertCircle, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/context/TranslationContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
 import MetricsSkeleton from '@/components/shared/MetricsSkeleton';
@@ -20,6 +21,7 @@ const DashboardMetrics: React.FC = () => {
   const { metrics, loading, error, assignments, vacations } = useDashboardMetrics();
   const { t } = useTranslation();
   const { isDemoMode } = useAuth();
+  const { isDutyEnabled, isWarehouseEnabled } = useDepartment();
   const navigate = useNavigate();
   
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
@@ -87,16 +89,18 @@ const DashboardMetrics: React.FC = () => {
           onClick={() => setAbsentModalOpen(true)}
         />
         
-        <InteractiveMetricCard
-          title={t('dashboard.metrics.warehouseItems')}
-          value={metrics.warehouseItems.count}
-          subtitle={t('dashboard.metrics.warehouseItemsDesc')}
-          icon={Package}
-          color="orange"
-          onClick={() => navigate('/warehouse')}
-        />
+        {isWarehouseEnabled && (
+          <InteractiveMetricCard
+            title={t('dashboard.metrics.warehouseItems')}
+            value={metrics.warehouseItems.count}
+            subtitle={t('dashboard.metrics.warehouseItemsDesc')}
+            icon={Package}
+            color="orange"
+            onClick={() => navigate('/warehouse')}
+          />
+        )}
 
-        <DutySummaryWidget />
+        {isDutyEnabled && <DutySummaryWidget />}
       </div>
 
       <EmployeeAvailabilityDialog

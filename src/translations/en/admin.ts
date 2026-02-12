@@ -12,7 +12,8 @@ export const admin = {
     system: 'System',
     cleanup: 'Cleanup',
     departments: 'Main Departments',
-    subDepartments: 'Sub-departments'
+    subDepartments: 'Sub-departments',
+    features: 'Features'
   },
   dashboard: {
     title: 'Admin Dashboard',
@@ -57,6 +58,16 @@ export const admin = {
     hasData: 'Cannot delete – has associated users or data'
   },
   departmentSwitched: 'Switched to {name}',
+  features: {
+    title: 'Feature Management',
+    description: 'Enable or disable features for the selected department',
+    warehouseEnabled: 'Warehouse',
+    dutyEnabled: 'Duty',
+    enabled: 'Enabled',
+    disabled: 'Disabled',
+    updated: 'Feature setting updated',
+    featureDisabled: 'This feature is not enabled for your department'
+  },
   security: {
     title: 'Security Monitoring',
     description: 'Monitor security events and access logs'
