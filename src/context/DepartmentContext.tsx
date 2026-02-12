@@ -42,7 +42,7 @@ const DepartmentContext = createContext<DepartmentContextType>({
 export const useDepartment = () => useContext(DepartmentContext);
 
 export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user, isAuthenticated, isDemoMode } = useAuth();
+  const { user, isAuthenticated, isDemoMode, effectiveRole } = useAuth();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [userDepartments, setUserDepartments] = useState<Department[]>([]);
   const [selectedDepartmentId, setSelectedDepartmentIdState] = useState<string | null>(() => {
@@ -94,7 +94,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     const fetchUserDepartments = async () => {
       setLoading(true);
       try {
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = effectiveRole === 'super_admin';
 
         if (isSuperAdmin) {
           const { data, error } = await supabase
@@ -111,7 +111,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
               substitute_enabled: (d as any).substitute_enabled ?? true,
             }));
             setUserDepartments(mapped);
-            if (mapped.length === 1 && !selectedDepartmentId) {
+            if (mapped.length > 0 && !selectedDepartmentId) {
               setSelectedDepartmentIdState(mapped[0].id);
               localStorage.setItem('selected_department_id', mapped[0].id);
             }
@@ -141,7 +141,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
             depts.sort((a, b) => a.name.localeCompare(b.name));
             setUserDepartments(depts);
 
-            if (depts.length === 1 && !selectedDepartmentId) {
+            if (depts.length > 0 && !selectedDepartmentId) {
               setSelectedDepartmentIdState(depts[0].id);
               localStorage.setItem('selected_department_id', depts[0].id);
             }
@@ -155,7 +155,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     };
 
     fetchUserDepartments();
-  }, [isAuthenticated, user?.id, user?.role, fetchCounter]);
+  }, [isAuthenticated, user?.id, effectiveRole, fetchCounter]);
 
   const setSelectedDepartmentId = useCallback((id: string | null) => {
     setSelectedDepartmentIdState(id);

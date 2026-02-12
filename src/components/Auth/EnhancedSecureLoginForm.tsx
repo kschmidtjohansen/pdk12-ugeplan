@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
-import { useDepartment } from '@/context/DepartmentContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, Eye, EyeOff, Building2 } from 'lucide-react';
+import { AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface EnhancedSecureLoginFormProps {
@@ -29,7 +26,6 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
   const { login } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { departments, selectedDepartmentId, setSelectedDepartmentId, loading: departmentsLoading } = useDepartment();
 
   const maxAttempts = 5;
   const isBlocked = attempts >= maxAttempts;
@@ -44,18 +40,12 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
       return;
     }
 
-    // Validate department selection
-    if (!selectedDepartmentId) {
-      setError(t('login.departmentRequired'));
-      return;
-    }
-
     if (!email || !password) {
       setError(t('login.requiredFields'));
       return;
     }
 
-    console.log('[LoginForm] Attempting login for:', email, 'with department:', selectedDepartmentId);
+    console.log('[LoginForm] Attempting login for:', email);
     setIsLoading(true);
 
     const loginTimeoutId = setTimeout(() => {
@@ -81,46 +71,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
           });
         }
       } else {
-        // Login succeeded - now check department access
-        console.log('[LoginForm] Auth successful, checking department access...');
-        
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        
-        if (!authUser) {
-          setError(t('login.unexpectedError'));
-          setIsLoading(false);
-          return;
-        }
-
-        // Check if user is super_admin (bypasses department check)
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', authUser.id)
-          .maybeSingle();
-
-        const isSuperAdmin = roleData?.role === 'super_admin';
-
-        if (!isSuperAdmin) {
-          // Check user_access for the selected department
-          const { data: accessData, error: accessError } = await supabase
-            .from('user_access')
-            .select('id')
-            .eq('user_id', authUser.id)
-            .eq('department_id', selectedDepartmentId)
-            .limit(1);
-
-          if (accessError || !accessData || accessData.length === 0) {
-            // Access denied - sign out and show error
-            console.log('[LoginForm] Department access denied for user:', authUser.email);
-            await supabase.auth.signOut();
-            setError(t('login.departmentAccessDenied'));
-            setIsLoading(false);
-            return;
-          }
-        }
-
-        console.log('[LoginForm] Department access verified, proceeding...');
+        console.log('[LoginForm] Auth successful, proceeding...');
         setAttempts(0);
         setError('');
         onSuccess?.();
@@ -180,36 +131,6 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Department selector */}
-          <div className="space-y-2">
-            <Label htmlFor="department" className="flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              {t('login.selectDepartment')}
-            </Label>
-            {departmentsLoading ? (
-              <div className="text-sm text-muted-foreground py-2">
-                {t('login.loadingDepartments')}
-              </div>
-            ) : (
-              <Select
-                value={selectedDepartmentId || ''}
-                onValueChange={(value) => setSelectedDepartmentId(value)}
-                disabled={isLoading || isBlocked}
-              >
-                <SelectTrigger id="department" className="w-full bg-background">
-                  <SelectValue placeholder={t('login.selectDepartmentPlaceholder')} />
-                </SelectTrigger>
-                <SelectContent className="bg-background z-50">
-                  {departments.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
