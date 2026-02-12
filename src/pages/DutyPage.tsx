@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import MainLayout from '@/components/Layout/MainLayout';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions, useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -104,141 +103,138 @@ export default function DutyPage() {
 
   if (!isDutyEnabled) {
     return (
-      <MainLayout>
-        <div className="container mx-auto py-16 text-center">
-          <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-lg text-muted-foreground">{t('admin.features.featureDisabled')}</p>
-        </div>
-      </MainLayout>
+      <div className="container mx-auto py-16 text-center">
+        <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <p className="text-lg text-muted-foreground">{t('admin.features.featureDisabled')}</p>
+      </div>
     );
   }
 
   return (
-    <MainLayout>
-      <div className="container mx-auto py-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">{t('duty.title')}</h1>
-            <p className="text-muted-foreground mt-2">
-              {t('duty.upcomingDuties')}
-            </p>
-          </div>
-          
-          <div className="flex gap-2">
-            {canManage && (
-              <Button onClick={() => setDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                {t('duty.assignDuty')}
-              </Button>
-            )}
-            <Button 
-              variant="secondary" 
-              onClick={() => setSwapSelectDialogOpen(true)}
-              disabled={
-                dutiesWithRoles.length === 0 || 
-                (user?.role === 'servicemedarbejder'
-                  ? !dutiesWithRoles.some(d => d.duty_type === 'kørevagt' && d.employee_id === user.id)
-                  : !dutiesWithRoles.some(d => d.employee_id === user.id))
-              }
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              {t('duty.swapDuty')}
-            </Button>
-          </div>
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl sm:text-3xl font-bold">{t('duty.title')}</h1>
+          <p className="text-sm text-muted-foreground mt-1 sm:mt-2">
+            {t('duty.upcomingDuties')}
+          </p>
         </div>
-
-        {error && (
-          <Card className="border border-destructive/30 bg-destructive/5">
-            <CardContent className="py-3 text-sm text-destructive">
-              {t('common.errorLoadingData') ?? 'Der opstod en fejl ved indlæsning af vagter.'}
-            </CardContent>
-          </Card>
-        )}
-
-        <Tabs defaultValue="calendar" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="calendar">{t('duty.calendar')}</TabsTrigger>
-            <TabsTrigger value="list">{t('duty.list')}</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="list" className="space-y-4">
-            {loading ? (
-              <div className="flex items-center justify-center min-h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
-              </div>
-            ) : dutiesWithRoles.length === 0 ? (
-              <Card className="border-2 border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <p className="text-muted-foreground text-center">{t('duty.noDutiesInPlan')}</p>
-                </CardContent>
-              </Card>
-            ) : upcomingDuties.length === 0 ? (
-              <Card className="border-2 border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <p className="text-muted-foreground text-center">{t('duty.noUpcomingDuties')}</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <DutyList
-                duties={upcomingDuties}
-                onSuccess={refetch}
-                canManage={canManage}
-                onDutyClick={handleDutyClick}
-              />
-            )}
-          </TabsContent>
-
-          <TabsContent value="calendar" className="space-y-4">
-            {loading ? (
-              <div className="flex items-center justify-center min-h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
-              </div>
-            ) : (
-              <DutyMonthCalendar
-                duties={dutiesWithRoles}
-                month={calendarMonth}
-                onMonthChange={setCalendarMonth}
-                onDutyClick={handleDutyClick}
-                canManage={canManage}
-              />
-            )}
-          </TabsContent>
-        </Tabs>
-
-        {canManage && (
-          <>
-            <DutyAssignmentDialog
-              open={dialogOpen}
-              onOpenChange={setDialogOpen}
-              employees={employeesWithRoles}
-              duties={dutiesWithRoles}
-              onSuccess={refetch}
-            />
-            <DutyEditDialog
-              open={editDialogOpen}
-              onOpenChange={setEditDialogOpen}
-              duty={selectedDuty}
-              employees={employeesWithRoles}
-              onSuccess={refetch}
-            />
-          </>
-        )}
         
-        <DutySwapSelectDialog
-          open={swapSelectDialogOpen}
-          onOpenChange={setSwapSelectDialogOpen}
-          duties={dutiesWithRoles}
-          currentUserId={user?.id}
-          onDutySelected={handleDutySelectedForSwap}
-        />
-        <DutySwapDialog
-          duty={dutyToSwap}
-          employees={employeesWithRoles}
-          open={swapDialogOpen}
-          onOpenChange={setSwapDialogOpen}
-          onReassign={handleReassignment}
-        />
+        <div className="flex gap-2 flex-wrap flex-shrink-0">
+          {canManage && (
+            <Button onClick={() => setDialogOpen(true)} size="sm">
+              <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+              {t('duty.assignDuty')}
+            </Button>
+          )}
+          <Button 
+            variant="secondary"
+            size="sm"
+            onClick={() => setSwapSelectDialogOpen(true)}
+            disabled={
+              dutiesWithRoles.length === 0 || 
+              (user?.role === 'servicemedarbejder'
+                ? !dutiesWithRoles.some(d => d.duty_type === 'kørevagt' && d.employee_id === user.id)
+                : !dutiesWithRoles.some(d => d.employee_id === user.id))
+            }
+          >
+            <RefreshCw className="h-4 w-4 mr-1 sm:mr-2" />
+            {t('duty.swapDuty')}
+          </Button>
+        </div>
       </div>
-    </MainLayout>
+
+      {error && (
+        <Card className="border border-destructive/30 bg-destructive/5">
+          <CardContent className="py-3 text-sm text-destructive">
+            {t('common.errorLoadingData') ?? 'Der opstod en fejl ved indlæsning af vagter.'}
+          </CardContent>
+        </Card>
+      )}
+
+      <Tabs defaultValue="calendar" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="calendar">{t('duty.calendar')}</TabsTrigger>
+          <TabsTrigger value="list">{t('duty.list')}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="list" className="space-y-4">
+          {loading ? (
+            <div className="flex items-center justify-center min-h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+            </div>
+          ) : dutiesWithRoles.length === 0 ? (
+            <Card className="border-2 border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <p className="text-muted-foreground text-center">{t('duty.noDutiesInPlan')}</p>
+              </CardContent>
+            </Card>
+          ) : upcomingDuties.length === 0 ? (
+            <Card className="border-2 border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <p className="text-muted-foreground text-center">{t('duty.noUpcomingDuties')}</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <DutyList
+              duties={upcomingDuties}
+              onSuccess={refetch}
+              canManage={canManage}
+              onDutyClick={handleDutyClick}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="calendar" className="space-y-4">
+          {loading ? (
+            <div className="flex items-center justify-center min-h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+            </div>
+          ) : (
+            <DutyMonthCalendar
+              duties={dutiesWithRoles}
+              month={calendarMonth}
+              onMonthChange={setCalendarMonth}
+              onDutyClick={handleDutyClick}
+              canManage={canManage}
+            />
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {canManage && (
+        <>
+          <DutyAssignmentDialog
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            employees={employeesWithRoles}
+            duties={dutiesWithRoles}
+            onSuccess={refetch}
+          />
+          <DutyEditDialog
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            duty={selectedDuty}
+            employees={employeesWithRoles}
+            onSuccess={refetch}
+          />
+        </>
+      )}
+      
+      <DutySwapSelectDialog
+        open={swapSelectDialogOpen}
+        onOpenChange={setSwapSelectDialogOpen}
+        duties={dutiesWithRoles}
+        currentUserId={user?.id}
+        onDutySelected={handleDutySelectedForSwap}
+      />
+      <DutySwapDialog
+        duty={dutyToSwap}
+        employees={employeesWithRoles}
+        open={swapDialogOpen}
+        onOpenChange={setSwapDialogOpen}
+        onReassign={handleReassignment}
+      />
+    </div>
   );
 }

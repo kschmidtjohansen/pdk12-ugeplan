@@ -71,7 +71,7 @@ const cars = {
   deleteError: 'Failed to delete vehicle. Please try again.',
   
   // Page content
-  pageDescription: 'Manage your vehicle fleet and availability',
+  pageDescription: 'Edit cars and their availability',
   addNewCar: 'Add New Vehicle',
   
   // Error messages for fetching
