@@ -29,7 +29,7 @@ export class SecureDemoService {
     return {
       email: SecureDemoService.DEMO_USER_EMAIL,
       // Password should be retrieved from secure environment variables
-      password: process.env.NODE_ENV === 'development' ? 'TesterbrugerPlan123' : undefined
+      password: import.meta.env.VITE_DEMO_PASSWORD || undefined
     };
   }
   
