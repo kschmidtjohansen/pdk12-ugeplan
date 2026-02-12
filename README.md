@@ -34,18 +34,20 @@
 - 📊 **Dashboard** med interaktive metrics og opgaveoversigt
 - 📸 **Profilbilleder** med avatar upload og cropping
 - 🔄 **Automatisk cleanup** af demo data og udløbne brugere
+- 🔑 **Automatisk afdelingstildeling** ved login (ingen manuel vælger)
+- 📍 **Lokationsstyring** med inline-redigering i Admin-panelet
 
 ---
 
 ### 🔐 Roller og adgang
 
-| Rolle              | Funktioner                                                    |
-|--------------------|---------------------------------------------------------------|
-| Super Admin        | Global adgang til alle afdelinger og funktioner               |
-| Administrator      | Fuld adgang til alle funktioner inkl. brugerhåndtering        |
-| Skadeleder         | Kan oprette og redigere opgaver, godkende ferie              |
-| Servicemedarbejder | Kan se egne opgaver, anmode om ferie                          |
-| Vikar              | Midlertidig adgang med automatisk udløb                       |
+| Rolle              | Funktioner                                                                     |
+|--------------------|--------------------------------------------------------------------------------|
+| Super Admin        | Global adgang til alle afdelinger og funktioner                                |
+| Administrator      | Fuld adgang til alle funktioner inkl. brugerhåndtering                         |
+| Skadeleder         | Kan oprette og redigere opgaver, godkende ferie                                |
+| Servicemedarbejder | Kan se alle medarbejdere i afdelingen, se egne opgaver, anmode om ferie        |
+| Vikar              | Midlertidig adgang med automatisk udløb                                        |
 
 ---
 
@@ -169,18 +171,20 @@ Projektet er under privat licens. Kontakt udvikleren for brug og samarbejde.
 - 📊 **Dashboard** with interactive metrics and task overview
 - 📸 **Profile Pictures** with avatar upload and cropping
 - 🔄 **Automatic Cleanup** of demo data and expired users
+- 🔑 **Automatic Department Assignment** on login (no manual selector)
+- 📍 **Location Management** with inline editing in Admin panel
 
 ---
 
 ### 🔐 Roles & Access
 
-| Role             | Permissions                                                   |
-|------------------|---------------------------------------------------------------|
-| Super Admin      | Global access to all departments and features                |
-| Administrator    | Full access to all features including user management         |
-| Supervisor       | Can create and edit tasks, approve vacation requests         |
-| Employee         | Can view own tasks, request vacation                         |
-| Temp             | Temporary access with automatic expiration                    |
+| Role             | Permissions                                                                    |
+|------------------|--------------------------------------------------------------------------------|
+| Super Admin      | Global access to all departments and features                                 |
+| Administrator    | Full access to all features including user management                          |
+| Supervisor       | Can create and edit tasks, approve vacation requests                           |
+| Employee         | Can view all employees in department, view own tasks, request vacation          |
+| Temp             | Temporary access with automatic expiration                                     |
 
 ---
 
