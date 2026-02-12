@@ -1,112 +1,80 @@
 
 
-## Plan: Robust fejlhaandtering og Error Boundaries
+## Plan: Optimistic UI opdateringer
 
-### Nuvaerende tilstand
+### Analyse
 
-**Error boundaries der findes:**
-- `SecurityErrorBoundary` - wrapper around MainLayout (fanger auth/security fejl)
-- `DashboardErrorBoundary` - eksisterer men bruges IKKE noget sted
-- `DataFetchErrorBoundary` - bruges kun af ScreenDisplayPage
-- `ErrorBoundary` (generisk) - har en fejl: default fallback re-renderer children, hvilket kan give uendelig loop
+Optimistic UI giver mening hvor:
+1. Handlingen har direkte lokal state (`setCars`, `setItems`)
+2. Rollback er simpel (gem tidligere state, gendant ved fejl)
+3. Brugeren faar ojeblikkelig feedback
 
-**Sider UDEN error boundary:**
-- DashboardPage, PlannerPage, EmployeesPage, CarsPage, VacationPage, DutyPage, WarehousePage, ChangeLogPage, AdminPage
+### Hooks der faar optimistic updates
 
-**Supabase-kald:** Alle hooks har allerede try-catch med toast-beskeder. Ingen aendringer noevendige her.
+| Hook | Handling | Nuvaerende adfaerd | Optimistic aendring |
+|------|----------|-------------------|---------------------|
+| `useCarActions` | Toggle tilgaengelighed | DB kald -> derefter setCars | setCars foerst -> DB kald -> rollback ved fejl |
+| `useCarActions` | Slet bil | DB kald -> derefter setCars | setCars foerst -> DB kald -> rollback ved fejl |
+| `useWarehouseActions` | Opret/opdater/slet | DB kald -> derefter onSuccess callback | Kald local handlers foerst -> DB kald -> rollback ved fejl |
+| `useEmployeeActions` | Toggle fravaar | DB kald -> derefter refreshEmployees | Ikke kandidat (kræver fuld refetch pga. kompleks data) |
 
-**QueryClient:** Har retry:1, men ingen global mutation error handler.
-
----
-
-### AEndringer
-
-**1. Ny `src/components/ErrorBoundary/GlobalErrorBoundary.tsx`**
-
-Opret en top-level error boundary med brugervenlig UI der matcher appens design-system:
-- Viser fejlikon, titel og beskrivelse paa dansk/engelsk (browser language detection)
-- "Proev igen" knap (reset error state)
-- "Genindlaes side" knap (window.location.reload)
-- Error details i collapsible sektion (kun development)
-- Logger fejl til konsol
-
-**2. Opdater `src/App.tsx`**
-
-Wrap `AppContent` med `GlobalErrorBoundary` saa INGEN fejl kan resultere i hvid skaerm:
-
-```text
-App
-  -> QueryClientProvider
-    -> ThemeProvider
-      -> TranslationProvider
-        -> ...providers...
-          -> GlobalErrorBoundary    <-- NY
-            -> AppContent
-```
-
-Tilfoej ogsaa en global `MutationCache` error handler til QueryClient, saa uhaandterede mutation-fejl viser en toast automatisk.
-
-**3. Opdater `src/components/ErrorBoundary.tsx`**
-
-Fix den generiske ErrorBoundary: default fallback skal vise en fejlbesked i stedet for at re-rendere children (som kan give uendelig loop).
-
-**4. Wrap hver side-komponent med `DataFetchErrorBoundary`**
-
-Tilfoej `DataFetchErrorBoundary` i foelgende page-filer:
-
-| Side | Fil |
-|------|-----|
-| DashboardPage | `src/pages/DashboardPage.tsx` |
-| PlannerPage | `src/pages/PlannerPage.tsx` |
-| EmployeesPage | `src/pages/EmployeesPage.tsx` |
-| CarsPage | `src/pages/CarsPage.tsx` |
-| VacationPage | `src/pages/VacationPage.tsx` |
-| DutyPage | `src/pages/DutyPage.tsx` |
-| WarehousePage | `src/pages/WarehousePage.tsx` |
-| ChangeLogPage | `src/pages/ChangeLogPage.tsx` |
-| AdminPage | `src/pages/AdminPage.tsx` |
-
-Hver side wrapper sit indhold i `<DataFetchErrorBoundary>` med retry-funktionalitet.
-
----
+**Fravalgt:**
+- `useAssignmentActions`: For kompleks (multi-date, employee linking, validering). Risiko for inkonsistent state er for hoej.
+- `useVacationActions`: Kræver server-genererede felter (id, timestamps) og security logging foer UI-opdatering.
+- `useDutyActions`: Ingen lokal state - bruger kun `onSuccess` callback til refetch.
+- `useEmployeeActions`: Data-modellen er for kompleks med roller, certifikater og cross-table relationer.
 
 ### Tekniske detaljer
 
-**GlobalErrorBoundary UI:**
-- Bruger eksisterende Card, Button, AlertTriangle fra design-systemet
-- Gradient baggrund matchende appens theme (`from-gray-25 via-background to-gray-50`)
-- "Proev igen" + "Genindlaes side" knapper
-- Error details bag `<details>` tag
+**1. `src/hooks/car/useCarActions.ts` - Toggle tilgaengelighed**
 
-**QueryClient MutationCache:**
-```text
-new MutationCache({
-  onError: (error) => {
-    // Vis toast med fejlbesked (kun hvis ikke allerede haandteret)
-    console.error('[MutationCache] Unhandled mutation error:', error);
-  }
-})
-```
+I `updateAvailabilityStatus` (linje 252-342):
+- Gem snapshot: `const previousCars = [...cars]`
+- Opdater UI med det samme: `setCars(cars.map(c => c.id === car.id ? { ...c, is_available: isAvailable, notes } : c))`
+- Udfoesr DB-kald
+- Ved fejl: `setCars(previousCars)` + vis error toast
+- Succes-logik (toast-beskeder) forbliver uaendret
 
-**Sikkerhedsgarantier:**
-- Ingen succes-logik aendres
-- Ingen console.log eller debugging fjernes
-- Alle eksisterende try-catch og toast-beskeder bevares
-- UI matcher eksisterende design-system
-- Kun additive aendringer (nye wrappere, ny komponent)
+**2. `src/hooks/car/useCarActions.ts` - Slet bil**
 
-| Fil | Type | AEndring |
-|-----|------|---------|
-| `src/components/ErrorBoundary/GlobalErrorBoundary.tsx` | NY | Top-level error boundary |
-| `src/App.tsx` | OPDATER | Wrap med GlobalErrorBoundary + MutationCache |
-| `src/components/ErrorBoundary.tsx` | OPDATER | Fix default fallback |
-| `src/pages/DashboardPage.tsx` | OPDATER | Wrap med DataFetchErrorBoundary |
-| `src/pages/PlannerPage.tsx` | OPDATER | Wrap med DataFetchErrorBoundary |
-| `src/pages/EmployeesPage.tsx` | OPDATER | Wrap med DataFetchErrorBoundary |
-| `src/pages/CarsPage.tsx` | OPDATER | Wrap med DataFetchErrorBoundary |
-| `src/pages/VacationPage.tsx` | OPDATER | Wrap med DataFetchErrorBoundary |
-| `src/pages/DutyPage.tsx` | OPDATER | Wrap med DataFetchErrorBoundary |
-| `src/pages/WarehousePage.tsx` | OPDATER | Wrap med DataFetchErrorBoundary |
-| `src/pages/ChangeLogPage.tsx` | OPDATER | Wrap med DataFetchErrorBoundary |
-| `src/pages/AdminPage.tsx` | OPDATER | Wrap med DataFetchErrorBoundary |
+I `confirmDelete` (linje 32-215), kun for den simple delete-path (ikke forceDelete):
+- Gem snapshot: `const previousCars = [...cars]`
+- Fjern bilen fra UI med det samme: `setCars(cars.filter(c => c.id !== currentCar.id))`
+- Udfoesr DB-kald
+- Ved fejl: `setCars(previousCars)` + vis error toast
+- ForceDelete-logikken forbliver uaendret (for kompleks til optimistic)
+
+**3. `src/hooks/warehouse/useWarehouseActions.ts` - Opret/opdater/slet**
+
+For alle tre operationer:
+- Modtag `items` og `setItems` som nye parametre (fra useWarehouseData)
+- **createItem**: Opret temp item med `crypto.randomUUID()`, tilfoej til state, DB insert, ved fejl fjern temp item
+- **updateItem**: Gem snapshot af item, opdater i state, DB update, ved fejl gendant snapshot
+- **deleteItem**: Gem snapshot, fjern fra state, DB delete, ved fejl gendant
+
+**4. Sortering bevares**
+
+- Car-listen er ikke sorteret i state (sorteres i UI-komponent) - ingen aendring noevendigt
+- Warehouse items sorteres by `created_at desc` - nye items tilfoekjes i starten af listen (`[newItem, ...prev]`)
+- Ingen aendring i sorteringslogik
+
+**5. Ingen side-refreshes**
+
+- Alle rollbacks bruger `setCars`/`setItems` direkte - ingen `window.location.reload()` eller `refetch()` ved fejl
+- Ved succes beholdes den optimistiske state (DB-data matcher allerede)
+
+### Sikkerhedsgarantier
+
+- ID-generering: Warehouse bruger `crypto.randomUUID()` som allerede eksisterer i koden (linje 55 i useWarehouseData). Ingen aendring i ID-format
+- Timestamps: Bruger `new Date().toISOString()` som allerede eksisterer. Ingen aendring
+- Succes-logik: Toast-beskeder og callbacks forbliver identiske
+- Console.log: Alle eksisterende logs bevares, nye `[Optimistic]` prefix logs tilfoekjes
+- Demo mode: Eksisterende demo-logik er allerede optimistisk - forbliver uaendret
+
+### Filer der aendres
+
+| Fil | AEndring |
+|-----|---------|
+| `src/hooks/car/useCarActions.ts` | Optimistic toggle + delete med rollback |
+| `src/hooks/warehouse/useWarehouseActions.ts` | Optimistic create/update/delete med rollback |
 
