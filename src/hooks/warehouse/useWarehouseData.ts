@@ -3,9 +3,11 @@ import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { supabase } from '@/integrations/supabase/client';
 import { WarehouseItem } from '@/types/warehouse';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 
 export const useWarehouseData = () => {
   const { isDemoMode, userDataLoaded, user } = useAuth();
+  const { selectedDepartmentId } = useDepartment();
   const [items, setItems] = useState<WarehouseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,11 +30,16 @@ export const useWarehouseData = () => {
         
         setItems(demoItems as any);
       } else {
-        // Use direct table access for production users
-        const { data, error: fetchError } = await client
+        // Use direct table access for production users, filtered by department
+        let query = client
           .from('warehouse_items')
-          .select('*')
-          .order('created_at', { ascending: false });
+          .select('*');
+        
+        if (selectedDepartmentId) {
+          query = query.eq('department_id', selectedDepartmentId);
+        }
+        
+        const { data, error: fetchError } = await query.order('created_at', { ascending: false });
 
         if (fetchError) throw fetchError;
         setItems((data || []) as any);
@@ -79,7 +86,7 @@ export const useWarehouseData = () => {
         supabase.removeChannel(channel);
       };
     }
-  }, [isDemoMode, userDataLoaded, user?.id]);
+  }, [isDemoMode, userDataLoaded, user?.id, selectedDepartmentId]);
 
   return { items, loading, error, refetch: fetchItems };
 };

@@ -5,12 +5,14 @@ import { WarehouseItemFormData } from '@/types/warehouse';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 
 export const useWarehouseActions = (onSuccess?: () => void) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isDemoMode } = useAuth();
+  const { selectedDepartmentId } = useDepartment();
 
   const createItem = async (data: WarehouseItemFormData) => {
     try {
@@ -28,7 +30,8 @@ export const useWarehouseActions = (onSuccess?: () => void) => {
           quantity: data.quantity,
           hall: data.hall || null,
           notes: data.notes || null,
-          created_by: user?.id
+          created_by: user?.id,
+          department_id: selectedDepartmentId || null
         });
 
       if (error) throw error;

@@ -949,6 +949,7 @@ export type Database = {
           case_number: string | null
           created_at: string
           created_by: string | null
+          department_id: string | null
           hall: string | null
           id: string
           is_cleaned: string
@@ -961,6 +962,7 @@ export type Database = {
           case_number?: string | null
           created_at?: string
           created_by?: string | null
+          department_id?: string | null
           hall?: string | null
           id?: string
           is_cleaned?: string
@@ -973,6 +975,7 @@ export type Database = {
           case_number?: string | null
           created_at?: string
           created_by?: string | null
+          department_id?: string | null
           hall?: string | null
           id?: string
           is_cleaned?: string
@@ -980,7 +983,15 @@ export type Database = {
           quantity?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_items_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

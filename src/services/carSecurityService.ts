@@ -7,15 +7,22 @@ export class CarSecurityService {
    * Fetches car data with enhanced security using new RLS policies
    * Automatic fuel card code masking based on user permissions
    */
-  static async fetchCars(canViewFuelCardCode: boolean): Promise<CarData[]> {
+  static async fetchCars(canViewFuelCardCode: boolean, departmentId?: string): Promise<CarData[]> {
     try {
       // Detect demo mode
       const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
       
       // Use direct table access - new RLS policies handle security automatically
-      const { data, error } = isDemoMode 
-        ? await getSchemaClient(true).from('cars').select('*').order('name')
-        : await supabase.from('cars').select('*').order('name');
+      let query = isDemoMode 
+        ? getSchemaClient(true).from('cars').select('*').order('name')
+        : supabase.from('cars').select('*').order('name');
+      
+      // Filter by department if provided (production only)
+      if (!isDemoMode && departmentId) {
+        query = query.eq('department_id', departmentId);
+      }
+      
+      const { data, error } = await query;
       
       if (error) {
         // If access is denied due to authentication, provide clear error
