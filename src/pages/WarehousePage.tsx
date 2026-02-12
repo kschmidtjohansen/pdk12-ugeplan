@@ -34,7 +34,7 @@ const WarehousePage = () => {
     loading: actionLoading,
   } = useWarehouse();
 
-  const canEdit = user?.role === 'administrator' || user?.role === 'skadeleder';
+  const canEdit = user?.role === 'super_admin' || user?.role === 'administrator' || user?.role === 'skadeleder';
 
   const handleSubmit = async (data: any) => {
     if (editingItem) {
