@@ -4,7 +4,7 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/kschmidtjohansen/pdk12-ugeplan?style=flat-square)
 ![Last commit](https://img.shields.io/github/last-commit/kschmidtjohansen/pdk12-ugeplan?style=flat-square)
 ![GitHub issues](https://img.shields.io/github/issues/kschmidtjohansen/pdk12-ugeplan?style=flat-square)
-![GitHub license](https://img.shields.io/github/license/kschmidtjohansen/pdk12-ugeplan?style=flat-square)
+![GitHub license](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
 
 > 🇩🇰 Scroll ned for dansk version  
 > 🇬🇧 English version below
