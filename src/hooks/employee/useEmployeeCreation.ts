@@ -5,8 +5,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { isValidUUID } from '@/utils/uuidValidation';
 import { useAuth } from '@/context/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isDemoMode } = useAuth();
@@ -254,6 +256,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           description: t('employees.employeeCreatedMsg', { name: formData.name })
         });
         
+        queryClient.invalidateQueries({ queryKey: ['employees'] });
         await refreshEmployees();
         return true;
       }

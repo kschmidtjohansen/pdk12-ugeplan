@@ -7,12 +7,14 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from 'react-day-picker';
 import { VacationRequestType } from '@/types/vacation';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const useVacationRequestActions = (fetchVacations: () => Promise<void>) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t, currentLanguage } = useTranslation();
   const { addNotification } = useNotifications();
+  const queryClient = useQueryClient();
 
   const submitVacationRequest = async (
     data: {
@@ -174,6 +176,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
 
       await notifyAdminsAboutVacationRequest(requestEmployeeName, dateRange.from, dateRange.to, requestType, startTime, endTime);
       
+      queryClient.invalidateQueries({ queryKey: ['vacations'] });
       fetchVacations();
       return true;
     } catch (err) {

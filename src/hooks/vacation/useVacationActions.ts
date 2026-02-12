@@ -10,6 +10,7 @@ import { Vacation, VacationRequestType } from '@/types/vacation';
 import { useNotifications } from '@/context/NotificationContext';
 import { logSecurityEvent } from '@/utils/securityLogger';
 import { useVacationSecurity } from './useVacationSecurity';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const useVacationActions = (refreshVacations: () => Promise<void>) => {
   const { user, isAdmin, isSkadeleder, isDemoMode } = useAuth();
@@ -17,6 +18,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
   const { logVacationSecurityEvent, canEditVacation, canDeleteVacation } = useVacationSecurity();
+  const queryClient = useQueryClient();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -118,6 +120,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
       });
 
       // Refresh data and show success message
+      queryClient.invalidateQueries({ queryKey: ['vacations'] });
       await refreshVacations();
       
       const successMessage = isAdminRequest 
@@ -219,6 +222,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
         }
       });
 
+      queryClient.invalidateQueries({ queryKey: ['vacations'] });
       await refreshVacations();
       
       toast({
@@ -289,6 +293,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
         original_user_id: vacation.user_id
       });
 
+      queryClient.invalidateQueries({ queryKey: ['vacations'] });
       await refreshVacations();
       
       toast({
@@ -374,7 +379,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
         notes: notes
       });
       
-      // Refresh vacation data
+      queryClient.invalidateQueries({ queryKey: ['vacations'] });
       await refreshVacations();
       
       // Show success message
@@ -488,7 +493,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
         reason: reason
       });
       
-      // Refresh vacation data
+      queryClient.invalidateQueries({ queryKey: ['vacations'] });
       await refreshVacations();
       
       // Show success message

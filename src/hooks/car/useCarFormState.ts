@@ -4,6 +4,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { CarData, CarFormData } from '@/components/Cars/types';
 import { CarSecurityService } from '@/services/carSecurityService';
 import { usePermissions } from '@/context/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface UseCarFormStateProps {
   cars: CarData[];
@@ -23,6 +24,7 @@ export const useCarFormState = ({
   createCar
 }: UseCarFormStateProps) => {
   const { canViewFuelCardCode } = usePermissions();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState<CarFormData>({
     name: '',
     car_number: '',
@@ -138,6 +140,7 @@ export const useCarFormState = ({
       }
       
       console.log('[useCarFormState] Car operation successful, closing dialog');
+      queryClient.invalidateQueries({ queryKey: ['cars'] });
       setDialogOpen(false);
     } catch (err) {
       console.error('[useCarFormState] Error saving car:', err);

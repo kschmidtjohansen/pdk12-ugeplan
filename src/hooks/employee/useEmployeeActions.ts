@@ -7,11 +7,13 @@ import { Employee } from '@/types/employee';
 import { validateAndSanitizePhone } from '@/utils/phoneValidation';
 import { useAuth } from '@/context/AuthContext';
 import { DemoUserService } from '@/services/demoUserService';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isDemoMode } = useAuth();
+  const queryClient = useQueryClient();
 
   const toggleEmployeeLeave = async (employee: Employee, setOnLeave: boolean, notes: string | null = null) => {
     try {
@@ -62,6 +64,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
           : t('employees.employeeAvailableMsg', { name: employee.name })
       });
       
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       await refreshEmployees();
       return true;
     } catch (err) {
@@ -174,6 +177,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       
       // Add delay to allow DB transaction to complete
       await new Promise(resolve => setTimeout(resolve, 200));
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       await refreshEmployees();
       return true;
     } catch (err) {
@@ -220,6 +224,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         description: t('employees.employeeDeletedMsg', { name: employee.name })
       });
       
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       await refreshEmployees();
       return true;
     } catch (err) {
