@@ -162,7 +162,7 @@ Se [CHANGELOG.md](./CHANGELOG.md) for detaljeret version history.
 
 ### 📄 Licens
 
-Projektet er under privat licens. Kontakt udvikleren for brug og samarbejde.
+Dette projekt er licenseret under [MIT-licensen](./LICENSE). Copyright © 2026 Kasper Schmidt Johansen.
 
 ---
 
@@ -317,4 +317,4 @@ See [CHANGELOG.md](./CHANGELOG.md) for detailed version history.
 
 ### 📄 License
 
-This project is under a custom/private license. Contact the developer for use or contributions.
+This project is licensed under the [MIT License](./LICENSE). Copyright © 2026 Kasper Schmidt Johansen.

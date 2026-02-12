@@ -40,6 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added - 2026-02-12
+- LICENSE fil oprettet med MIT-licens (Copyright © 2026 Kasper Schmidt Johansen)
+- README.md mappestruktur opdateret til at matche den reelle projektstruktur (begge sprog)
+- README.md licens-sektioner opdateret fra "privat licens" til MIT med link til LICENSE-filen
 - Global ErrorBoundary med brugervenlig fejlside (dansk/engelsk) - forhindrer hvid skærm ved uhåndterede fejl
 - Page-level DataFetchErrorBoundary på alle 9 hovedsider (Dashboard, Planner, Employees, Cars, Vacation, Duty, Warehouse, ChangeLog, Admin)
 - Global MutationCache error handler i QueryClient til automatisk fejlhåndtering af mutations
@@ -63,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Super Admin kan nu skifte afdeling i demo mode via header-selector
 - DepartmentContext bruger nu effectiveRole i stedet for user.role til demo-rolleskift
 
-### Security - 2025-02-12
+### Security - 2026-02-12
 - Fjernet hardkodet demo-adgangskode fra kildekoden (nu via environment variabel)
 - Hærdnet RLS-policies: on_call_duties UPDATE, assignment_messages/files SELECT, departments/sub_departments SELECT
 
