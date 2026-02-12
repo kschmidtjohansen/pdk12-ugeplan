@@ -46,12 +46,9 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         setCars(merged as CarData[]);
       } else {
         // Use production service for production users, filtered by department
-        const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
-        const filtered = selectedDepartmentId 
-          ? (data || []).filter((car: any) => !car.department_id || car.department_id === selectedDepartmentId)
-          : data;
-        console.log('[useCarData] Successfully fetched', filtered?.length || 0, 'cars (filtered by department)');
-        setCars(filtered || []);
+        const data = await CarSecurityService.fetchCars(canViewFuelCardCode, selectedDepartmentId);
+        console.log('[useCarData] Successfully fetched', data?.length || 0, 'cars (filtered by department)');
+        setCars(data || []);
       }
     } catch (err) {
       console.error('[useCarData] Error fetching cars:', err);
@@ -179,12 +176,9 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
             setCars(merged);
           }
         } else {
-          const data = await CarSecurityService.fetchCars(canViewFuelCardCode);
+          const data = await CarSecurityService.fetchCars(canViewFuelCardCode, selectedDepartmentId);
           if (isMounted) {
-            const filtered = selectedDepartmentId 
-              ? (data || []).filter((car: any) => !car.department_id || car.department_id === selectedDepartmentId)
-              : data;
-            setCars(filtered || []);
+            setCars(data || []);
           }
         }
       } catch (err) {

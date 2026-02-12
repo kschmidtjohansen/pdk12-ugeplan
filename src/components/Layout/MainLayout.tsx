@@ -1,11 +1,13 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { SecurityHeaders } from '@/components/Auth/SecurityHeaders';
 import { SecurityErrorBoundary } from '@/components/Layout/SecurityErrorBoundary';
 import TopNavbar from './TopNavbar';
+import { PullToRefresh } from '@/components/shared/PullToRefresh';
+import { RealtimeChangeNotifier } from '@/components/shared/RealtimeChangeNotifier';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -87,19 +89,26 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
+  const handlePullRefresh = useCallback(async () => {
+    window.location.reload();
+  }, []);
+
   // Show main layout for authenticated users
   return (
     <SecurityErrorBoundary>
       <SecurityHeaders />
       <div className="flex flex-col min-h-screen w-full">
         <TopNavbar />
+        <RealtimeChangeNotifier />
         
         <main className="flex-1 w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 pt-20">
-          <div className="animate-fade-in-up w-full">
-            <SecurityErrorBoundary>
-              {children}
-            </SecurityErrorBoundary>
-          </div>
+          <PullToRefresh onRefresh={handlePullRefresh}>
+            <div className="animate-fade-in-up w-full">
+              <SecurityErrorBoundary>
+                {children}
+              </SecurityErrorBoundary>
+            </div>
+          </PullToRefresh>
         </main>
       </div>
     </SecurityErrorBoundary>
