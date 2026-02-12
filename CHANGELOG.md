@@ -39,6 +39,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security - 2025-02-12
+- Fjernet hardkodet demo-adgangskode fra kildekoden (nu via environment variabel)
+- Hærdnet RLS-policies: on_call_duties UPDATE, assignment_messages/files SELECT, departments/sub_departments SELECT
+
+### Fixed - 2025-02-12
+- Lager-redigering i demo mode gemmes nu korrekt i hukommelsen
+- Rolle-skift toast bruger nu korrekte oversættelsesnøgler
+- Super Admin ser nu samme dashboard-metrics og Quick Access som Administrator
+- Super Admin kan nu redigere lagervarer og vælges som ansvarlig i planlæggeren
+
+### Added - 2025-02-12
+- Lokationsstyring med inline-redigering og sletning i Admin-panelet
+- Admin locations oversættelser (da/en)
+
+### Performance - 2025-02-12
+- Reduceret Google Fonts vægt (300-700 i stedet for 300-900)
+- Fjernet render-blocking font preload
+- Tilføjet inline kritisk CSS for loading spinner
+- Dynamic import af performanceMonitor (kun i development)
+- Fjernet ubrugt App.css indhold
+- Tilføjet cache-headers for statiske assets
+
 ### Added - 2025-01-09
 - **Demo Mode Write Access**: Demo mode now supports full CRUD operations
   - Users can create, update, and delete assignments, cars, employees, and vacations in demo mode

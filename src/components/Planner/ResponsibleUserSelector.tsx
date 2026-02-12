@@ -28,7 +28,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
 
   // Filter to only admin/skadeleder roles for responsible users (schema already isolates data)
   const eligibleUsers = employees.filter(emp => 
-    emp.role === 'administrator' || emp.role === 'skadeleder'
+    emp.role === 'super_admin' || emp.role === 'administrator' || emp.role === 'skadeleder'
   );
   
   // Add current user if they are demo user (for creating assignments)

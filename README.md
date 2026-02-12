@@ -39,12 +39,13 @@
 
 ### 🔐 Roller og adgang
 
-| Rolle            | Funktioner                                                    |
-|------------------|---------------------------------------------------------------|
-| Administrator    | Fuld adgang til alle funktioner inkl. brugerhåndtering        |
-| Skadeleder       | Kan oprette og redigere opgaver, godkende ferie              |
-| Servicemedarbejder | Kan se egne opgaver, anmode om ferie                        |
-| Vikar            | Midlertidig adgang med automatisk udløb                       |
+| Rolle              | Funktioner                                                    |
+|--------------------|---------------------------------------------------------------|
+| Super Admin        | Global adgang til alle afdelinger og funktioner               |
+| Administrator      | Fuld adgang til alle funktioner inkl. brugerhåndtering        |
+| Skadeleder         | Kan oprette og redigere opgaver, godkende ferie              |
+| Servicemedarbejder | Kan se egne opgaver, anmode om ferie                          |
+| Vikar              | Midlertidig adgang med automatisk udløb                       |
 
 ---
 
@@ -173,12 +174,13 @@ Projektet er under privat licens. Kontakt udvikleren for brug og samarbejde.
 
 ### 🔐 Roles & Access
 
-| Role           | Permissions                                                   |
-|----------------|---------------------------------------------------------------|
-| Administrator  | Full access to all features including user management         |
-| Supervisor     | Can create and edit tasks, approve vacation requests         |
-| Employee       | Can view own tasks, request vacation                         |
-| Temp           | Temporary access with automatic expiration                    |
+| Role             | Permissions                                                   |
+|------------------|---------------------------------------------------------------|
+| Super Admin      | Global access to all departments and features                |
+| Administrator    | Full access to all features including user management         |
+| Supervisor       | Can create and edit tasks, approve vacation requests         |
+| Employee         | Can view own tasks, request vacation                         |
+| Temp             | Temporary access with automatic expiration                    |
 
 ---
 
