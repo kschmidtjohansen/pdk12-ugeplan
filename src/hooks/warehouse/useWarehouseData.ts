@@ -120,5 +120,5 @@ export const useWarehouseData = () => {
     }
   }, [isDemoMode, userDataLoaded, user?.id, selectedDepartmentId]);
 
-  return { items, loading, error, refetch: fetchItems, addLocalItem, updateLocalItem, deleteLocalItem };
+  return { items, setItems, loading, error, refetch: fetchItems, addLocalItem, updateLocalItem, deleteLocalItem };
 };
