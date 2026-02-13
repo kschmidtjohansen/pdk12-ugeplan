@@ -62,6 +62,7 @@ export const common = {
   warning: "Warning",
   danger: "Danger",
   retry: "Retry",
+  retrying: "Retrying...",
   refresh: "Refresh",
   user: "User",
   debug: "Debug",

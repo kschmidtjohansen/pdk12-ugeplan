@@ -63,6 +63,7 @@ export const common = {
   warning: "Advarsel",
   danger: "Fare",
   retry: "Prøv igen",
+  retrying: "Prøver igen...",
   refresh: "Opdater",
   user: "Bruger",
   debug: "Debug",

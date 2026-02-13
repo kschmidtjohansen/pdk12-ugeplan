@@ -71,6 +71,10 @@ const employees = {
   // Empty states
   noEmployees: 'No employees found',
   noEmployeesDescription: 'No employee records were found in the system.',
+  generalErrorTitle: 'Loading Error',
+  generalErrorDescription: 'An error occurred while loading employee data.',
+  selected: 'selected',
+  employees: 'Employees',
   
   // Table headers and actions
   viewNotes: 'View notes',
