@@ -72,6 +72,8 @@ const employees = {
   // Empty states
   noEmployees: 'Ingen medarbejdere fundet',
   noEmployeesDescription: 'Ingen medarbejderposter blev fundet i systemet.',
+  generalErrorTitle: 'Indlæsningsfejl',
+  generalErrorDescription: 'Der opstod en fejl under indlæsning af medarbejderdata.',
   
   // Table headers and actions
   viewNotes: 'Se noter',
