@@ -12,7 +12,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-const getShortName = (name: string) => name.split('-')[0]?.trim() || name;
+const getShortName = (name: string) => {
+  const num = name.split('-')[0]?.trim();
+  return num ? `Afd. ${num}` : name;
+};
 
 const DepartmentSelector: React.FC = () => {
   const { userDepartments, selectedDepartment, switchDepartment, loading } = useDepartment();
