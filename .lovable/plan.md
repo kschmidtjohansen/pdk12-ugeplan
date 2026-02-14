@@ -1,28 +1,53 @@
 
 
-## Ændring
+## Ændringer
 
-### Beskrivelse: Maks 3 linjer, ingen punkter
+### 1. Database: Tilføj nye kolonner til `departments`
 
-**Fil:** `src/components/Planner/AssignmentCard.tsx` (linje 249-265)
+Opret en migration der tilføjer:
+- `chat_enabled BOOLEAN DEFAULT true`
+- `files_enabled BOOLEAN DEFAULT true`
 
-Fjern den nuværende punktopstilling og erstat med en simpel `<p>` der begrænses til 3 linjer via CSS `line-clamp-3`. Brugeren kan klikke på kortet for at se den fulde beskrivelse.
+### 2. DepartmentContext: Tilføj nye feature-flags
 
-Erstat hele description-blokken med:
+**Fil:** `src/context/DepartmentContext.tsx`
 
-```tsx
-{assignment.description && (
-  <p className="text-gray-600 mb-3 text-sm line-clamp-3">{assignment.description}</p>
-)}
-```
+- Tilføj `chat_enabled` og `files_enabled` til `Department` interfacet
+- Tilføj `isChatEnabled` og `isFilesEnabled` til context-typen (default `true`, demo altid `true`)
+- Læs og map de nye felter i alle fetch-kald (ligesom `warehouse_enabled`)
 
-- `line-clamp-3` (Tailwind) afskærer teksten efter 3 linjer med "..." automatisk
-- Ingen punktopstilling, ingen split-logik
-- Virker for både korte og lange beskrivelser
+### 3. FeatureToggleManagement: Tilføj to nye switches
 
-### Fil der ændres
+**Fil:** `src/components/Admin/FeatureToggleManagement.tsx`
+
+- Tilføj `chatEnabled` og `filesEnabled` state
+- Tilføj to nye toggle-rækker med passende ikoner (`MessageSquare` for chat, `Files` for filer)
+- Brug samme `handleToggle`-mønster som de eksisterende toggles
+
+### 4. Translations: Tilføj labels
+
+**Filer:** `src/translations/da/admin.ts` og `src/translations/en/admin.ts`
+
+Tilføj oversættelser for:
+- `admin.features.chatEnabled` / `admin.features.filesEnabled`
+
+### 5. AssignmentDetailsDialog: Skjul chat og filer baseret på flags
+
+**Fil:** `src/components/Dashboard/AssignmentDetailsDialog.tsx`
+
+- Importer `useDepartment` og læs `isChatEnabled` / `isFilesEnabled`
+- Når `isFilesEnabled === false`: Skjul filer-sektionen (header + panel)
+- Når `isChatEnabled === false`: Skjul besked-sidebaren helt
+- Når begge er slået fra: Dialogen viser kun opgavedetaljer i fuld bredde
+
+### Filer der ændres
 
 | Fil | Ændring |
 |-----|---------|
-| `src/components/Planner/AssignmentCard.tsx` | Fjern punktopstilling, brug `line-clamp-3` |
+| Migration (ny fil) | Tilføj `chat_enabled` og `files_enabled` kolonner |
+| `src/context/DepartmentContext.tsx` | Nye flags i Department-type og context |
+| `src/components/Admin/FeatureToggleManagement.tsx` | To nye toggle-rækker |
+| `src/translations/da/admin.ts` | Danske labels |
+| `src/translations/en/admin.ts` | Engelske labels |
+| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Betinget visning af chat/filer |
 
