@@ -109,7 +109,7 @@ import { useDepartment } from '@/context/DepartmentContext';
  
    return (
      <Dialog open={isOpen} onOpenChange={onClose}>
-       <DialogContent className={`${isChatEnabled ? 'max-w-5xl' : 'max-w-3xl'} max-h-[95dvh] overflow-hidden flex flex-col p-0`}>
+       <DialogContent className={`${isChatEnabled ? 'max-w-5xl' : 'max-w-3xl'} max-h-[95dvh] overflow-y-auto flex flex-col p-0`}>
         <DialogHeader className="px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b bg-gradient-to-b from-muted/30 to-transparent">
             <DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 text-lg pr-14">
               <div className="flex items-center gap-2">

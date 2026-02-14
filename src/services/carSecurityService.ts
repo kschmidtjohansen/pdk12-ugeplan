@@ -100,12 +100,11 @@ export class CarSecurityService {
 
       console.log('[CarSecurityService] Creating car with data:', insertData);
 
-      // Only include fuel_card_code if user has database permission
-      if (canViewFuel && carData.fuel_card_code) {
+      // Include fuel_card_code if user has permission (either DB-level or client-level)
+      if ((canViewFuel || canViewFuelCardCode) && carData.fuel_card_code) {
         insertData.fuel_card_code = carData.fuel_card_code;
-      } else if (!canViewFuel) {
-        // For non-admin users, set a placeholder that will be masked
-        insertData.fuel_card_code = 'PENDING_ADMIN_APPROVAL';
+      } else {
+        insertData.fuel_card_code = carData.fuel_card_code || '';
       }
 
       const { data, error } = isDemoMode

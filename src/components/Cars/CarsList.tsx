@@ -4,6 +4,8 @@ import { CarData } from './types';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import MobileCarCard from './MobileCarCard';
 import CarsTable from './CarsTable';
+import { Car } from 'lucide-react';
+import { useTranslation } from '@/context/TranslationContext';
 
 interface CarsListProps {
   cars: CarData[];
@@ -24,8 +26,18 @@ const CarsList: React.FC<CarsListProps> = ({
   onDelete,
   onToggleAvailability
 }) => {
+  const { t } = useTranslation();
   // Sort cars by car_number
   const sortedCars = [...cars].sort((a, b) => a.car_number.localeCompare(b.car_number));
+
+  if (sortedCars.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <Car className="h-12 w-12 text-muted-foreground/40 mb-4" />
+        <p className="text-muted-foreground">{t('cars.noCarsInSubDepartment')}</p>
+      </div>
+    );
+  }
   
   return (
     <TooltipProvider>
