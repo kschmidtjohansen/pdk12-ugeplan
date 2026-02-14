@@ -25,7 +25,7 @@ const UserManagement: React.FC = () => {
   const { selectedDepartmentId, departments, isSubstituteEnabled } = useDepartment();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [userAccessData, setUserAccessData] = useState<{ user_id: string; department_id: string }[]>([]);
-  const [departmentFilter, setDepartmentFilter] = useState<'current' | 'unassigned'>('current');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('current');
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'error' | 'fallback'>('connected');
@@ -74,9 +74,11 @@ const UserManagement: React.FC = () => {
       return baseUsers.filter(u => !usersWithAccess.has(u.id));
     }
     
-    if (!selectedDepartmentId) return baseUsers;
+    // If a specific department is selected from the dropdown
+    const filterDeptId = departmentFilter === 'current' ? selectedDepartmentId : departmentFilter;
+    if (!filterDeptId) return baseUsers;
     const usersInDept = new Set(
-      userAccessData.filter(ua => ua.department_id === selectedDepartmentId).map(ua => ua.user_id)
+      userAccessData.filter(ua => ua.department_id === filterDeptId).map(ua => ua.user_id)
     );
     return baseUsers.filter(u => usersInDept.has(u.id));
   }, [users, userAccessData, departmentFilter, selectedDepartmentId, isDemoMode]);
@@ -799,7 +801,7 @@ const UserManagement: React.FC = () => {
               {/* Department filter dropdown */}
               <div className="flex items-center space-x-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
-                <Select value={departmentFilter} onValueChange={(val) => setDepartmentFilter(val as 'current' | 'unassigned')}>
+              <Select value={departmentFilter} onValueChange={(val) => setDepartmentFilter(val)}>
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
@@ -807,6 +809,9 @@ const UserManagement: React.FC = () => {
                     <SelectItem value="current">
                       {departments?.find(d => d.id === selectedDepartmentId)?.name || t('admin.userManagement.filterByDepartment')}
                     </SelectItem>
+                    {departments?.filter(d => d.id !== selectedDepartmentId).map(d => (
+                      <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                    ))}
                     {canSeeUnassigned && (
                       <SelectItem value="unassigned">{t('admin.userManagement.unassignedUsers')}</SelectItem>
                     )}

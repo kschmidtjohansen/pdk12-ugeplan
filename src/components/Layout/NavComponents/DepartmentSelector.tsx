@@ -64,6 +64,12 @@ const DepartmentSelector: React.FC = () => {
           <Building2 className="h-4 w-4" />
           <span>{getShortName(selectedDepartment?.name || userDepartments[0].name)}</span>
         </div>
+      {userSubDepartments.length === 1 && (
+          <div className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-muted-foreground">
+            <Layers className="h-4 w-4" />
+            <span>{userSubDepartments[0].name}</span>
+          </div>
+        )}
         {userSubDepartments.length > 1 && (
           <SubDepartmentDropdown
             userSubDepartments={userSubDepartments}
@@ -109,6 +115,12 @@ const DepartmentSelector: React.FC = () => {
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {userSubDepartments.length === 1 && (
+        <div className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-muted-foreground">
+          <Layers className="h-4 w-4" />
+          <span>{userSubDepartments[0].name}</span>
+        </div>
+      )}
       {userSubDepartments.length > 1 && (
         <SubDepartmentDropdown
           userSubDepartments={userSubDepartments}
