@@ -1,130 +1,116 @@
 
 
-## Komplet Projektaudit og Oprydning
+## Sikkerheds- og konfigurationsrettelser
 
-### Oversigt
+### Overblik
 
-Auditen har afsloeret **28+ ubrugte filer** og **flere manglende oversaettelses-keys**. Nedenfor er den fulde liste til gennemgang foer noget slettes.
-
----
-
-### Del 1: Ubrugte filer (skal slettes)
-
-#### Komponenter (13 filer)
-
-| Fil | Aarsag |
-|-----|--------|
-| `src/components/Admin/ComprehensiveDiagnosticsPanel.tsx` | Ikke importeret nogen steder |
-| `src/components/Admin/SecurityAuditPanel.tsx` | Ikke importeret nogen steder |
-| `src/components/Admin/SecurityDashboard.tsx` | Ikke importeret nogen steder |
-| `src/components/Admin/SecuritySummaryPanel.tsx` | Ikke importeret nogen steder |
-| `src/components/Admin/PerformanceMonitoringPanel.tsx` | Ikke importeret nogen steder (bruger usePerformanceMonitoring internt) |
-| `src/components/Admin/SystemCleanupPanel.tsx` | Ikke importeret nogen steder |
-| `src/components/Admin/SystemMetrics.tsx` | Ikke importeret nogen steder |
-| `src/components/Admin/SystemHealthDashboard.tsx` | Ikke importeret nogen steder (den eneste forbruger af SecurityLogViewer, SystemOptimizationMonitor, DataHealthMonitor, useSupabaseIssuesMonitor, useSystemHealthMonitoring) |
-| `src/components/Admin/SecurityLogViewer.tsx` | Kun brugt i SystemHealthDashboard (som ogsaa er ubrugt) |
-| `src/components/SystemHealthDashboard.tsx` | Ikke importeret nogen steder |
-| `src/components/DataHealthMonitor.tsx` | Kun brugt i Admin/SystemHealthDashboard (ubrugt) |
-| `src/components/SystemOptimizationMonitor.tsx` | Kun brugt i Admin/SystemHealthDashboard (ubrugt) |
-| `src/components/Security/SecurityStatusPanel.tsx` | Ikke importeret nogen steder |
-| `src/components/ErrorBoundary/EmployeeDataErrorBoundary.tsx` | Ikke importeret nogen steder |
-| `src/components/Auth/SecureLoginForm.tsx` | Erstattet af EnhancedSecureLoginForm, ikke importeret |
-| `src/components/Auth/PasswordResetDialog.tsx` | Ikke importeret nogen steder |
-| `src/components/Dashboard/ConnectionStatus.tsx` | Ikke importeret nogen steder (bruger useRealtimeConnectionStatus internt) |
-| `src/components/AutoPublish/AutoPublishContainer.tsx` | Ikke importeret nogen steder |
-
-#### Hooks (11 filer)
-
-| Fil | Aarsag |
-|-----|--------|
-| `src/hooks/useErrorRecovery.ts` | Ikke importeret nogen steder |
-| `src/hooks/useSecurityMonitoring.ts` | Ikke importeret nogen steder |
-| `src/hooks/useSecurityValidation.ts` | Ikke importeret nogen steder |
-| `src/hooks/useEnhancedInputValidation.ts` | Ikke importeret nogen steder |
-| `src/hooks/useEnhancedSecurity.ts` | Ikke importeret nogen steder |
-| `src/hooks/useAuthenticationMonitor.ts` | Ikke importeret nogen steder |
-| `src/hooks/usePerformanceMonitoring.ts` | Kun brugt i PerformanceMonitoringPanel (ubrugt) |
-| `src/hooks/useSystemHealthMonitoring.ts` | Kun brugt i Admin/SystemHealthDashboard (ubrugt) |
-| `src/hooks/useSupabaseIssuesMonitor.ts` | Kun brugt i Admin/SystemHealthDashboard (ubrugt) |
-| `src/hooks/useScreenDisplayAssignments.ts` | Ikke importeret nogen steder |
-| `src/hooks/useAssignmentPublishing.ts` | Ikke importeret nogen steder |
-| `src/hooks/useViewSpecificFilters.ts` | Ikke importeret nogen steder |
-| `src/hooks/useRealtimeConnectionStatus.ts` | Kun brugt i ConnectionStatus (ubrugt) |
-| `src/hooks/vacation/useVacationRequests.ts` | Ikke importeret nogen steder |
-| `src/hooks/data/useAssignments.ts` | Ikke importeret nogen steder |
-| `src/hooks/useSecurityAwareData.ts` | Kun brugt i SecurityStatusPanel (ubrugt) |
-
-#### Services (5 filer)
-
-| Fil | Aarsag |
-|-----|--------|
-| `src/services/intelligentIssueResolver.ts` | Ikke importeret nogen steder |
-| `src/services/demoDataInterceptor.ts` | Ikke importeret nogen steder |
-| `src/services/secureDemo.ts` | Ikke importeret nogen steder |
-| `src/services/dataFetchingService.ts` | Ikke importeret nogen steder |
-| `src/services/improvedRealtimeManager.ts` | Ikke importeret nogen steder |
-
-#### Utils (6 filer)
-
-| Fil | Aarsag |
-|-----|--------|
-| `src/utils/realtimeLogger.ts` | Ikke importeret nogen steder |
-| `src/utils/performanceOptimizations.ts` | Ikke importeret nogen steder |
-| `src/utils/securityAudit.ts` | Ikke importeret nogen steder |
-| `src/utils/createDemoUser.ts` | Ikke importeret nogen steder (undtagen config/security) |
-| `src/utils/assignmentDataMigration.ts` | Ikke importeret nogen steder |
-| `src/utils/demoUserFiltering.ts` | Ikke importeret nogen steder |
-| `src/utils/assignmentPublishing.ts` | Ikke importeret nogen steder |
-| `src/utils/weekDates.ts` | Legacy re-export, ikke importeret nogen steder |
-
-#### Andre
-
-| Fil | Aarsag |
-|-----|--------|
-| `src/hooks/assignment/useAssignmentDataPhase3.ts` | Kun brugt i assignmentDataMigration (som ogsaa er ubrugt) |
-| `src/config/security.ts` | Kun brugt i createDemoUser (som ogsaa er ubrugt) |
+Tre rettelser fordelt over 3 filer og 1 SQL-migration. Ingen UI-elementer eller forretningslogik aendres.
 
 ---
 
-### Del 2: Manglende oversaettelses-keys
+### Rettelse 1: RLS-begraensning paa vacations-tabellen
 
-Disse keys bruges i koden, men **mangler** i oversaettelsesfilerne:
+**Problem:** Skadeledere kan se ALLE ferieanmodninger paa tvaers af afdelinger. De boer kun se ferie for brugere i deres egne afdelinger.
 
-| Key | Brugt i | Mangler i |
-|-----|---------|-----------|
-| `common.retrying` | EmployeeDataErrorBoundary, EmployeeLoadingError | DA + EN |
-| `employees.rlsErrorTitle` | EmployeeDataErrorBoundary | DA + EN |
-| `employees.rlsErrorDescription` | EmployeeDataErrorBoundary | DA + EN |
-| `employees.permissionErrorTitle` | EmployeeDataErrorBoundary | DA + EN |
-| `employees.permissionErrorDescription` | EmployeeDataErrorBoundary | DA + EN |
-| `employees.generalErrorTitle` | EmployeeDataErrorBoundary, EmployeeLoadingError | DA + EN |
-| `employees.generalErrorDescription` | EmployeeDataErrorBoundary, EmployeeLoadingError | DA + EN |
-| `employees.selected` | (brugt i DA, mangler i EN) | EN |
-| `employees.employees` | (brugt i DA, mangler i EN) | EN |
+**Loesning:** Oprette en ny `SECURITY DEFINER`-funktion `can_access_vacation` og opdatere de 5 relevante RLS-policies.
 
-**Bemærk:** Da `EmployeeDataErrorBoundary.tsx` selv er ubrugt (se Del 1), vil sletning af den fjerne behovet for de fleste manglende keys (rlsError*, permissionError*). Men `EmployeeLoadingError` ER i brug, saa `employees.generalErrorTitle`, `employees.generalErrorDescription`, og `common.retrying` skal stadig tilfojes.
+**Ny funktion:**
+```sql
+CREATE OR REPLACE FUNCTION public.can_access_vacation(vacation_user_id uuid)
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT
+    -- Egen ferie
+    vacation_user_id = auth.uid()
+    -- Super admin / administrator: fuld adgang
+    OR EXISTS (
+      SELECT 1 FROM user_roles
+      WHERE user_id = auth.uid()
+        AND role IN ('super_admin', 'administrator')
+    )
+    -- Skadeleder: kun hvis ferie-brugeren deler mindst en afdeling
+    OR (
+      EXISTS (
+        SELECT 1 FROM user_roles
+        WHERE user_id = auth.uid() AND role = 'skadeleder'
+      )
+      AND EXISTS (
+        SELECT 1
+        FROM user_access AS my_access
+        JOIN user_access AS their_access
+          ON my_access.department_id = their_access.department_id
+        WHERE my_access.user_id = auth.uid()
+          AND their_access.user_id = vacation_user_id
+      )
+    )
+  $$;
+```
+
+**Policies der opdateres (drop + recreate):**
+
+| Policy | Nuvaerende logik | Ny logik |
+|--------|-----------------|----------|
+| `vacations_secure_access` (SELECT) | `is_admin_or_skadeleder()` | `can_access_vacation(user_id)` |
+| `vacation_insert_policy` (INSERT) | `is_admin_or_skadeleder()` | `is_admin_user()` (skadeledere behoever ikke oprette for andre) |
+| `vacation_update_policy` (UPDATE) | `is_admin_or_skadeleder()` | `can_access_vacation(user_id)` |
+| `vacation_delete_policy` (DELETE) | `is_admin_or_skadeleder()` | `can_access_vacation(user_id)` |
+| `Users can view accessible vacations` (SELECT) | `is_admin_user() OR skadeleder` | `can_access_vacation(user_id)` |
+| `Users can update own vacation requests` (UPDATE) | `is_admin_user() OR skadeleder` | `can_access_vacation(user_id)` |
+| `Users can delete own vacation requests` (DELETE) | `is_admin_user()` | `can_access_vacation(user_id)` |
+
+Alle eksisterende policies droppes og genaendres til at bruge den nye funktion, saa der kun er een SELECT, een INSERT, een UPDATE og een DELETE policy.
+
+**Frontend-pavirkning:** Ingen. `useVacationSecurity.ts` laver allerede sin egen client-side filtrering, men den rigtige adgangskontrol sker nu ogsaa i databasen.
 
 ---
 
-### Del 3: Handlingsplan
+### Rettelse 2: Fjernelse af foelsom logging i PasswordChangeDialog.tsx
 
-**Trin 1:** Slet alle filer fra Del 1 (efter din godkendelse)
+**Fil:** `src/components/Profile/PasswordChangeDialog.tsx`
 
-**Trin 2:** Tilfoej manglende oversaettelses-keys til begge sprogfiler:
-- `common.retrying` -> DA: "Proever igen...", EN: "Retrying..."
-- `employees.generalErrorTitle` -> DA: "Indlaesfejl", EN: "Loading Error"
-- `employees.generalErrorDescription` -> DA: "Der opstod en fejl under indlaesning af medarbejderdata.", EN: "An error occurred while loading employee data."
-- `employees.selected` -> EN: "selected"
-- `employees.employees` -> EN: "Employees"
+**Fjernes (3 linjer):**
+- Linje 80: `console.log('[PasswordChangeDialog] Starting password change process');`
+- Linje 89: `console.error('[PasswordChangeDialog] Current password verification failed:', signInError);`
+- Linje 122: `console.log('[PasswordChangeDialog] Password updated successfully');`
 
-**Trin 3:** Fjern ubrugte oversaettelses-keys relateret til slettede komponenter (ingen fundet endnu, da keys generelt bruges af bevarede komponenter)
+**Beholdes (uaendret):**
+- Linje 101: `console.error('[PasswordChangeDialog] Password update failed:', updateError);` -- beholdes, da den kun logger generisk fejlbesked, ikke credentials
+- Linje 135: `console.error('[PasswordChangeDialog] Unexpected error:', error);` -- generisk fejl, ingen foelsom data
+- Al toast-logik, validering og UI forbliver uaendret
 
 ---
+
+### Rettelse 3: Kommentar i config.toml
+
+**Fil:** `supabase/config.toml`
+
+**Aendring:** Tilfoej en forklarende kommentar over `[functions.admin-reset-password]`:
+
+```toml
+# verify_jwt is disabled because this function performs manual JWT validation
+# internally to support the admin password reset flow. Do not enable verify_jwt
+# without removing the manual validation logic inside the function.
+[functions.admin-reset-password]
+verify_jwt = false
+```
+
+---
+
+### Filer der aendres
+
+| Fil | Type aendring |
+|-----|---------------|
+| `supabase/migrations/<new>.sql` | Ny migration: opretter funktion + opdaterer 7 policies |
+| `src/components/Profile/PasswordChangeDialog.tsx` | Fjerner 3 console.log/error-linjer |
+| `supabase/config.toml` | Tilfoejer kommentar (3 linjer) |
 
 ### Sikkerhed
 
-- Ingen database-aendringer
-- Ingen aendringer i aktiv funktionalitet
-- Kun filer der **ikke importeres** nogen steder bliver slettet
-- Oversaettelser der bruges af aktive komponenter forbliver urort
+- Skadeledere kan kun se ferie i deres egne afdelinger (ikke alle)
+- Admins og super_admins bevaerer fuld adgang
+- Brugere kan stadig se og administrere deres egne ferieanmodninger
+- Ingen UI-elementer fjernes eller aendres
+- Foelsom auth-logging fjernes fra browser-konsollen
 
