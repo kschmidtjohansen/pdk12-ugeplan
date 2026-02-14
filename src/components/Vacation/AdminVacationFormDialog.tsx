@@ -99,7 +99,7 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
         .then(({ data }) => {
           const subDeptUserIds = new Set((data || []).map(a => a.user_id));
           const filtered = employees.filter(emp => 
-            subDeptUserIds.has(emp.id) && emp.id !== user?.id
+            subDeptUserIds.has(emp.id)
           );
           setAvailableEmployees(filtered);
           if (filtered.length > 0 && !filtered.find(e => e.id === selectedEmployeeId)) {
@@ -107,7 +107,7 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
           }
         });
     } else {
-      const filtered = employees.filter(emp => emp.id !== user?.id);
+      const filtered = employees;
       setAvailableEmployees(filtered);
       if (filtered.length > 0 && !filtered.find(e => e.id === selectedEmployeeId)) {
         setSelectedEmployeeId(filtered[0].id);

@@ -77,6 +77,7 @@ const cars = {
   // Error messages for fetching
   fetchError: 'Kunne ikke hente køretøjer. Prøv venligst igen.',
   noCarsInSubDepartment: 'Der er ingen biler tilknyttet denne underafdeling',
+  selectAtLeastOneSubDepartment: 'Vælg mindst én underafdeling',
 };
 
 export default cars;

@@ -77,6 +77,7 @@ const cars = {
   // Error messages for fetching
   fetchError: 'Failed to fetch vehicles. Please try again.',
   noCarsInSubDepartment: 'No cars assigned to this sub-department',
+  selectAtLeastOneSubDepartment: 'Select at least one sub-department',
 };
 
 export default cars;
