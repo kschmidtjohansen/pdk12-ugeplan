@@ -1,105 +1,69 @@
 
 
-## Plan: 4 rettelser
+## Plan: 3 rettelser
 
-### 1. Beskrivelse mangler i sags-dialog (scrolling problem)
+### 1. Super admin kan ikke vaelges til fri i ferie-dialogen
 
-**Problem:** I `AssignmentDetailsDialog.tsx` er `overflow-hidden` sat paa `DialogContent` (linje 112), men `overflow-y-auto` er kun paa den ydre flex container (linje 145). Paa mobil bliver ScrollArea inde i venstre kolonne begrænset af den ydre containers hoejde, og beskrivelsen ender under fold uden mulighed for at scrolle ned til den.
+**Problem:** I `AdminVacationFormDialog.tsx` (linje 101-102) filtrerer koden med `emp.id !== user?.id`, hvilket udelukker den bruger der er logget ind. Det er korrekt adfaerd - en admin skal ikke kunne vaelge sig selv (de kan bruge den normale ansoegning). 
 
-**Loesning:** Fjern `overflow-hidden` fra `DialogContent` og sikr at `ScrollArea` i venstre kolonne faar en eksplicit `max-height` saa den altid er scrollbar. Derudover tilfoej `overflow-y-auto` paa selve `DialogContent` som fallback.
+Det reelle problem er at Kasper fremgaar af listen men IKKE kan vaelges. Dette skyldes sandsynligvis at `selectedEmployeeId` allerede er sat til en anden vaerdi naar dialogen aabnes, og Select-komponenten ikke opdaterer korrekt. Men brugeren siger "kan ikke vaelge Kasper selvom han fremgaar af listen" - dette tyder paa at Select-komponenten muligvis har et problem med at acceptere vaelgningen. 
 
-**Fil:** `src/components/Dashboard/AssignmentDetailsDialog.tsx`
-- Linje 112: AEndr `overflow-hidden` til `overflow-y-auto` paa `DialogContent`
-- Sikr at den indre `ScrollArea` (linje 148) fungerer korrekt med flex layout
+**Undersoegelse:** Der er ingen logik der specifikt blokerer super_admin roller. Problemet kan vaere at `selectedEmployeeId` bliver sat automatisk til den foerste medarbejder i listen (linje 105-107), og naar brugeren klikker paa en anden, bliver den nulstillet pga. useEffect-loopen. useEffect har `selectedEmployeeId` i dependency-arrayet, saa naar den saettes, koerer useEffect igen og kan potentielt nulstille den.
 
----
+**Loesning:** Fjern `selectedEmployeeId` fra useEffect dependency array og flyt auto-select logikken til kun at koere naar dialogen aabnes (naar `open` skifter til true). Dette forhindrer at brugerens valg bliver overskrevet.
 
-### 2. Braendstofkortkode viser "PENDING_ADMIN_APPROVAL"
-
-**Problem:** I `carSecurityService.ts` (linje 106-108) saettes `fuel_card_code` til `'PENDING_ADMIN_APPROVAL'` naar `can_view_fuel_codes` RPC returnerer false. Men kun administratorer kan oprette biler (CarsPage kontrollerer `isAdmin`), saa denne fallback burde aldrig rammes. Problemet er at `can_view_fuel_codes` RPC'en muligvis returnerer false pga. timing eller en RLS-fejl, og saa gemmes "PENDING_ADMIN_APPROVAL" som den faktiske vaerdi i databasen.
-
-**Loesning:** Fjern PENDING_ADMIN_APPROVAL logikken. Da kun admins kan oprette biler, skal fuel_card_code altid vaere paaklævet. Hvis `canViewFuel` returnerer false, brug den medfølgende `canViewFuelCardCode` parameter (som allerede er `isAdmin`) som fallback:
-
-**Fil:** `src/services/carSecurityService.ts`
-- Linje 100-109: AEndr logikken saa fuel_card_code altid inkluderes naar `canViewFuelCardCode` parameter er true (uanset hvad RPC siger). Fjern "PENDING_ADMIN_APPROVAL" placeholder helt.
-- Hvis hverken RPC eller canViewFuelCardCode er true, saet fuel_card_code til tom streng.
+**Fil:** `src/components/Vacation/AdminVacationFormDialog.tsx`
+- Fjern `selectedEmployeeId` og `setSelectedEmployeeId` fra useEffect dependency array
+- Tilfoej `open` som dependency saa auto-select kun sker ved aabning
 
 ---
 
-### 3. Pull-to-refresh paa biler hopper til forkert underafdeling + tom tilstand
+### 2. PENDING_ADMIN_APPROVAL vises stadig i braendstofkortkode
 
-**Problem:** CarsPage bruger ikke `PullToRefresh`, men mobil-swipe adfaerden kan trigge en re-render der nulstiller konteksten. Selve problemet er at `queryKey` i `useCarData.ts` inkluderer `selectedSubDepartmentId`, saa naar data genindlæses forbliver den korrekte underafdeling. Det reelle problem er sandsynligvis at en anden komponent (f.eks. DepartmentSelector eller MainLayout) nulstiller `selectedSubDepartmentId` ved re-render.
+**Problem:** Vaerdien `PENDING_ADMIN_APPROVAL` er gemt i databasen (bekraeftet via query, car id: `77f3c43b-aefa-48c3-8c97-15c1b45d1067`). Derudover inkluderer `can_view_fuel_codes()` funktionen i databasen IKKE `super_admin` rollen - den tjekker kun for `administrator` og `skadeleder`. Saa naar en super_admin opretter en bil, returnerer RPC'en `false`, og den gamle kode gemte "PENDING_ADMIN_APPROVAL" som vaerdi.
 
-Derudover viser CarsPage ikke en "ingen biler" besked naar listen er tom.
-
-**Loesning:**
-- **`src/pages/CarsPage.tsx`:** Tilfoej en tom-tilstand (empty state) naar `cars.length === 0` efter loading, der viser "Der er ingen biler tilknyttet denne underafdeling" med et bil-ikon.
-- **`src/components/Cars/CarsList.tsx`:** Tilfoej en empty state komponent naar `sortedCars.length === 0`.
-- Undersoeg om pull-to-refresh problemet skyldes at siden mangler `PullToRefresh` wrapping - tilfoej det med `fetchCars` som refresh handler.
+**Loesning (2 dele):**
+1. **SQL migration:** Opdater `can_view_fuel_codes()` funktionen til ogsaa at inkludere `super_admin` rollen
+2. **SQL migration:** Opdater den eksisterende record der har `PENDING_ADMIN_APPROVAL` med den korrekte vaerdi (eller en tom streng, da den rigtige kode skal indtastes manuelt af admin)
 
 **Filer:**
 | Fil | AEndring |
 |-----|---------|
-| `src/components/Cars/CarsList.tsx` | Tilfoej empty state naar ingen biler |
-| `src/pages/CarsPage.tsx` | Wrap med PullToRefresh, brug fetchCars som handler |
+| Ny SQL migration | Opdater `can_view_fuel_codes()` til at inkludere `super_admin` |
+| Ny SQL migration | Ryd op i `PENDING_ADMIN_APPROVAL` vaerdier i databasen |
 
 ---
 
-### 4. Ferie-medarbejderliste skal filtreres paa underafdeling
+### 3. Biler skal kunne tilknyttes flere underafdelinger
 
-**Problem:** `AdminVacationFormDialog` bruger `useEmployees()` hook som henter alle medarbejdere i afdelingen (filtreret paa `department_id` via `user_access`). Den filtrerer ikke paa `sub_department_id`. Saa alle medarbejdere i hovedafdelingen vises uanset hvilken underafdeling man er i.
+**Problem:** `cars` tabellen har en enkelt `sub_department_id` kolonne (uuid). For at tillade at en bil tilhoerer flere underafdelinger kraeves en many-to-many relation.
 
-**Loesning:** Filtrer medarbejderlisten i `AdminVacationFormDialog` baseret paa den aktive `selectedSubDepartmentId`. Hent `user_access` data med sub_department_id match og filtrer `availableEmployees` derefter.
+**Loesning:**
+1. **SQL migration:** Opret en ny junction-tabel `car_sub_departments` med `car_id` og `sub_department_id`. Migrer eksisterende `sub_department_id` data fra `cars` til den nye tabel. Behold `sub_department_id` paa `cars` midlertidigt for bagudkompatibilitet.
+2. **CarFormDialog:** Erstat den nuvaerende Select med checkboxes (ligesom bruger-afdelinger), saa man kan vaelge flere underafdelinger.
+3. **CarSecurityService.fetchCars:** Naar der filtreres paa underafdeling, join med `car_sub_departments` i stedet for at filtrere paa `cars.sub_department_id`.
+4. **useCarData:** Opdater query til at joinen med `car_sub_departments`.
 
-**Fil:** `src/components/Vacation/AdminVacationFormDialog.tsx`
-- Importer `useDepartment` fra `DepartmentContext`
-- Hent `selectedSubDepartmentId` og `selectedDepartmentId`
-- Naar `selectedSubDepartmentId` er sat, hent `user_access` records med baade `department_id` og `sub_department_id` match, og filtrer `employees` listen saa kun medarbejdere tilknyttet den aktive underafdeling vises
-- Naar ingen underafdeling er valgt, vis alle medarbejdere i afdelingen (nuvaerende adfaerd)
+**Filer:**
+| Fil | AEndring |
+|-----|---------|
+| Ny SQL migration | Opret `car_sub_departments` tabel, migrer data, tilfoej RLS |
+| `src/components/Cars/CarFormDialog.tsx` | Erstat Select med checkboxes for multi-select af underafdelinger |
+| `src/services/carSecurityService.ts` | Opdater fetchCars til at joinen med `car_sub_departments` |
+| `src/hooks/car/useCarData.ts` | Opdater query til at haandtere mange-til-mange relation |
+| `src/hooks/car/useCarFormState.ts` | Tilfoej `sub_department_ids: string[]` til formData |
+| `src/components/Cars/types.ts` | Tilfoej `sub_department_ids?: string[]` til CarData |
 
 ---
 
 ### Tekniske detaljer
 
-#### AssignmentDetailsDialog - scroll fix:
-Linje 112 aendres fra:
-```
-max-h-[95dvh] overflow-hidden flex flex-col p-0
-```
-til:
-```
-max-h-[95dvh] overflow-y-auto flex flex-col p-0
-```
-
-#### CarSecurityService - fjern PENDING_ADMIN_APPROVAL:
+#### Fix 1 - AdminVacationFormDialog useEffect:
 ```tsx
-// Erstat linje 100-109 med:
-if (canViewFuelCardCode && carData.fuel_card_code) {
-  insertData.fuel_card_code = carData.fuel_card_code;
-} else {
-  insertData.fuel_card_code = carData.fuel_card_code || '';
-}
-```
-
-#### CarsList - empty state:
-```tsx
-if (sortedCars.length === 0) {
-  return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <Car className="h-12 w-12 text-muted-foreground/40 mb-4" />
-      <p className="text-muted-foreground">{t('cars.noCarsInSubDepartment')}</p>
-    </div>
-  );
-}
-```
-
-#### AdminVacationFormDialog - sub-department filter:
-```tsx
-const { selectedSubDepartmentId, selectedDepartmentId } = useDepartment();
-
 useEffect(() => {
-  if (employees && selectedSubDepartmentId) {
-    // Fetch user_access for this sub-department
+  if (!employees || !open) return;
+  
+  if (selectedSubDepartmentId) {
     supabase.from('user_access')
       .select('user_id')
       .eq('department_id', selectedDepartmentId)
@@ -110,34 +74,98 @@ useEffect(() => {
           subDeptUserIds.has(emp.id) && emp.id !== user?.id
         );
         setAvailableEmployees(filtered);
+        if (filtered.length > 0 && !filtered.find(e => e.id === selectedEmployeeId)) {
+          setSelectedEmployeeId(filtered[0].id);
+        }
       });
   } else {
     const filtered = employees.filter(emp => emp.id !== user?.id);
     setAvailableEmployees(filtered);
+    if (filtered.length > 0 && !filtered.find(e => e.id === selectedEmployeeId)) {
+      setSelectedEmployeeId(filtered[0].id);
+    }
   }
-}, [employees, user?.id, selectedSubDepartmentId, selectedDepartmentId]);
+}, [employees, user?.id, selectedSubDepartmentId, selectedDepartmentId, open]);
 ```
 
-### Oversaettelser der tilføjes
+#### Fix 2 - SQL migration:
+```sql
+-- Fix can_view_fuel_codes to include super_admin
+CREATE OR REPLACE FUNCTION public.can_view_fuel_codes()
+RETURNS boolean
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.user_roles 
+    WHERE user_id = auth.uid() 
+    AND role IN ('super_admin', 'administrator', 'skadeleder')
+  );
+$$;
 
-**`src/translations/da/cars.ts`:**
-```
-noCarsInSubDepartment: "Der er ingen biler tilknyttet denne underafdeling",
-```
-
-**`src/translations/en/cars.ts`:**
-```
-noCarsInSubDepartment: "No cars assigned to this sub-department",
+-- Clean up PENDING_ADMIN_APPROVAL values
+UPDATE public.cars 
+SET fuel_card_code = '' 
+WHERE fuel_card_code = 'PENDING_ADMIN_APPROVAL';
 ```
 
-### Filer der aendres
+#### Fix 3 - car_sub_departments tabel:
+```sql
+CREATE TABLE public.car_sub_departments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  car_id uuid NOT NULL REFERENCES public.cars(id) ON DELETE CASCADE,
+  sub_department_id uuid NOT NULL REFERENCES public.sub_departments(id) ON DELETE CASCADE,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(car_id, sub_department_id)
+);
+
+ALTER TABLE public.car_sub_departments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Authenticated users can view car_sub_departments"
+  ON public.car_sub_departments FOR SELECT
+  TO authenticated USING (true);
+
+CREATE POLICY "Admins can manage car_sub_departments"
+  ON public.car_sub_departments FOR ALL
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_roles 
+      WHERE user_id = auth.uid() 
+      AND role IN ('super_admin', 'administrator')
+    )
+  );
+
+-- Migrate existing data
+INSERT INTO public.car_sub_departments (car_id, sub_department_id)
+SELECT id, sub_department_id FROM public.cars 
+WHERE sub_department_id IS NOT NULL;
+```
+
+#### CarFormDialog - multi-select checkboxes:
+Erstat den nuvaerende `Select` komponent med en liste af checkboxes for hver underafdeling. Ved gem, indsaet/slet raekker i `car_sub_departments`.
+
+#### CarSecurityService.fetchCars - join:
+Naar `subDepartmentId` er angivet, filtrer via:
+```ts
+query = query.in('id', 
+  supabase.from('car_sub_departments')
+    .select('car_id')
+    .eq('sub_department_id', subDepartmentId)
+);
+```
+Alternativt brug en RPC-funktion til at haandtere join.
+
+### Samlet filliste
 
 | Fil | AEndring |
 |-----|---------|
-| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Fix scroll - aendr overflow-hidden til overflow-y-auto |
-| `src/services/carSecurityService.ts` | Fjern PENDING_ADMIN_APPROVAL, brug canViewFuelCardCode parameter |
-| `src/components/Cars/CarsList.tsx` | Tilfoej empty state for ingen biler |
-| `src/pages/CarsPage.tsx` | Wrap med PullToRefresh |
-| `src/components/Vacation/AdminVacationFormDialog.tsx` | Filtrer medarbejdere paa sub_department_id |
-| `src/translations/da/cars.ts` | Tilfoej noCarsInSubDepartment |
-| `src/translations/en/cars.ts` | Tilfoej noCarsInSubDepartment |
+| `src/components/Vacation/AdminVacationFormDialog.tsx` | Fix useEffect dependency for at undgaa nulstilling af valg |
+| Ny SQL migration | Fix `can_view_fuel_codes()`, ryd PENDING_ADMIN_APPROVAL, opret `car_sub_departments` |
+| `src/components/Cars/CarFormDialog.tsx` | Multi-select checkboxes for underafdelinger |
+| `src/services/carSecurityService.ts` | Opdater fetchCars til at filtrere via `car_sub_departments` |
+| `src/hooks/car/useCarData.ts` | Haandter mange-til-mange relation i queries |
+| `src/hooks/car/useCarFormState.ts` | Tilfoej `sub_department_ids` array til formData og handleSubmit |
+| `src/components/Cars/types.ts` | Tilfoej `sub_department_ids` til CarData interface |
+
