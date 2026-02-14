@@ -39,6 +39,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed - 2026-02-14
+- Planner gitter-visning bruger nu 3 kolonner på desktop (md:grid-cols-3) i stedet for 2
+- Opgavebeskrivelser i planner-kort begrænset til maks 3 linjer via `line-clamp-3` (erstatter punktopstilling)
+
 ### Security - 2026-02-14
 - RLS-policies på vacations-tabellen strammet: Skadeledere kan nu kun se/redigere ferieanmodninger for brugere i deres egne afdelinger (via ny `can_access_vacation` SECURITY DEFINER-funktion). Admins og super_admins beholder fuld adgang.
 - Fjernet følsom console-logging fra PasswordChangeDialog (token-previews, password-længder, auth-metadata)
