@@ -1,94 +1,138 @@
 
 
-## Rettelser og Forbedringer
+## Samlet plan: 6 rettelser
 
-### Problem 1: Super Admin label vises som "super_admin" i medarbejderlisten
+### 1. Rolle-labels (RLS + TypeScript type-cast)
 
-Både `EmployeeTableRow.tsx` og `MobileEmployeeCard.tsx` har en `getRoleLabel` funktion der ikke haandterer `super_admin`-casen. Den falder igennem til `default: return role`, som returnerer den raa streng "super_admin".
+**Rodaarsag:** RLS-policyen paa `user_roles`-tabellen tillader kun `administrator` og `skadeleder` at se alle brugeres roller - `super_admin` er IKKE inkluderet. Naar en Super Admin henter medarbejderlisten, returnerer queryen kun deres egen rolle. Alle andre falder til default `'servicemedarbejder'` i koden.
 
-**Filer:**
-- `src/components/Employees/EmployeeTableRow.tsx` (linje 41-54)
-- `src/components/Employees/MobileEmployeeCard.tsx` (linje 29-37)
-
-**AEndring:** Tilfoej `case 'super_admin': return t('employees.super_admin');` i begge `getRoleLabel` funktioner. Tilfoej ogsaa en passende variant i `getRoleVariant` (f.eks. `'warning'` eller `'info'`).
+**Aendringer:**
+- **SQL migration:** Opdater `user_roles_select_policy` til at inkludere `super_admin`
+- **`src/hooks/employee/useEmployeeData.ts`:** Ret type-cast paa linje 49, 68 og 116 fra `as 'administrator' | 'skadeleder' | 'servicemedarbejder'` til `as Employee['role']` saa alle roller (inkl. `super_admin` og `vikar`) haandteres korrekt
 
 ---
 
-### Problem 2: Super Admin skal kunne se alle afdelinger i brugerstyring-filteret
+### 2. Underafdelings-selector placering
 
-I `UserManagement.tsx` (linje 800-814) viser afdelingsfilter-dropdown kun den aktuelt valgte afdeling og "Ikke-tildelte". Super Admin skal kunne vaelge enhver afdeling direkte fra denne dropdown uden at skifte i headeren.
+**Problem:** Underafdelings-dropdown vises som et separat element der skubber ind i navigationsomraadet.
 
-**Fil:** `src/components/Admin/UserManagement.tsx` (linje 800-814)
+**Loesning:** Integrer underafdelingen direkte i afdelingsknappen med en breadcrumb-stil separator: "Afd. 02 / Fugt & Skimmel". Klik paa foerste del skifter afdeling, klik paa anden del (eller hele knappen ved kun 1 underafdeling) skifter underafdeling. Alt forbliver kompakt i venstre side.
 
-**AEndring:** Udvid Select-dropdown til at vise alle afdelinger som valgmuligheder (for Super Admin og Admin). AEndr `departmentFilter` state fra `'current' | 'unassigned'` til at kunne holde et specifikt department-id eller `'unassigned'`. Opdater `filteredUsers` logikken tilsvarende.
+**Fil:** `src/components/Layout/NavComponents/DepartmentSelector.tsx`
 
 ---
 
-### Problem 3: Underafdelinger skal fungere som primaer arbejdskontekst
+### 3. Opgaver filtreres paa underafdeling
 
-Naar der er underafdelinger, skal brugeren vaere i en underafdeling - ikke hovedafdelingen. Header-selectoren skal altid vise underafdelings-dropdown naar der findes underafdelinger, ogsaa naar der kun er 1 underafdeling (i dag vises den kun ved `> 1`).
+**Problem:** `sub_department_id` kolonnen eksisterer allerede i `assignments`-tabellen, men bruges hverken ved oprettelse eller filtrering.
 
-**Fil:** `src/components/Layout/NavComponents/DepartmentSelector.tsx` (linje 67 og 112)
+**Aendringer:**
+- **`src/hooks/useOptimizedAssignments.ts`:** Tilfoej `selectedSubDepartmentId` fra `useDepartment()` og send det med i `createAssignment` som `sub_department_id`. Tilfoej det ogsaa som dependency i `fetchAssignments`.
+- **`src/services/optimizedAssignmentService.ts`:** Send `sub_department_id` med i insert-payload og videregiv til RPC-kaldet.
+- **SQL migration:** Opdater `list_accessible_assignments_with_team` til at acceptere `p_sub_department_id` parameter og filtrere paa den.
 
-**AEndring:** AEndr betingelsen fra `userSubDepartments.length > 1` til `userSubDepartments.length > 0`. Naar der er praecis 1 underafdeling, vises den som et statisk label (ikke dropdown). Naar der er flere, vises dropdown som nu.
+---
+
+### 4. Tydelig markering ved skift af underafdeling
+
+**Aendringer:**
+- **`src/components/Layout/NavComponents/DepartmentSelector.tsx`:** Tilfoej animation (ring-effekt + fade-in) naar underafdeling skiftes, ligesom hovedafdelingen allerede har.
+- **`src/context/DepartmentContext.tsx`:** I `setSelectedSubDepartmentId` - kald `unifiedDataService.clearCache()` og invalidate relevante queries saa data genindlaeses.
+
+---
+
+### 5. Biler tilknyttes underafdelinger
+
+**Problem:** `cars`-tabellen har kun `department_id`, ikke `sub_department_id`.
+
+**Aendringer:**
+- **SQL migration:** `ALTER TABLE public.cars ADD COLUMN sub_department_id uuid REFERENCES public.sub_departments(id) ON DELETE SET NULL;`
+- **`src/types/car.ts` og `src/components/Cars/types.ts`:** Tilfoej `sub_department_id?: string | null`
+- **`src/services/carSecurityService.ts`:** Filtrer paa `sub_department_id` naar den er sat
+- **`src/hooks/car/useCarData.ts`:** Send `selectedSubDepartmentId` med i queryKey og til fetchCars/createCar
+- **`src/components/Cars/CarFormDialog.tsx`:** Tilfoej underafdelings-vaelger i formularen (kun synlig naar der er underafdelinger)
+
+---
+
+### 6. Materiel (warehouse) tilknyttes underafdelinger
+
+**Problem:** `warehouse_items`-tabellen har kun `department_id`, ikke `sub_department_id`.
+
+**Aendringer:**
+- **SQL migration:** `ALTER TABLE public.warehouse_items ADD COLUMN sub_department_id uuid REFERENCES public.sub_departments(id) ON DELETE SET NULL;`
+- **`src/types/warehouse.ts`:** Tilfoej `sub_department_id?: string | null`
+- **`src/hooks/warehouse/useWarehouseData.ts`:** Filtrer paa `selectedSubDepartmentId`
+- **`src/components/Warehouse/WarehouseFormDialog.tsx`:** Send `sub_department_id` med ved oprettelse
 
 ---
 
 ### Tekniske detaljer
 
-#### EmployeeTableRow.tsx og MobileEmployeeCard.tsx - getRoleLabel:
-```tsx
-// Tilfoej foer 'administrator' case:
-case 'super_admin':
-  return t('employees.super_admin');
+#### SQL Migration (samlet):
+
+```sql
+-- 1. Fix user_roles RLS for super_admin
+DROP POLICY IF EXISTS "user_roles_select_policy" ON public.user_roles;
+CREATE POLICY "user_roles_select_policy" ON public.user_roles
+FOR SELECT TO authenticated
+USING (
+  user_id = (SELECT auth.uid())
+  OR (SELECT get_current_user_role()) = ANY (
+    ARRAY['super_admin'::user_role, 'administrator'::user_role, 'skadeleder'::user_role]
+  )
+  OR (SELECT auth.role()) = 'service_role'::text
+);
+
+-- 2. Add sub_department_id to cars
+ALTER TABLE public.cars
+ADD COLUMN IF NOT EXISTS sub_department_id uuid REFERENCES public.sub_departments(id) ON DELETE SET NULL;
+
+-- 3. Add sub_department_id to warehouse_items
+ALTER TABLE public.warehouse_items
+ADD COLUMN IF NOT EXISTS sub_department_id uuid REFERENCES public.sub_departments(id) ON DELETE SET NULL;
+
+-- 4. Update RPC to filter on sub_department_id
+CREATE OR REPLACE FUNCTION list_accessible_assignments_with_team(
+  p_department_id uuid DEFAULT NULL,
+  p_sub_department_id uuid DEFAULT NULL
+) ...
+-- Add WHERE clause: AND (p_sub_department_id IS NULL OR a.sub_department_id = p_sub_department_id)
 ```
 
-#### UserManagement.tsx - Afdelingsfilter:
+#### useOptimizedAssignments.ts - sub_department_id:
 ```tsx
-// State aendring:
-const [departmentFilter, setDepartmentFilter] = useState<string>('current');
+const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
 
-// filteredUsers logik:
-if (departmentFilter === 'unassigned') { ... }
-else if (departmentFilter !== 'current') {
-  // Specifikt department_id valgt
-  const usersInDept = new Set(
-    userAccessData.filter(ua => ua.department_id === departmentFilter).map(ua => ua.user_id)
-  );
-  return baseUsers.filter(u => usersInDept.has(u.id));
-}
-else { ... eksisterende logik med selectedDepartmentId ... }
+// I createAssignment:
+department_id: selectedDepartmentId || null,
+sub_department_id: selectedSubDepartmentId || null,
 
-// Dropdown viser alle afdelinger:
-<SelectContent>
-  <SelectItem value="current">{currentDeptName}</SelectItem>
-  {departments.filter(d => d.id !== selectedDepartmentId).map(d => (
-    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-  ))}
-  {canSeeUnassigned && <SelectItem value="unassigned">...</SelectItem>}
-</SelectContent>
+// I fetchAssignments:
+result = await OptimizedAssignmentService.fetchAllAssignments(
+  user.role, user.email, selectedDepartmentId, selectedSubDepartmentId
+);
 ```
 
-#### DepartmentSelector.tsx - Vis underafdelinger altid:
+#### DepartmentSelector.tsx - kompakt breadcrumb:
 ```tsx
-// AEndr fra:
-{userSubDepartments.length > 1 && <SubDepartmentDropdown ... />}
-// Til:
-{userSubDepartments.length === 1 && (
-  <div className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-muted-foreground">
-    <Layers className="h-4 w-4" />
-    <span>{userSubDepartments[0].name}</span>
-  </div>
-)}
-{userSubDepartments.length > 1 && <SubDepartmentDropdown ... />}
+// Vis som: "Afd. 02 / Fugt & Skimmel ▾"
+// Alt i een linje, venstre side af headeren
+// Separator "/" mellem afdeling og underafdeling
 ```
 
 ### Filer der aendres
 
-| Fil | AEndring |
+| Fil | Aendring |
 |-----|---------|
-| `src/components/Employees/EmployeeTableRow.tsx` | Tilfoej `super_admin` case i getRoleLabel og getRoleVariant |
-| `src/components/Employees/MobileEmployeeCard.tsx` | Tilfoej `super_admin` case i getRoleLabel og getRoleVariant |
-| `src/components/Admin/UserManagement.tsx` | Udvid afdelingsfilter til at vise alle afdelinger |
-| `src/components/Layout/NavComponents/DepartmentSelector.tsx` | Vis underafdelinger ogsaa naar der kun er 1 |
-
+| Ny SQL migration | RLS fix, sub_department_id paa cars + warehouse, RPC update |
+| `src/hooks/employee/useEmployeeData.ts` | Ret type-cast til `Employee['role']` |
+| `src/components/Layout/NavComponents/DepartmentSelector.tsx` | Breadcrumb-stil, animation |
+| `src/context/DepartmentContext.tsx` | Cache clear ved sub-dept switch |
+| `src/hooks/useOptimizedAssignments.ts` | Send + filtrer sub_department_id |
+| `src/services/optimizedAssignmentService.ts` | Accepter sub_department_id |
+| `src/types/car.ts` + `src/components/Cars/types.ts` | Tilfoej sub_department_id |
+| `src/services/carSecurityService.ts` | Filtrer paa sub_department_id |
+| `src/hooks/car/useCarData.ts` | Sub-dept i queryKey og fetch |
+| `src/components/Cars/CarFormDialog.tsx` | Underafdelings-vaelger |
+| `src/types/warehouse.ts` | Tilfoej sub_department_id |
+| `src/hooks/warehouse/useWarehouseData.ts` | Filtrer paa sub_department_id |
