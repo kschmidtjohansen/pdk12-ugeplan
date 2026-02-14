@@ -375,8 +375,10 @@ export type Database = {
       }
       departments: {
         Row: {
+          chat_enabled: boolean
           created_at: string
           duty_enabled: boolean
+          files_enabled: boolean
           id: string
           name: string
           substitute_enabled: boolean
@@ -384,8 +386,10 @@ export type Database = {
           warehouse_enabled: boolean
         }
         Insert: {
+          chat_enabled?: boolean
           created_at?: string
           duty_enabled?: boolean
+          files_enabled?: boolean
           id?: string
           name: string
           substitute_enabled?: boolean
@@ -393,8 +397,10 @@ export type Database = {
           warehouse_enabled?: boolean
         }
         Update: {
+          chat_enabled?: boolean
           created_at?: string
           duty_enabled?: boolean
+          files_enabled?: boolean
           id?: string
           name?: string
           substitute_enabled?: boolean

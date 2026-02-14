@@ -66,6 +66,8 @@ export const admin = {
     warehouseEnabled: 'Lager',
     dutyEnabled: 'Vagt',
     substituteEnabled: 'Vikar',
+    chatEnabled: 'Chat / Beskeder',
+    filesEnabled: 'Fil-upload',
     enabled: 'Aktiveret',
     disabled: 'Deaktiveret',
     updated: 'Funktionsindstilling opdateret',

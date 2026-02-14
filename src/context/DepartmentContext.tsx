@@ -9,6 +9,8 @@ interface Department {
   warehouse_enabled: boolean;
   duty_enabled: boolean;
   substitute_enabled: boolean;
+  chat_enabled: boolean;
+  files_enabled: boolean;
 }
 
 interface DepartmentContextType {
@@ -22,6 +24,8 @@ interface DepartmentContextType {
   isWarehouseEnabled: boolean;
   isDutyEnabled: boolean;
   isSubstituteEnabled: boolean;
+  isChatEnabled: boolean;
+  isFilesEnabled: boolean;
   isUserInSelectedDepartment: boolean;
   refetchDepartments: () => void;
 }
@@ -37,6 +41,8 @@ const DepartmentContext = createContext<DepartmentContextType>({
   isWarehouseEnabled: true,
   isDutyEnabled: true,
   isSubstituteEnabled: true,
+  isChatEnabled: true,
+  isFilesEnabled: true,
   isUserInSelectedDepartment: true,
   refetchDepartments: () => {},
 });
@@ -76,6 +82,8 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
             warehouse_enabled: (d as any).warehouse_enabled ?? true,
             duty_enabled: (d as any).duty_enabled ?? true,
             substitute_enabled: (d as any).substitute_enabled ?? true,
+            chat_enabled: (d as any).chat_enabled ?? true,
+            files_enabled: (d as any).files_enabled ?? true,
           })));
         }
       } catch (err) {
@@ -103,7 +111,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
           // Fetch all departments for dropdown
           const { data, error } = await supabase
             .from('departments')
-            .select('id, name, warehouse_enabled, duty_enabled, substitute_enabled')
+          .select('id, name, warehouse_enabled, duty_enabled, substitute_enabled, chat_enabled, files_enabled')
             .order('name');
 
           // Also fetch the user's own department assignments
@@ -123,6 +131,8 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
               warehouse_enabled: (d as any).warehouse_enabled ?? true,
               duty_enabled: (d as any).duty_enabled ?? true,
               substitute_enabled: (d as any).substitute_enabled ?? true,
+              chat_enabled: (d as any).chat_enabled ?? true,
+              files_enabled: (d as any).files_enabled ?? true,
             }));
             setUserDepartments(mapped);
             if (mapped.length > 0 && !selectedDepartmentId) {
@@ -133,7 +143,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
         } else {
           const { data, error } = await supabase
             .from('user_access')
-            .select('department_id, departments:department_id(id, name, warehouse_enabled, duty_enabled, substitute_enabled)')
+            .select('department_id, departments:department_id(id, name, warehouse_enabled, duty_enabled, substitute_enabled, chat_enabled, files_enabled)')
             .eq('user_id', user.id);
 
           if (!error && data) {
@@ -149,6 +159,8 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
                   warehouse_enabled: dept.warehouse_enabled ?? true,
                   duty_enabled: dept.duty_enabled ?? true,
                   substitute_enabled: dept.substitute_enabled ?? true,
+                  chat_enabled: dept.chat_enabled ?? true,
+                  files_enabled: dept.files_enabled ?? true,
                 });
               }
             }
@@ -194,6 +206,8 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
   const isWarehouseEnabled = isDemoMode ? true : (selectedDepartment?.warehouse_enabled ?? true);
   const isDutyEnabled = isDemoMode ? true : (selectedDepartment?.duty_enabled ?? true);
   const isSubstituteEnabled = isDemoMode ? true : (selectedDepartment?.substitute_enabled ?? true);
+  const isChatEnabled = isDemoMode ? true : (selectedDepartment?.chat_enabled ?? true);
+  const isFilesEnabled = isDemoMode ? true : (selectedDepartment?.files_enabled ?? true);
 
   // For super_admins: check if they are personally assigned to the selected department
   const isUserInSelectedDepartment = effectiveRole !== 'super_admin'
@@ -212,6 +226,8 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
       isWarehouseEnabled,
       isDutyEnabled,
       isSubstituteEnabled,
+      isChatEnabled,
+      isFilesEnabled,
       isUserInSelectedDepartment,
       refetchDepartments,
     }}>
