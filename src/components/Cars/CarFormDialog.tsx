@@ -208,6 +208,10 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
             </div>
           )}
           
+          {userSubDepartments.length > 0 && (!formData.sub_department_ids || formData.sub_department_ids.length === 0) && (
+            <p className="text-sm text-destructive">{t('cars.selectAtLeastOneSubDepartment')}</p>
+          )}
+
           <DialogFooter>
             <Button 
               type="button" 
@@ -218,6 +222,7 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
             </Button>
             <Button 
               type="submit"
+              disabled={userSubDepartments.length > 0 && (!formData.sub_department_ids || formData.sub_department_ids.length === 0)}
               className="bg-polygon-blue hover:bg-polygon-darkblue"
             >
               {isEditing ? t('common.save') : t('common.add')}

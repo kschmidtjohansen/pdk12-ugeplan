@@ -103,10 +103,10 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         return true;
       }
 
+      const { sub_department_ids, ...carDataWithoutSubDeptIds } = carData as any;
       const enrichedData = {
-        ...carData,
+        ...carDataWithoutSubDeptIds,
         department_id: selectedDepartmentId || null,
-        sub_department_id: selectedSubDepartmentId || null,
       };
       const data = await CarSecurityService.createCar(enrichedData, canViewFuelCardCode);
       
