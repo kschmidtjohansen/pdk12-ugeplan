@@ -352,6 +352,9 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
+                  {isSuperAdmin && (
+                    <SelectItem value="super_admin">{t('admin.roles.super_admin')}</SelectItem>
+                  )}
                   <SelectItem value="administrator">{t('admin.roles.administrator')}</SelectItem>
                   <SelectItem value="skadeleder">{t('admin.roles.skadeleder')}</SelectItem>
                   <SelectItem value="servicemedarbejder">{t('admin.roles.servicemedarbejder')}</SelectItem>
