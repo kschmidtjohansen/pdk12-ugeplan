@@ -96,7 +96,7 @@ const convertToAssignment = (data: OptimizedAssignmentData, allEmployees: Employ
 
 export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimizedAssignmentsResult => {
   const { user, isAuthenticated, authReady } = useAuth();
-  const { selectedDepartmentId } = useDepartment();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const { toast } = useToast();
   const { t } = useTranslation();
   const { employees: allEmployees } = useEmployeeData();
@@ -126,19 +126,19 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       switch (filter) {
         case 'all':
           console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: all - calling fetchAllAssignments');
-          result = await OptimizedAssignmentService.fetchAllAssignments(user.role, user.email, selectedDepartmentId);
+          result = await OptimizedAssignmentService.fetchAllAssignments(user.role, user.email, selectedDepartmentId, selectedSubDepartmentId);
           break;
         case 'published':
           console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: published - calling fetchAllPublishedAssignments');
-          result = await OptimizedAssignmentService.fetchAllPublishedAssignments(user.email, selectedDepartmentId);
+          result = await OptimizedAssignmentService.fetchAllPublishedAssignments(user.email, selectedDepartmentId, selectedSubDepartmentId);
           break;
         case 'unpublished':
           console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: unpublished - calling fetchUnpublishedAssignments');
-          result = await OptimizedAssignmentService.fetchUnpublishedAssignments(user.id, user.role, user.email, selectedDepartmentId);
+          result = await OptimizedAssignmentService.fetchUnpublishedAssignments(user.id, user.role, user.email, selectedDepartmentId, selectedSubDepartmentId);
           break;
         case 'user':
           console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: user - calling fetchUserAssignments');
-          result = await OptimizedAssignmentService.fetchUserAssignments(user.id, user.role, user.email, selectedDepartmentId);
+          result = await OptimizedAssignmentService.fetchUserAssignments(user.id, user.role, user.email, selectedDepartmentId, selectedSubDepartmentId);
           break;
         default:
           console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: default - no assignments');
@@ -194,7 +194,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     } finally {
       setLoading(false);
     }
-  }, [user?.id, user?.role, user?.email, filter, allEmployees, selectedDepartmentId]);
+  }, [user?.id, user?.role, user?.email, filter, allEmployees, selectedDepartmentId, selectedSubDepartmentId]);
 
   const refetch = useCallback(async () => {
     setLoading(true);
@@ -254,6 +254,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           car_ids: data.cars || null,
           employees: data.employees || [],
           department_id: selectedDepartmentId || null,
+          sub_department_id: selectedSubDepartmentId || null,
         };
         
         // Create one assignment per date
@@ -331,6 +332,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         car_ids: data.cars || null,
         employees: data.employees || [],
         department_id: selectedDepartmentId || null,
+        sub_department_id: selectedSubDepartmentId || null,
       };
 
       console.log('[useOptimizedAssignments] Creating assignment with data:', serviceData);

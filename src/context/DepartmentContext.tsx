@@ -295,6 +295,9 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     } else {
       localStorage.removeItem('selected_sub_department_id');
     }
+    // Clear cache and force data refresh when sub-department changes
+    unifiedDataService.clearCache();
+    console.log('[DepartmentContext] Sub-department switched to:', id, '- cache cleared');
   }, []);
 
   const switchDepartment = useCallback((id: string) => {
