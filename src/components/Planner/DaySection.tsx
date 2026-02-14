@@ -24,6 +24,7 @@ interface DaySectionProps {
   canEdit: boolean;
   canPublishTasks: boolean;
   cars?: Car[];
+  gridLayout?: boolean;
 }
 
 const DaySection: React.FC<DaySectionProps> = ({
@@ -41,7 +42,8 @@ const DaySection: React.FC<DaySectionProps> = ({
   onViewDetails,
   canEdit,
   canPublishTasks,
-  cars = []
+  cars = [],
+  gridLayout = false
 }) => {
   const { t, currentLanguage } = useTranslation();
   
@@ -106,7 +108,7 @@ const DaySection: React.FC<DaySectionProps> = ({
       </div>
       
       {isExpanded && (
-        <div className="w-full grid grid-cols-1 gap-4 animate-in slide-in-from-top-2 duration-200">
+        <div className={`w-full grid gap-4 animate-in slide-in-from-top-2 duration-200 ${gridLayout ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
           {Array.isArray(dayAssignments) && dayAssignments.length > 0 ? (
             dayAssignments.map((assignment) => (
               <AssignmentCard

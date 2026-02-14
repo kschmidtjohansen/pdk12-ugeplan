@@ -21,6 +21,7 @@ interface PastAssignmentsProps {
   canEdit: boolean;
   canPublishTasks: boolean;
   cars?: Car[];
+  gridLayout?: boolean;
 }
 
 const PastAssignments: React.FC<PastAssignmentsProps> = ({
@@ -38,7 +39,8 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
   onViewDetails,
   canEdit,
   canPublishTasks,
-  cars = []
+  cars = [],
+  gridLayout = false
 }) => {
   const { t } = useTranslation();
   
@@ -68,6 +70,7 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
             canPublishTasks={canPublishTasks}
             cars={cars}
             operationStates={operationStates}
+            gridLayout={gridLayout}
           />
         ))}
       </div>

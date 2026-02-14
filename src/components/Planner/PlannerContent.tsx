@@ -30,7 +30,7 @@ interface PlannerContentProps {
   selectedWeek: number;
   selectedYear: number;
   weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
-  viewMode?: 'standard' | 'compact';
+  viewMode?: 'standard' | 'compact' | 'grid';
 }
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
@@ -198,6 +198,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             canEdit={canEdit}
             canPublishTasks={canPublishTasks}
             cars={cars}
+            gridLayout={viewMode === 'grid'}
           />
           
           <PastAssignments 
@@ -216,6 +217,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             canEdit={canEdit}
             canPublishTasks={canPublishTasks}
             cars={cars}
+            gridLayout={viewMode === 'grid'}
           />
         </>
       )}

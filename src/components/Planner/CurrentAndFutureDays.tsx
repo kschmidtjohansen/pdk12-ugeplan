@@ -20,6 +20,7 @@ interface CurrentAndFutureDaysProps {
   canEdit: boolean;
   canPublishTasks: boolean;
   cars?: Car[];
+  gridLayout?: boolean;
 }
 
 const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
@@ -37,7 +38,8 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
   onViewDetails,
   canEdit,
   canPublishTasks,
-  cars = []
+  cars = [],
+  gridLayout = false
 }) => {
   if (dates.length === 0) return null;
   
@@ -61,6 +63,7 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
           canPublishTasks={canPublishTasks}
           cars={cars}
           operationStates={operationStates}
+          gridLayout={gridLayout}
         />
       ))}
     </div>

@@ -9,7 +9,7 @@ import { useVacations } from '../hooks/useVacations';
 import { useAuth } from '../context/AuthContext';
 import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
-import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList, ChevronsUpDown } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList, List, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/spinner';
@@ -64,9 +64,9 @@ const PlannerPage: React.FC = () => {
   });
   
   // View mode state with localStorage persistence
-  const [viewMode, setViewMode] = useState<'standard' | 'compact'>(() => {
+  const [viewMode, setViewMode] = useState<'standard' | 'compact' | 'grid'>(() => {
     const saved = localStorage.getItem('plannerViewMode');
-    return (saved === 'compact' || saved === 'standard') ? saved : 'standard';
+    return (saved === 'compact' || saved === 'standard' || saved === 'grid') ? saved : 'standard';
   });
   
   // Search filter state
@@ -477,12 +477,16 @@ const PlannerPage: React.FC = () => {
             <ToggleGroup 
               type="single" 
               value={viewMode} 
-              onValueChange={(v) => v && setViewMode(v as 'standard' | 'compact')}
+              onValueChange={(v) => v && setViewMode(v as 'standard' | 'compact' | 'grid')}
               className="bg-muted/50 rounded-lg p-0.5"
             >
               <ToggleGroupItem value="standard" size="sm" className="h-8 px-3 data-[state=on]:bg-background">
-                <LayoutGrid className="h-4 w-4 mr-1.5" />
+                <List className="h-4 w-4 mr-1.5" />
                 <span className="text-xs">{t('planner.viewModeStandard')}</span>
+              </ToggleGroupItem>
+              <ToggleGroupItem value="grid" size="sm" className="h-8 px-3 data-[state=on]:bg-background">
+                <LayoutGrid className="h-4 w-4 mr-1.5" />
+                <span className="text-xs">{currentLanguage === 'da' ? 'Gitter' : 'Grid'}</span>
               </ToggleGroupItem>
               <ToggleGroupItem value="compact" size="sm" className="h-8 px-3 data-[state=on]:bg-background">
                 <LayoutList className="h-4 w-4 mr-1.5" />
@@ -490,8 +494,8 @@ const PlannerPage: React.FC = () => {
               </ToggleGroupItem>
             </ToggleGroup>
             
-            {/* Expand/Collapse all button - only visible in standard view */}
-            {viewMode === 'standard' && (
+            {/* Expand/Collapse all button - visible in standard and grid views */}
+            {(viewMode === 'standard' || viewMode === 'grid') && (
               <Button
                 variant="outline"
                 size="sm"
