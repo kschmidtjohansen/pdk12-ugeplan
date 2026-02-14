@@ -39,6 +39,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - 2026-02-14
+- Biler kan nu tilknyttes flere underafdelinger via junction-tabel (`car_sub_departments`)
+- Validering: Mindst én underafdeling skal vælges ved oprettelse/redigering af bil
+- Tom-tilstand (empty state) på bilsiden når ingen biler er tilknyttet underafdelingen
+- Pull-to-refresh på bilsiden
+
+### Fixed - 2026-02-14
+- Sags-dialog på mobil: Beskrivelse kan nu scrolles (overflow-hidden rettet til overflow-y-auto)
+- Brændstofkortkode viste "PENDING_ADMIN_APPROVAL" — værdi ryddet og `can_view_fuel_codes()` opdateret til at inkludere super_admin
+- Ferie-medarbejderliste: Super Admin og andre brugere kan nu vælges i "Ansøg for medarbejder" dialogen
+- Ferie-medarbejderliste filtreres nu korrekt efter aktiv underafdeling
+- Biler forsvandt fra listen efter oprettelse når ingen underafdeling var valgt
+- Fjernet gammel `sub_department_id` kolonne-reference fra bil-opdatering (bruger nu udelukkende junction-tabel)
+
+### Security - 2026-02-14
+- `can_view_fuel_codes()` RPC opdateret til at inkludere `super_admin` rollen
+- Demo-isolering af `user_access` og `car_sub_departments` queries (bruger nu `getSchemaClient` i demo-mode)
+- `car_sub_departments` sync springes over i demo-mode for at undgå påvirkning af live-data
+
 ### Changed - 2026-02-14
 - Planner gitter-visning bruger nu 3 kolonner på desktop (md:grid-cols-3) i stedet for 2
 - Opgavebeskrivelser i planner-kort begrænset til maks 3 linjer via `line-clamp-3` (erstatter punktopstilling)

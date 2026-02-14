@@ -183,7 +183,6 @@ export class CarSecurityService {
         towing_capacity_without_brakes: carData.towing_capacity_without_brakes,
         total_weight: carData.total_weight,
         department_id: (carData as any).department_id || null,
-        sub_department_id: carData.sub_department_id || null,
         updated_at: new Date().toISOString()
       };
 
