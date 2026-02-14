@@ -2,57 +2,70 @@
 
 ## Plan: 3 rettelser
 
-### 1. Opgaver-metric fejl (RPC funktion overload konflikt)
+### 1. Medarbejdere synlige i sags-dialog paa mobil
 
-**Rodaarsag:** Migrationen oprettede en ny version af `list_accessible_assignments_with_team` med 2 parametre (`p_department_id`, `p_sub_department_id`), men den gamle version med kun 1 parameter (`p_department_id`) eksisterer stadig. PostgREST kan ikke vaelge mellem dem naar kun 1 parameter sendes.
+**Problem:** I `AssignmentDetailsDialog.tsx` vises medarbejdere og biler korrekt i HTML-strukturen, men paa mobil er dialog-indholdet for langt og den ydre container kan afskere indholdet foer medarbejder-sektionen. `order-first lg:order-none` klassen paa "Assignment Details"-sektionen virker kun paa flex-children, men sektionen er inde i en `ScrollArea` som allerede er inde i flex-containeren.
 
-Derudover kalder `enhancedDataFetching.ts` (linje 430) stadig RPC'en med kun `p_department_id: null` uden `p_sub_department_id`.
-
-**Loesning:**
-- **SQL migration:** Drop den gamle funktion med 1 parameter: `DROP FUNCTION IF EXISTS public.list_accessible_assignments_with_team(uuid);` saa kun versionen med 2 parametre (`p_department_id uuid, p_sub_department_id uuid`) eksisterer.
-- **`src/services/enhancedDataFetching.ts` (linje 430):** Tilfoej `p_sub_department_id: null` til RPC-kaldet saa begge parametre altid sendes.
-
-**Filer:**
-| Fil | AEndring |
-|-----|---------|
-| Ny SQL migration | Drop den gamle 1-parameter funktion |
-| `src/services/enhancedDataFetching.ts` | Tilfoej `p_sub_department_id: null` til RPC-kald (linje 430) |
-
----
-
-### 2. Mobilversionen af sags-popup cropper forkert
-
-**Problem:** `AssignmentDetailsDialog` bruger et 2-kolonne layout (`flex-col lg:flex-row`) der paa mobil stabler kolonnerne vertikalt. Med `max-h-[90vh]` og `overflow-hidden` kan vigtige detaljer som medarbejdere og biler blive afskaret paa smaa skaerme.
-
-**Loesning:**
-- AEndr `max-h-[90vh]` til `max-h-[95vh]` paa mobil for mere plads
-- Tilfoej `overflow-y-auto` paa den ydre container saa hele indholdet kan scrolles
-- Paa mobil (`flex-col`): giv detalje-kolonnen en min-height saa medarbejdere og biler altid er synlige
-- Flyt de vigtigste info (medarbejdere, biler) hoejere op i layoutet paa mobil - placer dem lige under titel/adresse foer dato/tid sektionen
+**Loesning:** Omorganiser rækkefølgen i mobilvisningen saa "Opgave detaljer"-sektionen (biler, sagsansvarlig, medarbejdere) vises FOER titel og beskrivelse paa mobil. Brug CSS `order` klasser til at flytte denne sektion op paa smaa skaerme. Derudover sikres at hele indholdet er scrollbart med `overflow-y-auto`.
 
 **Fil:** `src/components/Dashboard/AssignmentDetailsDialog.tsx`
-
-**Specifikke aendringer:**
-- Linje 112: AEndr `max-h-[90vh]` til `max-h-[95dvh]` (dynamic viewport height for mobil)
-- Linje 145: Tilfoej `overflow-y-auto` paa den ydre flex container
-- Omorganiser rækkefølgen paa mobil saa biler og medarbejdere vises foer dato/tid
+- Flyt "Assignment Details Section" (biler, sagsansvarlig, medarbejdere) op FOER beskrivelsen paa mobil ved at saette `order-first lg:order-none` paa den ydre `space-y-6` div og strukturere indholdet saa de vigtigste elementer kommer foerst.
+- Alternativt: flyt hele sektionen op i HTML-raekkefoelgen, saa den altid vises lige efter titlen og foer separatoren til dato/tid.
 
 ---
 
-### 3. Underafdelings-vaelger ved redigering af bil
+### 2. Manglende oversaettelser for `common.subDepartment`
 
-**Problem:** `CarFormDialog` har ingen underafdelings-vaelger. Naar man redigerer en bil, kan man ikke aendre hvilken underafdeling den tilhoerer. `useCarFormState.initFormWithCar()` kopierer heller ikke `sub_department_id` fra bilens data.
+**Problem:** `t('common.subDepartment')` og `t('common.selectSubDepartment')` returnerer `undefined` fordi noeglerne ikke findes i oversaettelsesfilerne. Fallback-teksten `'Underafdeling'` bruges, men det er ikke ideelt.
+
+**Loesning:** Tilfoej de manglende noegler til begge sprogsiler:
+
+**Fil:** `src/translations/da/common.ts`
+```
+subDepartment: "Underafdeling",
+selectSubDepartment: "Vaelg underafdeling",
+```
+
+**Fil:** `src/translations/en/common.ts`
+```
+subDepartment: "Sub-department",
+selectSubDepartment: "Select sub-department",
+```
+
+---
+
+### 3. Bil-oprettelse fejler pga. global unik constraint
+
+**Problem:** Tabellen `cars` har globale unikke constraints paa `car_number`, `number_plate` og `fuel_card_code`. Naar en bil med samme nummer oprettes i en anden afdeling, fejler det med "duplicate key value violates unique constraint". Constraints skal vaere per afdeling (composite med `department_id`).
 
 **Loesning:**
-- **`src/components/Cars/CarFormDialog.tsx`:** Tilfoej en underafdelings-dropdown (Select komponent) der viser tilgaengelige underafdelinger fra `useDepartment().userSubDepartments`. Feltet vises kun naar der er underafdelinger. Ved redigering forudvaelges bilens nuvaerende `sub_department_id`.
-- **`src/components/Cars/types.ts`:** Sikr at `CarFormData` har `sub_department_id` feltet (allerede tiloejet i tidligere migration).
-- **`src/hooks/car/useCarFormState.ts`:** Opdater `initFormWithCar` (linje 62-76) til at inkludere `sub_department_id: car.sub_department_id || null` og `handleCreateNew` til at saette `sub_department_id: null`.
-- **`src/services/carSecurityService.ts`:** Allerede haandterer `sub_department_id` i `updateCar` - ingen aendring nødvendig her.
 
-**Filer:**
+**SQL migration:**
+```sql
+-- Drop globale constraints
+ALTER TABLE public.cars DROP CONSTRAINT IF EXISTS unique_car_number;
+ALTER TABLE public.cars DROP CONSTRAINT IF EXISTS unique_number_plate;
+ALTER TABLE public.cars DROP CONSTRAINT IF EXISTS unique_fuel_card_code;
+
+-- Opret composite constraints per afdeling
+ALTER TABLE public.cars ADD CONSTRAINT unique_car_number_per_dept 
+  UNIQUE (car_number, department_id);
+ALTER TABLE public.cars ADD CONSTRAINT unique_number_plate_per_dept 
+  UNIQUE (number_plate, department_id);
+ALTER TABLE public.cars ADD CONSTRAINT unique_fuel_card_code_per_dept 
+  UNIQUE (fuel_card_code, department_id);
+```
+
+Derudover skal fejlmeddelelser i `CarSecurityService` oversaettes saa brugeren faar en forstaaelig besked naar der stadig er konflikter inden for samme afdeling.
+
+---
+
+### Filer der aendres
+
 | Fil | AEndring |
 |-----|---------|
-| `src/components/Cars/CarFormDialog.tsx` | Tilfoej Select for underafdeling (kun synlig naar underafdelinger eksisterer) |
-| `src/hooks/car/useCarFormState.ts` | Tilfoej `sub_department_id` til `initFormWithCar` og `handleCreateNew` |
-| `src/components/Cars/types.ts` | Verificer at `sub_department_id` er i `CarFormData` |
+| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Flyt medarbejder/bil-sektion op foer beskrivelse i layoutet |
+| `src/translations/da/common.ts` | Tilfoej `subDepartment` og `selectSubDepartment` |
+| `src/translations/en/common.ts` | Tilfoej `subDepartment` og `selectSubDepartment` |
+| Ny SQL migration | AEndr unikke constraints til composite per afdeling |
 
