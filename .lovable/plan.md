@@ -2,33 +2,92 @@
 
 ## Aendringer
 
-### 1. DepartmentSelector: Vis kun afdelingsnummer i headeren
+### 1. DepartmentSelector: "Afd. XX" i stedet for bare nummeret
 
 **Fil:** `src/components/Layout/NavComponents/DepartmentSelector.tsx`
 
-Afdelingsnavne foelger formatet "12-Fredericia". I header-knappen vises kun nummeret foer bindestregen (f.eks. "12"). I dropdown-listen vises det fulde navn som hidtil.
+Aendr `getShortName`-funktionen fra at returnere kun nummeret (f.eks. "12") til at returnere "Afd. 12":
 
-- Tilfoej en hjaelpefunktion: `const getShortName = (name: string) => name.split('-')[0]?.trim() || name;`
-- Brug `getShortName()` paa button-teksten (linje 55) og paa single-department visningen (linje 39)
-- Dropdown-items beholder det fulde navn
+```typescript
+const getShortName = (name: string) => {
+  const num = name.split('-')[0]?.trim();
+  return num ? `Afd. ${num}` : name;
+};
+```
 
-### 2. Kun super_admins kan tildele super_admin-rollen
+Ingen andre aendringer i filen.
 
-**Fil:** `src/components/Admin/UserFormDialog.tsx`
+---
 
-Rollelisten inkluderer i dag kun `administrator`, `skadeleder` og `servicemedarbejder`. Super_admin-rollen skal tilfoejes som valgmulighed, men kun vises naar den indloggede bruger selv er super_admin.
+### 2. Ny "Gitter" (Grid) visning i Planner
 
-- Linje 354-358: Tilfoej en betinget `<SelectItem value="super_admin">` der kun renders naar `isSuperAdmin === true` (variablen eksisterer allerede paa linje 82)
+#### 2a. Udvid viewMode-typen (PlannerPage.tsx)
+
+- Aendr state-typen fra `'standard' | 'compact'` til `'standard' | 'compact' | 'grid'`
+- Opdater localStorage-laesning til ogsaa at acceptere `'grid'`
+- Tilfoej et tredje `ToggleGroupItem` med `value="grid"`, ikon `LayoutGrid` og tekst "Gitter"
+- Flyt `LayoutGrid`-ikonet fra Standard-knappen til Grid-knappen. Standard faar f.eks. `Rows3` eller `List` i stedet
+- "Udvid alle"-knappen vises for baade `standard` og `grid` (begge bruger DaySection med fold-ud/fold-sammen)
+
+#### 2b. Tilfoej grid-visning i PlannerContent.tsx
+
+- Udvid `viewMode` prop-typen til `'standard' | 'compact' | 'grid'`
+- Tilfoej en tredje gren i render-logikken for `viewMode === 'grid'`:
+  - Genbrug `CurrentAndFutureDays` og `PastAssignments` (samme som standard)
+  - Send en ny prop `gridLayout={true}` til disse komponenter
+
+#### 2c. Aendr DaySection.tsx til at understoette grid-layout
+
+- Tilfoej en valgfri prop `gridLayout?: boolean`
+- Naar `gridLayout` er `true`, aendr grid-klassen paa opgave-containeren:
+
+```text
+Standard:  grid-cols-1
+Grid:      grid-cols-1 md:grid-cols-2 xl:grid-cols-3
+```
+
+- AssignmentCard bruges som den er -- kortet er allerede responsivt. Det kompakte layout opnaas naturligt naar kortene staar side om side i et grid.
+
+#### 2d. Propper DaySection-aendringen igennem CurrentAndFutureDays og PastAssignments
+
+- Tilfoej `gridLayout?: boolean` prop til begge komponenter
+- Send den videre til `DaySection`
+
+---
 
 ### Filer der aendres
 
 | Fil | Aendring |
 |-----|----------|
-| `src/components/Layout/NavComponents/DepartmentSelector.tsx` | Vis kun nummer-prefix i header-knap |
-| `src/components/Admin/UserFormDialog.tsx` | Tilfoej betinget super_admin rolle-valg |
+| `src/components/Layout/NavComponents/DepartmentSelector.tsx` | `getShortName` returnerer "Afd. XX" |
+| `src/pages/PlannerPage.tsx` | Udvid viewMode til 3 tilstande, tilfoej "Gitter"-knap |
+| `src/components/Planner/PlannerContent.tsx` | Haandter `grid` viewMode |
+| `src/components/Planner/DaySection.tsx` | Tilfoej `gridLayout` prop for multi-kolonne grid |
+| `src/components/Planner/CurrentAndFutureDays.tsx` | Videresend `gridLayout` prop |
+| `src/components/Planner/PastAssignments.tsx` | Videresend `gridLayout` prop |
 
-### Sikkerhed
-- Ingen database-aendringer
-- Super_admin-rollen beskyttes allerede af backend (user_roles RLS) -- dette er udelukkende en UI-begraensning
-- Ingen UI-elementer fjernes
+### Teknisk opsummering
+
+```text
+Toolbar:
+  [Standard]  [Gitter]  [Kompakt]  [Udvid alle]
+
+Standard-visning:
+  Dag-header
+    [ Opgave-kort (fuld bredde) ]
+    [ Opgave-kort (fuld bredde) ]
+
+Gitter-visning:
+  Dag-header
+    [ Opgave-kort ] [ Opgave-kort ] [ Opgave-kort ]
+    [ Opgave-kort ] [ Opgave-kort ]
+
+Kompakt-visning:
+  Tabel-raekker (uaendret)
+```
+
+- localStorage persisterer valget (`'grid'` tilfojet)
+- Mobil: Gitter-visning falder automatisk ned til 1 kolonne via `grid-cols-1`
+- Alle data (tid, sted, medarbejdere, biler) forbliver synlige
+- Eksisterende Standard og Kompakt views aendres ikke
 
