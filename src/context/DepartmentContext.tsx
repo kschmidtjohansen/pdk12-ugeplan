@@ -22,6 +22,7 @@ interface DepartmentContextType {
   isWarehouseEnabled: boolean;
   isDutyEnabled: boolean;
   isSubstituteEnabled: boolean;
+  isUserInSelectedDepartment: boolean;
   refetchDepartments: () => void;
 }
 
@@ -36,6 +37,7 @@ const DepartmentContext = createContext<DepartmentContextType>({
   isWarehouseEnabled: true,
   isDutyEnabled: true,
   isSubstituteEnabled: true,
+  isUserInSelectedDepartment: true,
   refetchDepartments: () => {},
 });
 
@@ -50,6 +52,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
   });
   const [loading, setLoading] = useState(true);
   const [fetchCounter, setFetchCounter] = useState(0);
+  const [userOwnDepartmentIds, setUserOwnDepartmentIds] = useState<Set<string>>(new Set());
 
   const refetchDepartments = useCallback(() => {
     setFetchCounter(c => c + 1);
@@ -97,10 +100,21 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
         const isSuperAdmin = effectiveRole === 'super_admin';
 
         if (isSuperAdmin) {
+          // Fetch all departments for dropdown
           const { data, error } = await supabase
             .from('departments')
             .select('id, name, warehouse_enabled, duty_enabled, substitute_enabled')
             .order('name');
+
+          // Also fetch the user's own department assignments
+          const { data: ownAccess } = await supabase
+            .from('user_access')
+            .select('department_id')
+            .eq('user_id', user.id);
+
+          if (ownAccess) {
+            setUserOwnDepartmentIds(new Set(ownAccess.map(r => r.department_id)));
+          }
 
           if (!error && data) {
             const mapped = data.map(d => ({
@@ -181,6 +195,11 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
   const isDutyEnabled = isDemoMode ? true : (selectedDepartment?.duty_enabled ?? true);
   const isSubstituteEnabled = isDemoMode ? true : (selectedDepartment?.substitute_enabled ?? true);
 
+  // For super_admins: check if they are personally assigned to the selected department
+  const isUserInSelectedDepartment = effectiveRole !== 'super_admin'
+    ? true
+    : (selectedDepartmentId ? userOwnDepartmentIds.has(selectedDepartmentId) : true);
+
   return (
     <DepartmentContext.Provider value={{
       departments,
@@ -193,6 +212,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
       isWarehouseEnabled,
       isDutyEnabled,
       isSubstituteEnabled,
+      isUserInSelectedDepartment,
       refetchDepartments,
     }}>
       {children}

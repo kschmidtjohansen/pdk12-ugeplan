@@ -12,6 +12,7 @@ import { DemoDashboard } from '@/components/Demo/DemoDashboard';
 import ServicemedarbejderDashboard from '@/components/Dashboard/ServicemedarbejderDashboard';
 import { PullToRefresh } from '@/components/shared/PullToRefresh';
 import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
+import { useDepartment } from '@/context/DepartmentContext';
 import { LastRefreshIndicator } from '@/components/shared/LastRefreshIndicator';
 import { useState } from 'react';
 
@@ -19,6 +20,7 @@ const DashboardPage: React.FC = () => {
   const { user, isDemoMode, effectiveRole } = useAuth();
   const { t } = useTranslation();
   const { refetch, lastRefresh } = useEnhancedUnifiedData();
+  const { isUserInSelectedDepartment } = useDepartment();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const dailyQuote = getDailyQuote();
@@ -68,7 +70,7 @@ const DashboardPage: React.FC = () => {
             <>
               <QuickAccessGrid userRole={effectiveRole} />
               {shouldShowMetrics && <DashboardMetrics />}
-              <MineOpgaver />
+              {isUserInSelectedDepartment && <MineOpgaver />}
             </>
           )}
         </div>
