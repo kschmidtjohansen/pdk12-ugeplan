@@ -13,8 +13,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CarFormData } from './types';
 import { useTranslation } from '@/context/TranslationContext';
+import { useDepartment } from '@/context/DepartmentContext';
 
 interface CarFormDialogProps {
   open: boolean;
@@ -25,6 +27,7 @@ interface CarFormDialogProps {
   onSubmit: (e: React.FormEvent) => void;
   isEditing: boolean;
   canViewFuelCardCode: boolean;
+  setFormData?: React.Dispatch<React.SetStateAction<CarFormData>>;
 }
 
 const CarFormDialog: React.FC<CarFormDialogProps> = ({
@@ -35,16 +38,11 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
   onCheckboxChange,
   onSubmit,
   isEditing,
-  canViewFuelCardCode
+  canViewFuelCardCode,
+  setFormData
 }) => {
   const { t } = useTranslation();
-  
-  // Handle checkbox change if no specific handler is provided
-  const handleCheckboxChange = (field: string, checked: boolean) => {
-    if (onCheckboxChange) {
-      onCheckboxChange(field, checked);
-    }
-  };
+  const { userSubDepartments } = useDepartment();
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -104,6 +102,33 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
                 onChange={onInputChange}
                 required
               />
+            </div>
+          )}
+
+          {userSubDepartments.length > 0 && (
+            <div className="space-y-2">
+              <Label>{t('common.subDepartment') || 'Underafdeling'}</Label>
+              <Select
+                value={formData.sub_department_id || 'none'}
+                onValueChange={(value) => {
+                  setFormData?.((prev) => ({
+                    ...prev,
+                    sub_department_id: value === 'none' ? null : value,
+                  }));
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('common.selectSubDepartment') || 'Vælg underafdeling'} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t('common.none') || 'Ingen'}</SelectItem>
+                  {userSubDepartments.map((sub) => (
+                    <SelectItem key={sub.id} value={sub.id}>
+                      {sub.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 

@@ -10,6 +10,7 @@ interface CarDialogsProps {
   deleteDialogOpen: boolean;
   setDeleteDialogOpen: (open: boolean) => void;
   formData: CarFormData;
+  setFormData?: React.Dispatch<React.SetStateAction<CarFormData>>;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onCheckboxChange: (field: string, checked: boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -24,6 +25,7 @@ const CarDialogs: React.FC<CarDialogsProps> = ({
   deleteDialogOpen,
   setDeleteDialogOpen,
   formData,
+  setFormData,
   onInputChange,
   onCheckboxChange,
   onSubmit,
@@ -37,6 +39,7 @@ const CarDialogs: React.FC<CarDialogsProps> = ({
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         formData={formData}
+        setFormData={setFormData}
         onInputChange={onInputChange}
         onCheckboxChange={onCheckboxChange}
         onSubmit={onSubmit}

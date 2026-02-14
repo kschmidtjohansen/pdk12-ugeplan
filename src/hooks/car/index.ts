@@ -31,6 +31,7 @@ export const useCars = () => {
 
   const {
     formData,
+    setFormData,
     handleCreateNew,
     initFormWithCar,
     handleInputChange,
@@ -62,6 +63,7 @@ export const useCars = () => {
     error,
     currentCar,
     formData,
+    setFormData,
     dialogOpen,
     setDialogOpen,
     deleteDialogOpen,
