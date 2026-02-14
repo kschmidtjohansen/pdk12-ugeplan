@@ -2,52 +2,83 @@
 
 ## Ændringer
 
-### 1. Database: Tilføj nye kolonner til `departments`
+### 1. UserFormDialog: Flere hovedafdelinger med underafdelinger
 
-Opret en migration der tilføjer:
-- `chat_enabled BOOLEAN DEFAULT true`
-- `files_enabled BOOLEAN DEFAULT true`
+**Fil:** `src/components/Admin/UserFormDialog.tsx`
 
-### 2. DepartmentContext: Tilføj nye feature-flags
+Nuværende adfærd: Kun én hovedafdeling kan vælges (Select dropdown).
 
+Ny adfærd:
+- Erstat Select-dropdown for hovedafdeling med **checkboxes** (som underafdelinger allerede bruger), så man kan vælge flere hovedafdelinger
+- For hver valgt hovedafdeling vises dens underafdelinger som indrykkede checkboxes
+- State ændres fra `selectedDeptId: string` til `selectedDeptIds: string[]` og `selectedSubDeptIds` bliver et map: `Record<string, string[]>` (department_id -> sub_department_id[])
+
+**Load eksisterende data (redigering):**
+- Hent alle `user_access`-rækker og grupper dem pr. department_id
+
+**Gem (saveUserAccess):**
+- Slet alle eksisterende user_access-rækker for brugeren
+- Indsæt nye rækker: for hver valgt hovedafdeling, enten med underafdelinger eller kun hovedafdeling
+- Opdater `home_department_id` til den første valgte afdeling
+
+### 2. DepartmentSelector: Tilføj underafdelingsvalg i headeren
+
+**Fil:** `src/components/Layout/NavComponents/DepartmentSelector.tsx`  
 **Fil:** `src/context/DepartmentContext.tsx`
 
-- Tilføj `chat_enabled` og `files_enabled` til `Department` interfacet
-- Tilføj `isChatEnabled` og `isFilesEnabled` til context-typen (default `true`, demo altid `true`)
-- Læs og map de nye felter i alle fetch-kald (ligesom `warehouse_enabled`)
+Tilføj mulighed for at skifte underafdeling i headeren:
 
-### 3. FeatureToggleManagement: Tilføj to nye switches
+- **DepartmentContext**: Tilføj `selectedSubDepartmentId`, `setSelectedSubDepartmentId`, `userSubDepartments` (underafdelinger for den valgte hovedafdeling)
+- Når hovedafdeling skiftes, hentes underafdelinger automatisk og den første vælges som default
+- Gemmes i `localStorage` som `selected_sub_department_id`
 
-**Fil:** `src/components/Admin/FeatureToggleManagement.tsx`
+- **DepartmentSelector**: Vis en ekstra dropdown til højre for hovedafdelings-dropdown, men kun når der findes underafdelinger for den valgte hovedafdeling. Viser underafdelingsnavnet.
 
-- Tilføj `chatEnabled` og `filesEnabled` state
-- Tilføj to nye toggle-rækker med passende ikoner (`MessageSquare` for chat, `Files` for filer)
-- Brug samme `handleToggle`-mønster som de eksisterende toggles
-
-### 4. Translations: Tilføj labels
+### 3. Oversættelser
 
 **Filer:** `src/translations/da/admin.ts` og `src/translations/en/admin.ts`
 
-Tilføj oversættelser for:
-- `admin.features.chatEnabled` / `admin.features.filesEnabled`
+Tilføj labels for:
+- `admin.userManagement.departments` (flertal: "Hovedafdelinger")
+- `admin.userManagement.selectDepartments` ("Vælg hovedafdelinger")
 
-### 5. AssignmentDetailsDialog: Skjul chat og filer baseret på flags
+---
 
-**Fil:** `src/components/Dashboard/AssignmentDetailsDialog.tsx`
+### Tekniske detaljer
 
-- Importer `useDepartment` og læs `isChatEnabled` / `isFilesEnabled`
-- Når `isFilesEnabled === false`: Skjul filer-sektionen (header + panel)
-- Når `isChatEnabled === false`: Skjul besked-sidebaren helt
-- Når begge er slået fra: Dialogen viser kun opgavedetaljer i fuld bredde
+#### UserFormDialog state-ændring:
+```
+// Fra:
+selectedDeptId: string
+selectedSubDeptIds: string[]
+
+// Til:
+selectedDeptIds: string[]
+selectedSubDeptMap: Record<string, string[]>  // deptId -> subDeptIds[]
+allSubDepartments: Record<string, SubDepartment[]>  // deptId -> subs
+```
+
+#### DepartmentContext tilføjelser:
+```
+selectedSubDepartmentId: string | null
+setSelectedSubDepartmentId: (id: string | null) => void
+userSubDepartments: { id: string; name: string }[]
+```
+
+#### Underafdelinger hentes via:
+```sql
+SELECT id, name FROM sub_departments 
+WHERE department_id = :selectedDepartmentId 
+ORDER BY name
+```
 
 ### Filer der ændres
 
 | Fil | Ændring |
 |-----|---------|
-| Migration (ny fil) | Tilføj `chat_enabled` og `files_enabled` kolonner |
-| `src/context/DepartmentContext.tsx` | Nye flags i Department-type og context |
-| `src/components/Admin/FeatureToggleManagement.tsx` | To nye toggle-rækker |
-| `src/translations/da/admin.ts` | Danske labels |
-| `src/translations/en/admin.ts` | Engelske labels |
-| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Betinget visning af chat/filer |
+| `src/components/Admin/UserFormDialog.tsx` | Multi-afdeling med checkboxes + underafdelinger pr. afdeling |
+| `src/context/DepartmentContext.tsx` | Tilføj underafdelingsvalg (selectedSubDepartmentId, userSubDepartments) |
+| `src/components/Layout/NavComponents/DepartmentSelector.tsx` | Vis underafdelings-dropdown når relevant |
+| `src/translations/da/admin.ts` | Nye labels |
+| `src/translations/en/admin.ts` | Nye labels |
 
