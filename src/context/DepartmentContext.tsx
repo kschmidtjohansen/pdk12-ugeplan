@@ -13,6 +13,11 @@ interface Department {
   files_enabled: boolean;
 }
 
+interface SubDepartmentItem {
+  id: string;
+  name: string;
+}
+
 interface DepartmentContextType {
   departments: Department[];
   userDepartments: Department[];
@@ -28,6 +33,10 @@ interface DepartmentContextType {
   isFilesEnabled: boolean;
   isUserInSelectedDepartment: boolean;
   refetchDepartments: () => void;
+  // Sub-department selection
+  selectedSubDepartmentId: string | null;
+  setSelectedSubDepartmentId: (id: string | null) => void;
+  userSubDepartments: SubDepartmentItem[];
 }
 
 const DepartmentContext = createContext<DepartmentContextType>({
@@ -45,6 +54,9 @@ const DepartmentContext = createContext<DepartmentContextType>({
   isFilesEnabled: true,
   isUserInSelectedDepartment: true,
   refetchDepartments: () => {},
+  selectedSubDepartmentId: null,
+  setSelectedSubDepartmentId: () => {},
+  userSubDepartments: [],
 });
 
 export const useDepartment = () => useContext(DepartmentContext);
@@ -59,6 +71,12 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [fetchCounter, setFetchCounter] = useState(0);
   const [userOwnDepartmentIds, setUserOwnDepartmentIds] = useState<Set<string>>(new Set());
+
+  // Sub-department state
+  const [selectedSubDepartmentId, setSelectedSubDepartmentIdState] = useState<string | null>(() => {
+    return localStorage.getItem('selected_sub_department_id');
+  });
+  const [userSubDepartments, setUserSubDepartments] = useState<SubDepartmentItem[]>([]);
 
   const refetchDepartments = useCallback(() => {
     setFetchCounter(c => c + 1);
@@ -108,13 +126,11 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
         const isSuperAdmin = effectiveRole === 'super_admin';
 
         if (isSuperAdmin) {
-          // Fetch all departments for dropdown
           const { data, error } = await supabase
             .from('departments')
           .select('id, name, warehouse_enabled, duty_enabled, substitute_enabled, chat_enabled, files_enabled')
             .order('name');
 
-          // Also fetch the user's own department assignments
           const { data: ownAccess } = await supabase
             .from('user_access')
             .select('department_id')
@@ -183,12 +199,101 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     fetchUserDepartments();
   }, [isAuthenticated, user?.id, effectiveRole, fetchCounter]);
 
+  // Fetch sub-departments when selected department changes
+  useEffect(() => {
+    if (!selectedDepartmentId || !isAuthenticated || !user?.id) {
+      setUserSubDepartments([]);
+      setSelectedSubDepartmentIdState(null);
+      localStorage.removeItem('selected_sub_department_id');
+      return;
+    }
+
+    const fetchSubDepartments = async () => {
+      try {
+        const isSuperAdmin = effectiveRole === 'super_admin';
+
+        if (isSuperAdmin) {
+          // Super admins see all sub-departments for the selected department
+          const { data } = await supabase
+            .from('sub_departments')
+            .select('id, name')
+            .eq('department_id', selectedDepartmentId)
+            .order('name');
+          
+          const subs = data || [];
+          setUserSubDepartments(subs);
+          
+          // Auto-select stored or first sub-department
+          const storedSubId = localStorage.getItem('selected_sub_department_id');
+          if (subs.length > 0) {
+            const validStored = subs.find(s => s.id === storedSubId);
+            const newSubId = validStored ? validStored.id : subs[0].id;
+            setSelectedSubDepartmentIdState(newSubId);
+            localStorage.setItem('selected_sub_department_id', newSubId);
+          } else {
+            setSelectedSubDepartmentIdState(null);
+            localStorage.removeItem('selected_sub_department_id');
+          }
+        } else {
+          // Regular users: only see sub-departments they have access to
+          const { data: accessData } = await supabase
+            .from('user_access')
+            .select('sub_department_id')
+            .eq('user_id', user.id)
+            .eq('department_id', selectedDepartmentId)
+            .not('sub_department_id', 'is', null);
+
+          const subIds = accessData?.map(a => a.sub_department_id).filter(Boolean) as string[] || [];
+
+          if (subIds.length > 0) {
+            const { data: subData } = await supabase
+              .from('sub_departments')
+              .select('id, name')
+              .in('id', subIds)
+              .order('name');
+            
+            const subs = subData || [];
+            setUserSubDepartments(subs);
+            
+            const storedSubId = localStorage.getItem('selected_sub_department_id');
+            if (subs.length > 0) {
+              const validStored = subs.find(s => s.id === storedSubId);
+              const newSubId = validStored ? validStored.id : subs[0].id;
+              setSelectedSubDepartmentIdState(newSubId);
+              localStorage.setItem('selected_sub_department_id', newSubId);
+            } else {
+              setSelectedSubDepartmentIdState(null);
+              localStorage.removeItem('selected_sub_department_id');
+            }
+          } else {
+            setUserSubDepartments([]);
+            setSelectedSubDepartmentIdState(null);
+            localStorage.removeItem('selected_sub_department_id');
+          }
+        }
+      } catch (err) {
+        console.error('[DepartmentContext] Error fetching sub-departments:', err);
+      }
+    };
+
+    fetchSubDepartments();
+  }, [selectedDepartmentId, isAuthenticated, user?.id, effectiveRole, fetchCounter]);
+
   const setSelectedDepartmentId = useCallback((id: string | null) => {
     setSelectedDepartmentIdState(id);
     if (id) {
       localStorage.setItem('selected_department_id', id);
     } else {
       localStorage.removeItem('selected_department_id');
+    }
+  }, []);
+
+  const setSelectedSubDepartmentId = useCallback((id: string | null) => {
+    setSelectedSubDepartmentIdState(id);
+    if (id) {
+      localStorage.setItem('selected_sub_department_id', id);
+    } else {
+      localStorage.removeItem('selected_sub_department_id');
     }
   }, []);
 
@@ -230,6 +335,9 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
       isFilesEnabled,
       isUserInSelectedDepartment,
       refetchDepartments,
+      selectedSubDepartmentId,
+      setSelectedSubDepartmentId,
+      userSubDepartments,
     }}>
       {children}
     </DepartmentContext.Provider>

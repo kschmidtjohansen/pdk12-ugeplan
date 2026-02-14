@@ -278,8 +278,10 @@ export const admin = {
     activateError: 'Error activating user',
     deactivateError: 'Error deactivating user',
     department: 'Main Department',
+    departments: 'Departments',
     subDepartments: 'Sub-departments',
     selectDepartment: 'Select main department',
+    selectDepartments: 'Select departments',
     selectSubDepartments: 'Select sub-departments',
     totalCount: '{count} users total'
   },

@@ -70,11 +70,11 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
   const [phoneError, setPhoneError] = useState('');
   
-  // Department/sub-department state
+  // Multi-department state
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [subDepartments, setSubDepartments] = useState<SubDepartment[]>([]);
-  const [selectedDeptId, setSelectedDeptId] = useState<string>('');
-  const [selectedSubDeptIds, setSelectedSubDeptIds] = useState<string[]>([]);
+  const [selectedDeptIds, setSelectedDeptIds] = useState<string[]>([]);
+  const [selectedSubDeptMap, setSelectedSubDeptMap] = useState<Record<string, string[]>>({});
+  const [allSubDepartments, setAllSubDepartments] = useState<Record<string, SubDepartment[]>>({});
   
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -104,22 +104,28 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
     fetchDepts();
   }, [authUser?.id, isSuperAdmin]);
 
-  // Load sub-departments when dept changes
+  // Load sub-departments for all selected departments
   useEffect(() => {
-    if (!selectedDeptId) {
-      setSubDepartments([]);
+    if (selectedDeptIds.length === 0) {
+      setAllSubDepartments({});
       return;
     }
     const fetchSubs = async () => {
       const { data } = await supabase
         .from('sub_departments')
         .select('id, name, department_id')
-        .eq('department_id', selectedDeptId)
+        .in('department_id', selectedDeptIds)
         .order('name');
-      setSubDepartments(data || []);
+      
+      const grouped: Record<string, SubDepartment[]> = {};
+      for (const sub of data || []) {
+        if (!grouped[sub.department_id]) grouped[sub.department_id] = [];
+        grouped[sub.department_id].push(sub);
+      }
+      setAllSubDepartments(grouped);
     };
     fetchSubs();
-  }, [selectedDeptId]);
+  }, [selectedDeptIds]);
 
   // Load existing user access when editing
   useEffect(() => {
@@ -131,49 +137,75 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         .eq('user_id', currentUser.id);
       
       if (data && data.length > 0) {
-        setSelectedDeptId(data[0].department_id);
-        setSelectedSubDeptIds(
-          data
-            .filter(a => a.sub_department_id)
-            .map(a => a.sub_department_id!)
-        );
+        const deptIds = [...new Set(data.map(a => a.department_id))];
+        setSelectedDeptIds(deptIds);
+        
+        const subMap: Record<string, string[]> = {};
+        for (const row of data) {
+          if (row.sub_department_id) {
+            if (!subMap[row.department_id]) subMap[row.department_id] = [];
+            subMap[row.department_id].push(row.sub_department_id);
+          }
+        }
+        setSelectedSubDeptMap(subMap);
       }
     };
     fetchAccess();
   }, [currentUser?.id]);
 
-  const toggleSubDept = (subId: string) => {
-    setSelectedSubDeptIds(prev =>
-      prev.includes(subId) ? prev.filter(id => id !== subId) : [...prev, subId]
-    );
+  const toggleDept = (deptId: string) => {
+    setSelectedDeptIds(prev => {
+      if (prev.includes(deptId)) {
+        // Remove dept and its sub-departments
+        setSelectedSubDeptMap(m => {
+          const copy = { ...m };
+          delete copy[deptId];
+          return copy;
+        });
+        return prev.filter(id => id !== deptId);
+      }
+      return [...prev, deptId];
+    });
+  };
+
+  const toggleSubDept = (deptId: string, subId: string) => {
+    setSelectedSubDeptMap(prev => {
+      const current = prev[deptId] || [];
+      const updated = current.includes(subId)
+        ? current.filter(id => id !== subId)
+        : [...current, subId];
+      return { ...prev, [deptId]: updated };
+    });
   };
 
   const saveUserAccess = async (userId: string) => {
-    if (!selectedDeptId) return;
+    if (selectedDeptIds.length === 0) return;
 
     // Delete existing access
     await supabase.from('user_access').delete().eq('user_id', userId);
 
     // Insert new access records
-    if (selectedSubDeptIds.length > 0) {
-      const records = selectedSubDeptIds.map(subId => ({
-        user_id: userId,
-        department_id: selectedDeptId,
-        sub_department_id: subId,
-      }));
-      await supabase.from('user_access').insert(records);
-    } else {
-      // Just department access, no sub-departments
-      await supabase.from('user_access').insert({
-        user_id: userId,
-        department_id: selectedDeptId,
-      });
+    const records: { user_id: string; department_id: string; sub_department_id?: string }[] = [];
+    
+    for (const deptId of selectedDeptIds) {
+      const subIds = selectedSubDeptMap[deptId] || [];
+      if (subIds.length > 0) {
+        for (const subId of subIds) {
+          records.push({ user_id: userId, department_id: deptId, sub_department_id: subId });
+        }
+      } else {
+        records.push({ user_id: userId, department_id: deptId });
+      }
     }
 
-    // Also update home_department_id on profile
+    if (records.length > 0) {
+      await supabase.from('user_access').insert(records);
+    }
+
+    // Update home_department_id to first selected
     await supabase
       .from('profiles')
-      .update({ home_department_id: selectedDeptId })
+      .update({ home_department_id: selectedDeptIds[0] })
       .eq('id', userId);
   };
 
@@ -184,7 +216,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
     setPhoneError('');
     
     try {
-      // Validate phone number first
       const phoneValidation = validateAndSanitizePhone(formData.phone);
       if (!phoneValidation.valid) {
         setPhoneError(phoneValidation.error || 'Invalid phone number');
@@ -193,7 +224,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       }
       
       if (!currentUser) {
-        // Creating a new user
         if (!isPasswordValid) {
           setErrorMessage('Password must meet all requirements: at least 8 characters with uppercase, lowercase, and number');
           setIsSubmitting(false);
@@ -239,7 +269,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
 
         if (profileError) console.warn('[UserFormDialog] Profile update warning:', profileError);
 
-        // Save department access
         await saveUserAccess(data.user.id);
         
         toast({
@@ -251,7 +280,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         return;
       }
       
-      // Update existing user - save access then call parent handler
       if (currentUser) {
         await saveUserAccess(currentUser.id);
         await handleSubmit(e);
@@ -363,41 +391,46 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
             </Select>
           </div>
 
-          {/* Hovedafdeling */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">{t('admin.userManagement.department')}</Label>
-            <Select value={selectedDeptId} onValueChange={(val) => { setSelectedDeptId(val); setSelectedSubDeptIds([]); }}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder={t('admin.userManagement.selectDepartment')} />
-              </SelectTrigger>
-              <SelectContent>
-                {departments.map(d => (
-                  <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Underafdelinger */}
-          {selectedDeptId && subDepartments.length > 0 && (
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label className="text-right pt-1">{t('admin.userManagement.subDepartments')}</Label>
-              <div className="col-span-3 space-y-2">
-                {subDepartments.map(sub => (
-                  <div key={sub.id} className="flex items-center space-x-2">
+          {/* Hovedafdelinger (multi-select checkboxes) */}
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label className="text-right pt-1">{t('admin.userManagement.departments')}</Label>
+            <div className="col-span-3 space-y-1 max-h-[200px] overflow-y-auto border rounded-md p-2">
+              {departments.length === 0 && (
+                <p className="text-sm text-muted-foreground">{t('admin.departments.empty')}</p>
+              )}
+              {departments.map(dept => (
+                <div key={dept.id}>
+                  <div className="flex items-center space-x-2">
                     <Checkbox
-                      id={`sub-${sub.id}`}
-                      checked={selectedSubDeptIds.includes(sub.id)}
-                      onCheckedChange={() => toggleSubDept(sub.id)}
+                      id={`dept-${dept.id}`}
+                      checked={selectedDeptIds.includes(dept.id)}
+                      onCheckedChange={() => toggleDept(dept.id)}
                     />
-                    <Label htmlFor={`sub-${sub.id}`} className="font-normal cursor-pointer">
-                      {sub.name}
+                    <Label htmlFor={`dept-${dept.id}`} className="font-medium cursor-pointer text-sm">
+                      {dept.name}
                     </Label>
                   </div>
-                ))}
-              </div>
+                  {/* Sub-departments for this dept */}
+                  {selectedDeptIds.includes(dept.id) && (allSubDepartments[dept.id] || []).length > 0 && (
+                    <div className="ml-6 mt-1 mb-2 space-y-1">
+                      {(allSubDepartments[dept.id] || []).map(sub => (
+                        <div key={sub.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`sub-${sub.id}`}
+                            checked={(selectedSubDeptMap[dept.id] || []).includes(sub.id)}
+                            onCheckedChange={() => toggleSubDept(dept.id, sub.id)}
+                          />
+                          <Label htmlFor={`sub-${sub.id}`} className="font-normal cursor-pointer text-sm">
+                            {sub.name}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
-          )}
+          </div>
           
           {!currentUser && (
             <div className="grid grid-cols-4 items-start gap-4">

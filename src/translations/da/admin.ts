@@ -282,8 +282,10 @@ export const admin = {
     deactivateError: 'Fejl ved deaktivering af bruger',
     inactive: 'inaktiv',
     department: 'Hovedafdeling',
+    departments: 'Hovedafdelinger',
     subDepartments: 'Underafdelinger',
     selectDepartment: 'Vælg hovedafdeling',
+    selectDepartments: 'Vælg hovedafdelinger',
     selectSubDepartments: 'Vælg underafdelinger',
     totalCount: '{count} brugere i alt'
   },
