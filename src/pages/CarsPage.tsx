@@ -21,6 +21,7 @@ const CarsPage: React.FC = () => {
     error,
     currentCar,
     formData,
+    setFormData,
     dialogOpen,
     setDialogOpen,
     deleteDialogOpen,
@@ -113,6 +114,7 @@ const CarsPage: React.FC = () => {
             deleteDialogOpen={deleteDialogOpen}
             setDeleteDialogOpen={setDeleteDialogOpen}
             formData={formData}
+            setFormData={setFormData}
             onInputChange={handleInputChange}
             onCheckboxChange={handleCheckboxChange}
             onSubmit={handleSubmit}

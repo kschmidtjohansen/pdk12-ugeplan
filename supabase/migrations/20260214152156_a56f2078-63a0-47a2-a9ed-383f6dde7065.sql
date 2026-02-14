@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.list_accessible_assignments_with_team(uuid);

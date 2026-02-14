@@ -109,7 +109,7 @@ import { useDepartment } from '@/context/DepartmentContext';
  
    return (
      <Dialog open={isOpen} onOpenChange={onClose}>
-       <DialogContent className={`${isChatEnabled ? 'max-w-5xl' : 'max-w-3xl'} max-h-[90vh] overflow-hidden flex flex-col p-0`}>
+       <DialogContent className={`${isChatEnabled ? 'max-w-5xl' : 'max-w-3xl'} max-h-[95dvh] overflow-hidden flex flex-col p-0`}>
         <DialogHeader className="px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b bg-gradient-to-b from-muted/30 to-transparent">
             <DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 text-lg pr-14">
               <div className="flex items-center gap-2">
@@ -142,7 +142,7 @@ import { useDepartment } from '@/context/DepartmentContext';
          </DialogHeader>
  
         {/* Main content: 2-column layout */}
-         <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden min-h-[400px] lg:min-h-[500px]">
+         <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-y-auto lg:overflow-hidden">
           {/* Left column: Details */}
            <div className={`flex-1 ${isChatEnabled ? 'lg:w-3/5 lg:border-r' : ''} flex flex-col min-h-0`}>
              <ScrollArea className="flex-1">
@@ -162,34 +162,8 @@ import { useDepartment } from '@/context/DepartmentContext';
  
                  <Separator className="my-2" />
 
-                {/* Date and Time Section */}
-                 <div className="space-y-4">
-                   <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {t('planner.dateAndTime') || 'Dato og tid'}
-                  </h4>
-                   <div className="grid gap-4">
-                     <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                      <Calendar className="h-4 w-4 text-primary" />
-                      <div className="text-sm">
-                        <span className="font-medium">{t('planner.date')}: </span>
-                        <span>{formatDate(assignment.date)}</span>
-                      </div>
-                    </div>
-                    
-                     <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                      <Clock className="h-4 w-4 text-primary" />
-                      <div className="text-sm">
-                        <span className="font-medium">{t('planner.time')}: </span>
-                        <span>{assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}</span>
-                      </div>
-                     </div>
-                   </div>
-                 </div>
-
-                 <Separator className="my-2" />
-
-                {/* Assignment Details Section */}
-                 <div className="space-y-4">
+                {/* Assignment Details Section - Cars, Employees, Responsible (shown first on mobile) */}
+                 <div className="space-y-4 order-first lg:order-none">
                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     {t('planner.assignmentDetails') || 'Opgave detaljer'}
                   </h4>
@@ -244,6 +218,32 @@ import { useDepartment } from '@/context/DepartmentContext';
                     )}
                   </div>
                 </div>
+
+                 <Separator className="my-2" />
+
+                {/* Date and Time Section */}
+                 <div className="space-y-4">
+                   <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {t('planner.dateAndTime') || 'Dato og tid'}
+                  </h4>
+                   <div className="grid gap-4">
+                     <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <div className="text-sm">
+                        <span className="font-medium">{t('planner.date')}: </span>
+                        <span>{formatDate(assignment.date)}</span>
+                      </div>
+                    </div>
+                    
+                     <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                      <Clock className="h-4 w-4 text-primary" />
+                      <div className="text-sm">
+                        <span className="font-medium">{t('planner.time')}: </span>
+                        <span>{assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}</span>
+                      </div>
+                     </div>
+                   </div>
+                 </div>
               </div>
             </ScrollArea>
 

@@ -427,7 +427,7 @@ export class EnhancedDataFetching {
       
       // Production: use RPC
       const { data, error } = await supabase
-        .rpc('list_accessible_assignments_with_team', { p_department_id: null });
+        .rpc('list_accessible_assignments_with_team', { p_department_id: null, p_sub_department_id: null });
       
       if (error) {
         console.error('[Enhanced Data Fetching] Assignments fetch error:', error);
