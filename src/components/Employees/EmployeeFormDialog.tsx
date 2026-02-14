@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTranslation } from '@/context/TranslationContext';
-import { usePermissions } from '@/context/AuthContext';
+import { useAuth, usePermissions } from '@/context/AuthContext';
 import { Employee } from '@/types/employee';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordInput } from '@/components/ui/password-input';
@@ -42,6 +42,8 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
     isAdmin,
     isSkadeleder
   } = usePermissions();
+  const { user: authUser } = useAuth();
+  const isSuperAdmin = authUser?.role === 'super_admin';
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -410,6 +412,9 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                     <SelectValue placeholder={t("admin.userManagement.selectRole")} />
                   </SelectTrigger>
                   <SelectContent>
+                    {isSuperAdmin && (
+                      <SelectItem value="super_admin">{t("employees.super_admin")}</SelectItem>
+                    )}
                     <SelectItem value="administrator">{t("employees.administrator")}</SelectItem>
                     <SelectItem value="skadeleder">{t("employees.skadeleder")}</SelectItem>
                     <SelectItem value="servicemedarbejder">{t("employees.servicemedarbejder")}</SelectItem>
