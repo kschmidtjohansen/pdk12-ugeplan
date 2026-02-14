@@ -247,22 +247,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       </div>
       
       {assignment.description && (
-        assignment.description.length > 10 ? (() => {
-          const lines = assignment.description.split('\n').filter(l => l.trim());
-          const maxItems = 3;
-          const visibleLines = lines.slice(0, maxItems);
-          const hasMore = lines.length > maxItems;
-          return (
-            <ul className="text-gray-600 mb-3 list-disc list-inside space-y-0.5 text-sm">
-              {visibleLines.map((line, i) => (
-                <li key={i}>{line.trim()}</li>
-              ))}
-              {hasMore && <li className="text-gray-400">...</li>}
-            </ul>
-          );
-        })() : (
-          <p className="text-gray-600 mb-3">{assignment.description}</p>
-        )
+        <p className="text-gray-600 mb-3 text-sm line-clamp-3">{assignment.description}</p>
       )}
       
       <AssignmentDetails assignment={assignment} cars={cars} assignments={assignments} showFullTeamDetails={true} />
