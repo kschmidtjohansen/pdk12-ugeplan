@@ -21,9 +21,20 @@ export class CarSecurityService {
       if (!isDemoMode && departmentId) {
         query = query.eq('department_id', departmentId);
       }
-      // Filter by sub-department if provided
+      // Filter by sub-department using junction table
       if (!isDemoMode && subDepartmentId) {
-        query = query.eq('sub_department_id', subDepartmentId);
+        const { data: carSubDepts } = await supabase
+          .from('car_sub_departments')
+          .select('car_id')
+          .eq('sub_department_id', subDepartmentId);
+        
+        const carIds = (carSubDepts || []).map(r => (r as any).car_id);
+        if (carIds.length > 0) {
+          query = query.in('id', carIds);
+        } else {
+          // No cars in this sub-department
+          return [];
+        }
       }
       
       const { data, error } = await query;

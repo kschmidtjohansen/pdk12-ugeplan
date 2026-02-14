@@ -5,6 +5,7 @@ import { CarData, CarFormData } from '@/components/Cars/types';
 import { CarSecurityService } from '@/services/carSecurityService';
 import { usePermissions } from '@/context/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseCarFormStateProps {
   cars: CarData[];
@@ -37,6 +38,7 @@ export const useCarFormState = ({
     towing_capacity_with_brakes: null,
     towing_capacity_without_brakes: null,
     total_weight: null,
+    sub_department_ids: [],
   });
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -52,15 +54,28 @@ export const useCarFormState = ({
       is_available: true,
       show_in_planner: true,
       notes: '',
-    towing_capacity_with_brakes: null,
-    towing_capacity_without_brakes: null,
-    total_weight: null,
-    sub_department_id: null,
-  });
+      towing_capacity_with_brakes: null,
+      towing_capacity_without_brakes: null,
+      total_weight: null,
+      sub_department_id: null,
+      sub_department_ids: [],
+    });
   setDialogOpen(true);
   };
 
-  const initFormWithCar = (car: CarData) => {
+  const initFormWithCar = async (car: CarData) => {
+    // Fetch sub_department_ids from junction table
+    let subDeptIds: string[] = [];
+    try {
+      const { data } = await supabase
+        .from('car_sub_departments')
+        .select('sub_department_id')
+        .eq('car_id', car.id);
+      subDeptIds = (data || []).map((r: any) => r.sub_department_id);
+    } catch (e) {
+      console.warn('[useCarFormState] Failed to fetch car sub departments:', e);
+    }
+
     setFormData({
       name: car.name,
       car_number: car.car_number,
@@ -74,6 +89,7 @@ export const useCarFormState = ({
       towing_capacity_without_brakes: car.towing_capacity_without_brakes || null,
       total_weight: car.total_weight || null,
       sub_department_id: car.sub_department_id || null,
+      sub_department_ids: subDeptIds,
     });
   };
 
@@ -92,6 +108,17 @@ export const useCarFormState = ({
     }));
   };
 
+  const syncSubDepartments = async (carId: string, subDeptIds: string[]) => {
+    // Delete existing
+    await supabase.from('car_sub_departments').delete().eq('car_id', carId);
+    // Insert new
+    if (subDeptIds.length > 0) {
+      await supabase.from('car_sub_departments').insert(
+        subDeptIds.map(sdId => ({ car_id: carId, sub_department_id: sdId }))
+      );
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -100,14 +127,15 @@ export const useCarFormState = ({
     try {
       if (currentCar) {
         console.log('[useCarFormState] Updating existing car:', currentCar.id);
-        // Update existing car using security service
         const updatedCar = await CarSecurityService.updateCar(
           currentCar.id, 
           formData, 
           canViewFuelCardCode
         );
         
-        // Update local state (filter fuel card if user doesn't have permission)
+        // Sync sub-department assignments
+        await syncSubDepartments(currentCar.id, formData.sub_department_ids || []);
+        
         const filteredUpdatedCar = canViewFuelCardCode ? updatedCar : { ...updatedCar, fuel_card_code: '' };
         setCars(
           cars.map((c) => c.id === currentCar.id ? filteredUpdatedCar : c)
@@ -119,7 +147,6 @@ export const useCarFormState = ({
         });
       } else {
         console.log('[useCarFormState] Creating new car');
-        // Use the createCar function if available, otherwise fallback to direct insert
         if (createCar) {
           const success = await createCar(formData);
           if (!success) {
@@ -127,10 +154,11 @@ export const useCarFormState = ({
           }
         } else {
           console.log('[useCarFormState] Using fallback security service');
-          // Create new car using security service (fallback)
           const newCar = await CarSecurityService.createCar(formData, canViewFuelCardCode);
           
-          // Add new car to local state (filter fuel card if user doesn't have permission)
+          // Sync sub-department assignments for new car
+          await syncSubDepartments(newCar.id, formData.sub_department_ids || []);
+          
           const filteredNewCar = canViewFuelCardCode ? newCar : { ...newCar, fuel_card_code: '' };
           setCars([...cars, filteredNewCar]);
           
