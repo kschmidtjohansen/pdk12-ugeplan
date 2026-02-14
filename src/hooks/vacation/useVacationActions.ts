@@ -69,6 +69,14 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
       const formattedEndDate = format(requestData.dateRange.to, 'yyyy-MM-dd');
       const isSameDay = formattedStartDate === formattedEndDate;
 
+      // Get department context for the vacation
+      const { data: userAccess } = await supabase
+        .from('user_access')
+        .select('department_id, sub_department_id')
+        .eq('user_id', targetUserId)
+        .limit(1)
+        .single();
+
       const vacationData = {
         user_id: targetUserId,
         start_date: formattedStartDate,
@@ -78,7 +86,9 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
         end_time: requestData.requestType === 'partial_day' ? requestData.endTime : null,
         is_same_day: isSameDay,
         reason: requestData.reason,
-        status: 'pending' as const
+        status: 'pending' as const,
+        department_id: userAccess?.department_id || null,
+        sub_department_id: userAccess?.sub_department_id || null,
       };
 
       const client = getSchemaClient(isDemoMode);

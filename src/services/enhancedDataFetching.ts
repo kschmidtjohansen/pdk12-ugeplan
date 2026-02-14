@@ -192,9 +192,9 @@ export class EnhancedDataFetching {
     };
   }
 
-  async fetchVacationsEnhanced(currentUserEmail?: string, departmentId?: string | null) {
+  async fetchVacationsEnhanced(currentUserEmail?: string, departmentId?: string | null, subDepartmentId?: string | null) {
     const isDemoMode = DemoSchemaClient.isDemoMode(currentUserEmail);
-    const cacheKey = this.getCacheKey('vacations', 'enhanced', { currentUserEmail, isDemoMode, departmentId });
+    const cacheKey = this.getCacheKey('vacations', 'enhanced', { currentUserEmail, isDemoMode, departmentId, subDepartmentId });
     const cached = this.getCache(cacheKey);
     
     if (cached) {
@@ -235,13 +235,19 @@ export class EnhancedDataFetching {
             notes,
             created_at,
             updated_at,
-            department_id
+            department_id,
+            sub_department_id
           `)
           .order('created_at', { ascending: false });
         
         // Filter by department if provided
         if (departmentId) {
           query = query.or(`department_id.eq.${departmentId},department_id.is.null`);
+        }
+        
+        // Filter by sub-department if provided (for skadeledere)
+        if (subDepartmentId) {
+          query = query.or(`sub_department_id.eq.${subDepartmentId},sub_department_id.is.null`);
         }
         
         const { data, error } = await query;

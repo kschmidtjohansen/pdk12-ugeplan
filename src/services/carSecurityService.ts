@@ -93,7 +93,9 @@ export class CarSecurityService {
         notes: carData.notes || null,
         towing_capacity_with_brakes: carData.towing_capacity_with_brakes || null,
         towing_capacity_without_brakes: carData.towing_capacity_without_brakes || null,
-        total_weight: carData.total_weight || null
+        total_weight: carData.total_weight || null,
+        department_id: (carData as any).department_id || null,
+        sub_department_id: carData.sub_department_id || null,
       };
 
       console.log('[CarSecurityService] Creating car with data:', insertData);
@@ -170,6 +172,8 @@ export class CarSecurityService {
         towing_capacity_with_brakes: carData.towing_capacity_with_brakes,
         towing_capacity_without_brakes: carData.towing_capacity_without_brakes,
         total_weight: carData.total_weight,
+        department_id: (carData as any).department_id || null,
+        sub_department_id: carData.sub_department_id || null,
         updated_at: new Date().toISOString()
       };
 
