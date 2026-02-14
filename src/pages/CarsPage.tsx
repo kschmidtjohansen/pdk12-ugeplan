@@ -11,6 +11,7 @@ import { useCars } from '@/hooks/car';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Car, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PullToRefresh } from '@/components/shared/PullToRefresh';
 
 const CarsPage: React.FC = () => {
   const { canViewFuelCardCode, isAdmin } = usePermissions();
@@ -38,6 +39,7 @@ const CarsPage: React.FC = () => {
     handleCheckboxChange,
     handleSubmit,
     handleToggleAvailability,
+    fetchCars,
     markCarUnavailable,
     markCarAvailableKeepNote,
     markCarAvailableDeleteNote
@@ -45,6 +47,7 @@ const CarsPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
+    <PullToRefresh onRefresh={async () => { await fetchCars(); }}>
     <TooltipProvider>
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
@@ -140,6 +143,7 @@ const CarsPage: React.FC = () => {
         </div>
       </div>
     </TooltipProvider>
+    </PullToRefresh>
     </DataFetchErrorBoundary>
   );
 };

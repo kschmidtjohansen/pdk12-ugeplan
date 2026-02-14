@@ -75,7 +75,8 @@ const cars = {
   addNewCar: 'Tilføj Nyt Køretøj',
   
   // Error messages for fetching
-  fetchError: 'Kunne ikke hente køretøjer. Prøv venligst igen.'
+  fetchError: 'Kunne ikke hente køretøjer. Prøv venligst igen.',
+  noCarsInSubDepartment: 'Der er ingen biler tilknyttet denne underafdeling',
 };
 
 export default cars;

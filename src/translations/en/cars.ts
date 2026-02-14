@@ -75,7 +75,8 @@ const cars = {
   addNewCar: 'Add New Vehicle',
   
   // Error messages for fetching
-  fetchError: 'Failed to fetch vehicles. Please try again.'
+  fetchError: 'Failed to fetch vehicles. Please try again.',
+  noCarsInSubDepartment: 'No cars assigned to this sub-department',
 };
 
 export default cars;

@@ -28,6 +28,8 @@ import SeparateVacationDateFields from './SeparateVacationDateFields';
 import { Textarea } from '@/components/ui/textarea';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AdminVacationFormDialogProps {
   open: boolean;
@@ -81,20 +83,37 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
   const { t } = useTranslation();
   const { employees } = useEmployees();
   const { user } = useAuth();
+  const { selectedSubDepartmentId, selectedDepartmentId } = useDepartment();
   const [availableEmployees, setAvailableEmployees] = useState<Employee[]>([]);
   
-  // Filter out the current user from the employee list
+  // Filter employees by sub-department when applicable
   useEffect(() => {
-    if (employees) {
+    if (!employees) return;
+    
+    if (selectedSubDepartmentId) {
+      // Fetch user_access for this sub-department and filter
+      supabase.from('user_access')
+        .select('user_id')
+        .eq('department_id', selectedDepartmentId)
+        .eq('sub_department_id', selectedSubDepartmentId)
+        .then(({ data }) => {
+          const subDeptUserIds = new Set((data || []).map(a => a.user_id));
+          const filtered = employees.filter(emp => 
+            subDeptUserIds.has(emp.id) && emp.id !== user?.id
+          );
+          setAvailableEmployees(filtered);
+          if (!selectedEmployeeId && filtered.length > 0) {
+            setSelectedEmployeeId(filtered[0].id);
+          }
+        });
+    } else {
       const filtered = employees.filter(emp => emp.id !== user?.id);
       setAvailableEmployees(filtered);
-      
-      // If no employee is selected, select the first one by default
       if (!selectedEmployeeId && filtered.length > 0) {
         setSelectedEmployeeId(filtered[0].id);
       }
     }
-  }, [employees, user?.id, selectedEmployeeId, setSelectedEmployeeId]);
+  }, [employees, user?.id, selectedSubDepartmentId, selectedDepartmentId, selectedEmployeeId, setSelectedEmployeeId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
