@@ -148,78 +148,80 @@ import { useDepartment } from '@/context/DepartmentContext';
              <ScrollArea className="flex-1">
                 <div className="p-4 sm:p-8 space-y-6">
                 {/* Title */}
-                 <div className="space-y-4">
-                   <h3 className="text-2xl font-semibold tracking-tight">{assignment.title}</h3>
-                  
-                  {/* Description */}
-                  {assignment.description && (
+                 <div>
+                    <h3 className="text-2xl font-semibold tracking-tight">{assignment.title}</h3>
+                 </div>
+
+                  <Separator className="my-2" />
+
+                {/* Assignment Details Section - Cars, Employees, Responsible (shown FIRST before description on mobile) */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                     {t('planner.assignmentDetails') || 'Opgave detaljer'}
+                   </h4>
+                    <div className="grid gap-4">
+                    {/* Cars */}
+                     {carNames.length > 0 && (
+                        <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                         <Car className="h-4 w-4 text-primary" />
+                         <div className="flex items-center flex-wrap gap-2 text-sm">
+                           <span className="font-medium">{t('planner.car')}:</span>
+                           {carNames.map((carName, index) => (
+                             <Badge key={index} variant="outline" className="text-xs">
+                               {carName}
+                             </Badge>
+                           ))}
+                         </div>
+                       </div>
+                     )}
+
+                     {/* Responsible User */}
+                     {assignment.responsibleUser && (
+                        <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                         <UserCheck className="h-4 w-4 text-primary" />
+                         <div className="text-sm">
+                           <span className="font-medium">{t('planner.responsibleUser')}: </span>
+                           <span>{assignment.responsibleUser.name}</span>
+                         </div>
+                       </div>
+                     )}
+
+                     {/* Assigned Employees */}
+                     {((assignment.assignedEmployees && assignment.assignedEmployees.length > 0) || (assignment.employees && assignment.employees.length > 0)) && (
+                        <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                         <Users className="h-4 w-4 text-primary" />
+                         <div className="flex items-center flex-wrap gap-2 text-sm">
+                           <span className="font-medium">{t('planner.employees')}:</span>
+                           {assignment.assignedEmployees && assignment.assignedEmployees.length > 0 ? (
+                             assignment.assignedEmployees.map((employee) => (
+                               <Badge key={employee.id} variant="outline" className="text-xs">
+                                 {employee.name}
+                               </Badge>
+                             ))
+                           ) : assignment.employees && assignment.employees.length > 0 ? (
+                             assignment.employees.map((employee, index) => (
+                               <Badge key={index} variant="outline" className="text-xs">
+                                 {employee}
+                               </Badge>
+                             ))
+                           ) : null}
+                         </div>
+                       </div>
+                     )}
+                   </div>
+                 </div>
+
+                  <Separator className="my-2" />
+
+                   {/* Description - shown after details */}
+                   {assignment.description && (
                      <div className="space-y-2.5">
                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('planner.description')}</h4>
                        <p className="text-sm leading-relaxed text-foreground/90">{assignment.description}</p>
-                    </div>
-                  )}
-                </div>
- 
-                 <Separator className="my-2" />
+                     </div>
+                   )}
 
-                {/* Assignment Details Section - Cars, Employees, Responsible (shown first on mobile) */}
-                 <div className="space-y-4 order-first lg:order-none">
-                   <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {t('planner.assignmentDetails') || 'Opgave detaljer'}
-                  </h4>
-                   <div className="grid gap-4">
-                    {/* Cars */}
-                    {carNames.length > 0 && (
-                       <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                        <Car className="h-4 w-4 text-primary" />
-                        <div className="flex items-center flex-wrap gap-2 text-sm">
-                          <span className="font-medium">{t('planner.car')}:</span>
-                          {carNames.map((carName, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {carName}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Responsible User */}
-                    {assignment.responsibleUser && (
-                       <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                        <UserCheck className="h-4 w-4 text-primary" />
-                        <div className="text-sm">
-                          <span className="font-medium">{t('planner.responsibleUser')}: </span>
-                          <span>{assignment.responsibleUser.name}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Assigned Employees */}
-                    {((assignment.assignedEmployees && assignment.assignedEmployees.length > 0) || (assignment.employees && assignment.employees.length > 0)) && (
-                       <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                        <Users className="h-4 w-4 text-primary" />
-                        <div className="flex items-center flex-wrap gap-2 text-sm">
-                          <span className="font-medium">{t('planner.employees')}:</span>
-                          {assignment.assignedEmployees && assignment.assignedEmployees.length > 0 ? (
-                            assignment.assignedEmployees.map((employee) => (
-                              <Badge key={employee.id} variant="outline" className="text-xs">
-                                {employee.name}
-                              </Badge>
-                            ))
-                          ) : assignment.employees && assignment.employees.length > 0 ? (
-                            assignment.employees.map((employee, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {employee}
-                              </Badge>
-                            ))
-                          ) : null}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                 <Separator className="my-2" />
+                  {assignment.description && <Separator className="my-2" />}
 
                 {/* Date and Time Section */}
                  <div className="space-y-4">
