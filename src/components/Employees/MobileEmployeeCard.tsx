@@ -28,6 +28,7 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
 
   const getRoleLabel = (role: string) => {
     switch (role) {
+      case 'super_admin': return t('employees.super_admin');
       case 'administrator': return t('employees.administrator');
       case 'skadeleder': return t('employees.skadeleder');
       case 'servicemedarbejder': return t('employees.servicemedarbejder');
@@ -38,6 +39,7 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
 
   const getRoleVariant = (role: string) => {
     switch (role) {
+      case 'super_admin': return 'warning' as const;
       case 'administrator': return 'info' as const;
       case 'skadeleder': return 'success' as const;
       default: return 'default' as const;

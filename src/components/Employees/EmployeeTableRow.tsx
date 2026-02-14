@@ -28,6 +28,8 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
   // Get role variant for status badge
   const getRoleVariant = (role: string) => {
     switch (role) {
+      case 'super_admin':
+        return 'warning';
       case 'administrator': 
         return 'info';
       case 'skadeleder': 
@@ -40,6 +42,8 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
   // Get role label using translation
   const getRoleLabel = (role: string) => {
     switch (role) {
+      case 'super_admin':
+        return t('employees.super_admin');
       case 'administrator':
         return t('employees.administrator');
       case 'skadeleder':
