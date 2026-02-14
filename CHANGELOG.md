@@ -39,6 +39,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security - 2026-02-14
+- RLS-policies på vacations-tabellen strammet: Skadeledere kan nu kun se/redigere ferieanmodninger for brugere i deres egne afdelinger (via ny `can_access_vacation` SECURITY DEFINER-funktion). Admins og super_admins beholder fuld adgang.
+- Fjernet følsom console-logging fra PasswordChangeDialog (token-previews, password-længder, auth-metadata)
+- Dokumenteret `verify_jwt = false` i config.toml for admin-reset-password edge function
+
+### Removed - 2026-02-14
+- 49 ubrugte filer slettet (komponenter, hooks, services, utils) efter komplet projektaudit
+- Inkluderer bl.a. SystemHealthDashboard, SecurityAuditPanel, PerformanceMonitoringPanel, SecureLoginForm og tilhørende hooks/services
+
+### Fixed - 2026-02-14
+- Tilføjet manglende oversættelsesnøgler: `common.retrying`, `employees.generalErrorTitle`, `employees.generalErrorDescription`, `employees.selected` (EN), `employees.employees` (EN)
+
 ### Added - 2026-02-12
 - LICENSE fil oprettet med MIT-licens (Copyright © 2026 Kasper Schmidt Johansen)
 - README.md mappestruktur opdateret til at matche den reelle projektstruktur (begge sprog)
