@@ -27,7 +27,11 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       const { data, error: fetchError } = await rpcWithRefresh<any[]>('get_demo_cars_with_security');
       if (fetchError) throw fetchError;
 
-      let baseline = (data || []).filter((c: any) => c.show_in_planner !== false) as CarData[];
+      const DEMO_BASELINE_DATE = '2025-10-23T00:00:00Z';
+      let baseline = (data || []).filter((c: any) => 
+        c.show_in_planner !== false && 
+        new Date(c.created_at) >= new Date(DEMO_BASELINE_DATE)
+      ) as CarData[];
 
       if (baseline.length === 0) {
         baseline = [

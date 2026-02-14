@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `can_view_fuel_codes()` RPC opdateret til at inkludere `super_admin` rollen
 - Demo-isolering af `user_access` og `car_sub_departments` queries (bruger nu `getSchemaClient` i demo-mode)
 - `car_sub_departments` sync springes over i demo-mode for at undgå påvirkning af live-data
+- Demo-bilvisning filtrerer nu korrekt gamle produktionsdata fra `demo.cars` (kun biler oprettet efter baseline-dato vises)
 
 ### Changed - 2026-02-14
 - Planner gitter-visning bruger nu 3 kolonner på desktop (md:grid-cols-3) i stedet for 2
