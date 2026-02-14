@@ -77,7 +77,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
     setErrors({ current: '', new: '', confirm: '' });
 
     try {
-      console.log('[PasswordChangeDialog] Starting password change process');
+      
 
       // First, verify current password by attempting to sign in
       const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -86,7 +86,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       });
 
       if (signInError) {
-        console.error('[PasswordChangeDialog] Current password verification failed:', signInError);
+        
         setErrors({ ...errors, current: t('profile.incorrectCurrentPassword') });
         setLoading(false);
         return;
@@ -119,7 +119,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
         return;
       }
 
-      console.log('[PasswordChangeDialog] Password updated successfully');
+      
       
       toast({
         title: t('profile.passwordChanged'),

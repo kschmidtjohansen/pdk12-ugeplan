@@ -34,6 +34,9 @@ verify_jwt = false
 [functions.admin-create-user]
 verify_jwt = true
 
+# verify_jwt is disabled because this function performs manual JWT validation
+# internally to support the admin password reset flow. Do not enable verify_jwt
+# without removing the manual validation logic inside the function.
 [functions.admin-reset-password]
 verify_jwt = false
 

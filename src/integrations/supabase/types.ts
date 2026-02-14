@@ -1024,6 +1024,10 @@ export type Database = {
         Args: { field_name: string; target_user_id: string }
         Returns: boolean
       }
+      can_access_vacation: {
+        Args: { vacation_user_id: string }
+        Returns: boolean
+      }
       can_user_access_assignment: {
         Args: { assignment_id: string; user_id: string }
         Returns: boolean
