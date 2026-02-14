@@ -66,6 +66,8 @@ export const admin = {
     warehouseEnabled: 'Warehouse',
     dutyEnabled: 'Duty',
     substituteEnabled: 'Substitute',
+    chatEnabled: 'Chat / Messages',
+    filesEnabled: 'File Upload',
     enabled: 'Enabled',
     disabled: 'Disabled',
     updated: 'Feature setting updated',

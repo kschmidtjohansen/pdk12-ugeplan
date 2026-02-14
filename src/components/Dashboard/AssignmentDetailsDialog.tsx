@@ -12,6 +12,7 @@ import AssignmentMessagesPanel from '@/components/Assignment/AssignmentMessagesP
 import AssignmentFilesPanel from '@/components/Assignment/AssignmentFilesPanel';
 import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
 import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages';
+import { useDepartment } from '@/context/DepartmentContext';
  
  interface AssignmentDetailsDialogProps {
    assignment: Assignment | null;
@@ -29,6 +30,7 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
    onEdit
  }) => {
   const { t, currentLanguage } = useTranslation();
+  const { isChatEnabled, isFilesEnabled } = useDepartment();
   const [showFiles, setShowFiles] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
@@ -107,7 +109,7 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
  
    return (
      <Dialog open={isOpen} onOpenChange={onClose}>
-       <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+       <DialogContent className={`${isChatEnabled ? 'max-w-5xl' : 'max-w-3xl'} max-h-[90vh] overflow-hidden flex flex-col p-0`}>
         <DialogHeader className="px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b bg-gradient-to-b from-muted/30 to-transparent">
             <DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 text-lg pr-14">
               <div className="flex items-center gap-2">
@@ -142,7 +144,7 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
         {/* Main content: 2-column layout */}
          <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden min-h-[400px] lg:min-h-[500px]">
           {/* Left column: Details */}
-           <div className="flex-1 lg:w-3/5 flex flex-col min-h-0 lg:border-r">
+           <div className={`flex-1 ${isChatEnabled ? 'lg:w-3/5 lg:border-r' : ''} flex flex-col min-h-0`}>
              <ScrollArea className="flex-1">
                 <div className="p-4 sm:p-8 space-y-6">
                 {/* Title */}
@@ -246,6 +248,7 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
             </ScrollArea>
 
             {/* Files section - collapsible at the bottom of left column */}
+            {isFilesEnabled && (
               <div className="border-t bg-muted/20">
                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-8 py-4 gap-3">
                  <button
@@ -264,7 +267,6 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
                    {showFiles ? <ChevronDown className="h-4 w-4 ml-1" /> : <ChevronUp className="h-4 w-4 ml-1" />}
                  </button>
                  
-                 {/* Action buttons in header */}
                  <div className="flex flex-wrap items-center gap-2">
                    {imageCount > 0 && (
                      <Button
@@ -313,9 +315,11 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
                 </div>
               )}
             </div>
+            )}
           </div>
 
           {/* Right column: Messages sidebar */}
+          {isChatEnabled && (
            <div className="lg:w-2/5 flex flex-col min-h-0 bg-gradient-to-b from-muted/40 to-muted/20">
              <div className="px-3 sm:px-5 py-4 border-b bg-background/60 backdrop-blur-sm">
                <div className="flex items-center justify-between">
@@ -356,7 +360,8 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
                 responsibleUserId={assignment.responsibleUserId}
               />
             </div>
-          </div>
+           </div>
+          )}
         </div>
        </DialogContent>
      </Dialog>
