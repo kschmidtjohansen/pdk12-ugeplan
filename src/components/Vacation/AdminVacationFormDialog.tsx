@@ -88,7 +88,7 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
   
   // Filter employees by sub-department when applicable
   useEffect(() => {
-    if (!employees) return;
+    if (!employees || !open) return;
     
     if (selectedSubDepartmentId) {
       // Fetch user_access for this sub-department and filter
@@ -102,18 +102,18 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
             subDeptUserIds.has(emp.id) && emp.id !== user?.id
           );
           setAvailableEmployees(filtered);
-          if (!selectedEmployeeId && filtered.length > 0) {
+          if (filtered.length > 0 && !filtered.find(e => e.id === selectedEmployeeId)) {
             setSelectedEmployeeId(filtered[0].id);
           }
         });
     } else {
       const filtered = employees.filter(emp => emp.id !== user?.id);
       setAvailableEmployees(filtered);
-      if (!selectedEmployeeId && filtered.length > 0) {
+      if (filtered.length > 0 && !filtered.find(e => e.id === selectedEmployeeId)) {
         setSelectedEmployeeId(filtered[0].id);
       }
     }
-  }, [employees, user?.id, selectedSubDepartmentId, selectedDepartmentId, selectedEmployeeId, setSelectedEmployeeId]);
+  }, [employees, user?.id, selectedSubDepartmentId, selectedDepartmentId, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

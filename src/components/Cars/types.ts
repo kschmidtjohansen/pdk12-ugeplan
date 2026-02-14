@@ -13,6 +13,7 @@ export interface CarData {
   towing_capacity_without_brakes?: number | null;
   total_weight?: number | null;
   sub_department_id?: string | null;
+  sub_department_ids?: string[];
   created_at?: string;
   updated_at?: string;
 }

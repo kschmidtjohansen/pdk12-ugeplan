@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CarFormData } from './types';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -108,27 +107,28 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
           {userSubDepartments.length > 0 && (
             <div className="space-y-2">
               <Label>{t('common.subDepartment') || 'Underafdeling'}</Label>
-              <Select
-                value={formData.sub_department_id || 'none'}
-                onValueChange={(value) => {
-                  setFormData?.((prev) => ({
-                    ...prev,
-                    sub_department_id: value === 'none' ? null : value,
-                  }));
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('common.selectSubDepartment') || 'Vælg underafdeling'} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">{t('common.none') || 'Ingen'}</SelectItem>
-                  {userSubDepartments.map((sub) => (
-                    <SelectItem key={sub.id} value={sub.id}>
+              <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
+                {userSubDepartments.map((sub) => (
+                  <div key={sub.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`sub-dept-${sub.id}`}
+                      checked={(formData.sub_department_ids || []).includes(sub.id)}
+                      onCheckedChange={(checked) => {
+                        setFormData?.((prev) => {
+                          const current = prev.sub_department_ids || [];
+                          const updated = checked
+                            ? [...current, sub.id]
+                            : current.filter(id => id !== sub.id);
+                          return { ...prev, sub_department_ids: updated };
+                        });
+                      }}
+                    />
+                    <Label htmlFor={`sub-dept-${sub.id}`} className="cursor-pointer text-sm">
                       {sub.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    </Label>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

@@ -248,6 +248,42 @@ export type Database = {
           },
         ]
       }
+      car_sub_departments: {
+        Row: {
+          car_id: string
+          created_at: string | null
+          id: string
+          sub_department_id: string
+        }
+        Insert: {
+          car_id: string
+          created_at?: string | null
+          id?: string
+          sub_department_id: string
+        }
+        Update: {
+          car_id?: string
+          created_at?: string | null
+          id?: string
+          sub_department_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "car_sub_departments_car_id_fkey"
+            columns: ["car_id"]
+            isOneToOne: false
+            referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "car_sub_departments_sub_department_id_fkey"
+            columns: ["sub_department_id"]
+            isOneToOne: false
+            referencedRelation: "sub_departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cars: {
         Row: {
           car_number: string
