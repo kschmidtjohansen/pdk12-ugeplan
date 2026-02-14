@@ -7,7 +7,7 @@ export class CarSecurityService {
    * Fetches car data with enhanced security using new RLS policies
    * Automatic fuel card code masking based on user permissions
    */
-  static async fetchCars(canViewFuelCardCode: boolean, departmentId?: string): Promise<CarData[]> {
+  static async fetchCars(canViewFuelCardCode: boolean, departmentId?: string, subDepartmentId?: string | null): Promise<CarData[]> {
     try {
       // Detect demo mode
       const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
@@ -20,6 +20,10 @@ export class CarSecurityService {
       // Filter by department if provided (production only)
       if (!isDemoMode && departmentId) {
         query = query.eq('department_id', departmentId);
+      }
+      // Filter by sub-department if provided
+      if (!isDemoMode && subDepartmentId) {
+        query = query.eq('sub_department_id', subDepartmentId);
       }
       
       const { data, error } = await query;

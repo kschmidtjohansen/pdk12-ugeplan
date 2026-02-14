@@ -9,11 +9,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useWarehouseData = () => {
   const { isDemoMode, userDataLoaded, user } = useAuth();
-  const { selectedDepartmentId } = useDepartment();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const client = getSchemaClient(isDemoMode);
   const queryClient = useQueryClient();
 
-  const queryKey = ['warehouse-items', isDemoMode, selectedDepartmentId] as const;
+  const queryKey = ['warehouse-items', isDemoMode, selectedDepartmentId, selectedSubDepartmentId] as const;
 
   const fetchItemsFn = async (): Promise<WarehouseItem[]> => {
     if (isDemoMode) {
@@ -27,6 +27,9 @@ export const useWarehouseData = () => {
       let query = client.from('warehouse_items').select('*');
       if (selectedDepartmentId) {
         query = query.eq('department_id', selectedDepartmentId);
+      }
+      if (selectedSubDepartmentId) {
+        query = query.eq('sub_department_id', selectedSubDepartmentId);
       }
       const { data, error: fetchError } = await query.order('created_at', { ascending: false });
       if (fetchError) throw fetchError;

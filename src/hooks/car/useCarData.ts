@@ -13,12 +13,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useCarData = (canViewFuelCardCode: boolean = false) => {
   const { isDemoMode, userDataLoaded, user } = useAuth();
-  const { selectedDepartmentId } = useDepartment();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const { toast } = useToast();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  const queryKey = ['cars', isDemoMode, selectedDepartmentId, canViewFuelCardCode] as const;
+  const queryKey = ['cars', isDemoMode, selectedDepartmentId, selectedSubDepartmentId, canViewFuelCardCode] as const;
 
   const fetchCarsFn = async (): Promise<CarData[]> => {
     console.log('[useCarData] Fetching cars with enhanced security...');
@@ -42,7 +42,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       console.log('[useCarData] Successfully fetched', merged.length, 'demo cars (baseline + local)');
       return merged;
     } else {
-      const data = await CarSecurityService.fetchCars(canViewFuelCardCode, selectedDepartmentId);
+      const data = await CarSecurityService.fetchCars(canViewFuelCardCode, selectedDepartmentId, selectedSubDepartmentId);
       console.log('[useCarData] Successfully fetched', data?.length || 0, 'cars (filtered by department)');
       return data || [];
     }

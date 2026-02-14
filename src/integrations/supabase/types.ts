@@ -261,6 +261,7 @@ export type Database = {
           notes: string | null
           number_plate: string
           show_in_planner: boolean
+          sub_department_id: string | null
           total_weight: number | null
           towing_capacity_with_brakes: number | null
           towing_capacity_without_brakes: number | null
@@ -278,6 +279,7 @@ export type Database = {
           notes?: string | null
           number_plate: string
           show_in_planner?: boolean
+          sub_department_id?: string | null
           total_weight?: number | null
           towing_capacity_with_brakes?: number | null
           towing_capacity_without_brakes?: number | null
@@ -295,6 +297,7 @@ export type Database = {
           notes?: string | null
           number_plate?: string
           show_in_planner?: boolean
+          sub_department_id?: string | null
           total_weight?: number | null
           towing_capacity_with_brakes?: number | null
           towing_capacity_without_brakes?: number | null
@@ -306,6 +309,13 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cars_sub_department_id_fkey"
+            columns: ["sub_department_id"]
+            isOneToOne: false
+            referencedRelation: "sub_departments"
             referencedColumns: ["id"]
           },
         ]
@@ -961,6 +971,7 @@ export type Database = {
           is_cleaned: string
           notes: string | null
           quantity: number
+          sub_department_id: string | null
           updated_at: string
         }
         Insert: {
@@ -974,6 +985,7 @@ export type Database = {
           is_cleaned?: string
           notes?: string | null
           quantity?: number
+          sub_department_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -987,6 +999,7 @@ export type Database = {
           is_cleaned?: string
           notes?: string | null
           quantity?: number
+          sub_department_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -995,6 +1008,13 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_items_sub_department_id_fkey"
+            columns: ["sub_department_id"]
+            isOneToOne: false
+            referencedRelation: "sub_departments"
             referencedColumns: ["id"]
           },
         ]
@@ -1332,28 +1352,51 @@ export type Database = {
         Args: { secret: string; token: string }
         Returns: Json
       }
-      list_accessible_assignments_with_team: {
-        Args: { p_department_id?: string }
-        Returns: {
-          assignment_date: string
-          car_id: string
-          car_ids: string[]
-          case_number: string
-          created_at: string
-          description: string
-          from_time: string
-          id: string
-          location: string
-          published: boolean
-          responsible_user: Json
-          responsible_user_id: string
-          team: Json
-          title: string
-          to_time: string
-          type: Database["public"]["Enums"]["assignment_type"]
-          updated_at: string
-        }[]
-      }
+      list_accessible_assignments_with_team:
+        | {
+            Args: { p_department_id?: string }
+            Returns: {
+              assignment_date: string
+              car_id: string
+              car_ids: string[]
+              case_number: string
+              created_at: string
+              description: string
+              from_time: string
+              id: string
+              location: string
+              published: boolean
+              responsible_user: Json
+              responsible_user_id: string
+              team: Json
+              title: string
+              to_time: string
+              type: Database["public"]["Enums"]["assignment_type"]
+              updated_at: string
+            }[]
+          }
+        | {
+            Args: { p_department_id?: string; p_sub_department_id?: string }
+            Returns: {
+              assignment_date: string
+              car_id: string
+              car_ids: string[]
+              case_number: string
+              created_at: string
+              description: string
+              from_time: string
+              id: string
+              location: string
+              published: boolean
+              responsible_user: Json
+              responsible_user_id: string
+              team: Json
+              title: string
+              to_time: string
+              type: Database["public"]["Enums"]["assignment_type"]
+              updated_at: string
+            }[]
+          }
       list_demo_assignments_with_team: {
         Args: never
         Returns: {

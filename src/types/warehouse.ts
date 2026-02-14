@@ -6,6 +6,7 @@ export interface WarehouseItem {
   quantity: number;
   notes: string | null;
   hall: 'hal_1' | 'sort_hal' | null;
+  sub_department_id?: string | null;
   created_at: string;
   updated_at: string;
   created_by: string | null;
