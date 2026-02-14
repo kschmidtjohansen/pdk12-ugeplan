@@ -3,9 +3,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData, CarFormData } from '@/components/Cars/types';
 import { CarSecurityService } from '@/services/carSecurityService';
-import { usePermissions } from '@/context/AuthContext';
+import { usePermissions, useAuth } from '@/context/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 
 interface UseCarFormStateProps {
   cars: CarData[];
@@ -25,6 +26,7 @@ export const useCarFormState = ({
   createCar
 }: UseCarFormStateProps) => {
   const { canViewFuelCardCode } = usePermissions();
+  const { isDemoMode } = useAuth();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<CarFormData>({
     name: '',
@@ -67,7 +69,8 @@ export const useCarFormState = ({
     // Fetch sub_department_ids from junction table
     let subDeptIds: string[] = [];
     try {
-      const { data } = await supabase
+      const dbClient = isDemoMode ? getSchemaClient(true) : { from: (t: string) => supabase.from(t as any) };
+      const { data } = await dbClient
         .from('car_sub_departments')
         .select('sub_department_id')
         .eq('car_id', car.id);
@@ -109,6 +112,11 @@ export const useCarFormState = ({
   };
 
   const syncSubDepartments = async (carId: string, subDeptIds: string[]) => {
+    if (isDemoMode) {
+      // In demo mode, skip junction table sync (demo cars are virtual)
+      console.log('[useCarFormState] Demo mode: skipping car_sub_departments sync');
+      return;
+    }
     // Delete existing
     await supabase.from('car_sub_departments').delete().eq('car_id', carId);
     // Insert new

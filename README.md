@@ -39,8 +39,20 @@
 - ⚡ **Optimistic UI** med automatisk rollback ved fejl
 - 🛡️ **Robust fejlhåndtering** med Error Boundaries på alle sider
 - 💾 **Intelligent caching** med TanStack Query og 5-minutters staleTime
+- 🏢 **Multi-afdeling og underafdeling** med bruger- og biltilknytning til flere afdelinger/underafdelinger
 
 ---
+
+### 🏢 Afdelings- og underafdelingsstruktur
+
+Systemet understøtter en hierarkisk organisationsstruktur:
+
+- **Afdelinger** (f.eks. 02 - Storkøbenhavn, 12 - Fredericia) er de overordnede enheder
+- **Underafdelinger** (f.eks. Fugt & Skimmel, Løsøre) er specialiserede teams inden for en afdeling
+- **Brugere** kan tilknyttes flere afdelinger og underafdelinger via checkboxes i Admin-panelet
+- **Biler** kan tilknyttes flere underafdelinger samtidigt
+- **Data-isolering**: Opgaver, biler, lager og fridage filtreres automatisk efter den valgte afdeling og underafdeling
+- **Super Admin** har global adgang og kan skifte frit mellem alle afdelinger
 
 ### 🔐 Roller og adgang
 
@@ -194,8 +206,20 @@ Dette projekt er licenseret under [MIT-licensen](./LICENSE). Copyright © 2026 K
 - ⚡ **Optimistic UI** with automatic rollback on failure
 - 🛡️ **Robust Error Handling** with Error Boundaries on all pages
 - 💾 **Intelligent Caching** with TanStack Query and 5-minute staleTime
+- 🏢 **Multi-department and sub-department** with user and vehicle assignment to multiple departments/sub-departments
 
 ---
+
+### 🏢 Department & Sub-department Structure
+
+The system supports a hierarchical organizational structure:
+
+- **Departments** (e.g., 02 - Greater Copenhagen, 12 - Fredericia) are the top-level units
+- **Sub-departments** (e.g., Moisture & Mold, Movables) are specialized teams within a department
+- **Users** can be assigned to multiple departments and sub-departments via checkboxes in the Admin panel
+- **Vehicles** can be assigned to multiple sub-departments simultaneously
+- **Data isolation**: Tasks, vehicles, warehouse items, and vacations are automatically filtered by the selected department and sub-department
+- **Super Admin** has global access and can freely switch between all departments
 
 ### 🔐 Roles & Access
 

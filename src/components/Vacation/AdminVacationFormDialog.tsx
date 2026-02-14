@@ -30,6 +30,7 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 
 interface AdminVacationFormDialogProps {
   open: boolean;
@@ -82,7 +83,7 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   const { employees } = useEmployees();
-  const { user } = useAuth();
+  const { user, isDemoMode } = useAuth();
   const { selectedSubDepartmentId, selectedDepartmentId } = useDepartment();
   const [availableEmployees, setAvailableEmployees] = useState<Employee[]>([]);
   
@@ -91,8 +92,9 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
     if (!employees || !open) return;
     
     if (selectedSubDepartmentId) {
-      // Fetch user_access for this sub-department and filter
-      supabase.from('user_access')
+      // Use schema-aware client to avoid affecting live data in demo mode
+      const client = isDemoMode ? getSchemaClient(true) : { from: (t: string) => supabase.from(t as any) };
+      client.from('user_access')
         .select('user_id')
         .eq('department_id', selectedDepartmentId)
         .eq('sub_department_id', selectedSubDepartmentId)

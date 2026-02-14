@@ -110,12 +110,14 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       };
       const data = await CarSecurityService.createCar(enrichedData, canViewFuelCardCode);
       
-      // Sync sub-department assignments via junction table
-      const subDeptIds = (carData as any).sub_department_ids || [];
-      if (subDeptIds.length > 0) {
-        await supabase.from('car_sub_departments').insert(
-          subDeptIds.map((sdId: string) => ({ car_id: data.id, sub_department_id: sdId }))
-        );
+      // Sync sub-department assignments via junction table (skip in demo mode)
+      if (!isDemoMode) {
+        const subDeptIds = (carData as any).sub_department_ids || [];
+        if (subDeptIds.length > 0) {
+          await supabase.from('car_sub_departments').insert(
+            subDeptIds.map((sdId: string) => ({ car_id: data.id, sub_department_id: sdId }))
+          );
+        }
       }
       
       setCars(prevCars => [...prevCars, data]);
