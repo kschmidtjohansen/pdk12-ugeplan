@@ -24,7 +24,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isDemoMode } = useAuth();
-  const { selectedDepartmentId } = useDepartment();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const queryClient = useQueryClient();
 
   const createItem = async (data: WarehouseItemFormData) => {
@@ -71,7 +71,8 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
           hall: data.hall || null,
           notes: data.notes || null,
           created_by: user?.id,
-          department_id: selectedDepartmentId || null
+          department_id: selectedDepartmentId || null,
+          sub_department_id: selectedSubDepartmentId || null
         });
 
       if (error) {

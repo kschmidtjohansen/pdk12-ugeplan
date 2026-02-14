@@ -103,7 +103,12 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         return true;
       }
 
-      const data = await CarSecurityService.createCar(carData, canViewFuelCardCode);
+      const enrichedData = {
+        ...carData,
+        department_id: selectedDepartmentId || null,
+        sub_department_id: selectedSubDepartmentId || null,
+      };
+      const data = await CarSecurityService.createCar(enrichedData, canViewFuelCardCode);
       setCars(prevCars => [...prevCars, data]);
 
       toast({ title: t('cars.vehicleAdded'), description: t('cars.vehicleAddedMsg', { name: carData.name }) });

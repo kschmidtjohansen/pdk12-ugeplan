@@ -15,15 +15,15 @@ export const useVacationData = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user, isDemoMode, userDataLoaded } = useAuth();
-  const { selectedDepartmentId } = useDepartment();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const queryClient = useQueryClient();
 
-  const queryKey = ['vacations', user?.email, selectedDepartmentId] as const;
+  const queryKey = ['vacations', user?.email, selectedDepartmentId, selectedSubDepartmentId] as const;
 
   const fetchVacationsFn = async (): Promise<Vacation[]> => {
     console.log('[useVacationData] Starting enhanced vacation fetch...');
 
-    const vacationResult = await enhancedDataFetching.fetchVacationsEnhanced(user?.email, selectedDepartmentId);
+    const vacationResult = await enhancedDataFetching.fetchVacationsEnhanced(user?.email, selectedDepartmentId, selectedSubDepartmentId);
     if (vacationResult.error || !vacationResult.data) {
       throw vacationResult.error || new Error('No vacation data received');
     }
