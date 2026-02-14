@@ -12,6 +12,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
+const getShortName = (name: string) => name.split('-')[0]?.trim() || name;
+
 const DepartmentSelector: React.FC = () => {
   const { userDepartments, selectedDepartment, switchDepartment, loading } = useDepartment();
   const { toast } = useToast();
@@ -36,7 +38,7 @@ const DepartmentSelector: React.FC = () => {
     return (
       <div className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-muted-foreground">
         <Building2 className="h-4 w-4" />
-        <span>{selectedDepartment?.name || userDepartments[0].name}</span>
+        <span>{getShortName(selectedDepartment?.name || userDepartments[0].name)}</span>
       </div>
     );
   }
@@ -52,7 +54,7 @@ const DepartmentSelector: React.FC = () => {
           )}
         >
           <Building2 className="h-4 w-4" />
-          <span>{selectedDepartment?.name || 'Vælg afdeling'}</span>
+          <span>{selectedDepartment ? getShortName(selectedDepartment.name) : 'Vælg afdeling'}</span>
           <ChevronDown className="h-3 w-3 opacity-60" />
         </Button>
       </DropdownMenuTrigger>
