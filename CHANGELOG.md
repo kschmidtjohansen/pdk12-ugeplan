@@ -39,6 +39,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Database Optimization - 2026-02-15
+- Tilføjet 8 manglende indexes på `department_id` og `sub_department_id` for `assignments`, `on_call_duties`, `vacations` og `warehouse_items` tabeller (forbedrer filtrerings-performance)
+- Fjernet 3 redundante indexes på `assignments` (`idx_assignments_date_published`, `idx_assignments_responsible_user`, `idx_assignments_responsible_published`) — dækket af eksisterende composite indexes
+- Dynamisk undertitel på login-side: Viser nu sidst valgte afdeling (fra localStorage) i stedet for hardcoded "Afdeling 12 - Trekantsområdet"
+- Fjernet hardcoded "Afdeling 12 Trekantsområdet" fra `index.html` meta description og Open Graph tags
+- Opdateret fallback-tekst i oversættelser: DA → "Internt planlægningssystem", EN → "Internal planning system"
+- Dokumenteret `cars.sub_department_id` som redundant kolonne (erstattet af `car_sub_departments` junction-tabel, fjernes ikke nu)
+- Dokumenteret logs-tabel som 276 MB / 366k rækker med 63% `vacation_realtime_change` støj (anbefaling: oprydning af logs ældre end 30 dage)
+- Fil-upload metadata (`assignment_files`) verificeret som effektiv — ingen redundans
+
 ### Security Audit - 2026-02-15
 - Fjernet JWT token-preview logging fra Admin PasswordChangeDialog (konsol-sikkerhed)
 - Fjernet hardcoded API-nøgle fra Admin PasswordChangeDialog — bruger nu `supabase.functions.invoke`

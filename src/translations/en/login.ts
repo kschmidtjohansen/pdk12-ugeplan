@@ -10,7 +10,7 @@ const login = {
   success: 'You are now logged in.',
   logoutSuccess: 'You have been logged out',
   welcomeMessage: 'Welcome to Polygon Weekly Planner',
-  internalSystem: 'Department 12 - Triangle Area',
+  internalSystem: 'Internal planning system',
   invalidCredentials: 'Invalid email or password. Please try again.',
   tooManyRequests: 'Too many login attempts. Please wait before trying again.',
   passwordReset: {
