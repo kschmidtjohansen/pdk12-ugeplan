@@ -39,6 +39,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security (Fase 5) - 2026-02-15
+- Verificeret `can_access_vacation()` RLS-funktion — skadeledere korrekt begrænset til egen afdeling
+- Fjernet følsom logging fra `admin-reset-password` edge function: klient-IP, token-længde, service key presence, bruger-email, password-længde
+- Tilføjet JWT-validerings-dokumentation som kommentarer i `admin-reset-password` edge function
+- Fjernet bruger-email fra security event logs i `admin-reset-password` (bruger nu kun user_id)
+- Wrapped 48+ console.log i `import.meta.env.DEV` guard på tværs af 14 filer for at forhindre brugerdata-eksponering i produktion
+- Berørte filer: EnhancedSecureLoginForm, notificationRealtime/Actions/Fetching, useVacationRequestActions, useVacationSecurity, useAssignmentFormState, useAssignmentActions, useEmployeeCreation, Index, PasswordResetPage, ScreenDisplayPage, databaseCleanup
+
 ### Added - 2026-02-15
 - Erstattet 36 hardcoded gray-farver med semantiske tema-tokens i `CarsTable.tsx` og `MobileCarCard.tsx` (border-border, text-foreground, text-muted-foreground, bg-muted)
 - Oprettet `docs/implementation-plan/timeline.md` med milepæle: Prøveperiode uge 10, Udrulning uge 12, fremtidige afdelinger

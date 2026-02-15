@@ -32,7 +32,7 @@ export const useNotificationFetching = (user: any | null) => {
     
     try {
       setLoading(true);
-      console.log(`Fetching notifications for user ${user.id} with role ${user.role}`);
+      if (import.meta.env.DEV) console.log(`Fetching notifications for user ${user.id}`);
       
       const { data, error } = await supabase
         .from('notifications')
@@ -46,7 +46,7 @@ export const useNotificationFetching = (user: any | null) => {
       }
       
       if (data) {
-        console.log(`Fetched ${data.length} notifications for user ${user.id}:`, data);
+        if (import.meta.env.DEV) console.log(`Fetched ${data.length} notifications`);
         
         const formattedNotifications: NotificationType[] = data.map(item => ({
           id: item.id,

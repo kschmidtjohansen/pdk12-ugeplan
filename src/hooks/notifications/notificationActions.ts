@@ -14,7 +14,7 @@ export const useNotificationActions = (
     if (!user) return;
     
     try {
-      console.log('Marking notification as read:', notificationId);
+      if (import.meta.env.DEV) console.log('Marking notification as read:', notificationId);
       
       const { error } = await supabase
         .from('notifications')
@@ -48,7 +48,7 @@ export const useNotificationActions = (
     if (!user) return;
     
     try {
-      console.log('Marking all notifications as read');
+      if (import.meta.env.DEV) console.log('Marking all notifications as read');
       
       const { error } = await supabase
         .from('notifications')
@@ -79,7 +79,7 @@ export const useNotificationActions = (
     if (!user) return;
     
     try {
-      console.log('Deleting notification:', notificationId);
+      if (import.meta.env.DEV) console.log('Deleting notification:', notificationId);
       
       const { error } = await supabase
         .from('notifications')
@@ -112,7 +112,7 @@ export const useNotificationActions = (
     if (!user) return;
     
     try {
-      console.log('Deleting all notifications for user:', user.id);
+      if (import.meta.env.DEV) console.log('Deleting all notifications for user:', user.id);
       
       const { error } = await supabase
         .from('notifications')

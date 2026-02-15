@@ -152,14 +152,14 @@ const PasswordResetPage: React.FC = () => {
         
         // Determine recovery mode
         if (recoveryToken) {
-          console.log("Using token-based recovery flow");
-          setRecoveryMode('token');
+        if (import.meta.env.DEV) console.log("Using token-based recovery flow");
+        setRecoveryMode('token');
         } else if (recoveryEmail) {
-          console.log("Using email-based recovery flow");
+        if (import.meta.env.DEV) console.log("Using email-based recovery flow");
           setRecoveryMode('email');
           setEmail(recoveryEmail);
         } else {
-          console.log("No recovery mechanism found, showing email-based recovery form");
+          if (import.meta.env.DEV) console.log("No recovery mechanism found, showing email-based recovery form");
           setRecoveryMode('email');
           setTokenError(t('login.invalidOrExpiredToken'));
         }
