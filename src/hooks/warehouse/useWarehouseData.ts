@@ -30,7 +30,7 @@ export const useWarehouseData = () => {
         item.case_number?.startsWith('DEMO-') || item.address?.startsWith('Demo')
       ) as any;
     } else {
-      let query = client.from('warehouse_items').select('*');
+      let query = client.from('warehouse_items').select('*').eq('is_demo', false);
       if (selectedDepartmentId) {
         query = query.eq('department_id', selectedDepartmentId);
       }

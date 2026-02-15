@@ -39,6 +39,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Demo-data isolering via is_demo flag (Fase 9d) - 2026-02-15
+- Tilføjet `is_demo` boolean-kolonne (default false) til 8 primære tabeller: assignments, cars, profiles, warehouse_items, vacations, on_call_duties, notifications, assignments_employees
+- Partial indexes på `is_demo WHERE is_demo = true` for hurtig filtrering
+- RESTRICTIVE RLS-politikker: live-brugere ser ALDRIG demo-data (is_demo=true kun synligt for demo-bruger ID)
+- RPC `reset_demo_data()`: sletter alle is_demo=true rækker på tværs af tabeller (til "Ryd Demo Data"-knap)
+- RPC `cleanup_demo_data_ttl()`: automatisk TTL-oprydning af is_demo=true ældre end 15 minutter
+- Frontend: alle create-hooks tilføjer `is_demo: true` i demo-mode (assignments, cars, profiles, vacations, duties)
+- Frontend: alle live-mode SELECT-queries tilføjer `.eq('is_demo', false)` som defense-in-depth
+- `useDemoAutoCleanup` bruger nu `reset_demo_data()` RPC i stedet for sessionStorage cleanup
+- Services opdateret: enhancedDataFetching, unifiedDataService med is_demo filtrering
+
 ### Demo-data afdelingsisolering (Fase 9c) - 2026-02-15
 - Tilføjet klient-side afdelingsfiltrering for demo-mode: al demo-data tilhører dept 12 - Fredericia
 - Skift til dept 02 - Storkøbenhavn returnerer nu tomme lister for medarbejdere, biler, lager, ferier, vagter og opgaver

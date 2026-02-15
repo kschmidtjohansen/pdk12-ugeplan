@@ -60,6 +60,7 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
             id, name, email, avatar_url
           )
         `)
+        .eq('is_demo', false)
         .order('duty_date', { ascending: true });
 
       if (selectedDepartmentId && !isDemoMode) {

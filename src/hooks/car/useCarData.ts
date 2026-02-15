@@ -5,6 +5,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { CarData } from '@/components/Cars/types';
 import { CarSecurityService } from '@/services/carSecurityService';
 import { supabase } from '@/integrations/supabase/client';
+import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
@@ -106,9 +107,28 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
           updated_at: now,
         } as any;
 
-        DemoUserService.getInstance().storeDemoCar(demoCar);
+        // Also persist to DB with is_demo flag
+        const client = getSchemaClient(isDemoMode);
+        const { error: insertError } = await client
+          .from('cars')
+          .insert({
+            name: demoCar.name,
+            car_number: demoCar.car_number,
+            number_plate: demoCar.number_plate,
+            has_trailer_hitch: demoCar.has_trailer_hitch,
+            is_available: demoCar.is_available,
+            show_in_planner: demoCar.show_in_planner,
+            notes: demoCar.notes,
+            fuel_card_code: demoCar.fuel_card_code,
+            is_demo: true
+          });
+        
+        if (insertError) {
+          if (import.meta.env.DEV) console.warn('[useCarData] Demo DB insert failed, using local only:', insertError);
+          DemoUserService.getInstance().storeDemoCar(demoCar);
+        }
+        
         setCars(prev => [...prev, demoCar]);
-
         toast({ title: t('cars.vehicleAdded'), description: t('cars.vehicleAddedMsg', { name: demoCar.name }) });
         return true;
       }

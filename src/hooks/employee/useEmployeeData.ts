@@ -95,6 +95,7 @@ export const useEmployeeData = () => {
           is_temporary, expires_at, has_asbestos_certificate, has_trailer_license,
           has_drivers_license, has_forklift_license, home_department_id
         `)
+        .eq('is_demo', false)
         .order('name', { ascending: true });
 
       if (profilesError) throw new Error(`Profiles fetch failed: ${profilesError.message}`);

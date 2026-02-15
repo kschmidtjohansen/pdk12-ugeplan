@@ -137,3 +137,16 @@ Gennemført 2026-02-15.
 - [x] Tilføjet demo-afdelingsfiltrering i `useUnifiedData`
 - [x] Ingen database-ændringer — kun klient-side filtrering
 - [x] Dokumenteret i CHANGELOG.md
+
+## Fase 9d: Demo-data isolering via is_demo flag ✅
+
+Gennemført 2026-02-15.
+
+- [x] Tilføjet `is_demo` kolonne til 8 tabeller med partial indexes
+- [x] Oprettet RESTRICTIVE RLS-politikker der skjuler demo-data for live-brugere
+- [x] Oprettet `reset_demo_data()` RPC til manuel oprydning
+- [x] Oprettet `cleanup_demo_data_ttl()` RPC til automatisk 15-min TTL
+- [x] Opdateret alle create-hooks med `is_demo: true` for demo-mode
+- [x] Tilføjet `.eq('is_demo', false)` til alle live-mode queries (defense in depth)
+- [x] Opdateret `useDemoAutoCleanup` til at bruge RPC
+- [x] Dokumenteret i CHANGELOG.md

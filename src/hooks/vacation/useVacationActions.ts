@@ -89,6 +89,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
         status: 'pending' as const,
         department_id: userAccess?.department_id || null,
         sub_department_id: userAccess?.sub_department_id || null,
+        ...(isDemoMode && { is_demo: true }),
       };
 
       const client = getSchemaClient(isDemoMode);

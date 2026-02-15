@@ -200,7 +200,8 @@ export const useAssignmentActions = (
               car_id: carId,
               responsible_user_id: responsibleUserId,
               published: assignmentData.published || false,
-              created_at: new Date().toISOString()
+              created_at: new Date().toISOString(),
+              ...(isDemoMode && { is_demo: true })
             })
             .select('id')
             .single();
