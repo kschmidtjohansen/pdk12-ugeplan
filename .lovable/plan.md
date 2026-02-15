@@ -1,119 +1,93 @@
 
 
-## Fase 9d (fix): Demo-schema routing + resterende DemoUserService-migrering
+## Fase 9e: Fix demo-data RPCs + afdelingsvaeIger-layout
 
 ### Problem
 
-`demoSchemaClient.ts` dirigerer stadig queries til `demo`-schemaet naar `isDemoMode=true` (linje 20-21). Men `is_demo`-kolonnen og RESTRICTIVE RLS-politikker er oprettet i `public`-schemaet. Dette foraarsager fejl ved oprettelse af biler, lager, medarbejdere osv. i demo-mode, fordi `demo`-schemaets tabeller ikke har `is_demo`-kolonnen.
+Der er tre separate problemer:
 
-Derudover bruger `useAssignmentActions.ts` og `useEmployeeActions.ts` stadig `DemoUserService` (sessionStorage) til visse operationer, og `useAssignmentDataOptimized.ts` merger stadig fra sessionStorage.
+**Problem 1: Biler/medarbejdere/lager vises ikke efter oprettelse i demo-mode**
 
-### Sikring af Live-data
+Rodaarsagen er at 6 demo-RPCs (`get_demo_cars_with_security`, `get_demo_profiles_admin_detailed`, `get_demo_warehouse_items`, `get_demo_duties_with_employee`, `get_demo_vacations`, `list_demo_assignments_with_team`) laeser fra `demo.*`-schemaet, mens alle CRUD-operationer nu skriver til `public.*`-schemaet med `is_demo: true`. Data skrives eet sted og laeses fra et andet.
 
-**Defense in depth** -- tre lag beskytter live-brugere:
+**Problem 2: Fejl naar man trykker paa Medarbejdere under afd. 02**
 
-1. **RESTRICTIVE RLS-politikker** (allerede aktive): `is_demo = false OR auth.uid() = demo-user-id` paa alle 8 tabeller. Live-brugere kan ALDRIG se `is_demo = true` raekker, uanset hvad frontend goer.
-2. **Eksplicit query-filtrering**: `.eq('is_demo', false)` i alle live-mode data-hooks (allerede implementeret i forrige fase).
-3. **Realtime subscriptions**: Skal lytte paa `public` schema (ikke `demo`) -- dette fixes i denne opdatering.
+Medarbejder-data i demo-mode hentes via `get_demo_profiles_admin_detailed` som laeser fra `demo.profiles`. Nye demo-medarbejdere oprettet via UI ligger i `public.profiles` med `is_demo: true`, og RPC'en finder dem ikke. Desuden kan RPC'en fejle hvis `demo.profiles` eller `demo.user_roles` tabellerne har aendret struktur.
+
+**Problem 3: Afdelingsvaelger-layout**
+
+Brugeren oensker at hovedafdeling og underafdeling vises side om side (to separate elementer) i stedet for i en enkelt dropdown.
 
 ---
 
-### 1. Fix `demoSchemaClient.ts` -- stop demo-schema routing
+### Loesning
 
-**Fil**: `src/integrations/supabase/demoSchemaClient.ts`
+#### Del 1: Opdater alle 6 demo-RPCs til at laese fra `public` schema med `is_demo = true`
 
-Aendr `from()` metoden saa den ALTID returnerer `public`-schema klienten. `demo`-schemaet bruges ikke laengere, da `is_demo`-flaget nu haandterer isolering i `public`-schemaet.
+Hver RPC skal aendres fra `FROM demo.<table>` til `FROM public.<table> WHERE is_demo = true`.
 
-```text
-from(table: string) {
-  // All operations now use public schema with is_demo flag for isolation
-  return supabase.from(table as any);
-}
-```
+| RPC | Nuvaerende kilde | Ny kilde |
+|-----|-----------------|----------|
+| `get_demo_cars_with_security` | `demo.cars` | `public.cars WHERE is_demo = true` |
+| `get_demo_profiles_admin_detailed` | `demo.profiles` + `demo.user_roles` | `public.profiles WHERE is_demo = true` + `public.user_roles` |
+| `get_demo_warehouse_items` | `demo.warehouse_items` | `public.warehouse_items WHERE is_demo = true` |
+| `get_demo_duties_with_employee` | `demo.on_call_duties` + `demo.profiles` | `public.on_call_duties WHERE is_demo = true` + `public.profiles` |
+| `get_demo_vacations` | `demo.vacations` | `public.vacations WHERE is_demo = true` |
+| `list_demo_assignments_with_team` | `demo.assignments` + `demo.assignments_employees` + `demo.profiles` | `public.assignments WHERE is_demo = true` + tilsvarende public joins |
 
-Dette fixer ALLE eksisterende kald paa en gang uden at aendre hver fil individuelt.
+Dette sikrer at nyoprettede demo-data (med `is_demo = true` i public) vises korrekt.
 
-### 2. Fix `useAssignmentActions.ts` -- fjern DemoUserService
+SQL-migrering: En enkelt migration-fil der erstatter alle 6 funktioner med `CREATE OR REPLACE FUNCTION`.
 
-**Fil**: `src/hooks/assignment/useAssignmentActions.ts`
+#### Del 2: Fix realtime-schema i `useDutyData.ts`
 
-| Blok | Nuvaerende | Ny |
-|------|-----------|-----|
-| Create (linje 83-122) | `demoService.storeDemoAssignment()` med fake ID | Brug `getSchemaClient` + `.insert({ ...data, is_demo: true })` (som non-demo blokken allerede goer) |
-| Update (linje 348-394) | `demoService.updateDemoAssignment()` | Brug `getSchemaClient` + `.update()` (genbrug non-demo logikken) |
-| Publish (linje 637-653) | `demoService.updateDemoAssignment()` | Brug `getSchemaClient` + `.update({ published: true })` |
-| PublishByDate (linje 690-710) | `sessionStorage.setItem()` | Brug `getSchemaClient` + `.update({ published: true }).eq('assignment_date', date)` |
+Linje 101-106: Realtime-subscription bruger stadig `schema: isDemoMode ? 'demo' : 'public'`. Skal aendres til altid at bruge `schema: 'public'`.
 
-Fjern `DemoUserService`-import (linje 10) og `demoService`-variabel (linje 22).
+Uguardede `console.log` paa linje 107-108 og 110-111 skal wraps i `import.meta.env.DEV`.
 
-### 3. Fix `useEmployeeActions.ts` -- fjern DemoUserService
+#### Del 3: Redesign afdelingsvaelger til side-by-side layout
 
-**Fil**: `src/hooks/employee/useEmployeeActions.ts`
+**Fil**: `src/components/Layout/NavComponents/DepartmentSelector.tsx`
 
-| Blok | Nuvaerende | Ny |
-|------|-----------|-----|
-| toggleEmployeeLeave (linje 26-44) | `DemoUserService.updateDemoEmployee()` | Brug `getSchemaClient` + `.update()` paa `profiles` |
-| updateEmployee (linje 96-119) | `DemoUserService.updateDemoEmployee()` | Brug `getSchemaClient` + `.update()` paa `profiles` |
-| deleteEmployee (linje 203-213) | `DemoUserService.deleteDemoEmployee()` | Brug `getSchemaClient` + `.delete().eq('id', id).eq('is_demo', true)` |
+Nuvaerende: En enkelt dropdown-knap med baade afdelinger og underafdelinger i samme menu.
 
-Fjern `DemoUserService`-import (linje 9).
+Ny: To separate elementer side om side:
+- **Venstre**: Hovedafdeling-dropdown (eller statisk label hvis kun en afdeling)
+- **Hoeyre**: Underafdeling-dropdown (eller statisk label hvis kun en underafdeling)
 
-### 4. Fix `useAssignmentDataOptimized.ts` -- fjern local-merge + fix realtime
+Layout: `flex items-center gap-1` med en separator (`/` eller `>`) mellem de to.
 
-**Fil**: `src/hooks/assignment/useAssignmentDataOptimized.ts`
+Eksempel-visning: `[Afd. 02 v]  >  [Fugt & Skimmel v]`
 
-- **Fjern sessionStorage-merge** (linje 101-123): RLS returnerer allerede `is_demo`-data til demo-brugeren. Ingen local-merge noedvendig.
-- **Fix realtime subscription** (linje 175, 193): Aendr `schema: isDemoMode ? 'demo' : 'public'` til `schema: 'public'` -- al data er nu i public schema.
-- Fjern `DemoUserService`-import (linje 10) og `demoService`-variabel (linje 20).
+Begge er individuelle dropdowns hvis der er flere valg, eller statiske labels hvis der kun er et valg.
 
-### 5. Fix `useEmployeeData.ts` -- fjern local-merge
+#### Del 4: Logging-oprydning
 
-**Fil**: `src/hooks/employee/useEmployeeData.ts`
+| Fil | Linjer | Handling |
+|-----|--------|---------|
+| `useDutyData.ts` | 107-108, 110-111 | Wrap i `import.meta.env.DEV` |
+| `carSecurityService.ts` | 111, 187 | Wrap i `import.meta.env.DEV` |
+| `useCarFormState.ts` | 117, 133, 137, 157, 164, 180 | Wrap i `import.meta.env.DEV` |
+| `DepartmentContext.tsx` | 300, 307 | Wrap i `import.meta.env.DEV` |
 
-- Fjern `DemoUserService`-import og `demoService`-variabel.
-- Fjern local-merge af `demoService.getDemoEmployees()` (linje 67-88 i demo-blokken). RPC returnerer allerede `is_demo`-data via RLS.
+#### Del 5: Dokumentation
 
-### 6. Forenkl `useDemoTracking.ts`
-
-**Fil**: `src/hooks/useDemoTracking.ts`
-
-- Erstat `DemoUserService` cleanup med `reset_demo_data` RPC.
-- Fjern sessionStorage-baseret tracking (ikke laengere relevant da alt er i DB).
-- Behold activity-tracking for UX (valgfrit).
-
-### 7. Logging-oprydning (jf. Knowledge)
-
-Paa tvaers af alle beroorte filer:
-
-| Fil | Antal uguardede `console.log` | Handling |
-|-----|-------------------------------|---------|
-| `useAssignmentActions.ts` | ~20 (linje 65-66, 72, 84, 116-119, 154, 171, 176, 209, 228, 293, 319, 322, 338-339, 345, 349, 390, 400, 530, 606, 638, 691) | Wrap i `import.meta.env.DEV` |
-| `useAssignmentDataOptimized.ts` | ~10 (linje 27, 37, 40, 122, 125, 156, 176, 194, 201, 212) | Wrap i `import.meta.env.DEV` |
-| `useEmployeeActions.ts` | 3 (linje 20, 84, 200) | Wrap i `import.meta.env.DEV` |
-| `useCarActions.ts` | ~6 (linje 57, 108, 137, 227, 237, 256) | Wrap i `import.meta.env.DEV` |
-
-`console.error` beholdes for fejlhaandtering. Ingen foelsom data (bruger-ID, email, passwords) logges.
-
-### 8. Dokumentation
-
-- Opdater `CHANGELOG.md` med beskrivelse af fix og DemoUserService-migrering.
+- Opdater `CHANGELOG.md` med beskrivelse af RPC-fix, realtime-fix og afdelingsvaelger-redesign
+- Opdater `docs/implementation-plan/tasks.md` med ny fase 9e
 
 ### Raekkefoelge
 
-1. `demoSchemaClient.ts` -- stop demo-schema routing (fixer alle DB-kald paa en gang)
-2. `useAssignmentActions.ts` -- fjern DemoUserService, brug DB
-3. `useEmployeeActions.ts` -- fjern DemoUserService, brug DB
-4. `useAssignmentDataOptimized.ts` -- fjern local-merge, fix realtime schema
-5. `useEmployeeData.ts` -- fjern local-merge
-6. `useDemoTracking.ts` -- forenkl til RPC
-7. Logging-oprydning paa tvaers af alle filer
-8. `CHANGELOG.md`
+1. SQL-migrering: Opdater alle 6 demo-RPCs til `public` schema
+2. Fix `useDutyData.ts` realtime-schema + logging
+3. Fix logging i `carSecurityService.ts`, `useCarFormState.ts`, `DepartmentContext.tsx`
+4. Redesign `DepartmentSelector.tsx` til side-by-side layout
+5. Opdater `CHANGELOG.md` og `tasks.md`
 
-### Live-data beskyttelse (opsummering)
+### Kvalitetstjek
 
-- **RLS**: RESTRICTIVE policies paa alle 8 tabeller -- live-brugere ser KUN `is_demo = false`
-- **Query-filtrering**: `.eq('is_demo', false)` i alle live-mode hooks (defense in depth)
-- **Realtime**: Lytter paa `public` schema -- ingen data fra `demo` schema laeser ind
-- **pg_cron**: Sletter automatisk `is_demo = true` data aeldre end 15 minutter
-- **Ingen demo-schema**: Al routing til `demo`-schemaet fjernes -- ingen risiko for data-laekning mellem schemaer
+- Live-brugere forbliver beskyttet: RESTRICTIVE RLS-politikker paa `public` schema sikrer at `is_demo = true` data er usynligt for alle andre end demo-brugeren
+- RPCs begraenset til demo-bruger via email-check (`test@polygongroup.com`)
+- Ingen foelsom data logges
+- Alle `console.log` i aendrede blokke wraps med `import.meta.env.DEV`
+- Afdelingsvaelger fungerer i baade Standard og Kompakt visning og er fuldt responsiv
 
