@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import type { Duty } from '@/types/duty';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { isDemoNonHomeDepartment } from '@/constants/demo';
 
 export const useDutyData = (startDate?: Date, endDate?: Date) => {
   const { user, isDemoMode } = useAuth();
@@ -21,6 +22,11 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
     const isDemoMode = user?.email === 'test@polygongroup.com';
 
     if (isDemoMode) {
+      if (isDemoNonHomeDepartment(true, selectedDepartmentId)) {
+        if (import.meta.env.DEV) console.log('[useDutyData] Non-home department in demo mode, returning empty');
+        return [];
+      }
+
       const { data, error: fetchError } = await supabase.rpc('get_demo_duties_with_employee' as any, {
         start_date_param: startDateStr || null,
         end_date_param: endDateStr || null

@@ -39,6 +39,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Demo-data afdelingsisolering (Fase 9c) - 2026-02-15
+- Tilføjet klient-side afdelingsfiltrering for demo-mode: al demo-data tilhører dept 12 - Fredericia
+- Skift til dept 02 - Storkøbenhavn returnerer nu tomme lister for medarbejdere, biler, lager, ferier, vagter og opgaver
+- Ny `src/constants/demo.ts` med `DEMO_HOME_DEPARTMENT_ID` og `isDemoNonHomeDepartment()` hjælpefunktion
+- Berørte hooks: `useEmployeeData`, `useCarData`, `useWarehouseData`, `useVacationData`, `useDutyData`, `useUnifiedData`
+- Berørt service: `optimizedAssignmentService` (fetchAllAssignments, fetchAllPublishedAssignments)
+- Ingen database-ændringer — kun klient-side filtrering
+
 ### Demo-bruger afdelingsadgang (Fase 9b) - 2026-02-15
 - Demo-bruger (`test@polygongroup.com`) får nu adgang til **02 - Storkøbenhavn** med alle 3 underafdelinger (Fugt & Skimmel, Løsøre, Miljø & Brand)
 - Eksisterende data (1.023 opgaver, 12 biler, 22 lageremner) forbliver isoleret på **12 - Fredericia** og vises kun når dept 12 er valgt

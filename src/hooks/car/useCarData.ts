@@ -10,6 +10,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { DemoUserService } from '@/services/demoUserService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { isDemoNonHomeDepartment } from '@/constants/demo';
 
 export const useCarData = (canViewFuelCardCode: boolean = false) => {
   const { isDemoMode, userDataLoaded, user } = useAuth();
@@ -24,6 +25,11 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
     if (import.meta.env.DEV) console.log('[useCarData] Fetching cars with enhanced security...');
 
     if (isDemoMode) {
+      if (isDemoNonHomeDepartment(isDemoMode, selectedDepartmentId)) {
+        if (import.meta.env.DEV) console.log('[useCarData] Non-home department in demo mode, returning empty');
+        return [];
+      }
+
       const { data, error: fetchError } = await rpcWithRefresh<any[]>('get_demo_cars_with_security');
       if (fetchError) throw fetchError;
 
