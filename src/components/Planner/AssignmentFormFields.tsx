@@ -35,7 +35,7 @@ interface AssignmentFormFieldsProps {
   setSelectedCarIds: (value: string[]) => void;
   selectedResponsibleUserId: string;
   setSelectedResponsibleUserId: (value: string) => void;
-  selectedEmployees: string[]; // Now stores employee IDs instead of names
+  selectedEmployees: string[];
   onEmployeeToggle: (employeeId: string) => void;
   cars: Car[];
   employees: Employee[];
@@ -74,43 +74,31 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   const { t, currentLanguage } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
 
-  console.log('[AssignmentFormFields] Rendering with car state:', {
-    selectedCarIds,
-    carType: typeof selectedCarIds,
-    isEmpty: !selectedCarIds || selectedCarIds.length === 0
-  });
+  if (import.meta.env.DEV) {
+    console.log('[AssignmentFormFields] Car state:', { selectedCarIds });
+  }
 
   const currentDateStr = selectedDates.length > 0 ? format(selectedDates[0], 'yyyy-MM-dd') : '';
 
-  // FIXED: Enhanced date formatting with proper timezone handling
   const formatDateDisplay = (date: Date) => {
     try {
-      console.log('[AssignmentFormFields] Formatting date:', date);
       const locale = currentLanguage === 'da' ? da : undefined;
-      
-      // Create a new date in local timezone to prevent shifts
       const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      const formatted = format(localDate, "PPP", { locale });
-      console.log('[AssignmentFormFields] Formatted date:', formatted);
-      return formatted;
+      return format(localDate, "PPP", { locale });
     } catch (e) {
       console.error("Error formatting date:", e);
       return format(date, "PPP");
     }
   };
 
-  // FIXED: Handle multi-date selection
   const handleDateSelect = (dates: Date[] | undefined) => {
-    console.log('[AssignmentFormFields] Dates selected from calendar:', dates);
     if (dates && dates.length > 0) {
-      // Use local date methods instead of UTC to prevent timezone shifts
       const localDates = dates.map(date => {
         const localYear = date.getFullYear();
         const localMonth = date.getMonth();
         const localDay = date.getDate();
         return new Date(localYear, localMonth, localDay);
       });
-      console.log('[AssignmentFormFields] Created timezone-safe dates:', localDates);
       setSelectedDates(localDates);
     } else {
       setSelectedDates([]);
@@ -118,94 +106,61 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   };
 
   const handleRemoveDate = (dateToRemove: Date) => {
-    console.log('[AssignmentFormFields] Removing date:', dateToRemove);
-    console.log('[AssignmentFormFields] Current dates:', selectedDates);
-    
-    // Compare dates as strings (YYYY-MM-DD) instead of timestamps
     const dateToRemoveStr = format(dateToRemove, 'yyyy-MM-dd');
     const updatedDates = selectedDates.filter(d => {
       const dStr = format(d, 'yyyy-MM-dd');
       return dStr !== dateToRemoveStr;
     });
-    
-    console.log('[AssignmentFormFields] Updated dates after removal:', updatedDates);
     setSelectedDates(updatedDates);
   };
 
-  // Show responsible user field only for admin and skadeleder
   const canAssignResponsibleUser = isAdmin || isSkadeleder;
 
-  // FIXED: Enhanced car selection with better validation for multiple cars
   const handleCarToggle = (carId: string) => {
-    console.log('[AssignmentFormFields] Car toggle handler called:', {
-      carId,
-      carType: typeof carId,
-      isEmpty: carId === '' || !carId,
-      currentSelection: selectedCarIds
-    });
-    
     const currentCars = selectedCarIds || [];
     let updatedCars;
     
     if (currentCars.includes(carId)) {
       updatedCars = currentCars.filter(id => id !== carId);
-      console.log('[AssignmentFormFields] Removing car:', carId);
     } else {
       updatedCars = [...currentCars, carId];
-      console.log('[AssignmentFormFields] Adding car:', carId);
     }
     
-    console.log('[AssignmentFormFields] Setting updated car IDs:', updatedCars);
     setSelectedCarIds(updatedCars);
   };
 
-  // FIXED: Enhanced employee selection with validation - now uses employee IDs
   const handleEmployeeToggle = (employeeId: string) => {
-    console.log('[AssignmentFormFields] Employee toggled:', employeeId);
-    console.log('[AssignmentFormFields] Current employees:', selectedEmployees);
-    
     if (!employeeId || employeeId.trim() === '') {
-      console.warn('[AssignmentFormFields] Invalid employee ID provided');
+      if (import.meta.env.DEV) console.warn('[AssignmentFormFields] Invalid employee ID');
       return;
     }
-    
-    console.log('[AssignmentFormFields] Calling onEmployeeToggle with:', employeeId);
     onEmployeeToggle(employeeId);
   };
 
   return (
     <div className="space-y-4">
-      {/* Title Field - Updated to use enterTitle translation */}
       <div className="space-y-2">
         <Label htmlFor="title">{t('planner.enterTitle')}</Label>
         <Input
           id="title"
           value={title}
-          onChange={(e) => {
-            console.log('[AssignmentFormFields] Title changed:', e.target.value);
-            setTitle(e.target.value);
-          }}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder={t('planner.enterTitle')}
           required
         />
       </div>
 
-      {/* Location Field - Updated to use enterLocation translation */}
       <div className="space-y-2">
         <Label htmlFor="location">{t('planner.location')}</Label>
         <Input
           id="location"
           value={location}
-          onChange={(e) => {
-            console.log('[AssignmentFormFields] Location changed:', e.target.value);
-            setLocation(e.target.value);
-          }}
+          onChange={(e) => setLocation(e.target.value)}
           placeholder={t('planner.enterLocation')}
           required
         />
       </div>
 
-      {/* Date Field - Multi-date selector for both create and edit modes */}
       <div className="space-y-2">
         <Label>{t('planner.selectMultipleDates')}</Label>
         <Popover>
@@ -236,7 +191,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             />
           </PopoverContent>
         </Popover>
-        {/* Display selected dates as removable badges */}
         {selectedDates.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-2">
             {selectedDates.map((date, index) => (
@@ -268,7 +222,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         )}
       </div>
 
-      {/* Time Fields - Updated to use startTime and endTime translations */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="fromTime">{t('planner.startTime')}</Label>
@@ -276,10 +229,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             id="fromTime"
             type="time"
             value={fromTime}
-            onChange={(e) => {
-              console.log('[AssignmentFormFields] From time changed:', e.target.value);
-              setFromTime(e.target.value);
-            }}
+            onChange={(e) => setFromTime(e.target.value)}
             required
           />
         </div>
@@ -289,16 +239,12 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             id="toTime"
             type="time"
             value={toTime}
-            onChange={(e) => {
-              console.log('[AssignmentFormFields] To time changed:', e.target.value);
-              setToTime(e.target.value);
-            }}
+            onChange={(e) => setToTime(e.target.value)}
             required
           />
         </div>
       </div>
 
-      {/* Employee Selector */}
       <EmployeeSelector
         employees={employees}
         selectedEmployees={selectedEmployees}
@@ -308,18 +254,13 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         assignments={assignments}
       />
 
-      {/* Responsible User Selector - Updated to use responsibleUser translation */}
       {canAssignResponsibleUser && (
         <ResponsibleUserSelector
           selectedUserId={selectedResponsibleUserId}
-          onUserSelect={(userId) => {
-            console.log('[AssignmentFormFields] Responsible user selected:', userId);
-            setSelectedResponsibleUserId(userId);
-          }}
+          onUserSelect={(userId) => setSelectedResponsibleUserId(userId)}
         />
       )}
 
-      {/* Multiple Car Selector with enhanced error handling */}
       <div className="space-y-2">
         <MultipleCarSelector
           cars={cars.filter(car => car.show_in_planner !== false)}
@@ -331,16 +272,12 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         />
       </div>
 
-      {/* Description Field */}
       <div className="space-y-2">
         <Label htmlFor="description">{t('planner.assignmentDescription')}</Label>
         <Textarea
           id="description"
           value={description}
-          onChange={(e) => {
-            console.log('[AssignmentFormFields] Description changed:', e.target.value);
-            setDescription(e.target.value);
-          }}
+          onChange={(e) => setDescription(e.target.value)}
           placeholder={t('planner.notesPlaceholder')}
           rows={3}
         />

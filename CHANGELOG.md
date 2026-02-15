@@ -39,6 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Visuel konsistens-gennemgang - 2026-02-15
+- Wrappet 50+ uguardede console.log kald i `import.meta.env.DEV` guard i 5 Planner-komponenter (AssignmentCard, DaySection, EmployeeSelector, ResponsibleUserSelector, AssignmentFormFields)
+- Erstattet hardcoded `text-gray-*` farver med tema-variabler (`text-foreground`, `text-muted-foreground`, `bg-card`, `bg-muted`) i PageHeader, shared/EmptyState, CompactAssignmentRow, EmployeesList, AssignmentCard, DaySection
+- Standardiseret tomme tilstande til ensartet `py-12` spacing og tema-farver
+- Slettet ubrugt `Planner/EmptyState.tsx` (AssignmentList bruger nu `shared/EmptyState`)
+- Fjernet debug-kode og verbose logging fra ResponsibleUserSelector og AssignmentFormFields
+
 ### Funktionel logik-gennemgang - 2026-02-15
 - Rettet: `super_admin` kan nu slette andres chat-beskeder (manglede i rolle-listen i `AssignmentMessagesPanel`)
 - Tilføjet: 20MB filstørrelses-validering på assignment fil-upload (forhindrer vilkårligt store uploads)

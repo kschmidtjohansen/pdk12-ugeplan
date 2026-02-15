@@ -42,8 +42,8 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-6">
-          <Users className="h-5 w-5 text-gray-400" />
-          <span className="text-sm text-gray-500">
+          <Users className="h-5 w-5 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">
             {t('common.loading') || 'Loading employees...'}
           </span>
         </div>
@@ -75,11 +75,11 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
   if (employees.length === 0) {
     return (
       <div className="text-center py-12">
-        <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-600 mb-2">
+        <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-foreground mb-2">
           {t('employees.noEmployees') || 'No employees found'}
         </h3>
-        <p className="text-gray-500 mb-4">
+        <p className="text-muted-foreground mb-4">
           {t('employees.noEmployeesDescription') || 'No employee records were found in the system.'}
         </p>
         <Button onClick={onRetry} variant="outline" size="sm">
@@ -111,7 +111,7 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">{employee.name}</h3>
+                  <h3 className="font-medium text-foreground">{employee.name}</h3>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="outline" className="text-xs">
                       {t(`employees.${employee.role}`)}

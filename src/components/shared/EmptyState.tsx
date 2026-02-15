@@ -16,18 +16,18 @@ interface EmptyStateProps {
 const EmptyState: React.FC<EmptyStateProps> = ({ 
   title, 
   description, 
-  icon = <AlertCircle className="h-12 w-12 text-gray-400" />,
+  icon = <AlertCircle className="h-12 w-12 text-muted-foreground" />,
   action 
 }) => {
   return (
-    <div className="text-center py-8 space-y-4">
+    <div className="text-center py-12 space-y-4">
       <div className="flex justify-center">
         {icon}
       </div>
       <div>
-        <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+        <h3 className="text-lg font-medium text-foreground">{title}</h3>
         {description && (
-          <p className="text-gray-500 mt-2">{description}</p>
+          <p className="text-muted-foreground mt-2">{description}</p>
         )}
       </div>
       {action && (

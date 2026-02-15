@@ -41,43 +41,29 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const { employees } = useEmployees();
   const { data: warehouseIndicators } = useWarehouseIndicators();
   
-  // Match by case_number first, fallback to title for flexibility
   const warehouseData = warehouseIndicators 
     ? (assignment.case_number && warehouseIndicators.get(assignment.case_number)) || 
       warehouseIndicators.get(assignment.title) || { count: 0, totalQuantity: 0 }
     : { count: 0, totalQuantity: 0 };
   const warehouseItemCount = warehouseData.totalQuantity;
 
-  console.log(`[AssignmentCard] COMPREHENSIVE FIX - Assignment: ${assignment.title || assignment.location}`);
-  console.log(`[AssignmentCard] COMPREHENSIVE FIX - Employee data:`, {
-    hasAssignedEmployees: !!assignment.assignedEmployees?.length,
-    assignedEmployees: assignment.assignedEmployees?.map(e => e.name),
-    hasLegacyEmployees: !!assignment.employees?.length,
-    legacyEmployees: assignment.employees,
-    responsibleUserId: assignment.responsibleUserId || assignment.responsibleUser?.id
-  });
-  
-  // PHASE 1 FIX: Enhanced responsible user lookup with comprehensive debugging
-  const getResponsibleUserInfo = () => {
-    console.log('[AssignmentCard] DEBUG - Getting responsible user info:', {
-      assignmentId: assignment.id,
-      responsibleUserId: assignment.responsibleUserId,
-      responsibleUserFromAssignment: assignment.responsibleUser,
-      employeesCount: employees.length,
-      hasResponsibleUserId: !!assignment.responsibleUserId
+  if (import.meta.env.DEV) {
+    console.log(`[AssignmentCard] Assignment: ${assignment.title || assignment.location}`);
+    console.log(`[AssignmentCard] Employee data:`, {
+      hasAssignedEmployees: !!assignment.assignedEmployees?.length,
+      assignedEmployees: assignment.assignedEmployees?.map(e => e.name),
+      hasLegacyEmployees: !!assignment.employees?.length,
+      legacyEmployees: assignment.employees,
+      responsibleUserId: assignment.responsibleUserId || assignment.responsibleUser?.id
     });
-
-    // Check multiple possible sources for responsible user ID
+  }
+  
+  const getResponsibleUserInfo = () => {
     const responsibleId = assignment.responsibleUserId || assignment.responsibleUser?.id;
     
-    if (!responsibleId) {
-      console.log('[AssignmentCard] DEBUG - No responsible user ID found');
-      return null;
-    }
+    if (!responsibleId) return null;
 
-    // First check if we have the user data from the assignment object
     if (assignment.responsibleUser?.name) {
-      console.log('[AssignmentCard] DEBUG - Using assignment.responsibleUser:', assignment.responsibleUser.name);
       return {
         id: assignment.responsibleUser.id,
         name: assignment.responsibleUser.name,
@@ -85,20 +71,8 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       };
     }
 
-    // Enhanced lookup from employees with detailed logging
-    console.log('[AssignmentCard] DEBUG - Searching in employees list:', {
-      searchingForId: responsibleId,
-      employeeIds: employees.map(e => ({ id: e.id.substring(0, 8) + '...', name: e.name, role: e.role }))
-    });
-
     const responsibleEmployee = employees.find(emp => emp.id === responsibleId);
     if (responsibleEmployee) {
-      console.log('[AssignmentCard] DEBUG - Found responsible user via employees lookup:', {
-        name: responsibleEmployee.name,
-        role: responsibleEmployee.role,
-        id: responsibleEmployee.id.substring(0, 8) + '...'
-      });
-      
       return {
         id: responsibleEmployee.id,
         name: responsibleEmployee.name,
@@ -106,33 +80,23 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       };
     }
 
-    console.warn('[AssignmentCard] DEBUG - Responsible user not found anywhere:', {
-      searchedId: responsibleId,
-      totalEmployees: employees.length,
-      assignmentTitle: assignment.title
-    });
+    if (import.meta.env.DEV) {
+      console.warn('[AssignmentCard] Responsible user not found:', responsibleId);
+    }
     return null;
   };
 
   const responsibleUserInfo = getResponsibleUserInfo();
 
-  console.log(`[AssignmentCard] Final responsible user info:`, responsibleUserInfo);
-
   const handleEditClick = (assignment: Assignment) => {
-    console.log('[AssignmentCard] Edit clicked for assignment:', assignment.id);
     onEdit(assignment);
   };
 
   const handleCopyClick = () => {
-    if (onCopy) {
-      console.log('[AssignmentCard] Copy clicked for assignment:', assignment.id);
-      onCopy();
-    }
+    if (onCopy) onCopy();
   };
 
   const handlePublishClick = async (assignmentId: string) => {
-    console.log('[AssignmentCard] Publish clicked for assignment:', assignmentId);
-    
     if (onPublish) {
       try {
         await onPublish();
@@ -159,7 +123,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Don't trigger if clicking on buttons or interactive elements
     const target = e.target as HTMLElement;
     if (target.closest('button') || target.closest('a') || target.closest('[role="button"]')) {
       return;
@@ -171,10 +134,9 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   return (
     <Card 
-      className={`relative w-full p-4 bg-white hover:border-polygon-purple transition-colors ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
+      className={`relative w-full p-4 bg-card hover:border-polygon-purple transition-colors ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
       onClick={handleCardClick}
     >
-      {/* Warehouse indicator badge - positioned at bottom right */}
       {warehouseItemCount > 0 && (
         <TooltipProvider delayDuration={100}>
           <Tooltip>
@@ -208,22 +170,20 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
               )}
             </div>
             {assignment.location && (
-              <p className="text-sm text-gray-600">{assignment.location}</p>
+              <p className="text-sm text-muted-foreground">{assignment.location}</p>
             )}
-            {/* Enhanced responsible user display with proper label */}
             {responsibleUserInfo?.name && (
               <div className="flex items-center gap-1 mt-1">
                 <UserCheck className="h-4 w-4 text-blue-600" />
-                <span className="text-sm text-gray-800 font-medium">
+                <span className="text-sm text-foreground font-medium">
                   {t('planner.responsibleUser')}: {responsibleUserInfo.name}
                 </span>
               </div>
             )}
-            {/* Enhanced debug info for development with role structure context */}
-            {process.env.NODE_ENV === 'development' && assignment.responsibleUserId && !responsibleUserInfo && (
+            {import.meta.env.DEV && assignment.responsibleUserId && !responsibleUserInfo && (
               <div className="flex items-center gap-1 mt-1">
                 <UserCheck className="h-3 w-3 text-yellow-600" />
-                <span className="text-xs text-yellow-600" title="Debug: Responsible user ID found but user data missing - check if roles are properly assigned">
+                <span className="text-xs text-yellow-600" title="Debug: Responsible user ID found but user data missing">
                   Missing User Data (Check Roles)
                 </span>
               </div>
@@ -247,7 +207,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       </div>
       
       {assignment.description && (
-        <p className="text-gray-600 mb-3 text-sm line-clamp-3">{assignment.description}</p>
+        <p className="text-muted-foreground mb-3 text-sm line-clamp-3">{assignment.description}</p>
       )}
       
       <AssignmentDetails assignment={assignment} cars={cars} assignments={assignments} showFullTeamDetails={true} />

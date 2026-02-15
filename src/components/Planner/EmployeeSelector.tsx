@@ -19,7 +19,7 @@ import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUt
 
 interface EmployeeSelectorProps {
   employees: Employee[];
-  selectedEmployees: string[]; // Now stores employee IDs instead of names
+  selectedEmployees: string[];
   onToggle: (employeeId: string) => void;
   vacations: Vacation[];
   currentDate: string;
@@ -39,10 +39,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
 
-  // Schema isolation handles data separation - employees already filtered by schema
   const filteredEmployees = employees;
 
-  // ROBUST date parsing for vacation check
   const dateForComparison = (() => {
     try {
       let dateStr: string;
@@ -61,7 +59,6 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     }
   })();
 
-  // Check for employees that should be auto-removed when their availability changes
   useEffect(() => {
     const employeesToRemove: string[] = [];
     
@@ -73,12 +70,13 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     });
 
     if (employeesToRemove.length > 0) {
-      console.log('[EmployeeSelector] Auto-removing unavailable employees:', employeesToRemove);
+      if (import.meta.env.DEV) {
+        console.log('[EmployeeSelector] Auto-removing unavailable employees:', employeesToRemove);
+      }
       setAutoRemovedEmployees(employeesToRemove.map(id => 
         employees.find(emp => emp.id === id)?.name || id
       ));
       
-      // Remove the unavailable employees
       employeesToRemove.forEach(employeeId => {
         onToggle(employeeId);
       });
@@ -93,25 +91,25 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       const employee = employees.find(emp => emp.id === selectedEmployees[0]);
       return employee?.name || selectedEmployees[0];
     }
-    // Updated to use the new translation key
     return `${selectedEmployees.length} ${t('employees.selected')}`;
   };
 
   useEffect(() => {
-    console.log("EmployeeSelector - Current date:", currentDate);
-    console.log("EmployeeSelector - Selected employees:", selectedEmployees);
-    console.log("EmployeeSelector - User role:", user?.role);
-    console.log("EmployeeSelector - Filtered employees count:", filteredEmployees.length);
-    console.log("EmployeeSelector - All assignments:", assignments);
-    console.log("EmployeeSelector - Date for comparison:", dateForComparison);
-    console.log("EmployeeSelector - Auto-removed employees:", autoRemovedEmployees);
+    if (import.meta.env.DEV) {
+      console.log("EmployeeSelector - Current date:", currentDate);
+      console.log("EmployeeSelector - Selected employees:", selectedEmployees);
+      console.log("EmployeeSelector - User role:", user?.role);
+      console.log("EmployeeSelector - Filtered employees count:", filteredEmployees.length);
+      console.log("EmployeeSelector - All assignments:", assignments);
+      console.log("EmployeeSelector - Date for comparison:", dateForComparison);
+      console.log("EmployeeSelector - Auto-removed employees:", autoRemovedEmployees);
+    }
   }, [currentDate, selectedEmployees, assignments, user?.role, filteredEmployees.length, dateForComparison, autoRemovedEmployees]);
 
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium">{t('planner.employees')}</label>
       
-      {/* Show notification if employees were auto-removed */}
       {autoRemovedEmployees.length > 0 && (
         <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded p-2">
           {t('employees.autoRemovedUnavailable')}: {autoRemovedEmployees.join(', ')}
@@ -130,10 +128,9 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             </div>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-50 bg-white border shadow-md">
+        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-50 bg-popover border shadow-md">
           {filteredEmployees.map(employee => {
             try {
-              // Validate employee has required fields
               if (!employee || !employee.id || !employee.name) {
                 console.error('[EmployeeSelector] Invalid employee object:', employee);
                 return null;
@@ -141,12 +138,10 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 
               const isSelected = selectedEmployees.includes(employee.id);
               
-              // Check if temporary employee is expired
               const isExpired = employee.is_temporary && employee.expires_at 
                 ? new Date(employee.expires_at) < new Date() 
                 : false;
               
-              // Get detailed vacation status with error handling
               let vacationStatus;
               try {
                 vacationStatus = getEmployeeVacationStatus(employee.id, dateForComparison, vacations);
@@ -155,10 +150,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 vacationStatus = { isOnVacation: false, vacationType: 'none' };
               }
               
-              // Use manual on leave status (not vacation-based)
               const isManuallyOnLeave = employee.onLeave || false;
               
-              // Get comprehensive availability info with error handling
               let availabilityInfo;
               try {
                 availabilityInfo = getEmployeeAvailabilityStatus(employee, dateForComparison, assignments, vacations, t);
@@ -167,16 +160,16 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 availabilityInfo = { status: 'available', statusText: '', badgeColor: '' };
               }
               
-              // Employee is disabled if: full-day vacation, manually on leave, expired, or terminated/inactive
               const isDisabled = (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day') 
                 || isManuallyOnLeave 
                 || isExpired
                 || employee.status === 'terminated'
                 || employee.status === 'inactive';
               
-              // Apply red styling for workday end times with higher CSS specificity
               const hasRedStyling = availabilityInfo.status === 'fullyBooked';
-              console.log(`[EmployeeSelector] Employee ${employee.name} red styling applied: ${hasRedStyling}, disabled: ${isDisabled}, vacation type: ${vacationStatus.vacationType}`);
+              if (import.meta.env.DEV) {
+                console.log(`[EmployeeSelector] Employee ${employee.name} red styling: ${hasRedStyling}, disabled: ${isDisabled}`);
+              }
               
               return (
               <DropdownMenuItem
@@ -243,7 +236,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             );
             } catch (err) {
               console.error(`[EmployeeSelector] Error rendering employee ${employee?.name || 'unknown'}:`, err);
-              return null; // Skip this employee if there's an error
+              return null;
             }
           })}
         </DropdownMenuContent>
