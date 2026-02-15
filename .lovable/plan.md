@@ -1,58 +1,65 @@
 
-## Opret docs-mappestruktur
+## Opret 3 manglende docs-filer med fuldt indhold
 
-### Hvad der oprettes
+### Filer der oprettes
 
-```text
-docs/
-  implementation-plan/
-    readme.md        -- Formaal: Aktive opgaver og faser
-    tasks.md         -- De 4 faser (Sikkerhed, Database, Performance, UI)
-  product-roadmap/
-    readme.md        -- Formaal: Langsigtet vision, afdelinger, udrulning
-  technical-specs/
-    readme.md        -- Formaal: Database-arkitektur, SHA256, RLS-politikker
-  ui-guidelines/
-    readme.md        -- Formaal: Visuelle standarder, visninger, responsivitet
-```
+| Fil | Indhold |
+|-----|---------|
+| `docs/technical-specs/data-models.md` | Komplet oversigt over alle 17 tabeller, relationer, enums og RPC-funktioner |
+| `docs/technical-specs/architecture.md` | SHA256/bcrypt-kryptering, RLS-politikker, edge function sikkerhed, input-sanitering |
+| `docs/ui-guidelines/component-library.md` | Alle genbrugelige komponenter i `shared/` og `ui/` med anvendelsesmoenstre |
 
-### Indhold i hver readme.md
+### 1. `docs/technical-specs/data-models.md`
 
-**implementation-plan/readme.md**: Beskriver mappen som projektets opgavestyring. Refererer til tasks.md for aktive og afsluttede opgaver.
+Indhold baseret paa `src/integrations/supabase/types.ts`:
 
-**implementation-plan/tasks.md**: Indeholder de 4 gennemfoerte faser fra vores samtaler:
-1. Sikkerhedsaudit (RLS, edge functions, logging)
-2. Database-optimering (indexes, redundans, logs-oprydning)
-3. Performance (console.log guards, font-subsetting, caching)
-4. UI/Visuel konsistens (tema-variabler, tomme tilstande, polish)
+- **17 kernetabeller** med kolonner og typer: `assignments`, `assignment_files`, `assignment_messages`, `assignments_employees`, `cars`, `car_sub_departments`, `case_folder_mappings`, `case_onedrive_mappings`, `departments`, `notifications`, `on_call_duties`, `onedrive_settings`, `planner_change_log`, `profiles`, `sub_departments`, `user_access`, `user_roles`, `vacations`, `warehouse_items`
+- **Log-tabeller** (3 stk): `logs`, `logs_partitioned`, `logs_y2025m07/m08`
+- **System-tabeller** (1 stk): `system_cleanup_tracking`
+- **Junction-tabeller** (3 stk): `assignments_employees`, `car_sub_departments`, `user_access`
+- **5 enums**: `assignment_type`, `duty_type`, `employee_status`, `user_role`, `vacation_status`
+- **Vigtige relationer** (foreign keys) dokumenteret
+- **RPC-funktioner** grupperet: adgangskontrol (10), data-hentning (15), logging (8), validering (6), vedligeholdelse (8)
 
-Alle opgaver markeres som faerdige (`[x]`) da de er implementeret.
+### 2. `docs/technical-specs/architecture.md`
 
-**product-roadmap/readme.md**: Beskriver den langsigtede vision, herunder understoettelse af flere afdelinger/underafdelinger, feature toggles per afdeling, og fremtidig udrulning.
+Indhold baseret paa eksisterende `readme.md` og sikkerhedsaudit:
 
-**technical-specs/readme.md**: Beskriver regler for database-arkitektur (RLS-politikker, junction-tabeller, SHA256-kryptering via Supabase Auth), sikkerhedsstandarder og logging-politikker.
+- **Autentificering**: Supabase Auth med bcrypt, JWT-verifikation
+- **Kryptering**: `hmac_sha256()` database-funktion, passwords haandteret af Supabase Auth
+- **RLS-hjaelpefunktioner**: `is_admin_or_skadeleder()`, `is_super_admin()`, `can_access_department_data()`, `can_access_vacation()`, `can_user_access_assignment()`, `can_view_assignment_optimized()`
+- **Edge Functions**: 11 funktioner, JWT-krav, CORS-headers, service role key kun server-side
+- **Input-sikkerhed**: `sanitize_text_input()`, `validate_input_security()`, `check_rate_limit_security()`, `is_valid_email()`, `is_strong_password()`
+- **Fil-sikkerhed**: 20MB upload-graense, MIME-type validering
+- **Logging**: `import.meta.env.DEV` guard, `log_security_event_safe()` sparsomt, ingen secrets i output
+- **Kendte undtagelser**: `admin-reset-password` uden JWT, `profiles`/`user_roles` offentligt laesbare
 
-**ui-guidelines/readme.md**: Beskriver de visuelle standarder: tema-variabler (ingen hardcoded farver), Standard/Kompakt/Gitter-visning, responsivt design, tomme tilstande og hover-effekter.
+### 3. `docs/ui-guidelines/component-library.md`
 
-### Changelog
+Indhold baseret paa filsystemet:
 
-Tilfoej en ny sektion i CHANGELOG.md:
+**Shared-komponenter (9 stk)**:
+- `EmptyState` — Standardiseret tom-tilstand med ikon, titel, beskrivelse, valgfri action-knap
+- `CardSkeleton` — Loading-skeleton for kort
+- `TableSkeleton` — Loading-skeleton for tabeller
+- `MetricsSkeleton` — Loading-skeleton for dashboard-metrics
+- `LoadingSpinner` — Generisk loading-indikator
+- `RouteLoadingFallback` — Loading-komponent til lazy-loadede routes
+- `LastRefreshIndicator` — Viser tidspunkt for seneste data-opdatering
+- `PullToRefresh` — Pull-to-refresh wrapper til mobile listevisninger
+- `RealtimeChangeNotifier` — Toast-notifikation ved realtime-aendringer
+
+**UI-komponenter (51 stk)**: Radix UI-baserede primitiver (accordion, alert-dialog, avatar, badge, button, calendar, card, checkbox, dialog, dropdown-menu, form, input, label, popover, progress, select, separator, sheet, skeleton, sonner, switch, table, tabs, textarea, toast, tooltip, m.fl.) plus projektspecifikke: `password-input`, `secure-input`, `spinner`, `status-badge`
+
+For hver shared-komponent dokumenteres: props-interface, anvendelseseksempel, og hvilken UI-guideline den opfylder.
+
+### 4. Changelog-opdatering
+
+Tilfoej under `## [Unreleased]`:
+
 ```
 ### Added - 2026-02-15
-- Oprettet docs/ mappestruktur som projektets Single Source of Truth
-- docs/implementation-plan/ med tasks.md (4 faser: Sikkerhed, Database, Performance, UI)
-- docs/product-roadmap/ med readme.md (langsigtet vision)
-- docs/technical-specs/ med readme.md (database og sikkerhedsstandarder)
-- docs/ui-guidelines/ med readme.md (visuelle standarder og visninger)
+- Oprettet `docs/technical-specs/data-models.md` med komplet oversigt over 17+ tabeller, relationer, enums og 47 RPC-funktioner
+- Oprettet `docs/technical-specs/architecture.md` med SHA256/bcrypt-kryptering, RLS-politikker, edge function sikkerhed og input-sanitering
+- Oprettet `docs/ui-guidelines/component-library.md` med 9 shared-komponenter og 51 UI-primitiver inkl. props og anvendelsesmoenstre
 ```
-
-### Filer der oprettes (6 nye filer) og redigeres (1 fil)
-
-| Fil | Handling |
-|-----|---------|
-| `docs/implementation-plan/readme.md` | Opret |
-| `docs/implementation-plan/tasks.md` | Opret |
-| `docs/product-roadmap/readme.md` | Opret |
-| `docs/technical-specs/readme.md` | Opret |
-| `docs/ui-guidelines/readme.md` | Opret |
-| `CHANGELOG.md` | Opdater |
