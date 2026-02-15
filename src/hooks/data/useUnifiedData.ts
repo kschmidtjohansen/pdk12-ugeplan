@@ -104,7 +104,6 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
     const channel = supabase
       .channel('unified-data-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'cars' }, () => handleRealtimeChange('cars'))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, () => handleRealtimeChange('assignments'))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => handleRealtimeChange('profiles'))
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR') {

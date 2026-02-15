@@ -35,6 +35,18 @@ Gennemført 2026-02-15.
 - [x] Fjernet ubrugte imports i flere filer
 - [x] Profilmenu viser jobtitel i stedet for teknisk rolle-ID
 
+## Fase 7: TanStack Query Caching & Realtime-konsolidering ✅
+
+Gennemført 2026-02-15.
+
+- [x] Migreret `useOptimizedAssignments` fra `useState`/`useEffect` til `useQuery` med `staleTime: 5min`, `gcTime: 10min`
+- [x] Tab-skift viser nu cached data øjeblikkeligt (stale-while-revalidate)
+- [x] Realtime-kanal bruger `queryClient.invalidateQueries` i stedet for fuld refetch
+- [x] Tilføjet `assignments_employees`-lytning i realtime-kanalen (fanger medarbejder-tildelinger)
+- [x] Fjernet `assignments`-lytter fra `useUnifiedData.ts` (allerede dækket af useOptimizedAssignments)
+- [x] DEV-guard på 50+ console.log i `optimizedAssignmentService.ts`, `realtimeManager.ts`, `usePlannerPage.ts`
+- [x] Optimistisk UI bevaret via `localAssignments` state-override
+
 ## Fase 4: UI/Visuel konsistens ✅
 
 Gennemført 2026-02-15.
