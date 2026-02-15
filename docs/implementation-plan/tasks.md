@@ -126,3 +126,14 @@ Gennemført 2026-02-15.
 - [x] Verificeret at eksisterende data (opgaver, biler, lager) forbliver isoleret på dept 12 - Fredericia
 - [x] Ingen kodeændringer nødvendige — filtreringslogik virker korrekt via `department_id`
 - [x] Dokumenteret i CHANGELOG.md
+
+## Fase 9c: Demo-data afdelingsisolering ✅
+
+Gennemført 2026-02-15.
+
+- [x] Oprettet `src/constants/demo.ts` med `DEMO_HOME_DEPARTMENT_ID` og `isDemoNonHomeDepartment()`
+- [x] Tilføjet demo-afdelingsfiltrering i `useEmployeeData`, `useCarData`, `useWarehouseData`, `useVacationData`, `useDutyData`
+- [x] Tilføjet demo-afdelingsfiltrering i `optimizedAssignmentService` (fetchAllAssignments, fetchAllPublishedAssignments)
+- [x] Tilføjet demo-afdelingsfiltrering i `useUnifiedData`
+- [x] Ingen database-ændringer — kun klient-side filtrering
+- [x] Dokumenteret i CHANGELOG.md

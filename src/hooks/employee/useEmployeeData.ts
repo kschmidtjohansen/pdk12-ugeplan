@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { isDemoNonHomeDepartment } from '@/constants/demo';
 
 export const useEmployeeData = () => {
   const { toast } = useToast();
@@ -24,6 +25,12 @@ export const useEmployeeData = () => {
     if (import.meta.env.DEV) console.log(`[useEmployeeData] Starting employee fetch from ${isDemoMode ? 'demo' : 'public'} schema...`);
 
     if (isDemoMode) {
+      // Demo data belongs only to dept 12 - return empty for other departments
+      if (isDemoNonHomeDepartment(isDemoMode, selectedDepartmentId)) {
+        if (import.meta.env.DEV) console.log('[useEmployeeData] Non-home department selected in demo mode, returning empty');
+        return [];
+      }
+
       const { data, error: rpcError } = await rpcWithRefresh('get_demo_profiles_admin_detailed', {
         full_access: true
       });

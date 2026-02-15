@@ -7,6 +7,7 @@ import { Car } from '@/types/car';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
+import { isDemoNonHomeDepartment } from '@/constants/demo';
 
 // Demo user constants for filtering
 const DEMO_USER_EMAIL = 'test@polygongroup.com';
@@ -36,6 +37,16 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
       setError(null);
 
       const deptId = departmentId || undefined;
+
+      // In demo mode, return empty data for non-home departments
+      const currentIsDemoMode = !filterDemoUser;
+      if (isDemoNonHomeDepartment(currentIsDemoMode, departmentId)) {
+        if (import.meta.env.DEV) console.log('[useUnifiedData] Non-home department in demo mode, returning empty');
+        setEmployees([]);
+        setAssignments([]);
+        setCars([]);
+        return;
+      }
 
       const [employeesResult, assignmentsResult, carsResult] = await Promise.all([
         unifiedDataService.fetchEmployees(deptId),

@@ -4,6 +4,7 @@ import { Assignment } from '@/types/assignment';
 import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
 import { DemoUserService } from '@/services/demoUserService';
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
+import { isDemoNonHomeDepartment } from '@/constants/demo';
 
 export interface OptimizedAssignmentData {
   id: string;
@@ -285,6 +286,11 @@ export class OptimizedAssignmentService {
       const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
       
       if (isDemoMode) {
+        if (isDemoNonHomeDepartment(true, departmentId)) {
+          if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Non-home department in demo mode, returning empty');
+          return [];
+        }
+
         if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] DEMO MODE: Fetching demo assignments`);
         const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
         
@@ -432,6 +438,11 @@ export class OptimizedAssignmentService {
       const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
       
       if (isDemoMode) {
+        if (isDemoNonHomeDepartment(true, departmentId)) {
+          if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Non-home department in demo mode (published), returning empty');
+          return [];
+        }
+
         if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] DEMO MODE: Fetching demo published assignments`);
         const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
         

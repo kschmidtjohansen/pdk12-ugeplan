@@ -6,6 +6,7 @@ import { WarehouseItem, WarehouseItemFormData } from '@/types/warehouse';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { isDemoNonHomeDepartment } from '@/constants/demo';
 
 export const useWarehouseData = () => {
   const { isDemoMode, userDataLoaded, user } = useAuth();
@@ -17,6 +18,11 @@ export const useWarehouseData = () => {
 
   const fetchItemsFn = async (): Promise<WarehouseItem[]> => {
     if (isDemoMode) {
+      if (isDemoNonHomeDepartment(isDemoMode, selectedDepartmentId)) {
+        if (import.meta.env.DEV) console.log('[useWarehouseData] Non-home department in demo mode, returning empty');
+        return [];
+      }
+
       const { data, error: fetchError } = await supabase.rpc('get_demo_warehouse_items');
       if (fetchError) throw fetchError;
 

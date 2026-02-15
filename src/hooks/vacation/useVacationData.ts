@@ -10,6 +10,7 @@ import { realtimeManager } from '@/services/realtimeManager';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { isDemoNonHomeDepartment } from '@/constants/demo';
 
 export const useVacationData = () => {
   const { toast } = useToast();
@@ -22,6 +23,11 @@ export const useVacationData = () => {
 
   const fetchVacationsFn = async (): Promise<Vacation[]> => {
     if (import.meta.env.DEV) console.log('[useVacationData] Starting enhanced vacation fetch...');
+
+    if (isDemoNonHomeDepartment(isDemoMode, selectedDepartmentId)) {
+      if (import.meta.env.DEV) console.log('[useVacationData] Non-home department in demo mode, returning empty');
+      return [];
+    }
 
     const vacationResult = await enhancedDataFetching.fetchVacationsEnhanced(user?.email, selectedDepartmentId, selectedSubDepartmentId);
     if (vacationResult.error || !vacationResult.data) {
