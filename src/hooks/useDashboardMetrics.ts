@@ -113,51 +113,33 @@ export const useDashboardMetrics = () => {
       // Calculate total warehouse quantity
       const totalWarehouseQuantity = safeWarehouseItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
-      // Enhanced debugging for production dashboard metrics
-      const servicemedarbejdere = safeEmployees.filter(e => e.role === 'servicemedarbejder');
-      const carsInPlanner = safeCars.filter(c => c.show_in_planner !== false);
-      const todaysAssignments = safeAssignments.filter(assignment => {
-        const assignmentDate = (assignment as any).date || (assignment as any).assignment_date;
-        return assignmentDate === todayStr;
-      });
+      if (import.meta.env.DEV) {
+        const servicemedarbejdere = safeEmployees.filter(e => e.role === 'servicemedarbejder');
+        const carsInPlanner = safeCars.filter(c => c.show_in_planner !== false);
+        const todaysAssignments = safeAssignments.filter(assignment => {
+          const assignmentDate = (assignment as any).date || (assignment as any).assignment_date;
+          return assignmentDate === todayStr;
+        });
 
-      console.log('[useDashboardMetrics] COMPREHENSIVE METRICS DEBUG', {
-        raw_data: {
-          total_employees: safeEmployees.length,
-          active_employees: totalEmployees,
-          servicemedarbejdere_count: servicemedarbejdere.length,
-          total_cars: totalCars,
-          cars_in_planner: carsInPlanner.length,
-          total_assignments: safeAssignments.length,
-          todays_assignments: todaysAssignments.length,
-          assignedCarIds: Array.from(assignedCarIds)
-        },
-        employee_roles_breakdown: safeEmployees.reduce((acc, e) => {
-          acc[e.role || 'no_role'] = (acc[e.role || 'no_role'] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>),
-        car_availability_breakdown: {
-          is_available_true: safeCars.filter(c => c.is_available === true).length,
-          is_available_false: safeCars.filter(c => c.is_available === false).length,
-          show_in_planner_true: safeCars.filter(c => c.show_in_planner === true).length,
-          show_in_planner_false: safeCars.filter(c => c.show_in_planner === false).length,
-          assigned_today: assignedCarIds.size,
-          available_count: availableCarsList.length
-        },
-        employee_status_breakdown: {
-          available: availableEmployeesList.filter(e => e.availabilityStatus.status === 'available').length,
-          partiallyBooked: availableEmployeesList.filter(e => e.availabilityStatus.status === 'partiallyBooked').length,
-          onVacation: absentEmployeesList.filter(e => e.availabilityStatus.status === 'onVacation').length,
-          onLeave: absentEmployeesList.filter(e => e.availabilityStatus.status === 'onLeave').length,
-          partialVacation: absentEmployeesList.filter(e => e.availabilityStatus.status === 'partialVacation').length
-        },
-        calculated_metrics: {
-          availableEmployees: availableEmployeesList.length,
-          availableCars: availableCarsList.length,
-          absentEmployees: absentEmployeesList.length,
-          warehouseQuantity: totalWarehouseQuantity
-        }
-      });
+        console.log('[useDashboardMetrics] COMPREHENSIVE METRICS DEBUG', {
+          raw_data: {
+            total_employees: safeEmployees.length,
+            active_employees: totalEmployees,
+            servicemedarbejdere_count: servicemedarbejdere.length,
+            total_cars: totalCars,
+            cars_in_planner: carsInPlanner.length,
+            total_assignments: safeAssignments.length,
+            todays_assignments: todaysAssignments.length,
+            assignedCarIds: Array.from(assignedCarIds)
+          },
+          calculated_metrics: {
+            availableEmployees: availableEmployeesList.length,
+            availableCars: availableCarsList.length,
+            absentEmployees: absentEmployeesList.length,
+            warehouseQuantity: totalWarehouseQuantity
+          }
+        });
+      }
 
       return {
         availableEmployees: {

@@ -21,7 +21,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
   const queryKey = ['cars', isDemoMode, selectedDepartmentId, selectedSubDepartmentId, canViewFuelCardCode] as const;
 
   const fetchCarsFn = async (): Promise<CarData[]> => {
-    console.log('[useCarData] Fetching cars with enhanced security...');
+    if (import.meta.env.DEV) console.log('[useCarData] Fetching cars with enhanced security...');
 
     if (isDemoMode) {
       const { data, error: fetchError } = await rpcWithRefresh<any[]>('get_demo_cars_with_security');
@@ -43,11 +43,11 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
 
       const localCars = DemoUserService.getInstance().getDemoCars();
       const merged = [...baseline, ...localCars];
-      console.log('[useCarData] Successfully fetched', merged.length, 'demo cars (baseline + local)');
+      if (import.meta.env.DEV) console.log('[useCarData] Successfully fetched', merged.length, 'demo cars (baseline + local)');
       return merged;
     } else {
       const data = await CarSecurityService.fetchCars(canViewFuelCardCode, selectedDepartmentId, selectedSubDepartmentId);
-      console.log('[useCarData] Successfully fetched', data?.length || 0, 'cars (filtered by department)');
+      if (import.meta.env.DEV) console.log('[useCarData] Successfully fetched', data?.length || 0, 'cars (filtered by department)');
       return data || [];
     }
   };
