@@ -47,24 +47,19 @@ const getCacheKey = (userId: string, role: string, filter: string): string => {
 const isCacheValid = (cacheKey: string, duration: number = 30000): boolean => {
   const cachedData = cache.get(cacheKey);
   if (!cachedData) return false;
-
   const { timestamp } = (cachedData as any).metadata || {};
   if (!timestamp) return false;
-
   return (Date.now() - timestamp) < duration;
 };
 
 const setCache = (cacheKey: string, data: OptimizedAssignmentData[]): void => {
-  cache.set(cacheKey, {
-    data,
-    metadata: { timestamp: Date.now() }
-  } as any);
+  cache.set(cacheKey, { data, metadata: { timestamp: Date.now() } } as any);
 };
 
 const getFromCache = (cacheKey: string): OptimizedAssignmentData[] | undefined => {
   const cachedData = cache.get(cacheKey);
   if (cachedData && isCacheValid(cacheKey)) {
-    console.log(`[OptimizedAssignmentService] Returning data from cache for key: ${cacheKey}`);
+    if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] Cache hit: ${cacheKey}`);
     return (cachedData as any).data;
   }
   return undefined;
@@ -73,7 +68,7 @@ const getFromCache = (cacheKey: string): OptimizedAssignmentData[] | undefined =
 export class OptimizedAssignmentService {
   static clearCache(): void {
     cache.clear();
-    console.log('[OptimizedAssignmentService] Cache cleared');
+    if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Cache cleared');
   }
 
   private static convertDemoAssignments(data: any[]): OptimizedAssignmentData[] {
@@ -105,7 +100,6 @@ export class OptimizedAssignmentService {
     }));
   }
 
-  // Convert locally stored demo assignment to OptimizedAssignmentData
   private static convertStoredDemoToOptimized(demo: any): OptimizedAssignmentData {
     return {
       id: demo.id,
@@ -238,9 +232,7 @@ export class OptimizedAssignmentService {
     
     const allCarIds = new Set<string>();
     assignments.forEach(assignment => {
-      if (assignment.car_id) {
-        allCarIds.add(assignment.car_id);
-      }
+      if (assignment.car_id) allCarIds.add(assignment.car_id);
       if (assignment.car_ids && Array.isArray(assignment.car_ids)) {
         assignment.car_ids.forEach((carId: string) => allCarIds.add(carId));
       }
@@ -251,10 +243,7 @@ export class OptimizedAssignmentService {
     return assignments.map(assignment => {
       const assignmentEmployees = employeesData
         .filter(emp => emp.assignment_id === assignment.id)
-        .map(emp => ({
-          user_id: emp.user_id,
-          profiles: emp.profiles
-        }));
+        .map(emp => ({ user_id: emp.user_id, profiles: emp.profiles }));
       
       let assignmentCars: { id: string; name: string; }[] = [];
       
@@ -265,9 +254,7 @@ export class OptimizedAssignmentService {
           .map((car: any) => ({ id: car.id, name: car.name }));
       } else if (assignment.car_id) {
         const car = carsData.find(car => car.id === assignment.car_id);
-        if (car) {
-          assignmentCars = [{ id: car.id, name: car.name }];
-        }
+        if (car) assignmentCars = [{ id: car.id, name: car.name }];
       }
       
       return {
@@ -295,11 +282,10 @@ export class OptimizedAssignmentService {
 
   static async fetchAllAssignments(role: string, userEmail?: string, departmentId?: string | null, subDepartmentId?: string | null): Promise<OptimizedAssignmentData[]> {
     try {
-      // Check for demo mode - use userEmail as primary check for reliability
       const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
       
       if (isDemoMode) {
-        console.log(`[OptimizedAssignmentService] DEMO MODE: Fetching demo assignments`);
+        if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] DEMO MODE: Fetching demo assignments`);
         const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
         
         if (error) {
@@ -307,23 +293,19 @@ export class OptimizedAssignmentService {
           return [];
         }
         
-        if (!data) {
-          console.log('[OptimizedAssignmentService] No demo assignments found');
-          return [];
-        }
+        if (!data) return [];
         
-        console.log(`[OptimizedAssignmentService] Demo RPC returned ${data.length} assignments`);
+        if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] Demo RPC returned ${data.length} assignments`);
         
-        // Merge with locally stored demo assignments
         const baselineConverted = this.convertDemoAssignments(data);
         const localDemos = DemoUserService.getInstance().getDemoAssignments();
         const localConverted = localDemos.map(demo => this.convertStoredDemoToOptimized(demo));
         
-        console.log(`[OptimizedAssignmentService] Merging ${baselineConverted.length} baseline + ${localConverted.length} local demo assignments`);
+        if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] Merging ${baselineConverted.length} baseline + ${localConverted.length} local`);
         return [...baselineConverted, ...localConverted];
       }
       
-      console.log(`[OptimizedAssignmentService] Using secure function for all assignments, role: ${role}`);
+      if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] Fetching assignments, role: ${role}`);
 
       try {
         const { data, error } = await supabase.rpc('list_accessible_assignments_with_team', {
@@ -336,12 +318,9 @@ export class OptimizedAssignmentService {
           throw new Error(`RPC failed: ${error.message}`);
         }
 
-        if (!data) {
-          console.log('[OptimizedAssignmentService] No assignments found from secure function');
-          return [];
-        }
+        if (!data) return [];
 
-        console.log(`[OptimizedAssignmentService] Secure function returned ${data.length} assignments`);
+        if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] RPC returned ${data.length} assignments`);
         
         const convertedData = data.map(assignment => {
           try {
@@ -379,7 +358,7 @@ export class OptimizedAssignmentService {
               assignment_cars: []
             };
           } catch (conversionError) {
-            console.error('[OptimizedAssignmentService] Error converting assignment:', conversionError, assignment);
+            console.error('[OptimizedAssignmentService] Error converting assignment:', conversionError);
             return {
               id: assignment.id || '',
               title: assignment.title || 'Unknown Assignment',
@@ -403,7 +382,6 @@ export class OptimizedAssignmentService {
           }
         });
 
-        console.log('[OptimizedAssignmentService] Sample converted data:', convertedData[0]);
         return convertedData;
       } catch (rpcError) {
         console.warn('[OptimizedAssignmentService] RPC failed, falling back to direct query:', rpcError);
@@ -417,27 +395,12 @@ export class OptimizedAssignmentService {
 
   private static async fetchAssignmentsFallback(role: string): Promise<OptimizedAssignmentData[]> {
     try {
-      console.log('[OptimizedAssignmentService] Using fallback assignment fetch');
+      if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Using fallback assignment fetch');
       
       const isAdmin = role === 'administrator' || role === 'skadeleder';
       const query = supabase
         .from('assignments')
-        .select(`
-          id,
-          title,
-          description,
-          assignment_date,
-          from_time,
-          to_time,
-          location,
-          type,
-          published,
-          responsible_user_id,
-          created_at,
-          updated_at,
-          car_id,
-          car_ids
-        `)
+        .select(`id, title, description, assignment_date, from_time, to_time, location, type, published, responsible_user_id, created_at, updated_at, car_id, car_ids`)
         .order('assignment_date', { ascending: false })
         .order('from_time', { ascending: false });
 
@@ -452,16 +415,11 @@ export class OptimizedAssignmentService {
         return [];
       }
 
-      if (!assignments) {
-        return [];
-      }
+      if (!assignments) return [];
 
-      console.log(`[OptimizedAssignmentService] Fallback returned ${assignments.length} assignments`);
+      if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] Fallback returned ${assignments.length} assignments`);
       
-      const enrichedData = await this.enrichAssignmentData(assignments);
-      
-      console.log('[OptimizedAssignmentService] Sample fallback data:', enrichedData[0]);
-      return enrichedData;
+      return await this.enrichAssignmentData(assignments);
       
     } catch (error) {
       console.error('[OptimizedAssignmentService] Fallback fetch failed:', error);
@@ -471,11 +429,10 @@ export class OptimizedAssignmentService {
 
   static async fetchAllPublishedAssignments(userEmail?: string, departmentId?: string | null, subDepartmentId?: string | null): Promise<OptimizedAssignmentData[]> {
     try {
-      // Check for demo mode - use userEmail as primary check for reliability
       const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
       
       if (isDemoMode) {
-        console.log(`[OptimizedAssignmentService] DEMO MODE: Fetching demo published assignments`);
+        if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] DEMO MODE: Fetching demo published assignments`);
         const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
         
         if (error) {
@@ -486,9 +443,8 @@ export class OptimizedAssignmentService {
         if (!data) return [];
         
         const publishedData = data.filter((a: any) => a.published === true);
-        console.log(`[OptimizedAssignmentService] Demo RPC returned ${publishedData.length} published assignments`);
+        if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] Demo: ${publishedData.length} published assignments`);
         
-        // Merge with locally stored demo assignments
         const baselineConverted = this.convertDemoAssignments(publishedData);
         const localDemos = DemoUserService.getInstance().getDemoAssignments();
         const localConverted = localDemos
@@ -498,7 +454,7 @@ export class OptimizedAssignmentService {
         return [...baselineConverted, ...localConverted];
       }
       
-      console.log('[OptimizedAssignmentService] Using secure function for published assignments');
+      if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Fetching published assignments');
       
       const { data, error } = await supabase.rpc('list_accessible_assignments_with_team', {
         p_department_id: departmentId || null,
@@ -510,12 +466,9 @@ export class OptimizedAssignmentService {
         throw new Error(`Secure function error: ${error.message}`);
       }
 
-      if (!data) {
-        console.log('[OptimizedAssignmentService] No published assignments found from secure function');
-        return [];
-      }
+      if (!data) return [];
 
-      console.log(`[OptimizedAssignmentService] Secure function returned ${data.length} published assignments`);
+      if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] Returned ${data.length} published assignments`);
       
       const convertedData = data.map(assignment => ({
         id: assignment.id,
@@ -544,7 +497,6 @@ export class OptimizedAssignmentService {
         assignment_cars: []
       }));
       
-      console.log('[OptimizedAssignmentService] SERVICEMEDARBEJDER - Sample converted data:', convertedData[0]);
       return convertedData;
     } catch (error) {
       console.error('[OptimizedAssignmentService] Error fetching all published assignments:', error);
@@ -558,8 +510,7 @@ export class OptimizedAssignmentService {
     const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
     if (isDemoMode) {
-      // Virtualize demo creation - no DB write
-      console.log('[OptimizedAssignmentService] DEMO MODE: Virtualizing assignment creation');
+      if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] DEMO MODE: Virtualizing assignment creation');
       
       const now = new Date().toISOString();
       const demoId = `demo-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -583,20 +534,21 @@ export class OptimizedAssignmentService {
       };
       
       DemoUserService.getInstance().storeDemoAssignment(demoAssignment);
-      console.log('[OptimizedAssignmentService] Demo assignment stored locally:', demoId);
+      if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Demo assignment stored:', demoId);
       
       return this.convertStoredDemoToOptimized(demoAssignment);
     }
     
     // Production: write to DB
-    // Separate employees from assignment data
     const { employees, ...assignmentInsert } = assignmentData;
     const employeeIds = Array.isArray(employees) 
       ? employees.map(id => sanitizeUUIDForDB(id)).filter(Boolean)
       : [];
     
-    console.log('[OptimizedAssignmentService] Insert payload (no employees):', assignmentInsert);
-    console.log('[OptimizedAssignmentService] Employee IDs to link:', employeeIds);
+    if (import.meta.env.DEV) {
+      console.log('[OptimizedAssignmentService] Insert payload:', assignmentInsert);
+      console.log('[OptimizedAssignmentService] Employee IDs:', employeeIds);
+    }
 
     const { data, error } = await supabase.from('assignments').insert(assignmentInsert).select().single();
     if (error) {
@@ -604,16 +556,15 @@ export class OptimizedAssignmentService {
       throw error;
     }
 
-    console.log('[OptimizedAssignmentService] Assignment created:', data.id);
+    if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Assignment created:', data.id);
 
-    // Link employees if any
     if (employeeIds.length > 0) {
       const employeeLinks = employeeIds.map(userId => ({
         assignment_id: data.id,
         user_id: userId
       }));
 
-      console.log('[OptimizedAssignmentService] Linking employees:', employeeLinks);
+      if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Linking employees:', employeeLinks);
       
       const { error: linkError } = await supabase
         .from('assignments_employees')
@@ -623,11 +574,8 @@ export class OptimizedAssignmentService {
         console.error('[OptimizedAssignmentService] Failed to link employees:', linkError);
         throw new Error(`Failed to link employees: ${linkError.message}`);
       }
-
-      console.log('[OptimizedAssignmentService] Employees linked successfully');
     }
     
-    // Enrich and return the created assignment
     const enriched = await this.enrichAssignmentData([data]);
     return enriched[0];
   }
@@ -638,38 +586,28 @@ export class OptimizedAssignmentService {
     const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
     if (isDemoMode) {
-      // Virtualize demo update - no DB write
-      console.log('[OptimizedAssignmentService] DEMO MODE: Virtualizing assignment update');
+      if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] DEMO MODE: Virtualizing assignment update');
       
       const localDemos = DemoUserService.getInstance().getDemoAssignments();
       const existing = localDemos.find(d => d.id === assignmentId);
       
-      if (!existing) {
-        throw new Error('Demo assignment not found for update');
-      }
+      if (!existing) throw new Error('Demo assignment not found for update');
       
-      const updated = {
-        ...existing,
-        ...updates,
-        updated_at: new Date().toISOString()
-      };
-      
+      const updated = { ...existing, ...updates, updated_at: new Date().toISOString() };
       DemoUserService.getInstance().updateDemoAssignment(assignmentId, updates);
-      console.log('[OptimizedAssignmentService] Demo assignment updated locally:', assignmentId);
       
       return this.convertStoredDemoToOptimized(updated);
     }
     
     // Production: write to DB
-    // Separate employees from update payload
     const { employees, ...updatePayload } = updates;
     const employeeIds = Array.isArray(employees)
       ? employees.map(id => sanitizeUUIDForDB(id)).filter(Boolean)
       : null;
     
-    console.log('[OptimizedAssignmentService] Update payload (no employees):', updatePayload);
-    if (employeeIds !== null) {
-      console.log('[OptimizedAssignmentService] Employee IDs to relink:', employeeIds);
+    if (import.meta.env.DEV) {
+      console.log('[OptimizedAssignmentService] Update payload:', updatePayload);
+      if (employeeIds !== null) console.log('[OptimizedAssignmentService] Employee IDs to relink:', employeeIds);
     }
 
     const { data, error } = await supabase.from('assignments').update(updatePayload).eq('id', assignmentId).select().single();
@@ -678,11 +616,9 @@ export class OptimizedAssignmentService {
       throw error;
     }
 
-    console.log('[OptimizedAssignmentService] Assignment updated:', data.id);
+    if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Assignment updated:', data.id);
 
-    // Relink employees if provided
     if (employeeIds !== null) {
-      // Delete existing links
       const { error: deleteError } = await supabase
         .from('assignments_employees')
         .delete()
@@ -693,14 +629,13 @@ export class OptimizedAssignmentService {
         throw new Error(`Failed to unlink employees: ${deleteError.message}`);
       }
 
-      // Insert new links
       if (employeeIds.length > 0) {
         const employeeLinks = employeeIds.map(userId => ({
           assignment_id: assignmentId,
           user_id: userId
         }));
 
-        console.log('[OptimizedAssignmentService] Relinking employees:', employeeLinks);
+        if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Relinking employees:', employeeLinks);
         
         const { error: linkError } = await supabase
           .from('assignments_employees')
@@ -710,12 +645,9 @@ export class OptimizedAssignmentService {
           console.error('[OptimizedAssignmentService] Failed to link employees:', linkError);
           throw new Error(`Failed to link employees: ${linkError.message}`);
         }
-
-        console.log('[OptimizedAssignmentService] Employees relinked successfully');
       }
     }
     
-    // Enrich and return the updated assignment
     const enriched = await this.enrichAssignmentData([data]);
     return enriched[0];
   }
@@ -723,15 +655,12 @@ export class OptimizedAssignmentService {
   static async deleteAssignment(assignmentId: string, userEmail?: string): Promise<boolean> {
     const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
-    // Virtualize for demo mode
     if (isDemoMode && assignmentId.startsWith('demo-')) {
-      console.log('[OptimizedAssignmentService] Deleting demo assignment locally:', assignmentId);
+      if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Deleting demo assignment:', assignmentId);
       
-      // Fetch the assignment data before deletion for logging
       const demoAssignment = DemoUserService.getInstance().getDemoAssignments()
         .find(a => a.id === assignmentId);
       
-      // Log before deletion to ensure data is available
       if (demoAssignment) {
         try {
           const { PlannerChangeLogger } = await import('./plannerChangeLogger');
@@ -743,7 +672,6 @@ export class OptimizedAssignmentService {
           });
         } catch (logErr) {
           console.error('[OptimizedAssignmentService] Failed to log demo deletion:', logErr);
-          // Continue with deletion even if logging fails
         }
       }
       
@@ -753,8 +681,7 @@ export class OptimizedAssignmentService {
     }
 
     try {
-      // Deletion logging is now handled automatically by database trigger
-      console.log('[OptimizedAssignmentService] Deleting assignment:', assignmentId);
+      if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Deleting assignment:', assignmentId);
       
       const { error } = await supabase
         .from('assignments')
@@ -816,10 +743,9 @@ export class OptimizedAssignmentService {
     }
     
     const allAssignments = await this.fetchAllAssignments(userRole, userEmail, departmentId, subDepartmentId);
-    const filtered = allAssignments.filter(a =>
+    return allAssignments.filter(a =>
       a.responsible_user_id === userId || a.assignment_employees.some(e => e.user_id === userId)
     );
-    return filtered;
   }
 
   static async fetchPublishedAssignmentsByDate(date: string, userEmail?: string): Promise<OptimizedAssignmentData[]> {
@@ -847,17 +773,13 @@ export class OptimizedAssignmentService {
 
   static async publishAssignment(assignmentId: string, userEmail?: string): Promise<OptimizedAssignmentData> {
     const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
-    if (isDemoMode) {
-      throw new Error('Demo mode is read-only. Cannot publish assignments.');
-    }
+    if (isDemoMode) throw new Error('Demo mode is read-only. Cannot publish assignments.');
     return this.updateAssignment(assignmentId, { published: true }, userEmail);
   }
 
   static async publishAssignmentsByDate(date: string, userEmail?: string): Promise<boolean> {
     const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
-    if (isDemoMode) {
-      throw new Error('Demo mode is read-only. Cannot publish assignments.');
-    }
+    if (isDemoMode) throw new Error('Demo mode is read-only. Cannot publish assignments.');
     
     try {
       const { error } = await supabase

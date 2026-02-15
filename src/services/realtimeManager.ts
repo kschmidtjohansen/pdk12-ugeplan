@@ -38,16 +38,14 @@ class RealtimeManager {
     options: { filter?: string; schema?: 'public' | 'demo' } = {}
   ): RealtimeSubscription | null {
     try {
-      // Clean up existing subscription with same ID
       this.unsubscribe(id);
 
       const schema = options.schema || 'public';
-      console.log(`[RealtimeManager] Creating subscription: ${id} for tables: ${tables.join(', ')} in schema: ${schema}`);
+      if (import.meta.env.DEV) console.log(`[RealtimeManager] Creating subscription: ${id} for tables: ${tables.join(', ')} in schema: ${schema}`);
 
       const channelName = `${id}_${schema}_${Math.random().toString(36).substring(2, 9)}`;
       const channel = supabase.channel(channelName);
 
-      // Add listeners for each table
       tables.forEach(tableName => {
         channel.on(
           'postgres_changes',
@@ -58,7 +56,7 @@ class RealtimeManager {
             ...(options.filter && { filter: options.filter })
           },
           (payload) => {
-            console.log(`[RealtimeManager] ${tableName} change detected in ${schema}:`, payload.eventType);
+            if (import.meta.env.DEV) console.log(`[RealtimeManager] ${tableName} change detected in ${schema}:`, payload.eventType);
             this.debounce(`${id}_${tableName}`, callback);
           }
         );
@@ -72,16 +70,15 @@ class RealtimeManager {
         active: false
       };
 
-      // Subscribe with proper status handling
       this.connectionStatus = 'connecting';
       channel.subscribe((status) => {
-        console.log(`[RealtimeManager] Subscription ${id} status:`, status);
+        if (import.meta.env.DEV) console.log(`[RealtimeManager] Subscription ${id} status:`, status);
         
         if (status === 'SUBSCRIBED') {
           subscription.active = true;
           this.connectionStatus = 'connected';
           this.reconnectAttempts = 0;
-          console.log(`[RealtimeManager] Successfully connected ${id}`);
+          if (import.meta.env.DEV) console.log(`[RealtimeManager] Successfully connected ${id}`);
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           subscription.active = false;
           this.connectionStatus = 'disconnected';
@@ -90,7 +87,7 @@ class RealtimeManager {
         } else if (status === 'CLOSED') {
           subscription.active = false;
           this.connectionStatus = 'disconnected';
-          console.log(`[RealtimeManager] Connection closed for ${id}`);
+          if (import.meta.env.DEV) console.log(`[RealtimeManager] Connection closed for ${id}`);
         }
       });
 
@@ -106,9 +103,8 @@ class RealtimeManager {
   private handleConnectionError(subscriptionId: string, callback: () => void) {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(`[RealtimeManager] Attempting reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts} for ${subscriptionId}`);
+      if (import.meta.env.DEV) console.log(`[RealtimeManager] Attempting reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts} for ${subscriptionId}`);
       
-      // Add jitter to prevent thundering herd
       const baseDelay = 2000 * this.reconnectAttempts;
       const jitter = Math.random() * 1000;
       const delay = baseDelay + jitter;
@@ -116,7 +112,7 @@ class RealtimeManager {
       setTimeout(() => {
         const subscription = this.subscriptions.get(subscriptionId);
         if (subscription) {
-          console.log(`[RealtimeManager] Executing reconnection for ${subscriptionId}`);
+          if (import.meta.env.DEV) console.log(`[RealtimeManager] Executing reconnection for ${subscriptionId}`);
           this.subscribe(subscriptionId, subscription.tables, callback);
         }
       }, delay);
@@ -128,11 +124,10 @@ class RealtimeManager {
 
   private startPolling(subscriptionId: string, callback: () => void) {
     const pollInterval = setInterval(() => {
-      console.log(`[RealtimeManager] Polling for updates (realtime failed) - ${subscriptionId}`);
+      if (import.meta.env.DEV) console.log(`[RealtimeManager] Polling for updates (realtime failed) - ${subscriptionId}`);
       callback();
-    }, 30000); // Poll every 30 seconds
+    }, 30000);
 
-    // Store polling interval for cleanup
     const subscription = this.subscriptions.get(subscriptionId);
     if (subscription) {
       (subscription as any).pollInterval = pollInterval;
@@ -142,9 +137,8 @@ class RealtimeManager {
   unsubscribe(id: string) {
     const subscription = this.subscriptions.get(id);
     if (subscription) {
-      console.log(`[RealtimeManager] Unsubscribing: ${id}`);
+      if (import.meta.env.DEV) console.log(`[RealtimeManager] Unsubscribing: ${id}`);
       
-      // Clear debounce timers
       subscription.tables.forEach(table => {
         const timerKey = `${id}_${table}`;
         const timer = this.debounceTimers.get(timerKey);
@@ -154,19 +148,17 @@ class RealtimeManager {
         }
       });
 
-      // Clear polling interval if exists
       if ((subscription as any).pollInterval) {
         clearInterval((subscription as any).pollInterval);
       }
 
-      // Remove channel
       supabase.removeChannel(subscription.channel);
       this.subscriptions.delete(id);
     }
   }
 
   unsubscribeAll() {
-    console.log('[RealtimeManager] Unsubscribing all connections');
+    if (import.meta.env.DEV) console.log('[RealtimeManager] Unsubscribing all connections');
     Array.from(this.subscriptions.keys()).forEach(id => {
       this.unsubscribe(id);
     });
@@ -180,7 +172,6 @@ class RealtimeManager {
     return Array.from(this.subscriptions.values()).filter(sub => sub.active);
   }
 
-  // Health check method
   async checkConnection(): Promise<boolean> {
     try {
       const { error } = await supabase.from('profiles').select('count').limit(1);

@@ -25,13 +25,11 @@ export const usePlannerPage = () => {
   const [selectedYear, setSelectedYear] = useState(currentWeekInfo.year);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // SERVICEMEDARBEJDER FIX: All users can now see all assignments due to updated RLS policy
   const isAdminOrSkadeleder = user?.role === 'administrator' || user?.role === 'skadeleder';
-  const plannerFilter = 'all'; // All users including servicemedarbejder can see all assignments
+  const plannerFilter = 'all';
   
-  console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - User: ${user?.name} (${user?.role}), Filter: ${plannerFilter}`);
+  if (import.meta.env.DEV) console.log(`[usePlannerPage] User: ${user?.name} (${user?.role}), Filter: ${plannerFilter}`);
   
-  // Use the unified optimized assignments hook for all operations
   const { 
     assignments, 
     loading,
@@ -71,10 +69,7 @@ export const usePlannerPage = () => {
 
   const weekDates = getWeekDates(selectedWeek, selectedYear);
   
-  // SERVICEMEDARBEJDER FIX: Filter assignments by week only - RLS handles access control
   const weekAssignments = React.useMemo(() => {
-    console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Filtering ${assignments.length} assignments for week ${selectedWeek}/${selectedYear}`);
-    
     let filteredAssignments = assignments.filter(assignment => {
       const assignmentDate = new Date(assignment.date);
       const assignmentWeek = getWeekNumber(assignmentDate);
@@ -83,43 +78,23 @@ export const usePlannerPage = () => {
       return assignmentWeek === selectedWeek && assignmentYear === selectedYear;
     });
 
-    // RLS policies now handle access control - servicemedarbejder can see all assignments
-    
-    console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - Week filtered results: ${filteredAssignments.length} assignments`);
-    console.log(`[usePlannerPage] SERVICEMEDARBEJDER FIX - All assignments with details:`, 
-      filteredAssignments.map(a => ({ 
-        title: a.title, 
-        responsibleUser: a.responsibleUser?.name,
-        employees: a.assignedEmployees?.map(e => e.name) || a.employees,
-        cars: a.cars
-      })));
+    if (import.meta.env.DEV) console.log(`[usePlannerPage] Week ${selectedWeek}/${selectedYear}: ${filteredAssignments.length} assignments`);
     
     return filteredAssignments;
   }, [assignments, selectedWeek, selectedYear]);
 
-  // FIXED: Add proper employee toggle handler
   const handleEmployeeToggle = useCallback((employeeId: string) => {
-    console.log('[usePlannerPage] Employee toggled:', employeeId);
-    console.log('[usePlannerPage] Current employees:', formData.employees);
+    if (import.meta.env.DEV) console.log('[usePlannerPage] Employee toggled:', employeeId);
     
     setFormData(prevFormData => {
       const currentEmployees = prevFormData.employees || [];
       const isSelected = currentEmployees.includes(employeeId);
       
-      let updatedEmployees: string[];
-      if (isSelected) {
-        updatedEmployees = currentEmployees.filter(id => id !== employeeId);
-        console.log('[usePlannerPage] Removing employee:', employeeId);
-      } else {
-        updatedEmployees = [...currentEmployees, employeeId];
-        console.log('[usePlannerPage] Adding employee:', employeeId);
-      }
+      const updatedEmployees = isSelected
+        ? currentEmployees.filter(id => id !== employeeId)
+        : [...currentEmployees, employeeId];
       
-      console.log('[usePlannerPage] Updated employees:', updatedEmployees);
-      return {
-        ...prevFormData,
-        employees: updatedEmployees
-      };
+      return { ...prevFormData, employees: updatedEmployees };
     });
   }, [formData.employees]);
 
@@ -167,7 +142,7 @@ export const usePlannerPage = () => {
       setIsDialogOpen(true);
     },
     handleOpenEditDialog: (assignment: Assignment) => {
-      console.log(`[usePlannerPage] Opening edit dialog for assignment:`, assignment.title);
+      if (import.meta.env.DEV) console.log(`[usePlannerPage] Opening edit dialog for:`, assignment.title);
       
       setCurrentAssignment(assignment);
       setSelectedDay(assignment.date);
@@ -181,35 +156,22 @@ export const usePlannerPage = () => {
     },
     handleSubmit: async (data: Partial<Assignment>) => {
       try {
-        console.log('[usePlannerPage] === SUBMIT HANDLER START ===');
-        console.log('[usePlannerPage] Submitting data:', data);
-        console.log('[usePlannerPage] Current assignment:', currentAssignment?.id);
+        if (import.meta.env.DEV) console.log('[usePlannerPage] Submit:', currentAssignment?.id ? 'update' : 'create');
         
         let success = false;
         if (currentAssignment?.id) {
-          const updateData = {
-            ...data,
-            published: currentAssignment.published
-          };
-          console.log('[usePlannerPage] Updating assignment with data:', updateData);
-          await updateAssignment(currentAssignment.id, updateData);
+          await updateAssignment(currentAssignment.id, { ...data, published: currentAssignment.published });
           success = true;
         } else {
-          console.log('[usePlannerPage] Creating new assignment with data:', data);
           await createAssignment(data);
           success = true;
         }
         
-        // FIXED: Close dialog only after successful operation
         if (success) {
-          console.log('[usePlannerPage] Operation successful, closing dialog');
           setIsDialogOpen(false);
         }
-        
-        console.log('[usePlannerPage] === SUBMIT HANDLER END ===');
       } catch (error) {
         console.error('[usePlannerPage] Operation failed:', error);
-        // Keep dialog open on error so user can retry
       }
     },
     handlePublishDay: async (date: string) => {

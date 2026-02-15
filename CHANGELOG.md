@@ -39,6 +39,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Performance: TanStack Query Caching & Realtime-konsolidering (Fase 7) - 2026-02-15
+- `useOptimizedAssignments` migreret fra `useState`/`useEffect` til TanStack Query `useQuery` med `staleTime: 5min` og `gcTime: 10min` — tab-skift viser nu cached data øjeblikkeligt
+- Realtime-kanal bruger `queryClient.invalidateQueries` i stedet for fuld refetch (reducerer unødige netværkskald)
+- Tilføjet `assignments_employees`-lytning i realtime-kanalen (fanger medarbejder-tildelinger i realtid)
+- Fjernet duplikeret `assignments`-lytter fra `useUnifiedData.ts` (allerede dækket af useOptimizedAssignments)
+- DEV-guard på 50+ console.log i `optimizedAssignmentService.ts`, `realtimeManager.ts` og `usePlannerPage.ts`
+- Optimistisk UI bevaret via `localAssignments` state-override der automatisk nulstilles ved server-svar
+
 ### Database Optimization (Fase 6) - 2026-02-15
 - Fjernet 14 redundante indexes på tværs af `notifications`, `profiles`, `assignments`, `logs`, `case_folder_mappings` og `vacations` (reducerer write-overhead)
 - Fjernet ineffektivt `logs_message_idx` (btree på TEXT-kolonne med kun 95 distinct værdier)
