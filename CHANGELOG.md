@@ -39,6 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - 2026-02-15
+- Oprettet `docs/` mappestruktur som projektets Single Source of Truth
+- `docs/implementation-plan/` med `readme.md` og `tasks.md` (4 faser: Sikkerhed, Database, Performance, UI)
+- `docs/product-roadmap/readme.md` — langsigtet vision og multi-afdeling udrulning
+- `docs/technical-specs/readme.md` — database-arkitektur, RLS, sikkerhedsstandarder
+- `docs/ui-guidelines/readme.md` — visuelle standarder, visninger, responsivitet
+
 ### Visuel polish - 2026-02-15
 - AssignmentCard: Tilføjet `hover:shadow-xl transition-all duration-200` for blød skygge-effekt ved hover
 - DaySection: Erstattet `hover:bg-gray-50` med `hover:bg-muted/50` (dark mode-korrekt) og `text-gray-500` med `text-muted-foreground` på chevron-ikoner
