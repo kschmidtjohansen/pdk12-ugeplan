@@ -1,121 +1,119 @@
 
 
-## Fase 9d (fortsat): pg_cron job + Demo DB-skrivninger
+## Fase 9d (fix): Demo-schema routing + resterende DemoUserService-migrering
 
-### Overblik
+### Problem
 
-To udestaaende opgaver fra Fase 9d:
+`demoSchemaClient.ts` dirigerer stadig queries til `demo`-schemaet naar `isDemoMode=true` (linje 20-21). Men `is_demo`-kolonnen og RESTRICTIVE RLS-politikker er oprettet i `public`-schemaet. Dette foraarsager fejl ved oprettelse af biler, lager, medarbejdere osv. i demo-mode, fordi `demo`-schemaets tabeller ikke har `is_demo`-kolonnen.
 
-1. **pg_cron job**: Automatisk oprydning af `is_demo = true` data aeldre end 15 minutter
-2. **Migrering af demo-skrivninger fra sessionStorage til database**: Flere steder bruger stadig `DemoUserService` (sessionStorage) til at gemme demo-data i stedet for at skrive til databasen med `is_demo: true`
+Derudover bruger `useAssignmentActions.ts` og `useEmployeeActions.ts` stadig `DemoUserService` (sessionStorage) til visse operationer, og `useAssignmentDataOptimized.ts` merger stadig fra sessionStorage.
+
+### Sikring af Live-data
+
+**Defense in depth** -- tre lag beskytter live-brugere:
+
+1. **RESTRICTIVE RLS-politikker** (allerede aktive): `is_demo = false OR auth.uid() = demo-user-id` paa alle 8 tabeller. Live-brugere kan ALDRIG se `is_demo = true` raekker, uanset hvad frontend goer.
+2. **Eksplicit query-filtrering**: `.eq('is_demo', false)` i alle live-mode data-hooks (allerede implementeret i forrige fase).
+3. **Realtime subscriptions**: Skal lytte paa `public` schema (ikke `demo`) -- dette fixes i denne opdatering.
 
 ---
 
-### 1. pg_cron job opsaetning
+### 1. Fix `demoSchemaClient.ts` -- stop demo-schema routing
 
-Koerer som SQL INSERT (ikke migration) via Supabase SQL Editor:
+**Fil**: `src/integrations/supabase/demoSchemaClient.ts`
 
-```text
--- Aktiver pg_cron og pg_net extensions (hvis ikke allerede)
-CREATE EXTENSION IF NOT EXISTS pg_cron;
-CREATE EXTENSION IF NOT EXISTS pg_net;
-
--- Schedule: kald cleanup_demo_data_ttl() hvert minut
-SELECT cron.schedule(
-  'cleanup-demo-data-ttl',
-  '* * * * *',
-  $$ SELECT cleanup_demo_data_ttl(); $$
-);
-```
-
-### 2. Demo-skrivninger: sessionStorage til database
-
-Foelgende kodestier bruger stadig `DemoUserService` (sessionStorage) og skal migreres til at skrive direkte til databasen med `is_demo: true`:
-
-| Fil | Nuvaerende adfaerd | Ny adfaerd |
-|-----|-------------------|-----------|
-| `src/services/optimizedAssignmentService.ts` (createAssignment, linje 521-551) | Gemmer i `DemoUserService.storeDemoAssignment()` | Skriver til `assignments`-tabellen med `is_demo: true` via Supabase |
-| `src/services/optimizedAssignmentService.ts` (updateAssignment, linje 597-620) | Opdaterer i `DemoUserService` | Opdaterer via Supabase `.update()` |
-| `src/services/optimizedAssignmentService.ts` (deleteAssignment, linje ~650+) | Sletter fra `DemoUserService` | Sletter via Supabase `.delete()` |
-| `src/services/optimizedAssignmentService.ts` (fetchAllAssignments, linje 307-311) | Merger baseline + `DemoUserService.getDemoAssignments()` | Fjern local-merge; RPC returnerer allerede `is_demo`-data for demo-brugeren via RLS |
-| `src/hooks/car/useCarActions.ts` (confirmDelete, linje 40-72) | Sletter fra `DemoUserService.deleteDemoCar()` | Sletter via Supabase `.delete()` med `.eq('id', carId)` |
-| `src/hooks/car/useCarData.ts` (fetchCarsFn, linje 51-52) | Merger baseline + `DemoUserService.getDemoCars()` | Fjern local-merge; RPC/query returnerer allerede demo-data via RLS |
-| `src/hooks/warehouse/useWarehouseActions.ts` (createItem, linje 34-38) | Kalder `localHandlers.addLocalItem()` (kun lokal state) | Skriver til `warehouse_items` med `is_demo: true` via Supabase |
-| `src/hooks/warehouse/useWarehouseActions.ts` (updateItem, linje 103-107) | Kalder `localHandlers.updateLocalItem()` | Opdaterer via Supabase |
-| `src/hooks/warehouse/useWarehouseActions.ts` (deleteItem, linje 161-165) | Kalder `localHandlers.deleteLocalItem()` | Sletter via Supabase |
-
-### 3. Beroorte filer (samlet)
-
-| Fil | Aendring |
-|-----|---------|
-| `src/services/optimizedAssignmentService.ts` | Erstat demo sessionStorage-logik med DB-skrivninger (`is_demo: true`). Fjern `DemoUserService`-import og -kald. I `fetchAllAssignments` demo-blok: fjern local-merge |
-| `src/hooks/car/useCarActions.ts` | Erstat `DemoUserService`-sletning med Supabase `.delete()` |
-| `src/hooks/car/useCarData.ts` | Fjern `DemoUserService.getDemoCars()` merge i demo fetch |
-| `src/hooks/warehouse/useWarehouseActions.ts` | I demo-mode: skriv til DB med `is_demo: true` i stedet for lokale handlers |
-| `CHANGELOG.md` | Dokumenter aendringer |
-
-### 4. Teknisk implementering
-
-#### OptimizedAssignmentService.createAssignment (demo-blok):
+Aendr `from()` metoden saa den ALTID returnerer `public`-schema klienten. `demo`-schemaet bruges ikke laengere, da `is_demo`-flaget nu haandterer isolering i `public`-schemaet.
 
 ```text
-// FØR: DemoUserService.getInstance().storeDemoAssignment(...)
-// EFTER:
-const { employees, ...assignmentInsert } = assignmentData;
-assignmentInsert.is_demo = true;
-const { data, error } = await supabase.from('assignments').insert(assignmentInsert).select().single();
-if (error) throw error;
-// Link employees med is_demo: true
-if (employees?.length) {
-  await supabase.from('assignments_employees').insert(
-    employees.map(uid => ({ assignment_id: data.id, user_id: uid, is_demo: true }))
-  );
+from(table: string) {
+  // All operations now use public schema with is_demo flag for isolation
+  return supabase.from(table as any);
 }
 ```
 
-#### OptimizedAssignmentService.fetchAllAssignments (demo-blok):
+Dette fixer ALLE eksisterende kald paa en gang uden at aendre hver fil individuelt.
 
-```text
-// FØR: merger baseline RPC + DemoUserService.getDemoAssignments()
-// EFTER: kun RPC-data (RLS tillader allerede demo-brugeren at se is_demo=true)
-const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
-return data ? this.convertDemoAssignments(data) : [];
-// Ingen local-merge nødvendig
-```
+### 2. Fix `useAssignmentActions.ts` -- fjern DemoUserService
 
-#### useWarehouseActions.createItem (demo-blok):
+**Fil**: `src/hooks/assignment/useAssignmentActions.ts`
 
-```text
-// FØR: localHandlers?.addLocalItem?.(data)
-// EFTER:
-const { data: { user } } = await supabase.auth.getUser();
-await supabase.from('warehouse_items').insert({
-  ...data,
-  created_by: user?.id,
-  department_id: selectedDepartmentId || null,
-  sub_department_id: selectedSubDepartmentId || null,
-  is_demo: true,
-});
-queryClient.invalidateQueries({ queryKey: ['warehouse-items'] });
-```
+| Blok | Nuvaerende | Ny |
+|------|-----------|-----|
+| Create (linje 83-122) | `demoService.storeDemoAssignment()` med fake ID | Brug `getSchemaClient` + `.insert({ ...data, is_demo: true })` (som non-demo blokken allerede goer) |
+| Update (linje 348-394) | `demoService.updateDemoAssignment()` | Brug `getSchemaClient` + `.update()` (genbrug non-demo logikken) |
+| Publish (linje 637-653) | `demoService.updateDemoAssignment()` | Brug `getSchemaClient` + `.update({ published: true })` |
+| PublishByDate (linje 690-710) | `sessionStorage.setItem()` | Brug `getSchemaClient` + `.update({ published: true }).eq('assignment_date', date)` |
 
-### 5. Logging-haandtering (jf. Knowledge)
+Fjern `DemoUserService`-import (linje 10) og `demoService`-variabel (linje 22).
 
-- Alle nye `console.log` wraps i `import.meta.env.DEV`
-- Ingen foelsom data logges (ingen bruger-ID, email, passwords)
-- `console.error` beholdes for fejlhaandtering
+### 3. Fix `useEmployeeActions.ts` -- fjern DemoUserService
 
-### 6. Kvalitetstjek
+**Fil**: `src/hooks/employee/useEmployeeActions.ts`
 
-- Live-brugere forbliver 100% beskyttet via RESTRICTIVE RLS-politikker
-- Demo-data gemmes nu i databasen og ryddes automatisk via pg_cron
-- sessionStorage-afhaengighed elimineres for datapersistering
-- Afdelingsisolering (Fase 9c) forbliver intakt via `isDemoNonHomeDepartment`
+| Blok | Nuvaerende | Ny |
+|------|-----------|-----|
+| toggleEmployeeLeave (linje 26-44) | `DemoUserService.updateDemoEmployee()` | Brug `getSchemaClient` + `.update()` paa `profiles` |
+| updateEmployee (linje 96-119) | `DemoUserService.updateDemoEmployee()` | Brug `getSchemaClient` + `.update()` paa `profiles` |
+| deleteEmployee (linje 203-213) | `DemoUserService.deleteDemoEmployee()` | Brug `getSchemaClient` + `.delete().eq('id', id).eq('is_demo', true)` |
 
-### 7. Raekkefoelge
+Fjern `DemoUserService`-import (linje 9).
 
-1. pg_cron job (via SQL INSERT)
-2. Opdater `optimizedAssignmentService.ts` (create/update/delete/fetch)
-3. Opdater `useCarActions.ts` og `useCarData.ts`
-4. Opdater `useWarehouseActions.ts`
-5. Dokumentation (CHANGELOG.md)
+### 4. Fix `useAssignmentDataOptimized.ts` -- fjern local-merge + fix realtime
+
+**Fil**: `src/hooks/assignment/useAssignmentDataOptimized.ts`
+
+- **Fjern sessionStorage-merge** (linje 101-123): RLS returnerer allerede `is_demo`-data til demo-brugeren. Ingen local-merge noedvendig.
+- **Fix realtime subscription** (linje 175, 193): Aendr `schema: isDemoMode ? 'demo' : 'public'` til `schema: 'public'` -- al data er nu i public schema.
+- Fjern `DemoUserService`-import (linje 10) og `demoService`-variabel (linje 20).
+
+### 5. Fix `useEmployeeData.ts` -- fjern local-merge
+
+**Fil**: `src/hooks/employee/useEmployeeData.ts`
+
+- Fjern `DemoUserService`-import og `demoService`-variabel.
+- Fjern local-merge af `demoService.getDemoEmployees()` (linje 67-88 i demo-blokken). RPC returnerer allerede `is_demo`-data via RLS.
+
+### 6. Forenkl `useDemoTracking.ts`
+
+**Fil**: `src/hooks/useDemoTracking.ts`
+
+- Erstat `DemoUserService` cleanup med `reset_demo_data` RPC.
+- Fjern sessionStorage-baseret tracking (ikke laengere relevant da alt er i DB).
+- Behold activity-tracking for UX (valgfrit).
+
+### 7. Logging-oprydning (jf. Knowledge)
+
+Paa tvaers af alle beroorte filer:
+
+| Fil | Antal uguardede `console.log` | Handling |
+|-----|-------------------------------|---------|
+| `useAssignmentActions.ts` | ~20 (linje 65-66, 72, 84, 116-119, 154, 171, 176, 209, 228, 293, 319, 322, 338-339, 345, 349, 390, 400, 530, 606, 638, 691) | Wrap i `import.meta.env.DEV` |
+| `useAssignmentDataOptimized.ts` | ~10 (linje 27, 37, 40, 122, 125, 156, 176, 194, 201, 212) | Wrap i `import.meta.env.DEV` |
+| `useEmployeeActions.ts` | 3 (linje 20, 84, 200) | Wrap i `import.meta.env.DEV` |
+| `useCarActions.ts` | ~6 (linje 57, 108, 137, 227, 237, 256) | Wrap i `import.meta.env.DEV` |
+
+`console.error` beholdes for fejlhaandtering. Ingen foelsom data (bruger-ID, email, passwords) logges.
+
+### 8. Dokumentation
+
+- Opdater `CHANGELOG.md` med beskrivelse af fix og DemoUserService-migrering.
+
+### Raekkefoelge
+
+1. `demoSchemaClient.ts` -- stop demo-schema routing (fixer alle DB-kald paa en gang)
+2. `useAssignmentActions.ts` -- fjern DemoUserService, brug DB
+3. `useEmployeeActions.ts` -- fjern DemoUserService, brug DB
+4. `useAssignmentDataOptimized.ts` -- fjern local-merge, fix realtime schema
+5. `useEmployeeData.ts` -- fjern local-merge
+6. `useDemoTracking.ts` -- forenkl til RPC
+7. Logging-oprydning paa tvaers af alle filer
+8. `CHANGELOG.md`
+
+### Live-data beskyttelse (opsummering)
+
+- **RLS**: RESTRICTIVE policies paa alle 8 tabeller -- live-brugere ser KUN `is_demo = false`
+- **Query-filtrering**: `.eq('is_demo', false)` i alle live-mode hooks (defense in depth)
+- **Realtime**: Lytter paa `public` schema -- ingen data fra `demo` schema laeser ind
+- **pg_cron**: Sletter automatisk `is_demo = true` data aeldre end 15 minutter
+- **Ingen demo-schema**: Al routing til `demo`-schemaet fjernes -- ingen risiko for data-laekning mellem schemaer
+
