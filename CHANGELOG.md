@@ -40,6 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added - 2026-02-15
+- Oprettet `docs/technical-specs/data-models.md` med komplet oversigt over 17+ tabeller, relationer, enums og 47 RPC-funktioner
+- Oprettet `docs/technical-specs/architecture.md` med SHA256/bcrypt-kryptering, RLS-politikker, edge function sikkerhed og input-sanitering
+- Oprettet `docs/ui-guidelines/component-library.md` med 9 shared-komponenter og 51 UI-primitiver inkl. props og anvendelsesmønstre
 - Oprettet `docs/` mappestruktur som projektets Single Source of Truth
 - `docs/implementation-plan/` med `readme.md` og `tasks.md` (4 faser: Sikkerhed, Database, Performance, UI)
 - `docs/product-roadmap/readme.md` — langsigtet vision og multi-afdeling udrulning
