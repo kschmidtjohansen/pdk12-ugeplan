@@ -150,3 +150,14 @@ Gennemført 2026-02-15.
 - [x] Tilføjet `.eq('is_demo', false)` til alle live-mode queries (defense in depth)
 - [x] Opdateret `useDemoAutoCleanup` til at bruge RPC
 - [x] Dokumenteret i CHANGELOG.md
+
+## Fase 9e: Demo-RPC migrering + Afdelingsvælger redesign ✅
+
+Gennemført 2026-02-15.
+
+- [x] Migreret alle 6 demo-RPCs fra `demo.*` til `public.*` med `WHERE is_demo = true`
+- [x] Rettet `get_demo_vacations` og `list_demo_assignments_with_team` return types (DROP + CREATE)
+- [x] Realtime-subscription i `useDutyData` bruger nu altid `schema: 'public'`
+- [x] Afdelingsvælger redesignet til side-by-side layout (to separate dropdowns)
+- [x] DEV-guard på 12 console.log i `useDutyData`, `carSecurityService`, `useCarFormState`, `DepartmentContext`
+- [x] Dokumenteret i CHANGELOG.md

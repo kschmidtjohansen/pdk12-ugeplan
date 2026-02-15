@@ -108,7 +108,7 @@ export class CarSecurityService {
         sub_department_id: carData.sub_department_id || null,
       };
 
-      console.log('[CarSecurityService] Creating car with data:', insertData);
+      if (import.meta.env.DEV) console.log('[CarSecurityService] Creating car with data:', insertData);
 
       // Include fuel_card_code if user has permission (either DB-level or client-level)
       if ((canViewFuel || canViewFuelCardCode) && carData.fuel_card_code) {
@@ -184,7 +184,7 @@ export class CarSecurityService {
         updated_at: new Date().toISOString()
       };
 
-      console.log('[CarSecurityService] Updating car with data:', updateData, 'for carId:', carId);
+      if (import.meta.env.DEV) console.log('[CarSecurityService] Updating car with data:', updateData, 'for carId:', carId);
 
       // Only update fuel_card_code if user has database permission
       if (canViewFuel && carData.fuel_card_code !== undefined) {
