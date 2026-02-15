@@ -63,6 +63,18 @@ Gennemført 2026-02-15.
 - [x] Erstattet alle hardcoded `text-gray-*` / `border-gray-*` / `bg-gray-*` med tema-tokens i CarsTable og MobileCarCard (36 erstatninger)
 - [x] Oprettet komplet docs-mappestruktur: timeline, features, user-personas, database-schema, design-system
 
+## Fase 8: UI/UX Finpudsning & Responsivitet ✅
+
+Gennemført 2026-02-15.
+
+- [x] Erstattet hardcoded gray-farver med tema-tokens i PlannerPage, CarSelector, UserManagement, LoadingSpinner, TopNavbar, EnhancedVacationCard
+- [x] DEV-guard på 4 console.log i AssignmentDetails.tsx
+- [x] Tilføjet `overflow-x-auto` på CarsTable og WarehouseTable for mobil horisontal scroll
+- [x] Verificeret gitter-visning (allerede fungerende med LayoutGrid-ikon og md:grid-cols-3)
+- [x] Verificeret hover-effekter på opgavekort (allerede implementeret)
+- [x] Verificeret tomme tilstande (allerede standardiseret med CalendarX2-ikon)
+- [x] Opdateret component-library.md med gitter-visnings-regler
+
 ## Fase 5: Sikkerhedsrettelser (Runde 2) ✅
 
 Gennemført 2026-02-15.

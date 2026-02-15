@@ -8,7 +8,7 @@ const WarehouseTable: React.FC<WarehouseListProps> = ({ items, onEdit, onDelete,
   const { t } = useTranslation();
 
   return (
-    <div className="rounded-lg border border-border bg-card overflow-hidden">
+    <div className="rounded-lg border border-border bg-card overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">

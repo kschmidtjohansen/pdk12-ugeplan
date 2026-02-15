@@ -86,13 +86,15 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
     names: string[];
     hasFullData: boolean;
   } => {
-    console.log('[AssignmentDetails] Processing employee data for assignment:', assignment.title);
-    console.log('[AssignmentDetails] Employee data available:', {
-      hasAssignedEmployees: !!assignment.assignedEmployees?.length,
-      assignedEmployees: assignment.assignedEmployees?.map(e => ({ id: e.id, name: e.name })),
-      hasLegacyEmployees: !!assignment.employees?.length,
-      legacyEmployees: assignment.employees
-    });
+    if (import.meta.env.DEV) {
+      console.log('[AssignmentDetails] Processing employee data for assignment:', assignment.title);
+      console.log('[AssignmentDetails] Employee data available:', {
+        hasAssignedEmployees: !!assignment.assignedEmployees?.length,
+        assignedEmployees: assignment.assignedEmployees?.map(e => ({ id: e.id, name: e.name })),
+        hasLegacyEmployees: !!assignment.employees?.length,
+        legacyEmployees: assignment.employees
+      });
+    }
     
     const names: string[] = [];
     
@@ -109,7 +111,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
     // Use the filterDisplayNames utility to remove UUIDs and duplicates
     const processedNames = filterDisplayNames(names);
     
-    console.log('[AssignmentDetails] Processed names:', processedNames);
+    if (import.meta.env.DEV) console.log('[AssignmentDetails] Processed names:', processedNames);
     
     return {
       names: processedNames,

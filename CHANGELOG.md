@@ -39,6 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### UI/UX Finpudsning & Responsivitet (Fase 8) - 2026-02-15
+- Erstattet hardcoded `text-gray-*` / `bg-gray-*` / `border-gray-*` / `hover:bg-gray-*` med semantiske tema-tokens i 6 komponenter: PlannerPage, CarSelector, UserManagement, LoadingSpinner, TopNavbar, EnhancedVacationCard
+- TopNavbar bruger nu `bg-background/95`, `border-border`, `text-foreground` og `hover:bg-muted` (dark mode-kompatibelt)
+- Tilføjet `overflow-x-auto` på CarsTable og WarehouseTable for mobil horisontal scroll
+- DEV-guard på 4 console.log i AssignmentDetails.tsx (forhindrer medarbejder-data logging i produktion)
+- Opdateret `docs/ui-guidelines/component-library.md` med gitter-visnings-regler og tabel-scroll-guidelines
+
 ### Performance: TanStack Query Caching & Realtime-konsolidering (Fase 7) - 2026-02-15
 - `useOptimizedAssignments` migreret fra `useState`/`useEffect` til TanStack Query `useQuery` med `staleTime: 5min` og `gcTime: 10min` — tab-skift viser nu cached data øjeblikkeligt
 - Realtime-kanal bruger `queryClient.invalidateQueries` i stedet for fuld refetch (reducerer unødige netværkskald)
