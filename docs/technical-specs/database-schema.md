@@ -116,6 +116,41 @@ $$
 | `assignments` | `assignment_date, published` | Planlægger-visning |
 | `on_call_duties` | `duty_date, employee_id` | Vagtopslag |
 
+### Fjernede redundante indexes (Fase 6)
+
+Følgende 14 indexes blev fjernet 2026-02-15 da de var subsets af eksisterende composite indexes, duplikerede primary keys eller var ineffektive:
+
+| Index | Tabel | Grund |
+|-------|-------|-------|
+| `idx_notifications_user_unread` | notifications | Subset af `idx_notifications_unread` |
+| `notifications_user_id_idx` | notifications | Subset af `idx_notifications_user_read_created` |
+| `notifications_created_at_idx` | notifications | Dækket af user_id composites |
+| `idx_profiles_id` | profiles | Duplikerer `profiles_pkey` |
+| `idx_profiles_status` | profiles | Subset af `idx_profiles_status_name_optimized` |
+| `idx_profiles_status_name` | profiles | Duplikeret af `idx_profiles_status_name_optimized` |
+| `idx_assignments_published_date` | assignments | Subset af `idx_assignments_combined` |
+| `idx_assignments_date_range_user` | assignments | Subset af `idx_assignments_combined` |
+| `idx_assignments_date_time` | assignments | Subset af `idx_assignments_comprehensive` |
+| `idx_logs_created_at` | logs | Subset af `idx_logs_type_created_optimal` |
+| `idx_logs_event_type` | logs | Subset af `idx_logs_type_created_optimal` |
+| `idx_case_folder_mappings_case_number` | case_folder_mappings | Duplikerer unique constraint |
+| `idx_vacations_status_dates` | vacations | Overlapper med `idx_vacations_date_range_status` |
+| `logs_message_idx` | logs | Ineffektivt btree på TEXT-kolonne |
+
+---
+
+## Redundante kolonner (dokumenteret Fase 6)
+
+Følgende kolonner er identificeret som ubrugte/redundante men fjernes **ikke** (sikkerhedsklausul):
+
+| Tabel | Kolonne | Status | Begrundelse |
+|-------|---------|--------|-------------|
+| `assignments` | `onedrive_folder_id` | 100% NULL | Aldrig taget i brug |
+| `assignments` | `route_distance_km` | 100% NULL | Aldrig taget i brug |
+| `assignments` | `route_duration_min` | 100% NULL | Aldrig taget i brug |
+| `assignments` | `attachment_files` | JSONB, avg 5 bytes | Erstattet af `assignment_files`-tabel |
+| `cars` | `sub_department_id` | Legacy | Erstattet af `car_sub_departments` junction |
+
 ---
 
 ## Backup-rutiner
@@ -160,3 +195,4 @@ Alle log-tabeller deler samme skema:
 - `cleanup_old_change_logs()` — fjerner gamle ændringslog-poster
 - `emergency_log_cleanup()` — nødoprydning ved kritisk lagerforbrug
 - Anbefaling: Fjern logs ældre end 30 dage (dokumenteret i Fase 2)
+- **Fase 6**: Slettet 317k støj-rækker (vacation_realtime_change, enhanced_error_timeout, enhanced_error_database) — ~180 MB frigjort
