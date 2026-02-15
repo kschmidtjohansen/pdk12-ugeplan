@@ -75,7 +75,13 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
               id="car_number"
               name="car_number"
               value={formData.car_number}
-              onChange={onInputChange}
+              onChange={(e) => {
+                const uppercased = { ...e, target: { ...e.target, name: 'car_number', value: e.target.value.toUpperCase().replace(/[^A-Z0-9\-]/g, '') } };
+                onInputChange(uppercased as React.ChangeEvent<HTMLInputElement>);
+              }}
+              pattern="^[A-Z0-9\-]{2,10}$"
+              title="2-10 tegn: kun store bogstaver, tal og bindestreg"
+              maxLength={10}
               required
             />
           </div>
