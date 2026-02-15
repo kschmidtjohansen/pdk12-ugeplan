@@ -39,6 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Demo-bruger afdelingsadgang (Fase 9b) - 2026-02-15
+- Demo-bruger (`test@polygongroup.com`) får nu adgang til **02 - Storkøbenhavn** med alle 3 underafdelinger (Fugt & Skimmel, Løsøre, Miljø & Brand)
+- Eksisterende data (1.023 opgaver, 12 biler, 22 lageremner) forbliver isoleret på **12 - Fredericia** og vises kun når dept 12 er valgt
+- Ingen kodeændringer — kun 3 nye rækker i `user_access`-tabellen
+
 ### End-to-End QA & Production Readiness (Fase 9) - 2026-02-15
 - Erstattet ~80 hardcoded Tailwind gray-klasser med semantiske tema-tokens i 10 filer: NotFound, PasswordResetPage, Index, CarsPage, EmployeesPage, MobileNavigation, EmployeeLoadingError, CarMarkAvailableDialog, spinner, EmployeeFormDialog
 - Oversat 6 engelske strenge til dansk i `Index.tsx` (sessionsfejl-dialog) og "Technical details" → "Tekniske detaljer" i `EmployeeLoadingError.tsx`
