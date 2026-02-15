@@ -93,7 +93,7 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
     
     if (selectedSubDepartmentId) {
       // Use schema-aware client to avoid affecting live data in demo mode
-      const client = isDemoMode ? getSchemaClient(true) : { from: (t: string) => supabase.from(t as any) };
+      const client = getSchemaClient(isDemoMode);
       client.from('user_access')
         .select('user_id')
         .eq('department_id', selectedDepartmentId)

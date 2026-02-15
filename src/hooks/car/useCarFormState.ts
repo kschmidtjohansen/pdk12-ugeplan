@@ -69,7 +69,7 @@ export const useCarFormState = ({
     // Fetch sub_department_ids from junction table
     let subDeptIds: string[] = [];
     try {
-      const dbClient = isDemoMode ? getSchemaClient(true) : { from: (t: string) => supabase.from(t as any) };
+      const dbClient = getSchemaClient(isDemoMode);
       const { data } = await dbClient
         .from('car_sub_departments')
         .select('sub_department_id')
