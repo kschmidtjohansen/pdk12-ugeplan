@@ -35,15 +35,12 @@ export const useEmployeeDialogData = ({
   // HYBRID APPROACH: Use initial employees for original date, all service employees for navigated dates
   const employeesToShow = useMemo(() => {
     if (viewedDate === selectedDate) {
-      // For the original date, use the pre-filtered employees from DashboardMetrics
-      console.log(`[EmployeeDialogData] Using pre-filtered employees (${initialEmployees.length}) for original date ${selectedDate}`);
+      if (import.meta.env.DEV) console.log(`[EmployeeDialogData] Using pre-filtered employees (${initialEmployees.length}) for original date ${selectedDate}`);
       return initialEmployees;
     } else {
-      // For navigated dates, get all service employees and filter them dynamically
       const serviceEmployees = allEmployees.filter(employee => employee.role === 'servicemedarbejder');
-      console.log(`[EmployeeDialogData] Using all service employees (${serviceEmployees.length}) for navigated date ${viewedDate}`);
+      if (import.meta.env.DEV) console.log(`[EmployeeDialogData] Using all service employees (${serviceEmployees.length}) for navigated date ${viewedDate}`);
       
-      // Filter to show only available and partially available employees for navigated dates
       const availableEmployees = serviceEmployees.filter(employee => {
         const availabilityInfo = getEmployeeAvailabilityStatus(
           employee,
@@ -54,11 +51,11 @@ export const useEmployeeDialogData = ({
         );
         
         const isAvailable = availabilityInfo.status === 'available' || availabilityInfo.status === 'partiallyBooked';
-        console.log(`[EmployeeDialogData] Employee ${employee.name} for ${viewedDate}: status=${availabilityInfo.status}, available=${isAvailable}`);
+        if (import.meta.env.DEV) console.log(`[EmployeeDialogData] Employee ${employee.name} for ${viewedDate}: status=${availabilityInfo.status}, available=${isAvailable}`);
         return isAvailable;
       });
       
-      console.log(`[EmployeeDialogData] Filtered available employees for ${viewedDate}: ${availableEmployees.length}`);
+      if (import.meta.env.DEV) console.log(`[EmployeeDialogData] Filtered available employees for ${viewedDate}: ${availableEmployees.length}`);
       return availableEmployees;
     }
   }, [viewedDate, selectedDate, initialEmployees, allEmployees, currentDate, assignments, vacations, t]);

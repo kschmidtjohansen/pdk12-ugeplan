@@ -96,3 +96,24 @@ Gennemført 2026-02-15.
 - [x] Dokumenteret 6 redundante kolonner (assignments.onedrive_folder_id, route_distance_km, route_duration_min, attachment_files; cars.sub_department_id; logs.message index)
 - [x] Verificeret `assignment_files`-tabel som korrekt normaliseret (ingen redundant fil-metadata)
 - [x] Opdateret `docs/technical-specs/database-schema.md` med fjernede indexes og redundante kolonner
+
+## Fase 9: End-to-End QA & Production Readiness ✅
+
+Gennemført 2026-02-15.
+
+- [x] Erstattet ~15 hardcoded gray-farver med tema-tokens i `NotFound.tsx`
+- [x] Erstattet ~30 hardcoded gray-farver med tema-tokens i `PasswordResetPage.tsx`
+- [x] Erstattet ~15 hardcoded gray-farver + oversat 6 engelske strenge til dansk i `Index.tsx`
+- [x] Erstattet 2 hardcoded gray-farver med tema-tokens i `CarsPage.tsx`
+- [x] Erstattet 3 hardcoded gray-farver med tema-tokens i `EmployeesPage.tsx`
+- [x] Erstattet ~14 hardcoded gray-farver med tema-tokens i `MobileNavigation.tsx`
+- [x] Erstattet 4 gray-farver + oversat "Technical details" til dansk i `EmployeeLoadingError.tsx`
+- [x] Erstattet `bg-gray-50` med `bg-muted/50` i `CarMarkAvailableDialog.tsx`
+- [x] Erstattet `border-gray-300 border-t-blue-600` med `border-muted-foreground/30 border-t-primary` i `spinner.tsx`
+- [x] Erstattet 2 gray-farver med tema-tokens i `EmployeeFormDialog.tsx`
+- [x] DEV-guard på 6 console.log i `EmployeeAvailabilityDialog/index.tsx`
+- [x] DEV-guard på 4 console.log i `useEmployeeDialogData.ts`
+- [x] DEV-guard på 3 console.log i `VacationFormDialog.tsx`
+- [x] DEV-guard på 2 console.log i `assignmentDataConverter.ts`
+- [x] DEV-guard på ~8 console.log i `PasswordResetPage.tsx`
+- [x] Projekt markeret som **Production Ready**

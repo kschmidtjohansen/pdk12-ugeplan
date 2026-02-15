@@ -39,6 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### End-to-End QA & Production Readiness (Fase 9) - 2026-02-15
+- Erstattet ~80 hardcoded Tailwind gray-klasser med semantiske tema-tokens i 10 filer: NotFound, PasswordResetPage, Index, CarsPage, EmployeesPage, MobileNavigation, EmployeeLoadingError, CarMarkAvailableDialog, spinner, EmployeeFormDialog
+- Oversat 6 engelske strenge til dansk i `Index.tsx` (sessionsfejl-dialog) og "Technical details" → "Tekniske detaljer" i `EmployeeLoadingError.tsx`
+- DEV-guard på ~23 uguardede `console.log` i 5 filer: EmployeeAvailabilityDialog, useEmployeeDialogData, VacationFormDialog, assignmentDataConverter, PasswordResetPage
+- Spinner-komponent bruger nu `border-muted-foreground/30 border-t-primary` (dark mode-kompatibelt)
+- Projekt markeret som **Production Ready** i `docs/implementation-plan/tasks.md`
+
 ### UI/UX Finpudsning & Responsivitet (Fase 8) - 2026-02-15
 - Erstattet hardcoded `text-gray-*` / `bg-gray-*` / `border-gray-*` / `hover:bg-gray-*` med semantiske tema-tokens i 6 komponenter: PlannerPage, CarSelector, UserManagement, LoadingSpinner, TopNavbar, EnhancedVacationCard
 - TopNavbar bruger nu `bg-background/95`, `border-border`, `text-foreground` og `hover:bg-muted` (dark mode-kompatibelt)

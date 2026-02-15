@@ -73,7 +73,7 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
 
   // Log props when dialog is opened to debug
   React.useEffect(() => {
-    if (open) {
+    if (open && import.meta.env.DEV) {
       console.log("VacationFormDialog opened with props:", {
         isEditing,
         date,
@@ -112,13 +112,13 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
       onStartDateChange(normalizedStartDate);
       onEndDateChange(normalizedEndDate);
       
-      console.log("Normalized dates for submission:", {
+      if (import.meta.env.DEV) console.log("Normalized dates for submission:", {
         normalizedStartDate: normalizedStartDate.toISOString(),
         normalizedEndDate: normalizedEndDate.toISOString()
       });
     }
     
-    console.log("Form submitted with data:", {
+    if (import.meta.env.DEV) console.log("Form submitted with data:", {
       isEditing,
       startDate: startDate instanceof Date ? startDate.toISOString() : startDate,
       endDate: endDate instanceof Date ? endDate.toISOString() : endDate,

@@ -35,7 +35,7 @@ const CarMarkAvailableDialog: React.FC<CarMarkAvailableDialogProps> = ({
         </DialogHeader>
         
         {car.notes && (
-          <div className="bg-gray-50 p-3 rounded-md border text-sm">
+          <div className="bg-muted/50 p-3 rounded-md border text-sm">
             {car.notes}
           </div>
         )}

@@ -74,10 +74,10 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
   if (!mobileMenuOpen) return null;
   
   return (
-    <div className="md:hidden bg-white">
+    <div className="md:hidden bg-background">
       <div className="px-2 pt-2 pb-3 space-y-1">
         {/* Department Selector in mobile */}
-        <div className="px-3 py-2 border-b border-gray-100 mb-2">
+        <div className="px-3 py-2 border-b border-border mb-2">
           <DepartmentSelector />
         </div>
         {items.map((item) => {
@@ -93,7 +93,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
                     "w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-medium transition-colors",
                     isActiveParent(item)
                       ? "bg-polygon-blue text-white" 
-                      : "text-gray-700 hover:bg-polygon-lightgray hover:text-gray-900"
+                      : "text-foreground hover:bg-polygon-lightgray hover:text-foreground"
                   )}
                 >
                   <div className="flex items-center">
@@ -113,7 +113,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
                           "w-full flex items-center px-3 py-2 rounded-md text-sm transition-colors",
                           location.pathname === child.path
                             ? "bg-polygon-blue text-white" 
-                            : "text-gray-600 hover:bg-polygon-lightgray hover:text-gray-900"
+                            : "text-muted-foreground hover:bg-polygon-lightgray hover:text-foreground"
                         )}
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -135,21 +135,21 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
                 "block px-3 py-2 rounded-md text-base font-medium flex items-center relative overflow-visible",
                 location.pathname === item.path 
                   ? "bg-polygon-blue text-white" 
-                  : "text-gray-700 hover:bg-polygon-lightgray"
+                  : "text-foreground hover:bg-polygon-lightgray"
               )}
               onClick={() => setMobileMenuOpen(false)}
             >
               <span className="mr-3">{item.icon}</span>
               {item.name}
               {item.hasNotification && (
-                <Badge className="absolute top-2 right-2 h-3 w-3 p-0 bg-red-500 border-2 border-white z-[1] pointer-events-none" />
+                <Badge className="absolute top-2 right-2 h-3 w-3 p-0 bg-red-500 border-2 border-background z-[1] pointer-events-none" />
               )}
             </Link>
           );
         })}
         
         {/* User profile */}
-        <div className="pt-4 pb-3 border-t border-gray-200">
+        <div className="pt-4 pb-3 border-t border-border">
           <div className="flex items-center px-5">
             <div className="flex-shrink-0">
               <Avatar>
@@ -157,8 +157,8 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
               </Avatar>
             </div>
             <div className="ml-3">
-              <div className="text-base font-medium text-gray-800">{user?.name}</div>
-              <div className="text-sm font-medium text-gray-500">{user?.email}</div>
+              <div className="text-base font-medium text-foreground">{user?.name}</div>
+              <div className="text-sm font-medium text-muted-foreground">{user?.email}</div>
             </div>
             {/* Notifications - show for everyone */}
             <Button
@@ -167,11 +167,10 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
               className="ml-auto flex-shrink-0 p-1 relative"
               onClick={() => {
                 setMobileMenuOpen(false);
-                // Navigate to a notifications page or show notification dropdown
               }}
             >
               <span className="sr-only">{t('notifications.title')}</span>
-              <Bell className="h-5 w-5 text-gray-500" />
+              <Bell className="h-5 w-5 text-muted-foreground" />
               {unreadCount > 0 && (
                 <Badge 
                   variant="destructive" 
@@ -185,7 +184,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
           
           <div className="mt-3 space-y-1 px-2">
             {/* Language selector */}
-            <div className="flex items-center px-3 py-2 text-gray-700">
+            <div className="flex items-center px-3 py-2 text-foreground">
               <span className="mr-2">{t('common.language')}:</span>
               <div className="flex gap-2">
                 <Button 
