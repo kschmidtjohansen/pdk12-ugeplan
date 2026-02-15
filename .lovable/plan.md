@@ -1,92 +1,86 @@
 
 
-## Funktionel logik-gennemgang
+## Visuel konsistens-gennemgang
 
 ### Audit-resultat
 
-| Kategori | Fund | Kritisk | Advarsel |
-|----------|------|---------|----------|
-| Rollerettigheder | 1 fejl | 1 | 0 |
-| Fil-upload | 1 manglende validering | 1 | 0 |
-| Console-logging | 4 uguardede logs | 0 | 1 |
-| Chat + afdelingsstruktur | OK | 0 | 0 |
-| Views (Gitter/Kompakt/Standard) | OK | 0 | 0 |
-| Login dynamisk undertitel | OK | 0 | 0 |
+| Kategori | Fund | Prioritet |
+|----------|------|-----------|
+| Hardcoded farver vs. tema-variabler | 124 `text-gray-*` i 11 filer (dark mode-inkompatibelt) | Medium |
+| Uguardede console.logs (overset) | 50+ i AssignmentCard, DaySection, EmployeeSelector, ResponsibleUserSelector, AssignmentFormFields | Hoej |
+| Inkonsistente tomme tilstande | 4 forskellige patterns | Medium |
+| Planner EmptyState ubrugt | `Planner/EmptyState.tsx` bruges ikke | Lav |
 
 ---
 
-### KRITISK: Fejl der skal rettes
+### 1. KRITISK: 50+ uguardede console.logs i Planner-komponenter
 
-#### 1. `super_admin` kan ikke slette andres chat-beskeder
+Disse blev overset i de to forrige performance-runder:
 
-**Fil:** `src/components/Assignment/AssignmentMessagesPanel.tsx`, linje 73
+| Fil | Antal uguardede logs |
+|-----|---------------------|
+| `AssignmentCard.tsx` | 15 (inkl. per-card debug med fulde objekter - MASSIV per-render overhead) |
+| `DaySection.tsx` | 2 (linje 52, 63) |
+| `EmployeeSelector.tsx` | 8 (linje 76, 101-107, 179) |
+| `ResponsibleUserSelector.tsx` | 9 (linje 20-24, 41-43, 55, 69, 77) |
+| `AssignmentFormFields.tsx` | 4 (linje 77, 88, 94, 104) |
 
-```typescript
-// NUVAERENDE (fejl):
-return ['administrator', 'skadeleder'].includes(user.role || '');
+`AssignmentCard.tsx` er vaerst: 15 console.log-kald koerer for HVERT kort i listen. Med 20 opgaver = 300 log-linjer per render.
 
-// RETTET:
-return ['super_admin', 'administrator', 'skadeleder'].includes(user.role || '');
-```
-
-En Super Admin kan ikke slette andres beskeder i chat-panelet, fordi rollen mangler i listen. Administrator og Skadeleder kan, men Super Admin er udeladt.
-
-#### 2. Fil-upload mangler stoerrelsesbegransning
-
-**Fil:** `src/hooks/assignment/useAssignmentFiles.ts`, `uploadFile`-funktionen (linje 113-157)
-
-Der er ingen validering af filstoerrelse foer upload. Profilbillede-upload har en 5MB-graense (ProfilePictureDialog), men assignment-filer har ingen. En bruger kan uploade vilkaarligt store filer.
-
-**Rettelse:** Tilfoej en 20MB-graense (matcher Supabase Storage standard) med brugervenlig fejlbesked foer upload-kaldet:
-
-```typescript
-const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
-
-if (file.size > MAX_FILE_SIZE) {
-  toast.error('Filen er for stor. Maksimal stoerrelse er 20MB.');
-  return;
-}
-```
+**Rettelse:** Wrap alle i `import.meta.env.DEV` guard.
 
 ---
 
-### ADVARSEL: Resterende console.logs i produktion
+### 2. Hardcoded `text-gray-*` farver (dark mode problem)
 
-Disse logs blev overset i den forrige performance-optimering:
+Disse steder bruger hardcoded Tailwind-gra-farver i stedet for tema-variabler (`text-foreground`, `text-muted-foreground`). Det betyder, at teksten bliver ulaeselig i dark mode.
 
-| Fil | Linje | Indhold |
-|-----|-------|---------|
-| `src/components/Planner/PlannerContent.tsx` | 62 | Logger antal assignments, employees, cars |
-| `src/components/Layout/TopNavbar.tsx` | 43-48 | Logger vacation request status med emoji |
-| `src/components/Layout/TopNavbar.tsx` | 56 | Logger pending vacation notification |
-| `src/components/Layout/TopNavbar.tsx` | 115-120 | Logger alle navigation items |
+**Vigtigste steder:**
 
-**Rettelse:** Wrap alle 4 steder i `import.meta.env.DEV` guard.
+| Fil | Problem |
+|-----|---------|
+| `PageHeader.tsx` | `text-gray-900` og `text-gray-600` paa overskrift/beskrivelse |
+| `shared/EmptyState.tsx` | `text-gray-900`, `text-gray-500`, `text-gray-400` |
+| `Planner/EmptyState.tsx` | `text-gray-900`, `text-gray-400`, `bg-gray-100` |
+| `CompactAssignmentRow.tsx` | 5x `text-gray-900` paa tabel-celler |
+| `EmployeesList.tsx` | `text-gray-900`, `text-gray-600`, `text-gray-300`, `text-gray-500` |
+| `LoginPage.tsx` | `bg-gray-50`, `text-gray-900`, `text-gray-600` |
+| `MobileCarCard.tsx` | 5x `text-gray-900` |
+| `CarsTable.tsx` | 3x `text-gray-900` |
+| `AssignmentCard.tsx` | `text-gray-600`, `text-gray-800` |
+| `DaySection.tsx` | `text-gray-500` |
+
+**Rettelse:** Erstat med tema-variabler:
+- `text-gray-900` -> `text-foreground`
+- `text-gray-600/700` -> `text-muted-foreground`
+- `text-gray-400/500` -> `text-muted-foreground`
+- `bg-gray-100` -> `bg-muted`
+- `bg-gray-50` -> `bg-background`
 
 ---
 
-### Verificerede omraader (ingen fejl)
+### 3. Inkonsistente tomme tilstande
 
-**Chat + afdelingsstruktur:**
-- `isChatEnabled` og `isFilesEnabled` styrer korrekt visning i `AssignmentDetailsDialog`
-- Chat-panelet filtrerer ikke data per afdeling (beskeder er knyttet til en specifik opgave, som allerede er filtreret per underafdeling via RLS)
+Der er 4 forskellige patterns for "tom liste" paa tvaers af appen:
 
-**Rollerettigheder i UI:**
-- `isEffectiveAdmin` inkluderer korrekt baade `super_admin` og `administrator` (AuthContext linje 543)
-- Admin-fane er korrekt skjult for ikke-admins via `adminOnly` filter i TopNavbar
-- Super Admin-rolle er kun synlig i brugerformularer hvis den autentificerede bruger selv er `super_admin` (UserFormDialog, EmployeeFormDialog)
-- `canPublishTasks`, `canEdit`, `canCreate` inkluderer korrekt `super_admin` via `isAdmin`-flaget
+| Sted | Pattern |
+|------|---------|
+| `DaySection.tsx` (linje 129) | `border-dashed` div med tekst |
+| `DutyList.tsx` (linje 70) | Card med `text-muted-foreground` |
+| `CarsList.tsx` (linje 34) | Lucide-ikon + `text-muted-foreground` |
+| `EmployeesList.tsx` (linje 75) | Ikon + titel + beskrivelse + retry-knap |
+| `PlannerContent.tsx` (linje 127) | Simpel `text-center py-8 text-muted-foreground` |
 
-**Views (Gitter/Kompakt/Standard):**
-- PlannerContent renderer korrekt baseret paa `viewMode` prop
-- Kompakt-view bruger separate komponenter (CompactCurrentAndFutureDays/CompactPastAssignments)
-- Grid-view bruger `gridLayout` prop paa standard-komponenterne
-- Alle tre views bruger samme data og expandedDays-logik
+**Rettelse:** Standardiser alle tomme tilstande til at bruge temafarver og ensartet spacing:
+- Ikon i cirkel (bg-muted/50)
+- Tekst i `text-muted-foreground` (ikke hardcoded graa)
+- Ensartet `py-12` spacing
 
-**Login dynamisk undertitel:**
-- LoginPage laeser `selected_department_id` fra localStorage og henter afdelingsnavnet
-- Fallback til "Internt planlagningssystem" hvis ingen afdeling er gemt
-- Fungerer korrekt
+---
+
+### 4. Ubrugt Planner/EmptyState.tsx
+
+`src/components/Planner/EmptyState.tsx` eksporterer en komponent, men den bruges ingen steder i kodebasen. `PlannerContent.tsx` bruger i stedet en inline div. Komponenten kan slettes.
 
 ---
 
@@ -94,15 +88,21 @@ Disse logs blev overset i den forrige performance-optimering:
 
 | Fil | AEndring |
 |-----|---------|
-| `src/components/Assignment/AssignmentMessagesPanel.tsx` | Tilfoej `'super_admin'` til canDeleteMessage rolle-liste |
-| `src/hooks/assignment/useAssignmentFiles.ts` | Tilfoej 20MB filstoerrelses-validering foer upload |
-| `src/components/Planner/PlannerContent.tsx` | Wrap console.log (linje 62) i `import.meta.env.DEV` |
-| `src/components/Layout/TopNavbar.tsx` | Wrap 3 console.log kald (linje 43, 56, 115) i `import.meta.env.DEV` |
-| `CHANGELOG.md` | Tilfoej alle rettelser under "Funktionel logik-gennemgang - 2026-02-15" |
+| `src/components/Planner/AssignmentCard.tsx` | Wrap 15 console.log i `import.meta.env.DEV` guard |
+| `src/components/Planner/DaySection.tsx` | Wrap 2 console.log i DEV guard. Erstat `text-gray-500` med `text-muted-foreground` |
+| `src/components/Planner/EmployeeSelector.tsx` | Wrap 8 console.log i DEV guard |
+| `src/components/Planner/ResponsibleUserSelector.tsx` | Wrap 9 console.log i DEV guard |
+| `src/components/Planner/AssignmentFormFields.tsx` | Wrap 4 console.log i DEV guard |
+| `src/components/Layout/PageHeader.tsx` | Erstat `text-gray-900` -> `text-foreground`, `text-gray-600` -> `text-muted-foreground` |
+| `src/components/shared/EmptyState.tsx` | Erstat hardcoded gra-farver med tema-variabler |
+| `src/components/Planner/EmptyState.tsx` | Slet filen (ubrugt) |
+| `src/components/Planner/CompactAssignmentRow.tsx` | Erstat 5x `text-gray-900` med `text-foreground` |
+| `src/components/Employees/EmployeesList.tsx` | Erstat hardcoded gra-farver med tema-variabler |
+| `src/components/Planner/AssignmentCard.tsx` | Erstat `text-gray-600`/`text-gray-800` med tema-variabler |
+| `CHANGELOG.md` | Tilfoej alle aendringer |
 
 ### Hvad der IKKE aendres
 
-- UI-design og layout forbliver identisk
-- Ingen database-aendringer
-- Ingen nye features - kun fejlrettelser
-
+- Ingen aaendringer i UI-layout, stoerrelse eller funktionalitet
+- LoginPage beholder sin nuvaerende stil (login-siden bruger bevidst lyse farver)
+- CarsTable og MobileCarCard: aendres ikke i denne runde for at begranse scope (kan tages separat)
