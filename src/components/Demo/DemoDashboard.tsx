@@ -21,7 +21,7 @@ import { DemoRoleSwitcher } from './DemoRoleSwitcher';
 
 export const DemoDashboard: React.FC = () => {
   const { isDemoMode, demoRole } = useAuth();
-  const { getDemoStats } = useDemoTracking();
+  const { triggerManualCleanup } = useDemoTracking();
   const { 
     timeRemainingFormatted, 
     showWarning, 
@@ -33,7 +33,7 @@ export const DemoDashboard: React.FC = () => {
 
   if (!isDemoMode) return null;
 
-  const stats = getDemoStats();
+  // Stats removed — demo tracking now uses DB-only approach
 
   const handleManualCleanup = async () => {
     try {

@@ -16,10 +16,8 @@ export class DemoSchemaClient {
    * @returns Supabase query builder for the table
    */
   from(table: string) {
-    // Use schema() method if in demo mode to avoid "public.demo.table" error
-    if (this.useDemo) {
-      return supabase.schema('demo' as any).from(table as any);
-    }
+    // All operations now use public schema with is_demo flag for isolation
+    // Demo schema routing removed — is_demo column + RESTRICTIVE RLS handles separation
     return supabase.from(table as any);
   }
   

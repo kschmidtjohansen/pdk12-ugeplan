@@ -7,9 +7,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
 import { useAuth } from '@/context/AuthContext';
-import { DemoUserService } from '@/services/demoUserService';
 import { resolveEmployeeDisplayName, filterDisplayNames } from '@/utils/people';
 import { format } from 'date-fns';
+
 export const useAssignmentDataOptimized = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -17,16 +17,14 @@ export const useAssignmentDataOptimized = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const demoService = DemoUserService.getInstance();
 
   const fetchAssignments = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('[useAssignmentDataOptimized] ENHANCED - Starting enhanced fetch...');
+      if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] ENHANCED - Starting enhanced fetch...');
       
-      // Use enhanced data fetching with proper error handling and user email for demo filtering
       const assignmentResult = await enhancedDataFetching.fetchAssignmentsEnhanced(user?.email);
       
       if (assignmentResult.error || !assignmentResult.data) {
@@ -34,17 +32,15 @@ export const useAssignmentDataOptimized = () => {
       }
 
       const assignmentsWithEmployees = assignmentResult.data;
-      console.log(`[useAssignmentDataOptimized] ENHANCED - Fetched ${assignmentsWithEmployees.length} assignment records`);
+      if (import.meta.env.DEV) console.log(`[useAssignmentDataOptimized] ENHANCED - Fetched ${assignmentsWithEmployees.length} assignment records`);
       
       if (!assignmentsWithEmployees || assignmentsWithEmployees.length === 0) {
-        console.log('[useAssignmentDataOptimized] ENHANCED - No assignments found');
+        if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] ENHANCED - No assignments found');
         setAssignments([]);
         return;
       }
       
-      // Enhanced data transformation using new secure team data structure
-      let transformedAssignments: Assignment[] = assignmentsWithEmployees.map(assignment => {
-        // Extract employee data from the secure team structure
+      const transformedAssignments: Assignment[] = assignmentsWithEmployees.map(assignment => {
         const teamData = assignment.team || [];
         const assignedEmployees = Array.isArray(teamData) ? teamData.map(member => ({
           id: member.id || '',
@@ -54,14 +50,12 @@ export const useAssignmentDataOptimized = () => {
         
         const employeeNames = filterDisplayNames(assignedEmployees.map(emp => emp.name));
         
-        // Handle responsible user data from secure function
         const responsibleUser = assignment.responsible_user && typeof assignment.responsible_user === 'object' ? {
           id: assignment.responsible_user.id || '',
           name: assignment.responsible_user.name || '',
           email: assignment.responsible_user.email || ''
         } : null;
         
-        // Normalize assignment date to yyyy-MM-dd for consistent filtering
         const rawDate = assignment.assignment_date;
         let dateStr: string;
 
@@ -72,7 +66,6 @@ export const useAssignmentDataOptimized = () => {
         } else if (typeof rawDate === 'string') {
           dateStr = rawDate.split('T')[0];
         } else {
-          console.warn('[useAssignmentDataOptimized] Unexpected assignment_date type:', typeof rawDate, rawDate);
           dateStr = String(rawDate).split('T')[0];
         }
         
@@ -84,8 +77,8 @@ export const useAssignmentDataOptimized = () => {
           fromTime: assignment.from_time,
           toTime: assignment.to_time,
           location: assignment.location,
-          employees: employeeNames, // Legacy format for backward compatibility
-          assignedEmployees: assignedEmployees, // Complete employee data with IDs
+          employees: employeeNames,
+          assignedEmployees: assignedEmployees,
           cars: assignment.car_ids || (assignment.car_id ? [assignment.car_id] : []),
           car: assignment.car_id || (assignment.car_ids && assignment.car_ids.length > 0 ? assignment.car_ids[0] : ''),
           published: assignment.published || false,
@@ -96,46 +89,20 @@ export const useAssignmentDataOptimized = () => {
         };
       });
 
-      // Schema isolation handles data separation - no filtering needed
+      // RLS handles data isolation — no local merge needed
       
-      // If this is a demo user, include their session-stored assignments
-      if (isDemoMode) {
-        const demoAssignments = demoService.getDemoAssignments().map(demoAssignment => ({
-          id: demoAssignment.id,
-          title: demoAssignment.title,
-          description: demoAssignment.description || '',
-          date: demoAssignment.assignment_date,
-          fromTime: demoAssignment.from_time,
-          toTime: demoAssignment.to_time,
-          location: demoAssignment.location,
-          employees: [],
-          assignedEmployees: [],
-          cars: demoAssignment.car_id ? [demoAssignment.car_id] : [],
-          car: demoAssignment.car_id || '',
-          published: demoAssignment.published || false,
-          responsibleUser: null,
-          responsibleUserId: demoAssignment.responsible_user_id,
-          type: demoAssignment.type || 'other'
-        }));
-        
-        transformedAssignments = [...transformedAssignments, ...demoAssignments];
-        console.log(`[useAssignmentDataOptimized] Added ${demoAssignments.length} demo assignments from session storage`);
-      }
-      
-      console.log(`[useAssignmentDataOptimized] ENHANCED - Successfully processed ${transformedAssignments.length} assignments (after demo filtering)`);
+      if (import.meta.env.DEV) console.log(`[useAssignmentDataOptimized] ENHANCED - Successfully processed ${transformedAssignments.length} assignments`);
       setAssignments(transformedAssignments);
       
     } catch (err) {
       console.error('[useAssignmentDataOptimized] ENHANCED - Error:', err);
       
-      // Enhanced error handling with proper serialization  
       const serializedError = enhancedErrorHandler.serializeError(err);
       const category = enhancedErrorHandler.categorizeError(serializedError);
       const userFriendlyMessage = enhancedErrorHandler.getUserFriendlyMessage(serializedError, category);
       
       setError(userFriendlyMessage);
       
-      // Log error with enhanced context
       await enhancedErrorHandler.logError(err, {
         operation: 'fetchAssignments',
         additionalData: { 
@@ -145,7 +112,6 @@ export const useAssignmentDataOptimized = () => {
         }
       });
       
-      // Only show toast for non-auth errors and non-demo users
       if (category !== 'auth' && !isDemoMode) {
         toast({
           title: t('common.error') || 'Error',
@@ -153,7 +119,7 @@ export const useAssignmentDataOptimized = () => {
           variant: 'destructive',
         });
       } else if (isDemoMode) {
-        console.log('[useAssignmentDataOptimized] Demo mode: Suppressed error toast', { category, error: userFriendlyMessage });
+        if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] Demo mode: Suppressed error toast', { category, error: userFriendlyMessage });
       }
       
       setAssignments([]);
@@ -162,7 +128,6 @@ export const useAssignmentDataOptimized = () => {
     }
   }, [toast, t, user?.email]);
 
-  // Load assignments on mount
   useEffect(() => {
     fetchAssignments();
   }, [fetchAssignments]);
@@ -172,36 +137,30 @@ export const useAssignmentDataOptimized = () => {
     
     const channel = supabase
       .channel('assignment_changes_optimized')
-      .on('postgres_changes', { event: '*', schema: isDemoMode ? 'demo' : 'public', table: 'assignments' }, (payload) => {
-        console.log('[useAssignmentDataOptimized] Assignment change detected:', payload.eventType);
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, (payload) => {
+        if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] Assignment change detected:', payload.eventType);
         
-        // Clear cache to ensure fresh data
         enhancedDataFetching.clearCache('assignments');
         
-        // For demo users, fetch immediately to ensure instant visibility
         if (isDemoMode) {
-          console.log('[useAssignmentDataOptimized] Demo user detected - immediate fetch');
+          if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] Demo user - immediate fetch');
           fetchAssignments();
         } else {
-          // Debounce to prevent rapid-fire updates for regular users
           clearTimeout(debounceTimeout);
           debounceTimeout = setTimeout(() => {
             fetchAssignments();
           }, 500);
         }
       })
-      .on('postgres_changes', { event: '*', schema: isDemoMode ? 'demo' : 'public', table: 'assignments_employees' }, (payload) => {
-        console.log('[useAssignmentDataOptimized] Assignment employee change detected:', payload.eventType);
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments_employees' }, (payload) => {
+        if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] Assignment employee change detected:', payload.eventType);
         
-        // Clear cache to ensure fresh data
         enhancedDataFetching.clearCache('assignments');
         
-        // For demo users, fetch immediately to ensure instant visibility
         if (isDemoMode) {
-          console.log('[useAssignmentDataOptimized] Demo user detected - immediate fetch for employee changes');
+          if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] Demo user - immediate fetch for employee changes');
           fetchAssignments();
         } else {
-          // Debounce to prevent rapid-fire updates for regular users
           clearTimeout(debounceTimeout);
           debounceTimeout = setTimeout(() => {
             fetchAssignments();
@@ -209,12 +168,10 @@ export const useAssignmentDataOptimized = () => {
         }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
-        console.log('[useAssignmentDataOptimized] Profile change detected - this might affect employee names');
+        if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] Profile change detected');
         
-        // Clear cache to ensure fresh data
         enhancedDataFetching.clearCache('assignments');
         
-        // Debounce to prevent rapid-fire updates
         clearTimeout(debounceTimeout);
         debounceTimeout = setTimeout(() => {
           fetchAssignments();

@@ -4,7 +4,6 @@ import { Employee } from '@/types/employee';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { DemoUserService } from '@/services/demoUserService';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
@@ -18,14 +17,12 @@ export const useEmployeeData = () => {
   const { selectedDepartmentId } = useDepartment();
   const queryClient = useQueryClient();
   
-  const demoService = DemoUserService.getInstance();
   const queryKey = ['employees', isDemoMode, selectedDepartmentId] as const;
 
   const fetchEmployeesFn = async (): Promise<Employee[]> => {
     if (import.meta.env.DEV) console.log(`[useEmployeeData] Starting employee fetch from ${isDemoMode ? 'demo' : 'public'} schema...`);
 
     if (isDemoMode) {
-      // Demo data belongs only to dept 12 - return empty for other departments
       if (isDemoNonHomeDepartment(isDemoMode, selectedDepartmentId)) {
         if (import.meta.env.DEV) console.log('[useEmployeeData] Non-home department selected in demo mode, returning empty');
         return [];
@@ -41,12 +38,13 @@ export const useEmployeeData = () => {
       }
 
       if (!data || data.length === 0) {
-        console.log('[useEmployeeData] No demo profiles found');
+        if (import.meta.env.DEV) console.log('[useEmployeeData] No demo profiles found');
         return [];
       }
 
       if (import.meta.env.DEV) console.log(`[useEmployeeData] Found ${data.length} demo profiles`);
 
+      // RLS handles data isolation — no local merge needed
       const transformedEmployees: Employee[] = data.map((profile: any) => ({
         id: profile.id,
         name: profile.name || 'Unknown',
@@ -64,28 +62,8 @@ export const useEmployeeData = () => {
         has_forklift_license: !!profile.has_forklift_license
       }));
 
-      // Merge with locally stored demo employees
-      const localDemoEmployees = demoService.getDemoEmployees();
-      const localConverted: Employee[] = localDemoEmployees.map((profile: any) => ({
-        id: profile.id,
-        name: profile.name || 'Unknown',
-        email: profile.email || '',
-        phone: profile.phone || '',
-        jobTitle: profile.job_title || '',
-        role: (profile.role || 'servicemedarbejder') as Employee['role'],
-        onLeave: profile.on_leave || false,
-        status: profile.status || 'active',
-        notes: profile.notes || '',
-        avatar_url: profile.avatar_url,
-        has_asbestos_certificate: !!profile.has_asbestos_certificate,
-        has_trailer_license: !!profile.has_trailer_license,
-        has_drivers_license: !!profile.has_drivers_license,
-        has_forklift_license: !!profile.has_forklift_license
-      }));
-
-      const merged = [...transformedEmployees, ...localConverted];
-      if (import.meta.env.DEV) console.log(`[useEmployeeData] Merged ${transformedEmployees.length} baseline + ${localConverted.length} local demo employees`);
-      return merged;
+      if (import.meta.env.DEV) console.log(`[useEmployeeData] Returning ${transformedEmployees.length} demo employees (DB only, no local merge)`);
+      return transformedEmployees;
     } else {
       // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
@@ -195,14 +173,14 @@ export const useEmployeeData = () => {
     const channel = supabase
       .channel(`employee_changes_public`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
-        console.log(`[useEmployeeData] Profile change detected:`, payload.eventType);
+        if (import.meta.env.DEV) console.log(`[useEmployeeData] Profile change detected:`, payload.eventType);
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
           queryClient.invalidateQueries({ queryKey: ['employees'] });
         }, 1000);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, (payload) => {
-        console.log(`[useEmployeeData] Role change detected:`, payload.eventType);
+        if (import.meta.env.DEV) console.log(`[useEmployeeData] Role change detected:`, payload.eventType);
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
           queryClient.invalidateQueries({ queryKey: ['employees'] });

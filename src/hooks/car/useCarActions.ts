@@ -54,7 +54,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
 
         if (forceDelete) {
           // First, clean up assignments that reference this car
-          console.log('Force deleting car - cleaning up assignments first');
+          if (import.meta.env.DEV) console.log('Force deleting car - cleaning up assignments first');
           
           // Update assignments that have this car as the main car_id
           const client = getSchemaClient(isDemoMode);
@@ -105,7 +105,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
             }
           }
 
-          console.log(`Cleaned up ${assignmentsAffected} assignments`);
+          if (import.meta.env.DEV) console.log(`Cleaned up ${assignmentsAffected} assignments`);
         } else {
           // Check if the car is referenced in any assignments (original logic)
           const client = getSchemaClient(isDemoMode);
@@ -134,7 +134,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
 
         // Optimistic: remove car from UI immediately
         const previousCars = [...cars];
-        console.log('[Optimistic] Removing car from UI:', currentCar.id);
+        if (import.meta.env.DEV) console.log('[Optimistic] Removing car from UI:', currentCar.id);
         setCars(cars.filter(car => car.id !== currentCar.id));
         
         // Now delete the car from DB
@@ -224,7 +224,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
   
   const updateAvailabilityStatus = async (car: CarData, isAvailable: boolean, notes: string | null) => {
     try {
-      console.log("[useCarActions] Updating car availability:", {
+      if (import.meta.env.DEV) console.log("[useCarActions] Updating car availability:", {
         car_id: car.id,
         is_available: isAvailable,
         notes: notes
@@ -234,7 +234,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
 
       // Optimistic: update UI immediately
       const previousCars = [...cars];
-      console.log('[Optimistic] Updating car availability in UI:', car.id, { isAvailable, notes });
+      if (import.meta.env.DEV) console.log('[Optimistic] Updating car availability in UI:', car.id, { isAvailable, notes });
       setCars(cars.map(c => 
         c.id === car.id 
           ? { ...c, is_available: isAvailable, notes: notes }
@@ -253,7 +253,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         .eq('id', car.id)
         .select();
       
-      console.log("[useCarActions] Car update response:", { error, data });
+      if (import.meta.env.DEV) console.log("[useCarActions] Car update response:", { error, data });
       
       if (error) {
         // Rollback on failure
