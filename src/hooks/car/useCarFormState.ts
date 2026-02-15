@@ -114,7 +114,7 @@ export const useCarFormState = ({
   const syncSubDepartments = async (carId: string, subDeptIds: string[]) => {
     if (isDemoMode) {
       // In demo mode, skip junction table sync (demo cars are virtual)
-      console.log('[useCarFormState] Demo mode: skipping car_sub_departments sync');
+      if (import.meta.env.DEV) console.log('[useCarFormState] Demo mode: skipping car_sub_departments sync');
       return;
     }
     // Delete existing
@@ -130,11 +130,11 @@ export const useCarFormState = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('[useCarFormState] Form submitted with data:', { formData, currentCar });
+    if (import.meta.env.DEV) console.log('[useCarFormState] Form submitted with data:', { formData, currentCar });
     
     try {
       if (currentCar) {
-        console.log('[useCarFormState] Updating existing car:', currentCar.id);
+        if (import.meta.env.DEV) console.log('[useCarFormState] Updating existing car:', currentCar.id);
         const updatedCar = await CarSecurityService.updateCar(
           currentCar.id, 
           formData, 
@@ -154,14 +154,14 @@ export const useCarFormState = ({
           description: t('cars.vehicleUpdatedMsg', { name: formData.name })
         });
       } else {
-        console.log('[useCarFormState] Creating new car');
+        if (import.meta.env.DEV) console.log('[useCarFormState] Creating new car');
         if (createCar) {
           const success = await createCar(formData);
           if (!success) {
             throw new Error('Failed to create car using createCar function');
           }
         } else {
-          console.log('[useCarFormState] Using fallback security service');
+          if (import.meta.env.DEV) console.log('[useCarFormState] Using fallback security service');
           const newCar = await CarSecurityService.createCar(formData, canViewFuelCardCode);
           
           // Sync sub-department assignments for new car
@@ -177,7 +177,7 @@ export const useCarFormState = ({
         }
       }
       
-      console.log('[useCarFormState] Car operation successful, closing dialog');
+      if (import.meta.env.DEV) console.log('[useCarFormState] Car operation successful, closing dialog');
       queryClient.invalidateQueries({ queryKey: ['cars'] });
       setDialogOpen(false);
     } catch (err) {

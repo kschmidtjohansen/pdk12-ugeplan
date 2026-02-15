@@ -297,14 +297,14 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     }
     // Clear cache and force data refresh when sub-department changes
     unifiedDataService.clearCache();
-    console.log('[DepartmentContext] Sub-department switched to:', id, '- cache cleared');
+    if (import.meta.env.DEV) console.log('[DepartmentContext] Sub-department switched to:', id, '- cache cleared');
   }, []);
 
   const switchDepartment = useCallback((id: string) => {
     setSelectedDepartmentIdState(id);
     localStorage.setItem('selected_department_id', id);
     unifiedDataService.clearCache();
-    console.log('[DepartmentContext] Switched department to:', id);
+    if (import.meta.env.DEV) console.log('[DepartmentContext] Switched department to:', id);
   }, []);
 
   const selectedDepartment = (userDepartments.length > 0 ? userDepartments : departments)

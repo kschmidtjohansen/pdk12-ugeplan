@@ -97,18 +97,15 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
   // Realtime subscription
   useEffect(() => {
     if (!user) return;
-    const isDemoMode = user.email === 'test@polygongroup.com';
-    const schema = isDemoMode ? 'demo' : 'public';
-
     const channelName = `duties_${Date.now()}`;
     const channel = supabase
       .channel(channelName)
-      .on('postgres_changes', { event: '*', schema, table: 'on_call_duties' }, (payload) => {
-        console.log('Duty change detected:', payload);
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'on_call_duties' }, (payload) => {
+        if (import.meta.env.DEV) console.log('Duty change detected:', payload);
         queryClient.invalidateQueries({ queryKey: ['duties'] });
       })
       .subscribe((status) => {
-        console.log('Duty subscription status:', status);
+        if (import.meta.env.DEV) console.log('Duty subscription status:', status);
       });
 
     return () => { supabase.removeChannel(channel); };

@@ -39,7 +39,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Demo-schema fix + DemoUserService-migrering komplet (Fase 9d fix) - 2026-02-15
+### Demo-RPC migrering + Afdelingsvælger redesign (Fase 9e) - 2026-02-15
+- **KRITISK FIX**: Alle 6 demo-RPCs migreret fra `demo.*` schema til `public.*` schema med `WHERE is_demo = true`
+  - `get_demo_cars_with_security`, `get_demo_profiles_admin_detailed`, `get_demo_warehouse_items`
+  - `get_demo_duties_with_employee`, `get_demo_vacations`, `list_demo_assignments_with_team`
+  - Løser: Biler/medarbejdere/lager oprettet i demo-mode blev ikke vist (skrevet til public, læst fra demo)
+  - Løser: Fejl ved klik på Medarbejdere under afd. 02 (demo.profiles/demo.user_roles manglende data)
+- Realtime-subscription i `useDutyData` bruger nu altid `schema: 'public'` (fjernet `demo`-routing)
+- Afdelingsvælger redesignet til side-by-side layout: `[Afd. 02 ▾] / [Fugt & Skimmel ▾]`
+  - Hovedafdeling og underafdeling som separate dropdowns
+  - Layers-ikon for underafdelinger, Building2-ikon for hovedafdelinger
+- DEV-guard på 12 console.log i `useDutyData`, `carSecurityService`, `useCarFormState`, `DepartmentContext`
+
 - **KRITISK FIX**: `demoSchemaClient.from()` bruger nu ALTID `public`-schema — `demo`-schema routing fjernet komplet
 - Migreret `useEmployeeActions` (toggleLeave/update/delete) fra DemoUserService til Supabase DB med `is_demo` flag
 - Migreret `useAssignmentActions` (create/update/publish/publishByDate) — fjernet alle DemoUserService-kald og sessionStorage
