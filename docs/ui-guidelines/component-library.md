@@ -295,3 +295,32 @@ Brug altid `EmptyState` med:
 ### Realtime
 - `RealtimeChangeNotifier` placeres globalt i `MainLayout`
 - `LastRefreshIndicator` vises på sider med data-fetching
+
+---
+
+## Gitter-visning (Grid View)
+
+Planlæggeren understøtter en gitter-visning med følgende regler:
+
+### Aktivering
+- Vælges via `LayoutGrid`-ikonet i ToggleGroup i PlannerPage header
+- State gemmes i `localStorage` under nøglen `plannerViewMode`
+
+### Layout-regler
+| Skærmstørrelse | Kolonner |
+|----------------|----------|
+| Desktop (md+) | 3 kolonner (`md:grid-cols-3`) |
+| Mobil (<md) | 1 kolonne |
+
+### Kort-design i gitter
+- Opgavebeskrivelser begrænses til **maks 3 linjer** via `line-clamp-3`
+- Fuld beskrivelse tilgængelig ved klik (åbner AssignmentDetailsDialog)
+- Kort bruger standard `AssignmentCard` med `hover:shadow-xl transition-all duration-200`
+
+### Tomme tilstande
+- Vises med `CalendarX2`-ikon, `border-dashed`, `bg-muted/20`, `rounded-xl`
+- Konsistent på tværs af alle visningstyper (Standard, Kompakt, Gitter)
+
+### Tabeller med horisontal scroll
+- `CarsTable` og `WarehouseTable` bruger `overflow-x-auto` for mobil horisontal scroll
+- Forhindrer layout-brud på små skærme

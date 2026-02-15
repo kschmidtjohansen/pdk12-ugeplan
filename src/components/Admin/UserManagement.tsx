@@ -738,7 +738,7 @@ const UserManagement: React.FC = () => {
         case 'error':
           return 'text-red-600';
         default:
-          return 'text-gray-600';
+          return 'text-muted-foreground';
       }
     };
     const getStatusIcon = () => {
@@ -838,13 +838,13 @@ const UserManagement: React.FC = () => {
         <CardContent>
           {loading ? <div className="flex flex-col justify-center items-center py-8 space-y-4">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-polygon-blue"></div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 {retryCount > 0 ? `Smart retry... (attempt ${retryCount + 1})` : 'Loading users with fixed role handling...'}
               </p>
             </div> : users.length === 0 ? <div className="text-center py-8 space-y-4">
-              <AlertCircle className="h-12 w-12 text-gray-400 mx-auto" />
+              <AlertCircle className="h-12 w-12 text-muted-foreground/50 mx-auto" />
               <div>
-                <p className="text-gray-500 mb-2">
+                <p className="text-muted-foreground mb-2">
                   {lastError ? 'Failed to load users. Fixed error handling active.' : 'No users found with current role authorization.'}
                 </p>
                 {lastError && <p className="text-sm text-red-600 mb-4">{lastError}</p>}

@@ -217,7 +217,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
               {/* No car option - ENHANCED */}
               <div
                 onClick={() => handleCarSelect('none')}
-                className={`flex items-center justify-between w-full space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer transition-colors ${
+                className={`flex items-center justify-between w-full space-x-2 p-2 rounded-md hover:bg-muted/50 cursor-pointer transition-colors ${
                   !hasSelectedCar ? 'bg-blue-50 border-l-4 border-blue-500' : ''
                 }`}
               >
@@ -242,7 +242,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
                     key={car.id}
                     onClick={() => !isUnavailable && handleCarSelect(car.id)}
                     className={`flex items-center justify-between w-full space-x-2 p-2 rounded-md transition-colors cursor-pointer ${
-                      isUnavailable ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
+                      isUnavailable ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted/50'
                     } ${hasRedStyling ? '!bg-red-50 !border-l-4 !border-red-600 hover:!bg-red-100' : ''} ${
                       isSelected ? 'bg-blue-50 border-l-4 border-blue-500' : ''
                     }`}

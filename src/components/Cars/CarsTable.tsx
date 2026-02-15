@@ -39,7 +39,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
   const { t } = useTranslation();
   
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow className="border-border">
