@@ -129,6 +129,7 @@ export type Database = {
           description: string | null
           from_time: string
           id: string
+          is_demo: boolean
           location: string
           onedrive_folder_id: string | null
           published: boolean | null
@@ -152,6 +153,7 @@ export type Database = {
           description?: string | null
           from_time: string
           id?: string
+          is_demo?: boolean
           location: string
           onedrive_folder_id?: string | null
           published?: boolean | null
@@ -175,6 +177,7 @@ export type Database = {
           description?: string | null
           from_time?: string
           id?: string
+          is_demo?: boolean
           location?: string
           onedrive_folder_id?: string | null
           published?: boolean | null
@@ -221,14 +224,17 @@ export type Database = {
       assignments_employees: {
         Row: {
           assignment_id: string
+          is_demo: boolean
           user_id: string
         }
         Insert: {
           assignment_id: string
+          is_demo?: boolean
           user_id: string
         }
         Update: {
           assignment_id?: string
+          is_demo?: boolean
           user_id?: string
         }
         Relationships: [
@@ -293,6 +299,7 @@ export type Database = {
           has_trailer_hitch: boolean | null
           id: string
           is_available: boolean
+          is_demo: boolean
           name: string
           notes: string | null
           number_plate: string
@@ -311,6 +318,7 @@ export type Database = {
           has_trailer_hitch?: boolean | null
           id?: string
           is_available?: boolean
+          is_demo?: boolean
           name: string
           notes?: string | null
           number_plate: string
@@ -329,6 +337,7 @@ export type Database = {
           has_trailer_hitch?: boolean | null
           id?: string
           is_available?: boolean
+          is_demo?: boolean
           name?: string
           notes?: string | null
           number_plate?: string
@@ -555,6 +564,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_demo: boolean
           link: string | null
           message: string
           read: boolean
@@ -566,6 +576,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_demo?: boolean
           link?: string | null
           message: string
           read?: boolean
@@ -577,6 +588,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_demo?: boolean
           link?: string | null
           message?: string
           read?: boolean
@@ -596,6 +608,7 @@ export type Database = {
           duty_type: Database["public"]["Enums"]["duty_type"]
           employee_id: string | null
           id: string
+          is_demo: boolean
           notes: string | null
           sub_department_id: string | null
           updated_at: string
@@ -608,6 +621,7 @@ export type Database = {
           duty_type: Database["public"]["Enums"]["duty_type"]
           employee_id?: string | null
           id?: string
+          is_demo?: boolean
           notes?: string | null
           sub_department_id?: string | null
           updated_at?: string
@@ -620,6 +634,7 @@ export type Database = {
           duty_type?: Database["public"]["Enums"]["duty_type"]
           employee_id?: string | null
           id?: string
+          is_demo?: boolean
           notes?: string | null
           sub_department_id?: string | null
           updated_at?: string
@@ -745,6 +760,7 @@ export type Database = {
           has_trailer_license: boolean | null
           home_department_id: string | null
           id: string
+          is_demo: boolean
           is_temporary: boolean | null
           is_visible_in_planning: boolean
           job_title: string | null
@@ -766,6 +782,7 @@ export type Database = {
           has_trailer_license?: boolean | null
           home_department_id?: string | null
           id: string
+          is_demo?: boolean
           is_temporary?: boolean | null
           is_visible_in_planning?: boolean
           job_title?: string | null
@@ -787,6 +804,7 @@ export type Database = {
           has_trailer_license?: boolean | null
           home_department_id?: string | null
           id?: string
+          is_demo?: boolean
           is_temporary?: boolean | null
           is_visible_in_planning?: boolean
           job_title?: string | null
@@ -933,6 +951,7 @@ export type Database = {
           end_date: string
           end_time: string | null
           id: string
+          is_demo: boolean
           is_same_day: boolean | null
           notes: string | null
           reason: string | null
@@ -950,6 +969,7 @@ export type Database = {
           end_date: string
           end_time?: string | null
           id?: string
+          is_demo?: boolean
           is_same_day?: boolean | null
           notes?: string | null
           reason?: string | null
@@ -967,6 +987,7 @@ export type Database = {
           end_date?: string
           end_time?: string | null
           id?: string
+          is_demo?: boolean
           is_same_day?: boolean | null
           notes?: string | null
           reason?: string | null
@@ -1005,6 +1026,7 @@ export type Database = {
           hall: string | null
           id: string
           is_cleaned: string
+          is_demo: boolean
           notes: string | null
           quantity: number
           sub_department_id: string | null
@@ -1019,6 +1041,7 @@ export type Database = {
           hall?: string | null
           id?: string
           is_cleaned?: string
+          is_demo?: boolean
           notes?: string | null
           quantity?: number
           sub_department_id?: string | null
@@ -1033,6 +1056,7 @@ export type Database = {
           hall?: string | null
           id?: string
           is_cleaned?: string
+          is_demo?: boolean
           notes?: string | null
           quantity?: number
           sub_department_id?: string | null
@@ -1110,6 +1134,7 @@ export type Database = {
         Returns: boolean
       }
       check_system_health: { Args: never; Returns: Json }
+      cleanup_demo_data_ttl: { Args: never; Returns: Json }
       cleanup_expired_temporary_users: {
         Args: never
         Returns: {
@@ -1492,6 +1517,7 @@ export type Database = {
       mask_phone: { Args: { p_phone: string }; Returns: string }
       perform_database_maintenance: { Args: never; Returns: Json }
       refresh_materialized_views: { Args: never; Returns: undefined }
+      reset_demo_data: { Args: never; Returns: Json }
       run_automated_maintenance: { Args: never; Returns: Json }
       run_logs_rls_maintenance: { Args: never; Returns: string }
       sanitize_text_input: {

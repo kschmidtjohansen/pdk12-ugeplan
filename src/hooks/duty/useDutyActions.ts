@@ -55,6 +55,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
         duty_date: format(date, 'yyyy-MM-dd'),
         notes: notesWithManualName,
         created_by: user.id,
+        ...(isDemoMode && { is_demo: true }),
       }));
 
       const { error } = await client

@@ -238,6 +238,7 @@ export class EnhancedDataFetching {
             department_id,
             sub_department_id
           `)
+          .eq('is_demo', false)
           .order('created_at', { ascending: false });
         
         // Filter by department if provided
@@ -322,6 +323,7 @@ export class EnhancedDataFetching {
         const { data, error } = await client
           .from('profiles')
           .select('id, name, email, status')
+          .eq('is_demo', false)
           .in('id', userIds);
 
         if (error) {
@@ -488,6 +490,7 @@ export class EnhancedDataFetching {
             id, name, email, phone, job_title, on_leave, notes, avatar_url, status,
             user_roles!inner(role)
           `)
+          .eq('is_demo', false)
           .order('name', { ascending: true });
 
         if (error) {

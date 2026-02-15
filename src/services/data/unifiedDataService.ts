@@ -51,6 +51,7 @@ class UnifiedDataService {
       let query = supabase
         .from('profiles')
         .select('id, name, email, phone, job_title, on_leave, notes, avatar_url, status, home_department_id')
+        .eq('is_demo', false)
         .order('name', { ascending: true });
 
       if (departmentId) {
@@ -114,6 +115,7 @@ class UnifiedDataService {
           location, car_id, car_ids, published, responsible_user_id,
           created_at, updated_at, department_id
         `)
+        .eq('is_demo', false)
         .order('assignment_date', { ascending: true });
 
       if (departmentId) {
@@ -203,6 +205,7 @@ class UnifiedDataService {
       const { data, error } = await supabase
         .from('cars')
         .select('*')
+        .eq('is_demo', false)
         .order('name', { ascending: true });
 
       if (error) {

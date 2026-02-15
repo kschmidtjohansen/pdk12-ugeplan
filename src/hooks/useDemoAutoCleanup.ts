@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { DemoUserService } from '@/services/demoUserService';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 const CLEANUP_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
@@ -11,18 +11,16 @@ export const useDemoAutoCleanup = () => {
   const { toast } = useToast();
   const [timeUntilCleanup, setTimeUntilCleanup] = useState<number>(CLEANUP_INTERVAL_MS);
   const [showWarning, setShowWarning] = useState(false);
-  
-  const demoService = DemoUserService.getInstance();
 
   const performCleanup = useCallback(async () => {
-    console.log('[Demo Auto-Cleanup] Cleaning session data (preserving baseline)...');
+    if (import.meta.env.DEV) console.log('[Demo Auto-Cleanup] Calling reset_demo_data RPC...');
     try {
-      const result = await demoService.cleanupAllDemoUserData();
-      const totalDeleted = Object.values(result.deletedCounts).reduce((sum, count) => sum + count, 0);
+      const { data: result, error } = await supabase.rpc('reset_demo_data' as any);
+      if (error) throw error;
       
       toast({
         title: "Demo Session Nulstillet",
-        description: `${totalDeleted} session-poster ryddet. Baseline data bevaret.`,
+        description: "Demo-data ryddet fra databasen.",
       });
       
       // Reset the timer
@@ -32,16 +30,16 @@ export const useDemoAutoCleanup = () => {
       // Reload to show baseline data
       window.location.reload();
       
-      console.log('[Demo Auto-Cleanup] Cleanup completed:', result);
+      if (import.meta.env.DEV) console.log('[Demo Auto-Cleanup] Cleanup completed:', result);
     } catch (error) {
       console.error('[Demo Auto-Cleanup] Cleanup failed:', error);
       toast({
         title: "Nulstilling Mislykkedes",
-        description: "Kunne ikke nulstille session data.",
+        description: "Kunne ikke nulstille demo data.",
         variant: "destructive",
       });
     }
-  }, [demoService, toast]);
+  }, [toast]);
 
   const showCleanupWarning = useCallback(() => {
     setShowWarning(true);
@@ -55,13 +53,12 @@ export const useDemoAutoCleanup = () => {
   const extendDemoSession = useCallback(() => {
     setTimeUntilCleanup(CLEANUP_INTERVAL_MS);
     setShowWarning(false);
-    demoService.updateActivity();
     
     toast({
       title: "Demo Session Forlænget",
       description: "Demo session forlænget med 15 minutter.",
     });
-  }, [demoService, toast]);
+  }, [toast]);
 
   // Main cleanup timer effect
   useEffect(() => {
@@ -93,28 +90,23 @@ export const useDemoAutoCleanup = () => {
     return () => clearInterval(interval);
   }, [isDemoMode, showWarning, performCleanup, showCleanupWarning]);
 
-  // Session-end cleanup effects
+  // Session-end cleanup via RPC (fire-and-forget)
   useEffect(() => {
     if (!isDemoMode) return;
 
-    const handleBeforeUnload = async () => {
-      await demoService.cleanupAllDemoUserData();
-    };
-
-    const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'hidden') {
-        await demoService.cleanupAllDemoUserData();
-      }
+    const handleBeforeUnload = () => {
+      // Fire-and-forget cleanup attempt on page close
+      try {
+        supabase.rpc('reset_demo_data' as any);
+      } catch { /* ignore */ }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isDemoMode, demoService]);
+  }, [isDemoMode]);
 
   const formatTimeRemaining = (milliseconds: number): string => {
     const minutes = Math.floor(milliseconds / 60000);

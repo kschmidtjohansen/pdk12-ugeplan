@@ -62,7 +62,8 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           expires_at: userData.is_temporary && userData.expires_at ? userData.expires_at : null,
           has_asbestos_certificate: userData.has_asbestos_certificate || false,
           has_trailer_license: userData.has_trailer_license || false,
-          has_forklift_license: userData.has_forklift_license || false
+          has_forklift_license: userData.has_forklift_license || false,
+          ...(isDemoMode && { is_demo: true })
         });
 
       if (profileError) {
