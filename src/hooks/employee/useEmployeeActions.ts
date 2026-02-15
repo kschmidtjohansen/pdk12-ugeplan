@@ -6,7 +6,6 @@ import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { Employee } from '@/types/employee';
 import { validateAndSanitizePhone } from '@/utils/phoneValidation';
 import { useAuth } from '@/context/AuthContext';
-import { DemoUserService } from '@/services/demoUserService';
 import { useQueryClient } from '@tanstack/react-query';
 
 export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
@@ -17,31 +16,10 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
 
   const toggleEmployeeLeave = async (employee: Employee, setOnLeave: boolean, notes: string | null = null) => {
     try {
-      console.log('[useEmployeeActions] Updating employee leave status:', {
+      if (import.meta.env.DEV) console.log('[useEmployeeActions] Updating employee leave status:', {
         employeeId: employee.id,
         onLeave: setOnLeave
       });
-      
-      // Virtualize for demo mode
-      if (isDemoMode) {
-        DemoUserService.getInstance().updateDemoEmployee(employee.id, {
-          on_leave: setOnLeave,
-          notes: notes || null,
-          updated_at: new Date().toISOString()
-        });
-        
-        toast({
-          title: setOnLeave 
-            ? t('employees.employeeOnLeave') 
-            : t('employees.employeeAvailable'),
-          description: setOnLeave 
-            ? t('employees.employeeOnLeaveMsg', { name: employee.name }) 
-            : t('employees.employeeAvailableMsg', { name: employee.name })
-        });
-        
-        await refreshEmployees();
-        return true;
-      }
       
       const client = getSchemaClient(isDemoMode);
       const { error } = await client
@@ -81,7 +59,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
 
   const updateEmployee = async (employee: Employee, formData: any) => {
     try {
-      console.log('[useEmployeeActions] Updating employee:', {
+      if (import.meta.env.DEV) console.log('[useEmployeeActions] Updating employee:', {
         employeeId: employee.id,
         roleChange: employee.role !== formData.role
       });
@@ -92,37 +70,10 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         throw new Error(phoneValidation.error || 'Invalid phone number format');
       }
       
-      // Virtualize for demo mode
-      if (isDemoMode) {
-        DemoUserService.getInstance().updateDemoEmployee(employee.id, {
-          name: formData.name,
-          email: formData.email,
-          phone: phoneValidation.sanitized,
-          job_title: formData.jobTitle || null,
-          role: formData.role,
-          on_leave: formData.onLeave || false,
-          notes: formData.notes || null,
-          has_asbestos_certificate: formData.has_asbestos_certificate ?? false,
-          has_trailer_license: formData.has_trailer_license ?? false,
-          has_drivers_license: formData.has_drivers_license ?? false,
-          has_forklift_license: formData.has_forklift_license ?? false,
-          updated_at: new Date().toISOString()
-        });
-        
-        toast({
-          title: t('employees.employeeUpdated'),
-          description: t('employees.employeeUpdatedMsg', { name: formData.name })
-        });
-        
-        await refreshEmployees();
-        return true;
-      }
-      
-      // Update profile
+      // Update profile via DB
       const client = getSchemaClient(isDemoMode);
       
-      // Log certificate values for debugging
-      console.log('[useEmployeeActions] Certificate values being sent:', {
+      if (import.meta.env.DEV) console.log('[useEmployeeActions] Certificate values being sent:', {
         has_asbestos_certificate: formData.has_asbestos_certificate ?? false,
         has_trailer_license: formData.has_trailer_license ?? false,
         has_forklift_license: formData.has_forklift_license ?? false
@@ -145,7 +96,6 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       // Handle vikar to permanent conversion
       if ('is_temporary' in formData) {
         updatePayload.is_temporary = formData.is_temporary;
-        // If converting from temporary to permanent, clear expires_at
         if (formData.is_temporary === false) {
           updatePayload.expires_at = null;
         }
@@ -158,8 +108,8 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       
       if (profileError) throw profileError;
       
-      // Handle role update if changed
-      if (employee.role !== formData.role) {
+      // Handle role update if changed (skip in demo mode — edge function won't work for demo users)
+      if (employee.role !== formData.role && !isDemoMode) {
         const { error: roleError } = await supabase.functions.invoke('admin-user-role', {
           body: {
             userId: employee.id,
@@ -175,7 +125,6 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         description: t('employees.employeeUpdatedMsg', { name: formData.name })
       });
       
-      // Add delay to allow DB transaction to complete
       await new Promise(resolve => setTimeout(resolve, 200));
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       await refreshEmployees();
@@ -197,17 +146,25 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       const employee = allEmployees.find(e => e.id === employeeId);
       if (!employee) throw new Error('Employee not found');
       
-      console.log('[useEmployeeActions] Deleting employee:', employeeId);
+      if (import.meta.env.DEV) console.log('[useEmployeeActions] Deleting employee:', employeeId);
       
-      // Virtualize for demo mode
       if (isDemoMode) {
-        DemoUserService.getInstance().deleteDemoEmployee(employeeId);
+        // Demo mode: delete from DB with is_demo guard
+        const client = getSchemaClient(isDemoMode);
+        const { error } = await client
+          .from('profiles')
+          .delete()
+          .eq('id', employeeId)
+          .eq('is_demo', true);
+        
+        if (error) throw error;
         
         toast({
           title: t('employees.employeeDeleted'),
           description: t('employees.employeeDeletedMsg', { name: employee.name })
         });
         
+        queryClient.invalidateQueries({ queryKey: ['employees'] });
         await refreshEmployees();
         return true;
       }

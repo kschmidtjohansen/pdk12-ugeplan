@@ -39,6 +39,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Demo-schema fix + DemoUserService-migrering komplet (Fase 9d fix) - 2026-02-15
+- **KRITISK FIX**: `demoSchemaClient.from()` bruger nu ALTID `public`-schema — `demo`-schema routing fjernet komplet
+- Migreret `useEmployeeActions` (toggleLeave/update/delete) fra DemoUserService til Supabase DB med `is_demo` flag
+- Migreret `useAssignmentActions` (create/update/publish/publishByDate) — fjernet alle DemoUserService-kald og sessionStorage
+- Fjernet local-merge af sessionStorage i `useAssignmentDataOptimized` og `useEmployeeData` — RLS leverer nu demo-data direkte
+- Realtime subscriptions lytter nu KUN på `public` schema (ikke `demo`) i alle hooks
+- Forenklet `useDemoTracking` til at bruge `reset_demo_data` og `cleanup_demo_data_ttl` RPC
+- DEV-guard på ~30 uguardede `console.log` i useAssignmentActions, useCarActions og useAssignmentDataOptimized
+- Live-data beskyttelse: RESTRICTIVE RLS + `.eq('is_demo', false)` + pg_cron TTL cleanup
+
 ### Demo DB-skrivninger migrering (Fase 9d fortsat) - 2026-02-15
 - Migreret demo assignments CRUD fra sessionStorage (DemoUserService) til database med `is_demo: true`
 - Migreret demo bil-sletning og tilgængelighed fra lokalt til Supabase `.delete()`/`.update()`

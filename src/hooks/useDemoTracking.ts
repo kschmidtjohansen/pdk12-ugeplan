@@ -1,56 +1,40 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { DemoUserService } from '@/services/demoUserService';
+import { supabase } from '@/integrations/supabase/client';
 
-// Hook to automatically track demo operations
+// Hook for demo tracking — cleanup now uses reset_demo_data RPC (no sessionStorage)
 export const useDemoTracking = () => {
-  const { user, isDemoMode } = useAuth();
-  const demoService = DemoUserService.getInstance();
+  const { isDemoMode } = useAuth();
 
-  // Track operation helper
-  const trackOperation = async (
-    table: string,
-    operation: 'create' | 'update' | 'delete',
-    recordId: string,
-    originalData?: any
-  ) => {
-    if (isDemoMode && user) {
-      await demoService.trackOperation(table, operation, recordId, originalData);
-      demoService.updateActivity();
+  // Auto cleanup check on mount via RPC
+  useEffect(() => {
+    if (!isDemoMode) return;
+    
+    // Fire cleanup_demo_data_ttl to remove stale demo data older than 15 min
+    const runTTLCleanup = async () => {
+      try {
+        if (import.meta.env.DEV) console.log('[Demo] Running TTL cleanup via RPC');
+        await supabase.rpc('cleanup_demo_data_ttl' as any);
+      } catch (err) {
+        console.error('[Demo] TTL cleanup failed:', err);
+      }
+    };
+    
+    runTTLCleanup();
+  }, [isDemoMode]);
+
+  const triggerManualCleanup = async () => {
+    try {
+      if (import.meta.env.DEV) console.log('[Demo] Manual cleanup via reset_demo_data RPC');
+      const { error } = await supabase.rpc('reset_demo_data' as any);
+      if (error) throw error;
+    } catch (err) {
+      console.error('[Demo] Manual cleanup failed:', err);
     }
   };
 
-  // Auto cleanup check on mount
-  useEffect(() => {
-    if (isDemoMode && demoService.shouldAutoCleanup()) {
-      console.log('[Demo] Auto cleanup triggered due to inactivity');
-      demoService.cleanupDemoData();
-    }
-  }, [isDemoMode]);
-
-  // Update activity on any interaction when in demo mode
-  useEffect(() => {
-    if (isDemoMode) {
-      const updateActivity = () => demoService.updateActivity();
-      
-      // Track user interactions
-      document.addEventListener('click', updateActivity);
-      document.addEventListener('keydown', updateActivity);
-      document.addEventListener('scroll', updateActivity);
-
-      return () => {
-        document.removeEventListener('click', updateActivity);
-        document.removeEventListener('keydown', updateActivity);
-        document.removeEventListener('scroll', updateActivity);
-      };
-    }
-  }, [isDemoMode]);
-
   return {
-    trackOperation,
-    getDemoStats: () => demoService.getDemoStats(),
-    getOperationsForTable: (table: string) => demoService.getOperationsForTable(table),
-    triggerManualCleanup: () => demoService.cleanupAllDemoUserData(),
+    triggerManualCleanup,
     isDemoMode
   };
 };
