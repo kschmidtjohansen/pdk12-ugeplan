@@ -49,7 +49,9 @@ const DaySection: React.FC<DaySectionProps> = ({
   
   const formattedDate = formatDateWithCapital(dateKey, currentLanguage);
   
-  console.log(`Formatted date for ${dateKey}: ${formattedDate} (${currentLanguage})`);
+  if (import.meta.env.DEV) {
+    console.log(`Formatted date for ${dateKey}: ${formattedDate} (${currentLanguage})`);
+  }
   
   const hasUnpublishedAssignments = Array.isArray(dayAssignments) && dayAssignments.some(a => !a.published);
   const assignmentsCount = Array.isArray(dayAssignments) ? dayAssignments.length : 0;
@@ -60,7 +62,7 @@ const DaySection: React.FC<DaySectionProps> = ({
 
   const handlePublishDay = () => {
     if (onPublishDay) {
-      console.log('[DaySection] Publishing day:', dateKey);
+      if (import.meta.env.DEV) console.log('[DaySection] Publishing day:', dateKey);
       onPublishDay(dateKey);
     }
   };
@@ -91,7 +93,7 @@ const DaySection: React.FC<DaySectionProps> = ({
           <h3 className="text-lg font-medium select-none">
             {formattedDate}
           </h3>
-          <div className="ml-2 text-sm text-gray-500 select-none">
+          <div className="ml-2 text-sm text-muted-foreground select-none">
             ({assignmentsCount} {taskText})
           </div>
         </div>
@@ -126,7 +128,7 @@ const DaySection: React.FC<DaySectionProps> = ({
               />
             ))
           ) : (
-            <div className="p-4 border border-dashed rounded-md text-center text-gray-500">
+            <div className="p-4 border border-dashed rounded-md text-center text-muted-foreground">
               {t("planner.nothingPlannedToday")}
             </div>
           )}

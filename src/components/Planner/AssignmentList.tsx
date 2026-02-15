@@ -3,7 +3,7 @@ import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
-import EmptyState from './EmptyState';
+import EmptyState from '@/components/shared/EmptyState';
 import { getAllWeekDays, getDateStatus } from '@/utils/dateUtils';
 import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import CurrentAndFutureDays from './CurrentAndFutureDays';
@@ -137,10 +137,7 @@ const AssignmentList: React.FC<AssignmentListProps> = ({
   // Check if there are any visible assignments after filtering
   if (visibleAssignments.length === 0 && allWeekDays.length === 0) {
     return <EmptyState 
-      message={t('planner.noAssignments')} 
-      onCreateNew={onCreateAssignment} 
-      canCreate={canCreate} 
-      selectedWeek={selectedWeek} 
+      title={t('planner.noAssignments')} 
     />;
   }
 
