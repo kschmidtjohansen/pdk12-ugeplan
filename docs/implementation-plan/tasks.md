@@ -48,3 +48,5 @@ Gennemført 2026-02-15.
 - [x] PageHeader: `font-bold tracking-tight`, `rounded-2xl`, `shadow-md`
 - [x] `super_admin` kan nu slette andres chat-beskeder
 - [x] 20MB filstørrelses-validering på assignment fil-upload
+- [x] Erstattet alle hardcoded `text-gray-*` / `border-gray-*` / `bg-gray-*` med tema-tokens i CarsTable og MobileCarCard (36 erstatninger)
+- [x] Oprettet komplet docs-mappestruktur: timeline, features, user-personas, database-schema, design-system
