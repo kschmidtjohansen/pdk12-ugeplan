@@ -117,3 +117,12 @@ Gennemført 2026-02-15.
 - [x] DEV-guard på 2 console.log i `assignmentDataConverter.ts`
 - [x] DEV-guard på ~8 console.log i `PasswordResetPage.tsx`
 - [x] Projekt markeret som **Production Ready**
+
+## Fase 9b: Demo-bruger afdelingsadgang ✅
+
+Gennemført 2026-02-15.
+
+- [x] Tilføjet 3 `user_access`-rækker: demo-bruger → dept 02 - Storkøbenhavn med underafdelinger Fugt & Skimmel, Løsøre, Miljø & Brand
+- [x] Verificeret at eksisterende data (opgaver, biler, lager) forbliver isoleret på dept 12 - Fredericia
+- [x] Ingen kodeændringer nødvendige — filtreringslogik virker korrekt via `department_id`
+- [x] Dokumenteret i CHANGELOG.md
