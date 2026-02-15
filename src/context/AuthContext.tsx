@@ -117,7 +117,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const translationContext = useContext(TranslationContext);
   const t = (translationContext?.t || ((key: string) => key)) as (key: string, params?: Record<string, any>) => string;
   
-  // Demo mode detection with enhanced logging
+  // Demo mode detection
   const demoService = DemoUserService.getInstance();
   const isDemoMode = user ? demoService.isDemoUser(user.email) : false;
 
@@ -133,42 +133,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Circuit breaker for auth operations
   const AUTH_OPERATION_ID = 'auth_initialization';
 
-  // KASPER SESSION FIX: Enhanced user data fetching with comprehensive debugging
+  // User data fetching
   const fetchUserData = async (authUser: User): Promise<AppUser | null> => {
     const startTime = Date.now();
-    console.log(`[AuthContext] KASPER SESSION FIX - Starting user data fetch for: ${authUser.email}`);
-    console.log(`[AuthContext] KASPER SESSION FIX - Auth user ID: ${authUser.id}`);
+    if (import.meta.env.DEV) console.log(`[AuthContext] Starting user data fetch for: ${authUser.email}`);
     
     if (!circuitBreaker.canProceed(`user_data_fetch_${authUser.id}`)) {
-      console.warn(`[AuthContext] Circuit breaker open for user data fetch: ${authUser.email}`);
+      console.warn(`[AuthContext] Circuit breaker open for user data fetch`);
       return null;
     }
     
     try {
-      // Detect demo mode from auth email FIRST
       const isDemoUser = authUser.email === 'test@polygongroup.com';
-      
-      console.log(`[AuthContext] Demo mode: ${isDemoUser}, user: ${authUser.email}`);
       
       if (isDemoUser) {
         try {
-          // For demo user, use the RPC function to get demo profile
-          console.log(`[AuthContext] Fetching demo profile via RPC...`);
-          
           const { data: demoProfiles, error: demoError } = await rpcWithRefresh(
             'get_demo_profiles_admin_detailed', { full_access: false });
           
           if (demoError) {
-            console.error(`[AuthContext] Demo profile fetch error:`, demoError);
+            console.error(`[AuthContext] Demo profile fetch error:`, demoError.message);
             throw new Error(`Demo profile fetch failed: ${demoError.message}`);
           }
           
-          // Find the current user's profile by ID
           const userProfile = demoProfiles?.find((p: any) => p.id === authUser.id);
           
           if (!userProfile) {
-            console.warn(`[AuthContext] Demo profile not found for user ${authUser.id}`);
-            // Return fallback demo user
             return {
               id: authUser.id,
               name: 'Demo User',
@@ -177,8 +167,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             };
           }
           
-          console.log(`[AuthContext] Demo profile loaded:`, userProfile);
-          
           return {
             id: authUser.id,
             name: userProfile.name || 'Demo User',
@@ -186,19 +174,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             role: (userProfile.role as UserRole) || 'administrator'
           };
         } catch (demoError) {
-          console.error('[AuthContext] ❌ ERROR in demo user profile transformation:', demoError);
-          console.error('[AuthContext] ❌ DEMO ERROR DETAILS', {
-            errorMessage: demoError instanceof Error ? demoError.message : 'Unknown error',
-            errorStack: demoError instanceof Error ? demoError.stack : undefined,
-            authUserId: authUser.id,
-            authUserEmail: authUser.email,
-            timestamp: new Date().toISOString()
-          });
+          console.error('[AuthContext] Demo user profile error:', demoError instanceof Error ? demoError.message : 'Unknown error');
           
-          // Return a safe fallback to prevent app crash
           return {
             id: authUser.id,
-            name: authUser.email === 'kasper@polygongroup.com' ? 'Kasper (Demo)' : 'Demo User',
+            name: 'Demo User',
             email: authUser.email || 'test@polygongroup.com',
             role: 'administrator'
           };
@@ -206,87 +186,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       // For non-demo users, fetch from public schema
-      console.log(`[AuthContext] Fetching production profile for:`, authUser.email);
+      if (import.meta.env.DEV) console.log(`[AuthContext] Fetching production profile for:`, authUser.email);
       
       const fetchPromise = Promise.all([
         supabase.from('profiles').select('id, name, email').eq('id', authUser.id).maybeSingle(),
         supabase.from('user_roles').select('user_id, role').eq('user_id', authUser.id).maybeSingle()
       ]);
 
-      // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('User data fetch timeout')), 5000)
       );
 
       const [profileResult, roleResult] = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
-      console.log(`[AuthContext] KASPER SESSION FIX - Database queries completed in ${Date.now() - startTime}ms`);
-      console.log(`[AuthContext] KASPER SESSION FIX - Profile result:`, profileResult);
-      console.log(`[AuthContext] KASPER SESSION FIX - Role result:`, roleResult);
-      console.log(`[AuthContext] KASPER SESSION FIX - Profile data:`, profileResult?.data);
-      console.log(`[AuthContext] KASPER SESSION FIX - Profile name:`, profileResult?.data?.name);
-      console.log(`[AuthContext] KASPER SESSION FIX - Role data:`, roleResult?.data);
-      console.log(`[AuthContext] KASPER SESSION FIX - Role:`, roleResult?.data?.role);
-      console.log(`[AuthContext] KASPER SESSION FIX - Profile error:`, profileResult?.error);
-      console.log(`[AuthContext] KASPER SESSION FIX - Role error:`, roleResult?.error);
+      if (import.meta.env.DEV) {
+        console.log(`[AuthContext] Database queries completed in ${Date.now() - startTime}ms`);
+        console.log(`[AuthContext] Profile:`, profileResult?.data?.name, `Role:`, roleResult?.data?.role);
+      }
 
-      // KASPER SESSION FIX: Better error handling for database errors
       if (profileResult.error) {
-        console.error(`[AuthContext] KASPER SESSION FIX - Profile fetch error:`, profileResult.error);
-        console.error(`[AuthContext] KASPER SESSION FIX - Profile error details:`, {
-          message: profileResult.error.message,
-          details: profileResult.error.details,
-          hint: profileResult.error.hint,
-          code: profileResult.error.code
-        });
+        console.error(`[AuthContext] Profile fetch error:`, profileResult.error.message);
         throw new Error(`Profile fetch failed: ${profileResult.error.message}`);
       }
       
       if (roleResult.error) {
-        console.error(`[AuthContext] KASPER SESSION FIX - Role fetch error:`, roleResult.error);
-        console.error(`[AuthContext] KASPER SESSION FIX - Role error details:`, {
-          message: roleResult.error.message,
-          details: roleResult.error.details,
-          hint: roleResult.error.hint,
-          code: roleResult.error.code
-        });
+        console.error(`[AuthContext] Role fetch error:`, roleResult.error.message);
         throw new Error(`Role fetch failed: ${roleResult.error.message}`);
       }
 
-      // BRIAN REUS FIX: Improved name handling with explicit fallback chain
-      // Reuse isDemoUser from above (already checked on line 148)
       let name: string;
-      
-      if (isDemoUser) {
-        name = 'Demo User';
-        console.log(`[AuthContext] BRIAN REUS DEBUG - Using demo user name: ${name}`);
-      } else if (profileResult.data?.name) {
+      if (profileResult.data?.name) {
         name = profileResult.data.name;
-        console.log(`[AuthContext] BRIAN REUS DEBUG - Using profile name: ${name}`);
       } else if (authUser.email) {
         name = authUser.email;
-        console.log(`[AuthContext] BRIAN REUS DEBUG - Using email as name: ${name}`);
       } else {
         name = 'Unknown User';
-        console.log(`[AuthContext] BRIAN REUS DEBUG - Using fallback name: ${name}`);
       }
       
-      // BRIAN REUS FIX: Enhanced role handling with explicit logging
       let role: UserRole = 'servicemedarbejder';
-      
-      if (isDemoUser) {
-        if (roleResult.data?.role) {
-          role = roleResult.data.role as UserRole;
-          console.log(`[AuthContext] BRIAN REUS DEBUG - Demo user: Using database role: ${role}`);
-        } else {
-          role = 'administrator';
-          console.log(`[AuthContext] BRIAN REUS DEBUG - Demo user: No role found, defaulting to administrator`);
-        }
-      } else if (roleResult.data?.role) {
+      if (roleResult.data?.role) {
         role = roleResult.data.role as UserRole;
-        console.log(`[AuthContext] BRIAN REUS DEBUG - Regular user: Using database role: ${role}`);
-      } else {
-        console.warn(`[AuthContext] BRIAN REUS DEBUG - No role found for user ${authUser.email}, using default: ${role}`);
       }
 
       const enhancedUser: AppUser = {
@@ -296,60 +235,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         role
       };
 
-      console.log(`[AuthContext] KASPER SESSION FIX - Final user object created:`, {
-        id: enhancedUser.id,
-        name: enhancedUser.name,
-        email: enhancedUser.email,
-        role: enhancedUser.role,
-        isDemoUser,
-        totalTime: Date.now() - startTime,
-        expectedName: 'Kasper Schmidt Johansen',
-        nameMatches: enhancedUser.name === 'Kasper Schmidt Johansen',
-        expectedRole: 'administrator',
-        roleMatches: enhancedUser.role === 'administrator'
-      });
+      if (import.meta.env.DEV) {
+        console.log(`[AuthContext] User loaded:`, enhancedUser.name, enhancedUser.role, `(${Date.now() - startTime}ms)`);
+      }
       
       circuitBreaker.recordSuccess(`user_data_fetch_${authUser.id}`);
       return enhancedUser;
       
     } catch (error) {
-      console.error(`[AuthContext] BRIAN REUS DEBUG - User data fetch failed after ${Date.now() - startTime}ms:`, error);
+      console.error(`[AuthContext] User data fetch failed after ${Date.now() - startTime}ms:`, error instanceof Error ? error.message : 'Unknown error');
       circuitBreaker.recordFailure(`user_data_fetch_${authUser.id}`);
       
-      // BRIAN REUS FIX: Better fallback handling with detailed logging
       const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
       const fallbackRole: UserRole = isDemoUser ? 'administrator' : 'servicemedarbejder';
       
-      let fallbackName: string;
-      if (isDemoUser) {
-        fallbackName = 'Demo User';
-      } else if (authUser.email) {
-        fallbackName = authUser.email;
-      } else {
-        fallbackName = 'System User';
-      }
-      
       const fallbackUser: AppUser = {
         id: authUser.id,
-        name: fallbackName,
+        name: isDemoUser ? 'Demo User' : (authUser.email || 'System User'),
         email: authUser.email || '',
         role: fallbackRole
       };
       
-      console.log(`[AuthContext] BRIAN REUS DEBUG - Using fallback user data due to error:`, fallbackUser);
-      console.error(`[AuthContext] BRIAN REUS DEBUG - Error details:`, error);
       return fallbackUser;
     }
   };
 
-  // SESSION EXPIRATION FIX: Enhanced auth initialization with session expiration handling
+  // Auth initialization with session expiration handling
   useEffect(() => {
     let mounted = true;
     let initializationComplete = false;
 
-    console.log('[AuthContext] SESSION EXPIRATION FIX - Starting authentication initialization...');
+    if (import.meta.env.DEV) console.log('[AuthContext] Starting authentication initialization...');
 
-    // Circuit breaker check
     if (!circuitBreaker.canProceed(AUTH_OPERATION_ID)) {
       console.warn('[AuthContext] Auth initialization circuit breaker is open');
       setLoading(false);
@@ -359,20 +276,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const initializeAuth = async () => {
       try {
-        console.log('[AuthContext] SESSION EXPIRATION FIX - Setting up auth state listener...');
-        
-        // Set up auth listener FIRST - this handles all future auth changes including session expiration
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, newSession) => {
             if (!mounted) return;
 
-            console.log('[AuthContext] SESSION EXPIRATION FIX - Auth state change:', event, !!newSession?.user);
+            if (import.meta.env.DEV) console.log('[AuthContext] Auth state change:', event, !!newSession?.user);
             
-            // Handle session expiration - key fix for the redirect loop
+            // Handle session expiration
             if (event === 'SIGNED_OUT' && session && !newSession) {
-              console.log('[AuthContext] SESSION EXPIRATION FIX - Session expired or user signed out');
-              
-              // Check if this was a manual logout
               const wasManualLogout = manualLogoutRef.current;
               
               setSessionExpired(!wasManualLogout);
@@ -380,22 +291,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               setSession(null);
               
               if (wasManualLogout) {
-                // Manual logout - TopNavbar handles the toast and redirect
-                console.log('[AuthContext] Manual logout detected - suppressing toast and redirect');
-                manualLogoutRef.current = false; // Reset flag
+                manualLogoutRef.current = false;
               } else {
-                // Session expired - show toast and redirect
-                console.log('[AuthContext] Session expired - showing toast and redirecting');
                 toast({
                   title: t('auth.sessionExpiredTitle') || 'Session Expired',
                   description: t('auth.sessionExpiredDescription') || 'Please log in again',
                   variant: "destructive",
                 });
                 
-                // Clear any sensitive data
                 sessionStorage.clear();
                 
-                // Force redirect to login after a brief delay
                 setTimeout(() => {
                   window.location.href = '/login';
                 }, 1000);
@@ -406,58 +311,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             
             // Handle token refresh events
             if (event === 'TOKEN_REFRESHED' && newSession) {
-              console.log('[AuthContext] SESSION EXPIRATION FIX - Token refreshed successfully');
               setSession(newSession);
               setSessionExpired(false);
               return;
             }
             
-            // Handle successful sign in - but don't show login toast here (handled in login form)
+            // Handle successful sign in
             if (event === 'SIGNED_IN' && newSession) {
-              console.log('[AuthContext] SESSION EXPIRATION FIX - User signed in successfully');
-              // Don't show login success toast here - it's handled in the login form
               setSession(newSession);
               setSessionExpired(false);
               return;
             }
             
-            // Update session state immediately
             setSession(newSession);
             setSessionExpired(false);
             
             if (newSession?.user) {
-              // KASPER FIX: Don't set user immediately, wait for complete data
-              console.log(`[AuthContext] KASPER FIX - Starting user data fetch for:`, newSession.user.email);
+              if (import.meta.env.DEV) console.log(`[AuthContext] Starting user data fetch for:`, newSession.user.email);
               setUser(null);
               setUserDataLoaded(false);
               
-              // KASPER FIX: Fetch complete user data BEFORE setting user state
               (async () => {
                 if (!mounted) return;
                 
                 try {
-                  console.log(`[AuthContext] KASPER FIX - Fetching complete user data for:`, newSession.user.email);
                   const userData = await fetchUserData(newSession.user);
                   if (userData && mounted) {
-                    console.log('[AuthContext] KASPER FIX - Complete user data loaded, setting user:', userData);
-                    console.log('[AuthContext] KASPER FIX - About to set user state with:', {
-                      name: userData.name,
-                      email: userData.email,
-                      role: userData.role,
-                      isKasper: userData.email === 'kasper.johansen@polygongroup.com',
-                      isAdmin: userData.role === 'administrator'
-                    });
+                    if (import.meta.env.DEV) console.log('[AuthContext] Complete user data loaded:', userData.name, userData.role);
                     setUser(userData);
-                    // Add stabilization delay to ensure isDemoMode is computed correctly
                     setTimeout(() => {
                       if (mounted) {
                         setUserDataLoaded(true);
                       }
-                    }, 100); // 100ms stabilization delay for reliable state update
+                    }, 100);
                   } else {
-                    console.warn(`[AuthContext] KASPER FIX - No user data returned, using fallback`);
                     if (mounted) {
-                      // Only use fallback if we can't get real data
                       const fallbackUser: AppUser = {
                         id: newSession.user.id,
                         name: newSession.user.email || 'System User',
@@ -473,16 +361,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     }
                   }
                 } catch (error) {
-                  console.error('[AuthContext] KASPER FIX - User data fetch failed:', error);
+                  console.error('[AuthContext] User data fetch failed:', error instanceof Error ? error.message : 'Unknown error');
                   if (mounted) {
-                    // Only set fallback user if fetch completely failed
                     const fallbackUser: AppUser = {
                       id: newSession.user.id,
                       name: newSession.user.email || 'System User',
                       email: newSession.user.email || '',
                       role: 'servicemedarbejder'
                     };
-                    console.log('[AuthContext] KASPER FIX - Using fallback user due to error:', fallbackUser);
                     setUser(fallbackUser);
                     setTimeout(() => {
                       if (mounted) {
@@ -497,7 +383,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               setUserDataLoaded(false);
             }
 
-            // Mark auth as ready after first state change
             if (!initializationComplete) {
               setLoading(false);
               setAuthReady(true);
@@ -506,8 +391,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         );
 
-        // Check for existing session with timeout
-        console.log('[AuthContext] SESSION EXPIRATION FIX - Checking for existing session...');
+        if (import.meta.env.DEV) console.log('[AuthContext] Checking for existing session...');
         
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise((_, reject) => 
@@ -523,14 +407,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (!mounted) return;
 
           if (error) {
-            console.error('[AuthContext] SESSION EXPIRATION FIX - Session check error:', error);
+            console.error('[AuthContext] Session check error:', error.message);
             throw error;
           }
 
-          console.log('[AuthContext] SESSION EXPIRATION FIX - Session check result:', !!currentSession?.user);
-          
-          // If we have a session, the auth state change listener will handle it
-          // If we don't, we're done initializing
           if (!currentSession) {
             setSession(null);
             setUser(null);
@@ -544,10 +424,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           circuitBreaker.recordSuccess(AUTH_OPERATION_ID);
           
         } catch (error) {
-          console.error('[AuthContext] SESSION EXPIRATION FIX - Session check failed:', error);
+          console.error('[AuthContext] Session check failed:', error instanceof Error ? error.message : 'Unknown error');
           circuitBreaker.recordFailure(AUTH_OPERATION_ID);
           
-          // Fail gracefully
           setSession(null);
           setUser(null);
           if (!initializationComplete) {
@@ -563,7 +442,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         };
 
       } catch (error) {
-        console.error('[AuthContext] SESSION EXPIRATION FIX - Auth initialization failed:', error);
+        console.error('[AuthContext] Auth initialization failed:', error instanceof Error ? error.message : 'Unknown error');
         circuitBreaker.recordFailure(AUTH_OPERATION_ID);
         
         if (mounted) {
@@ -581,7 +460,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Force completion after maximum timeout
     const forceCompleteTimeout = setTimeout(() => {
       if (mounted && !initializationComplete) {
-        console.warn('[AuthContext] SESSION EXPIRATION FIX - Force completing auth initialization due to timeout');
+        console.warn('[AuthContext] Force completing auth initialization due to timeout');
         setLoading(false);
         setAuthReady(true);
         initializationComplete = true;
@@ -623,7 +502,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Handle demo role changes
   const handleSetDemoRole = (role: UserRole) => {
     if (isDemoMode && user) {
-      console.log(`[Demo] Role switching from ${demoRole || user.role} to ${role}`);
+      if (import.meta.env.DEV) console.log(`[Demo] Role switching from ${demoRole || user.role} to ${role}`);
       setDemoRole(role);
       sessionStorage.setItem('demo-role', role);
       
@@ -635,29 +514,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // BRIAN REUS FIX: Enhanced refresh user data function with debug logging
+  // Refresh user data
   const refreshUserData = async (): Promise<void> => {
-    if (!session?.user) {
-      console.log('[AuthContext] BRIAN REUS DEBUG - No session user for refresh');
-      return;
-    }
+    if (!session?.user) return;
     
-    console.log(`[AuthContext] BRIAN REUS DEBUG - Refreshing user data for: ${session.user.email}`);
     try {
       const refreshedUser = await fetchUserData(session.user);
       if (refreshedUser) {
-        console.log('[AuthContext] BRIAN REUS DEBUG - User data refreshed successfully:', refreshedUser);
         setUser(refreshedUser);
         setUserDataLoaded(true);
-      } else {
-        console.warn('[AuthContext] BRIAN REUS DEBUG - Refresh returned null user data');
       }
     } catch (error) {
-      console.error('[AuthContext] BRIAN REUS DEBUG - Failed to refresh user data:', error);
+      console.error('[AuthContext] Failed to refresh user data:', error instanceof Error ? error.message : 'Unknown error');
     }
   };
 
-  // AUTHENTICATION FIX: isAuthenticated based on session only, not user data
+  // isAuthenticated based on session only, not user data
   const isAuthenticated = !!session;
   
   // Permissions based on current user (with demo role override)
@@ -716,19 +588,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return true;
   };
 
-
-  // Enhanced login method with better error handling
+  // Login method
   const login = async (email: string, password: string) => {
     try {
-      console.log('[AuthProvider] COMPREHENSIVE FIX - Attempting login for:', email);
-      
       const { error } = await supabase.auth.signInWithPassword({ 
         email: email.trim().toLowerCase(), 
         password 
       });
       
       if (error) {
-        console.error('[AuthProvider] COMPREHENSIVE FIX - Login error:', error);
+        console.error('[AuthProvider] Login error:', error.message);
         return { error: error.message };
       }
       
@@ -736,28 +605,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         title: "Login Succesfuld",
         description: "Du er nu logget ind.",
       });
-      
 
-      console.log('[AuthProvider] COMPREHENSIVE FIX - Login successful');
       return { error: null };
     } catch (error: any) {
-      console.error('[AuthProvider] COMPREHENSIVE FIX - Login exception:', error);
+      console.error('[AuthProvider] Login exception:', error instanceof Error ? error.message : 'Unknown error');
       return { error: 'An unexpected error occurred during login.' };
     }
   };
 
-
-  // Enhanced logout method with session expiration support
+  // Logout method with session expiration support
   const logout = async () => {
     try {
-      console.log('[AuthProvider] SESSION EXPIRATION FIX - Logging out...');
-      
       // Mark as manual logout to prevent "session expired" toast
       manualLogoutRef.current = true;
       
       // Clean up demo data if in demo mode
       if (isDemoMode) {
-        console.log('[Demo] Cleaning up demo data on logout...');
         await demoService.cleanupDemoData();
       }
       
@@ -766,11 +629,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setSession(null);
       setSessionExpired(false);
       
-      // Clear session storage
       sessionStorage.clear();
       
     } catch (error) {
-      console.error('[AuthProvider] SESSION EXPIRATION FIX - Logout error:', error);
+      console.error('[AuthProvider] Logout error:', error instanceof Error ? error.message : 'Unknown error');
       setUser(null);
       setSession(null);
       setSessionExpired(false);
@@ -836,7 +698,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(fnError.message || 'Failed to update user role');
       }
       
-      // Refresh data after successful role update
       await refreshUserData();
       
       return { error: null };

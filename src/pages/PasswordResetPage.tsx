@@ -141,7 +141,7 @@ const PasswordResetPage: React.FC = () => {
           const searchParams = new URLSearchParams(location.search);
           const urlEmail = searchParams.get('email');
           if (urlEmail) {
-            console.log("✓ Found email in URL:", urlEmail);
+            if (import.meta.env.DEV) console.log("✓ Found email in URL:", urlEmail);
             recoveryEmail = urlEmail;
             debugData.emailInUrl = urlEmail;
           }
@@ -256,7 +256,7 @@ const PasswordResetPage: React.FC = () => {
     setLoading(true);
     
     try {
-      console.log("Requesting password reset for email:", email);
+      if (import.meta.env.DEV) console.log("Requesting password reset for email:", email);
       
       // Use edge function for reliable email delivery
       const { error } = await supabase.functions.invoke('admin-reset-password', {
