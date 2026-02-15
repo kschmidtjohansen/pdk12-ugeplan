@@ -39,6 +39,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Demo DB-skrivninger migrering (Fase 9d fortsat) - 2026-02-15
+- Migreret demo assignments CRUD fra sessionStorage (DemoUserService) til database med `is_demo: true`
+- Migreret demo bil-sletning og tilgængelighed fra lokalt til Supabase `.delete()`/`.update()`
+- Fjernet `DemoUserService.getDemoCars()` local-merge i useCarData — RLS leverer demo-data
+- Migreret warehouse demo CRUD (create/update/delete) til database med `is_demo: true`
+- Fjernet alle DemoUserService-imports fra optimizedAssignmentService, useCarActions, useCarData
+- Fjernet `convertStoredDemoToOptimized` afhængighed for nye assignments (nu via enrichAssignmentData)
+
 ### Demo-data isolering via is_demo flag (Fase 9d) - 2026-02-15
 - Tilføjet `is_demo` boolean-kolonne (default false) til 8 primære tabeller: assignments, cars, profiles, warehouse_items, vacations, on_call_duties, notifications, assignments_employees
 - Partial indexes på `is_demo WHERE is_demo = true` for hurtig filtrering
