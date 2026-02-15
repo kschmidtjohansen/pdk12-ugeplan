@@ -13,12 +13,12 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   children
 }) => {
   return (
-    <div className="bg-card rounded-xl border border-border p-6 shadow-sm mb-6">
+    <div className="bg-card rounded-2xl border border-border/50 p-6 shadow-md mb-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
           {description && (
-            <p className="text-sm text-muted-foreground">{description}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
           )}
         </div>
         {children && (

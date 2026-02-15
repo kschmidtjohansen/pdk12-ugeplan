@@ -5,7 +5,7 @@ import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { formatDateWithCapital, getDateStatus } from '@/utils/dateUtils';
 import { Button } from '@/components/ui/button';
-import { Send, ChevronDown, ChevronRight } from 'lucide-react';
+import { Send, ChevronDown, ChevronRight, CalendarX2 } from 'lucide-react';
 import AssignmentCard from './AssignmentCard';
 
 interface DaySectionProps {
@@ -71,7 +71,7 @@ const DaySection: React.FC<DaySectionProps> = ({
     <div className="w-full space-y-3">
       <div className="flex items-center justify-between">
         <div 
-          className="flex items-center cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors duration-200" 
+          className="flex items-center cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors duration-200" 
           onClick={() => onToggleExpansion(dateKey)}
           role="button"
           tabIndex={0}
@@ -85,9 +85,9 @@ const DaySection: React.FC<DaySectionProps> = ({
           aria-label={`${isExpanded ? 'Collapse' : 'Expand'} assignments for ${formattedDate}`}
         >
           {isExpanded ? (
-            <ChevronDown className="h-5 w-5 text-gray-500 mr-2 transition-transform duration-200" />
+            <ChevronDown className="h-5 w-5 text-muted-foreground mr-2 transition-transform duration-200" />
           ) : (
-            <ChevronRight className="h-5 w-5 text-gray-500 mr-2 transition-transform duration-200" />
+            <ChevronRight className="h-5 w-5 text-muted-foreground mr-2 transition-transform duration-200" />
           )}
           
           <h3 className="text-lg font-medium select-none">
@@ -128,8 +128,9 @@ const DaySection: React.FC<DaySectionProps> = ({
               />
             ))
           ) : (
-            <div className="p-4 border border-dashed rounded-md text-center text-muted-foreground">
-              {t("planner.nothingPlannedToday")}
+            <div className="py-8 px-4 border border-dashed border-border/50 rounded-xl text-center text-muted-foreground bg-muted/20">
+              <CalendarX2 className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+              <p>{t("planner.nothingPlannedToday")}</p>
             </div>
           )}
         </div>

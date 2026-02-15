@@ -39,6 +39,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Visuel polish - 2026-02-15
+- AssignmentCard: Tilføjet `hover:shadow-xl transition-all duration-200` for blød skygge-effekt ved hover
+- DaySection: Erstattet `hover:bg-gray-50` med `hover:bg-muted/50` (dark mode-korrekt) og `text-gray-500` med `text-muted-foreground` på chevron-ikoner
+- DaySection: Forbedret tom-tilstand med CalendarX2-ikon, `rounded-xl`, `bg-muted/20` baggrund og `py-8` spacing
+- PageHeader: Opgraderet typografi til `font-bold tracking-tight`, beskrivelse med `leading-relaxed`, kort med `rounded-2xl` og `shadow-md`
+
 ### Visuel konsistens-gennemgang - 2026-02-15
 - Wrappet 50+ uguardede console.log kald i `import.meta.env.DEV` guard i 5 Planner-komponenter (AssignmentCard, DaySection, EmployeeSelector, ResponsibleUserSelector, AssignmentFormFields)
 - Erstattet hardcoded `text-gray-*` farver med tema-variabler (`text-foreground`, `text-muted-foreground`, `bg-card`, `bg-muted`) i PageHeader, shared/EmptyState, CompactAssignmentRow, EmployeesList, AssignmentCard, DaySection
