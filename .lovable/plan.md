@@ -1,65 +1,116 @@
 
-## Opret 3 manglende docs-filer med fuldt indhold
 
-### Filer der oprettes
+## Visuel tema-fix + Komplet docs-mappestruktur
 
-| Fil | Indhold |
+### Del 1: Hardcoded farver i CarsTable og MobileCarCard
+
+#### CarsTable.tsx (17 erstatninger)
+
+| Linje | Fra | Til |
+|-------|-----|-----|
+| 45 | `border-gray-100` | `border-border` |
+| 46-52 | `text-gray-600 font-medium` (7 stk) | `text-muted-foreground font-medium` |
+| 57 | `border-gray-100 hover:bg-gray-50/50` | `border-border hover:bg-muted/50` |
+| 63 | `text-gray-900` | `text-foreground` |
+| 66 | `text-gray-900` | `text-foreground` |
+| 69 | `text-gray-900` | `text-foreground` |
+| 94 | `bg-gray-100 text-gray-800` | `bg-muted text-foreground` |
+| 101 | `text-gray-900` | `text-foreground` |
+| 125 | `text-gray-400` (X-ikon) | `text-muted-foreground/50` |
+| 126 | `text-gray-600` | `text-muted-foreground` |
+| 135 | `text-gray-900` | `text-foreground` |
+| 140 | `text-gray-900` | `text-foreground` |
+| 172 | `text-gray-400` (ToggleLeft) | `text-muted-foreground` |
+
+#### MobileCarCard.tsx (19 erstatninger)
+
+| Linje | Fra | Til |
+|-------|-----|-----|
+| 38 | `border-gray-100` | `border-border` |
+| 50 | `text-gray-900` | `text-foreground` |
+| 55 | `text-gray-600` | `text-muted-foreground` |
+| 74 | `text-gray-400` (ToggleLeft) | `text-muted-foreground` |
+| 125 | `text-gray-500` | `text-muted-foreground` |
+| 127 | `text-gray-900` | `text-foreground` |
+| 137 | `text-gray-500` | `text-muted-foreground` |
+| 142 | `text-gray-900` | `text-foreground` |
+| 146 | `text-gray-400` (X-ikon) | `text-muted-foreground/50` |
+| 147 | `text-gray-600` | `text-muted-foreground` |
+| 156 | `text-gray-500` | `text-muted-foreground` |
+| 157 | `bg-gray-100 text-gray-800` | `bg-muted text-foreground` |
+| 163 | `border-gray-100` | `border-border` |
+| 179 | `bg-gray-50` | `bg-muted/50` |
+| 180 | `text-gray-700` | `text-foreground` |
+| 181 | `text-gray-600` | `text-muted-foreground` |
+| 187 | `border-gray-100` | `border-border` |
+| 192 | `text-gray-900` | `text-foreground` |
+| 197 | `text-gray-900` | `text-foreground` |
+
+Semantiske farver (green-500, red-500, blue-500, orange-500) bevares, da de er funktionelle statusfarver.
+
+---
+
+### Del 2: Manglende docs-filer
+
+Eksisterende filer der allerede er udfyldt og bevares:
+- `implementation-plan/readme.md` og `tasks.md`
+- `product-roadmap/readme.md`
+- `technical-specs/readme.md`, `architecture.md`, `data-models.md`
+- `ui-guidelines/readme.md`, `component-library.md`
+
+#### Nye filer der oprettes (5 stk)
+
+**1. `docs/implementation-plan/timeline.md`**
+Milepalsplan med 3 faser:
+- Fase 1-4: Faerdiggjort 2026-02-15 (Sikkerhed, Database, Performance, UI)
+- Proveperiode: Uge 10 (2026-03-02 til 2026-03-06) -- intern test med reelle brugere
+- Udrulning: Uge 12 (2026-03-16) -- produktionslancering for foerste afdeling
+- Fremtidige afdelinger: Loebende efter uge 12
+
+**2. `docs/product-roadmap/features.md`**
+Opdelt i nuvaerende og kommende features:
+- Nuvaerende: Multi-afdeling, Chat (assignment_messages), Fil-upload, Vagtplan, Lager, Ferie, Demo mode
+- Kommende: OneDrive/SharePoint-integration, PDF-eksport, Push-notifikationer, Avanceret rapportering, Automatisk vagtfordeling
+
+**3. `docs/product-roadmap/user-personas.md`**
+Definition af alle 5 roller:
+- Super Admin: Fuld systemadgang, alle afdelinger, brugerstyring
+- Administrator (Chef): Afdelingsleder, godkender ferie, opretter opgaver
+- Skadeleder: Daglig planlaegning, vagtbytter, brændstofkort-adgang
+- Servicemedarbejder: Ser egne opgaver og kolleger, ansoeger ferie
+- Vikar: Midlertidig med udloebsdato, begranset adgang
+
+**4. `docs/technical-specs/database-schema.md`**
+Detaljeret gennemgang af tabel-relationer med fokus paa afdelingsstruktur:
+- `departments` -> `sub_departments` (1:N)
+- `user_access` junction: bruger <-> afdeling/underafdeling
+- `car_sub_departments` junction: bil <-> underafdeling
+- `assignments` -> `department_id` + `sub_department_id` (afdelingsfiltrering)
+- RLS-isolation via `can_access_department_data()`
+- Backup-rutiner: 2x dagligt (Supabase automatisk + custom)
+
+**5. `docs/ui-guidelines/design-system.md`**
+Regler for de 3 visningstyper med konkrete CSS-klasser:
+- Standard: Fuld kortvisning, `shadow-sm`, alle detaljer synlige
+- Kompakt: Tabel-layout, reduceret padding, hover-actions
+- Gitter: `md:grid-cols-3`, `line-clamp-3` paa beskrivelser
+- Farve-tokens: Komplet liste over semantiske variabler
+- Spacing-skala: `py-8` (tom tilstand), `py-12` (EmptyState), `p-4`/`p-6` (kort)
+- Breakpoints: Mobile-first, `md:` for tablet, `lg:` for desktop
+
+---
+
+### Samlet filplan
+
+| Fil | Handling |
 |-----|---------|
-| `docs/technical-specs/data-models.md` | Komplet oversigt over alle 17 tabeller, relationer, enums og RPC-funktioner |
-| `docs/technical-specs/architecture.md` | SHA256/bcrypt-kryptering, RLS-politikker, edge function sikkerhed, input-sanitering |
-| `docs/ui-guidelines/component-library.md` | Alle genbrugelige komponenter i `shared/` og `ui/` med anvendelsesmoenstre |
+| `src/components/Cars/CarsTable.tsx` | Erstat 17 hardcoded farver |
+| `src/components/Cars/MobileCarCard.tsx` | Erstat 19 hardcoded farver |
+| `docs/implementation-plan/timeline.md` | Opret med milepale |
+| `docs/product-roadmap/features.md` | Opret med nuvaerende/kommende features |
+| `docs/product-roadmap/user-personas.md` | Opret med 5 rollerbeskrivelser |
+| `docs/technical-specs/database-schema.md` | Opret med afdelingsrelationer og backup |
+| `docs/ui-guidelines/design-system.md` | Opret med visningsregler og tokens |
+| `docs/implementation-plan/tasks.md` | Tilfoej ny opgave under Fase 4 |
+| `CHANGELOG.md` | Opdater med alle aendringer |
 
-### 1. `docs/technical-specs/data-models.md`
-
-Indhold baseret paa `src/integrations/supabase/types.ts`:
-
-- **17 kernetabeller** med kolonner og typer: `assignments`, `assignment_files`, `assignment_messages`, `assignments_employees`, `cars`, `car_sub_departments`, `case_folder_mappings`, `case_onedrive_mappings`, `departments`, `notifications`, `on_call_duties`, `onedrive_settings`, `planner_change_log`, `profiles`, `sub_departments`, `user_access`, `user_roles`, `vacations`, `warehouse_items`
-- **Log-tabeller** (3 stk): `logs`, `logs_partitioned`, `logs_y2025m07/m08`
-- **System-tabeller** (1 stk): `system_cleanup_tracking`
-- **Junction-tabeller** (3 stk): `assignments_employees`, `car_sub_departments`, `user_access`
-- **5 enums**: `assignment_type`, `duty_type`, `employee_status`, `user_role`, `vacation_status`
-- **Vigtige relationer** (foreign keys) dokumenteret
-- **RPC-funktioner** grupperet: adgangskontrol (10), data-hentning (15), logging (8), validering (6), vedligeholdelse (8)
-
-### 2. `docs/technical-specs/architecture.md`
-
-Indhold baseret paa eksisterende `readme.md` og sikkerhedsaudit:
-
-- **Autentificering**: Supabase Auth med bcrypt, JWT-verifikation
-- **Kryptering**: `hmac_sha256()` database-funktion, passwords haandteret af Supabase Auth
-- **RLS-hjaelpefunktioner**: `is_admin_or_skadeleder()`, `is_super_admin()`, `can_access_department_data()`, `can_access_vacation()`, `can_user_access_assignment()`, `can_view_assignment_optimized()`
-- **Edge Functions**: 11 funktioner, JWT-krav, CORS-headers, service role key kun server-side
-- **Input-sikkerhed**: `sanitize_text_input()`, `validate_input_security()`, `check_rate_limit_security()`, `is_valid_email()`, `is_strong_password()`
-- **Fil-sikkerhed**: 20MB upload-graense, MIME-type validering
-- **Logging**: `import.meta.env.DEV` guard, `log_security_event_safe()` sparsomt, ingen secrets i output
-- **Kendte undtagelser**: `admin-reset-password` uden JWT, `profiles`/`user_roles` offentligt laesbare
-
-### 3. `docs/ui-guidelines/component-library.md`
-
-Indhold baseret paa filsystemet:
-
-**Shared-komponenter (9 stk)**:
-- `EmptyState` — Standardiseret tom-tilstand med ikon, titel, beskrivelse, valgfri action-knap
-- `CardSkeleton` — Loading-skeleton for kort
-- `TableSkeleton` — Loading-skeleton for tabeller
-- `MetricsSkeleton` — Loading-skeleton for dashboard-metrics
-- `LoadingSpinner` — Generisk loading-indikator
-- `RouteLoadingFallback` — Loading-komponent til lazy-loadede routes
-- `LastRefreshIndicator` — Viser tidspunkt for seneste data-opdatering
-- `PullToRefresh` — Pull-to-refresh wrapper til mobile listevisninger
-- `RealtimeChangeNotifier` — Toast-notifikation ved realtime-aendringer
-
-**UI-komponenter (51 stk)**: Radix UI-baserede primitiver (accordion, alert-dialog, avatar, badge, button, calendar, card, checkbox, dialog, dropdown-menu, form, input, label, popover, progress, select, separator, sheet, skeleton, sonner, switch, table, tabs, textarea, toast, tooltip, m.fl.) plus projektspecifikke: `password-input`, `secure-input`, `spinner`, `status-badge`
-
-For hver shared-komponent dokumenteres: props-interface, anvendelseseksempel, og hvilken UI-guideline den opfylder.
-
-### 4. Changelog-opdatering
-
-Tilfoej under `## [Unreleased]`:
-
-```
-### Added - 2026-02-15
-- Oprettet `docs/technical-specs/data-models.md` med komplet oversigt over 17+ tabeller, relationer, enums og 47 RPC-funktioner
-- Oprettet `docs/technical-specs/architecture.md` med SHA256/bcrypt-kryptering, RLS-politikker, edge function sikkerhed og input-sanitering
-- Oprettet `docs/ui-guidelines/component-library.md` med 9 shared-komponenter og 51 UI-primitiver inkl. props og anvendelsesmoenstre
-```
