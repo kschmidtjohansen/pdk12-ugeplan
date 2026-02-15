@@ -1,108 +1,121 @@
 
 
-## Fase 9d: Demo-data isolering via `is_demo` flag
+## Fase 9d (fortsat): pg_cron job + Demo DB-skrivninger
 
 ### Overblik
 
-Tilfoej en `is_demo` boolean-kolonne (default `false`) til alle primaere tabeller. Opdater RLS-politikker saa live-brugere ALDRIG ser demo-data. Demo-brugeren skabes med `is_demo = true` paa alle nye poster. Automatisk oprydning via `pg_cron` hvert minut (sletter `is_demo = true` aeldere end 15 minutter). RPC-funktion `reset_demo_data()` til manuel nulstilling.
+To udestaaende opgaver fra Fase 9d:
+
+1. **pg_cron job**: Automatisk oprydning af `is_demo = true` data aeldre end 15 minutter
+2. **Migrering af demo-skrivninger fra sessionStorage til database**: Flere steder bruger stadig `DemoUserService` (sessionStorage) til at gemme demo-data i stedet for at skrive til databasen med `is_demo: true`
 
 ---
 
-### 1. Database-migration: Tilfoej `is_demo` kolonne
+### 1. pg_cron job opsaetning
 
-Tabeller der faar kolonnen:
-
-| Tabel | Kolonne | Default |
-|-------|---------|---------|
-| `assignments` | `is_demo BOOLEAN DEFAULT false` | false |
-| `cars` | `is_demo BOOLEAN DEFAULT false` | false |
-| `profiles` | `is_demo BOOLEAN DEFAULT false` | false |
-| `warehouse_items` | `is_demo BOOLEAN DEFAULT false` | false |
-| `vacations` | `is_demo BOOLEAN DEFAULT false` | false |
-| `on_call_duties` | `is_demo BOOLEAN DEFAULT false` | false |
-| `notifications` | `is_demo BOOLEAN DEFAULT false` | false |
-| `assignments_employees` | `is_demo BOOLEAN DEFAULT false` | false |
-
-Eksisterende data settes til `false` via default-vaerdien. Indexes tilfojes paa `is_demo` for hurtigt filter.
-
-### 2. RLS-politikker: Beskytte live-brugere
-
-For ALLE tabeller ovenfor opdateres SELECT-policies med en ekstra betingelse:
+Koerer som SQL INSERT (ikke migration) via Supabase SQL Editor:
 
 ```text
--- Eksempel for assignments:
--- Eksisterende policy faar tilfojet:
-AND (
-  is_demo = false
-  OR auth.uid() = '165cdbc9-6722-4c96-97d2-1a87185c8133'
-)
-```
+-- Aktiver pg_cron og pg_net extensions (hvis ikke allerede)
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+CREATE EXTENSION IF NOT EXISTS pg_net;
 
-Logik: `is_demo`-data er KUN synligt for demo-brugeren (ID `165cdbc9...`). Alle andre brugere ser automatisk kun `is_demo = false`.
-
-INSERT-policies for demo-brugeren tillader `is_demo = true`.
-
-### 3. RPC-funktioner
-
-#### `reset_demo_data()`
-Sletter alle raekker hvor `is_demo = true` paa tvaers af alle tabeller. Returnerer antal slettede per tabel.
-
-#### `cleanup_demo_data_ttl()`
-Sletter raekker hvor `is_demo = true AND created_at < NOW() - INTERVAL '15 minutes'`. Kaldt af pg_cron.
-
-### 4. pg_cron job
-
-Koerer hvert minut:
-
-```text
+-- Schedule: kald cleanup_demo_data_ttl() hvert minut
 SELECT cron.schedule(
   'cleanup-demo-data-ttl',
   '* * * * *',
-  $$ SELECT reset_demo_ttl_data(); $$
+  $$ SELECT cleanup_demo_data_ttl(); $$
 );
 ```
 
-### 5. Frontend-aendringer
+### 2. Demo-skrivninger: sessionStorage til database
 
-#### Beroorte filer og aendringer
+Foelgende kodestier bruger stadig `DemoUserService` (sessionStorage) og skal migreres til at skrive direkte til databasen med `is_demo: true`:
+
+| Fil | Nuvaerende adfaerd | Ny adfaerd |
+|-----|-------------------|-----------|
+| `src/services/optimizedAssignmentService.ts` (createAssignment, linje 521-551) | Gemmer i `DemoUserService.storeDemoAssignment()` | Skriver til `assignments`-tabellen med `is_demo: true` via Supabase |
+| `src/services/optimizedAssignmentService.ts` (updateAssignment, linje 597-620) | Opdaterer i `DemoUserService` | Opdaterer via Supabase `.update()` |
+| `src/services/optimizedAssignmentService.ts` (deleteAssignment, linje ~650+) | Sletter fra `DemoUserService` | Sletter via Supabase `.delete()` |
+| `src/services/optimizedAssignmentService.ts` (fetchAllAssignments, linje 307-311) | Merger baseline + `DemoUserService.getDemoAssignments()` | Fjern local-merge; RPC returnerer allerede `is_demo`-data for demo-brugeren via RLS |
+| `src/hooks/car/useCarActions.ts` (confirmDelete, linje 40-72) | Sletter fra `DemoUserService.deleteDemoCar()` | Sletter via Supabase `.delete()` med `.eq('id', carId)` |
+| `src/hooks/car/useCarData.ts` (fetchCarsFn, linje 51-52) | Merger baseline + `DemoUserService.getDemoCars()` | Fjern local-merge; RPC/query returnerer allerede demo-data via RLS |
+| `src/hooks/warehouse/useWarehouseActions.ts` (createItem, linje 34-38) | Kalder `localHandlers.addLocalItem()` (kun lokal state) | Skriver til `warehouse_items` med `is_demo: true` via Supabase |
+| `src/hooks/warehouse/useWarehouseActions.ts` (updateItem, linje 103-107) | Kalder `localHandlers.updateLocalItem()` | Opdaterer via Supabase |
+| `src/hooks/warehouse/useWarehouseActions.ts` (deleteItem, linje 161-165) | Kalder `localHandlers.deleteLocalItem()` | Sletter via Supabase |
+
+### 3. Beroorte filer (samlet)
 
 | Fil | Aendring |
 |-----|---------|
-| `src/hooks/useOptimizedAssignments.ts` | I `createAssignment`: tilfoej `is_demo: true` til payload naar `isDemoMode` |
-| `src/hooks/assignment/useAssignmentActions.ts` | I `createAssignment`: tilfoej `is_demo: isDemoMode` til Supabase INSERT |
-| `src/hooks/car/useCarData.ts` | I `createCar`: tilfoej `is_demo: true` til Supabase INSERT naar demo |
-| `src/hooks/employee/useEmployeeCreation.ts` | I `createUserDirectly` og `createEmployee`: tilfoej `is_demo: true` til profiles INSERT naar demo |
-| `src/hooks/warehouse/useWarehouseData.ts` | I `addLocalItem`: tilfoej `is_demo: true` naar demo |
-| `src/hooks/vacation/useVacationActions.ts` | I opret-ferie: tilfoej `is_demo: true` naar demo |
-| `src/hooks/duty/useDutyActions.ts` | I opret-vagt: tilfoej `is_demo: true` naar demo |
-| `src/hooks/employee/useEmployeeData.ts` | I live-mode: tilfoej `.eq('is_demo', false)` til profiles-query |
-| `src/hooks/car/useCarData.ts` | I live-mode: filtrering haandteres af RLS, men tilfoej eksplicit `.eq('is_demo', false)` som ekstra sikkerhed |
-| `src/hooks/warehouse/useWarehouseData.ts` | I live-mode: tilfoej `.eq('is_demo', false)` |
-| `src/hooks/vacation/useVacationData.ts` | I live-mode: tilfoej `.eq('is_demo', false)` via `enhancedDataFetching` |
-| `src/services/enhancedDataFetching.ts` | Tilfoej `.eq('is_demo', false)` til alle live-mode queries |
-| `src/services/optimizedAssignmentService.ts` | RPC haandterer filtrering; live RPC allerede bag RLS |
-| `src/hooks/duty/useDutyData.ts` | I live-mode: tilfoej `.eq('is_demo', false)` |
-| `src/hooks/data/useUnifiedData.ts` | I live-mode: tilfoej `.eq('is_demo', false)` via unifiedDataService |
-| `src/services/data/unifiedDataService.ts` | Tilfoej `.eq('is_demo', false)` til alle queries |
-| `src/hooks/useDemoAutoCleanup.ts` | Brug `reset_demo_data()` RPC i stedet for sessionStorage cleanup |
-| `src/constants/demo.ts` | Behold eksisterende; `isDemoNonHomeDepartment` forbliver for afdelingsfiltrering |
-| `CHANGELOG.md` | Dokumenter alle aendringer |
-| `docs/implementation-plan/tasks.md` | Tilfoej Fase 9d markeret [x] |
+| `src/services/optimizedAssignmentService.ts` | Erstat demo sessionStorage-logik med DB-skrivninger (`is_demo: true`). Fjern `DemoUserService`-import og -kald. I `fetchAllAssignments` demo-blok: fjern local-merge |
+| `src/hooks/car/useCarActions.ts` | Erstat `DemoUserService`-sletning med Supabase `.delete()` |
+| `src/hooks/car/useCarData.ts` | Fjern `DemoUserService.getDemoCars()` merge i demo fetch |
+| `src/hooks/warehouse/useWarehouseActions.ts` | I demo-mode: skriv til DB med `is_demo: true` i stedet for lokale handlers |
+| `CHANGELOG.md` | Dokumenter aendringer |
 
-### 6. Kvalitetstjek (jf. Knowledge)
+### 4. Teknisk implementering
 
-- Overholder tekniske specifikationer: RLS-politikker opdateret korrekt
-- Ingen foelsom logging tilfojet i produktion
-- UI-guidelines upaavirkede (ingen visuelle aendringer)
-- Alle aendringer dokumenteres i CHANGELOG.md og implementation-plan
-- Live-brugere er 100% beskyttet mod demo-data via baade RLS OG eksplicit query-filtrering (defense in depth)
+#### OptimizedAssignmentService.createAssignment (demo-blok):
 
-### 7. Raekkefoelge for implementering
+```text
+// FØR: DemoUserService.getInstance().storeDemoAssignment(...)
+// EFTER:
+const { employees, ...assignmentInsert } = assignmentData;
+assignmentInsert.is_demo = true;
+const { data, error } = await supabase.from('assignments').insert(assignmentInsert).select().single();
+if (error) throw error;
+// Link employees med is_demo: true
+if (employees?.length) {
+  await supabase.from('assignments_employees').insert(
+    employees.map(uid => ({ assignment_id: data.id, user_id: uid, is_demo: true }))
+  );
+}
+```
 
-1. Database-migration (tilfoej kolonner + indexes)
-2. RLS-politikker (opdater eksisterende + tilfoej demo-specifikke)
-3. RPC-funktioner (`reset_demo_data`, `cleanup_demo_data_ttl`)
-4. pg_cron job (via SQL INSERT, ikke migration)
-5. Frontend hooks (tilfoej `is_demo` til INSERT + `.eq('is_demo', false)` til SELECT)
-6. Dokumentation (CHANGELOG + tasks.md)
+#### OptimizedAssignmentService.fetchAllAssignments (demo-blok):
 
+```text
+// FØR: merger baseline RPC + DemoUserService.getDemoAssignments()
+// EFTER: kun RPC-data (RLS tillader allerede demo-brugeren at se is_demo=true)
+const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
+return data ? this.convertDemoAssignments(data) : [];
+// Ingen local-merge nødvendig
+```
+
+#### useWarehouseActions.createItem (demo-blok):
+
+```text
+// FØR: localHandlers?.addLocalItem?.(data)
+// EFTER:
+const { data: { user } } = await supabase.auth.getUser();
+await supabase.from('warehouse_items').insert({
+  ...data,
+  created_by: user?.id,
+  department_id: selectedDepartmentId || null,
+  sub_department_id: selectedSubDepartmentId || null,
+  is_demo: true,
+});
+queryClient.invalidateQueries({ queryKey: ['warehouse-items'] });
+```
+
+### 5. Logging-haandtering (jf. Knowledge)
+
+- Alle nye `console.log` wraps i `import.meta.env.DEV`
+- Ingen foelsom data logges (ingen bruger-ID, email, passwords)
+- `console.error` beholdes for fejlhaandtering
+
+### 6. Kvalitetstjek
+
+- Live-brugere forbliver 100% beskyttet via RESTRICTIVE RLS-politikker
+- Demo-data gemmes nu i databasen og ryddes automatisk via pg_cron
+- sessionStorage-afhaengighed elimineres for datapersistering
+- Afdelingsisolering (Fase 9c) forbliver intakt via `isDemoNonHomeDepartment`
+
+### 7. Raekkefoelge
+
+1. pg_cron job (via SQL INSERT)
+2. Opdater `optimizedAssignmentService.ts` (create/update/delete/fetch)
+3. Opdater `useCarActions.ts` og `useCarData.ts`
+4. Opdater `useWarehouseActions.ts`
+5. Dokumentation (CHANGELOG.md)
